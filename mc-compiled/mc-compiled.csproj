@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F591FCB1-4CA6-4F65-B840-52807BB08190}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>mc_compiled</RootNamespace>
+    <AssemblyName>mc-compiled</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Commands\CommandLimits.cs" />
+    <Compile Include="Modding\BehaviorPack.cs" />
+    <Compile Include="Modding\Manifest.cs" />
+    <Compile Include="Modding\StructureFile.cs" />
+    <Compile Include="Modding\UUID.cs" />
+    <Compile Include="Commands\BlockCheck.cs" />
+    <Compile Include="Commands\Limits\Area.cs" />
+    <Compile Include="Commands\CoordinateValue.cs" />
+    <Compile Include="Commands\Limits\Count.cs" />
+    <Compile Include="Commands\Limits\Entity.cs" />
+    <Compile Include="Commands\Limits\Player.cs" />
+    <Compile Include="Commands\Limits\Tag.cs" />
+    <Compile Include="Commands\Native\Block.cs" />
+    <Compile Include="Commands\Native\Enchantment.cs" />
+    <Compile Include="Commands\Native\ItemStack.cs" />
+    <Compile Include="Commands\Range.cs" />
+    <Compile Include="Commands\Limits\Scores.cs" />
+    <Compile Include="Commands\Selector.cs" />
+    <Compile Include="Json\RawTextJsonBuilder.cs" />
+    <Compile Include="Json\RawTextJsonTerms.cs" />
+    <Compile Include="MCC\CodeReader.cs" />
+    <Compile Include="MCC\Compiler.cs" />
+    <Compile Include="MCC\Definitions.cs" />
+    <Compile Include="MCC\Dynamic.cs" />
+    <Compile Include="MCC\Executor.cs" />
+    <Compile Include="MCC\Macro.cs" />
+    <Compile Include="MCC\MCFunction.cs" />
+    <Compile Include="MCC\Operator.cs" />
+    <Compile Include="MCC\TokensMC.cs" />
+    <Compile Include="NBT\BlockIndicesNBT.cs" />
+    <Compile Include="NBT\EnchantNBT.cs" />
+    <Compile Include="NBT\EntityListNBT.cs" />
+    <Compile Include="NBT\EntityNBT.cs" />
+    <Compile Include="NBT\FileWriterNBT.cs" />
+    <Compile Include="NBT\ItemNBT.cs" />
+    <Compile Include="NBT\ItemTagNBT.cs" />
+    <Compile Include="NBT\NBTByteArray.cs" />
+    <Compile Include="NBT\NBTCompound.cs" />
+    <Compile Include="NBT\NBTDouble.cs" />
+    <Compile Include="NBT\NBTFloat.cs" />
+    <Compile Include="NBT\NBTInt.cs" />
+    <Compile Include="NBT\NBTIntArray.cs" />
+    <Compile Include="NBT\NBTList.cs" />
+    <Compile Include="NBT\NBTLong.cs" />
+    <Compile Include="NBT\NBTLongArray.cs" />
+    <Compile Include="NBT\NBTShort.cs" />
+    <Compile Include="NBT\NBTByte.cs" />
+    <Compile Include="NBT\NBTNode.cs" />
+    <Compile Include="NBT\NBTEnd.cs" />
+    <Compile Include="NBT\NBTString.cs" />
+    <Compile Include="NBT\PaletteEntryNBT.cs" />
+    <Compile Include="NBT\PaletteNBT.cs" />
+    <Compile Include="NBT\RotationNBT.cs" />
+    <Compile Include="NBT\StructureNBT.cs" />
+    <Compile Include="NBT\VectorIntNBT.cs" />
+    <Compile Include="NBT\VectorNBT.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MCC\Token.cs" />
+    <Compile Include="MCC\TokensPreprocessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
