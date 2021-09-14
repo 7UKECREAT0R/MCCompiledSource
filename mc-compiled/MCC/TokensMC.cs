@@ -895,4 +895,68 @@ namespace mc_compiled.MCC
             caller.FinishRaw(command);
         }
     }
+    public class TokenTP : Token
+    {
+        string target = null;
+
+        string
+            x = null,
+            y = null,
+            z = null;
+        string
+            xRot = null,
+            yRot = null;
+        public TokenTP(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.TP;
+
+            if(string.IsNullOrWhiteSpace(text))
+                throw new TokenException(this, "Insufficient arguments.");
+
+            string[] args = text.Split(' ');
+
+            if (args.Length == 1 || text.StartsWith("@") || CoordinateValue.Parse(args[0]) == null)
+            {
+                target = text;
+                return;
+            }
+
+            if (args.Length < 3)
+                throw new TokenException(this, "Insufficient arguments.");
+
+            string x = args[0];
+            string y = args[1];
+            string z = args[2];
+
+            if(args.Length > 4)
+            {
+                xRot = args[3];
+                yRot = args[4];
+            }
+        }
+        public override string ToString()
+        {
+            if (target != null)
+                return $"Teleport to {target}";
+            else
+            {
+                if(yRot != null)
+                    return $"Teleport to {x} {y} {z} rotated {xRot} {yRot}";
+                else return $"Teleport to {x} {y} {z}";
+            }
+        }
+        public override void Execute(Executor caller)
+        {
+            if(target == null)
+            {
+
+            } else
+            {
+                string t = caller.ReplacePPV(target);
+
+            }
+            return;
+        }
+    }
 }
