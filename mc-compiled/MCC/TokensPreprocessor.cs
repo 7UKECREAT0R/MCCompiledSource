@@ -624,7 +624,7 @@ namespace mc_compiled.MCC
         }
         public override string ToString()
         {
-            return $"[PP] Call macro '{name}' with {args.Length} argument(s)";
+            return $"[PP] Call/Define macro '{name}' with {args.Length} argument(s)";
         }
     }
     public class TokenPPFRIENDLY : Token
