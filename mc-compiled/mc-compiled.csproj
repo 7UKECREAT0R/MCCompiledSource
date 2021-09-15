@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandLimits.cs" />
+    <Compile Include="MCC\TokenFeeder.cs" />
     <Compile Include="Modding\BehaviorPack.cs" />
     <Compile Include="Modding\Manifest.cs" />
     <Compile Include="Modding\StructureFile.cs" />

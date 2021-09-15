@@ -18,7 +18,7 @@ namespace mc_compiled.MCC
         {
             return "SERIOUS PROBLEM";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             return;
         }
@@ -36,26 +36,27 @@ namespace mc_compiled.MCC
         {
             return "COMMENT: " + comment;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             return;
         }
     }
     public class TokenBlock : Token
     {
-        public readonly Token[] contents;
+        public readonly TokenFeeder contents;
         public TokenBlock(Token[] contents)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.BLOCK;
-            this.contents = contents;
+            this.contents = new TokenFeeder(contents);
         }
         public override string ToString()
         {
-            return "Block with " + contents.Length + " elements in it.";
+            return "Block with " + contents.length + " elements in it.";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
+            contents.Reset();
             caller.RunSection(contents);
         }
     }
@@ -74,7 +75,7 @@ namespace mc_compiled.MCC
             name = expression.Substring(0, index);
             value = Dynamic.Parse(expression.Substring(index + 1));
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (value.type == Dynamic.Type.STRING &&
             caller.ppv.TryGetValue(value.data.s, out Dynamic live))
@@ -98,7 +99,7 @@ namespace mc_compiled.MCC
             type = TOKENTYPE.PPINC;
             this.varName = varName;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if(caller.ppv.TryGetValue(varName, out Dynamic value))
             {
@@ -125,7 +126,7 @@ namespace mc_compiled.MCC
             type = TOKENTYPE.PPDEC;
             this.varName = varName;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(varName, out Dynamic value))
             {
@@ -166,7 +167,7 @@ namespace mc_compiled.MCC
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(varName, out Dynamic value))
             {
@@ -212,7 +213,7 @@ namespace mc_compiled.MCC
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(varName, out Dynamic value))
             {
@@ -258,7 +259,7 @@ namespace mc_compiled.MCC
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(varName, out Dynamic value))
             {
@@ -304,7 +305,7 @@ namespace mc_compiled.MCC
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(varName, out Dynamic value))
             {
@@ -350,7 +351,7 @@ namespace mc_compiled.MCC
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(varName, out Dynamic value))
             {
@@ -379,8 +380,6 @@ namespace mc_compiled.MCC
         public Dynamic constantA, constantB;
         public Operator comparison;
 
-        public bool output;
-
         public TokenPPIF(string expression)
         {
             line = Compiler.CURRENT_LINE;
@@ -398,20 +397,43 @@ namespace mc_compiled.MCC
             if(comparison == null)
                 throw new TokenException(this, $"Invalid comparison operator \"{parts[1]}\"");
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            Dynamic a = constantA;
-            Dynamic b = constantB;
+            Token potential = tokens.Peek();
+            if(potential != null && potential is TokenBlock)
+            {
+                TokenBlock runBlock = potential as TokenBlock;
+                
+                Dynamic a = constantA;
+                Dynamic b = constantB;
 
-            if(a.type == Dynamic.Type.STRING &&
-            caller.ppv.TryGetValue(a.data.s, out Dynamic aAlt))
-                a = aAlt;
+                if (a.type == Dynamic.Type.STRING &&
+                caller.ppv.TryGetValue(a.data.s, out Dynamic aAlt))
+                    a = aAlt;
 
-            if (b.type == Dynamic.Type.STRING &&
-            caller.ppv.TryGetValue(b.data.s, out Dynamic bAlt))
-                b = bAlt;
+                if (b.type == Dynamic.Type.STRING &&
+                caller.ppv.TryGetValue(b.data.s, out Dynamic bAlt))
+                    b = bAlt;
 
-            output = comparison.Compare(a, b);
+                if (comparison.Compare(a, b))
+                    runBlock.Execute(caller, null);
+                else
+                {
+                    // Search for PPELSE statement and block.
+                    potential = tokens.Peek();
+                    if (potential == null)
+                        return;
+                    if (!(potential is TokenPPELSE))
+                        return;
+                    tokens.Next();
+                    potential = tokens.Peek();
+                    if (potential == null || !(potential is TokenBlock))
+                        throw new TokenException(this, "No block after PPELSE statement.");
+                    TokenBlock elseBlock = tokens.Next() as TokenBlock;
+                    elseBlock.Execute(caller, null);
+                }
+
+            } else throw new TokenException(this, "No block after PPIF statement.");
         }
         public override string ToString()
         {
@@ -425,7 +447,7 @@ namespace mc_compiled.MCC
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPELSE;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             return;
         }
@@ -438,8 +460,6 @@ namespace mc_compiled.MCC
     {
         readonly string amount;
 
-        public int output = 0;
-
         public TokenPPREP(string amount)
         {
             line = Compiler.CURRENT_LINE;
@@ -447,7 +467,7 @@ namespace mc_compiled.MCC
 
             this.amount = amount;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             int count = 0;
 
@@ -460,7 +480,13 @@ namespace mc_compiled.MCC
             else if (!int.TryParse(amount, out count))
                 throw new TokenException(this, $"PPREP input couldn't be parsed. \"{amount}\"");
 
-            output = count;
+            Token potentialBlock = tokens.Peek();
+            if(potentialBlock != null && potentialBlock is TokenBlock)
+            {
+                TokenBlock block = tokens.Next() as TokenBlock;
+                for (int r = 0; r < count; r++)
+                    block.Execute(caller, null);
+            } else throw new TokenException(this, "No block after PPREP statement.");
             return;
         }
         public override string ToString()
@@ -479,7 +505,7 @@ namespace mc_compiled.MCC
 
             this.text = text;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string temp = caller.ReplacePPV(text);
             Console.WriteLine("[LOG] {0}", temp);
@@ -496,11 +522,11 @@ namespace mc_compiled.MCC
         public TokenPPFILE(string fileOffset)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPFILE;
+            type = TOKENTYPE.UNKNOWN; // TODO
 
             this.fileOffset = fileOffset;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string temp = caller.ReplacePPV(fileOffset);
             caller.NewFileOffset(temp);
@@ -536,9 +562,24 @@ namespace mc_compiled.MCC
                     Compiler.guessedPPValues.Add(arg);
             }
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            // Definition case is handled at root executor, so this is an invocation.
+            // Macro definition case.
+            Token potentialBlock = tokens.Peek();
+            if(potentialBlock != null && potentialBlock is TokenBlock)
+            {
+                TokenBlock block = tokens.Next() as TokenBlock;
+                Macro macro = new Macro(name, args, block.contents.GetArray());
+
+                if (caller.debug)
+                    Console.WriteLine("Defined macro '{0}' with {1} argument(s) and {2} statements inside.",
+                        name, args.Length, block.contents.length);
+
+                caller.macros.Add(name.Trim().ToUpper(), macro);
+                return;
+            }
+            
+            // Macro call case.
             if(caller.macros.TryGetValue(name.Trim().ToUpper(), out Macro find))
             {
                 if (args.Length < find.args.Length)
@@ -571,7 +612,7 @@ namespace mc_compiled.MCC
 
                 int previousHash = caller.currentMacroHash;
                 caller.currentMacroHash = hash;
-                caller.RunSection(find.execute);
+                caller.RunSection(new TokenFeeder(find.execute));
                 caller.currentMacroHash = previousHash;
 
                 // Return argument-passed variables to how they were before the macro call.
@@ -597,7 +638,7 @@ namespace mc_compiled.MCC
 
             this.variable = variable.Trim();
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if(caller.ppv.TryGetValue(variable, out Dynamic value))
             {
@@ -634,7 +675,7 @@ namespace mc_compiled.MCC
 
             this.variable = variable.Trim();
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(variable, out Dynamic value))
             {
@@ -663,7 +704,7 @@ namespace mc_compiled.MCC
 
             this.variable = variable.Trim();
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if (caller.ppv.TryGetValue(variable, out Dynamic value))
             {

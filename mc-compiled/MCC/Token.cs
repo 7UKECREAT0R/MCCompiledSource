@@ -11,7 +11,7 @@ namespace mc_compiled.MCC
         public TOKENTYPE type;
         public int line = -1;
 
-        public abstract void Execute(Executor caller);
+        public abstract void Execute(Executor caller, TokenFeeder tokens);
     }
     public class TokenException : Exception
     {

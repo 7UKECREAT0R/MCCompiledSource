@@ -28,7 +28,7 @@ namespace mc_compiled.MCC
         public readonly bool debug;
         public readonly Dictionary<string, Dynamic> ppv;
         public readonly Dictionary<string, Macro> macros;
-        public readonly Token[] tokens;
+        public readonly TokenFeeder tokens;
 
         public Stack<Selector> selection;
         public List<string> valueCache;
@@ -196,7 +196,7 @@ namespace mc_compiled.MCC
                 core = Selector.Core.s
             });
 
-            this.tokens = tokens;
+            this.tokens = new TokenFeeder(tokens);
 
             ppv["_compilerversion"] = new Dynamic(MCC_VERSION);
             ppv["_mcversion"] = new Dynamic(MCC_VERSION);
@@ -216,97 +216,18 @@ namespace mc_compiled.MCC
         /// Run a set of tokens.
         /// </summary>
         /// <param name="tokens"></param>
-        public void RunSection(Token[] tokens)
+        public void RunSection(TokenFeeder tokens)
         {
             try
             {
-                for(int i = 0; i < tokens.Length; i++)
+                while(tokens.HasNext())
                 {
-                    Token token = tokens[i];
+                    Token token = tokens.Next();
 
-                    if (token is TokenPPMACRO && i + 1 < tokens.Length)
-                    {
-                        Token next = tokens[i + 1];
-                        if (next is TokenBlock)
-                        {
-                            i++;
-                            // This is a macro definition
-                            TokenPPMACRO ppm = token as TokenPPMACRO;
-                            TokenBlock block = next as TokenBlock;
-                            Macro macro = new Macro(ppm.name, ppm.args, block.contents);
-
-                            if (debug)
-                                Console.WriteLine("Defined macro '{0}' with {1} argument(s) and {2} statements inside.",
-                                    ppm.name, ppm.args.Length, block.contents.Length);
-
-                            macros.Add(ppm.name.ToUpper(), macro);
-                            continue;
-                        }
-                    }
-
-                    // Set up prefix for this statement.
                     if(selection.Count > 1)
                         SetRaw(selection.Peek().GetAsPrefix());
 
-                    // The big man execute. For block requiring statements this will setup and resolve their contents.
-                    token.Execute(this);
-
-                    if(token is TokenIF && i + 1 < tokens.Length)
-                    {
-                        Token next = tokens[++i];
-                        if (!(next is TokenBlock))
-                            throw new TokenException(token, "No block after IF statement.");
-                        (next as TokenBlock).Execute(this);
-                        PopSelectionStack();
-
-                        if (i + 1 < tokens.Length && (next = tokens[i + 1]) is TokenELSE)
-                        {
-                            i++;
-                            next = tokens[++i];
-                            if (!(next is TokenBlock))
-                                throw new TokenException(token, "No block after PPELSE statement.");
-                            TokenIF tokenIf = token as TokenIF;
-                            tokenIf.forceInvert = true;
-                            tokenIf.Execute(this);
-                            tokenIf.forceInvert = false;
-                            (next as TokenBlock).Execute(this);
-                            PopSelectionStack();
-                            continue;
-                        }  
-                    } else if (token is TokenPPIF && i + 1 < tokens.Length)
-                    {
-                        bool result = (token as TokenPPIF).output;
-                        Token next = tokens[++i];
-                        if (!(next is TokenBlock))
-                            throw new TokenException(token, "No block after PPIF statement.");
-
-                        if (result)
-                            (next as TokenBlock).Execute(this);
-
-                        if(i + 1 < tokens.Length)
-                        {
-                            next = tokens[i + 1];
-                            if (next is TokenPPELSE)
-                            {
-                                i++; next = tokens[++i];
-                                if (!(next is TokenBlock))
-                                    throw new TokenException(token, "No block after PPELSE statement.");
-                                if(!result)
-                                    (next as TokenBlock).Execute(this);
-                                continue;
-                            }
-                        }
-                        continue;
-                    } else if (token is TokenPPREP && i + 1 < tokens.Length)
-                    {
-                        int repetitions = (token as TokenPPREP).output;
-                        Token next = tokens[++i];
-                        if (!(next is TokenBlock))
-                            throw new TokenException(token, "No block after PPREP statement.");
-
-                        for (int r = 0; r < repetitions; r++)
-                            (next as TokenBlock).Execute(this);
-                    }
+                    token.Execute(this, tokens);
                 }
             } catch(TokenException texc)
             {

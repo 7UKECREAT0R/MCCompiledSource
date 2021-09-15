@@ -26,7 +26,7 @@ namespace mc_compiled.MCC
         {
             return $"Run /{command}";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string output = caller.ReplacePPV(command);
             caller.FinishRaw(output);
@@ -47,7 +47,7 @@ namespace mc_compiled.MCC
         {
             return $"Select @{selectCore}";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             caller.selection.Peek().core = selectCore;
         }
@@ -95,7 +95,7 @@ namespace mc_compiled.MCC
 
             return terms;
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string output = caller.ReplacePPV(text);
 
@@ -122,7 +122,7 @@ namespace mc_compiled.MCC
         {
             return $"Print to Selected \"{text}\"";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string output = caller.ReplacePPV(text);
 
@@ -152,7 +152,7 @@ namespace mc_compiled.MCC
         {
             return none ? "Limit any count" : $"Limit {limit}";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string output = caller.ReplacePPV(limit);
 
@@ -192,7 +192,7 @@ namespace mc_compiled.MCC
         {
             return $"Define value {valueName}";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string output = caller.ReplacePPV(valueName);
 
@@ -220,7 +220,7 @@ namespace mc_compiled.MCC
         {
             return $"Initialize value {valueName}";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string output = caller.ReplacePPV(valueName);
 
@@ -343,7 +343,7 @@ namespace mc_compiled.MCC
         {
             return $"Perform value operation {valueName} {OperationString(operation)} {(bIsConstant ? constantB.ToString() : valueB)}";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             string sourceValue = caller.ReplacePPV(valueName);
             string secondValue = bIsConstant ? null : caller.ReplacePPV(valueB);
@@ -701,7 +701,7 @@ namespace mc_compiled.MCC
         {
             return $"If {eval}:";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             Selector next = caller.PushSelectionStack();
             for (int i = 0; i < statements.Count; i++)
@@ -728,7 +728,32 @@ namespace mc_compiled.MCC
                     throw e;
                 }
             }
-            return;
+
+            if (forceInvert)
+                return;
+
+            Token potentialBlock = tokens.Peek();
+            if(potentialBlock != null && potentialBlock is TokenBlock)
+            {
+                TokenBlock block = tokens.Next() as TokenBlock;
+                block.Execute(caller, null);
+                caller.PopSelectionStack();
+
+                Token potentialElse = tokens.Peek();
+                if (potentialElse == null || !(potentialElse is TokenELSE))
+                    return;
+                tokens.Next();
+                potentialBlock = tokens.Peek();
+                if(potentialBlock == null || !(potentialBlock is TokenBlock))
+                    throw new TokenException(this, "No block after ELSE statement.");
+                TokenBlock elseBlock = tokens.Next() as TokenBlock;
+                forceInvert = true;
+                Execute(caller, null);
+                forceInvert = false;
+                elseBlock.Execute(caller, null);
+                caller.PopSelectionStack();
+                return;
+            } else throw new TokenException(this, "No block after IF statement.");
         }
     }
     public class TokenELSE : Token
@@ -742,7 +767,7 @@ namespace mc_compiled.MCC
         {
             return $"Otherwise:";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             return;
         }
@@ -763,7 +788,6 @@ namespace mc_compiled.MCC
         List<Enchantment> enchants = new List<Enchantment>();
         string displayName;
 
-        bool structureExists;
         bool useStructure;  // If a structure needs to be loaded
         public TokenGIVE(string text)
         {
@@ -830,7 +854,7 @@ namespace mc_compiled.MCC
         {
             return $"Give {preview}";
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if(useStructure)
             {
@@ -946,7 +970,7 @@ namespace mc_compiled.MCC
                 else return $"Teleport to {x} {y} {z}";
             }
         }
-        public override void Execute(Executor caller)
+        public override void Execute(Executor caller, TokenFeeder tokens)
         {
             if(target == null)
             {
