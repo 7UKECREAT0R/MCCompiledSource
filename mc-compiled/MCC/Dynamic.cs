@@ -9,58 +9,89 @@ namespace mc_compiled.MCC
 {
     public struct Dynamic
     {
+        /// <summary>
+        /// Base type of the variable data.
+        /// </summary>
         public enum Type
         {
             INTEGER, DECIMAL, STRING
         }
+        /// <summary>
+        /// The alternate, more specific type of this variable.
+        /// </summary>
+        public enum AltType
+        {
+            NONE,           // altdata:                         | Regular Variable
+            DECIMAL,        // altdata: precision               | Fixed-point decimal number.
+            POINT,          // altdata:                         | 2D Integral Point
+            VECTOR,         // altdata: ghost entity id         | 3D Ingame Location (Armor Stand)
+            STRUCT,         // altdata: struct defined index    | Struct Reference
+            COLOR,          // altdata:                         | RGB Color
+        }
+        /// <summary>
+        /// The data held in this variable.
+        /// </summary>
         public struct Data
         {
             public long i;
             public double d;
             public string s;
+
+            // Modifier data for AltType
+            public long altData;
         }
 
         public Type type;
+        public AltType alt;
         public Data data;
 
-        private Dynamic(Type type, Data data)
+        private Dynamic(Type type, Data data, AltType alt = AltType.NONE)
         {
             this.type = type;
+            this.alt = alt;
             this.data = data;
         }
         public Dynamic(int i)
         {
             type = Type.INTEGER;
+            alt = AltType.NONE;
             data.i = i;
             data.d = i;
             data.s = i.ToString();
+            data.altData = 0;
         }
         public Dynamic(long i)
         {
             type = Type.INTEGER;
+            alt = AltType.NONE;
             data.i = i;
             data.d = i;
             data.s = i.ToString();
+            data.altData = 0;
         }
         public Dynamic(double d)
         {
             type = Type.DECIMAL;
+            alt = AltType.NONE;
             data.d = d;
             data.i = (int)d;
             data.s = d.ToString();
+            data.altData = 0;
         }
         public Dynamic(string str)
         {
             type = Type.STRING;
+            alt = AltType.NONE;
             data.s = str;
             data.i = 0;
             data.d = 0;
+            data.altData = 0;
         }
 
         public static Dynamic operator ++(Dynamic a)
         {
             if (a.type == Type.STRING)
-                throw new Exception("Cannot PPINC a string variable.");
+                throw new Exception("Cannot increment a string variable.");
             a.data.i++;
             a.data.d += 1.0;
             a.data.s = a.data.i.ToString();
@@ -69,7 +100,7 @@ namespace mc_compiled.MCC
         public static Dynamic operator --(Dynamic a)
         {
             if (a.type == Type.STRING)
-                throw new Exception("Cannot PPDEC a string variable.");
+                throw new Exception("Cannot decrement a string variable.");
             a.data.i--;
             a.data.d -= 1.0;
             a.data.s = a.data.i.ToString();

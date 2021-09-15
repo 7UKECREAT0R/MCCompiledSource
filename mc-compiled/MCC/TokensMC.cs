@@ -972,13 +972,41 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if(target == null)
+            string sel = '@' + caller.SelectionReference.ToString();
+            if (target == null)
             {
-
-            } else
+                string _x = caller.ReplacePPV(x);
+                string _y = caller.ReplacePPV(y);
+                string _z = caller.ReplacePPV(z);
+                string _xRot = xRot ?? caller.ReplacePPV(xRot);
+                string _yRot = yRot ?? caller.ReplacePPV(xRot);
+                bool hasRotation = yRot != null;
+                try
+                {
+                    CoordinateValue px = CoordinateValue.Parse(_x).Value;
+                    CoordinateValue py = CoordinateValue.Parse(_y).Value;
+                    CoordinateValue pz = CoordinateValue.Parse(_z).Value;
+                    if(hasRotation)
+                    {
+                        CoordinateValue prx = CoordinateValue.Parse(_xRot).Value;
+                        CoordinateValue pry = CoordinateValue.Parse(_yRot).Value;
+                        caller.FinishRaw($"tp {sel} {px} {py} {pz} {prx} {pry}");
+                    } else
+                    {
+                        caller.FinishRaw($"tp {sel} {px} {py} {pz}");
+                    }
+                } catch(Exception)
+                {
+                    if(hasRotation)
+                        throw new TokenException(this, $"Couldn't parse XYZR position/rotation ({_x}, {_y}, {_z} - {_xRot}, {_yRot})");
+                    else
+                        throw new TokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
+                }
+            }
+            else
             {
-                string t = caller.ReplacePPV(target);
-
+                string location = caller.ReplacePPV(target);
+                caller.FinishRaw($"tp {sel} {location}");
             }
             return;
         }
