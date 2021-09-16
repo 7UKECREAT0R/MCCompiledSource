@@ -20,8 +20,8 @@ namespace mc_compiled.MCC
 
         // Command Related
         public const string NAME_ARITHMETIC = "_mcc_math";      // Used for multistep scoreboard operations 
-        public const string NAME_GHOSTTAG = "_ghost";           // Used for ghost armor stands.
-        public const string NAME_INVERTER = "_mcc_block_inv";   // Used for inverting block check results.
+        public const string NAME_GHOSTTAG = "_gst";             // Used for ghost armor stands.
+        public const string NAME_INVERTER = "_mcc_invert";      // Used for inverting block check results.
 
         public int currentMacroHash = 0;
 
@@ -174,8 +174,22 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public string ReplacePPV(string input)
         {
-            foreach (var entry in ppv.AsEnumerable())
-                input = input.Replace(entry.Key, entry.Value.data.s);
+            var all = ppv.AsEnumerable();
+
+            foreach (var entry in all)
+            {
+                switch (entry.Value.alt)
+                {
+                    case Dynamic.AltType.NONE:
+                        input = input.Replace(entry.Key, entry.Value.data.s);
+                        break;
+                    case Dynamic.AltType.VECTOR:
+                        input = input.Replace(entry.Key, $"@e[type=armor_stand,name=\"{NAME_GHOSTTAG}{entry.Value.data.altData}\"");
+                        break;
+                    default:
+                        break;
+                }
+            }
             return input;
         }
         public Executor(Token[] tokens, bool debug, string baseFileName)

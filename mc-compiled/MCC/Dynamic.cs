@@ -22,11 +22,7 @@ namespace mc_compiled.MCC
         public enum AltType
         {
             NONE,           // altdata:                         | Regular Variable
-            DECIMAL,        // altdata: precision               | Fixed-point decimal number.
-            POINT,          // altdata:                         | 2D Integral Point
-            VECTOR,         // altdata: ghost entity id         | 3D Ingame Location (Armor Stand)
-            STRUCT,         // altdata: struct defined index    | Struct Reference
-            COLOR,          // altdata:                         | RGB Color
+            VECTOR,         // altdata:                         | Ghost Numerical ID
         }
         /// <summary>
         /// The data held in this variable.

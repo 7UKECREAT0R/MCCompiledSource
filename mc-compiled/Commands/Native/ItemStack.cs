@@ -41,6 +41,7 @@ namespace mc_compiled.Commands.Native
             this.canDestroy = canDestroy;
             this.lockMode = lockMode;
         }
+        
         /// <summary>
         /// Generate a unique identifier for this item stack.
         /// </summary>

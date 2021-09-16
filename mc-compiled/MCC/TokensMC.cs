@@ -998,7 +998,7 @@ namespace mc_compiled.MCC
                 } catch(Exception)
                 {
                     if(hasRotation)
-                        throw new TokenException(this, $"Couldn't parse XYZR position/rotation ({_x}, {_y}, {_z} - {_xRot}, {_yRot})");
+                        throw new TokenException(this, $"Couldn't parse XYZR position/rotation ({_x}, {_y}, {_z}) ({_xRot}, {_yRot})");
                     else
                         throw new TokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
                 }
