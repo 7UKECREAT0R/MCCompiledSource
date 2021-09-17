@@ -76,7 +76,7 @@ namespace mc_compiled.MCC
             List<JSONRawTerm> terms = new List<JSONRawTerm>();
             Stack<string> pieces = new Stack<string>(PRINT_VALUE.Split(str).Reverse());
 
-            string sel = '@' + caller.selection.Peek().core.ToString();
+            string sel = "@" + caller.SelectionReference;
             foreach (Match match in matches)
             {
                 if (match.Index != 0 && pieces.Count > 0)
@@ -85,8 +85,8 @@ namespace mc_compiled.MCC
 
                 string src = match.Value;
                 string valueName = match.Groups[1].Value;
-                if (caller.valueCache.Contains(valueName))
-                    terms.Add(new JSONScore(sel, valueName));
+                if (caller.values.TryGetValue(valueName, out Value output))
+                    terms.AddRange(output.ToRawText(caller.values, sel));
                 else terms.Add(new JSONText(src));
             }
 
@@ -196,13 +196,9 @@ namespace mc_compiled.MCC
         {
             string output = caller.ReplacePPV(valueName);
 
-            if (output.Length > CommandLimits.SCOREBOARD_LIMIT)
-                throw new TokenException(this, $"Value name \"{output}\" is too long ({CommandLimits.SCOREBOARD_LIMIT} maximum)");
-            if (output.Any(c => !CommandLimits.SCOREBOARD_ALLOWED.Contains(c)))
-                throw new TokenException(this, $"Disallowed characters in value name \"{output}\"");
+            foreach(string command in caller.values.DefineValue(output))
+                caller.FinishRaw(command, false);
 
-            caller.valueCache.Add(output);
-            caller.FinishRaw($"scoreboard objectives add \"{output}\" dummy");
             return;
         }
     }
@@ -224,10 +220,12 @@ namespace mc_compiled.MCC
         {
             string output = caller.ReplacePPV(valueName);
 
-            if (!caller.valueCache.Contains(output))
+            if (!caller.values.TryGetValue(output, out Value value))
                 throw new TokenException(this, $"No value exists with the name \"{output}\"");
 
-            caller.FinishRaw($"scoreboard players add @a \"{output}\" 0");
+            string[] scores = value.GetScoreboards(caller.values);
+            foreach (string score in scores)
+                caller.FinishRaw($"scoreboard players add @a \"{score}\" 0");
             return;
         }
     }

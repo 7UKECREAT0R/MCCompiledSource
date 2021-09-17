@@ -8,7 +8,7 @@ namespace mc_compiled.Commands
 {
     public static class CommandLimits
     {
-        public static readonly char[] SCOREBOARD_ALLOWED = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM-:._".ToCharArray();
+        public static readonly char[] SCOREBOARD_ALLOWED = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM-:._1234567890".ToCharArray();
         public const int SCOREBOARD_LIMIT = 16;
     }
 }

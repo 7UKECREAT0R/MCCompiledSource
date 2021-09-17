@@ -31,7 +31,7 @@ namespace mc_compiled.MCC
         public readonly TokenFeeder tokens;
 
         public Stack<Selector> selection;
-        public List<string> valueCache;
+        public ValueManager values;
         public bool hasCreatedMath = false;         // NAME_ARITHMETIC
         public bool[] hasCreatedInv = new bool[99]; // NAME_INVERTER
 
@@ -97,9 +97,9 @@ namespace mc_compiled.MCC
         /// Finish the current line and append it to the file.
         /// </summary>
         /// <param name="line"></param>
-        public void FinishRaw(string line, bool useBuffer = true)
+        public void FinishRaw(string line, bool modifyBuffer = true)
         {
-            if (useBuffer)
+            if (modifyBuffer)
             {
                 addLineBuffer.Append(line);
                 currentFile?.Add(addLineBuffer.ToString());
@@ -203,7 +203,7 @@ namespace mc_compiled.MCC
 
             ppv = new Dictionary<string, Dynamic>();
             selection = new Stack<Selector>();
-            valueCache = new List<string>();
+            values = new ValueManager();
 
             selection.Push(new Selector()
             {
