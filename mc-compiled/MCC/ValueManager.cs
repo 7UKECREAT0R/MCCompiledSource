@@ -140,8 +140,50 @@ namespace mc_compiled.MCC
             } else
                 return values.TryGetValue(name, out output);
         }
-    }
+        public Value GetValue(string name)
+        {
+            int index;
+            if ((index = name.IndexOf(':')) != -1)
+            {
+                if (name.EndsWith(":") || name.StartsWith(":"))
+                    throw new ArgumentException("Value name cannot start or end with an accessor (: or .)");
+                string main = name.Substring(0, index);
+                return values[main];
+            }
+            else
+                return values[name];
+        }
+        public Value this[string valueName]
+        {
+            get { return values[valueName]; }
+            private set { values[valueName] = value; }
+        }
 
+        public string[] ExpressionAddConstant(Value source, string selector, Dynamic value)
+        {
+            if (source.type == ValueType.REGULAR)
+                return new[] { $"scoreboard players add {selector} {source} {value.data.i}"};
+            else if(source.type == ValueType.DECIMAL)
+            {
+                return new[]
+                {
+                    $""
+                };
+            }
+        }
+    }
+    /// <summary>
+    /// An operation on two values. If bytecast is odd, then a temp scoreboard objective is needed.
+    /// </summary>
+    enum ValueOperation : byte
+    {
+        ADD = 0,
+        SUB = 2,
+        MUL = 3,
+        SET = 4,
+        DIV = 5,
+        MOD = 7,
+    }
     public enum ValueType
     {
         REGULAR,
@@ -218,6 +260,10 @@ namespace mc_compiled.MCC
                 default:
                     return new JSONRawTerm[] { new JSONScore(selector, name) };
             }
+        }
+        public override string ToString()
+        {
+            return name;
         }
     }
     public struct StructDefinition

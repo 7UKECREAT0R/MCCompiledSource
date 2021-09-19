@@ -20,6 +20,7 @@ namespace mc_compiled.MCC
 
         // Command Related
         public const string NAME_ARITHMETIC = "_mcc_math";      // Used for multistep scoreboard operations 
+        public const string NAME_DECUNIT = "_mcc_dec_unit";     // Unit for fixed-point decimal operations.
         public const string NAME_GHOSTTAG = "_gst";             // Used for ghost armor stands.
         public const string NAME_INVERTER = "_mcc_invert";      // Used for inverting block check results.
 
@@ -33,6 +34,7 @@ namespace mc_compiled.MCC
         public Stack<Selector> selection;
         public ValueManager values;
         public bool hasCreatedMath = false;         // NAME_ARITHMETIC
+        public bool hasCreatedDecimalUnit = false;  // NAME_DECUNIT
         public bool[] hasCreatedInv = new bool[99]; // NAME_INVERTER
 
         /// <summary>

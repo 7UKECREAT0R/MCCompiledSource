@@ -231,30 +231,21 @@ namespace mc_compiled.MCC
     }
     public class TokenVALUE : Token
     {
-        enum OPERATION : byte
-        {
-            ADD = 0,
-            SUB = 2,
-            MUL = 3,
-            SET = 4,
-            DIV = 5,
-            MOD = 7,
-        }
-        static string OperationString(OPERATION op)
+        static string OperationString(ValueOperation op)
         {
             switch (op)
             {
-                case OPERATION.ADD:
+                case ValueOperation.ADD:
                     return "+=";
-                case OPERATION.SUB:
+                case ValueOperation.SUB:
                     return "-=";
-                case OPERATION.MUL:
+                case ValueOperation.MUL:
                     return "*=";
-                case OPERATION.DIV:
+                case ValueOperation.DIV:
                     return "/=";
-                case OPERATION.MOD:
+                case ValueOperation.MOD:
                     return "%=";
-                case OPERATION.SET:
+                case ValueOperation.SET:
                     return "=";
                 default:
                     return null;
@@ -262,12 +253,12 @@ namespace mc_compiled.MCC
         }
 
         string valueName;
-        OPERATION operation;
+        ValueOperation operation;
 
         bool bIsConstant; // Decides if you should use valueB or constantB
         bool bIsPPV;      // Decides if should still evaluate valueB
         string valueB;
-        long constantB;
+        Dynamic constantB;
 
         public TokenVALUE(string text)
         {
@@ -285,40 +276,40 @@ namespace mc_compiled.MCC
             switch (operationString)
             {
                 case "ADD":
-                    operation = OPERATION.ADD;
+                    operation = ValueOperation.ADD;
                     break;
                 case "SUB":
-                    operation = OPERATION.SUB;
+                    operation = ValueOperation.SUB;
                     break;
                 case "MUL":
-                    operation = OPERATION.MUL;
+                    operation = ValueOperation.MUL;
                     break;
                 case "DIV":
-                    operation = OPERATION.DIV;
+                    operation = ValueOperation.DIV;
                     break;
                 case "MOD":
-                    operation = OPERATION.MOD;
+                    operation = ValueOperation.MOD;
                     break;
                 case "SET":
-                    operation = OPERATION.SET;
+                    operation = ValueOperation.SET;
                     break;
                 case "+=":
-                    operation = OPERATION.ADD;
+                    operation = ValueOperation.ADD;
                     break;
                 case "-=":
-                    operation = OPERATION.SUB;
+                    operation = ValueOperation.SUB;
                     break;
                 case "*=":
-                    operation = OPERATION.MUL;
+                    operation = ValueOperation.MUL;
                     break;
                 case "/=":
-                    operation = OPERATION.DIV;
+                    operation = ValueOperation.DIV;
                     break;
                 case "%=":
-                    operation = OPERATION.MOD;
+                    operation = ValueOperation.MOD;
                     break;
                 case "=":
-                    operation = OPERATION.SET;
+                    operation = ValueOperation.SET;
                     break;
                 default:
                     throw new TokenException(this, $"Invalid value operation {operationString}");
@@ -332,8 +323,10 @@ namespace mc_compiled.MCC
                 return;
             }
 
-            if ((bIsConstant = int.TryParse(bString, out int parsed)))
-                constantB = parsed;
+            if ((bIsConstant = long.TryParse(bString, out long lparsed)))
+                constantB = new Dynamic(lparsed);
+            else if (bIsConstant = double.TryParse(bString, out double dparsed))
+                constantB = new Dynamic(dparsed);
             else
                 valueB = bString;
         }
@@ -343,50 +336,58 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            string sourceValue = caller.ReplacePPV(valueName);
+            string _sourceValue = caller.ReplacePPV(valueName);
             string secondValue = bIsConstant ? null : caller.ReplacePPV(valueB);
             string selector = '@' + caller.selection.Peek().core.ToString();
 
-            if (!caller.valueCache.Contains(sourceValue))
-                throw new TokenException(this, $"No value exists with the name \"{sourceValue}\"");
-            if (secondValue != null && !caller.valueCache.Contains(secondValue) && !bIsPPV)
+            if (!caller.values.HasValue(_sourceValue))
+                throw new TokenException(this, $"No value exists with the name \"{_sourceValue}\"");
+            if (secondValue != null && !caller.values.HasValue(secondValue) && !bIsPPV)
                 throw new TokenException(this, $"No value exists with the name \"{secondValue}\"");
 
+            Value sourceValue = caller.values[_sourceValue];
+
+            // Resolve PPV value
+            if (bIsPPV)
+                constantB = caller.ppv[valueB];
+
             // Create temp objective for more complex operations
-            bool needsTemp = (((byte)operation) % 2 == 1) && bIsConstant;
-            if (needsTemp && !caller.hasCreatedMath)
+            if (!caller.hasCreatedMath && (((byte)operation) % 2 == 1) && bIsConstant)
             {
                 caller.AddLineTop($"scoreboard objectives add {Executor.NAME_ARITHMETIC} dummy");
                 caller.hasCreatedMath = true;
             }
+            if(!caller.hasCreatedDecimalUnit && sourceValue.type == ValueType.DECIMAL)
+            {
+                caller.AddLineTop($"scoreboard objectives add {Executor.NAME_DECUNIT} dummy");
+                caller.hasCreatedDecimalUnit = true;
+            }
+
 
             if (bIsConstant)
             {
-                if (bIsPPV) // resolve PPV value
-                    constantB = caller.ppv[valueB].data.i;
-
                 switch (operation)
                 {
-                    case OPERATION.ADD:
+                    case ValueOperation.ADD:
                         caller.FinishRaw($"scoreboard players add {selector} {sourceValue} {constantB}");
                         return;
-                    case OPERATION.SUB:
+                    case ValueOperation.SUB:
                         if (constantB < 0)
-                            caller.FinishRaw($"scoreboard players add {selector} {sourceValue} {constantB.ToString().Substring(1)}");
+                            caller.FinishRaw($"scoreboard players add {selector} {sourceValue} {constantB.data.s.Substring(1)}");
                         else caller.FinishRaw($"scoreboard players add {selector} {sourceValue} -{constantB}");
                         return;
-                    case OPERATION.MUL:
+                    case ValueOperation.MUL:
                         caller.FinishRaw($"scoreboard players set {selector} {Executor.NAME_ARITHMETIC} {constantB}", false);
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} *= {selector} {Executor.NAME_ARITHMETIC}");
                         return;
-                    case OPERATION.SET:
+                    case ValueOperation.SET:
                         caller.FinishRaw($"scoreboard players set {selector} {sourceValue} {constantB}");
                         return;
-                    case OPERATION.DIV:
+                    case ValueOperation.DIV:
                         caller.FinishRaw($"scoreboard players set {selector} {Executor.NAME_ARITHMETIC} {constantB}", false);
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} /= {selector} {Executor.NAME_ARITHMETIC}");
                         return;
-                    case OPERATION.MOD:
+                    case ValueOperation.MOD:
                         caller.FinishRaw($"scoreboard players set {selector} {Executor.NAME_ARITHMETIC} {constantB}", false);
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} %= {selector} {Executor.NAME_ARITHMETIC}");
                         return;
@@ -398,22 +399,22 @@ namespace mc_compiled.MCC
             {
                 switch (operation)
                 {
-                    case OPERATION.ADD:
+                    case ValueOperation.ADD:
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} += {selector} {secondValue}");
                         break;
-                    case OPERATION.SUB:
+                    case ValueOperation.SUB:
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} -= {selector} {secondValue}");
                         break;
-                    case OPERATION.MUL:
+                    case ValueOperation.MUL:
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} *= {selector} {secondValue}");
                         break;
-                    case OPERATION.SET:
+                    case ValueOperation.SET:
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} = {selector} {secondValue}");
                         break;
-                    case OPERATION.DIV:
+                    case ValueOperation.DIV:
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} /= {selector} {secondValue}");
                         break;
-                    case OPERATION.MOD:
+                    case ValueOperation.MOD:
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} %= {selector} {secondValue}");
                         break;
                     default:
