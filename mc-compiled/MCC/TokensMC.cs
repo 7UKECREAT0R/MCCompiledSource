@@ -357,8 +357,15 @@ namespace mc_compiled.MCC
                 caller.AddLineTop($"scoreboard objectives add {Executor.NAME_ARITHMETIC} dummy");
                 caller.hasCreatedMath = true;
             }
+            // Create decimal unit objective for "fixed point operations."
             if(!caller.hasCreatedDecimalUnit && sourceValue.type == ValueType.DECIMAL)
             {
+                // All decimal math requires temp too.
+                if(!caller.hasCreatedMath)
+                {
+                    caller.AddLineTop($"scoreboard objectives add {Executor.NAME_ARITHMETIC} dummy");
+                    caller.hasCreatedMath = true;
+                }
                 caller.AddLineTop($"scoreboard objectives add {Executor.NAME_DECUNIT} dummy");
                 caller.hasCreatedDecimalUnit = true;
             }

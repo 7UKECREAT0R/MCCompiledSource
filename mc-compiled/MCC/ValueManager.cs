@@ -159,17 +159,59 @@ namespace mc_compiled.MCC
             private set { values[valueName] = value; }
         }
 
-        public string[] ExpressionAddConstant(Value source, string selector, Dynamic value)
+        public static string[] ExpressionAddConstant(Value source, string selector, Dynamic value)
         {
             if (source.type == ValueType.REGULAR)
-                return new[] { $"scoreboard players add {selector} {source} {value.data.i}"};
-            else if(source.type == ValueType.DECIMAL)
+                return new[] { $"scoreboard players add {selector} {source} {value.data.i}" };
+            else if (source.type == ValueType.DECIMAL)
             {
+                int p = source.information;
+                string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
                 return new[]
                 {
-                    $""
+                    // Set decimal unit
+$"scoreboard players set {selector} {Executor.NAME_DECUNIT} {unit}",
+
+                    // Add whole/decimal part
+$"scoreboard players add {selector} {source.WholePart} {value.GetWholePart()}",
+$"scoreboard players add {selector} {source.DecimalPart} {value.GetDecimalPart(p)}",
+
+                    // Carry leftover part, if any.
+$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} = {selector} {source.DecimalPart}",    // temp = value.d
+$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} /= {selector} {unit}",                 // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.NAME_ARITHMETIC}",     // value.w += temp
+$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} *= {selector} {unit}",                 // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.NAME_ARITHMETIC}"    // value.d -= temp
                 };
             }
+            else return null;
+        }
+        public static string[] ExpressionSubtractConstant(Value source, string selector, Dynamic value)
+        {
+            if (source.type == ValueType.REGULAR)
+                return new[] { $"scoreboard players add {selector} {source} {value.data.i * -1}" };
+            else if (source.type == ValueType.DECIMAL)
+            {
+                int p = source.information;
+                string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
+                return new[]
+                {
+                    // Set decimal unit
+$"scoreboard players set {selector} {Executor.NAME_DECUNIT} {unit}",
+
+                    // Add whole/decimal part
+$"scoreboard players add {selector} {source.WholePart} {value.GetWholePart() * -1}",
+$"scoreboard players add {selector} {source.DecimalPart} -{value.GetDecimalPart(p)}",
+
+                    // Carry leftover part, if any.
+$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} = {selector} {source.DecimalPart}",    // temp = value.d
+$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} /= {selector} {unit}",                 // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.NAME_ARITHMETIC}",     // value.w += temp
+$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} *= {selector} {unit}",                 // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.NAME_ARITHMETIC}"    // value.d -= temp
+                };
+            }
+            else return null;
         }
     }
     /// <summary>
@@ -239,9 +281,9 @@ namespace mc_compiled.MCC
                 case ValueType.DECIMAL:
                     return new JSONRawTerm[]
                     {
-                        new JSONScore(selector, name + ":w"),
+                        new JSONScore(selector, WholePart),
                         new JSONText("."),
-                        new JSONScore(selector, name + ":d")
+                        new JSONScore(selector, DecimalPart)
                     };
                 case ValueType.STRUCT:
                     StructDefinition info = manager.GetStructForValue(this);
@@ -264,6 +306,15 @@ namespace mc_compiled.MCC
         public override string ToString()
         {
             return name;
+        }
+
+        public string WholePart
+        {
+            get { return name + ":w"; }
+        }
+        public string DecimalPart
+        {
+            get { return name + ":d"; }
         }
     }
     public struct StructDefinition

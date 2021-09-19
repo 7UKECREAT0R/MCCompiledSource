@@ -242,5 +242,41 @@ namespace mc_compiled.MCC
                 return new Dynamic(d);
             else return new Dynamic(str);
         }
+        
+        /// <summary>
+        /// Get the whole number from this decimal.
+        /// </summary>
+        /// <returns></returns>
+        public long GetWholePart()
+        {
+            if (type == Type.STRING)
+                throw new Exception("Cannot perform arithmatic with a string value.");
+            if (type == Type.INTEGER)
+                return data.i;
+
+            return (int)Math.Floor(data.d);
+        }
+        /// <summary>
+        /// Get the decimal part from this number.
+        /// </summary>
+        /// <returns></returns>
+        public double GetDecimalPart()
+        {
+            if (type == Type.STRING)
+                throw new Exception("Cannot perform arithmatic with a string value.");
+            if (type == Type.INTEGER)
+                return 0.0; // No decimal part on integers.
+
+            return Math.Abs(data.d) % 1.0;
+        }
+        /// <summary>
+        /// Get the decimal part from this number to a certain precision (in digits after point).
+        /// </summary>
+        /// <returns></returns>
+        public double GetDecimalPart(int withPrecision)
+        {
+            double part = GetDecimalPart();
+            return part.FixPoint(withPrecision);
+        }
     }
 }
