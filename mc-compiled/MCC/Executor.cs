@@ -19,10 +19,30 @@ namespace mc_compiled.MCC
         public static string MINECRAFT_VERSION = "1.17.10";
 
         // Command Related
-        public const string NAME_ARITHMETIC = "_mcc_math";      // Used for multistep scoreboard operations 
-        public const string NAME_DECUNIT = "_mcc_dec_unit";     // Unit for fixed-point decimal operations.
-        public const string NAME_GHOSTTAG = "_gst";             // Used for ghost armor stands.
-        public const string NAME_INVERTER = "_mcc_invert";      // Used for inverting block check results.
+        public const string MATH_TEMP = "_mcc_math";        // Used for multistep scoreboard operations.
+        public const string MATH_INVERTER = "_mcc_invert";  // Used for inverting block check results.
+        public const string DECIMAL_UNIT = "_mcc_dec_unit"; // Unit for fixed-point decimal operations.
+        public const string DECIMAL_CARRY = "dec_carry_";   // Prefix used for decimal subtraction carry functions.
+        public const string GHOST_TAG = "_gst";             // Used for ghost armor stands.
+
+        private readonly List<string> createdTemplates = new List<string>();
+        public bool HasCreatedTemplate(string templateName) => createdTemplates.Contains(templateName);
+        public void CreateTemplate(string name, string[] code, bool file = false)
+        {
+            if (HasCreatedTemplate(name))
+                return;
+
+            createdTemplates.Add(name);
+
+            if (!file)
+                for (int i = code.Length - 1; i >= 0; i--)
+                    AddLineTop(code[i]);
+            else
+            {
+                List<string> nfile = new List<string>(code);
+                functionsToBeWritten.Add(new MCFunction(name, null, nfile));
+            }
+        }
 
         public int currentMacroHash = 0;
 
@@ -33,9 +53,6 @@ namespace mc_compiled.MCC
 
         public Stack<Selector> selection;
         public ValueManager values;
-        public bool hasCreatedMath = false;         // NAME_ARITHMETIC
-        public bool hasCreatedDecimalUnit = false;  // NAME_DECUNIT
-        public bool[] hasCreatedInv = new bool[99]; // NAME_INVERTER
 
         /// <summary>
         /// Clone and return a new selector which can be written to, preserving the lower scope's selection stack.
@@ -92,7 +109,7 @@ namespace mc_compiled.MCC
         string baseFileName;        // The base file name for all the functions.
         string fileOffset;          // The offset appended after baseFileName if not null.
         string folder = null;       // (obsolete) The folder which output will be sent into.
-        List<string> currentFile;   // The current file being written to.
+        List<string> currentFile;   // The lines of the current file being written to.
 
         StringBuilder addLineBuffer = new StringBuilder();
         /// <summary>
@@ -186,7 +203,7 @@ namespace mc_compiled.MCC
                         input = input.Replace(entry.Key, entry.Value.data.s);
                         break;
                     case Dynamic.AltType.VECTOR:
-                        input = input.Replace(entry.Key, $"@e[type=armor_stand,name=\"{NAME_GHOSTTAG}{entry.Value.data.altData}\"");
+                        input = input.Replace(entry.Key, $"@e[type=armor_stand,name=\"{GHOST_TAG}{entry.Value.data.altData}\"");
                         break;
                     default:
                         break;

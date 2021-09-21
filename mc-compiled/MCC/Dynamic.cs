@@ -83,6 +83,20 @@ namespace mc_compiled.MCC
             data.d = 0;
             data.altData = 0;
         }
+        public Dynamic Inverse()
+        {
+            switch (type)
+            {
+                case Type.INTEGER:
+                    return new Dynamic(data.i * -1);
+                case Type.DECIMAL:
+                    return new Dynamic(data.d * -1.0);
+                case Type.STRING:
+                    return new Dynamic(new string(data.s.Reverse().ToArray()));
+                default:
+                    return this;
+            }
+        }
 
         public static Dynamic operator ++(Dynamic a)
         {

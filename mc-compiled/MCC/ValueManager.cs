@@ -170,18 +170,18 @@ namespace mc_compiled.MCC
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.NAME_DECUNIT} {unit}",
+$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
 $"scoreboard players add {selector} {source.WholePart} {value.GetWholePart()}",
 $"scoreboard players add {selector} {source.DecimalPart} {value.GetDecimalPart(p)}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} = {selector} {source.DecimalPart}",    // temp = value.d
-$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} /= {selector} {unit}",                 // temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.NAME_ARITHMETIC}",     // value.w += temp
-$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} *= {selector} {unit}",                 // temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.NAME_ARITHMETIC}"    // value.d -= temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",    // temp = value.d
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",// temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",     // value.w += temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",// temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"    // value.d -= temp
                 };
             }
             else return null;
@@ -197,18 +197,18 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.NAME_DECUNIT} {unit}",
+$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
 $"scoreboard players add {selector} {source.WholePart} {value.GetWholePart() * -1}",
 $"scoreboard players add {selector} {source.DecimalPart} -{value.GetDecimalPart(p)}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} = {selector} {source.DecimalPart}",    // temp = value.d
-$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} /= {selector} {unit}",                 // temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.NAME_ARITHMETIC}",     // value.w += temp
-$"scoreboard players operation {selector} {Executor.NAME_ARITHMETIC} *= {selector} {unit}",                 // temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.NAME_ARITHMETIC}"    // value.d -= temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",    // temp = value.d
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",// temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",     // value.w += temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",// temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"    // value.d -= temp
                 };
             }
             else return null;

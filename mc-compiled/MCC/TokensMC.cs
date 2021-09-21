@@ -352,22 +352,14 @@ namespace mc_compiled.MCC
                 constantB = caller.ppv[valueB];
 
             // Create temp objective for more complex operations
-            if (!caller.hasCreatedMath && (((byte)operation) % 2 == 1) && bIsConstant)
-            {
-                caller.AddLineTop($"scoreboard objectives add {Executor.NAME_ARITHMETIC} dummy");
-                caller.hasCreatedMath = true;
-            }
+            if (!caller.HasCreatedTemplate(Executor.MATH_TEMP) && (((byte)operation) % 2 == 1) && bIsConstant)
+                caller.CreateTemplate(Executor.MATH_TEMP, new[] { $"scoreboard objectives add {Executor.MATH_TEMP} dummy" });
+
             // Create decimal unit objective for "fixed point operations."
-            if(!caller.hasCreatedDecimalUnit && sourceValue.type == ValueType.DECIMAL)
+            if(sourceValue.type == ValueType.DECIMAL)
             {
-                // All decimal math requires temp too.
-                if(!caller.hasCreatedMath)
-                {
-                    caller.AddLineTop($"scoreboard objectives add {Executor.NAME_ARITHMETIC} dummy");
-                    caller.hasCreatedMath = true;
-                }
-                caller.AddLineTop($"scoreboard objectives add {Executor.NAME_DECUNIT} dummy");
-                caller.hasCreatedDecimalUnit = true;
+                caller.CreateTemplate(Executor.MATH_TEMP, new[] { $"scoreboard objectives add {Executor.MATH_TEMP} dummy" });
+                caller.CreateTemplate(Executor.DECIMAL_UNIT, new[] { $"scoreboard objectives add {Executor.DECIMAL_UNIT} dummy" });
             }
 
 
@@ -376,27 +368,31 @@ namespace mc_compiled.MCC
                 switch (operation)
                 {
                     case ValueOperation.ADD:
-                        caller.FinishRaw($"scoreboard players add {selector} {sourceValue} {constantB}");
+                        foreach (string line in ValueManager.ExpressionAddConstant(sourceValue, selector, constantB))
+                            caller.FinishRaw(line, false);
+                        
                         return;
                     case ValueOperation.SUB:
-                        if (constantB < 0)
-                            caller.FinishRaw($"scoreboard players add {selector} {sourceValue} {constantB.data.s.Substring(1)}");
-                        else caller.FinishRaw($"scoreboard players add {selector} {sourceValue} -{constantB}");
+                        string functionName = Executor.DECIMAL_CARRY + sourceValue.name;
+                        caller.CreateTemplate(functionName, new string[] {
+                            // sourceValue.DecimalPart is confirmed < 0.
+                            ""
+                        }, true);
                         return;
                     case ValueOperation.MUL:
-                        caller.FinishRaw($"scoreboard players set {selector} {Executor.NAME_ARITHMETIC} {constantB}", false);
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} *= {selector} {Executor.NAME_ARITHMETIC}");
+                        caller.FinishRaw($"scoreboard players set {selector} {Executor.MATH_TEMP} {constantB}", false);
+                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} *= {selector} {Executor.MATH_TEMP}");
                         return;
                     case ValueOperation.SET:
                         caller.FinishRaw($"scoreboard players set {selector} {sourceValue} {constantB}");
                         return;
                     case ValueOperation.DIV:
-                        caller.FinishRaw($"scoreboard players set {selector} {Executor.NAME_ARITHMETIC} {constantB}", false);
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} /= {selector} {Executor.NAME_ARITHMETIC}");
+                        caller.FinishRaw($"scoreboard players set {selector} {Executor.MATH_TEMP} {constantB}", false);
+                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} /= {selector} {Executor.MATH_TEMP}");
                         return;
                     case ValueOperation.MOD:
-                        caller.FinishRaw($"scoreboard players set {selector} {Executor.NAME_ARITHMETIC} {constantB}", false);
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} %= {selector} {Executor.NAME_ARITHMETIC}");
+                        caller.FinishRaw($"scoreboard players set {selector} {Executor.MATH_TEMP} {constantB}", false);
+                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} %= {selector} {Executor.MATH_TEMP}");
                         return;
                     default:
                         break;
@@ -549,12 +545,8 @@ namespace mc_compiled.MCC
                         BlockCheck blockCheck = new BlockCheck(x, y, z, block, data);
                         if (not) // perform block inversion
                         {
-                            string inverterName = Executor.NAME_INVERTER + currentScope;
-                            if (!context.hasCreatedInv[currentScope])
-                            {
-                                context.hasCreatedInv[currentScope] = true;
-                                context.AddLineTop($"scoreboard objectives add {inverterName} dummy");
-                            }
+                            string inverterName = Executor.MATH_INVERTER + currentScope;
+                            context.CreateTemplate(inverterName, new[] { $"scoreboard objectives add {inverterName} dummy" });
                             context.AddLineTop($"scoreboard players set {selector.core} {inverterName} 0");
                             context.FinishRaw(blockCheck.AsStoreIn(inverterName), false); // will set to 1 if found
                             selector.blockCheck = BlockCheck.DISABLED;
