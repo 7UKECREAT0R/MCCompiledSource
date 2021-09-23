@@ -355,7 +355,7 @@ namespace mc_compiled.MCC
             if (!caller.HasCreatedTemplate(Executor.MATH_TEMP) && (((byte)operation) % 2 == 1) && bIsConstant)
                 caller.CreateTemplate(Executor.MATH_TEMP, new[] { $"scoreboard objectives add {Executor.MATH_TEMP} dummy" });
 
-            // Create decimal unit objective for "fixed point operations."
+            // Create decimal unit objective for fixed point operations
             if(sourceValue.type == ValueType.DECIMAL)
             {
                 caller.CreateTemplate(Executor.MATH_TEMP, new[] { $"scoreboard objectives add {Executor.MATH_TEMP} dummy" });
@@ -398,8 +398,8 @@ namespace mc_compiled.MCC
                             caller.FinishRaw(line, false);
                         return;
                     case ValueOperation.MOD:
-                        caller.FinishRaw($"scoreboard players set {selector} {Executor.MATH_TEMP} {constantB}", false);
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} %= {selector} {Executor.MATH_TEMP}");
+                        foreach (string line in ValueManager.ExpressionModuloConstant(sourceValue, selector, constantB))
+                            caller.FinishRaw(line, false);
                         return;
                     default:
                         break;
@@ -410,9 +410,17 @@ namespace mc_compiled.MCC
                 switch (operation)
                 {
                     case ValueOperation.ADD:
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} += {selector} {secondValue}");
+                        foreach (string line in ValueManager.ExpressionAddValue(sourceValue, secondValue, selector))
+                            caller.FinishRaw(line, false);
                         break;
                     case ValueOperation.SUB:
+                        string functionName = Executor.DECIMAL_SUB_CARRY + sourceValue.name;
+                        caller.CreateTemplate(functionName, new string[]
+                        {
+                                $"scoreboard players operation {selector} {Executor.DECIMAL_UNIT} += {selector} {sourceValue.DecimalPart}",
+                                $"scoreboard players add {selector} {sourceValue.WholePart} -1",
+                                $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {Executor.DECIMAL_UNIT}"
+                        }, true);
                         caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} -= {selector} {secondValue}");
                         break;
                     case ValueOperation.MUL:

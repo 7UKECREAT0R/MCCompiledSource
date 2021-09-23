@@ -271,6 +271,24 @@ $"scoreboard players operation {selector} {source} /= {selector} {Executor.MATH_
             }
             else return null;
         }
+        public static string[] ExpressionModuloConstant(Value source, string selector, Dynamic value)
+        {
+            if (source.type == ValueType.REGULAR)
+            {
+                if (value.data.i == 0)
+                    throw new Exception("Cannot divide by zero.");
+                return new[]
+                {
+$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.data.i}",
+$"scoreboard players operation {selector} {source} %= {selector} {Executor.MATH_TEMP}"
+                };
+            }
+            else if (source.type == ValueType.DECIMAL)
+            {
+                throw new Exception("Decimal over decimal modulus is not supported.");
+            }
+            else return null;
+        }
         public static string[] ExpressionSetConstant(Value source, string selector, Dynamic value)
         {
             if (source.type == ValueType.REGULAR)
@@ -292,6 +310,154 @@ $"scoreboard players set {selector} {source.WholePart} {wholePart}",
 $"scoreboard players set {selector} {source.DecimalPart} {decimalPart}",
 
                 };
+            }
+            else return null;
+        }
+
+        public static string[] ExpressionAddValue(Value source, Value b, string selector)
+        {
+            if (source.type == ValueType.REGULAR)
+                return new[] { $"scoreboard players operation {selector} {source} += {selector} {(b.type == ValueType.DECIMAL ? b.WholePart : b.ToString())}" };
+            else if (source.type == ValueType.DECIMAL)
+            {
+                int p = source.information;
+                string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
+                return new[]
+                {
+                    // Set decimal unit
+$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+
+                    // Add whole/decimal part
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {b.WholePart}",
+$"scoreboard players operation {selector} {source.DecimalPart} += {selector} {b.DecimalPart}",
+
+                    // Carry leftover part, if any.
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
+                };
+            }
+            else return null;
+        }
+        public static string[] ExpressionSubtractValue(Value source, Value b, string selector)
+        {
+            if (source.type == ValueType.REGULAR)
+                return new[] { $"scoreboard players operation {selector} {source} -= {selector} {(b.type == ValueType.DECIMAL ? b.WholePart : b.ToString())}" };
+            else if (source.type == ValueType.DECIMAL)
+            {
+                int p = source.information;
+                string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
+                string functionName = Executor.DECIMAL_SUB_CARRY + source.name;
+
+                string functionCallLine;
+                if (selector.StartsWith("@p"))
+                    functionCallLine = $"execute {selector} ~~~ execute @s[scores={{{source.DecimalPart}=..0}}] ~~~ function {functionName}";
+                else
+                    functionCallLine = $"execute {selector}[scores={{{source.DecimalPart}=..0}}] ~~~ function {functionName}";
+
+                return new[]
+                {
+                    // Set decimal unit
+$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+
+                    // Add whole/decimal part
+$"scoreboard players operation {selector} {source.WholePart} -= {selector} {b.WholePart}",
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {b.DecimalPart}",
+
+                    // Carry leftover part, if any.
+                    functionCallLine
+                };
+            }
+            else return null;
+        }
+        public static string[] ExpressionMultiplyValue(Value source, Value b, string selector)
+        {
+            if (source.type == ValueType.REGULAR)
+                return new[]
+                {
+$"scoreboard players operation {selector} {source} *= {selector} {(b.type==ValueType.DECIMAL?b.WholePart:b.ToString())}"
+                };
+            else if (source.type == ValueType.DECIMAL)
+            {
+                int p = source.information;
+                string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
+                return new[]
+                {
+                    // Set decimal unit
+$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+
+                    // Add whole/decimal part
+$"scoreboard players operation {selector} {source.WholePart} *= {selector} {b.WholePart}",
+$"scoreboard players operation {selector} {source.DecimalPart} *= {selector} {b.DecimalPart}",
+
+                    // Carry leftover part, if any.
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
+                };
+            }
+            else return null;
+        }
+        public static string[] ExpressionDivideValue(Value source, Value b, string selector)
+        {
+            if (source.type == ValueType.REGULAR)
+            {
+                return new[]
+                {
+$"scoreboard players operation {selector} {source} /= {selector} {(b.type==ValueType.DECIMAL?b.WholePart:b.ToString())}"
+                };
+            }
+            else if (source.type == ValueType.DECIMAL || b.type == ValueType.DECIMAL)
+            {
+                throw new Exception("Decimal over decimal division is not supported.");
+            }
+            else return null;
+        }
+        public static string[] ExpressionModuloValue(Value source, Value b, string selector)
+        {
+            if (source.type == ValueType.REGULAR)
+            {
+                return new[]
+                {
+$"scoreboard players operation {selector} {source} %= {selector} {(b.type==ValueType.DECIMAL?b.WholePart:b.ToString())}"
+                };
+            }
+            else if (source.type == ValueType.DECIMAL || b.type == ValueType.DECIMAL)
+            {
+                throw new Exception("Decimal over decimal modulus is not supported.");
+            }
+            else return null;
+        }
+        public static string[] ExpressionSetValue(Value source, Value b, string selector)
+        {
+            if (source.type == ValueType.REGULAR)
+            {
+                return new[]
+                {
+$"scoreboard players operation {selector} {source} = {selector} {b}",
+                };
+            }
+            else if (source.type == ValueType.DECIMAL)
+            {
+                if (b.type == ValueType.DECIMAL)
+                {
+                    return new[] {
+$"scoreboard players operation {selector} {source.WholePart} = {selector} {b.WholePart}",
+$"scoreboard players operation {selector} {source.DecimalPart} = {selector} {b.DecimalPart}",
+                    };
+                }
+                else if (b.type == ValueType.REGULAR)
+                {
+                    return new[] {
+$"scoreboard players operation {selector} {source.WholePart} = {selector} {b}",
+$"scoreboard players set {selector} {source.DecimalPart} 0",
+                    };
+                }
+                else throw new NotImplementedException("Assigning decimal value from struct field is not supported yet.");
             }
             else return null;
         }
