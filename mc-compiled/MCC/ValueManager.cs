@@ -177,11 +177,11 @@ $"scoreboard players add {selector} {source.WholePart} {value.GetWholePart()}",
 $"scoreboard players add {selector} {source.DecimalPart} {value.GetDecimalPart(p)}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",    // temp = value.d
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",// temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",     // value.w += temp
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",// temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"    // value.d -= temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
                 };
             }
             else return null;
@@ -192,6 +192,44 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
                 return new[] { $"scoreboard players add {selector} {source} {value.data.i * -1}" };
             else if (source.type == ValueType.DECIMAL)
             {
+                if (value.data.d < 0.0)
+                    return ExpressionAddConstant(source, selector, value.Inverse());
+
+                int p = source.information;
+                string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
+                string functionName = Executor.DECIMAL_SUB_CARRY + source.name;
+
+                string functionCallLine;
+                if (selector.StartsWith("@p"))
+                    functionCallLine = $"execute {selector} ~~~ execute @s[scores={{{source.DecimalPart}=..0}}] ~~~ function {functionName}";
+                else
+                    functionCallLine = $"execute {selector}[scores={{{source.DecimalPart}=..0}}] ~~~ function {functionName}";
+
+                return new[]
+                {
+                    // Set decimal unit
+$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+
+                    // Add whole/decimal part
+$"scoreboard players add {selector} {source.WholePart} {value.GetWholePart()}",
+$"scoreboard players add {selector} {source.DecimalPart} -{value.GetDecimalPart(p)}",
+
+                    // Carry leftover part, if any.
+                    functionCallLine
+                };
+            }
+            else return null;
+        }
+        public static string[] ExpressionMultiplyConstant(Value source, string selector, Dynamic value)
+        {
+            if (source.type == ValueType.REGULAR)
+                return new[]
+                {
+$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.data.i}",
+$"scoreboard players operation {selector} {source} *= {selector} {Executor.MATH_TEMP}"
+                };
+            else if (source.type == ValueType.DECIMAL)
+            {
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
                 return new[]
@@ -200,15 +238,59 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
 $"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
-$"scoreboard players add {selector} {source.WholePart} {value.GetWholePart() * -1}",
-$"scoreboard players add {selector} {source.DecimalPart} -{value.GetDecimalPart(p)}",
+$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.GetWholePart()}",
+$"scoreboard players operation {selector} {source.WholePart} *= {selector} {Executor.MATH_TEMP}",
+$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.GetDecimalPart()}",
+$"scoreboard players operation {selector} {source.DecimalPart} *= {selector} {Executor.MATH_TEMP}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",    // temp = value.d
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",// temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",     // value.w += temp
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",// temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"    // value.d -= temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
+                };
+            }
+            else return null;
+        }
+        public static string[] ExpressionDivideConstant(Value source, string selector, Dynamic value)
+        {
+            if (source.type == ValueType.REGULAR)
+            {
+                if (value.data.i == 0)
+                    throw new Exception("Cannot divide by zero.");
+                return new[]
+                {
+$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.data.i}",
+$"scoreboard players operation {selector} {source} /= {selector} {Executor.MATH_TEMP}"
+                };
+            }
+            else if (source.type == ValueType.DECIMAL)
+            {
+                throw new Exception("Decimal over decimal division is not supported.");
+            }
+            else return null;
+        }
+        public static string[] ExpressionSetConstant(Value source, string selector, Dynamic value)
+        {
+            if (source.type == ValueType.REGULAR)
+            {
+                return new[]
+                {
+$"scoreboard players set {selector} {source} {value.data.i}",
+                };
+            }
+            else if (source.type == ValueType.DECIMAL)
+            {
+                int precision = source.information;
+                int mult = (int)Math.Pow(10, precision);
+                long wholePart = value.GetWholePart();
+                long decimalPart = (long)(value.GetDecimalPart() * mult);
+                return new[]
+                {
+$"scoreboard players set {selector} {source.WholePart} {wholePart}",
+$"scoreboard players set {selector} {source.DecimalPart} {decimalPart}",
+
                 };
             }
             else return null;

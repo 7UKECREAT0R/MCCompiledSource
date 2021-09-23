@@ -20,9 +20,10 @@ namespace mc_compiled.MCC
 
         // Command Related
         public const string MATH_TEMP = "_mcc_math";        // Used for multistep scoreboard operations.
+        public const string MATH_TEMP2 = "_mcc_math2";      // Used for multistep scoreboard operations.
         public const string MATH_INVERTER = "_mcc_invert";  // Used for inverting block check results.
         public const string DECIMAL_UNIT = "_mcc_dec_unit"; // Unit for fixed-point decimal operations.
-        public const string DECIMAL_CARRY = "dec_carry_";   // Prefix used for decimal subtraction carry functions.
+        public const string DECIMAL_SUB_CARRY = "dec_carry_";   // Prefix used for decimal subtraction carry functions.
         public const string GHOST_TAG = "_gst";             // Used for ghost armor stands.
 
         private readonly List<string> createdTemplates = new List<string>();

@@ -370,25 +370,32 @@ namespace mc_compiled.MCC
                     case ValueOperation.ADD:
                         foreach (string line in ValueManager.ExpressionAddConstant(sourceValue, selector, constantB))
                             caller.FinishRaw(line, false);
-                        
                         return;
                     case ValueOperation.SUB:
-                        string functionName = Executor.DECIMAL_CARRY + sourceValue.name;
-                        caller.CreateTemplate(functionName, new string[] {
-                            // sourceValue.DecimalPart is confirmed < 0.
-                            ""
-                        }, true);
+                        if (sourceValue.type == ValueType.DECIMAL)
+                        {
+                            string functionName = Executor.DECIMAL_SUB_CARRY + sourceValue.name;
+                            caller.CreateTemplate(functionName, new string[]
+                            {
+                                $"scoreboard players operation {selector} {Executor.DECIMAL_UNIT} += {selector} {sourceValue.DecimalPart}",
+                                $"scoreboard players add {selector} {sourceValue.WholePart} -1",
+                                $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {Executor.DECIMAL_UNIT}"
+                            }, true);
+                            foreach (string line in ValueManager.ExpressionSubtractConstant(sourceValue, selector, constantB))
+                                caller.FinishRaw(line, false);
+                        }
                         return;
                     case ValueOperation.MUL:
-                        caller.FinishRaw($"scoreboard players set {selector} {Executor.MATH_TEMP} {constantB}", false);
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} *= {selector} {Executor.MATH_TEMP}");
+                        foreach (string line in ValueManager.ExpressionMultiplyConstant(sourceValue, selector, constantB))
+                            caller.FinishRaw(line, false);
                         return;
                     case ValueOperation.SET:
-                        caller.FinishRaw($"scoreboard players set {selector} {sourceValue} {constantB}");
+                        foreach (string line in ValueManager.ExpressionSetConstant(sourceValue, selector, constantB))
+                            caller.FinishRaw(line, false);
                         return;
                     case ValueOperation.DIV:
-                        caller.FinishRaw($"scoreboard players set {selector} {Executor.MATH_TEMP} {constantB}", false);
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} /= {selector} {Executor.MATH_TEMP}");
+                        foreach (string line in ValueManager.ExpressionDivideConstant(sourceValue, selector, constantB))
+                            caller.FinishRaw(line, false);
                         return;
                     case ValueOperation.MOD:
                         caller.FinishRaw($"scoreboard players set {selector} {Executor.MATH_TEMP} {constantB}", false);
