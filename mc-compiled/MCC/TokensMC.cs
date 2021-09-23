@@ -407,10 +407,11 @@ namespace mc_compiled.MCC
             }
             else
             {
+                Value otherValue = caller.values[secondValue];
                 switch (operation)
                 {
                     case ValueOperation.ADD:
-                        foreach (string line in ValueManager.ExpressionAddValue(sourceValue, secondValue, selector))
+                        foreach (string line in ValueManager.ExpressionAddValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
                         break;
                     case ValueOperation.SUB:
@@ -421,19 +422,24 @@ namespace mc_compiled.MCC
                                 $"scoreboard players add {selector} {sourceValue.WholePart} -1",
                                 $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {Executor.DECIMAL_UNIT}"
                         }, true);
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} -= {selector} {secondValue}");
+                        foreach (string line in ValueManager.ExpressionSubtractValue(sourceValue, otherValue, selector))
+                            caller.FinishRaw(line, false);
                         break;
                     case ValueOperation.MUL:
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} *= {selector} {secondValue}");
+                        foreach (string line in ValueManager.ExpressionMultiplyValue(sourceValue, otherValue, selector))
+                            caller.FinishRaw(line, false);
                         break;
                     case ValueOperation.SET:
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} = {selector} {secondValue}");
+                        foreach (string line in ValueManager.ExpressionSetValue(sourceValue, otherValue, selector))
+                            caller.FinishRaw(line, false);
                         break;
                     case ValueOperation.DIV:
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} /= {selector} {secondValue}");
+                        foreach (string line in ValueManager.ExpressionDivideValue(sourceValue, otherValue, selector))
+                            caller.FinishRaw(line, false);
                         break;
                     case ValueOperation.MOD:
-                        caller.FinishRaw($"scoreboard players operation {selector} {sourceValue} %= {selector} {secondValue}");
+                        foreach (string line in ValueManager.ExpressionModuloValue(sourceValue, otherValue, selector))
+                            caller.FinishRaw(line, false);
                         break;
                     default:
                         break;
