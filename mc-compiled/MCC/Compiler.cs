@@ -211,6 +211,12 @@ namespace mc_compiled.MCC
                         case "give":
                             set = new TokenGIVE(content);
                             break;
+                        case "tp":
+                            set = new TokenTP(content);
+                            break;
+                        case "move":
+                            set = new TokenMOVE(content);
+                            break;
                     }
                     if (set == null)
                         continue;

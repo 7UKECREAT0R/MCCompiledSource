@@ -105,14 +105,17 @@ namespace mc_compiled.MCC
                             //          [candestroy <block>] [enchant <enchant> <level>] [name <itemname>]
         TP = 0x3B,          // Teleport the selected player/entity.
                             //      TP <x> <y> <z> [yRot] [xRot]
-                            //      TP <up|down|forwards|backwards|left|right> <amount>
                             //      TP @<selector>
-        FACE = 0x3C,        // Face a location or entity.
+        MOVE = 0x3C,        // Move the selected entity in a direction.
+                            //      MOVE <up|down|left|right|forward|backward> <amount>
+        FACE = 0x3D,        // Face a location or entity.
                             //      FACE <x> <y> <z>
                             //      FACE @<selector>
-        PLACE = 0x3D,       // Place a block in the world.
+        PLACE = 0x3E,       // Place a block in the world.
                             //      PLACE <block> <x> <y> <z> [data]
-        KILL = 0x3E,        // Kill selected entity with optional delay.
+        FILL = 0x3F,        // Fill an area with blocks.
+                            //      FILL <block> <x1> <y1> <z1> <x2> <y2> <z2> [data]
+        KILL = 0x40,        // Kill selected entity with optional delay.
                             //      KILL [delay]
     }
 }

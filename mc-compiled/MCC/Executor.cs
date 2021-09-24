@@ -201,16 +201,28 @@ namespace mc_compiled.MCC
                 switch (entry.Value.alt)
                 {
                     case Dynamic.AltType.NONE:
-                        input = input.Replace(entry.Key, entry.Value.data.s);
+                        input = input.Replace('$' + entry.Key, entry.Value.data.s);
                         break;
                     case Dynamic.AltType.VECTOR:
-                        input = input.Replace(entry.Key, $"@e[type=armor_stand,name=\"{GHOST_TAG}{entry.Value.data.altData}\"");
+                        input = input.Replace('$' + entry.Key, $"@e[type=armor_stand,name=\"{GHOST_TAG}{entry.Value.data.altData}\"");
                         break;
                     default:
                         break;
                 }
             }
             return input;
+        }
+        public bool HasPPV(string name)
+        {
+            if (name.StartsWith("$"))
+                name = name.Substring(1);
+            return ppv.ContainsKey(name);
+        }
+        public bool TryGetPPV(string name, out Dynamic value)
+        {
+            if (name.StartsWith("$"))
+                name = name.Substring(1);
+            return ppv.TryGetValue(name, out value);
         }
         public Executor(Token[] tokens, bool debug, string baseFileName)
         {
@@ -252,11 +264,12 @@ namespace mc_compiled.MCC
         /// <param name="tokens"></param>
         public void RunSection(TokenFeeder tokens)
         {
+            Token token = null;
             try
             {
                 while(tokens.HasNext())
                 {
-                    Token token = tokens.Next();
+                    token = tokens.Next();
 
                     if(selection.Count > 1)
                         SetRaw(selection.Peek().GetAsPrefix());
@@ -267,13 +280,15 @@ namespace mc_compiled.MCC
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("EXECUTION ERROR:\n" +
-                    $"\tLINE {texc.token.line}\n" +
+                    $"\tLINE: {texc.token.line}\n" +
+                    $"\tCOMPILED AS: {token}\n" +
                     $"\tDESCRIPTION: {texc.desc}\n");
                 return;
             } catch(Exception exc)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("GENERIC EXECUTION ERROR:\n" +
+                    $"\tTOKEN WAS: {token}\n" +
                     $"\tMESSAGE: {exc.Message}\n" +
                     $"\tDESCRIPTION: {exc}\n");
                 return;

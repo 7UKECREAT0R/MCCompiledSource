@@ -315,7 +315,7 @@ namespace mc_compiled.MCC
                     throw new TokenException(this, $"Invalid value operation {operationString}");
             }
 
-            if (Compiler.guessedPPValues.Contains(bString))
+            if (Compiler.guessedPPValues.Contains(bString.TrimStart('$')))
             {
                 bIsPPV = true;
                 bIsConstant = true;
@@ -349,7 +349,7 @@ namespace mc_compiled.MCC
 
             // Resolve PPV value
             if (bIsPPV)
-                constantB = caller.ppv[valueB];
+                constantB = caller.ppv[valueB.Substring(1)];
 
             // Create temp objective for more complex operations
             if (!caller.HasCreatedTemplate(Executor.MATH_TEMP) && (((byte)operation) % 2 == 1) && bIsConstant)
@@ -520,7 +520,7 @@ namespace mc_compiled.MCC
                         if (int.TryParse(checkValue, out int otherInt))
                         {
                             OperatorType type = op.type;
-                            if (not) // this would be bad code but make it work anyways...
+                            if (not) // this would be really bad code but make it work anyways...
                                 switch (type)
                                 {
                                     case OperatorType._UNKNOWN:
@@ -567,8 +567,11 @@ namespace mc_compiled.MCC
                         if (not) // perform block inversion
                         {
                             string inverterName = Executor.MATH_INVERTER + currentScope;
-                            context.CreateTemplate(inverterName, new[] { $"scoreboard objectives add {inverterName} dummy" });
-                            context.AddLineTop($"scoreboard players set {selector.core} {inverterName} 0");
+                            context.CreateTemplate(inverterName, new[] {
+                                $"scoreboard objectives add {inverterName} dummy",
+
+                            });
+                            context.FinishRaw($"scoreboard players set {selector.core} {inverterName} 0", false);
                             context.FinishRaw(blockCheck.AsStoreIn(inverterName), false); // will set to 1 if found
                             selector.blockCheck = BlockCheck.DISABLED;
                             selector.scores.checks.Add(new Commands.Limits.ScoresEntry(inverterName, new Range(0, false)));
@@ -589,7 +592,7 @@ namespace mc_compiled.MCC
                         selector.player.ParseGamemode(args[0], not);
                         return;
                     case Type.NEAR:
-                        if (not)
+                        if (not) // Would need to check for both sides of the range.
                             throw new NotSupportedException("NEAR if-statments cannot be inverted.");
                         string _x = args[0];
                         string _y = args[1];
@@ -608,7 +611,7 @@ namespace mc_compiled.MCC
                         else selector.area.radiusMin = int.Parse(_rmin);
                         return;
                     case Type.IN:
-                        if (not)
+                        if (not) // Would require a 6-region check which I'm just not ready to do
                             throw new NotSupportedException("IN if-statments cannot be inverted.");
                         string _sizeX = args[0];
                         string _sizeY = args[1];
@@ -968,9 +971,9 @@ namespace mc_compiled.MCC
             if (args.Length < 3)
                 throw new TokenException(this, "Insufficient arguments.");
 
-            string x = args[0];
-            string y = args[1];
-            string z = args[2];
+            x = args[0];
+            y = args[1];
+            z = args[2];
 
             if(args.Length > 4)
             {
@@ -1026,6 +1029,108 @@ namespace mc_compiled.MCC
             {
                 string location = caller.ReplacePPV(target);
                 caller.FinishRaw($"tp {sel} {location}");
+            }
+            return;
+        }
+    }
+    public class TokenMOVE : Token
+    {
+        enum MoveDirection
+        {
+            FORWARDS,
+            BACKWARDS,
+            LEFT,
+            RIGHT,
+            UP,
+            DOWN,
+
+            NONE
+        }
+        static MoveDirection ParseDirection(string str)
+        {
+            switch (str.ToUpper())
+            {
+                case "FORWARD":
+                case "FORWARDS":
+                    return MoveDirection.FORWARDS;
+                case "BACKWARD":
+                case "BACKWARDS":
+                    return MoveDirection.BACKWARDS;
+                case "LEFT":
+                    return MoveDirection.LEFT;
+                case "RIGHT":
+                    return MoveDirection.RIGHT;
+                case "UP":
+                    return MoveDirection.UP;
+                case "DOWN":
+                    return MoveDirection.DOWN;
+                default:
+                    return MoveDirection.NONE;
+            }
+        }
+
+        string direction;
+        string amount;
+        public TokenMOVE(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.MOVE;
+
+            if (string.IsNullOrWhiteSpace(text))
+                throw new TokenException(this, "Insufficient arguments.");
+
+            string[] args = text.Split(' ');
+
+            if (args.Length < 2)
+                throw new TokenException(this, "Insufficient arguments.");
+
+            direction = args[0];
+            amount = args[1];
+        }
+        public override string ToString()
+        {
+            return $"Move selected entity {direction} {amount} blocks.";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string inputDirection = caller.ReplacePPV(direction);
+            string inputAmount = caller.ReplacePPV(amount);
+            MoveDirection d = ParseDirection(inputDirection);
+
+            if (d == MoveDirection.NONE)
+                throw new TokenException(this, "Invalid move direction.");
+
+            string amountString;
+            string selector = "@" + caller.SelectionReference;
+            if (int.TryParse(inputAmount, out int i))
+                amountString = i.ToString();
+            else if (float.TryParse(inputAmount, out float f))
+                amountString = f.ToString();
+            else
+                throw new TokenException(this, $"Invalid move amount \"{inputAmount}\"");
+
+            switch (d)
+            {
+                case MoveDirection.FORWARDS:
+                    caller.FinishRaw($"tp {selector} ^ ^ ^{amountString}");
+                    break;
+                case MoveDirection.BACKWARDS:
+                    caller.FinishRaw($"tp {selector} ^ ^ ^-{amountString}");
+                    break;
+                case MoveDirection.LEFT:
+                    caller.FinishRaw($"tp {selector} ^{amountString} ^ ^");
+                    break;
+                case MoveDirection.RIGHT:
+                    caller.FinishRaw($"tp {selector} ^-{amountString} ^ ^");
+                    break;
+                case MoveDirection.UP:
+                    caller.FinishRaw($"tp {selector} ^ ^{amountString} ^");
+                    break;
+                case MoveDirection.DOWN:
+                    caller.FinishRaw($"tp {selector} ^ ^-{amountString} ^");
+                    break;
+                case MoveDirection.NONE:
+                    break;
             }
             return;
         }

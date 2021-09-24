@@ -77,12 +77,10 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (value.type == Dynamic.Type.STRING &&
-            caller.ppv.TryGetValue(value.data.s, out Dynamic live))
-            {
-                caller.ppv[name] = live;
-            }
-            else caller.ppv[name] = value;
+            if (value.type == Dynamic.Type.STRING && caller.TryGetPPV(value.data.s, out Dynamic source))
+                caller.ppv[name] = source;
+            else
+                caller.ppv[name] = value;
         }
         public override string ToString()
         {
@@ -101,7 +99,7 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if(caller.ppv.TryGetValue(varName, out Dynamic value))
+            if(caller.TryGetPPV(varName, out Dynamic value))
             {
                 value++;
                 caller.ppv[varName] = value;
@@ -128,7 +126,7 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out Dynamic value))
             {
                 value--;
                 caller.ppv[varName] = value;
@@ -169,10 +167,10 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out Dynamic value))
             {
                 Dynamic constant = this.constant;
-                if(usePPV && caller.ppv.TryGetValue(ppv, out Dynamic other))
+                if(usePPV && caller.TryGetPPV(ppv, out Dynamic other))
                     constant = other;
 
                 value += constant;
@@ -215,10 +213,10 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out Dynamic value))
             {
                 Dynamic constant = this.constant;
-                if (usePPV && caller.ppv.TryGetValue(ppv, out Dynamic other))
+                if (usePPV && caller.TryGetPPV(ppv, out Dynamic other))
                     constant = other;
 
                 value -= constant;
@@ -261,10 +259,10 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out Dynamic value))
             {
                 Dynamic constant = this.constant;
-                if (usePPV && caller.ppv.TryGetValue(ppv, out Dynamic other))
+                if (usePPV && caller.TryGetPPV(ppv, out Dynamic other))
                     constant = other;
 
                 value *= constant;
@@ -307,10 +305,10 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out Dynamic value))
             {
                 Dynamic constant = this.constant;
-                if (usePPV && caller.ppv.TryGetValue(ppv, out Dynamic other))
+                if (usePPV && caller.TryGetPPV(ppv, out Dynamic other))
                     constant = other;
 
                 value /= constant;
@@ -353,11 +351,11 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out Dynamic value))
             {
                 Dynamic temp = constant;
                 if (temp.type == Dynamic.Type.STRING &&
-                caller.ppv.TryGetValue(temp.data.s, out Dynamic other))
+                caller.TryGetPPV(temp.data.s, out Dynamic other))
                     temp = other;
 
                 value %= temp;
@@ -408,11 +406,11 @@ namespace mc_compiled.MCC
                 Dynamic b = constantB;
 
                 if (a.type == Dynamic.Type.STRING &&
-                caller.ppv.TryGetValue(a.data.s, out Dynamic aAlt))
+                caller.TryGetPPV(a.data.s, out Dynamic aAlt))
                     a = aAlt;
 
                 if (b.type == Dynamic.Type.STRING &&
-                caller.ppv.TryGetValue(b.data.s, out Dynamic bAlt))
+                caller.TryGetPPV(b.data.s, out Dynamic bAlt))
                     b = bAlt;
 
                 if (comparison.Compare(a, b))
@@ -471,7 +469,7 @@ namespace mc_compiled.MCC
         {
             int count = 0;
 
-            if (caller.ppv.TryGetValue(amount, out Dynamic value))
+            if (caller.TryGetPPV(amount, out Dynamic value))
             {
                 if (value.type == Dynamic.Type.STRING)
                     throw new TokenException(this, $"PPREP value cannot be a string. It must be a whole number. Variable \"{amount}\" with value {value.data.s}");
@@ -590,7 +588,7 @@ namespace mc_compiled.MCC
                 Dictionary<string, Dynamic> existedBefore = new Dictionary<string, Dynamic>();
                 List<string> deleteVars = new List<string>();
                 foreach (string overwrite in find.args)
-                    if (caller.ppv.TryGetValue(overwrite, out Dynamic add))
+                    if (caller.TryGetPPV(overwrite, out Dynamic add))
                         existedBefore[overwrite] = add;
                     else
                         deleteVars.Add(overwrite);
@@ -600,7 +598,7 @@ namespace mc_compiled.MCC
                     string argName = find.args[i];
                     Dynamic value = Dynamic.Parse(args[i]);
 
-                    if (value.type == Dynamic.Type.STRING && caller.ppv.TryGetValue(value.data.s, out Dynamic otherValue))
+                    if (value.type == Dynamic.Type.STRING && caller.TryGetPPV(value.data.s, out Dynamic otherValue))
                         value = otherValue;
 
                     caller.ppv[argName] = value;
@@ -640,7 +638,7 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if(caller.ppv.TryGetValue(variable, out Dynamic value))
+            if(caller.TryGetPPV(variable, out Dynamic value))
             {
                 if (value.type != Dynamic.Type.STRING)
                     throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
@@ -677,7 +675,7 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(variable, out Dynamic value))
+            if (caller.TryGetPPV(variable, out Dynamic value))
             {
                 if (value.type != Dynamic.Type.STRING)
                     throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
@@ -706,7 +704,7 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            if (caller.ppv.TryGetValue(variable, out Dynamic value))
+            if (caller.TryGetPPV(variable, out Dynamic value))
             {
                 if (value.type != Dynamic.Type.STRING)
                     throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
