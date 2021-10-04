@@ -101,9 +101,6 @@ namespace mc_compiled
             Executor executor = new Executor(compiled, debug,
                 System.IO.Path.GetFileNameWithoutExtension(file));
 
-            if(folder != null)
-                executor.SetFolder(folder);
-
             executor.Run();
 
             BehaviorPack pack = executor.GetAsPack();

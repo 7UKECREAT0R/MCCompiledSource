@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Commands\CommandLimits.cs" />
     <Compile Include="MCC\FixedPoint.cs" />
+    <Compile Include="MCC\FunctionDefinition.cs" />
     <Compile Include="MCC\TokenFeeder.cs" />
     <Compile Include="MCC\ValueManager.cs" />
     <Compile Include="Modding\BehaviorPack.cs" />

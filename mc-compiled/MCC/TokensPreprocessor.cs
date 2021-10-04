@@ -534,6 +534,53 @@ namespace mc_compiled.MCC
             return $"[PP] Set file offset to '{fileOffset}'";
         }
     }
+    public class TokenFUNCTION : Token
+    {
+        readonly string signature;
+
+        public TokenFUNCTION(string signature)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.FUNCTION; // TODO
+
+            this.signature = signature;
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string temp = caller.ReplacePPV(signature);
+            FunctionDefinition definition = FunctionDefinition.Parse(temp);
+
+        }
+        public override string ToString()
+        {
+            return $"[PP] Define Function: {signature}";
+        }
+    }
+    public class TokenCALL : Token
+    {
+        readonly string name;
+        readonly string args;
+
+        public TokenCALL(string signature)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.FUNCTION; // TODO
+
+            int space = signature.IndexOf(' ');
+            if (space == -1)
+                throw new TokenException(this, "No function specified to call.");
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string temp = caller.ReplacePPV(signature);
+            FunctionDefinition definition = FunctionDefinition.Parse(temp);
+
+        }
+        public override string ToString()
+        {
+            return $"[PP] Define Function: {signature}";
+        }
+    }
     public class TokenPPMACRO : Token
     {
         public readonly string name;

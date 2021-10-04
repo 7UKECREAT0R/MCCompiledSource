@@ -50,6 +50,8 @@ namespace mc_compiled.MCC
         PPLOG = 0x1B,       // Log to Console           PPLOG <str>
         PPMACRO = 0x1C,     // Set or Invoke Macro      PPMACRO <name> <args>
         PPINCLUDE = 0x1D,   // Include MCC File         PPINCLUDE <file>
+        FUNCTION = 0x1E,    // Define Function          FUNCTION [modifiers...] <name> [args...]
+        CALL = 0x1F,        // Call Function            CALL <name> [args...]
 
         // Region 0x2 - Preprocessor Extensions
         PPFRIENDLY = 0x20,  // Convert Value to Friendly Name           PPFRIENDLY <var>

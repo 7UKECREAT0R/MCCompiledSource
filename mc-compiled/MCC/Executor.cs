@@ -107,10 +107,19 @@ namespace mc_compiled.MCC
         public string projectName = "DefaultProject";
         public string projectDesc = "Change with 'SETPROJECT DESC Your Text'";
 
-        string baseFileName;        // The base file name for all the functions.
-        string fileOffset;          // The offset appended after baseFileName if not null.
-        string folder = null;       // (obsolete) The folder which output will be sent into.
-        List<string> currentFile;   // The lines of the current file being written to.
+        public Stack<string> fileOffset;    // The offset appended after baseFileName if not null.
+        string baseFileName;                // The base file name for all the functions.
+        //string folder = null;             // (obsolete) The folder which output will be sent into.
+        
+        List<string> currentFile;           // The lines of the current file being written to.
+
+        public string FileOffset
+        {
+            get
+            {
+                return fileOffset.Peek();
+            }
+        }
 
         StringBuilder addLineBuffer = new StringBuilder();
         /// <summary>
@@ -160,7 +169,7 @@ namespace mc_compiled.MCC
         {
             if(currentFile.Count > 0)
             {
-                functionsToBeWritten.Add(new MCFunction(baseFileName, this.fileOffset, currentFile));
+                functionsToBeWritten.Add(new MCFunction(baseFileName, FileOffset, currentFile));
                 currentFile.Clear();
             }
 
@@ -173,19 +182,12 @@ namespace mc_compiled.MCC
                 MCFunction first = functionsToBeWritten.First(mcf => mcf.fileOffset == fileOffset ||
                     (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset)));
                 currentFile.AddRange(first.content);
-            } else
-                this.fileOffset = fileOffset;
-        }
-        /// <summary>
-        /// Set the folder which the file will be output to (unused)
-        /// </summary>
-        /// <param name="folder"></param>
-        public void SetFolder(string folder)
-        {
-            if (string.IsNullOrWhiteSpace(folder))
-                this.folder = null;
+            }
             else
-                this.folder = folder;
+            {
+                this.fileOffset.Pop();
+                this.fileOffset.Push(fileOffset);
+            }
         }
         /// <summary>
         /// Replace preprocessor variables in a piece code with their respective values.
@@ -237,6 +239,7 @@ namespace mc_compiled.MCC
             selection = new Stack<Selector>();
             values = new ValueManager();
 
+            fileOffset.Push("");
             selection.Push(new Selector()
             {
                 core = Selector.Core.s
@@ -255,7 +258,7 @@ namespace mc_compiled.MCC
         public void Run()
         {
             RunSection(tokens);
-            functionsToBeWritten.Add(new MCFunction(baseFileName, fileOffset, currentFile));
+            functionsToBeWritten.Add(new MCFunction(baseFileName, FileOffset, currentFile));
             currentFile.Clear();
         }
         /// <summary>

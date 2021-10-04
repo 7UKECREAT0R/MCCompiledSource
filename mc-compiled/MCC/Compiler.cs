@@ -160,8 +160,14 @@ namespace mc_compiled.MCC
                         case "pplog":
                             set = new TokenPPLOG(content);
                             break;
-                        case "ppfile":
+                        case "_ppfile": // no longer valid
                             set = new TokenPPFILE(content);
+                            break;
+                        case "function":
+                            set = new TokenFUNCTION(content);
+                            break;
+                        case "call":
+                            set = new TokenCALL(content);
                             break;
                         case "ppmacro":
                             set = new TokenPPMACRO(content);
