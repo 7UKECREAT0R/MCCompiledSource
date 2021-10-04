@@ -308,14 +308,18 @@ namespace mc_compiled.MCC
                     $"\tLINE: {texc.token.line}\n" +
                     $"\tCOMPILED AS: {token}\n" +
                     $"\tDESCRIPTION: {texc.desc}\n");
+                Console.ReadLine();
+                Environment.Exit(0);
                 return;
             } catch(Exception exc)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("GENERIC EXECUTION ERROR:\n" +
+                Console.WriteLine("INTERNAL EXECUTION ERROR:\n" +
                     $"\tTOKEN WAS: {token}\n" +
                     $"\tMESSAGE: {exc.Message}\n" +
                     $"\tDESCRIPTION: {exc}\n");
+                Console.ReadLine();
+                Environment.Exit(0);
                 return;
             }
 

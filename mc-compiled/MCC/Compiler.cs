@@ -17,7 +17,7 @@ namespace mc_compiled.MCC
         public static bool DISABLE_MACRO_GUARD = false;
 
         public static readonly Regex INCLUDE_REGEX = new Regex("ppinclude (.+)", RegexOptions.IgnoreCase);
-        public static readonly Regex CALL_REGEX = new Regex("\\w+\\((\\w+,?\\s*)*\\)");
+        public static readonly Regex CALL_REGEX = new Regex(@"(\w+)\(((\w+,?\s*)*)\)");
         public const string DEFS_FILE = "definitions.def";
         public readonly Definitions defs;
         public static int CURRENT_LINE = 0;
@@ -120,9 +120,16 @@ namespace mc_compiled.MCC
                 }
                 // Then test if this might be a shallow function call.
                 // Can't use guessed values since they may use preprocessor variables.
-                if(CALL_REGEX.IsMatch(line))
+                Match functionCallMatch = CALL_REGEX.Match(line);
+                if(functionCallMatch.Success)
                 {
-                    // todo fisnih later
+                    string functionName = functionCallMatch.Groups[1].Value;
+                    string functionArgs = functionCallMatch.Groups[2].Value;
+                    Token shallow = new TokenCALL(functionName, functionArgs.Split(' '));
+                    if (debug)
+                        Console.WriteLine("Compile:\t{0}", shallow);
+                    tokens.Add(shallow);
+                    continue;
                 }
 
                 try
