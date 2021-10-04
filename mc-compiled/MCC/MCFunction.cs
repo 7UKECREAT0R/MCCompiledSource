@@ -21,7 +21,7 @@ namespace mc_compiled.MCC
         {
             get
             {
-                if (fileOffset == null)
+                if (string.IsNullOrEmpty(fileOffset))
                     return $"{fileName}{EXT}";
                 else
                     return $"{fileName}-{fileOffset}{EXT}";

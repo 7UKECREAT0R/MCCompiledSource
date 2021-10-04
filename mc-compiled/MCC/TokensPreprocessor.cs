@@ -59,6 +59,14 @@ namespace mc_compiled.MCC
             contents.Reset();
             caller.RunSection(contents);
         }
+        public void ExecuteInFunction(Executor caller, TokenFeeder tokens, FunctionDefinition function)
+        {
+            caller.ApplyCurrentFile();
+            caller.PushFileOffset(function.FullName);
+            Execute(caller, tokens);
+            caller.ApplyCurrentFile();
+            caller.PopFileOffset();
+        }
     }
 
     public class TokenPPV : Token
@@ -541,7 +549,7 @@ namespace mc_compiled.MCC
         public TokenFUNCTION(string signature)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.FUNCTION; // TODO
+            type = TOKENTYPE.FUNCTION;
 
             this.signature = signature;
         }
@@ -550,35 +558,99 @@ namespace mc_compiled.MCC
             string temp = caller.ReplacePPV(signature);
             FunctionDefinition definition = FunctionDefinition.Parse(temp);
 
+            if (!(tokens.Peek() is TokenBlock))
+                throw new TokenException(this, "Function definition doesn't have a block after it.");
+            if(caller.functionsDefined.Any(f => f.name.Equals(definition.name)))
+                throw new TokenException(this, $"Function \"{definition.name}\" is already defined.");
+
+            caller.functionsDefined.Add(definition);
+
+            TokenBlock block = tokens.Next() as TokenBlock;
+            block.ExecuteInFunction(caller, tokens, definition);
         }
         public override string ToString()
         {
-            return $"[PP] Define Function: {signature}";
+            return $"Define Function: {signature}";
         }
     }
     public class TokenCALL : Token
     {
         readonly string name;
-        readonly string args;
+        readonly string[] args;
 
         public TokenCALL(string signature)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.FUNCTION; // TODO
+            type = TOKENTYPE.FUNCTION;
 
             int space = signature.IndexOf(' ');
             if (space == -1)
                 throw new TokenException(this, "No function specified to call.");
+            name = signature.Substring(0, space);
+            args = signature.Substring(space + 1).Split(' ');
+        }
+        public TokenCALL(string name, string[] args)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.CALL;
+            this.name = name;
+            this.args = args;
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            string temp = caller.ReplacePPV(signature);
-            FunctionDefinition definition = FunctionDefinition.Parse(temp);
+            string callName = caller.ReplacePPV(name);
 
+            if (!caller.functionsDefined.Any(df => df.name.Equals(callName)))
+                throw new TokenException(this, $"Function \"{callName}\" is not defined.");
+
+            FunctionDefinition function = caller.functionsDefined.First(df => df.name.Equals(callName));
+
+            for(int i = 0; i < args.Length; i++)
+            {
+                // Throw out extra specified args.
+                if (i >= function.args.Length)
+                    break;
+
+                string selector = "@" + caller.SelectionReference;
+                string sourceValue = function.args[i];
+                string inputValue = caller.ReplacePPV(args[i]);
+                Dynamic inputConstant = Dynamic.Parse(inputValue);
+
+                // Define the target scoreboard(s) if they haven't already.
+                TokenDEFINE init = new TokenDEFINE(sourceValue);
+                init.Execute(caller, tokens);
+
+                // Check the input type to decide how to pass in this argument.
+                if (inputConstant.type == Dynamic.Type.STRING)
+                {
+                    // This is a value instead.
+                    if (!caller.values.TryGetValue(inputValue, out Value value))
+                        throw new TokenException(this, $"Value \"{inputValue}\" passed into function call doesn't exist.");
+                    foreach (string line in ValueManager.ExpressionSetValue
+                        (new Value(sourceValue, inputConstant), value, selector))
+                    {
+                        caller.FinishRaw(line, false);
+                    }
+                }
+                else
+                {
+                    foreach(string line in ValueManager.ExpressionSetConstant
+                        (new Value(sourceValue, inputConstant), selector, inputConstant))
+                    {
+                        caller.FinishRaw(line, false);
+                    }
+                }
+            }
+
+            // Actually call the function.
+            caller.FinishRaw($"function {function.FullName}");
         }
         public override string ToString()
         {
-            return $"[PP] Define Function: {signature}";
+            if (args.Length == 0)
+                return $"Call {name}";
+            else
+                return $"Call {name} with args: {string.Join(", ", args)}";
         }
     }
     public class TokenPPMACRO : Token

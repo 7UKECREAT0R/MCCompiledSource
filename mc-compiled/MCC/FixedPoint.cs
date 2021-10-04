@@ -36,6 +36,15 @@ namespace mc_compiled.MCC
             d *= Math.Pow(10, digits);
             return (int)(Math.Floor(d));
         }
-
+        /// <summary>
+        /// Get the level of precision needed to represent this double.
+        /// </summary>
+        /// <param name="d"></param>
+        /// <returns></returns>
+        public static int GetPrecision(this double d)
+        {
+            string str = d.ToString();
+            return str.Length - str.IndexOf('.') - 1;
+        }
     }
 }

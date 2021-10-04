@@ -17,6 +17,7 @@ namespace mc_compiled.MCC
         public static bool DISABLE_MACRO_GUARD = false;
 
         public static readonly Regex INCLUDE_REGEX = new Regex("ppinclude (.+)", RegexOptions.IgnoreCase);
+        public static readonly Regex CALL_REGEX = new Regex("\\w+\\((\\w+,?\\s*)*\\)");
         public const string DEFS_FILE = "definitions.def";
         public readonly Definitions defs;
         public static int CURRENT_LINE = 0;
@@ -117,6 +118,12 @@ namespace mc_compiled.MCC
                     tokens.Add(shallow);
                     continue;
                 }
+                // Then test if this might be a shallow function call.
+                // Can't use guessed values since they may use preprocessor variables.
+                if(CALL_REGEX.IsMatch(line))
+                {
+                    // todo fisnih later
+                }
 
                 try
                 {
@@ -160,7 +167,7 @@ namespace mc_compiled.MCC
                         case "pplog":
                             set = new TokenPPLOG(content);
                             break;
-                        case "_ppfile": // no longer valid
+                        case "_ppfile": // no longer used but people can if they want
                             set = new TokenPPFILE(content);
                             break;
                         case "function":

@@ -103,14 +103,14 @@ namespace mc_compiled.MCC
 
         internal List<MCFunction> functionsToBeWritten = new List<MCFunction>();
         internal List<Tuple<string, ItemStack>> itemsToBeWritten = new List<Tuple<string, ItemStack>>();
+        internal List<FunctionDefinition> functionsDefined = new List<FunctionDefinition>();
+        internal Stack<string> fileOffset;
 
         public string projectName = "DefaultProject";
         public string projectDesc = "Change with 'SETPROJECT DESC Your Text'";
 
-        public Stack<string> fileOffset;    // The offset appended after baseFileName if not null.
-        string baseFileName;                // The base file name for all the functions.
-        //string folder = null;             // (obsolete) The folder which output will be sent into.
         
+        string baseFileName;                // The base file name for all the functions.
         List<string> currentFile;           // The lines of the current file being written to.
 
         public string FileOffset
@@ -161,12 +161,9 @@ namespace mc_compiled.MCC
             currentFile?.Insert(0, line);
         }
 
-        /// <summary>
-        /// Apply the current file code and set the file offset to something new.
-        /// </summary>
-        /// <param name="fileOffset"></param>
         public void NewFileOffset(string fileOffset)
         {
+            // THIS IS OBSOLETE
             if(currentFile.Count > 0)
             {
                 functionsToBeWritten.Add(new MCFunction(baseFileName, FileOffset, currentFile));
@@ -174,7 +171,7 @@ namespace mc_compiled.MCC
             }
 
             if (string.IsNullOrWhiteSpace(fileOffset))
-                fileOffset = null;
+                fileOffset = "";
 
             if (functionsToBeWritten.Any(mcf => mcf.fileOffset == fileOffset ||
                 (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset))))
@@ -189,6 +186,31 @@ namespace mc_compiled.MCC
                 this.fileOffset.Push(fileOffset);
             }
         }
+        public void ApplyCurrentFile()
+        {
+            if (currentFile.Count > 0)
+            {
+                functionsToBeWritten.Add(new MCFunction(baseFileName, FileOffset, currentFile));
+                currentFile.Clear();
+            }
+        }
+        public void PushFileOffset(string fileOffset)
+        {
+            if (functionsToBeWritten.Any(mcf => mcf.fileOffset == fileOffset ||
+                (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset))))
+            {
+                MCFunction first = functionsToBeWritten.First(mcf => mcf.fileOffset == fileOffset ||
+                    (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset)));
+                currentFile.AddRange(first.content);
+            }
+
+            this.fileOffset.Push(fileOffset);
+        }
+        public string PopFileOffset()
+        {
+            return fileOffset.Pop();
+        }
+
         /// <summary>
         /// Replace preprocessor variables in a piece code with their respective values.
         /// </summary>
@@ -233,13 +255,13 @@ namespace mc_compiled.MCC
             projectName = baseFileName;
             currentFile = new List<string>();
             macros = new Dictionary<string, Macro>();
-            fileOffset = null;
+            fileOffset = new Stack<string>();
+            fileOffset.Push("");
 
             ppv = new Dictionary<string, Dynamic>();
             selection = new Stack<Selector>();
             values = new ValueManager();
 
-            fileOffset.Push("");
             selection.Push(new Selector()
             {
                 core = Selector.Core.s

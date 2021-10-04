@@ -492,6 +492,27 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
             this.information = information;
             this.type = type;
         }
+        public Value(string name, Dynamic copyFrom)
+        {
+            if (copyFrom.type == Dynamic.Type.STRING)
+            {
+                this.name = copyFrom.data.s;
+                information = 0;
+                type = ValueType.REGULAR;
+            }
+            else if (copyFrom.type == Dynamic.Type.DECIMAL)
+            {
+                this.name = name;
+                information = copyFrom.data.d.GetPrecision();
+                type = ValueType.DECIMAL;
+            }
+            else
+            {
+                this.name = name;
+                information = 0;
+                type = ValueType.REGULAR;
+            }
+        }
         /// <summary>
         /// Get all the scoreboard entry names that this value uses.
         /// </summary>
