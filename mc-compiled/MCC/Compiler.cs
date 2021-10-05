@@ -214,7 +214,7 @@ namespace mc_compiled.MCC
                             break;
                         case "define":
                             set = new TokenDEFINE(content);
-                            guessedValues.Add((set as TokenDEFINE).valueName);
+                            guessedValues.Add((set as TokenDEFINE).ValueName);
                             break;
                         case "initialize":
                             set = new TokenINITIALIZE(content);

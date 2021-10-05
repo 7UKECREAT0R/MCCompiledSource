@@ -55,7 +55,6 @@
     <Compile Include="Modding\BehaviorPack.cs" />
     <Compile Include="Modding\Manifest.cs" />
     <Compile Include="Modding\StructureFile.cs" />
-    <Compile Include="Modding\UUID.cs" />
     <Compile Include="Commands\BlockCheck.cs" />
     <Compile Include="Commands\Limits\Area.cs" />
     <Compile Include="Commands\CoordinateValue.cs" />

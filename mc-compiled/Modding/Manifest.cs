@@ -13,7 +13,7 @@ namespace mc_compiled.Modding
 
         public string name;
         public string description;
-        public UUID uuid1, uuid2;
+        public Guid uuid1, uuid2;
         public int[] version;
         public int[] minEngineVersion;
 
@@ -22,8 +22,8 @@ namespace mc_compiled.Modding
         {
             this.formatVersion = formatVersion;
             this.name = name;
-            uuid1 = UUID.CreateNew(name);
-            uuid2 = UUID.CreateNew(description);
+            uuid1 = Guid.NewGuid();
+            uuid2 = Guid.NewGuid();
             this.description = description;
             version = new int[] { 0, 0, 1 };
 
@@ -36,7 +36,7 @@ namespace mc_compiled.Modding
             JObject header = new JObject();
             header["description"] = description;
             header["name"] = name;
-            header["uuid"] = uuid1.identifier;
+            header["uuid"] = uuid1.ToString();
             header["version"] = new JArray(version);
             header["min_engine_version"] = new JArray(minEngineVersion);
 
@@ -44,7 +44,7 @@ namespace mc_compiled.Modding
             JObject module = new JObject();
             module["description"] = description;
             module["type"] = "data";
-            module["uuid"] = uuid2.identifier;
+            module["uuid"] = uuid2.ToString();
             module["version"] = new JArray(version);
             modules.Add(module);
             

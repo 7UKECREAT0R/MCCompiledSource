@@ -181,6 +181,16 @@ namespace mc_compiled.MCC
     public class TokenDEFINE : Token
     {
         public readonly string valueName;
+        public string ValueName
+        {
+            get
+            {
+                int index = valueName.LastIndexOf(' ');
+                if (index == -1)
+                    return valueName;
+                else return valueName.Substring(index + 1);
+            }
+        }
         public TokenDEFINE(string text)
         {
             line = Compiler.CURRENT_LINE;
