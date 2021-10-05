@@ -60,12 +60,16 @@ namespace mc_compiled.Commands
             else if (float.TryParse(str, out float f))
                 return new CoordinateValue(f, false, rel, off);
             else
-                return null;
+                return new CoordinateValue(0, false, rel, off); // default to 0
         }
 
         public override string ToString()
         {
-            string s = (isFloat ? valuef : valuei).ToString();
+            string s;
+            if (isFloat)
+                s = (valuef == 0f) ? "" : valuef.ToString();
+            else
+                s = (valuei == 0) ? "" : valuei.ToString();
 
             if (isRelative)
                 return '~' + s;
