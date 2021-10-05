@@ -308,7 +308,6 @@ $"scoreboard players set {selector} {source} {value.data.i}",
                 {
 $"scoreboard players set {selector} {source.WholePart} {wholePart}",
 $"scoreboard players set {selector} {source.DecimalPart} {decimalPart}",
-
                 };
             }
             else return null;

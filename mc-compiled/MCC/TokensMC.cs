@@ -571,7 +571,7 @@ namespace mc_compiled.MCC
                                 $"scoreboard objectives add {inverterName} dummy",
 
                             });
-                            context.FinishRaw($"scoreboard players set {selector.core} {inverterName} 0", false);
+                            context.FinishRaw($"scoreboard players set @{context.SelectionReference} {inverterName} 0", false);
                             context.FinishRaw(blockCheck.AsStoreIn(inverterName), false); // will set to 1 if found
                             selector.blockCheck = BlockCheck.DISABLED;
                             selector.scores.checks.Add(new Commands.Limits.ScoresEntry(inverterName, new Range(0, false)));
@@ -697,7 +697,7 @@ namespace mc_compiled.MCC
             }
 
             int minArgCount = current.MinimumArgCount;
-            int removed = current.not ? 1 : 0;
+            int removed = current.not ? 2 : 1;
             if (args.Length - removed < minArgCount)
                 throw new TokenException(this, $"Too little arguments for if statement type {current.type}");
 
@@ -745,9 +745,6 @@ namespace mc_compiled.MCC
                     if (forceInvert)
                         continue;
                     throw nse;
-                } catch (Exception e)
-                {
-                    throw e;
                 }
             }
 

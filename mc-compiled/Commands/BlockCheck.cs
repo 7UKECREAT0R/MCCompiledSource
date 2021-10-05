@@ -22,9 +22,10 @@ namespace mc_compiled.Commands
             this.y = CoordinateValue.Parse(y).GetValueOrDefault();
             this.z = CoordinateValue.Parse(z).GetValueOrDefault();
             this.block = block;
-            if (data == null)
+             if (data == null || data.Equals("0") || string.IsNullOrEmpty(data))
                 this.data = null;
-            else this.data = int.Parse(data);
+            else
+                this.data = int.Parse(data);
         }
         public BlockCheck(CoordinateValue x, CoordinateValue y, CoordinateValue z, string block = "air", int? data = null)
         {

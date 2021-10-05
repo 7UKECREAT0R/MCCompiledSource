@@ -643,11 +643,11 @@ namespace mc_compiled.MCC
             }
 
             // Actually call the function.
-            caller.FinishRaw($"function {function.FullName}");
+            caller.FinishRaw($"function {caller.baseFileName}-{function.FullName}");
         }
         public override string ToString()
         {
-            if (args.Length == 0)
+            if (args.Length == 0 || args[0].Equals(""))
                 return $"Call {name}";
             else
                 return $"Call {name} with args: {string.Join(", ", args)}";

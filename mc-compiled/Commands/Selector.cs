@@ -95,14 +95,28 @@ namespace mc_compiled.Commands
         }
         public string GetAsPrefix()
         {
-            if (core == Core.p)
+            if (blockCheck.present)
             {
-                core = Core.s;
-                string ret = $"execute @p ~~~ execute {ToString()} ~~~ ";
-                core = Core.p;
-                return ret;
+                if (core == Core.p)
+                {
+                    core = Core.s;
+                    string ret = $"execute @p ~~~ execute {ToString()} ~~~ {blockCheck} ";
+                    core = Core.p;
+                    return ret;
+                }
+                return $"execute {ToString()} ~~~ {blockCheck} ";
             }
-            return $"execute {ToString()} ~~~ ";
+            else
+            {
+                if (core == Core.p)
+                {
+                    core = Core.s;
+                    string ret = $"execute @p ~~~ execute {ToString()} ~~~ ";
+                    core = Core.p;
+                    return ret;
+                }
+                return $"execute {ToString()} ~~~ ";
+            }
         }
     }
 }

@@ -110,7 +110,7 @@ namespace mc_compiled.MCC
         public string projectDesc = "Change with 'SETPROJECT DESC Your Text'";
 
         
-        string baseFileName;                // The base file name for all the functions.
+        public string baseFileName;                // The base file name for all the functions.
         List<string> currentFile;           // The lines of the current file being written to.
 
         public string FileOffset
