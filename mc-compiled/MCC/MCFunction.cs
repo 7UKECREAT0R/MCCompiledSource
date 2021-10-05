@@ -43,7 +43,7 @@ namespace mc_compiled.MCC
             else
                 path = Path.Combine(folder, FullName);
 
-            File.WriteAllLines(path, content);
+            File.WriteAllLines(path, content, Encoding.UTF8);
         }
     }
 }
