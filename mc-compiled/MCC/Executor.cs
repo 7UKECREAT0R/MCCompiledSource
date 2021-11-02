@@ -19,12 +19,13 @@ namespace mc_compiled.MCC
         public static string MINECRAFT_VERSION = "1.17.10";
 
         // Command Related
-        public const string MATH_TEMP = "_mcc_math";        // Used for multistep scoreboard operations.
-        public const string MATH_TEMP2 = "_mcc_math2";      // Used for multistep scoreboard operations.
-        public const string MATH_INVERTER = "_mcc_invert";  // Used for inverting block check results.
-        public const string DECIMAL_UNIT = "_mcc_dec_unit"; // Unit for fixed-point decimal operations.
+        public const string MATH_TEMP = "_mcc_math";            // Used for multistep scoreboard operations.
+        public const string MATH_TEMP2 = "_mcc_math2";          // Used for multistep scoreboard operations.
+        public const string MATH_INVERTER = "_mcc_invert";      // Used for inverting block check results.
+        public const string DECIMAL_UNIT = "_mcc_dec_unit";     // Unit for fixed-point decimal operations.
         public const string DECIMAL_SUB_CARRY = "dec_carry_";   // Prefix used for decimal subtraction carry functions.
-        public const string GHOST_TAG = "_gst";             // Used for ghost armor stands.
+        public const string SCATTER_RAND = "_mcc_scatter";      // Random number for  
+        public const string GHOST_TAG = "_gst";                 // Used for ghost armor stands.
 
         private readonly List<string> createdTemplates = new List<string>();
         public bool HasCreatedTemplate(string templateName) => createdTemplates.Contains(templateName);

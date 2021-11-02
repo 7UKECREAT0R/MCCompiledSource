@@ -19,6 +19,7 @@ namespace mc_compiled.Commands.Native
             stringLevel = caller.ReplacePPV(stringLevel);
             id = caller.ReplacePPV(id);
             level = int.Parse(stringLevel);
+            hasStringLevel = false;
             return this;
         }
 
@@ -41,6 +42,13 @@ namespace mc_compiled.Commands.Native
 
             stringLevel = level;
             hasStringLevel = true;
+        }
+
+        public override int GetHashCode()
+        {
+            if (hasStringLevel)
+                return id.GetHashCode() ^ stringLevel.GetHashCode();
+            return id.GetHashCode() + level;
         }
     }
 }

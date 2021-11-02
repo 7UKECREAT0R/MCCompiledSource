@@ -115,9 +115,11 @@ namespace mc_compiled.MCC
                             //      FACE <x> <y> <z>
                             //      FACE @<selector>
         PLACE = 0x3E,       // Place a block in the world.
-                            //      PLACE <block> <x> <y> <z> [data]
+                            //      PLACE <block> <x> <y> <z> [data] [destroyMode]
         FILL = 0x3F,        // Fill an area with blocks.
-                            //      FILL <block> <x1> <y1> <z1> <x2> <y2> <z2> [data]
+                            //      FILL <block> <x1> <y1> <z1> <x2> <y2> <z2> [data] [fillMode]
+        REPLACE = 0x40,     // Replace an area's specific blocks with another.
+                            //      REPLACE <x1> <y1> <z1> <x2> <y2> <z2> <source> <data> <replacement> [data]
         KILL = 0x40,        // Kill selected entity with optional delay.
                             //      KILL [delay]
 

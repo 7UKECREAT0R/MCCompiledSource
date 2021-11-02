@@ -52,12 +52,18 @@ namespace mc_compiled.Commands.Native
             id += count;
             id -= damage;
             id ^= displayName == null ? 0 : displayName.GetHashCode();
-            id -= enchantments == null ? 0 : enchantments.Length;
+            if (enchantments != null)
+                foreach (Enchantment ench in enchantments)
+                    id ^= ench.GetHashCode();
             if (keep) id *= -1;
-            id *= canPlaceOn == null ? 0 : enchantments.Length;
-            id ^= (canDestroy == null ? 0 : enchantments.Length) << 1;
+            if (canPlaceOn != null)
+                foreach (string str in canPlaceOn)
+                    id ^= str.GetHashCode();
+            if (canDestroy != null)
+                foreach (string str in canDestroy)
+                    id ^= str.GetHashCode();
             id += (byte)lockMode;
-            if (id < 0) id *= -1;
+            if (id < 0) id *= -7;
             return "item_" + id;
         }
     }

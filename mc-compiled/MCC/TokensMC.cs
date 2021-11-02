@@ -1161,7 +1161,7 @@ namespace mc_compiled.MCC
         public TokenFACE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.TP;
+            type = TOKENTYPE.FACE;
 
             if (string.IsNullOrWhiteSpace(text))
                 throw new TokenException(this, "Insufficient arguments.");
@@ -1215,6 +1215,194 @@ namespace mc_compiled.MCC
             {
                 string location = caller.ReplacePPV(target);
                 caller.FinishRaw($"tp {sel} ~~~ facing {location}");
+            }
+            return;
+        }
+    }
+    public class TokenPLACE : Token
+    {
+        string
+            block = null,
+            x = null,
+            y = null,
+            z = null,
+            data = null,
+            destroyMode = null;
+        public TokenPLACE(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.PLACE;
+            
+            string[] args = text.Split(' ');
+
+            if (args.Length < 4)
+                throw new TokenException(this, "Insufficient arguments.");
+
+            block = args[0]; 
+            x = args[1];
+            y = args[2];
+            z = args[3];
+
+            if (args.Length > 4)
+                data = args[4];
+            if (args.Length > 5)
+                destroyMode = args[5];
+        }
+        public override string ToString()
+        {
+            if (data != null)
+                return $"Place block {block} at {x} {y} {z} with data {data}";
+            else
+                return $"Place block {block} at {x} {y} {z}";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string _block = caller.ReplacePPV(block);
+            string _x = caller.ReplacePPV(x);
+            string _y = caller.ReplacePPV(y);
+            string _z = caller.ReplacePPV(z);
+            try
+            {
+                CoordinateValue px = CoordinateValue.Parse(_x).Value;
+                CoordinateValue py = CoordinateValue.Parse(_y).Value;
+                CoordinateValue pz = CoordinateValue.Parse(_z).Value;
+                if (data == null)
+                    caller.FinishRaw($"setblock {px} {py} {pz} {_block} 0 replace");
+                else if (destroyMode == null)
+                {
+                    string _data = caller.ReplacePPV(data);
+                    caller.FinishRaw($"setblock {px} {py} {pz} {_block} {_data} replace");
+                } else
+                {
+                    string _data = caller.ReplacePPV(data);
+                    Block.DestroyMode mode = Block.ParseDestroyMode(caller.ReplacePPV(destroyMode));
+                    caller.FinishRaw($"setblock {px} {py} {pz} {_block} {_data} {mode.ToString().ToLower()}");
+                }
+            }
+            catch (Exception)
+            {
+                throw new TokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
+            }
+            return;
+        }
+    }
+    public class TokenFILL : Token
+    {
+        public enum FillMode
+        {
+            REPLACE,
+            KEEP,
+            DESTROY,
+            OUTLINE,
+            HOLLOW
+        }
+        public static FillMode ParseFillMode(string str)
+        {
+            switch (str.ToUpper())
+            {
+                case "R":
+                case "REPLACE":
+                case "DEFAULT":
+                case "REMOVE":
+                    return FillMode.REPLACE;
+                case "K":
+                case "KEEP":
+                case "AIR":
+                case "PRESERVE":
+                    return FillMode.KEEP;
+                case "D":
+                case "DESTROY":
+                case "BREAK":
+                case "SIMULATE":
+                    return FillMode.DESTROY;
+                case "O":
+                case "OUTLINE":
+                case "WALLS":
+                    return FillMode.OUTLINE;
+                case "H":
+                case "HOLLOW":
+                case "ROOM":
+                    return FillMode.HOLLOW;
+                default:
+                    return FillMode.REPLACE;
+            }
+        }
+
+        string
+            block = null,
+            x1 = null,
+            y1 = null,
+            z1 = null,
+            x2 = null,
+            y2 = null,
+            z2 = null,
+            data = null,
+            fillMode = null;
+        public TokenFILL(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.FILL;
+
+            string[] args = text.Split(' ');
+
+            if (args.Length < 7)
+                throw new TokenException(this, "Insufficient arguments.");
+
+            block = args[0];
+            x1 = args[1];
+            y1 = args[2];
+            z1 = args[3];
+            x2 = args[4];
+            y2 = args[5];
+            z2 = args[6];
+
+            if (args.Length > 7)
+                data = args[7];
+            if (args.Length > 8)
+                fillMode = args[8];
+        }
+        public override string ToString()
+        {
+            if (data != null)
+                return $"Fill area [({x1}, {y1}, {z1}), ({x2}, {y2}, {z2})] with {block}";
+            else
+                return $"Fill area [({x1}, {y1}, {z1}), ({x2}, {y2}, {z2})] with {block} and data {data}";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string _block = caller.ReplacePPV(block);
+            string _x1 = caller.ReplacePPV(x1);
+            string _y1 = caller.ReplacePPV(y1);
+            string _z1 = caller.ReplacePPV(z1);
+            string _x2 = caller.ReplacePPV(x2);
+            string _y2 = caller.ReplacePPV(y2);
+            string _z2 = caller.ReplacePPV(z2);
+            try
+            {
+                CoordinateValue px1 = CoordinateValue.Parse(_x1).Value;
+                CoordinateValue py1 = CoordinateValue.Parse(_y1).Value;
+                CoordinateValue pz1 = CoordinateValue.Parse(_z1).Value;
+                CoordinateValue px2 = CoordinateValue.Parse(_x2).Value;
+                CoordinateValue py2 = CoordinateValue.Parse(_y2).Value;
+                CoordinateValue pz2 = CoordinateValue.Parse(_z2).Value;
+
+                if (data == null)
+                    caller.FinishRaw($"fill {px1} {py1} {pz1} {px2} {py2} {pz2} {_block} 0 replace");
+                else if (fillMode == null)
+                {
+                    string _data = caller.ReplacePPV(data);
+                    caller.FinishRaw($"fill {py1} {pz1} {px2} {py2} {pz2} {_block} {_data} replace");
+                }
+                else
+                {
+                    string _data = caller.ReplacePPV(data);
+                    FillMode mode = ParseFillMode(caller.ReplacePPV(fillMode));
+                    caller.FinishRaw($"fill {py1} {pz1} {px2} {py2} {pz2} {_block} {_data} {mode.ToString().ToLower()}");
+                }
+            }
+            catch (Exception)
+            {
+                throw new TokenException(this, $"Couldn't parse positions [({_x1}, {_y1}, {_z1}), ({_x2}, {_y2}, {_z2})]");
             }
             return;
         }
