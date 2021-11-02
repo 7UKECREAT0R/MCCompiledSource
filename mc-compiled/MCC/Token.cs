@@ -17,6 +17,7 @@ namespace mc_compiled.MCC
     {
         public Token token;
         public string desc;
+
         /// <summary>
         /// Indicates that a token has encountered a managed error while executing.
         /// </summary>
@@ -103,8 +104,8 @@ namespace mc_compiled.MCC
 
         ELSE = 0x39,        // Used after an IF-family statement to check for the inverse.
         GIVE = 0x3A,        // Give the selected player an item.
-                            //      GIVE <item> [count] [damage] keep? lockinventory? lockslot? [canplaceon <block>]
-                            //          [candestroy <block>] [enchant <enchant> <level>] [name <itemname>]
+                            //      GIVE <item> [count] [damage] [keep? lockinventory? lockslot? [canplaceon <block>]
+                            //          [candestroy <block>] [enchant <enchant> <level>] [name <itemname>]]
         TP = 0x3B,          // Teleport the selected player/entity.
                             //      TP <x> <y> <z> [yRot] [xRot]
                             //      TP @<selector>
@@ -119,5 +120,13 @@ namespace mc_compiled.MCC
                             //      FILL <block> <x1> <y1> <z1> <x2> <y2> <z2> [data]
         KILL = 0x40,        // Kill selected entity with optional delay.
                             //      KILL [delay]
+
+
+        // Planned stuff:
+
+        // BINARY WRITE <src> <dst>
+        //      Convert value to 32 binary scoreboard values.
+        // BINARY READ <src> <dst>
+        //      Convert binary number back to scoreboard value.
     }
 }

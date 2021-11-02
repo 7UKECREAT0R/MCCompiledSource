@@ -303,7 +303,7 @@ $"scoreboard players set {selector} {source} {value.data.i}",
                 int precision = source.information;
                 int mult = (int)Math.Pow(10, precision);
                 long wholePart = value.GetWholePart();
-                long decimalPart = (long)(value.GetDecimalPart() * mult);
+                long decimalPart = (long)Math.Round(value.GetDecimalPart() * mult);
                 return new[]
                 {
 $"scoreboard players set {selector} {source.WholePart} {wholePart}",
@@ -462,7 +462,7 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
         }
     }
     /// <summary>
-    /// An operation on two values. If bytecast is odd, then a temp scoreboard objective is needed.
+    /// An operation on two values. If (value % 2 == 1), then a temp scoreboard objective is needed.
     /// </summary>
     enum ValueOperation : byte
     {

@@ -1057,18 +1057,24 @@ namespace mc_compiled.MCC
         {
             switch (str.ToUpper())
             {
+                case "F":
                 case "FORWARD":
                 case "FORWARDS":
                     return MoveDirection.FORWARDS;
+                case "B":
                 case "BACKWARD":
                 case "BACKWARDS":
                     return MoveDirection.BACKWARDS;
+                case "L":
                 case "LEFT":
                     return MoveDirection.LEFT;
+                case "R":
                 case "RIGHT":
                     return MoveDirection.RIGHT;
+                case "U":
                 case "UP":
                     return MoveDirection.UP;
+                case "D":
                 case "DOWN":
                     return MoveDirection.DOWN;
                 default:
@@ -1138,6 +1144,77 @@ namespace mc_compiled.MCC
                     break;
                 case MoveDirection.NONE:
                     break;
+            }
+            return;
+        }
+    }
+    public class TokenFACE : Token
+    {
+        bool looksAtTarget = false;
+
+        string target = null;
+        string
+            x = null,
+            y = null,
+            z = null;
+
+        public TokenFACE(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.TP;
+
+            if (string.IsNullOrWhiteSpace(text))
+                throw new TokenException(this, "Insufficient arguments.");
+
+            string[] args = text.Split(' ');
+
+            if (args.Length == 1 || text.StartsWith("@") || CoordinateValue.Parse(args[0]) == null)
+            {
+                looksAtTarget = true;
+                target = text;
+                return;
+            }
+
+            if (args.Length < 3)
+                throw new TokenException(this, "Insufficient arguments.");
+
+            x = args[0];
+            y = args[1];
+            z = args[2];
+        }
+        public override string ToString()
+        {
+            if (looksAtTarget)
+                return $"Face entity {target}";
+            else
+            {
+                return $"Face location {x} {y} {z}";
+            }
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string sel = '@' + caller.SelectionReference.ToString();
+            if (target == null)
+            {
+                string _x = caller.ReplacePPV(x);
+                string _y = caller.ReplacePPV(y);
+                string _z = caller.ReplacePPV(z);
+                try
+                {
+                    CoordinateValue px = CoordinateValue.Parse(_x).Value;
+                    CoordinateValue py = CoordinateValue.Parse(_y).Value;
+                    CoordinateValue pz = CoordinateValue.Parse(_z).Value;
+                    caller.FinishRaw($"tp {sel} ~~~ facing {px} {py} {pz}");
+                }
+                catch (Exception)
+                {
+                    throw new TokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
+                }
+            }
+            else
+            {
+                string location = caller.ReplacePPV(target);
+                caller.FinishRaw($"tp {sel} ~~~ facing {location}");
             }
             return;
         }

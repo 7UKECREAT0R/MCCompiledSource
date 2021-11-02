@@ -87,6 +87,10 @@ namespace mc_compiled.MCC
                 return selection.Count > 1;
             }
         }
+        /// <summary>
+        /// Context-aware selector for the currently selected entity.
+        /// Compensates for if-statements changing @s.
+        /// </summary>
         public Selector.Core SelectionReference
         {
             get
