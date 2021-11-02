@@ -59,7 +59,7 @@ namespace mc_compiled.MCC
             contents.Reset();
             caller.RunSection(contents);
         }
-        public void ExecuteInFunction(Executor caller, TokenFeeder tokens, FunctionDefinition function)
+        public void PlaceInFunction(Executor caller, TokenFeeder tokens, FunctionDefinition function)
         {
             caller.ApplyCurrentFile();
             caller.PushFileOffset(function.FullName);
@@ -566,7 +566,7 @@ namespace mc_compiled.MCC
             caller.functionsDefined.Add(definition);
 
             TokenBlock block = tokens.Next() as TokenBlock;
-            block.ExecuteInFunction(caller, tokens, definition);
+            block.PlaceInFunction(caller, tokens, definition);
         }
         public override string ToString()
         {

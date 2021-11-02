@@ -626,17 +626,29 @@ namespace mc_compiled.MCC
                         string _sizeX = args[0];
                         string _sizeY = args[1];
                         string _sizeZ = args[2];
+                        int sizeX = int.Parse(_sizeX);
+                        int sizeY = int.Parse(_sizeY);
+                        int sizeZ = int.Parse(_sizeZ);
                         _x = args.Length > 3 ? args[3] : null;
                         _y = args.Length > 4 ? args[4] : null;
                         _z = args.Length > 5 ? args[5] : null;
                         selector.area.radiusMax = null;
                         selector.area.radiusMin = null;
-                        selector.area.volumeX = int.Parse(_sizeX);
-                        selector.area.volumeY = int.Parse(_sizeY);
-                        selector.area.volumeZ = int.Parse(_sizeZ);
-                        selector.area.x = CoordinateValue.Parse(_x);
-                        selector.area.y = CoordinateValue.Parse(_y);
-                        selector.area.z = CoordinateValue.Parse(_z);
+                        if (sizeX != 0)
+                        {
+                            selector.area.volumeX = sizeX;
+                            selector.area.x = CoordinateValue.Parse(_x);
+                        }
+                        if (sizeY != 0)
+                        {
+                            selector.area.volumeY = sizeY;
+                            selector.area.y = CoordinateValue.Parse(_y);
+                        }
+                        if (sizeZ != 0)
+                        {
+                            selector.area.volumeZ = sizeZ;
+                            selector.area.z = CoordinateValue.Parse(_z);
+                        }
                         return;
                     case Type.LEVEL:
                         if (not)

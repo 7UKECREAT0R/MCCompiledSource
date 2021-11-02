@@ -110,22 +110,30 @@ namespace mc_compiled.Commands.Limits
         public string[] GetSections()
         {
             List<string> parts = new List<string>();
-            if(x.HasValue)
+            if (x.HasValue)
+            {
                 parts.Add("x=" + x.Value);
+                if (volumeX.HasValue)
+                    parts.Add("dx=" + volumeX.Value);
+            }
             if (y.HasValue)
+            {
                 parts.Add("y=" + y.Value);
+                if (volumeY.HasValue)
+                    parts.Add("dy=" + volumeY.Value);
+            }
             if (z.HasValue)
+            {
                 parts.Add("z=" + z.Value);
+                if (volumeZ.HasValue)
+                    parts.Add("dz=" + volumeZ.Value);
+            }
+
             if (radiusMin.HasValue)
                 parts.Add("rm=" + radiusMin.Value);
             if (radiusMax.HasValue)
                 parts.Add("r=" + radiusMax.Value);
-            if (volumeX.HasValue)
-                parts.Add("dx=" + volumeX.Value);
-            if (volumeY.HasValue)
-                parts.Add("dy=" + volumeY.Value);
-            if (volumeZ.HasValue)
-                parts.Add("dz=" + volumeZ.Value);
+
             return parts.ToArray();
         }
     }
