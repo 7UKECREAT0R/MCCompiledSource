@@ -16,7 +16,7 @@ namespace mc_compiled.MCC
         public static Definitions GLOBAL_DEFS;
 
         public const string FILE = "definitions.def";
-        public static readonly Regex DEF_REGEX = new Regex("\\[([\\w ]+):\\s*([\\w ]+)\\]");
+        public static readonly Regex DEF_REGEX = new Regex("\\[([\\w ]+):\\s*([\\w ,]+)\\]");
 
         internal readonly Dictionary<string, string> defs;
 
@@ -130,11 +130,20 @@ namespace mc_compiled.MCC
             foreach(Match match in matches)
             {
                 string category = match.Groups[1].Value;
-                string query = match.Groups[2].Value;
-                string key = BuildKey(category, query);
-
-                if(defs.TryGetValue(key, out string replacement))
-                    input = input.Replace(match.Value, replacement);
+                string fullQuery = match.Groups[2].Value;
+                string[] multi = fullQuery.Split(',').Select(s => s.Trim()).ToArray();
+                string[] replacements = new string[multi.Length];
+                for(int i = 0; i < multi.Length; i++)
+                {
+                    string key = BuildKey(category, multi[i]);
+                    if (defs.TryGetValue(key, out string replacement))
+                        replacements[i] = replacement;
+                    else
+                        goto no_changes; // fight me
+                }
+                input = input.Replace(match.Value, string.Join("", replacements));
+                no_changes:
+                continue;
             }
 
             return input;
