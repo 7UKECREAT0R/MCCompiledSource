@@ -54,6 +54,10 @@ namespace mc_compiled.MCC
         {
             return "Block with " + contents.length + " elements in it.";
         }
+        public override int GetHashCode()
+        {
+            return contents.GetHashCode();
+        }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
             contents.Reset();
@@ -743,6 +747,36 @@ namespace mc_compiled.MCC
         {
             return $"[PP] Call/Define macro '{name}' with {args.Length} argument(s)";
         }
+    }
+    public class TokenHALT : Token
+    {
+        public TokenHALT()
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.HALT;
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            if (!caller.HasCreatedTemplate(Executor.HALT_FUNCTION))
+            {
+                // Spam 10,000 /help commands.
+                long count = caller.HaltFunctionCount;
+                List<string> lines = new List<string>(((int)count) + 3)
+                {
+                    "# This file will run 10 thousand help commands, causing the file to halt.",
+                    "# This will only work if functionCommandLimit is still at the default.",
+                    "# If not, use 'ppv functionCommandLimit <amount>' to manually set this number."
+                };
+                for(int i = 0; i < count; i++)
+                    lines.Add("help");
+
+                caller.CreateTemplate(Executor.HALT_FUNCTION, lines.ToArray(), true);
+            }
+
+            caller.FinishRaw("function " + Executor.HALT_FUNCTION);
+            return;
+        }
+        public override string ToString() => "Halt Execution";
     }
     public class TokenPPFRIENDLY : Token
     {

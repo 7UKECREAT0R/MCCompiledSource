@@ -55,17 +55,18 @@ namespace mc_compiled.MCC
         CALL = 0x1F,        // Call Function            CALL <name> [args...]
 
         // Region 0x2 - Preprocessor Extensions
-        PPFRIENDLY = 0x20,  // Convert Value to Friendly Name           PPFRIENDLY <var>
-        PPUPPER = 0x21,     // Convert Value to UPPERCASE               PPUPPER <var>
-        PPLOWER = 0x22,     // Convert Value to lowercase               PPLOWER <var>
+        HALT = 0x20,        // Halt Execution                           HALT
+        PPFRIENDLY = 0x21,  // Convert Value to Friendly Name           PPFRIENDLY <var>
+        PPUPPER = 0x22,     // Convert Value to UPPERCASE               PPUPPER <var>
+        PPLOWER = 0x23,     // Convert Value to lowercase               PPLOWER <var>
 
-        // Region 0x3-0x5 - Minecraft
+        // Region 0x3-0x6 - Minecraft
         MC = 0x30,          // Append regular minecraft command.            MC <command>
         SELECT = 0x31,      // Set the selected entity.         
                             //      SELECT @<s|e|a|r|p>
         PRINT = 0x32,       // Print to all players.                        PRINT <str>
         PRINTP = 0x33,      // Print to the selected entity.                PRINTP <str>
-        LIMIT = 0x34,       // Limit the amount of entities selected.
+        _LIMIT = 0x34,      // OBSOLETE: USE "if limit x"
                             //      LIMIT <amount>
                             //      LIMIT NONE
         DEFINE = 0x35,      // Define a value to be used.                   DEFINE <valuename>
@@ -93,9 +94,10 @@ namespace mc_compiled.MCC
                             //      IF TAG <tagname>                                Check if entity has tag.
                             //      IF MODE <gamemode>                              Check if player is in gamemode.
                             //      IF NEAR <x> <y> <z> <radius> [radiusMin]        Check if entity is near location.
-                            //      IF IN <sizeX> <sizeY> <sizeZ> [x] [y] [z]       Check if entity is in area.
+                            //      IF IN <sizeX> <sizeY> <sizeZ> [x] [y] [z]       Check if entity is in area. If size is 0 then it won't be set.
                             //      IF LEVEL <min> [max]                            Check if player has level.
                             //      IF NAME <string>                                Check if entity has name.
+                            //      IF LIMIT <amount>                               Only execute on a certain number of entities.
 
                             //      You can combine them by using & as a delimiter.
                             //          if block ~ ~-1 ~ lava & tag lavawalker

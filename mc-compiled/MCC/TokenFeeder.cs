@@ -80,5 +80,18 @@ namespace mc_compiled.MCC
                 ret[i] = tokens[readerIndex + i];
             return ret;
         }
+
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+            foreach(Token t in tokens)
+            {
+                if (hash == 0)
+                    hash = t.GetHashCode();
+                else hash ^= t.GetHashCode();
+            }
+            return hash;
+        }
     }
 }

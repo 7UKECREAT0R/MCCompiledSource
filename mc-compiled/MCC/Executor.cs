@@ -17,6 +17,17 @@ namespace mc_compiled.MCC
     {
         public const double MCC_VERSION = 1.0;
         public static string MINECRAFT_VERSION = "1.17.10";
+        public long HaltFunctionCount
+        {
+            get
+            {
+                if(ppv.TryGetValue("functionCommandLimit", out Dynamic d))
+                {
+                    return d.data.i;
+                }
+                return 10000L;
+            }
+        }
 
         // Command Related
         public const string MATH_TEMP = "_mcc_math";            // Used for multistep scoreboard operations.
@@ -26,6 +37,7 @@ namespace mc_compiled.MCC
         public const string DECIMAL_SUB_CARRY = "dec_carry_";   // Prefix used for decimal subtraction carry functions.
         public const string SCATTER_RAND = "_mcc_scatter";      // Random number for  
         public const string GHOST_TAG = "_gst";                 // Used for ghost armor stands.
+        public const string HALT_FUNCTION = "halt_execution";   // Function that halts execution.
 
         private readonly List<string> createdTemplates = new List<string>();
         public bool HasCreatedTemplate(string templateName) => createdTemplates.Contains(templateName);
@@ -37,8 +49,10 @@ namespace mc_compiled.MCC
             createdTemplates.Add(name);
 
             if (!file)
+            {
                 for (int i = code.Length - 1; i >= 0; i--)
                     AddLineTop(code[i]);
+            }
             else
             {
                 List<string> nfile = new List<string>(code);
@@ -47,33 +61,16 @@ namespace mc_compiled.MCC
         }
 
         public int currentMacroHash = 0;
+        public int currentIfScope = 0;
 
         public readonly bool debug;
         public readonly Dictionary<string, Dynamic> ppv;
         public readonly Dictionary<string, Macro> macros;
         public readonly TokenFeeder tokens;
 
-        public Stack<Selector> selection;
         public ValueManager values;
-
-        /// <summary>
-        /// Clone and return a new selector which can be written to, preserving the lower scope's selection stack.
-        /// </summary>
-        /// <returns>A new selector which can be freely written to and retains the exact properties of the lower scope's selector.</returns>
-        public Selector PushSelectionStack()
-        {
-            Selector old = selection.Peek();
-            Selector clone = new Selector(old);
-            selection.Push(clone);
-            return clone;
-        }
-        /// <summary>
-        /// Return the selection stack to one scope level lower.
-        /// </summary>
-        public void PopSelectionStack()
-        {
-            selection.Pop();
-        }
+        public Selector.Core selection;
+        
 
         int _reader;
         public int ReaderLocation
@@ -85,7 +82,7 @@ namespace mc_compiled.MCC
         {
             get
             {
-                return selection.Count > 1;
+                return currentIfScope > 0;
             }
         }
         /// <summary>
@@ -96,27 +93,25 @@ namespace mc_compiled.MCC
         {
             get
             {
-                Selector.Core core = selection.Peek().core;
                 if(TargetPositionAligned)
                 {
-                    if (core == Selector.Core.e || core == Selector.Core.a)
+                    if (selection == Selector.Core.e || selection == Selector.Core.a)
                         return Selector.Core.s;
                 }
-                return core;
+                return selection;
             }
         }
 
         internal List<MCFunction> functionsToBeWritten = new List<MCFunction>();
         internal List<Tuple<string, ItemStack>> itemsToBeWritten = new List<Tuple<string, ItemStack>>();
-        internal List<FunctionDefinition> functionsDefined = new List<FunctionDefinition>();
         internal Stack<string> fileOffset;
+        public List<FunctionDefinition> functionsDefined = new List<FunctionDefinition>();
 
         public string projectName = "DefaultProject";
-        public string projectDesc = "Change with 'SETPROJECT DESC Your Text'";
+        public string projectDesc = "Default project description.";
 
-        
-        public string baseFileName;                // The base file name for all the functions.
-        List<string> currentFile;           // The lines of the current file being written to.
+        public string baseFileName;     // The base file name for all the functions.
+        List<string> currentFile;       // The lines of the current file being written to.
 
         public string FileOffset
         {
@@ -264,13 +259,8 @@ namespace mc_compiled.MCC
             fileOffset.Push("");
 
             ppv = new Dictionary<string, Dynamic>();
-            selection = new Stack<Selector>();
+            selection = Selector.Core.s;
             values = new ValueManager();
-
-            selection.Push(new Selector()
-            {
-                core = Selector.Core.s
-            });
 
             this.tokens = new TokenFeeder(tokens);
 
@@ -300,29 +290,25 @@ namespace mc_compiled.MCC
                 while(tokens.HasNext())
                 {
                     token = tokens.Next();
-
-                    if(selection.Count > 1)
-                        SetRaw(selection.Peek().GetAsPrefix());
-
                     token.Execute(this, tokens);
                 }
             } catch(TokenException texc)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("EXECUTION ERROR:\n" +
-                    $"\tLINE: {texc.token.line}\n" +
-                    $"\tCOMPILED AS: {token}\n" +
-                    $"\tDESCRIPTION: {texc.desc}\n");
+                Console.WriteLine("Managed Exception:\n" +
+                    $"\tLine Number: {texc.token.line}\n" +
+                    $"\tLine Code: {texc.token}\n" +
+                    $"\tMessage:\n\t\t{texc.desc}\n");
                 Console.ReadLine();
                 Environment.Exit(0);
                 return;
             } catch(Exception exc)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("INTERNAL EXECUTION ERROR:\n" +
-                    $"\tTOKEN WAS: {token}\n" +
-                    $"\tMESSAGE: {exc.Message}\n" +
-                    $"\tDESCRIPTION: {exc}\n");
+                Console.WriteLine("Unmanaged Exception:\n" +
+                    $"\tLine Code: {token}\n" +
+                    $"\tMessage: {exc.Message}\n\n" +
+                    $"\tFor the Developers:\n{exc}");
                 Console.ReadLine();
                 Environment.Exit(0);
                 return;

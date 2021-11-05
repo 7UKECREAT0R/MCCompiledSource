@@ -34,14 +34,14 @@ namespace mc_compiled.MCC
     }
     public class TokenSELECT : Token
     {
-        Selector.Core selectCore;
+        string selectCore;
 
         public TokenSELECT(string selectCore)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.SELECT;
 
-            this.selectCore = Selector.ParseCore(selectCore);
+            this.selectCore = selectCore;
         }
         public override string ToString()
         {
@@ -49,7 +49,7 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            caller.selection.Peek().core = selectCore;
+            caller.selection = Selector.ParseCore(caller.ReplacePPV(selectCore));
         }
     }
     public class TokenPRINT : Token
@@ -143,7 +143,7 @@ namespace mc_compiled.MCC
         public TokenLIMIT(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.LIMIT;
+            type = TOKENTYPE._LIMIT;
 
             limit = text;
             none = text.ToUpper().Equals("NONE");
@@ -154,11 +154,11 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            string output = caller.ReplacePPV(limit);
+            /*string output = caller.ReplacePPV(limit);
 
             try
             {
-                var selector = caller.selection.Peek();
+                var selector = caller.selection;
                 if (none)
                 {
                     selector.count.count = Commands.Limits.Count.NONE;
@@ -175,7 +175,7 @@ namespace mc_compiled.MCC
                 throw new TokenException(this, $"Cannot set limit to \"{output}\", needs an integer.");
             }
 
-            return;
+            return;*/
         }
     }
     public class TokenDEFINE : Token
@@ -348,7 +348,7 @@ namespace mc_compiled.MCC
         {
             string _sourceValue = caller.ReplacePPV(valueName);
             string secondValue = bIsConstant ? null : caller.ReplacePPV(valueB);
-            string selector = '@' + caller.selection.Peek().core.ToString();
+            string selector = '@' + caller.selection.ToString();
 
             if (!caller.values.HasValue(_sourceValue))
                 throw new TokenException(this, $"No value exists with the name \"{_sourceValue}\"");
@@ -474,10 +474,12 @@ namespace mc_compiled.MCC
             NEAR,
             IN,
             LEVEL,
-            NAME
+            NAME,
+            LIMIT
         }
         struct IFStatement
         {
+            static readonly char[] alphabet = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
             public int MinimumArgCount
             {
                 get
@@ -511,22 +513,38 @@ namespace mc_compiled.MCC
                     }
                 }
             }
+            /// <summary>
+            /// A short unique identifier for this if-statement.
+            /// </summary>
+            public int UID
+            {
+                get
+                {
+                    int hash = string.Join("", args).GetHashCode();
+                    hash ^= type.ToString().GetHashCode();
+                    return hash;
+                }
+            }
 
             public bool not;
             public Type type;
             public string[] args;
 
-            public void Evaluate(ref Selector selector, ref Executor context)
+            public void ParseIntoSelector(ref Selector selector, ref Executor context)
             {
-                int currentScope = context.selection.Count - 1;
+                int scope = context.currentIfScope;
+
+                for (int i = 0; i < args.Length; i++)
+                    args[i] = context.ReplacePPV(args[i]);
+
                 switch (type)
                 {
                     case Type.none:
                         return;
                     case Type.VALUE:
-                        string valueName = context.ReplacePPV(args[0]);
+                        string valueName = args[0];
                         Operator op = Operator.Parse(args[1]);
-                        string checkValue = context.ReplacePPV(args[2]);
+                        string checkValue = args[2];
                         if (int.TryParse(checkValue, out int otherInt))
                         {
                             OperatorType type = op.type;
@@ -576,10 +594,9 @@ namespace mc_compiled.MCC
                         BlockCheck blockCheck = new BlockCheck(x, y, z, block, data);
                         if (not) // perform block inversion
                         {
-                            string inverterName = Executor.MATH_INVERTER + currentScope;
+                            string inverterName = Executor.MATH_INVERTER + scope;
                             context.CreateTemplate(inverterName, new[] {
-                                $"scoreboard objectives add {inverterName} dummy",
-
+                                $"scoreboard objectives add {inverterName} dummy"
                             });
                             context.FinishRaw($"scoreboard players set @{context.SelectionReference} {inverterName} 0", false);
                             context.FinishRaw(blockCheck.AsStoreIn(inverterName), false); // will set to 1 if found
@@ -663,6 +680,9 @@ namespace mc_compiled.MCC
                     case Type.NAME:
                         selector.entity.name = (not ? "!" : "") + string.Join(" ", args);
                         return;
+                    case Type.LIMIT:
+                        selector.count.count = int.Parse(args[0]);
+                        return;
                     default:
                         throw new MissingFieldException("Invalid if-statement criteria");
                 }
@@ -672,6 +692,22 @@ namespace mc_compiled.MCC
         public string eval;
         public bool forceInvert = false;
         List<IFStatement> statements = new List<IFStatement>();
+        /// <summary>
+        /// Creates a unique function name for the conditions inside this.
+        /// </summary>
+        public string BranchFunctionName(TokenBlock block)
+        {
+            int hash = 0;
+            statements.ForEach(s =>
+            {
+                if (hash == 0)
+                    hash = s.UID;
+                else hash ^= s.UID;
+            });
+
+            hash ^= block.GetHashCode();
+            return (forceInvert ? "f" : "n") + type.ToString() + '_' + hash;
+        }
         void ParseStatement(string statement)
         {
             string[] args = statement.Split(' ');
@@ -713,6 +749,10 @@ namespace mc_compiled.MCC
                 case "NAME":
                     current.type = Type.NAME;
                     break;
+                case "LIMIT":
+                case "COUNT":
+                    current.type = Type.LIMIT;
+                    break;
                 default:
                     current.type = Type.VALUE;
                     break;
@@ -745,9 +785,10 @@ namespace mc_compiled.MCC
         {
             return $"If {eval}:";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public Selector ConstructSelector(Selector.Core core, ref Executor caller)
         {
-            Selector next = caller.PushSelectionStack();
+            Selector selector = new Selector() { core = core };
+
             for (int i = 0; i < statements.Count; i++)
             {
                 IFStatement statement = statements[i];
@@ -761,8 +802,9 @@ namespace mc_compiled.MCC
                 // control NSE throws
                 try
                 {
-                    clone.Evaluate(ref next, ref caller);
-                } catch (NotSupportedException nse)
+                    clone.ParseIntoSelector(ref selector, ref caller);
+                }
+                catch (NotSupportedException nse)
                 {
                     if (forceInvert)
                         continue;
@@ -770,31 +812,72 @@ namespace mc_compiled.MCC
                 }
             }
 
+            return selector;
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            Selector selector = ConstructSelector(caller.selection, ref caller);
+
             if (forceInvert)
                 return;
 
             Token potentialBlock = tokens.Peek();
-            if(potentialBlock != null && potentialBlock is TokenBlock)
+            if (potentialBlock != null)
             {
-                TokenBlock block = tokens.Next() as TokenBlock;
-                block.Execute(caller, null);
-                caller.PopSelectionStack();
+                if(potentialBlock is TokenBlock)
+                {
+                    TokenBlock block = tokens.Next() as TokenBlock;
+                    FunctionDefinition a = new FunctionDefinition()
+                    {
+                        name = BranchFunctionName(block),
+                        isNamespaced = true,
+                        theNamespace = "_branching",
+                        isDelay = false,
+                        isTick = false,
+                        security = FunctionSecurity.NONE
+                    };
+                    // Compile rest of branch into function.
+                    block.PlaceInFunction(caller, tokens, a);
+                    string command = $"function {a.FullName}";
+                    caller.FinishRaw(selector.GetAsPrefix() + command, false);
+                } else
+                {
+                    caller.SetRaw(selector.GetAsPrefix());
+                    // This is not a block.
+                    potentialBlock.Execute(caller, tokens);
+                }
 
                 Token potentialElse = tokens.Peek();
                 if (potentialElse == null || !(potentialElse is TokenELSE))
                     return;
                 tokens.Next();
                 potentialBlock = tokens.Peek();
-                if(potentialBlock == null || !(potentialBlock is TokenBlock))
-                    throw new TokenException(this, "No block after ELSE statement.");
-                TokenBlock elseBlock = tokens.Next() as TokenBlock;
-                forceInvert = true;
-                Execute(caller, null);
-                forceInvert = false;
-                elseBlock.Execute(caller, null);
-                caller.PopSelectionStack();
+                if (potentialBlock == null)
+                    throw new NullReferenceException("Reached end of file after else-statement.");
+                if(potentialBlock is TokenBlock)
+                {
+                    TokenBlock elseBlock = tokens.Next() as TokenBlock;
+                    forceInvert = true;
+                    selector = ConstructSelector(caller.selection, ref caller);
+                    FunctionDefinition b = new FunctionDefinition()
+                    {
+                        name = BranchFunctionName(elseBlock),
+                        isNamespaced = true,
+                        theNamespace = "_branching",
+                        isDelay = false,
+                        isTick = false,
+                        security = FunctionSecurity.NONE
+                    };
+                    elseBlock.PlaceInFunction(caller, tokens, b);
+                    caller.FinishRaw(selector.GetAsPrefix() + $"function {b.FullName}", false);
+                    forceInvert = false;
+                }
                 return;
-            } else throw new TokenException(this, "No block after IF statement.");
+            }
+            else
+            {
+                throw new NullReferenceException("Reached end of file after if-statement.");
+            }
         }
     }
     public class TokenELSE : Token
@@ -918,7 +1001,6 @@ namespace mc_compiled.MCC
                 string exportedName = tuple.Item1;
                 caller.itemsToBeWritten.Add(tuple);
 
-                Selector selector = caller.selection.Peek();
                 bool aligned = caller.TargetPositionAligned;
                 string last = $"structure load {exportedName} ~~~ 0_degrees none true false";
                 if(aligned)
