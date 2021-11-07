@@ -843,13 +843,12 @@ namespace mc_compiled.MCC
                     };
                     // Compile rest of branch into function.
                     block.PlaceInFunction(caller, tokens, a);
-                    string command = $"function {a.FullName}";
+                    string command = $"function {a.CommandName}";
                     caller.FinishRaw(selector.GetAsPrefix() + command, false);
                 } else
                 {
                     caller.SetRaw(selector.GetAsPrefix());
-                    // This is not a block.
-                    potentialBlock.Execute(caller, tokens);
+                    tokens.Next().Execute(caller, tokens);
                 }
 
                 Token potentialElse = tokens.Peek();
@@ -874,7 +873,14 @@ namespace mc_compiled.MCC
                         security = FunctionSecurity.NONE
                     };
                     elseBlock.PlaceInFunction(caller, tokens, b);
-                    caller.FinishRaw(selector.GetAsPrefix() + $"function {b.FullName}", false);
+                    caller.FinishRaw(selector.GetAsPrefix() + $"function {b.CommandName}", false);
+                    forceInvert = false;
+                } else
+                {
+                    forceInvert = true;
+                    selector = ConstructSelector(caller.selection, ref caller);
+                    caller.SetRaw(selector.GetAsPrefix());
+                    tokens.Next().Execute(caller, tokens);
                     forceInvert = false;
                 }
                 return;
@@ -894,7 +900,7 @@ namespace mc_compiled.MCC
         }
         public override string ToString()
         {
-            return $"Otherwise:";
+            return $"Else:";
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {

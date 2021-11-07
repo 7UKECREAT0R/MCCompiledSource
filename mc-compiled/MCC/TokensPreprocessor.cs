@@ -572,6 +572,9 @@ namespace mc_compiled.MCC
 
             caller.functionsDefined.Add(definition);
 
+            if (caller.debug)
+                Console.WriteLine($"Defined Function \"{definition.FullName}\"");
+
             TokenBlock block = tokens.Next() as TokenBlock;
             block.PlaceInFunction(caller, tokens, definition);
         }

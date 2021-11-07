@@ -37,7 +37,19 @@ namespace mc_compiled.MCC
                 else return name;
             }
         }
-        
+        /// <summary>
+        /// Gets the fully qualified name required to run this function from a command.
+        /// </summary>
+        public string CommandName
+        {
+            get
+            {
+                if (isNamespaced)
+                    return theNamespace + '/' + name;
+                else return name;
+            }
+        }
+
         public static FunctionDefinition Parse(string def)
         {
             FunctionDefinition func = new FunctionDefinition();

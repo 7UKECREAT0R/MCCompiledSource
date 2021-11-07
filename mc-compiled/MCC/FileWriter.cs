@@ -11,7 +11,7 @@ namespace mc_compiled.MCC
         public readonly string fileName;
         public readonly string fileFolder;
         public readonly List<string> lines;
-        public StringBuilder addLineBuffer;
+        public readonly StringBuilder addLineBuffer;
 
         public FileWriter(string name, string folder = null)
         {
@@ -44,7 +44,7 @@ namespace mc_compiled.MCC
             if(end == null)
                 lines.Add(addLineBuffer.ToString());
             else
-                lines.Add(end + addLineBuffer.ToString());
+                lines.Add(addLineBuffer.ToString() + end);
 
             // Wipe buffer
             if (modify)

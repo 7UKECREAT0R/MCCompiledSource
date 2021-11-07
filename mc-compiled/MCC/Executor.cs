@@ -160,9 +160,12 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public FileWriter PushFile(string fileName, string fileFolder = null)
         {
-            FileWriter @new = new FileWriter(fileName, fileFolder);
-            fileStack.Push(@new);
-            return @new;
+            if (AtBaseScope && fileFolder == null)
+                fileName = baseFileName + '-' + fileName;
+
+            FileWriter toPush = new FileWriter(fileName, fileFolder);
+            fileStack.Push(toPush);
+            return toPush;
         }
         /// <summary>
         /// Pop a file off the stack and add it to the functions-to-be-written list.
@@ -236,8 +239,8 @@ namespace mc_compiled.MCC
         /// </summary>
         public void Run()
         {
-            // Pops and saves base file at the end of this method.
             RunSection(tokens);
+            PopFile();
         }
         /// <summary>
         /// Run a set of tokens.
@@ -245,10 +248,6 @@ namespace mc_compiled.MCC
         /// <param name="tokens"></param>
         public void RunSection(TokenFeeder tokens)
         {
-            // Failsafe
-            if (fileStack.Count < 1)
-                fileStack.Push(new FileWriter(baseFileName));
-
             Token token = null;
             try
             {
@@ -267,7 +266,7 @@ namespace mc_compiled.MCC
                 Console.ReadLine();
                 Environment.Exit(0);
                 return;
-            } catch(Exception exc)
+            }/* catch(Exception exc)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Unmanaged Exception:\n" +
@@ -275,12 +274,8 @@ namespace mc_compiled.MCC
                     $"\tMessage: {exc.Message}\n\n" +
                     $"\tFor the Developers:\n{exc}");
                 Console.ReadLine();
-                Environment.Exit(0);
-                return;
-            } finally
-            {
-                PopFile();
-            }
+                throw exc;
+            }*/
         }
         /// <summary>
         /// Get the compiled files after execution.
