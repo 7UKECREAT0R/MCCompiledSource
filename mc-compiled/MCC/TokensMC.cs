@@ -508,6 +508,8 @@ namespace mc_compiled.MCC
                             return 2;
                         case Type.NAME:
                             return 1;
+                        case Type.LIMIT:
+                            return 1;
                         default:
                             return 0;
                     }
@@ -760,8 +762,11 @@ namespace mc_compiled.MCC
 
             int minArgCount = current.MinimumArgCount;
             int removed = current.not ? 2 : 1;
+            // Value statements are inferred and don't use an identifier.
+            if (current.type == Type.VALUE)
+                removed--;
             if (args.Length - removed < minArgCount)
-                throw new TokenException(this, $"Too little arguments for if statement type {current.type}");
+                throw new TokenException(this, $"Too few arguments for if statement type {current.type}");
 
             int sel = 0;
             current.args = new string[args.Length - removed];

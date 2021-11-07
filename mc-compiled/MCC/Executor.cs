@@ -104,24 +104,12 @@ namespace mc_compiled.MCC
 
         internal List<MCFunction> functionsToBeWritten = new List<MCFunction>();
         internal List<Tuple<string, ItemStack>> itemsToBeWritten = new List<Tuple<string, ItemStack>>();
-        internal Stack<string> fileOffset;
         public List<FunctionDefinition> functionsDefined = new List<FunctionDefinition>();
 
         public string projectName = "DefaultProject";
         public string projectDesc = "Default project description.";
-
         public string baseFileName;     // The base file name for all the functions.
-        List<string> currentFile;       // The lines of the current file being written to.
 
-        public string FileOffset
-        {
-            get
-            {
-                return fileOffset.Peek();
-            }
-        }
-
-        StringBuilder addLineBuffer = new StringBuilder();
         /// <summary>
         /// Finish the current line and append it to the file.
         /// </summary>
@@ -161,54 +149,49 @@ namespace mc_compiled.MCC
             currentFile?.Insert(0, line);
         }
 
-        public void NewFileOffset(string fileOffset)
+        public void NewFileOffset(string newFileOffset)
         {
-            // THIS IS OBSOLETE
+            // THIS ENTIRE METHOD IS OBSOLETE
             if(currentFile.Count > 0)
             {
-                functionsToBeWritten.Add(new MCFunction(baseFileName, FileOffset, currentFile));
+                functionsToBeWritten.Add(new MCFunction(baseFileName, /*FileFolder*/ null, currentFile));
                 currentFile.Clear();
             }
 
-            if (string.IsNullOrWhiteSpace(fileOffset))
-                fileOffset = "";
+            if (string.IsNullOrWhiteSpace(newFileOffset))
+                newFileOffset = "";
 
-            if (functionsToBeWritten.Any(mcf => mcf.fileOffset == fileOffset ||
-                (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset))))
+            if (functionsToBeWritten.Any(mcf => mcf.fileFolder == newFileOffset ||
+                (mcf.fileFolder != null && mcf.fileFolder.Equals(newFileOffset))))
             {
-                MCFunction first = functionsToBeWritten.First(mcf => mcf.fileOffset == fileOffset ||
-                    (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset)));
+                MCFunction first = functionsToBeWritten.First(mcf => mcf.fileFolder == newFileOffset ||
+                    (mcf.fileFolder != null && mcf.fileFolder.Equals(newFileOffset)));
                 currentFile.AddRange(first.content);
             }
             else
             {
-                this.fileOffset.Pop();
-                this.fileOffset.Push(fileOffset);
+                //fileFolder.Pop();
+                //fileFolder.Push(newFileOffset);
             }
         }
-        public void ApplyCurrentFile()
+        public void WriteLinesIntoFunction(string overrideName = null, string folder = null)
         {
             if (currentFile.Count > 0)
             {
-                functionsToBeWritten.Add(new MCFunction(baseFileName, FileOffset, currentFile));
+                if(overrideName == null)
+                    functionsToBeWritten.Add(new MCFunction(baseFileName, folder, currentFile));
+                else
+                    functionsToBeWritten.Add(new MCFunction(overrideName, folder, currentFile));
                 currentFile.Clear();
             }
         }
-        public void PushFileOffset(string fileOffset)
+        public void AttemptRestoreLines(string overrideName = null, string folder = null)
         {
-            if (functionsToBeWritten.Any(mcf => mcf.fileOffset == fileOffset ||
-                (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset))))
-            {
-                MCFunction first = functionsToBeWritten.First(mcf => mcf.fileOffset == fileOffset ||
-                    (mcf.fileOffset != null && mcf.fileOffset.Equals(fileOffset)));
-                currentFile.AddRange(first.content);
-            }
-
-            this.fileOffset.Push(fileOffset);
-        }
-        public string PopFileOffset()
-        {
-            return fileOffset.Pop();
+            if (overrideName == null)
+                functionsToBeWritten.Add(new MCFunction(baseFileName, folder, currentFile));
+            else
+                functionsToBeWritten.Add(new MCFunction(overrideName, folder, currentFile));
+            currentFile.Clear();
         }
 
         /// <summary>
@@ -255,8 +238,6 @@ namespace mc_compiled.MCC
             projectName = baseFileName;
             currentFile = new List<string>();
             macros = new Dictionary<string, Macro>();
-            fileOffset = new Stack<string>();
-            fileOffset.Push("");
 
             ppv = new Dictionary<string, Dynamic>();
             selection = Selector.Core.s;
@@ -275,7 +256,7 @@ namespace mc_compiled.MCC
         public void Run()
         {
             RunSection(tokens);
-            functionsToBeWritten.Add(new MCFunction(baseFileName, FileOffset, currentFile));
+            functionsToBeWritten.Add(new MCFunction(baseFileName, null, currentFile));
             currentFile.Clear();
         }
         /// <summary>

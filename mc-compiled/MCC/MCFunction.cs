@@ -14,34 +14,43 @@ namespace mc_compiled.MCC
     {
         public const string EXT = ".mcfunction";
         public string fileName;
-        public string fileOffset;
+        public string fileFolder;
         public readonly string[] content;
 
         public string FullName
         {
             get
             {
-                if (string.IsNullOrEmpty(fileOffset))
+                if (string.IsNullOrEmpty(fileFolder))
                     return $"{fileName}{EXT}";
                 else
-                    return $"{fileName}-{fileOffset}{EXT}";
+                    return $"{fileFolder}{Path.DirectorySeparatorChar}{fileName}{EXT}";
             }
         }
 
-        public MCFunction(string fileName, string fileOffset, List<string> lines)
+        public MCFunction(string fileName, string fileFolder, List<string> lines)
         {
             this.fileName = fileName;
-            this.fileOffset = fileOffset;
+            this.fileFolder = fileFolder;
             content = lines.ToArray();
         }
         public void WriteFile(string folder)
         {
-            string path;
+            string path, completeFolder;
 
             if (folder == null)
+            {
                 path = FullName;
+                completeFolder = fileFolder;
+            }
             else
+            {
                 path = Path.Combine(folder, FullName);
+                completeFolder = Path.Combine(folder, fileFolder);
+            }
+
+            if(fileFolder != null && !Directory.Exists(completeFolder))
+                Directory.CreateDirectory(completeFolder);
 
             File.WriteAllLines(path, content, Encoding.UTF8);
         }

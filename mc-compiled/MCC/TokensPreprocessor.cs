@@ -65,11 +65,20 @@ namespace mc_compiled.MCC
         }
         public void PlaceInFunction(Executor caller, TokenFeeder tokens, FunctionDefinition function)
         {
-            caller.ApplyCurrentFile();
-            caller.PushFileOffset(function.FullName);
-            Execute(caller, tokens);
-            caller.ApplyCurrentFile();
-            caller.PopFileOffset();
+            if(caller.currentIfScope == 0)
+                caller.WriteLinesIntoFunction(null, null); // Write Regular Files
+
+            if (function.isNamespaced)
+            {
+                caller.PushFileFolder(function.theNamespace);
+                Execute(caller, tokens);
+                caller.ApplyCurrentFile(function.name);
+                caller.PopFileFolder();
+            } else
+            {
+                Execute(caller, tokens);
+                caller.ApplyCurrentFile(function.name);
+            }
         }
     }
 
