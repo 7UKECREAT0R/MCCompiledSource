@@ -534,7 +534,7 @@ namespace mc_compiled.MCC
 
             public void ParseIntoSelector(ref Selector selector, ref Executor context)
             {
-                int scope = context.currentIfScope;
+                int scope = context.CurrentFunctionScope;
 
                 for (int i = 0; i < args.Length; i++)
                     args[i] = context.ReplacePPV(args[i]);

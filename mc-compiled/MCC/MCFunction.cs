@@ -24,7 +24,7 @@ namespace mc_compiled.MCC
                 if (string.IsNullOrEmpty(fileFolder))
                     return $"{fileName}{EXT}";
                 else
-                    return $"{fileFolder}{Path.DirectorySeparatorChar}{fileName}{EXT}";
+                    return Path.Combine(fileFolder, $"{fileName}{EXT}");
             }
         }
 
@@ -34,25 +34,22 @@ namespace mc_compiled.MCC
             this.fileFolder = fileFolder;
             content = lines.ToArray();
         }
-        public void WriteFile(string folder)
+        public void WriteFile(string baseFolder)
         {
-            string path, completeFolder;
+            // Create Directories if they don't exist.
+            string completeDirectory;
 
-            if (folder == null)
-            {
-                path = FullName;
-                completeFolder = fileFolder;
-            }
+            if(fileFolder != null)
+                completeDirectory = Path.Combine(baseFolder, fileFolder);
             else
-            {
-                path = Path.Combine(folder, FullName);
-                completeFolder = Path.Combine(folder, fileFolder);
-            }
+                completeDirectory = baseFolder;
 
-            if(fileFolder != null && !Directory.Exists(completeFolder))
-                Directory.CreateDirectory(completeFolder);
+            if (!Directory.Exists(completeDirectory))
+                Directory.CreateDirectory(completeDirectory);
 
-            File.WriteAllLines(path, content, Encoding.UTF8);
+            // Write the file.
+            string file = Path.Combine(baseFolder, FullName);
+            File.WriteAllLines(file, content, Encoding.UTF8);
         }
     }
 }

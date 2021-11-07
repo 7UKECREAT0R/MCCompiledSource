@@ -65,20 +65,14 @@ namespace mc_compiled.MCC
         }
         public void PlaceInFunction(Executor caller, TokenFeeder tokens, FunctionDefinition function)
         {
-            if(caller.currentIfScope == 0)
-                caller.WriteLinesIntoFunction(null, null); // Write Regular Files
-
             if (function.isNamespaced)
-            {
-                caller.PushFileFolder(function.theNamespace);
-                Execute(caller, tokens);
-                caller.ApplyCurrentFile(function.name);
-                caller.PopFileFolder();
-            } else
-            {
-                Execute(caller, tokens);
-                caller.ApplyCurrentFile(function.name);
-            }
+                caller.PushFile(function.name, function.theNamespace);
+            else
+                caller.PushFile(function.name);
+
+            Execute(caller, tokens);
+
+            caller.PopFile();
         }
     }
 
@@ -547,8 +541,8 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            string temp = caller.ReplacePPV(fileOffset);
-            caller.NewFileOffset(temp);
+            //string temp = caller.ReplacePPV(fileOffset);
+            //caller.NewFileOffset(temp);
         }
         public override string ToString()
         {
@@ -618,6 +612,7 @@ namespace mc_compiled.MCC
 
             FunctionDefinition function = caller.functionsDefined.First(df => df.name.Equals(callName));
 
+            // Set the input args.
             for(int i = 0; i < args.Length; i++)
             {
                 // Throw out extra specified args.
@@ -656,7 +651,7 @@ namespace mc_compiled.MCC
             }
 
             // Actually call the function.
-            caller.FinishRaw($"function {caller.baseFileName}-{function.FullName}");
+            caller.FinishRaw($"function {function.FullName}");
         }
         public override string ToString()
         {

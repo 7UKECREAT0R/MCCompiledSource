@@ -15,8 +15,8 @@ namespace mc_compiled.MCC
     /// </summary>
     public class Executor
     {
-        public const double MCC_VERSION = 1.0;
-        public static string MINECRAFT_VERSION = "1.17.10";
+        public const double MCC_VERSION = 0.51;             // _compilerversion
+        public static string MINECRAFT_VERSION = "1.17.41"; // _mcversion
         public long HaltFunctionCount
         {
             get
@@ -61,7 +61,22 @@ namespace mc_compiled.MCC
         }
 
         public int currentMacroHash = 0;
-        public int currentIfScope = 0;
+        /// <summary>
+        /// Describes if the executor is currently located at
+        /// the base of the scope hierarchy, meaning functions
+        /// should be prefixed with "baseFileName-"
+        /// </summary>
+        public bool AtBaseScope
+        {
+            get { return fileStack.Count <= 1; }
+        }
+        /// <summary>
+        /// The current scope, or depth of this executor.
+        /// </summary>
+        public int CurrentFunctionScope
+        {
+            get { return fileStack.Count - 1; }
+        }
 
         public readonly bool debug;
         public readonly Dictionary<string, Dynamic> ppv;
@@ -82,7 +97,7 @@ namespace mc_compiled.MCC
         {
             get
             {
-                return currentIfScope > 0;
+                return CurrentFunctionScope > 0;
             }
         }
         /// <summary>
@@ -109,22 +124,16 @@ namespace mc_compiled.MCC
         public string projectName = "DefaultProject";
         public string projectDesc = "Default project description.";
         public string baseFileName;     // The base file name for all the functions.
+        Stack<FileWriter> fileStack; // Files the executor will write to.
 
         /// <summary>
-        /// Finish the current line and append it to the file.
+        /// Finish the current line and append it to the current file.
         /// </summary>
         /// <param name="line"></param>
         public void FinishRaw(string line, bool modifyBuffer = true)
         {
-            if (modifyBuffer)
-            {
-                addLineBuffer.Append(line);
-                currentFile?.Add(addLineBuffer.ToString());
-                addLineBuffer.Clear();
-            } else
-            {
-                currentFile?.Add(addLineBuffer.ToString() + line);
-            }
+            FileWriter writer = fileStack.Peek();
+            writer.ApplyBuffer(line, modifyBuffer);
         }
         /// <summary>
         /// Sets the text in the current line but doesn't finish it.
@@ -132,13 +141,7 @@ namespace mc_compiled.MCC
         /// <param name="text"></param>
         public void SetRaw(string text)
         {
-            if (addLineBuffer == null)
-                addLineBuffer = new StringBuilder(text);
-            else
-            {
-                addLineBuffer.Clear();
-                addLineBuffer.Append(text);
-            }
+            fileStack.Peek().SetBuffer(text);
         }
         /// <summary>
         /// Add a line to the top of the file.
@@ -146,52 +149,29 @@ namespace mc_compiled.MCC
         /// <param name="line"></param>
         public void AddLineTop(string line)
         {
-            currentFile?.Insert(0, line);
+            fileStack.Peek().InsertLine(0, line);
         }
 
-        public void NewFileOffset(string newFileOffset)
+        /// <summary>
+        /// Push a new file to the top of the stack to be written to.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="fileFolder"></param>
+        /// <returns></returns>
+        public FileWriter PushFile(string fileName, string fileFolder = null)
         {
-            // THIS ENTIRE METHOD IS OBSOLETE
-            if(currentFile.Count > 0)
-            {
-                functionsToBeWritten.Add(new MCFunction(baseFileName, /*FileFolder*/ null, currentFile));
-                currentFile.Clear();
-            }
-
-            if (string.IsNullOrWhiteSpace(newFileOffset))
-                newFileOffset = "";
-
-            if (functionsToBeWritten.Any(mcf => mcf.fileFolder == newFileOffset ||
-                (mcf.fileFolder != null && mcf.fileFolder.Equals(newFileOffset))))
-            {
-                MCFunction first = functionsToBeWritten.First(mcf => mcf.fileFolder == newFileOffset ||
-                    (mcf.fileFolder != null && mcf.fileFolder.Equals(newFileOffset)));
-                currentFile.AddRange(first.content);
-            }
-            else
-            {
-                //fileFolder.Pop();
-                //fileFolder.Push(newFileOffset);
-            }
+            FileWriter @new = new FileWriter(fileName, fileFolder);
+            fileStack.Push(@new);
+            return @new;
         }
-        public void WriteLinesIntoFunction(string overrideName = null, string folder = null)
+        /// <summary>
+        /// Pop a file off the stack and add it to the functions-to-be-written list.
+        /// </summary>
+        public void PopFile()
         {
-            if (currentFile.Count > 0)
-            {
-                if(overrideName == null)
-                    functionsToBeWritten.Add(new MCFunction(baseFileName, folder, currentFile));
-                else
-                    functionsToBeWritten.Add(new MCFunction(overrideName, folder, currentFile));
-                currentFile.Clear();
-            }
-        }
-        public void AttemptRestoreLines(string overrideName = null, string folder = null)
-        {
-            if (overrideName == null)
-                functionsToBeWritten.Add(new MCFunction(baseFileName, folder, currentFile));
-            else
-                functionsToBeWritten.Add(new MCFunction(overrideName, folder, currentFile));
-            currentFile.Clear();
+            FileWriter apply = fileStack.Pop();
+            MCFunction final = apply.Finalize();
+            functionsToBeWritten.Add(final);
         }
 
         /// <summary>
@@ -236,7 +216,8 @@ namespace mc_compiled.MCC
             this.debug = debug; 
             this.baseFileName = baseFileName;
             projectName = baseFileName;
-            currentFile = new List<string>();
+            fileStack = new Stack<FileWriter>();
+            fileStack.Push(new FileWriter(baseFileName));
             macros = new Dictionary<string, Macro>();
 
             ppv = new Dictionary<string, Dynamic>();
@@ -255,9 +236,8 @@ namespace mc_compiled.MCC
         /// </summary>
         public void Run()
         {
+            // Pops and saves base file at the end of this method.
             RunSection(tokens);
-            functionsToBeWritten.Add(new MCFunction(baseFileName, null, currentFile));
-            currentFile.Clear();
         }
         /// <summary>
         /// Run a set of tokens.
@@ -265,6 +245,10 @@ namespace mc_compiled.MCC
         /// <param name="tokens"></param>
         public void RunSection(TokenFeeder tokens)
         {
+            // Failsafe
+            if (fileStack.Count < 1)
+                fileStack.Push(new FileWriter(baseFileName));
+
             Token token = null;
             try
             {
@@ -293,8 +277,10 @@ namespace mc_compiled.MCC
                 Console.ReadLine();
                 Environment.Exit(0);
                 return;
+            } finally
+            {
+                PopFile();
             }
-
         }
         /// <summary>
         /// Get the compiled files after execution.
