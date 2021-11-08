@@ -16,10 +16,11 @@ namespace mc_compiled
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
-            Console.Write("\nmc-compiled.exe -jsonbuilder\n");
-            Console.Write("mc-compiled.exe <file> [-f folder] [-o] [-d] [-r]\n");
+            Console.Write("\nmc-compiled.exe --jsonbuilder\n");
+            Console.Write("mc-compiled.exe <file> [--decorate] [-o] [-d] [-r]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\tIf the -jsonbuilder option is specified, the rawtext json builder is opened instead.\n\n");
             Console.Write("\tOptions:\n");
+            Console.Write("\t  --decorate\tDecorate and include source comments in the output files.\n");
             Console.Write("\t  -o\tObfuscate scoreboard names and other values.\n");
             Console.Write("\t  -d\tDebug information during compilation.\n");
             Console.Write("\t  -r\tDisable the macro recursion guard.\n\n");
@@ -27,7 +28,7 @@ namespace mc_compiled
         [STAThread]
         static void Main(string[] args)
         {
-            if(args.Length < 1 || args[0].Equals("--HELP"))
+            if(args.Length < 1 || args[0].Equals("--help"))
             {
                 Help();
                 return;
@@ -44,7 +45,7 @@ namespace mc_compiled
                     obf = true;
                 if (args[i].Equals("-d"))
                     debug = true;
-                if (args[i].Equals("-decorate"))
+                if (args[i].Equals("--decorate"))
                     decor = true;
                 if (args[i].Equals("-r"))
                     Compiler.DISABLE_MACRO_GUARD = true;
@@ -52,7 +53,7 @@ namespace mc_compiled
 
             new Definitions(debug);
 
-            if (file.ToUpper().Equals("-TESTNBT"))
+            if (file.ToUpper().Equals("--TESTNBT"))
             {
                 ItemStack item = new ItemStack("diamond_boots");
                 item.count = 2;
@@ -74,7 +75,7 @@ namespace mc_compiled
                 Console.ReadLine();
                 return;
             }
-            if (file.ToUpper().Equals("-JSONBUILDER"))
+            if (file.ToUpper().Equals("--JSONBUILDER"))
             {
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
                 builder.ConsoleInterface();

@@ -38,6 +38,9 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
+            if (!caller.decorate)
+                return;
+
             Token last = tokens.PeekLast();
             if (!(last is TokenComment))
                 caller.FinishRaw("", false);
