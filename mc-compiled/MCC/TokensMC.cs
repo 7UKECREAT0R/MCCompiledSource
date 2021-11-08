@@ -241,6 +241,54 @@ namespace mc_compiled.MCC
     }
     public class TokenVALUE : Token
     {
+        enum DisplayMode
+        {
+            LIST,
+            SIDEBAR,
+            BELOWNAME
+        }
+        enum DisplayDirection
+        {
+            ASCENDING,
+            DESCENDING
+        }
+        static DisplayMode ParseDisplayMode(string mode)
+        {
+            switch(mode.ToUpper())
+            {
+                case "L":
+                case "LIST":
+                case "PLAYERLIST":
+                case "PAUSE":
+                case "PAUSEMENU":
+                    return DisplayMode.LIST;
+                case "S":
+                case "SIDE":
+                case "SIDEBAR":
+                case "RIGHT":
+                    return DisplayMode.SIDEBAR;
+                case "N":
+                case "BELOWNAME":
+                case "UNDERNAME":
+                case "NAME":
+                    return DisplayMode.BELOWNAME;
+                default:
+                    return DisplayMode.SIDEBAR;
+            }
+        }
+        static DisplayDirection ParseDisplayDirection(string direction)
+        {
+            switch (direction.ToUpper())
+            {
+                case "HIGH":
+                case "ASC":
+                case "ASCENDING":
+                    return DisplayDirection.ASCENDING;
+                default:
+                    return DisplayDirection.DESCENDING;
+            }
+        }
+
         static string OperationString(ValueOperation op)
         {
             switch (op)
@@ -262,9 +310,15 @@ namespace mc_compiled.MCC
             }
         }
 
+        // value display <list|sidebar|below> [value] [ascending|descending]
+        bool isDisplay;                     // If this is a dispay changing statement.
+        DisplayMode displayMode;            // The display mode to set.
+        string displayValue;                // If null, reset display mode.
+        DisplayDirection displayDirection;  // The sorting direction to display as.
+
+        // value <a> <operation> <b>
         string valueName;
         ValueOperation operation;
-
         bool bIsConstant; // Decides if you should use valueB or constantB
         bool bIsPPV;      // Decides if should still evaluate valueB
         string valueB;
@@ -276,69 +330,92 @@ namespace mc_compiled.MCC
             type = TOKENTYPE.VALUE;
 
             string[] parts = text.Split(' ');
-            if (parts.Length < 3)
+
+            if (parts.Length < 1)
                 throw new TokenException(this, "Not enough arguments specified.");
 
-            valueName = parts[0];
-            string operationString = parts[1].ToUpper();
-            string bString = parts[2];
-
-            switch (operationString)
+            if(parts[0].ToUpper().Equals("DISPLAY"))
             {
-                case "ADD":
-                    operation = ValueOperation.ADD;
-                    break;
-                case "SUB":
-                    operation = ValueOperation.SUB;
-                    break;
-                case "MUL":
-                    operation = ValueOperation.MUL;
-                    break;
-                case "DIV":
-                    operation = ValueOperation.DIV;
-                    break;
-                case "MOD":
-                    operation = ValueOperation.MOD;
-                    break;
-                case "SET":
-                    operation = ValueOperation.SET;
-                    break;
-                case "+=":
-                    operation = ValueOperation.ADD;
-                    break;
-                case "-=":
-                    operation = ValueOperation.SUB;
-                    break;
-                case "*=":
-                    operation = ValueOperation.MUL;
-                    break;
-                case "/=":
-                    operation = ValueOperation.DIV;
-                    break;
-                case "%=":
-                    operation = ValueOperation.MOD;
-                    break;
-                case "=":
-                    operation = ValueOperation.SET;
-                    break;
-                default:
-                    throw new TokenException(this, $"Invalid value operation {operationString}");
-            }
+                isDisplay = true;
+                if(parts.Length < 2)
+                    throw new TokenException(this, "Not enough arguments specified for display statement.");
+                string _displayMode = parts[1];
+                displayMode = ParseDisplayMode(_displayMode);
 
-            if (Compiler.guessedPPValues.Contains(bString.TrimStart('$')))
-            {
-                bIsPPV = true;
-                bIsConstant = true;
-                valueB = bString;
+                displayValue = (parts.Length > 2) ?
+                    parts[2] : null;
+
+                displayDirection = (parts.Length > 3) ?
+                    ParseDisplayDirection(parts[3]) : DisplayDirection.DESCENDING;
                 return;
-            }
+            } else
+            {
+                isDisplay = false;
 
-            if ((bIsConstant = long.TryParse(bString, out long lparsed)))
-                constantB = new Dynamic(lparsed);
-            else if (bIsConstant = double.TryParse(bString, out double dparsed))
-                constantB = new Dynamic(dparsed);
-            else
-                valueB = bString;
+                if (parts.Length < 3)
+                    throw new TokenException(this, "Not enough arguments specified for value statement.");
+
+                valueName = parts[0];
+                string operationString = parts[1].ToUpper();
+                string bString = parts[2];
+
+                switch (operationString)
+                {
+                    case "ADD":
+                        operation = ValueOperation.ADD;
+                        break;
+                    case "SUB":
+                        operation = ValueOperation.SUB;
+                        break;
+                    case "MUL":
+                        operation = ValueOperation.MUL;
+                        break;
+                    case "DIV":
+                        operation = ValueOperation.DIV;
+                        break;
+                    case "MOD":
+                        operation = ValueOperation.MOD;
+                        break;
+                    case "SET":
+                        operation = ValueOperation.SET;
+                        break;
+                    case "+=":
+                        operation = ValueOperation.ADD;
+                        break;
+                    case "-=":
+                        operation = ValueOperation.SUB;
+                        break;
+                    case "*=":
+                        operation = ValueOperation.MUL;
+                        break;
+                    case "/=":
+                        operation = ValueOperation.DIV;
+                        break;
+                    case "%=":
+                        operation = ValueOperation.MOD;
+                        break;
+                    case "=":
+                        operation = ValueOperation.SET;
+                        break;
+                    default:
+                        throw new TokenException(this, $"Invalid value operation {operationString}");
+                }
+
+                if (Compiler.guessedPPValues.Contains(bString.TrimStart('$')))
+                {
+                    bIsPPV = true;
+                    bIsConstant = true;
+                    valueB = bString;
+                    return;
+                }
+
+                if ((bIsConstant = long.TryParse(bString, out long lparsed)))
+                    constantB = new Dynamic(lparsed);
+                else if (bIsConstant = double.TryParse(bString, out double dparsed))
+                    constantB = new Dynamic(dparsed);
+                else
+                    valueB = bString;
+            }
         }
         public override string ToString()
         {
@@ -346,6 +423,25 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
+            if(isDisplay)
+            {
+                List<string> parts = new List<string>()
+                {
+                    "scoreboard",
+                    "objectives",
+                    "setdisplay",
+                    displayMode.ToString().ToLower()
+                };
+                if(displayValue != null)
+                {
+                    parts.Add(displayValue);
+                    if (displayMode != DisplayMode.BELOWNAME)
+                        parts.Add(displayDirection.ToString().ToLower());
+                }
+                caller.FinishRaw(string.Join(" ", parts));
+                return;
+            }
+
             string _sourceValue = caller.ReplacePPV(valueName);
             string secondValue = bIsConstant ? null : caller.ReplacePPV(valueB);
             string selector = '@' + caller.selection.ToString();

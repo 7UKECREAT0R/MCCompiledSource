@@ -24,8 +24,10 @@ namespace mc_compiled.Modding
         {
             manifest.name = packName;
 
-            if(!Directory.Exists(packName))
-                Directory.CreateDirectory(packName);
+            if(Directory.Exists(packName))
+                Directory.Delete(packName, true);
+
+            Directory.CreateDirectory(packName);
 
             string manifestFile = $"{packName}\\manifest.json";
             File.WriteAllText(manifestFile, manifest.ToString());
@@ -33,16 +35,14 @@ namespace mc_compiled.Modding
             if(functions != null && functions.Length > 0)
             {
                 string functionsLocation = $"{packName}\\functions";
-                if (!Directory.Exists(functionsLocation))
-                    Directory.CreateDirectory(functionsLocation);
+                Directory.CreateDirectory(functionsLocation);
                 foreach(MCFunction function in functions)
                     function.WriteFile(functionsLocation);
             }
             if(structures != null && structures.Length > 0)
             {
                 string structuresLocation = $"{packName}\\structures";
-                if (!Directory.Exists(structuresLocation))
-                    Directory.CreateDirectory(structuresLocation);
+                Directory.CreateDirectory(structuresLocation);
                 foreach(StructureFile structure in structures)
                 {
                     string structureFile = $"{structuresLocation}\\{structure.name}.mcstructure";

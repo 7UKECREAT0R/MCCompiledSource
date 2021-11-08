@@ -15,6 +15,7 @@ namespace mc_compiled
     {
         static void Help()
         {
+            Console.Write("\nmc-compiled.exe --help\n");
             Console.Write("\nmc-compiled.exe -jsonbuilder\n");
             Console.Write("mc-compiled.exe <file> [-f folder] [-o] [-d] [-r]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\tIf the -jsonbuilder option is specified, the rawtext json builder is opened instead.\n\n");
@@ -27,7 +28,7 @@ namespace mc_compiled
         [STAThread]
         static void Main(string[] args)
         {
-            if(args.Length < 1)
+            if(args.Length < 1 || args[0].Equals("--HELP"))
             {
                 Help();
                 return;
@@ -47,7 +48,7 @@ namespace mc_compiled
                         folder = args[i + 1];
                     else
                     {
-                        Console.WriteLine("Parsing Error: No folder specified.");
+                        Console.WriteLine("-f: No folder specified.");
                         return;
                     }
                 if (args[i].Equals("-d"))
