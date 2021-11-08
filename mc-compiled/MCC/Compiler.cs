@@ -238,6 +238,16 @@ namespace mc_compiled.MCC
                         case "move":
                             set = new TokenMOVE(content);
                             break;
+                        case "face":
+                            set = new TokenFACE(content);
+                            break;
+                        case "place":
+                            set = new TokenPLACE(content);
+                            break;
+                        case "fill":
+                            set = new TokenFILL(content);
+                            break;
+
                     }
                     if (set == null)
                         continue;

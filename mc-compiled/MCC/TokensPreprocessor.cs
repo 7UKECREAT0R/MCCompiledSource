@@ -38,6 +38,10 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
+            Token last = tokens.PeekLast();
+            if (!(last is TokenComment))
+                caller.FinishRaw("", false);
+            caller.FinishRaw("# " + caller.ReplacePPV(comment), false);
             return;
         }
     }

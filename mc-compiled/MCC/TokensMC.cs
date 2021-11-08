@@ -1208,8 +1208,9 @@ namespace mc_compiled.MCC
                 string _x = caller.ReplacePPV(x);
                 string _y = caller.ReplacePPV(y);
                 string _z = caller.ReplacePPV(z);
-                string _xRot = xRot ?? caller.ReplacePPV(xRot);
-                string _yRot = yRot ?? caller.ReplacePPV(xRot);
+                // null coalescing was throwing for some reason so
+                string _xRot = xRot == null ? null : caller.ReplacePPV(xRot);
+                string _yRot = yRot == null ? null : caller.ReplacePPV(yRot);
                 bool hasRotation = yRot != null;
                 try
                 {
