@@ -66,9 +66,9 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public Token PeekLast()
         {
-            if (readerIndex == 0)
+            if (readerIndex <= 1)
                 return null;
-            return tokens[readerIndex - 1];
+            return tokens[readerIndex - 2];
         }
         /// <summary>
         /// Peek at the next <code>count</code> items. Returned array length isn't guaranteed if at the end of the stream.

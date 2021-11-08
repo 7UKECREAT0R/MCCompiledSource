@@ -79,6 +79,7 @@ namespace mc_compiled.MCC
         }
 
         public readonly bool debug;
+        public readonly bool decorate;
         public readonly Dictionary<string, Dynamic> ppv;
         public readonly Dictionary<string, Macro> macros;
         public readonly TokenFeeder tokens;
@@ -214,9 +215,10 @@ namespace mc_compiled.MCC
                 name = name.Substring(1);
             return ppv.TryGetValue(name, out value);
         }
-        public Executor(Token[] tokens, bool debug, string baseFileName)
+        public Executor(Token[] tokens, bool debug, bool decorate, string baseFileName)
         {
-            this.debug = debug; 
+            this.debug = debug;
+            this.decorate = decorate;
             this.baseFileName = baseFileName;
             projectName = baseFileName;
             fileStack = new Stack<FileWriter>();

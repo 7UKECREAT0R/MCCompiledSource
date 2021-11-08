@@ -20,7 +20,6 @@ namespace mc_compiled
             Console.Write("mc-compiled.exe <file> [-f folder] [-o] [-d] [-r]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\tIf the -jsonbuilder option is specified, the rawtext json builder is opened instead.\n\n");
             Console.Write("\tOptions:\n");
-            Console.Write("\t  -f\tPlace output files in a custom folder.\n");
             Console.Write("\t  -o\tObfuscate scoreboard names and other values.\n");
             Console.Write("\t  -d\tDebug information during compilation.\n");
             Console.Write("\t  -r\tDisable the macro recursion guard.\n\n");
@@ -38,21 +37,15 @@ namespace mc_compiled
 
             bool obf = false;
             bool debug = false;
-            string folder = null;
+            bool decor = false;
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i].Equals("-o"))
                     obf = true;
-                if (args[i].Equals("-f"))
-                    if ((i + 1) < args.Length)
-                        folder = args[i + 1];
-                    else
-                    {
-                        Console.WriteLine("-f: No folder specified.");
-                        return;
-                    }
                 if (args[i].Equals("-d"))
                     debug = true;
+                if (args[i].Equals("-decorate"))
+                    decor = true;
                 if (args[i].Equals("-r"))
                     Compiler.DISABLE_MACRO_GUARD = true;
             }
@@ -92,14 +85,14 @@ namespace mc_compiled
             {
                 Console.WriteLine("Debug Enabled");
                 Console.WriteLine("\tObfuscate: " + obf.ToString());
-                Console.WriteLine("\tFolder: " + folder ?? "[DEFAULT]");
-                if(Compiler.DISABLE_MACRO_GUARD)
+                Console.WriteLine("\tDecorate: " + decor.ToString());
+                if (Compiler.DISABLE_MACRO_GUARD)
                     Console.WriteLine("\tMacro recursion allowed.");
             }
 
             Compiler compiler = new Compiler(debug, obf);
             Token[] compiled = compiler.CompileFile(file);
-            Executor executor = new Executor(compiled, debug,
+            Executor executor = new Executor(compiled, debug, decor,
                 System.IO.Path.GetFileNameWithoutExtension(file));
 
             executor.Run();
