@@ -45,7 +45,7 @@ namespace mc_compiled.MCC
         }
         public override string ToString()
         {
-            return $"Select @{selectCore}";
+            return $"Select {selectCore}";
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
@@ -1240,6 +1240,174 @@ namespace mc_compiled.MCC
                 caller.FinishRaw($"tp {sel} {location}");
             }
             return;
+        }
+    }
+    public class TokenTITLE : Token
+    {
+        string text;
+        public TokenTITLE(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.PRINTP;
+
+            this.text = text;
+        }
+        public override string ToString()
+        {
+            return $"Title to Selector: \"{text}\"";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string selector = "@" + caller.SelectionReference;
+
+            caller.FinishRaw($"title {selector} title {text}");
+        }
+    }
+    public class TokenKICK : Token
+    {
+        string text;
+        string reason;
+        string player;
+        public TokenKICK(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.PRINTP;
+
+            string[] args = Compiler.GetArguments(text);
+
+            if (args.Length < 1)
+                throw new TokenException(this, "\"KICK\" statement needs an Player to Kick.");
+
+            else if (args.Length < 2)
+                throw new TokenException(this, "\"KICK\" statement needs an Kick Reason.");
+
+            player = args[0];
+            reason = args[1];
+            this.text = text;
+        }
+        public override string ToString()
+        {
+            return $"Kick Player: \"{text}\", Reason: \"{reason}\"";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            string selector = "@" + caller.SelectionReference;
+
+            caller.FinishRaw($"kick {player} {reason}");
+        }
+    }
+    public class TokenGAMEMODE : Token
+    {
+        string text;
+        string gamemode;
+        string player;
+        public TokenGAMEMODE(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.PRINTP;
+
+            string[] args = Compiler.GetArguments(text);
+
+            if (args.Length < 1)
+                throw new TokenException(this, "\"GAMEMODE\" statement needs an Player to Gamemode.");
+
+            else if (args.Length < 2)
+                throw new TokenException(this, "\"GAMEMODE\" statement needs an Gamemode ID.");
+
+            player = args[0];
+            gamemode = args[1];
+            this.text = text;
+        }
+        public override string ToString()
+        {
+            return $"Gamemode Player \"{player}\" to \"{gamemode}\"";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            caller.FinishRaw($"gamemode {player} {gamemode}");
+        }
+    }
+    public class TokenTIME : Token
+    {
+        string uvar1;
+        string uvar2;
+        string text;
+        public TokenTIME(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.PRINTP;
+
+            string[] args = Compiler.GetArguments(text);
+
+            if (args.Length < 1)
+                throw new TokenException(this, "\"TIME\" statement needs a Mode.");
+
+            else if (args.Length < 2)
+                throw new TokenException(this, "\"TIME\" statement needs a Time.");
+
+            uvar1 = args[0];
+            uvar2 = args[1];
+            this.text = text;
+        }
+        public override string ToString()
+        {
+            return $"Change Time to \"{uvar2}\" with mode \"{uvar1}\"";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            caller.FinishRaw($"time {uvar1} {uvar2}");
+        }
+    }
+    public class TokenDIFFICULTY : Token
+    {
+        string text;
+        string difficulty;
+        public TokenDIFFICULTY(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.PRINTP;
+
+            string[] args = Compiler.GetArguments(text);
+
+            if (args.Length < 1)
+                throw new TokenException(this, "\"DIFFICULTY\" statement needs an Difficulty.");
+
+            difficulty = args[0];
+            this.text = text;
+        }
+        public override string ToString()
+        {
+            return $"Change Difficulty to \"{difficulty}\" ";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            caller.FinishRaw($"difficulty {difficulty}");
+        }
+    }
+    public class TokenWEATHER : Token
+    {
+        string text;
+        string weather;
+        public TokenWEATHER(string text)
+        {
+            line = Compiler.CURRENT_LINE;
+            type = TOKENTYPE.PRINTP;
+
+            string[] args = Compiler.GetArguments(text);
+
+            if (args.Length < 1)
+                throw new TokenException(this, "\"WEATHER\" statement needs an Weather.");
+
+            weather = args[0];
+            this.text = text;
+        }
+        public override string ToString()
+        {
+            return $"Change Weather to \"{weather}\" ";
+        }
+        public override void Execute(Executor caller, TokenFeeder tokens)
+        {
+            caller.FinishRaw($"weather {weather}");
         }
     }
     public class TokenMOVE : Token

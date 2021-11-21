@@ -212,6 +212,7 @@ namespace mc_compiled.MCC
                         case "limit":
                             set = new TokenLIMIT(content);
                             break;
+                        case "def":
                         case "define":
                             set = new TokenDEFINE(content);
                             guessedValues.Add((set as TokenDEFINE).ValueName);
@@ -235,6 +236,9 @@ namespace mc_compiled.MCC
                         case "tp":
                             set = new TokenTP(content);
                             break;
+                        case "title":
+                            set = new TokenTITLE(content);
+                            break;
                         case "move":
                             set = new TokenMOVE(content);
                             break;
@@ -247,7 +251,23 @@ namespace mc_compiled.MCC
                         case "fill":
                             set = new TokenFILL(content);
                             break;
-
+                        case "kick":
+                            set = new TokenKICK(content);
+                            break;
+                        case "gm":
+                        case "gamemode":
+                            set = new TokenGAMEMODE(content);
+                            break;
+                        case "diff":
+                        case "difficulty":
+                            set = new TokenDIFFICULTY(content);
+                            break;
+                        case "weather":
+                            set = new TokenWEATHER(content);
+                            break;
+                        case "time":
+                            set = new TokenTIME(content);
+                            break;
                     }
                     if (set == null)
                         continue;

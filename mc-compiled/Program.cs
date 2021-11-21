@@ -71,8 +71,7 @@ namespace mc_compiled
                 FileWriterNBT writer = new FileWriterNBT("test.nbt", structure.ToNBT());
                 writer.Write();
 
-                Console.WriteLine("wrote test file.");
-                Console.ReadLine();
+                Console.WriteLine("Wrote test file.");
                 return;
             }
             if (file.ToUpper().Equals("--JSONBUILDER"))
@@ -120,7 +119,6 @@ namespace mc_compiled
             Console.WriteLine("Writing files...");
             pack.Write();
             Console.WriteLine("Finished");
-            Console.ReadLine();
         }
     }
 }
