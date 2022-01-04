@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandLimits.cs" />
+    <Compile Include="MCC\Compilers\DefaultCompiler.cs" />
     <Compile Include="MCC\FileWriter.cs" />
     <Compile Include="MCC\FixedPoint.cs" />
     <Compile Include="MCC\FunctionDefinition.cs" />

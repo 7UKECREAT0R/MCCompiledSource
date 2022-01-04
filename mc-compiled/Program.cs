@@ -1,6 +1,7 @@
 ﻿using mc_compiled.Commands.Native;
 using mc_compiled.Json;
 using mc_compiled.MCC;
+using mc_compiled.MCC.Compilers;
 using mc_compiled.Modding;
 using mc_compiled.NBT;
 using System;
@@ -13,6 +14,10 @@ namespace mc_compiled
 {
     class Program
     {
+        public static bool OBFUSCATE = false;
+        public static bool DEBUG = false;
+
+
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
@@ -90,7 +95,11 @@ namespace mc_compiled
                     Console.WriteLine("\tMacro recursion allowed.");
             }
 
-            Compiler compiler = new Compiler(debug, obf);
+            DEBUG = debug;
+            OBFUSCATE = obf;
+
+            Compiler compiler = new DefaultCompiler();
+
             Token[] compiled = compiler.CompileFile(file);
             Executor executor = new Executor(compiled, debug, decor,
                 System.IO.Path.GetFileNameWithoutExtension(file));
