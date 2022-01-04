@@ -122,9 +122,11 @@ namespace mc_compiled.MCC
                             //      FILL <block> <x1> <y1> <z1> <x2> <y2> <z2> [data] [fillMode]
         REPLACE = 0x40,     // Replace an area's specific blocks with another.
                             //      REPLACE <x1> <y1> <z1> <x2> <y2> <z2> <source> <data> <replacement> [data]
-        KILL = 0x40,        // Kill selected entity with optional delay
+        KILL = 0x41,        // Kill selected entity with optional delay
                             // The delay should use a time parsing class for stuff like "5s" or "1m"
                             //      KILL [delay]
+        TITLE = 0x42        // Send the selected entity a title. Optionally can specify timings and subtitles.
+                            //      TITLE <text> [subtitle: <subtitle>] [times: <fade-in> <stay> <fade-out>]
 
 
         // Planned stuff:

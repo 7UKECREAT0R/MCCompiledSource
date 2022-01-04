@@ -45,7 +45,7 @@ namespace mc_compiled.MCC
         }
         public override string ToString()
         {
-            return $"Select {selectCore}";
+            return $"Select @{selectCore}";
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {

@@ -72,7 +72,7 @@
     <Compile Include="Json\RawTextJsonBuilder.cs" />
     <Compile Include="Json\RawTextJsonTerms.cs" />
     <Compile Include="MCC\CodeReader.cs" />
-    <Compile Include="MCC\Compiler.cs" />
+    <Compile Include="MCC\Compilers\Compiler.cs" />
     <Compile Include="MCC\Definitions.cs" />
     <Compile Include="MCC\Dynamic.cs" />
     <Compile Include="MCC\Executor.cs" />
