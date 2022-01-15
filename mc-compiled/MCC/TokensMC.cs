@@ -983,7 +983,7 @@ namespace mc_compiled.MCC
             }
             else
             {
-                throw new NullReferenceException("Reached end of file after if-statement.");
+                throw new NullReferenceException("Reached end of file/block after if-statement.");
             }
         }
     }
