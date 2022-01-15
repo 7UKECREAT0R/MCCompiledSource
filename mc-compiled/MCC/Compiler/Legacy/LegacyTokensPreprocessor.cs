@@ -5,11 +5,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace mc_compiled.MCC
+namespace mc_compiled.MCC.Compiler
 {
-    public class TokenUnknown : Token
+    public class LegacyTokenUnknown : LegacyToken
     {
-        public TokenUnknown()
+        public LegacyTokenUnknown()
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.UNKNOWN;
@@ -23,10 +23,10 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenComment : Token
+    public class LegacyTokenComment : LegacyToken
     {
         public readonly string comment;
-        public TokenComment(string comment)
+        public LegacyTokenComment(string comment)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.COMMENT;
@@ -41,17 +41,17 @@ namespace mc_compiled.MCC
             if (!caller.decorate)
                 return;
 
-            Token last = tokens.PeekLast();
-            if (!(last is TokenComment))
+            LegacyToken last = tokens.PeekLast();
+            if (!(last is LegacyTokenComment))
                 caller.FinishRaw("", false);
             caller.FinishRaw("# " + caller.ReplacePPV(comment), false);
             return;
         }
     }
-    public class TokenBlock : Token
+    public class LegacyTokenBlock : LegacyToken
     {
         public readonly TokenFeeder contents;
-        public TokenBlock(Token[] contents)
+        public LegacyTokenBlock(LegacyToken[] contents)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.BLOCK;
@@ -83,12 +83,12 @@ namespace mc_compiled.MCC
         }
     }
 
-    public class TokenPPV : Token
+    public class LegacyTokenPPV : LegacyToken
     {
         public string name;
         public Dynamic value;
 
-        public TokenPPV(string expression)
+        public LegacyTokenPPV(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPV;
@@ -109,11 +109,11 @@ namespace mc_compiled.MCC
             return $"[PP] Set variable {name} to {value}";
         }
     }
-    public class TokenPPINC : Token
+    public class LegacyTokenPPINC : LegacyToken
     {
         public string varName;
 
-        public TokenPPINC(string varName)
+        public LegacyTokenPPINC(string varName)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPINC;
@@ -136,11 +136,11 @@ namespace mc_compiled.MCC
             return "[PP] Increment " + varName;
         }
     }
-    public class TokenPPDEC : Token
+    public class LegacyTokenPPDEC : LegacyToken
     {
         public string varName;
 
-        public TokenPPDEC(string varName)
+        public LegacyTokenPPDEC(string varName)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPDEC;
@@ -164,7 +164,7 @@ namespace mc_compiled.MCC
             return "[PP] Decrement " + varName;
         }
     }
-    public class TokenPPADD : Token
+    public class LegacyTokenPPADD : LegacyToken
     {
         public string varName;
 
@@ -172,7 +172,7 @@ namespace mc_compiled.MCC
         public Dynamic constant;
         public string ppv;
 
-        public TokenPPADD(string expression)
+        public LegacyTokenPPADD(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPADD;
@@ -210,7 +210,7 @@ namespace mc_compiled.MCC
             return $"[PP] Add {constant} to {varName}";
         }
     }
-    public class TokenPPSUB : Token
+    public class LegacyTokenPPSUB : LegacyToken
     {
         public string varName;
 
@@ -218,7 +218,7 @@ namespace mc_compiled.MCC
         public Dynamic constant;
         public string ppv;
 
-        public TokenPPSUB(string expression)
+        public LegacyTokenPPSUB(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPSUB;
@@ -256,7 +256,7 @@ namespace mc_compiled.MCC
             return $"[PP] Subtract {constant} from {varName}";
         }
     }
-    public class TokenPPMUL : Token
+    public class LegacyTokenPPMUL : LegacyToken
     {
         public string varName;
 
@@ -264,7 +264,7 @@ namespace mc_compiled.MCC
         public Dynamic constant;
         public string ppv;
 
-        public TokenPPMUL(string expression)
+        public LegacyTokenPPMUL(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPMUL;
@@ -302,7 +302,7 @@ namespace mc_compiled.MCC
             return $"[PP] Multiply {varName} with {constant}";
         }
     }
-    public class TokenPPDIV : Token
+    public class LegacyTokenPPDIV : LegacyToken
     {
         public string varName;
 
@@ -310,7 +310,7 @@ namespace mc_compiled.MCC
         public Dynamic constant;
         public string ppv;
 
-        public TokenPPDIV(string expression)
+        public LegacyTokenPPDIV(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPDIV;
@@ -348,7 +348,7 @@ namespace mc_compiled.MCC
             return $"[PP] Divide {varName} with {constant}";
         }
     }
-    public class TokenPPMOD : Token
+    public class LegacyTokenPPMOD : LegacyToken
     {
         public string varName;
 
@@ -356,7 +356,7 @@ namespace mc_compiled.MCC
         public Dynamic constant;
         public string ppv;
 
-        public TokenPPMOD(string expression)
+        public LegacyTokenPPMOD(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPMOD;
@@ -395,12 +395,12 @@ namespace mc_compiled.MCC
             return $"[PP] Modulo {varName} with {constant}";
         }
     }
-    public class TokenPPIF : Token
+    public class LegacyTokenPPIF : LegacyToken
     {
         public Dynamic constantA, constantB;
         public Operator comparison;
 
-        public TokenPPIF(string expression)
+        public LegacyTokenPPIF(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPIF;
@@ -419,10 +419,10 @@ namespace mc_compiled.MCC
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
-            Token potential = tokens.Peek();
-            if(potential != null && potential is TokenBlock)
+            LegacyToken potential = tokens.Peek();
+            if(potential != null && potential is LegacyTokenBlock)
             {
-                TokenBlock runBlock = potential as TokenBlock;
+                LegacyTokenBlock runBlock = potential as LegacyTokenBlock;
                 
                 Dynamic a = constantA;
                 Dynamic b = constantB;
@@ -443,13 +443,13 @@ namespace mc_compiled.MCC
                     potential = tokens.Peek();
                     if (potential == null)
                         return;
-                    if (!(potential is TokenPPELSE))
+                    if (!(potential is LegacyTokenPPELSE))
                         return;
                     tokens.Next();
                     potential = tokens.Peek();
-                    if (potential == null || !(potential is TokenBlock))
+                    if (potential == null || !(potential is LegacyTokenBlock))
                         throw new TokenException(this, "No block after PPELSE statement.");
-                    TokenBlock elseBlock = tokens.Next() as TokenBlock;
+                    LegacyTokenBlock elseBlock = tokens.Next() as LegacyTokenBlock;
                     elseBlock.Execute(caller, null);
                 }
 
@@ -460,9 +460,9 @@ namespace mc_compiled.MCC
             return $"[PP] If {constantA} {comparison} {constantB}:";
         }
     }
-    public class TokenPPELSE : Token
+    public class LegacyTokenPPELSE : LegacyToken
     {
-        public TokenPPELSE()
+        public LegacyTokenPPELSE()
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPELSE;
@@ -476,11 +476,11 @@ namespace mc_compiled.MCC
             return $"[PP] Otherwise:";
         }
     }
-    public class TokenPPREP : Token
+    public class LegacyTokenPPREP : LegacyToken
     {
         readonly string amount;
 
-        public TokenPPREP(string amount)
+        public LegacyTokenPPREP(string amount)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPREP;
@@ -500,10 +500,10 @@ namespace mc_compiled.MCC
             else if (!int.TryParse(amount, out count))
                 throw new TokenException(this, $"PPREP input couldn't be parsed. \"{amount}\"");
 
-            Token potentialBlock = tokens.Peek();
-            if(potentialBlock != null && potentialBlock is TokenBlock)
+            LegacyToken potentialBlock = tokens.Peek();
+            if(potentialBlock != null && potentialBlock is LegacyTokenBlock)
             {
-                TokenBlock block = tokens.Next() as TokenBlock;
+                LegacyTokenBlock block = tokens.Next() as LegacyTokenBlock;
                 for (int r = 0; r < count; r++)
                     block.Execute(caller, null);
             } else throw new TokenException(this, "No block after PPREP statement.");
@@ -514,11 +514,11 @@ namespace mc_compiled.MCC
             return $"[PP] Repeat {amount} times:";
         }
     }
-    public class TokenPPLOG : Token
+    public class LegacyTokenPPLOG : LegacyToken
     {
         readonly string text;
 
-        public TokenPPLOG(string text)
+        public LegacyTokenPPLOG(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPLOG;
@@ -535,11 +535,11 @@ namespace mc_compiled.MCC
             return $"[PP] Log '{text}'";
         }
     }
-    public class TokenPPFILE : Token
+    public class LegacyTokenPPFILE : LegacyToken
     {
         readonly string fileOffset;
 
-        public TokenPPFILE(string fileOffset)
+        public LegacyTokenPPFILE(string fileOffset)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.UNKNOWN; // TODO
@@ -556,11 +556,11 @@ namespace mc_compiled.MCC
             return $"[PP] Set file offset to '{fileOffset}'";
         }
     }
-    public class TokenFUNCTION : Token
+    public class LegacyTokenFUNCTION : LegacyToken
     {
         readonly string signature;
 
-        public TokenFUNCTION(string signature)
+        public LegacyTokenFUNCTION(string signature)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.FUNCTION;
@@ -572,7 +572,7 @@ namespace mc_compiled.MCC
             string temp = caller.ReplacePPV(signature);
             FunctionDefinition definition = FunctionDefinition.Parse(temp);
 
-            if (!(tokens.Peek() is TokenBlock))
+            if (!(tokens.Peek() is LegacyTokenBlock))
                 throw new TokenException(this, "Function definition doesn't have a block after it.");
             if(caller.functionsDefined.Any(f => f.name.Equals(definition.name)))
                 throw new TokenException(this, $"Function \"{definition.name}\" is already defined.");
@@ -582,7 +582,7 @@ namespace mc_compiled.MCC
             if (caller.debug)
                 Console.WriteLine($"Defined Function \"{definition.FullName}\"");
 
-            TokenBlock block = tokens.Next() as TokenBlock;
+            LegacyTokenBlock block = tokens.Next() as LegacyTokenBlock;
             block.PlaceInFunction(caller, tokens, definition);
         }
         public override string ToString()
@@ -590,12 +590,12 @@ namespace mc_compiled.MCC
             return $"Define Function: {signature}";
         }
     }
-    public class TokenCALL : Token
+    public class LegacyTokenCALL : LegacyToken
     {
         readonly string name;
         readonly string[] args;
 
-        public TokenCALL(string signature)
+        public LegacyTokenCALL(string signature)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.FUNCTION;
@@ -606,7 +606,7 @@ namespace mc_compiled.MCC
             name = signature.Substring(0, space);
             args = signature.Substring(space + 1).Split(' ');
         }
-        public TokenCALL(string name, string[] args)
+        public LegacyTokenCALL(string name, string[] args)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.CALL;
@@ -635,7 +635,7 @@ namespace mc_compiled.MCC
                 Dynamic inputConstant = Dynamic.Parse(inputValue);
 
                 // Define the target scoreboard(s) if they haven't already.
-                TokenDEFINE init = new TokenDEFINE(sourceValue);
+                LegacyTokenDEFINE init = new LegacyTokenDEFINE(sourceValue);
                 init.Execute(caller, tokens);
 
                 // Check the input type to decide how to pass in this argument.
@@ -671,12 +671,12 @@ namespace mc_compiled.MCC
                 return $"Call {name} with args: {string.Join(", ", args)}";
         }
     }
-    public class TokenPPMACRO : Token
+    public class LegacyTokenPPMACRO : LegacyToken
     {
         public readonly string name;
         public readonly string[] args;
 
-        public TokenPPMACRO(string expression)
+        public LegacyTokenPPMACRO(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPMACRO;
@@ -700,10 +700,10 @@ namespace mc_compiled.MCC
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
             // Macro definition case.
-            Token potentialBlock = tokens.Peek();
-            if(potentialBlock != null && potentialBlock is TokenBlock)
+            LegacyToken potentialBlock = tokens.Peek();
+            if(potentialBlock != null && potentialBlock is LegacyTokenBlock)
             {
-                TokenBlock block = tokens.Next() as TokenBlock;
+                LegacyTokenBlock block = tokens.Next() as LegacyTokenBlock;
                 Macro macro = new Macro(name, args, block.contents.GetArray());
 
                 if (caller.debug)
@@ -762,9 +762,9 @@ namespace mc_compiled.MCC
             return $"[PP] Call/Define macro '{name}' with {args.Length} argument(s)";
         }
     }
-    public class TokenHALT : Token
+    public class LegacyTokenHALT : LegacyToken
     {
-        public TokenHALT()
+        public LegacyTokenHALT()
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.HALT;
@@ -792,11 +792,11 @@ namespace mc_compiled.MCC
         }
         public override string ToString() => "Halt Execution";
     }
-    public class TokenPPFRIENDLY : Token
+    public class LegacyTokenPPFRIENDLY : LegacyToken
     {
         readonly string variable;
 
-        public TokenPPFRIENDLY(string variable)
+        public LegacyTokenPPFRIENDLY(string variable)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPFRIENDLY;
@@ -829,11 +829,11 @@ namespace mc_compiled.MCC
             return $"[PP] Friendly-name '{variable}'";
         }
     }
-    public class TokenPPUPPER : Token
+    public class LegacyTokenPPUPPER : LegacyToken
     {
         readonly string variable;
 
-        public TokenPPUPPER(string variable)
+        public LegacyTokenPPUPPER(string variable)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPUPPER;
@@ -858,11 +858,11 @@ namespace mc_compiled.MCC
             return $"[PP] Uppercase '{variable}'";
         }
     }
-    public class TokenPPLOWER : Token
+    public class LegacyTokenPPLOWER : LegacyToken
     {
         readonly string variable;
 
-        public TokenPPLOWER(string variable)
+        public LegacyTokenPPLOWER(string variable)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PPLOWER;

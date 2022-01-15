@@ -7,7 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using mc_compiled.Commands.Native;
 
-namespace mc_compiled.MCC
+namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
     /// Compile and tokenize a script.
@@ -41,7 +41,7 @@ namespace mc_compiled.MCC
             defs = Definitions.GLOBAL_DEFS;
         }
 
-        public Token[] CompileFile(string file)
+        public LegacyToken[] CompileFile(string file)
         {
             // Load file
             if (!File.Exists(file))
@@ -64,6 +64,6 @@ namespace mc_compiled.MCC
             return Compile(new CodeReader(content));
         }
 
-        public abstract Token[] Compile(CodeReader code);
+        public abstract LegacyToken[] Compile(CodeReader code);
     }
 }

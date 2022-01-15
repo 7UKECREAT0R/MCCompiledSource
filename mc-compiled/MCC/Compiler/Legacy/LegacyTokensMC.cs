@@ -10,12 +10,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace mc_compiled.MCC
+namespace mc_compiled.MCC.Compiler
 {
-    public class TokenMC : Token
+    public class LegacyTokenMC : LegacyToken
     {
         string command;
-        public TokenMC(string command)
+        public LegacyTokenMC(string command)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.MC;
@@ -32,11 +32,11 @@ namespace mc_compiled.MCC
             caller.FinishRaw(output);
         }
     }
-    public class TokenSELECT : Token
+    public class LegacyTokenSELECT : LegacyToken
     {
         string selectCore;
 
-        public TokenSELECT(string selectCore)
+        public LegacyTokenSELECT(string selectCore)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.SELECT;
@@ -52,10 +52,10 @@ namespace mc_compiled.MCC
             caller.selection = Selector.ParseCore(caller.ReplacePPV(selectCore));
         }
     }
-    public class TokenPRINT : Token
+    public class LegacyTokenPRINT : LegacyToken
     {
         string text;
-        public TokenPRINT(string text)
+        public LegacyTokenPRINT(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINT;
@@ -108,10 +108,10 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"tellraw @a {final}");
         }
     }
-    public class TokenPRINTP : Token
+    public class LegacyTokenPRINTP : LegacyToken
     {
         string text;
-        public TokenPRINTP(string text)
+        public LegacyTokenPRINTP(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINTP;
@@ -127,7 +127,7 @@ namespace mc_compiled.MCC
             string output = caller.ReplacePPV(text);
 
             RawTextJsonBuilder builder = new RawTextJsonBuilder();
-            List<JSONRawTerm> terms = TokenPRINT.TokenizePrint(output, caller);
+            List<JSONRawTerm> terms = LegacyTokenPRINT.TokenizePrint(output, caller);
             foreach (JSONRawTerm term in terms)
                 builder.AddTerm(term);
             string final = builder.BuildString();
@@ -136,11 +136,11 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"tellraw {selector} {final}");
         }
     }
-    public class TokenLIMIT : Token
+    public class LegacyTokenLIMIT : LegacyToken
     {
         string limit;
         bool none;
-        public TokenLIMIT(string text)
+        public LegacyTokenLIMIT(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE._LIMIT;
@@ -178,7 +178,7 @@ namespace mc_compiled.MCC
             return;*/
         }
     }
-    public class TokenDEFINE : Token
+    public class LegacyTokenDEFINE : LegacyToken
     {
         public readonly string valueName;
         public string ValueName
@@ -191,7 +191,7 @@ namespace mc_compiled.MCC
                 else return valueName.Substring(index + 1);
             }
         }
-        public TokenDEFINE(string text)
+        public LegacyTokenDEFINE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.DEFINE;
@@ -212,10 +212,10 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenINITIALIZE : Token
+    public class LegacyTokenINITIALIZE : LegacyToken
     {
         string valueName;
-        public TokenINITIALIZE(string text)
+        public LegacyTokenINITIALIZE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.INITIALIZE;
@@ -239,7 +239,7 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenVALUE : Token
+    public class LegacyTokenVALUE : LegacyToken
     {
         enum DisplayMode
         {
@@ -324,7 +324,7 @@ namespace mc_compiled.MCC
         string valueB;
         Dynamic constantB;
 
-        public TokenVALUE(string text)
+        public LegacyTokenVALUE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.VALUE;
@@ -555,7 +555,7 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenIF : Token
+    public class LegacyTokenIF : LegacyToken
     {
         enum Type : int
         {
@@ -793,7 +793,7 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Creates a unique function name for the conditions inside this.
         /// </summary>
-        public string BranchFunctionName(TokenBlock block)
+        public string BranchFunctionName(LegacyTokenBlock block)
         {
             int hash = 0;
             statements.ForEach(s =>
@@ -871,7 +871,7 @@ namespace mc_compiled.MCC
 
             statements.Add(current);
         }
-        public TokenIF(string expression)
+        public LegacyTokenIF(string expression)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.IF;
@@ -922,12 +922,12 @@ namespace mc_compiled.MCC
             if (forceInvert)
                 return;
 
-            Token potentialBlock = tokens.Peek();
+            LegacyToken potentialBlock = tokens.Peek();
             if (potentialBlock != null)
             {
-                if(potentialBlock is TokenBlock)
+                if(potentialBlock is LegacyTokenBlock)
                 {
-                    TokenBlock block = tokens.Next() as TokenBlock;
+                    LegacyTokenBlock block = tokens.Next() as LegacyTokenBlock;
                     FunctionDefinition a = new FunctionDefinition()
                     {
                         name = BranchFunctionName(block),
@@ -947,16 +947,16 @@ namespace mc_compiled.MCC
                     tokens.Next().Execute(caller, tokens);
                 }
 
-                Token potentialElse = tokens.Peek();
-                if (potentialElse == null || !(potentialElse is TokenELSE))
+                LegacyToken potentialElse = tokens.Peek();
+                if (potentialElse == null || !(potentialElse is LegacyTokenELSE))
                     return;
                 tokens.Next();
                 potentialBlock = tokens.Peek();
                 if (potentialBlock == null)
                     throw new NullReferenceException("Reached end of file after else-statement.");
-                if(potentialBlock is TokenBlock)
+                if(potentialBlock is LegacyTokenBlock)
                 {
-                    TokenBlock elseBlock = tokens.Next() as TokenBlock;
+                    LegacyTokenBlock elseBlock = tokens.Next() as LegacyTokenBlock;
                     forceInvert = true;
                     selector = ConstructSelector(caller.selection, ref caller);
                     FunctionDefinition b = new FunctionDefinition()
@@ -987,9 +987,9 @@ namespace mc_compiled.MCC
             }
         }
     }
-    public class TokenELSE : Token
+    public class LegacyTokenELSE : LegacyToken
     {
-        public TokenELSE()
+        public LegacyTokenELSE()
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.ELSE;
@@ -1003,7 +1003,7 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenGIVE : Token
+    public class LegacyTokenGIVE : LegacyToken
     {
         string preview;
 
@@ -1020,7 +1020,7 @@ namespace mc_compiled.MCC
         string displayName;
 
         bool useStructure;  // If a structure needs to be loaded
-        public TokenGIVE(string text)
+        public LegacyTokenGIVE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.GIVE;
@@ -1149,7 +1149,7 @@ namespace mc_compiled.MCC
             caller.FinishRaw(command);
         }
     }
-    public class TokenTP : Token
+    public class LegacyTokenTP : LegacyToken
     {
         string target = null;
 
@@ -1160,7 +1160,7 @@ namespace mc_compiled.MCC
         string
             xRot = null,
             yRot = null;
-        public TokenTP(string text)
+        public LegacyTokenTP(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.TP;
@@ -1242,10 +1242,10 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenTITLE : Token
+    public class LegacyTokenTITLE : LegacyToken
     {
         string text;
-        public TokenTITLE(string text)
+        public LegacyTokenTITLE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINTP;
@@ -1263,12 +1263,12 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"title {selector} title {text}");
         }
     }
-    public class TokenKICK : Token
+    public class LegacyTokenKICK : LegacyToken
     {
         string text;
         string reason;
         string player;
-        public TokenKICK(string text)
+        public LegacyTokenKICK(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINTP;
@@ -1296,12 +1296,12 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"kick {player} {reason}");
         }
     }
-    public class TokenGAMEMODE : Token
+    public class LegacyTokenGAMEMODE : LegacyToken
     {
         string text;
         string gamemode;
         string player;
-        public TokenGAMEMODE(string text)
+        public LegacyTokenGAMEMODE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINTP;
@@ -1327,12 +1327,12 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"gamemode {player} {gamemode}");
         }
     }
-    public class TokenTIME : Token
+    public class LegacyTokenTIME : LegacyToken
     {
         string uvar1;
         string uvar2;
         string text;
-        public TokenTIME(string text)
+        public LegacyTokenTIME(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINTP;
@@ -1358,11 +1358,11 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"time {uvar1} {uvar2}");
         }
     }
-    public class TokenDIFFICULTY : Token
+    public class LegacyTokenDIFFICULTY : LegacyToken
     {
         string text;
         string difficulty;
-        public TokenDIFFICULTY(string text)
+        public LegacyTokenDIFFICULTY(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINTP;
@@ -1384,11 +1384,11 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"difficulty {difficulty}");
         }
     }
-    public class TokenWEATHER : Token
+    public class LegacyTokenWEATHER : LegacyToken
     {
         string text;
         string weather;
-        public TokenWEATHER(string text)
+        public LegacyTokenWEATHER(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PRINTP;
@@ -1410,7 +1410,7 @@ namespace mc_compiled.MCC
             caller.FinishRaw($"weather {weather}");
         }
     }
-    public class TokenMOVE : Token
+    public class LegacyTokenMOVE : LegacyToken
     {
         enum MoveDirection
         {
@@ -1454,7 +1454,7 @@ namespace mc_compiled.MCC
 
         string direction;
         string amount;
-        public TokenMOVE(string text)
+        public LegacyTokenMOVE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.MOVE;
@@ -1518,7 +1518,7 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenFACE : Token
+    public class LegacyTokenFACE : LegacyToken
     {
         bool looksAtTarget = false;
 
@@ -1528,7 +1528,7 @@ namespace mc_compiled.MCC
             y = null,
             z = null;
 
-        public TokenFACE(string text)
+        public LegacyTokenFACE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.FACE;
@@ -1589,7 +1589,7 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenPLACE : Token
+    public class LegacyTokenPLACE : LegacyToken
     {
         string
             block = null,
@@ -1598,7 +1598,7 @@ namespace mc_compiled.MCC
             z = null,
             data = null,
             destroyMode = null;
-        public TokenPLACE(string text)
+        public LegacyTokenPLACE(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.PLACE;
@@ -1656,7 +1656,7 @@ namespace mc_compiled.MCC
             return;
         }
     }
-    public class TokenFILL : Token
+    public class LegacyTokenFILL : LegacyToken
     {
         public enum FillMode
         {
@@ -1708,7 +1708,7 @@ namespace mc_compiled.MCC
             z2 = null,
             data = null,
             fillMode = null;
-        public TokenFILL(string text)
+        public LegacyTokenFILL(string text)
         {
             line = Compiler.CURRENT_LINE;
             type = TOKENTYPE.FILL;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.MCC.Compiler;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,9 +14,9 @@ namespace mc_compiled.MCC
     {
         public readonly string name;
         public readonly string[] args;
-        public readonly Token[] execute;
+        public readonly LegacyToken[] execute;
 
-        public Macro(string name, string[] args, Token[] execute)
+        public Macro(string name, string[] args, LegacyToken[] execute)
         {
             this.name = name;
             this.args = args;

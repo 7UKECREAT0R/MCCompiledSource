@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mc_compiled.MCC
+namespace mc_compiled.MCC.Compiler
 {
-    public abstract class Token
+    public abstract class LegacyToken
     {
         public TOKENTYPE type;
         public int line = -1;
@@ -15,7 +15,7 @@ namespace mc_compiled.MCC
     }
     public class TokenException : Exception
     {
-        public Token token;
+        public LegacyToken token;
         public string desc;
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="token"></param>
         /// <param name="desc"></param>
-        public TokenException(Token token, string desc)
+        public TokenException(LegacyToken token, string desc)
         {
             this.token = token;
             this.desc = desc;

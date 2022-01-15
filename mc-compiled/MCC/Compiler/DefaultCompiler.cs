@@ -5,17 +5,17 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace mc_compiled.MCC.Compilers
+namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
     /// The compiler which processes the main MCCompiled code.
     /// </summary>
     class DefaultCompiler : Compiler
     {
-        public override Token[] Compile(CodeReader code)
+        public override LegacyToken[] Compile(CodeReader code)
         {
             // Initialize buffer
-            List<Token> tokens = new List<Token>();
+            List<LegacyToken> tokens = new List<LegacyToken>();
 
             // Actually compile
             string line;
@@ -30,14 +30,14 @@ namespace mc_compiled.MCC.Compilers
 
                 if (line.StartsWith("//"))
                 {
-                    tokens.Add(new TokenComment(line.Substring(2).Trim()));
+                    tokens.Add(new LegacyTokenComment(line.Substring(2).Trim()));
                     continue;
                 }
                 if (line.StartsWith("{"))
                 {
                     string block = code.GetBlock('{', '}');
-                    Token[] sub = Compile(new CodeReader(block));
-                    tokens.Add(new TokenBlock(sub));
+                    LegacyToken[] sub = Compile(new CodeReader(block));
+                    tokens.Add(new LegacyTokenBlock(sub));
                     continue;
                 }
 
@@ -58,7 +58,7 @@ namespace mc_compiled.MCC.Compilers
                 // Test if this might be a shallow value operation.
                 if (guessedValues.Contains(keyword))
                 {
-                    Token shallow = new TokenVALUE(line);
+                    LegacyToken shallow = new LegacyTokenVALUE(line);
                     if (Program.DEBUG)
                         Console.WriteLine("Compile:\t{0}", shallow);
                     tokens.Add(shallow);
@@ -71,7 +71,7 @@ namespace mc_compiled.MCC.Compilers
                 {
                     string functionName = functionCallMatch.Groups[1].Value;
                     string functionArgs = functionCallMatch.Groups[2].Value;
-                    Token shallow = new TokenCALL(functionName, functionArgs.Split(' '));
+                    LegacyToken shallow = new LegacyTokenCALL(functionName, functionArgs.Split(' '));
                     if (Program.DEBUG)
                         Console.WriteLine("Compile:\t{0}", shallow);
                     tokens.Add(shallow);
@@ -80,145 +80,145 @@ namespace mc_compiled.MCC.Compilers
 
                 try
                 {
-                    Token set = null;
+                    LegacyToken set = null;
                     switch (keyword.ToLower())
                     {
                         case "ppv":
-                            set = new TokenPPV(content);
-                            guessedPPValues.Add((set as TokenPPV).name);
+                            set = new LegacyTokenPPV(content);
+                            guessedPPValues.Add((set as LegacyTokenPPV).name);
                             break;
                         case "ppinc":
-                            set = new TokenPPINC(content);
+                            set = new LegacyTokenPPINC(content);
                             break;
                         case "ppdec":
-                            set = new TokenPPDEC(content);
+                            set = new LegacyTokenPPDEC(content);
                             break;
                         case "ppadd":
-                            set = new TokenPPADD(content);
+                            set = new LegacyTokenPPADD(content);
                             break;
                         case "ppsub":
-                            set = new TokenPPSUB(content);
+                            set = new LegacyTokenPPSUB(content);
                             break;
                         case "ppmul":
-                            set = new TokenPPMUL(content);
+                            set = new LegacyTokenPPMUL(content);
                             break;
                         case "ppdiv":
-                            set = new TokenPPDIV(content);
+                            set = new LegacyTokenPPDIV(content);
                             break;
                         case "ppmod":
-                            set = new TokenPPMOD(content);
+                            set = new LegacyTokenPPMOD(content);
                             break;
                         case "ppif":
-                            set = new TokenPPIF(content);
+                            set = new LegacyTokenPPIF(content);
                             break;
                         case "ppelse":
-                            set = new TokenPPELSE();
+                            set = new LegacyTokenPPELSE();
                             break;
                         case "pprep":
-                            set = new TokenPPREP(content);
+                            set = new LegacyTokenPPREP(content);
                             break;
                         case "pplog":
-                            set = new TokenPPLOG(content);
+                            set = new LegacyTokenPPLOG(content);
                             break;
                         case "_ppfile": // no longer used but people can if they want
-                            set = new TokenPPFILE(content);
+                            set = new LegacyTokenPPFILE(content);
                             break;
                         case "function":
-                            set = new TokenFUNCTION(content);
+                            set = new LegacyTokenFUNCTION(content);
                             break;
                         case "call":
-                            set = new TokenCALL(content);
+                            set = new LegacyTokenCALL(content);
                             break;
                         case "ppmacro":
-                            set = new TokenPPMACRO(content);
+                            set = new LegacyTokenPPMACRO(content);
                             break;
                         case "ppfriendly":
-                            set = new TokenPPFRIENDLY(content);
+                            set = new LegacyTokenPPFRIENDLY(content);
                             break;
                         case "ppupper":
-                            set = new TokenPPUPPER(content);
+                            set = new LegacyTokenPPUPPER(content);
                             break;
                         case "pplower":
-                            set = new TokenPPLOWER(content);
+                            set = new LegacyTokenPPLOWER(content);
                             break;
 
 
                         case "mc":
-                            set = new TokenMC(content);
+                            set = new LegacyTokenMC(content);
                             break;
                         case "select":
-                            set = new TokenSELECT(content);
+                            set = new LegacyTokenSELECT(content);
                             break;
                         case "print":
-                            set = new TokenPRINT(content);
+                            set = new LegacyTokenPRINT(content);
                             break;
                         case "printp":
-                            set = new TokenPRINTP(content);
+                            set = new LegacyTokenPRINTP(content);
                             break;
                         case "limit":
-                            set = new TokenLIMIT(content);
+                            set = new LegacyTokenLIMIT(content);
                             break;
                         case "def":
                         case "define":
-                            set = new TokenDEFINE(content);
-                            guessedValues.Add((set as TokenDEFINE).ValueName);
+                            set = new LegacyTokenDEFINE(content);
+                            guessedValues.Add((set as LegacyTokenDEFINE).ValueName);
                             break;
                         case "init":
                         case "initialize":
-                            set = new TokenINITIALIZE(content);
+                            set = new LegacyTokenINITIALIZE(content);
                             break;
                         case "value":
                         case "val":
-                            set = new TokenVALUE(content);
+                            set = new LegacyTokenVALUE(content);
                             break;
                         case "if":
-                            set = new TokenIF(content);
+                            set = new LegacyTokenIF(content);
                             break;
                         case "else":
                         case "el":
-                            set = new TokenELSE();
+                            set = new LegacyTokenELSE();
                             break;
                         case "give":
-                            set = new TokenGIVE(content);
+                            set = new LegacyTokenGIVE(content);
                             break;
                         case "tp":
-                            set = new TokenTP(content);
+                            set = new LegacyTokenTP(content);
                             break;
                         case "title":
-                            set = new TokenTITLE(content);
+                            set = new LegacyTokenTITLE(content);
                             break;
                         case "move":
-                            set = new TokenMOVE(content);
+                            set = new LegacyTokenMOVE(content);
                             break;
                         case "face":
-                            set = new TokenFACE(content);
+                            set = new LegacyTokenFACE(content);
                             break;
                         case "place":
-                            set = new TokenPLACE(content);
+                            set = new LegacyTokenPLACE(content);
                             break;
                         case "fill":
-                            set = new TokenFILL(content);
+                            set = new LegacyTokenFILL(content);
                             break;
                         case "kick":
-                            set = new TokenKICK(content);
+                            set = new LegacyTokenKICK(content);
                             break;
                         case "halt":
                         case "stop":
-                            set = new TokenHALT();
+                            set = new LegacyTokenHALT();
                             break;
                         case "gm":
                         case "gamemode":
-                            set = new TokenGAMEMODE(content);
+                            set = new LegacyTokenGAMEMODE(content);
                             break;
                         case "diff":
                         case "difficulty":
-                            set = new TokenDIFFICULTY(content);
+                            set = new LegacyTokenDIFFICULTY(content);
                             break;
                         case "weather":
-                            set = new TokenWEATHER(content);
+                            set = new LegacyTokenWEATHER(content);
                             break;
                         case "time":
-                            set = new TokenTIME(content);
+                            set = new LegacyTokenTIME(content);
                             break;
                     }
                     if (set == null)

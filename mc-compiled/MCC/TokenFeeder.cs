@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.MCC.Compiler;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,18 +12,18 @@ namespace mc_compiled.MCC
     /// </summary>
     public class TokenFeeder
     {
-        private Token[] tokens;
+        private LegacyToken[] tokens;
         private int readerIndex;
 
         public readonly int length;
 
-        public TokenFeeder(params Token[] tokens)
+        public TokenFeeder(params LegacyToken[] tokens)
         {
             this.tokens = tokens;
             readerIndex = 0;
             length = tokens.Length;
         }
-        public Token[] GetArray()
+        public LegacyToken[] GetArray()
         {
             return tokens;
         }
@@ -44,7 +45,7 @@ namespace mc_compiled.MCC
         /// Get the next Token and increment the counter.
         /// </summary>
         /// <returns></returns>
-        public Token Next()
+        public LegacyToken Next()
         {
             if (readerIndex >= length)
                 return null;
@@ -54,7 +55,7 @@ namespace mc_compiled.MCC
         /// Peek at the next Token but don't increment the counter.
         /// </summary>
         /// <returns></returns>
-        public Token Peek()
+        public LegacyToken Peek()
         {
             if (readerIndex >= length)
                 return null;
@@ -64,7 +65,7 @@ namespace mc_compiled.MCC
         /// Peek at the last token that was evaluated.
         /// </summary>
         /// <returns></returns>
-        public Token PeekLast()
+        public LegacyToken PeekLast()
         {
             if (readerIndex <= 1)
                 return null;
@@ -75,7 +76,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        public Token[] Peek(int count)
+        public LegacyToken[] Peek(int count)
         {
             if (count < 0)
                 return null;
@@ -83,9 +84,9 @@ namespace mc_compiled.MCC
                 count = length - readerIndex - 1;
 
             if (count < 1)
-                return new Token[0];
+                return new LegacyToken[0];
 
-            Token[] ret = new Token[count];
+            LegacyToken[] ret = new LegacyToken[count];
             for (int i = 0; i < count; i++)
                 ret[i] = tokens[readerIndex + i];
             return ret;
@@ -95,7 +96,7 @@ namespace mc_compiled.MCC
         public override int GetHashCode()
         {
             int hash = 0;
-            foreach(Token t in tokens)
+            foreach(LegacyToken t in tokens)
             {
                 if (hash == 0)
                     hash = t.GetHashCode();
