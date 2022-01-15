@@ -1,5 +1,6 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Commands.Native;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using System;
 using System.Collections.Generic;
@@ -215,7 +216,7 @@ namespace mc_compiled.MCC
                 name = name.Substring(1);
             return ppv.TryGetValue(name, out value);
         }
-        public Executor(Token[] tokens, bool debug, bool decorate, string baseFileName)
+        public Executor(LegacyToken[] tokens, bool debug, bool decorate, string baseFileName)
         {
             this.debug = debug;
             this.decorate = decorate;
@@ -250,7 +251,7 @@ namespace mc_compiled.MCC
         /// <param name="tokens"></param>
         public void RunSection(TokenFeeder tokens)
         {
-            Token token = null;
+            LegacyToken token = null;
             try
             {
                 while(tokens.HasNext())

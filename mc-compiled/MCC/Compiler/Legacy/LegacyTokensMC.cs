@@ -18,7 +18,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenMC(string command)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.MC;
+            type = LEGACYTOKENTYPE.MC;
 
             this.command = command;
         }
@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenSELECT(string selectCore)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.SELECT;
+            type = LEGACYTOKENTYPE.SELECT;
 
             this.selectCore = selectCore;
         }
@@ -58,7 +58,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPRINT(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINT;
+            type = LEGACYTOKENTYPE.PRINT;
 
             this.text = text;
         }
@@ -114,7 +114,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPRINTP(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINTP;
+            type = LEGACYTOKENTYPE.PRINTP;
 
             this.text = text;
         }
@@ -143,7 +143,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenLIMIT(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE._LIMIT;
+            type = LEGACYTOKENTYPE._LIMIT;
 
             limit = text;
             none = text.ToUpper().Equals("NONE");
@@ -194,7 +194,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenDEFINE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.DEFINE;
+            type = LEGACYTOKENTYPE.DEFINE;
 
             valueName = text;
         }
@@ -218,7 +218,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenINITIALIZE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.INITIALIZE;
+            type = LEGACYTOKENTYPE.INITIALIZE;
 
             valueName = text;
         }
@@ -327,7 +327,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenVALUE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.VALUE;
+            type = LEGACYTOKENTYPE.VALUE;
 
             string[] parts = text.Split(' ');
 
@@ -874,7 +874,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenIF(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.IF;
+            type = LEGACYTOKENTYPE.IF;
 
             eval = expression;
             string[] _statements = expression.Split('&')
@@ -992,7 +992,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenELSE()
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.ELSE;
+            type = LEGACYTOKENTYPE.ELSE;
         }
         public override string ToString()
         {
@@ -1023,7 +1023,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenGIVE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.GIVE;
+            type = LEGACYTOKENTYPE.GIVE;
 
             preview = text;
             string[] args = Compiler.GetArguments(text);
@@ -1163,7 +1163,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenTP(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.TP;
+            type = LEGACYTOKENTYPE.TP;
 
             if(string.IsNullOrWhiteSpace(text))
                 throw new TokenException(this, "Insufficient arguments.");
@@ -1248,7 +1248,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenTITLE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINTP;
+            type = LEGACYTOKENTYPE.PRINTP;
 
             this.text = text;
         }
@@ -1271,7 +1271,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenKICK(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINTP;
+            type = LEGACYTOKENTYPE.PRINTP;
 
             string[] args = Compiler.GetArguments(text);
 
@@ -1304,7 +1304,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenGAMEMODE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINTP;
+            type = LEGACYTOKENTYPE.PRINTP;
 
             string[] args = Compiler.GetArguments(text);
 
@@ -1335,7 +1335,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenTIME(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINTP;
+            type = LEGACYTOKENTYPE.PRINTP;
 
             string[] args = Compiler.GetArguments(text);
 
@@ -1365,7 +1365,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenDIFFICULTY(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINTP;
+            type = LEGACYTOKENTYPE.PRINTP;
 
             string[] args = Compiler.GetArguments(text);
 
@@ -1391,7 +1391,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenWEATHER(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PRINTP;
+            type = LEGACYTOKENTYPE.PRINTP;
 
             string[] args = Compiler.GetArguments(text);
 
@@ -1457,7 +1457,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenMOVE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.MOVE;
+            type = LEGACYTOKENTYPE.MOVE;
 
             if (string.IsNullOrWhiteSpace(text))
                 throw new TokenException(this, "Insufficient arguments.");
@@ -1531,7 +1531,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenFACE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.FACE;
+            type = LEGACYTOKENTYPE.FACE;
 
             if (string.IsNullOrWhiteSpace(text))
                 throw new TokenException(this, "Insufficient arguments.");
@@ -1601,7 +1601,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPLACE(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PLACE;
+            type = LEGACYTOKENTYPE.PLACE;
             
             string[] args = text.Split(' ');
 
@@ -1711,7 +1711,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenFILL(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.FILL;
+            type = LEGACYTOKENTYPE.FILL;
 
             string[] args = text.Split(' ');
 

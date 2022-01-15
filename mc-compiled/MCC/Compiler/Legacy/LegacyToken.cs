@@ -8,7 +8,7 @@ namespace mc_compiled.MCC.Compiler
 {
     public abstract class LegacyToken
     {
-        public TOKENTYPE type;
+        public LEGACYTOKENTYPE type;
         public int line = -1;
 
         public abstract void Execute(Executor caller, TokenFeeder tokens);
@@ -29,7 +29,7 @@ namespace mc_compiled.MCC.Compiler
             this.desc = desc;
         }
     }
-    public enum TOKENTYPE : byte
+    public enum LEGACYTOKENTYPE : byte
     {
         // Region 0x0 - Internal
         UNKNOWN = 0x00,

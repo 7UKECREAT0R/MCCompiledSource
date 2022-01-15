@@ -1,7 +1,7 @@
 ﻿using mc_compiled.Commands.Native;
 using mc_compiled.Json;
 using mc_compiled.MCC;
-using mc_compiled.MCC.Compilers;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using mc_compiled.NBT;
 using System;
@@ -100,7 +100,7 @@ namespace mc_compiled
 
             Compiler compiler = new DefaultCompiler();
 
-            Token[] compiled = compiler.CompileFile(file);
+            LegacyToken[] compiled = compiler.CompileFile(file);
             Executor executor = new Executor(compiled, debug, decor,
                 System.IO.Path.GetFileNameWithoutExtension(file));
 

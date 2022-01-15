@@ -12,7 +12,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenUnknown()
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.UNKNOWN;
+            type = LEGACYTOKENTYPE.UNKNOWN;
         }
         public override string ToString()
         {
@@ -29,7 +29,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenComment(string comment)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.COMMENT;
+            type = LEGACYTOKENTYPE.COMMENT;
             this.comment = comment;
         }
         public override string ToString()
@@ -54,7 +54,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenBlock(LegacyToken[] contents)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.BLOCK;
+            type = LEGACYTOKENTYPE.BLOCK;
             this.contents = new TokenFeeder(contents);
         }
         public override string ToString()
@@ -91,7 +91,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPV(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPV;
+            type = LEGACYTOKENTYPE.PPV;
 
             int index = expression.IndexOf(' ');
             name = expression.Substring(0, index);
@@ -116,7 +116,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPINC(string varName)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPINC;
+            type = LEGACYTOKENTYPE.PPINC;
             this.varName = varName;
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
@@ -143,7 +143,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPDEC(string varName)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPDEC;
+            type = LEGACYTOKENTYPE.PPDEC;
             this.varName = varName;
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
@@ -175,7 +175,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPADD(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPADD;
+            type = LEGACYTOKENTYPE.PPADD;
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
@@ -221,7 +221,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPSUB(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPSUB;
+            type = LEGACYTOKENTYPE.PPSUB;
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
@@ -267,7 +267,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPMUL(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPMUL;
+            type = LEGACYTOKENTYPE.PPMUL;
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
@@ -313,7 +313,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPDIV(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPDIV;
+            type = LEGACYTOKENTYPE.PPDIV;
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
@@ -359,7 +359,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPMOD(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPMOD;
+            type = LEGACYTOKENTYPE.PPMOD;
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
@@ -403,7 +403,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPIF(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPIF;
+            type = LEGACYTOKENTYPE.PPIF;
 
             string[] parts = expression.Split(' ');
 
@@ -465,7 +465,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPELSE()
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPELSE;
+            type = LEGACYTOKENTYPE.PPELSE;
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
@@ -483,7 +483,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPREP(string amount)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPREP;
+            type = LEGACYTOKENTYPE.PPREP;
 
             this.amount = amount;
         }
@@ -521,7 +521,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPLOG(string text)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPLOG;
+            type = LEGACYTOKENTYPE.PPLOG;
 
             this.text = text;
         }
@@ -542,7 +542,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPFILE(string fileOffset)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.UNKNOWN; // TODO
+            type = LEGACYTOKENTYPE.UNKNOWN; // TODO
 
             this.fileOffset = fileOffset;
         }
@@ -563,7 +563,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenFUNCTION(string signature)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.FUNCTION;
+            type = LEGACYTOKENTYPE.FUNCTION;
 
             this.signature = signature;
         }
@@ -598,7 +598,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenCALL(string signature)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.FUNCTION;
+            type = LEGACYTOKENTYPE.FUNCTION;
 
             int space = signature.IndexOf(' ');
             if (space == -1)
@@ -609,7 +609,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenCALL(string name, string[] args)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.CALL;
+            type = LEGACYTOKENTYPE.CALL;
             this.name = name;
             this.args = args;
         }
@@ -679,7 +679,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPMACRO(string expression)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPMACRO;
+            type = LEGACYTOKENTYPE.PPMACRO;
 
             expression = expression.Trim();
             int space = expression.IndexOf(' ');
@@ -767,7 +767,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenHALT()
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.HALT;
+            type = LEGACYTOKENTYPE.HALT;
         }
         public override void Execute(Executor caller, TokenFeeder tokens)
         {
@@ -799,7 +799,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPFRIENDLY(string variable)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPFRIENDLY;
+            type = LEGACYTOKENTYPE.PPFRIENDLY;
 
             this.variable = variable.Trim();
         }
@@ -836,7 +836,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPUPPER(string variable)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPUPPER;
+            type = LEGACYTOKENTYPE.PPUPPER;
 
             this.variable = variable.Trim();
         }
@@ -865,7 +865,7 @@ namespace mc_compiled.MCC.Compiler
         public LegacyTokenPPLOWER(string variable)
         {
             line = Compiler.CURRENT_LINE;
-            type = TOKENTYPE.PPLOWER;
+            type = LEGACYTOKENTYPE.PPLOWER;
 
             this.variable = variable.Trim();
         }

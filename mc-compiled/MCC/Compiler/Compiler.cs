@@ -12,7 +12,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Compile and tokenize a script.
     /// </summary>
-    public abstract class Compiler
+    public class Compiler
     {
         public static bool DISABLE_MACRO_GUARD = false;
         
@@ -41,7 +41,7 @@ namespace mc_compiled.MCC.Compiler
             defs = Definitions.GLOBAL_DEFS;
         }
 
-        public LegacyToken[] CompileFile(string file)
+        public Token[] CompileFile(string file)
         {
             // Load file
             if (!File.Exists(file))
@@ -64,6 +64,9 @@ namespace mc_compiled.MCC.Compiler
             return Compile(new CodeReader(content));
         }
 
-        public abstract LegacyToken[] Compile(CodeReader code);
+        public Token[] Compile(CodeReader code)
+        {
+
+        }
     }
 }
