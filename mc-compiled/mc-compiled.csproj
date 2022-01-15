@@ -80,7 +80,7 @@
     <Compile Include="MCC\Macro.cs" />
     <Compile Include="MCC\MCFunction.cs" />
     <Compile Include="MCC\Operator.cs" />
-    <Compile Include="MCC\TokensMC.cs" />
+    <Compile Include="MCC\Compilers\TokensMC.cs" />
     <Compile Include="NBT\BlockIndicesNBT.cs" />
     <Compile Include="NBT\EnchantNBT.cs" />
     <Compile Include="NBT\EntityListNBT.cs" />
@@ -110,8 +110,8 @@
     <Compile Include="NBT\VectorNBT.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MCC\Token.cs" />
-    <Compile Include="MCC\TokensPreprocessor.cs" />
+    <Compile Include="MCC\Compilers\Token.cs" />
+    <Compile Include="MCC\Compilers\TokensPreprocessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
