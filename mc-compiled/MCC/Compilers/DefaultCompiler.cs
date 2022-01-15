@@ -168,12 +168,14 @@ namespace mc_compiled.MCC.Compilers
                             set = new TokenINITIALIZE(content);
                             break;
                         case "value":
+                        case "val":
                             set = new TokenVALUE(content);
                             break;
                         case "if":
                             set = new TokenIF(content);
                             break;
                         case "else":
+                        case "el":
                             set = new TokenELSE();
                             break;
                         case "give":
@@ -199,6 +201,10 @@ namespace mc_compiled.MCC.Compilers
                             break;
                         case "kick":
                             set = new TokenKICK(content);
+                            break;
+                        case "halt":
+                        case "stop":
+                            set = new TokenHALT();
                             break;
                         case "gm":
                         case "gamemode":
