@@ -12,7 +12,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Compile and tokenize a script.
     /// </summary>
-    public class Compiler
+    public class Tokenizer
     {
         public static bool DISABLE_MACRO_GUARD = false;
         
@@ -36,12 +36,12 @@ namespace mc_compiled.MCC.Compiler
                 .Cast<Match>().Select(match => match.Value).ToArray();
         }
 
-        public Compiler()
+        public Tokenizer()
         {
             defs = Definitions.GLOBAL_DEFS;
         }
 
-        public Token[] CompileFile(string file)
+        public Token[] TokenizeFile(string file)
         {
             // Load file
             if (!File.Exists(file))
@@ -61,10 +61,10 @@ namespace mc_compiled.MCC.Compiler
                 content = content.Replace(fileReplace.Value, read);
             }
 
-            return Compile(new CodeReader(content));
+            return Tokenize(new CodeReader(content));
         }
 
-        public Token[] Compile(CodeReader code)
+        public Token[] Tokenize(CodeReader code)
         {
 
         }

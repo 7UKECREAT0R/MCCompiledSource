@@ -53,7 +53,7 @@ namespace mc_compiled
                 if (args[i].Equals("--decorate"))
                     decor = true;
                 if (args[i].Equals("-r"))
-                    Compiler.DISABLE_MACRO_GUARD = true;
+                    Tokenizer.DISABLE_MACRO_GUARD = true;
             }
 
             new Definitions(debug);
@@ -91,17 +91,20 @@ namespace mc_compiled
                 Console.WriteLine("Debug Enabled");
                 Console.WriteLine("\tObfuscate: " + obf.ToString());
                 Console.WriteLine("\tDecorate: " + decor.ToString());
-                if (Compiler.DISABLE_MACRO_GUARD)
+                if (Tokenizer.DISABLE_MACRO_GUARD)
                     Console.WriteLine("\tMacro recursion allowed.");
             }
 
             DEBUG = debug;
             OBFUSCATE = obf;
 
-            Compiler compiler = new DefaultCompiler();
+            Tokenizer tokenizer = new Tokenizer();
+            Token[] compiled = tokenizer.TokenizeFile(file);
 
-            LegacyToken[] compiled = compiler.CompileFile(file);
-            Executor executor = new Executor(compiled, debug, decor,
+            // assemble tokens into coherent 'statements' ex:
+            // Statement[] assembled = tokenizer.Assemble(compiled)
+
+            Executor executor = new Executor(null /*assembled*/, debug, decor,
                 System.IO.Path.GetFileNameWithoutExtension(file));
 
             executor.Run();

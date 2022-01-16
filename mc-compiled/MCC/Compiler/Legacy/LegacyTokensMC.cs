@@ -17,7 +17,7 @@ namespace mc_compiled.MCC.Compiler
         string command;
         public LegacyTokenMC(string command)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.MC;
 
             this.command = command;
@@ -38,7 +38,7 @@ namespace mc_compiled.MCC.Compiler
 
         public LegacyTokenSELECT(string selectCore)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.SELECT;
 
             this.selectCore = selectCore;
@@ -57,7 +57,7 @@ namespace mc_compiled.MCC.Compiler
         string text;
         public LegacyTokenPRINT(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINT;
 
             this.text = text;
@@ -113,7 +113,7 @@ namespace mc_compiled.MCC.Compiler
         string text;
         public LegacyTokenPRINTP(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINTP;
 
             this.text = text;
@@ -142,7 +142,7 @@ namespace mc_compiled.MCC.Compiler
         bool none;
         public LegacyTokenLIMIT(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE._LIMIT;
 
             limit = text;
@@ -193,7 +193,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public LegacyTokenDEFINE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.DEFINE;
 
             valueName = text;
@@ -217,7 +217,7 @@ namespace mc_compiled.MCC.Compiler
         string valueName;
         public LegacyTokenINITIALIZE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.INITIALIZE;
 
             valueName = text;
@@ -326,7 +326,7 @@ namespace mc_compiled.MCC.Compiler
 
         public LegacyTokenVALUE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.VALUE;
 
             string[] parts = text.Split(' ');
@@ -401,7 +401,7 @@ namespace mc_compiled.MCC.Compiler
                         throw new TokenException(this, $"Invalid value operation {operationString}");
                 }
 
-                if (Compiler.guessedPPValues.Contains(bString.TrimStart('$')))
+                if (Tokenizer.guessedPPValues.Contains(bString.TrimStart('$')))
                 {
                     bIsPPV = true;
                     bIsConstant = true;
@@ -873,7 +873,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public LegacyTokenIF(string expression)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.IF;
 
             eval = expression;
@@ -991,7 +991,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public LegacyTokenELSE()
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.ELSE;
         }
         public override string ToString()
@@ -1022,11 +1022,11 @@ namespace mc_compiled.MCC.Compiler
         bool useStructure;  // If a structure needs to be loaded
         public LegacyTokenGIVE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.GIVE;
 
             preview = text;
-            string[] args = Compiler.GetArguments(text);
+            string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
                 throw new TokenException(this, "Give statement needs an item to give.");
@@ -1162,7 +1162,7 @@ namespace mc_compiled.MCC.Compiler
             yRot = null;
         public LegacyTokenTP(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.TP;
 
             if(string.IsNullOrWhiteSpace(text))
@@ -1247,7 +1247,7 @@ namespace mc_compiled.MCC.Compiler
         string text;
         public LegacyTokenTITLE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINTP;
 
             this.text = text;
@@ -1270,10 +1270,10 @@ namespace mc_compiled.MCC.Compiler
         string player;
         public LegacyTokenKICK(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINTP;
 
-            string[] args = Compiler.GetArguments(text);
+            string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
                 throw new TokenException(this, "\"KICK\" statement needs an Player to Kick.");
@@ -1303,10 +1303,10 @@ namespace mc_compiled.MCC.Compiler
         string player;
         public LegacyTokenGAMEMODE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINTP;
 
-            string[] args = Compiler.GetArguments(text);
+            string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
                 throw new TokenException(this, "\"GAMEMODE\" statement needs an Player to Gamemode.");
@@ -1334,10 +1334,10 @@ namespace mc_compiled.MCC.Compiler
         string text;
         public LegacyTokenTIME(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINTP;
 
-            string[] args = Compiler.GetArguments(text);
+            string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
                 throw new TokenException(this, "\"TIME\" statement needs a Mode.");
@@ -1364,10 +1364,10 @@ namespace mc_compiled.MCC.Compiler
         string difficulty;
         public LegacyTokenDIFFICULTY(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINTP;
 
-            string[] args = Compiler.GetArguments(text);
+            string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
                 throw new TokenException(this, "\"DIFFICULTY\" statement needs an Difficulty.");
@@ -1390,10 +1390,10 @@ namespace mc_compiled.MCC.Compiler
         string weather;
         public LegacyTokenWEATHER(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PRINTP;
 
-            string[] args = Compiler.GetArguments(text);
+            string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
                 throw new TokenException(this, "\"WEATHER\" statement needs an Weather.");
@@ -1456,7 +1456,7 @@ namespace mc_compiled.MCC.Compiler
         string amount;
         public LegacyTokenMOVE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.MOVE;
 
             if (string.IsNullOrWhiteSpace(text))
@@ -1530,7 +1530,7 @@ namespace mc_compiled.MCC.Compiler
 
         public LegacyTokenFACE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.FACE;
 
             if (string.IsNullOrWhiteSpace(text))
@@ -1600,7 +1600,7 @@ namespace mc_compiled.MCC.Compiler
             destroyMode = null;
         public LegacyTokenPLACE(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PLACE;
             
             string[] args = text.Split(' ');
@@ -1710,7 +1710,7 @@ namespace mc_compiled.MCC.Compiler
             fillMode = null;
         public LegacyTokenFILL(string text)
         {
-            line = Compiler.CURRENT_LINE;
+            line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.FILL;
 
             string[] args = text.Split(' ');
