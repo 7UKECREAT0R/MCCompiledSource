@@ -50,7 +50,7 @@
     <Compile Include="Commands\CommandLimits.cs" />
     <Compile Include="MCC\Compiler\Directives.cs" />
     <Compile Include="MCC\Compiler\Token.cs" />
-    <Compile Include="MCC\Compiler\TokensMain.cs" />
+    <Compile Include="MCC\Compiler\TokensLiterals.cs" />
     <Compile Include="MCC\Compiler\TokensOperators.cs" />
     <Compile Include="MCC\FileWriter.cs" />
     <Compile Include="MCC\FixedPoint.cs" />

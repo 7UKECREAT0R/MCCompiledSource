@@ -141,9 +141,8 @@ namespace mc_compiled.MCC.Compiler
             char c = NextChar();
             char c2 = HasNext ? Peek() : '\0';
 
-            if (int.Parse(c.ToString()))
-
-                return ParseToken(sb.ToString());
+            if (int.TryParse(c.ToString(), out _))
+                return new TokenIntegerLiteral()
         }
     }
 }

@@ -64,4 +64,6 @@ namespace mc_compiled.MCC.Compiler
             this.boolean = boolean;
         }
     }
+
+
 }
