@@ -17,7 +17,6 @@ namespace mc_compiled
         public static bool OBFUSCATE = false;
         public static bool DEBUG = false;
 
-
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
@@ -52,8 +51,6 @@ namespace mc_compiled
                     debug = true;
                 if (args[i].Equals("--decorate"))
                     decor = true;
-                if (args[i].Equals("-r"))
-                    Tokenizer.DISABLE_MACRO_GUARD = true;
             }
 
             new Definitions(debug);
@@ -91,15 +88,12 @@ namespace mc_compiled
                 Console.WriteLine("Debug Enabled");
                 Console.WriteLine("\tObfuscate: " + obf.ToString());
                 Console.WriteLine("\tDecorate: " + decor.ToString());
-                if (Tokenizer.DISABLE_MACRO_GUARD)
-                    Console.WriteLine("\tMacro recursion allowed.");
             }
 
             DEBUG = debug;
             OBFUSCATE = obf;
 
-            Tokenizer tokenizer = new Tokenizer();
-            Token[] compiled = tokenizer.TokenizeFile(file);
+            Token[] compiled = Tokenizer.TokenizeFile(file);
 
             // assemble tokens into coherent 'statements' ex:
             // Statement[] assembled = tokenizer.Assemble(compiled)

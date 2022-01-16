@@ -742,8 +742,8 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 int hash = find.name.GetHashCode();
-                if (caller.currentMacroHash == hash && !Tokenizer.DISABLE_MACRO_GUARD)
-                    throw new TokenException(this, "Macro cannot be recursively called. Compile with -r to disable this guard.");
+                if (caller.currentMacroHash == hash)
+                    throw new TokenException(this, "Macro cannot be recursively called.");
 
                 int previousHash = caller.currentMacroHash;
                 caller.currentMacroHash = hash;
