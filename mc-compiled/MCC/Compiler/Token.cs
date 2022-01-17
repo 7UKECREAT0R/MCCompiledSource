@@ -13,12 +13,31 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class Token
     {
+        /// <summary>
+        /// Get this token represented as it might look in the source file.
+        /// </summary>
+        /// <returns></returns>
         public abstract string AsString();
 
         public int lineNumber;
         public Token(int lineNumber)
         {
             this.lineNumber = lineNumber;
+        }
+
+        public override string ToString() => AsString();
+
+        /// <summary>
+        /// Get a string that provides more information about the token given.
+        /// </summary>
+        /// <returns></returns>
+        public string DebugString()
+        {
+            if(this is TokenNewline)
+                return "[TokenNewline]\n";
+
+            string typeName = GetType().Name.Substring(5);
+            return '[' + typeName + ' ' + AsString() + ']';
         }
     }
     public struct TokenDefinition

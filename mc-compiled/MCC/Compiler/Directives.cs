@@ -58,7 +58,6 @@ namespace mc_compiled.MCC.Compiler
             new Directive("$strfriendly", "Preprocessor String Friendly Name"),
             new Directive("$strupper", "Preprocessor String Uppercase"),
             new Directive("$strlower", "Preprocessor String Lowercase"),
-            new Directive("function", "Define Function"),
             new Directive("halt", "Halt Execution"),
             new Directive("mc", "Minecraft Command"),
             new Directive("select", "Select Target"),

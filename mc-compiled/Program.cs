@@ -93,12 +93,22 @@ namespace mc_compiled
             DEBUG = debug;
             OBFUSCATE = obf;
 
-            Token[] compiled = Tokenizer.TokenizeFile(file);
+            Token[] tokens = Tokenizer.TokenizeFile(file);
+
+            if (DEBUG)
+            {
+                Console.WriteLine("\tA detailed overview of the tokenization results follows:");
+                Console.WriteLine(string.Join("", from t in tokens select t.DebugString()));
+                Console.WriteLine();
+                Console.WriteLine("\tReconstruction of the processed code through tokens:");
+                Console.WriteLine(string.Join(" ", from t in tokens select t.AsString()));
+                Console.WriteLine();
+            }
 
             // assemble tokens into coherent 'statements' ex:
-            // Statement[] assembled = tokenizer.Assemble(compiled)
+            // Statement[] assembled = tokenizer.Assemble(tokens)
 
-            Executor executor = new Executor(null /*assembled*/, debug, decor,
+            /*Executor executor = new Executor(null, debug, decor,
                 System.IO.Path.GetFileNameWithoutExtension(file));
 
             executor.Run();
@@ -120,11 +130,16 @@ namespace mc_compiled
                 List<StructureFile> structureFiles = pack.structures.ToList();
                 structureFiles.AddRange(itemStructures);
                 pack.structures = structureFiles.ToArray();
-            } else  pack.structures = itemStructures.ToArray();
+            } else  pack.structures = itemStructures.ToArray();*/
 
             Console.WriteLine("Writing files...");
-            pack.Write();
+            //pack.Write();
             Console.WriteLine("Finished");
+
+            if (DEBUG)
+                Console.ReadLine();
+            else
+                System.Threading.Thread.Sleep(3000);
         }
     }
 }

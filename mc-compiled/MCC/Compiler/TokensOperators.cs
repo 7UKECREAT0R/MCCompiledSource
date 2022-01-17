@@ -54,10 +54,10 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a generic comparison operator.
     /// </summary>
-    public class TokenCompareOperator : TokenOperator
+    public class TokenCompare : TokenOperator
     {
         public override string AsString() => "<? compare>";
-        public TokenCompareOperator(int lineNumber) : base(lineNumber) { }
+        public TokenCompare(int lineNumber) : base(lineNumber) { }
     }
 
     /// <summary>
@@ -143,34 +143,34 @@ namespace mc_compiled.MCC.Compiler
         public TokenModuloAssignment(int lineNumber) : base(lineNumber) { }
     }
     
-    public sealed class TokenEqualityOperator : TokenCompareOperator
+    public sealed class TokenEquality : TokenCompare
     {
         public override string AsString() => "==";
-        public TokenEqualityOperator(int lineNumber) : base(lineNumber) { }
+        public TokenEquality(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenInequalityOperator : TokenCompareOperator
+    public sealed class TokenInequality : TokenCompare
     {
         public override string AsString() => "!=";
-        public TokenInequalityOperator(int lineNumber) : base(lineNumber) { }
+        public TokenInequality(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenLessThanOperator : TokenCompareOperator
+    public sealed class TokenLessThan : TokenCompare
     {
         public override string AsString() => "<";
-        public TokenLessThanOperator(int lineNumber) : base(lineNumber) { }
+        public TokenLessThan(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenGreaterThanOperator : TokenCompareOperator
+    public sealed class TokenGreaterThan : TokenCompare
     {
         public override string AsString() => ">";
-        public TokenGreaterThanOperator(int lineNumber) : base(lineNumber) { }
+        public TokenGreaterThan(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenLessThanEqualOperator : TokenCompareOperator
+    public sealed class TokenLessThanEqual : TokenCompare
     {
         public override string AsString() => "<=";
-        public TokenLessThanEqualOperator(int lineNumber) : base(lineNumber) { }
+        public TokenLessThanEqual(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenGreaterThanEqualOperator : TokenCompareOperator
+    public sealed class TokenGreaterThanEqual : TokenCompare
     {
         public override string AsString() => ">=";
-        public TokenGreaterThanEqualOperator(int lineNumber) : base(lineNumber) { }
+        public TokenGreaterThanEqual(int lineNumber) : base(lineNumber) { }
     }
 }

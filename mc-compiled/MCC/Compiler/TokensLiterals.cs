@@ -31,7 +31,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly string text;
 
-        public override string AsString() => text;
+        public override string AsString() => '"' + text + '"';
         public TokenStringLiteral(string text, int lineNumber) : base(lineNumber)
         {
             this.text = text;
