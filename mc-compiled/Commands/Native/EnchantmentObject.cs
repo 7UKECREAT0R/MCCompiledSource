@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Native
 {
-    public struct Enchantment
+    public struct EnchantmentObject
     {
         // If level needs to be parsed later.
         public string stringLevel;
         public bool hasStringLevel;
 
-        public Enchantment Resolve(MCC.LegacyExecutor caller)
+        public EnchantmentObject Resolve(MCC.LegacyExecutor caller)
         {
             if(!hasStringLevel)
                 return this;
@@ -26,7 +26,7 @@ namespace mc_compiled.Commands.Native
         public string id;
         public int level;
 
-        public Enchantment(string id, int level = 1)
+        public EnchantmentObject(string id, int level = 1)
         {
             this.id = id;
             this.level = level;
@@ -35,7 +35,7 @@ namespace mc_compiled.Commands.Native
             hasStringLevel = false;
 
         }
-        public Enchantment(string id, string level)
+        public EnchantmentObject(string id, string level)
         {
             this.id = id;
             this.level = 0;

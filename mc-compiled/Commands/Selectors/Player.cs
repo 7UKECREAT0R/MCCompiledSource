@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static mc_compiled.Commands.Command;
 
 namespace mc_compiled.Commands.Selectors
 {
@@ -35,17 +36,17 @@ namespace mc_compiled.Commands.Selectors
                 case "S":
                 case "SURVIVAL":
                 case "0":
-                    gamemode = GameMode.SURVIVAL;
+                    gamemode = GameMode.survival;
                     break;
                 case "C":
                 case "CREATIVE":
                 case "1":
-                    gamemode = GameMode.CREATIVE;
+                    gamemode = GameMode.creative;
                     break;
                 case "A":
                 case "ADVENTURE":
                 case "2":
-                    gamemode = GameMode.ADVENTURE;
+                    gamemode = GameMode.adventure;
                     break;
                 default:
                     throw new FormatException("Not a valid gamemode.");
@@ -63,10 +64,5 @@ namespace mc_compiled.Commands.Selectors
             return strings.ToArray();
         }
     }
-    public enum GameMode : int
-    {
-        SURVIVAL = 0,
-        CREATIVE = 1,
-        ADVENTURE = 2
-    }
+
 }

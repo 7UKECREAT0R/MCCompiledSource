@@ -76,9 +76,9 @@ namespace mc_compiled.MCC.Compiler
     }
     public sealed class TokenCoordinateLiteral : TokenNumberLiteral
     {
-        public readonly CoordinateValue coordinate;
+        public readonly Coord coordinate;
         public override string AsString() => coordinate.ToString();
-        public TokenCoordinateLiteral(CoordinateValue coordinate, int lineNumber) : base(lineNumber)
+        public TokenCoordinateLiteral(Coord coordinate, int lineNumber) : base(lineNumber)
         {
             this.coordinate = coordinate;
         }
@@ -90,7 +90,7 @@ namespace mc_compiled.MCC.Compiler
                 return coordinate.valuei;
         }
 
-        public static implicit operator CoordinateValue(TokenCoordinateLiteral literal) => literal.coordinate;
+        public static implicit operator Coord(TokenCoordinateLiteral literal) => literal.coordinate;
         public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valuei;
         public static implicit operator float(TokenCoordinateLiteral literal) => literal;
     }

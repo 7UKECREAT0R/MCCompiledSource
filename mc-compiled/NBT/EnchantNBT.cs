@@ -12,7 +12,7 @@ namespace mc_compiled.NBT
         public short id;
         public short level;
 
-        public EnchantNBT(Commands.Native.Enchantment fromEnchantment)
+        public EnchantNBT(Commands.Native.EnchantmentObject fromEnchantment)
         {
             Definitions defs = Definitions.GLOBAL_DEFS;
             id = short.Parse(defs.defs["ENCHANT:" + fromEnchantment.id.ToUpper()]);

@@ -727,9 +727,9 @@ namespace mc_compiled.MCC.Compiler
                         selector.area.volumeX = null;
                         selector.area.volumeY = null;
                         selector.area.volumeZ = null;
-                        selector.area.x = CoordinateValue.Parse(_x);
-                        selector.area.y = CoordinateValue.Parse(_y);
-                        selector.area.z = CoordinateValue.Parse(_z);
+                        selector.area.x = Coord.Parse(_x);
+                        selector.area.y = Coord.Parse(_y);
+                        selector.area.z = Coord.Parse(_z);
                         selector.area.radiusMax = int.Parse(_radius);
                         if (_rmin == null)
                             selector.area.radiusMin = null;
@@ -752,17 +752,17 @@ namespace mc_compiled.MCC.Compiler
                         if (sizeX != 0)
                         {
                             selector.area.volumeX = sizeX;
-                            selector.area.x = CoordinateValue.Parse(_x);
+                            selector.area.x = Coord.Parse(_x);
                         }
                         if (sizeY != 0)
                         {
                             selector.area.volumeY = sizeY;
-                            selector.area.y = CoordinateValue.Parse(_y);
+                            selector.area.y = Coord.Parse(_y);
                         }
                         if (sizeZ != 0)
                         {
                             selector.area.volumeZ = sizeZ;
-                            selector.area.z = CoordinateValue.Parse(_z);
+                            selector.area.z = Coord.Parse(_z);
                         }
                         return;
                     case Type.LEVEL:
@@ -1016,7 +1016,7 @@ namespace mc_compiled.MCC.Compiler
         bool lockSlot;
         List<string> canPlaceOn = new List<string>();
         List<string> canDestroy = new List<string>();
-        List<Enchantment> enchants = new List<Enchantment>();
+        List<EnchantmentObject> enchants = new List<EnchantmentObject>();
         string displayName;
 
         bool useStructure;  // If a structure needs to be loaded
@@ -1069,7 +1069,7 @@ namespace mc_compiled.MCC.Compiler
                     string enchantment = args[++i];
                     string level = args[++i];
 
-                    enchants.Add(new Enchantment(enchantment, level));
+                    enchants.Add(new EnchantmentObject(enchantment, level));
                     useStructure = true;
 
                 } else if (str.Equals("NAME"))
@@ -1170,7 +1170,7 @@ namespace mc_compiled.MCC.Compiler
 
             string[] args = text.Split(' ');
 
-            if (args.Length == 1 || text.StartsWith("@") || CoordinateValue.Parse(args[0]) == null)
+            if (args.Length == 1 || text.StartsWith("@") || Coord.Parse(args[0]) == null)
             {
                 target = text;
                 return;
@@ -1214,13 +1214,13 @@ namespace mc_compiled.MCC.Compiler
                 bool hasRotation = yRot != null;
                 try
                 {
-                    CoordinateValue px = CoordinateValue.Parse(_x).Value;
-                    CoordinateValue py = CoordinateValue.Parse(_y).Value;
-                    CoordinateValue pz = CoordinateValue.Parse(_z).Value;
+                    Coord px = Coord.Parse(_x).Value;
+                    Coord py = Coord.Parse(_y).Value;
+                    Coord pz = Coord.Parse(_z).Value;
                     if(hasRotation)
                     {
-                        CoordinateValue prx = CoordinateValue.Parse(_xRot).Value;
-                        CoordinateValue pry = CoordinateValue.Parse(_yRot).Value;
+                        Coord prx = Coord.Parse(_xRot).Value;
+                        Coord pry = Coord.Parse(_yRot).Value;
                         caller.FinishRaw($"tp {sel} {px} {py} {pz} {prx} {pry}");
                     } else
                     {
@@ -1538,7 +1538,7 @@ namespace mc_compiled.MCC.Compiler
 
             string[] args = text.Split(' ');
 
-            if (args.Length == 1 || text.StartsWith("@") || CoordinateValue.Parse(args[0]) == null)
+            if (args.Length == 1 || text.StartsWith("@") || Coord.Parse(args[0]) == null)
             {
                 looksAtTarget = true;
                 target = text;
@@ -1571,9 +1571,9 @@ namespace mc_compiled.MCC.Compiler
                 string _z = caller.ReplacePPV(z);
                 try
                 {
-                    CoordinateValue px = CoordinateValue.Parse(_x).Value;
-                    CoordinateValue py = CoordinateValue.Parse(_y).Value;
-                    CoordinateValue pz = CoordinateValue.Parse(_z).Value;
+                    Coord px = Coord.Parse(_x).Value;
+                    Coord py = Coord.Parse(_y).Value;
+                    Coord pz = Coord.Parse(_z).Value;
                     caller.FinishRaw($"tp {sel} ~~~ facing {px} {py} {pz}");
                 }
                 catch (Exception)
@@ -1633,9 +1633,9 @@ namespace mc_compiled.MCC.Compiler
             string _z = caller.ReplacePPV(z);
             try
             {
-                CoordinateValue px = CoordinateValue.Parse(_x).Value;
-                CoordinateValue py = CoordinateValue.Parse(_y).Value;
-                CoordinateValue pz = CoordinateValue.Parse(_z).Value;
+                Coord px = Coord.Parse(_x).Value;
+                Coord py = Coord.Parse(_y).Value;
+                Coord pz = Coord.Parse(_z).Value;
                 if (data == null)
                     caller.FinishRaw($"setblock {px} {py} {pz} {_block} 0 replace");
                 else if (destroyMode == null)
@@ -1749,12 +1749,12 @@ namespace mc_compiled.MCC.Compiler
             string _z2 = caller.ReplacePPV(z2);
             try
             {
-                CoordinateValue px1 = CoordinateValue.Parse(_x1).Value;
-                CoordinateValue py1 = CoordinateValue.Parse(_y1).Value;
-                CoordinateValue pz1 = CoordinateValue.Parse(_z1).Value;
-                CoordinateValue px2 = CoordinateValue.Parse(_x2).Value;
-                CoordinateValue py2 = CoordinateValue.Parse(_y2).Value;
-                CoordinateValue pz2 = CoordinateValue.Parse(_z2).Value;
+                Coord px1 = Coord.Parse(_x1).Value;
+                Coord py1 = Coord.Parse(_y1).Value;
+                Coord pz1 = Coord.Parse(_z1).Value;
+                Coord px2 = Coord.Parse(_x2).Value;
+                Coord py2 = Coord.Parse(_y2).Value;
+                Coord pz2 = Coord.Parse(_z2).Value;
 
                 if (data == null)
                     caller.FinishRaw($"fill {px1} {py1} {pz1} {px2} {py2} {pz2} {_block} 0 replace");

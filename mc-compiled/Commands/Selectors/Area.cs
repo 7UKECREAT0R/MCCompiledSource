@@ -11,11 +11,11 @@ namespace mc_compiled.Commands.Selectors
     /// </summary>
     public struct Area
     {
-        public CoordinateValue? x, y, z;
+        public Coord? x, y, z;
         public float? radiusMin, radiusMax;
         public int? volumeX, volumeY, volumeZ;
 
-        public Area(CoordinateValue x, CoordinateValue y, CoordinateValue z, float? radiusMin = null,
+        public Area(Coord x, Coord y, Coord z, float? radiusMin = null,
             float? radiusMax = null, int? volumeX = null, int? volumeY = null, int? volumeZ = null)
         {
             this.x = x;
@@ -38,7 +38,7 @@ namespace mc_compiled.Commands.Selectors
             str = str.Trim().TrimStart('[').TrimEnd(']');
             string[] specifiedParts = str.Split(',');
 
-            CoordinateValue?
+            Coord?
                 x = null,
                 y = null,
                 z = null;
@@ -62,13 +62,13 @@ namespace mc_compiled.Commands.Selectors
                 switch(a)
                 {
                     case "X":
-                        x = CoordinateValue.Parse(b);
+                        x = Coord.Parse(b);
                         break;
                     case "Y":
-                        y = CoordinateValue.Parse(b);
+                        y = Coord.Parse(b);
                         break;
                     case "Z":
-                        z = CoordinateValue.Parse(b);
+                        z = Coord.Parse(b);
                         break;
                     case "RM":
                         if (float.TryParse(b, out float rm))
@@ -94,11 +94,11 @@ namespace mc_compiled.Commands.Selectors
             }
 
             if (!x.HasValue)
-                x = CoordinateValue.here;
+                x = Coord.here;
             if (!y.HasValue)
-                y = CoordinateValue.here;
+                y = Coord.here;
             if (!z.HasValue)
-                z = CoordinateValue.here;
+                z = Coord.here;
 
             return new Area(x.Value, y.Value, z.Value, radiusMin, radiusMax, volumeX, volumeY, volumeZ);
         }

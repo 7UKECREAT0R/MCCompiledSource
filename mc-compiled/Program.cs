@@ -61,11 +61,11 @@ namespace mc_compiled
                 item.count = 2;
                 item.displayName = "mega boots";
                 item.keep = true;
-                item.enchantments = new Enchantment[]
+                item.enchantments = new EnchantmentObject[]
                 {
-                    new Enchantment("protection", 10),
-                    new Enchantment("frost walker", 5),
-                    new Enchantment("unbreaking", 20)
+                    new EnchantmentObject("protection", 10),
+                    new EnchantmentObject("frost walker", 5),
+                    new EnchantmentObject("unbreaking", 20)
                 };
 
                 StructureNBT structure = StructureNBT.SingleItem(item);

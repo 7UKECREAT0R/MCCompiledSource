@@ -11,23 +11,23 @@ namespace mc_compiled.Commands
         public static readonly BlockCheck DISABLED = new BlockCheck() { present = false };
         public bool present;
 
-        public CoordinateValue x, y, z;
+        public Coord x, y, z;
         public string block;
         public int? data;
 
         public BlockCheck(string x, string y, string z, string block = "air", string data = null)
         {
             present = true;
-            this.x = CoordinateValue.Parse(x).GetValueOrDefault();
-            this.y = CoordinateValue.Parse(y).GetValueOrDefault();
-            this.z = CoordinateValue.Parse(z).GetValueOrDefault();
+            this.x = Coord.Parse(x).GetValueOrDefault();
+            this.y = Coord.Parse(y).GetValueOrDefault();
+            this.z = Coord.Parse(z).GetValueOrDefault();
             this.block = block;
              if (data == null || data.Equals("0") || string.IsNullOrEmpty(data))
                 this.data = null;
             else
                 this.data = int.Parse(data);
         }
-        public BlockCheck(CoordinateValue x, CoordinateValue y, CoordinateValue z, string block = "air", int? data = null)
+        public BlockCheck(Coord x, Coord y, Coord z, string block = "air", int? data = null)
         {
             present = true;
             this.x = x;

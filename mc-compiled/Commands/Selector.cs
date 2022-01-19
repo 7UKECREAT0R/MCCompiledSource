@@ -13,7 +13,10 @@ namespace mc_compiled.Commands
     {
         public enum Core
         {
-            @p, @s, @a, @e
+            p,  // Nearest player
+            s,  // Self
+            a,  // All players
+            e   // All entities
         }
         public static Core ParseCore(string core)
         {
