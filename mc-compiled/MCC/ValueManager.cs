@@ -170,18 +170,18 @@ namespace mc_compiled.MCC
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+$"scoreboard players set {selector} {LegacyExecutor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
 $"scoreboard players add {selector} {source.WholePart} {value.GetWholePart()}",
 $"scoreboard players add {selector} {source.DecimalPart} {value.GetDecimalPart(p)}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} /= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {LegacyExecutor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} *= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {LegacyExecutor.MATH_TEMP}"      // value.d -= temp
                 };
             }
             else return null;
@@ -197,7 +197,7 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
 
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
-                string functionName = Executor.DECIMAL_SUB_CARRY + source.name;
+                string functionName = LegacyExecutor.DECIMAL_SUB_CARRY + source.name;
 
                 string functionCallLine;
                 if (selector.StartsWith("@p"))
@@ -208,7 +208,7 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+$"scoreboard players set {selector} {LegacyExecutor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
 $"scoreboard players add {selector} {source.WholePart} {value.GetWholePart()}",
@@ -225,8 +225,8 @@ $"scoreboard players add {selector} {source.DecimalPart} -{value.GetDecimalPart(
             if (source.type == ValueType.REGULAR)
                 return new[]
                 {
-$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.data.i}",
-$"scoreboard players operation {selector} {source} *= {selector} {Executor.MATH_TEMP}"
+$"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.data.i}",
+$"scoreboard players operation {selector} {source} *= {selector} {LegacyExecutor.MATH_TEMP}"
                 };
             else if (source.type == ValueType.DECIMAL)
             {
@@ -235,20 +235,20 @@ $"scoreboard players operation {selector} {source} *= {selector} {Executor.MATH_
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+$"scoreboard players set {selector} {LegacyExecutor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
-$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.GetWholePart()}",
-$"scoreboard players operation {selector} {source.WholePart} *= {selector} {Executor.MATH_TEMP}",
-$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.GetDecimalPart()}",
-$"scoreboard players operation {selector} {source.DecimalPart} *= {selector} {Executor.MATH_TEMP}",
+$"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.GetWholePart()}",
+$"scoreboard players operation {selector} {source.WholePart} *= {selector} {LegacyExecutor.MATH_TEMP}",
+$"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.GetDecimalPart()}",
+$"scoreboard players operation {selector} {source.DecimalPart} *= {selector} {LegacyExecutor.MATH_TEMP}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} /= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {LegacyExecutor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} *= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {LegacyExecutor.MATH_TEMP}"      // value.d -= temp
                 };
             }
             else return null;
@@ -261,8 +261,8 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
                     throw new Exception("Cannot divide by zero.");
                 return new[]
                 {
-$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.data.i}",
-$"scoreboard players operation {selector} {source} /= {selector} {Executor.MATH_TEMP}"
+$"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.data.i}",
+$"scoreboard players operation {selector} {source} /= {selector} {LegacyExecutor.MATH_TEMP}"
                 };
             }
             else if (source.type == ValueType.DECIMAL)
@@ -279,8 +279,8 @@ $"scoreboard players operation {selector} {source} /= {selector} {Executor.MATH_
                     throw new Exception("Cannot divide by zero.");
                 return new[]
                 {
-$"scoreboard players set {selector} {Executor.MATH_TEMP} {value.data.i}",
-$"scoreboard players operation {selector} {source} %= {selector} {Executor.MATH_TEMP}"
+$"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.data.i}",
+$"scoreboard players operation {selector} {source} %= {selector} {LegacyExecutor.MATH_TEMP}"
                 };
             }
             else if (source.type == ValueType.DECIMAL)
@@ -324,18 +324,18 @@ $"scoreboard players set {selector} {source.DecimalPart} {decimalPart}",
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+$"scoreboard players set {selector} {LegacyExecutor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
 $"scoreboard players operation {selector} {source.WholePart} += {selector} {b.WholePart}",
 $"scoreboard players operation {selector} {source.DecimalPart} += {selector} {b.DecimalPart}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} /= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {LegacyExecutor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} *= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {LegacyExecutor.MATH_TEMP}"      // value.d -= temp
                 };
             }
             else return null;
@@ -348,7 +348,7 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
             {
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
-                string functionName = Executor.DECIMAL_SUB_CARRY + source.name;
+                string functionName = LegacyExecutor.DECIMAL_SUB_CARRY + source.name;
 
                 string functionCallLine;
                 if (selector.StartsWith("@p"))
@@ -359,7 +359,7 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Ex
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+$"scoreboard players set {selector} {LegacyExecutor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
 $"scoreboard players operation {selector} {source.WholePart} -= {selector} {b.WholePart}",
@@ -385,18 +385,18 @@ $"scoreboard players operation {selector} {source} *= {selector} {(b.type==Value
                 return new[]
                 {
                     // Set decimal unit
-$"scoreboard players set {selector} {Executor.DECIMAL_UNIT} {unit}",
+$"scoreboard players set {selector} {LegacyExecutor.DECIMAL_UNIT} {unit}",
 
                     // Add whole/decimal part
 $"scoreboard players operation {selector} {source.WholePart} *= {selector} {b.WholePart}",
 $"scoreboard players operation {selector} {source.DecimalPart} *= {selector} {b.DecimalPart}",
 
                     // Carry leftover part, if any.
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} /= {selector} {Executor.DECIMAL_UNIT}",  // temp /= unit
-$"scoreboard players operation {selector} {source.WholePart} += {selector} {Executor.MATH_TEMP}",       // value.w += temp
-$"scoreboard players operation {selector} {Executor.MATH_TEMP} *= {selector} {Executor.DECIMAL_UNIT}",  // temp *= unit
-$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Executor.MATH_TEMP}"      // value.d -= temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} = {selector} {source.DecimalPart}",      // temp = value.d
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} /= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp /= unit
+$"scoreboard players operation {selector} {source.WholePart} += {selector} {LegacyExecutor.MATH_TEMP}",       // value.w += temp
+$"scoreboard players operation {selector} {LegacyExecutor.MATH_TEMP} *= {selector} {LegacyExecutor.DECIMAL_UNIT}",  // temp *= unit
+$"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {LegacyExecutor.MATH_TEMP}"      // value.d -= temp
                 };
             }
             else return null;

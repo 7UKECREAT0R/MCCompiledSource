@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mc_compiled.Commands.Limits
+namespace mc_compiled.Commands.Selectors
 {
     /// <summary>
     /// Represents player specific selector options.

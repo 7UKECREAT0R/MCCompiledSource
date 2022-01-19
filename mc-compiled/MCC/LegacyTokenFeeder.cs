@@ -10,14 +10,14 @@ namespace mc_compiled.MCC
     /// <summary>
     /// Like a stream of tokens
     /// </summary>
-    public class TokenFeeder
+    public class LegacyTokenFeeder
     {
         private LegacyToken[] tokens;
         private int readerIndex;
 
         public readonly int length;
 
-        public TokenFeeder(params LegacyToken[] tokens)
+        public LegacyTokenFeeder(params LegacyToken[] tokens)
         {
             this.tokens = tokens;
             readerIndex = 0;

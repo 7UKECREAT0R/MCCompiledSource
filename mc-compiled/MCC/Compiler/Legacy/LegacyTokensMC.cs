@@ -26,7 +26,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Run /{command}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string output = caller.ReplacePPV(command);
             caller.FinishRaw(output);
@@ -47,7 +47,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Select @{selectCore}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             caller.selection = Selector.ParseCore(caller.ReplacePPV(selectCore));
         }
@@ -67,7 +67,7 @@ namespace mc_compiled.MCC.Compiler
             return $"Print \"{text}\"";
         }
         public static readonly Regex PRINT_VALUE = new Regex("{([a-zA-Z-:._]{1,16})}");
-        public static List<JSONRawTerm> TokenizePrint(string str, Executor caller)
+        public static List<JSONRawTerm> TokenizePrint(string str, LegacyExecutor caller)
         {
             MatchCollection matches = PRINT_VALUE.Matches(str);
             if (matches.Count < 1)
@@ -95,7 +95,7 @@ namespace mc_compiled.MCC.Compiler
 
             return terms;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string output = caller.ReplacePPV(text);
 
@@ -122,7 +122,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Print to Selected \"{text}\"";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string output = caller.ReplacePPV(text);
 
@@ -152,7 +152,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return none ? "Limit any count" : $"Limit {limit}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             /*string output = caller.ReplacePPV(limit);
 
@@ -202,7 +202,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Define value {valueName}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string output = caller.ReplacePPV(valueName);
 
@@ -226,7 +226,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Initialize value {valueName}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string output = caller.ReplacePPV(valueName);
 
@@ -421,7 +421,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Perform value operation {valueName} {OperationString(operation)} {(bIsConstant ? constantB.ToString() : valueB)}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if(isDisplay)
             {
@@ -458,14 +458,14 @@ namespace mc_compiled.MCC.Compiler
                 constantB = caller.ppv[valueB.Substring(1)];
 
             // Create temp objective for more complex operations
-            if (!caller.HasCreatedTemplate(Executor.MATH_TEMP) && (((byte)operation) % 2 == 1) && bIsConstant)
-                caller.CreateTemplate(Executor.MATH_TEMP, new[] { $"scoreboard objectives add {Executor.MATH_TEMP} dummy" });
+            if (!caller.HasCreatedTemplate(LegacyExecutor.MATH_TEMP) && (((byte)operation) % 2 == 1) && bIsConstant)
+                caller.CreateTemplate(LegacyExecutor.MATH_TEMP, new[] { $"scoreboard objectives add {LegacyExecutor.MATH_TEMP} dummy" });
 
             // Create decimal unit objective for fixed point operations
             if(sourceValue.type == ValueType.DECIMAL)
             {
-                caller.CreateTemplate(Executor.MATH_TEMP, new[] { $"scoreboard objectives add {Executor.MATH_TEMP} dummy" });
-                caller.CreateTemplate(Executor.DECIMAL_UNIT, new[] { $"scoreboard objectives add {Executor.DECIMAL_UNIT} dummy" });
+                caller.CreateTemplate(LegacyExecutor.MATH_TEMP, new[] { $"scoreboard objectives add {LegacyExecutor.MATH_TEMP} dummy" });
+                caller.CreateTemplate(LegacyExecutor.DECIMAL_UNIT, new[] { $"scoreboard objectives add {LegacyExecutor.DECIMAL_UNIT} dummy" });
             }
 
 
@@ -480,12 +480,12 @@ namespace mc_compiled.MCC.Compiler
                     case ValueOperation.SUB:
                         if (sourceValue.type == ValueType.DECIMAL)
                         {
-                            string functionName = Executor.DECIMAL_SUB_CARRY + sourceValue.name;
+                            string functionName = LegacyExecutor.DECIMAL_SUB_CARRY + sourceValue.name;
                             caller.CreateTemplate(functionName, new string[]
                             {
-                                $"scoreboard players operation {selector} {Executor.DECIMAL_UNIT} += {selector} {sourceValue.DecimalPart}",
+                                $"scoreboard players operation {selector} {LegacyExecutor.DECIMAL_UNIT} += {selector} {sourceValue.DecimalPart}",
                                 $"scoreboard players add {selector} {sourceValue.WholePart} -1",
-                                $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {Executor.DECIMAL_UNIT}"
+                                $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {LegacyExecutor.DECIMAL_UNIT}"
                             }, true);
                             foreach (string line in ValueManager.ExpressionSubtractConstant(sourceValue, selector, constantB))
                                 caller.FinishRaw(line, false);
@@ -521,12 +521,12 @@ namespace mc_compiled.MCC.Compiler
                             caller.FinishRaw(line, false);
                         break;
                     case ValueOperation.SUB:
-                        string functionName = Executor.DECIMAL_SUB_CARRY + sourceValue.name;
+                        string functionName = LegacyExecutor.DECIMAL_SUB_CARRY + sourceValue.name;
                         caller.CreateTemplate(functionName, new string[]
                         {
-                                $"scoreboard players operation {selector} {Executor.DECIMAL_UNIT} += {selector} {sourceValue.DecimalPart}",
+                                $"scoreboard players operation {selector} {LegacyExecutor.DECIMAL_UNIT} += {selector} {sourceValue.DecimalPart}",
                                 $"scoreboard players add {selector} {sourceValue.WholePart} -1",
-                                $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {Executor.DECIMAL_UNIT}"
+                                $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {LegacyExecutor.DECIMAL_UNIT}"
                         }, true);
                         foreach (string line in ValueManager.ExpressionSubtractValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
@@ -628,7 +628,7 @@ namespace mc_compiled.MCC.Compiler
             public Type type;
             public string[] args;
 
-            public void ParseIntoSelector(ref Selector selector, ref Executor context)
+            public void ParseIntoSelector(ref Selector selector, ref LegacyExecutor context)
             {
                 int scope = context.CurrentFunctionScope;
 
@@ -680,7 +680,7 @@ namespace mc_compiled.MCC.Compiler
                             else if (type == OperatorType.GREATER_OR_EQUAL)
                                 range = new Range(otherInt, null);
                             else range = new Range(otherInt, false);
-                            selector.scores.checks.Add(new Commands.Limits.ScoresEntry(valueName, range));
+                            selector.scores.checks.Add(new Commands.Selectors.ScoresEntry(valueName, range));
                         }
                         return;
                     case Type.BLOCK:
@@ -692,14 +692,14 @@ namespace mc_compiled.MCC.Compiler
                         BlockCheck blockCheck = new BlockCheck(x, y, z, block, data);
                         if (not) // perform block inversion
                         {
-                            string inverterName = Executor.MATH_INVERTER + scope;
+                            string inverterName = LegacyExecutor.MATH_INVERTER + scope;
                             context.CreateTemplate(inverterName, new[] {
                                 $"scoreboard objectives add {inverterName} dummy"
                             });
                             context.FinishRaw($"scoreboard players set @{context.SelectionReference} {inverterName} 0", false);
                             context.FinishRaw(blockCheck.AsStoreIn(inverterName), false); // will set to 1 if found
                             selector.blockCheck = BlockCheck.DISABLED;
-                            selector.scores.checks.Add(new Commands.Limits.ScoresEntry(inverterName, new Range(0, false)));
+                            selector.scores.checks.Add(new Commands.Selectors.ScoresEntry(inverterName, new Range(0, false)));
                         }
                         else
                             selector.blockCheck = blockCheck;
@@ -711,7 +711,7 @@ namespace mc_compiled.MCC.Compiler
                         selector.entity.family = (not ? "!" : "") + args[0];
                         return;
                     case Type.TAG:
-                        selector.tags.Add(new Commands.Limits.Tag(args[0], not));
+                        selector.tags.Add(new Commands.Selectors.Tag(args[0], not));
                         return;
                     case Type.GAMEMODE:
                         selector.player.ParseGamemode(args[0], not);
@@ -886,7 +886,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"If {eval}:";
         }
-        public Selector ConstructSelector(Selector.Core core, ref Executor caller)
+        public Selector ConstructSelector(Selector.Core core, ref LegacyExecutor caller)
         {
             Selector selector = new Selector() { core = core };
 
@@ -915,7 +915,7 @@ namespace mc_compiled.MCC.Compiler
 
             return selector;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             Selector selector = ConstructSelector(caller.selection, ref caller);
 
@@ -998,7 +998,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Else:";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             return;
         }
@@ -1085,7 +1085,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Give {preview}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if(useStructure)
             {
@@ -1200,7 +1200,7 @@ namespace mc_compiled.MCC.Compiler
                 else return $"Teleport to {x} {y} {z}";
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string sel = '@' + caller.SelectionReference.ToString();
             if (target == null)
@@ -1256,7 +1256,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Title to Selector: \"{text}\"";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string selector = "@" + caller.SelectionReference;
 
@@ -1289,7 +1289,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Kick Player: \"{text}\", Reason: \"{reason}\"";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string selector = "@" + caller.SelectionReference;
 
@@ -1322,7 +1322,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Gamemode Player \"{player}\" to \"{gamemode}\"";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             caller.FinishRaw($"gamemode {player} {gamemode}");
         }
@@ -1353,7 +1353,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Change Time to \"{uvar2}\" with mode \"{uvar1}\"";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             caller.FinishRaw($"time {uvar1} {uvar2}");
         }
@@ -1379,7 +1379,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Change Difficulty to \"{difficulty}\" ";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             caller.FinishRaw($"difficulty {difficulty}");
         }
@@ -1405,7 +1405,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Change Weather to \"{weather}\" ";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             caller.FinishRaw($"weather {weather}");
         }
@@ -1474,7 +1474,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"Move selected entity {direction} {amount} blocks.";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string inputDirection = caller.ReplacePPV(direction);
             string inputAmount = caller.ReplacePPV(amount);
@@ -1561,7 +1561,7 @@ namespace mc_compiled.MCC.Compiler
                 return $"Face location {x} {y} {z}";
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string sel = '@' + caller.SelectionReference.ToString();
             if (target == null)
@@ -1625,7 +1625,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 return $"Place block {block} at {x} {y} {z}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string _block = caller.ReplacePPV(block);
             string _x = caller.ReplacePPV(x);
@@ -1738,7 +1738,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 return $"Fill area [({x1}, {y1}, {z1}), ({x2}, {y2}, {z2})] with {block} and data {data}";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string _block = caller.ReplacePPV(block);
             string _x1 = caller.ReplacePPV(x1);

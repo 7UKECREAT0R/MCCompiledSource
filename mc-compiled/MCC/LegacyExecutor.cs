@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace mc_compiled.MCC
 {
     /// <summary>
-    /// Runs a set of compiled tokens.
+    /// (old) Runs a set of compiled tokens.
     /// </summary>
-    public class Executor
+    public class LegacyExecutor
     {
         public const double MCC_VERSION = 0.51;             // _compilerversion
         public static string MINECRAFT_VERSION = "1.17.41"; // _mcversion
@@ -83,7 +83,7 @@ namespace mc_compiled.MCC
         public readonly bool decorate;
         public readonly Dictionary<string, Dynamic> ppv;
         public readonly Dictionary<string, Macro> macros;
-        public readonly TokenFeeder tokens;
+        public readonly LegacyTokenFeeder tokens;
 
         public ValueManager values;
         public Selector.Core selection;
@@ -216,7 +216,7 @@ namespace mc_compiled.MCC
                 name = name.Substring(1);
             return ppv.TryGetValue(name, out value);
         }
-        public Executor(LegacyToken[] tokens, bool debug, bool decorate, string baseFileName)
+        public LegacyExecutor(LegacyToken[] tokens, bool debug, bool decorate, string baseFileName)
         {
             this.debug = debug;
             this.decorate = decorate;
@@ -230,7 +230,7 @@ namespace mc_compiled.MCC
             selection = Selector.Core.s;
             values = new ValueManager();
 
-            this.tokens = new TokenFeeder(tokens);
+            this.tokens = new LegacyTokenFeeder(tokens);
 
             ppv["_compilerversion"] = new Dynamic(MCC_VERSION);
             ppv["_mcversion"] = new Dynamic(MCC_VERSION);
@@ -249,7 +249,7 @@ namespace mc_compiled.MCC
         /// Run a set of tokens.
         /// </summary>
         /// <param name="tokens"></param>
-        public void RunSection(TokenFeeder tokens)
+        public void RunSection(LegacyTokenFeeder tokens)
         {
             LegacyToken token = null;
             try

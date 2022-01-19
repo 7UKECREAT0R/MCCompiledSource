@@ -11,7 +11,7 @@ namespace mc_compiled.MCC.Compiler
         public LEGACYTOKENTYPE type;
         public int line = -1;
 
-        public abstract void Execute(Executor caller, TokenFeeder tokens);
+        public abstract void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens);
     }
     public class TokenException : Exception
     {
@@ -94,7 +94,7 @@ namespace mc_compiled.MCC.Compiler
                             //      IF TAG <tagname>                                Check if entity has tag.
                             //      IF MODE <gamemode>                              Check if player is in gamemode.
                             //      IF NEAR <x> <y> <z> <radius> [radiusMin]        Check if entity is near location.
-                            //      IF IN <sizeX> <sizeY> <sizeZ> [x] [y] [z]       Check if entity is in area. If size is 0 then it won't be set.
+                            //      IF INSIDE <sizeX> <sizeY> <sizeZ> [x] [y] [z]       Check if entity is in area. If size is 0 then it won't be set.
                             //      IF LEVEL <min> [max]                            Check if player has level.
                             //      IF NAME <string>                                Check if entity has name.
                             //      IF LIMIT <amount>                               Only execute on a certain number of entities.

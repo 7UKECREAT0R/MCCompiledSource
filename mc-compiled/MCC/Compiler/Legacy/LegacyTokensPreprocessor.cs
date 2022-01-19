@@ -18,7 +18,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return "SERIOUS PROBLEM";
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             return;
         }
@@ -36,7 +36,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return "COMMENT: " + comment;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (!caller.decorate)
                 return;
@@ -50,12 +50,12 @@ namespace mc_compiled.MCC.Compiler
     }
     public class LegacyTokenBlock : LegacyToken
     {
-        public readonly TokenFeeder contents;
+        public readonly LegacyTokenFeeder contents;
         public LegacyTokenBlock(LegacyToken[] contents)
         {
             line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.BLOCK;
-            this.contents = new TokenFeeder(contents);
+            this.contents = new LegacyTokenFeeder(contents);
         }
         public override string ToString()
         {
@@ -65,12 +65,12 @@ namespace mc_compiled.MCC.Compiler
         {
             return contents.GetHashCode();
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             contents.Reset();
             caller.RunSection(contents);
         }
-        public void PlaceInFunction(Executor caller, TokenFeeder tokens, FunctionDefinition function)
+        public void PlaceInFunction(LegacyExecutor caller, LegacyTokenFeeder tokens, FunctionDefinition function)
         {
             if (function.isNamespaced)
                 caller.PushFile(function.name, function.theNamespace);
@@ -97,7 +97,7 @@ namespace mc_compiled.MCC.Compiler
             name = expression.Substring(0, index);
             value = Dynamic.Parse(expression.Substring(index + 1));
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (value.type == Dynamic.Type.STRING && caller.TryGetPPV(value.data.s, out Dynamic source))
                 caller.ppv[name] = source;
@@ -119,7 +119,7 @@ namespace mc_compiled.MCC.Compiler
             type = LEGACYTOKENTYPE.PPINC;
             this.varName = varName;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if(caller.TryGetPPV(varName, out Dynamic value))
             {
@@ -146,7 +146,7 @@ namespace mc_compiled.MCC.Compiler
             type = LEGACYTOKENTYPE.PPDEC;
             this.varName = varName;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(varName, out Dynamic value))
             {
@@ -187,7 +187,7 @@ namespace mc_compiled.MCC.Compiler
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(varName, out Dynamic value))
             {
@@ -233,7 +233,7 @@ namespace mc_compiled.MCC.Compiler
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(varName, out Dynamic value))
             {
@@ -279,7 +279,7 @@ namespace mc_compiled.MCC.Compiler
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(varName, out Dynamic value))
             {
@@ -325,7 +325,7 @@ namespace mc_compiled.MCC.Compiler
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(varName, out Dynamic value))
             {
@@ -371,7 +371,7 @@ namespace mc_compiled.MCC.Compiler
                 usePPV = true;
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(varName, out Dynamic value))
             {
@@ -417,7 +417,7 @@ namespace mc_compiled.MCC.Compiler
             if(comparison == null)
                 throw new TokenException(this, $"Invalid comparison operator \"{parts[1]}\"");
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             LegacyToken potential = tokens.Peek();
             if(potential != null && potential is LegacyTokenBlock)
@@ -467,7 +467,7 @@ namespace mc_compiled.MCC.Compiler
             line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.PPELSE;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             return;
         }
@@ -487,7 +487,7 @@ namespace mc_compiled.MCC.Compiler
 
             this.amount = amount;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             int count = 0;
 
@@ -525,7 +525,7 @@ namespace mc_compiled.MCC.Compiler
 
             this.text = text;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string temp = caller.ReplacePPV(text);
             Console.WriteLine("[LOG] {0}", temp);
@@ -546,7 +546,7 @@ namespace mc_compiled.MCC.Compiler
 
             this.fileOffset = fileOffset;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             //string temp = caller.ReplacePPV(fileOffset);
             //caller.NewFileOffset(temp);
@@ -567,7 +567,7 @@ namespace mc_compiled.MCC.Compiler
 
             this.signature = signature;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string temp = caller.ReplacePPV(signature);
             FunctionDefinition definition = FunctionDefinition.Parse(temp);
@@ -613,7 +613,7 @@ namespace mc_compiled.MCC.Compiler
             this.name = name;
             this.args = args;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string callName = caller.ReplacePPV(name);
 
@@ -697,7 +697,7 @@ namespace mc_compiled.MCC.Compiler
                     Tokenizer.guessedPPValues.Add(arg);
             }
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             // Macro definition case.
             LegacyToken potentialBlock = tokens.Peek();
@@ -747,7 +747,7 @@ namespace mc_compiled.MCC.Compiler
 
                 int previousHash = caller.currentMacroHash;
                 caller.currentMacroHash = hash;
-                caller.RunSection(new TokenFeeder(find.execute));
+                caller.RunSection(new LegacyTokenFeeder(find.execute));
                 caller.currentMacroHash = previousHash;
 
                 // Return argument-passed variables to how they were before the macro call.
@@ -769,9 +769,9 @@ namespace mc_compiled.MCC.Compiler
             line = Tokenizer.CURRENT_LINE;
             type = LEGACYTOKENTYPE.HALT;
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (!caller.HasCreatedTemplate(Executor.HALT_FUNCTION))
+            if (!caller.HasCreatedTemplate(LegacyExecutor.HALT_FUNCTION))
             {
                 // Spam 10,000 /help commands.
                 long count = caller.HaltFunctionCount;
@@ -784,10 +784,10 @@ namespace mc_compiled.MCC.Compiler
                 for(int i = 0; i < count; i++)
                     lines.Add("help");
 
-                caller.CreateTemplate(Executor.HALT_FUNCTION, lines.ToArray(), true);
+                caller.CreateTemplate(LegacyExecutor.HALT_FUNCTION, lines.ToArray(), true);
             }
 
-            caller.FinishRaw("function " + Executor.HALT_FUNCTION);
+            caller.FinishRaw("function " + LegacyExecutor.HALT_FUNCTION);
             return;
         }
         public override string ToString() => "Halt Execution";
@@ -803,7 +803,7 @@ namespace mc_compiled.MCC.Compiler
 
             this.variable = variable.Trim();
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if(caller.TryGetPPV(variable, out Dynamic value))
             {
@@ -840,7 +840,7 @@ namespace mc_compiled.MCC.Compiler
 
             this.variable = variable.Trim();
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(variable, out Dynamic value))
             {
@@ -869,7 +869,7 @@ namespace mc_compiled.MCC.Compiler
 
             this.variable = variable.Trim();
         }
-        public override void Execute(Executor caller, TokenFeeder tokens)
+        public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             if (caller.TryGetPPV(variable, out Dynamic value))
             {

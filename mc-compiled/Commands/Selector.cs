@@ -37,40 +37,40 @@ namespace mc_compiled.Commands
 
         public Selector()
         {
-            scores = new Limits.Scores
+            scores = new Selectors.Scores
             {
-                checks = new List<Limits.ScoresEntry>()
+                checks = new List<Selectors.ScoresEntry>()
             };
-            count = new Limits.Count
+            count = new Selectors.Count
             {
-                count = Limits.Count.NONE
+                count = Selectors.Count.NONE
             };
-            area = new Limits.Area();
-            entity = new Limits.Entity();
-            player = new Limits.Player();
-            tags = new List<Limits.Tag>();
+            area = new Selectors.Area();
+            entity = new Selectors.Entity();
+            player = new Selectors.Player();
+            tags = new List<Selectors.Tag>();
             blockCheck = BlockCheck.DISABLED;
         }
         public Selector(Selector copy)
         {
             core = copy.core;
             area = copy.area;
-            scores = new Limits.Scores(new List<Limits.ScoresEntry>(copy.scores.checks));
+            scores = new Selectors.Scores(new List<Selectors.ScoresEntry>(copy.scores.checks));
             count = copy.count;
             entity = copy.entity;
             player = copy.player;
-            tags = new List<Limits.Tag>(copy.tags);
+            tags = new List<Selectors.Tag>(copy.tags);
             blockCheck = copy.blockCheck;
         }
 
         public Core core;              // Base selector.
 
-        public Limits.Area area;       // The area where targets should be selected.
-        public Limits.Scores scores;   // The scores that should be evaluated.
-        public Limits.Count count;     // The limit of entities that can be selected.
-        public Limits.Entity entity;   // The entity/player's status (name, rotation, etc.)
-        public Limits.Player player;   // The player's specific stats (level, gamemode, etc.)
-        public List<Limits.Tag> tags;   // The tags this entity/player has. Can have multiple.
+        public Selectors.Area area;       // The area where targets should be selected.
+        public Selectors.Scores scores;   // The scores that should be evaluated.
+        public Selectors.Count count;     // The limit of entities that can be selected.
+        public Selectors.Entity entity;   // The entity/player's status (name, rotation, etc.)
+        public Selectors.Player player;   // The player's specific stats (level, gamemode, etc.)
+        public List<Selectors.Tag> tags;   // The tags this entity/player has. Can have multiple.
         public BlockCheck blockCheck;
 
         public override string ToString()

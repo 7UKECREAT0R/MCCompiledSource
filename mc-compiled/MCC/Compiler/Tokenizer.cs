@@ -10,7 +10,7 @@ using mc_compiled.Commands.Native;
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
-    /// Compile and tokenize a script.
+    /// Parses text into tokens.
     /// </summary>
     public class Tokenizer
     {
@@ -35,7 +35,7 @@ namespace mc_compiled.MCC.Compiler
         }
         static readonly char[] WORD_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:".ToCharArray();
         static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
-        static readonly char[] WHITESPACE_CHARS = { ' ', '\t' };
+        static bool IsWhiteSpace(char c) => c == ' ' | c == '\t';
 
         readonly char[] content;
         readonly StringBuilder sb;
@@ -81,7 +81,6 @@ namespace mc_compiled.MCC.Compiler
         {
             get => index < content.Length;
         }
-        bool IsWhiteSpace(char c) => WHITESPACE_CHARS.Contains(c);
         char Peek() => content[index];
         char NextChar() => content[index++];
         void FlushWhitespace()
@@ -90,7 +89,10 @@ namespace mc_compiled.MCC.Compiler
                 NextChar();
         }
 
-
+        /// <summary>
+        /// Tokenize the contents of this object.
+        /// </summary>
+        /// <returns></returns>
         public Token[] Tokenize()
         {
             CURRENT_LINE = 1;
@@ -221,6 +223,17 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string word = sb.ToString();
+            string wordCI = word.ToUpper();
+
+            switch (wordCI)
+            {
+                case "TRUE":
+                    return new TokenBooleanLiteral(true, CURRENT_LINE);
+                case "FALSE":
+                    return new TokenBooleanLiteral(false, CURRENT_LINE);
+                default:
+                    break;
+            }
 
             // check for directive
             Directive directive = Directives.Query(word);

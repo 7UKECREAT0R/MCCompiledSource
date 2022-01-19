@@ -12,7 +12,7 @@ namespace mc_compiled.Commands.Native
         public string stringLevel;
         public bool hasStringLevel;
 
-        public Enchantment Resolve(MCC.Executor caller)
+        public Enchantment Resolve(MCC.LegacyExecutor caller)
         {
             if(!hasStringLevel)
                 return this;

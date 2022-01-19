@@ -58,7 +58,7 @@ namespace mc_compiled.MCC.Compiler
             new Directive("$strfriendly", "Preprocessor String Friendly Name"),
             new Directive("$strupper", "Preprocessor String Uppercase"),
             new Directive("$strlower", "Preprocessor String Lowercase"),
-            new Directive("halt", "Halt Execution"),
+
             new Directive("mc", "Minecraft Command"),
             new Directive("select", "Select Target"),
             new Directive("print", "Print to All Chat"),
@@ -74,10 +74,11 @@ namespace mc_compiled.MCC.Compiler
             new Directive("fill", "Fill Region of Blocks"),
             new Directive("replace", "Replace Region of Blocks"),
             new Directive("kill", "Kill Selected Entity"),
-            new Directive("title", "Show Title")
+            new Directive("title", "Show Title"),
+            new Directive("halt", "Halt Execution"),
         };
 
-        static Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
+        static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
         static Directives()
         {
             foreach (Directive directive in REGISTRY)

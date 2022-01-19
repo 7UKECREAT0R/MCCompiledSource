@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,13 +19,17 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a generic number literal.
     /// </summary>
-    public class TokenNumberLiteral : TokenLiteral
+    public abstract class TokenNumberLiteral : TokenLiteral
     {
-        public override string AsString() => "<? number literal>";
         public TokenNumberLiteral(int lineNumber) : base(lineNumber)
         {
 
         }
+        /// <summary>
+        /// Get the number stored in this literal.
+        /// </summary>
+        /// <returns></returns>
+        public abstract float GetNumber();
     }
 
     public sealed class TokenStringLiteral : TokenLiteral
@@ -36,15 +41,8 @@ namespace mc_compiled.MCC.Compiler
         {
             this.text = text;
         }
-    }
-    public sealed class TokenIntegerLiteral : TokenNumberLiteral
-    {
-        public readonly int number;
-        public override string AsString() => number.ToString();
-        public TokenIntegerLiteral(int number, int lineNumber) : base(lineNumber)
-        {
-            this.number = number;
-        }
+
+        public static implicit operator string(TokenStringLiteral literal) => literal.text;
     }
     public sealed class TokenDecimalLiteral : TokenNumberLiteral
     {
@@ -54,6 +52,47 @@ namespace mc_compiled.MCC.Compiler
         {
             this.number = number;
         }
+        public override float GetNumber()
+        {
+            return number;
+        }
+
+        public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
+    }
+    public class TokenIntegerLiteral : TokenNumberLiteral
+    {
+        public readonly int number;
+        public override string AsString() => number.ToString();
+        public TokenIntegerLiteral(int number, int lineNumber) : base(lineNumber)
+        {
+            this.number = number;
+        }
+        public override float GetNumber()
+        {
+            return number;
+        }
+
+        public static implicit operator int(TokenIntegerLiteral literal) => literal.number;
+    }
+    public sealed class TokenCoordinateLiteral : TokenNumberLiteral
+    {
+        public readonly CoordinateValue coordinate;
+        public override string AsString() => coordinate.ToString();
+        public TokenCoordinateLiteral(CoordinateValue coordinate, int lineNumber) : base(lineNumber)
+        {
+            this.coordinate = coordinate;
+        }
+        public override float GetNumber()
+        {
+            if (coordinate.isFloat)
+                return coordinate.valuef;
+            else
+                return coordinate.valuei;
+        }
+
+        public static implicit operator CoordinateValue(TokenCoordinateLiteral literal) => literal.coordinate;
+        public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valuei;
+        public static implicit operator float(TokenCoordinateLiteral literal) => literal;
     }
     public sealed class TokenBooleanLiteral : TokenLiteral
     {
@@ -63,7 +102,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.boolean = boolean;
         }
+
+        public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
     }
-
-
 }
