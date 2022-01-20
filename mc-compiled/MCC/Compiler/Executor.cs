@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {
-    class Executor
+    /// <summary>
+    /// Executes statements and holds information about the current state.
+    /// </summary>
+    public class Executor
     {
+        
     }
 }

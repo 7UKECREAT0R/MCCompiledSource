@@ -132,7 +132,7 @@ namespace mc_compiled.Commands
 
         public static string Function(string name) =>
             $"function {name}";
-        public static string Function(FunctionDefinition function) =>
+        public static string Function(LegacyFunctionDefinition function) =>
             $"function {function.CommandName}";
 
         public static string Gamemode(string target, GameMode mode) =>

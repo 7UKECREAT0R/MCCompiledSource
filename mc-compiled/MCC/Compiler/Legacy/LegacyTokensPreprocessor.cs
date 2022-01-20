@@ -70,7 +70,7 @@ namespace mc_compiled.MCC.Compiler
             contents.Reset();
             caller.RunSection(contents);
         }
-        public void PlaceInFunction(LegacyExecutor caller, LegacyTokenFeeder tokens, FunctionDefinition function)
+        public void PlaceInFunction(LegacyExecutor caller, LegacyTokenFeeder tokens, LegacyFunctionDefinition function)
         {
             if (function.isNamespaced)
                 caller.PushFile(function.name, function.theNamespace);
@@ -570,7 +570,7 @@ namespace mc_compiled.MCC.Compiler
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
             string temp = caller.ReplacePPV(signature);
-            FunctionDefinition definition = FunctionDefinition.Parse(temp);
+            LegacyFunctionDefinition definition = LegacyFunctionDefinition.Parse(temp);
 
             if (!(tokens.Peek() is LegacyTokenBlock))
                 throw new TokenException(this, "Function definition doesn't have a block after it.");
@@ -620,7 +620,7 @@ namespace mc_compiled.MCC.Compiler
             if (!caller.functionsDefined.Any(df => df.name.Equals(callName)))
                 throw new TokenException(this, $"Function \"{callName}\" is not defined.");
 
-            FunctionDefinition function = caller.functionsDefined.First(df => df.name.Equals(callName));
+            LegacyFunctionDefinition function = caller.functionsDefined.First(df => df.name.Equals(callName));
 
             // Set the input args.
             for(int i = 0; i < args.Length; i++)
@@ -642,18 +642,18 @@ namespace mc_compiled.MCC.Compiler
                 if (inputConstant.type == Dynamic.Type.STRING)
                 {
                     // This is a value instead.
-                    if (!caller.values.TryGetValue(inputValue, out Value value))
+                    if (!caller.values.TryGetValue(inputValue, out LegacyValue value))
                         throw new TokenException(this, $"Value \"{inputValue}\" passed into function call doesn't exist.");
-                    foreach (string line in ValueManager.ExpressionSetValue
-                        (new Value(sourceValue, inputConstant), value, selector))
+                    foreach (string line in LegacyValueManager.ExpressionSetValue
+                        (new LegacyValue(sourceValue, inputConstant), value, selector))
                     {
                         caller.FinishRaw(line, false);
                     }
                 }
                 else
                 {
-                    foreach(string line in ValueManager.ExpressionSetConstant
-                        (new Value(sourceValue, inputConstant), selector, inputConstant))
+                    foreach(string line in LegacyValueManager.ExpressionSetConstant
+                        (new LegacyValue(sourceValue, inputConstant), selector, inputConstant))
                     {
                         caller.FinishRaw(line, false);
                     }

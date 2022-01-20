@@ -56,11 +56,13 @@
     <Compile Include="MCC\Compiler\TokensLiterals.cs" />
     <Compile Include="MCC\Compiler\TokensMain.cs" />
     <Compile Include="MCC\Compiler\TokensOperators.cs" />
+    <Compile Include="MCC\Compiler\TypePattern.cs" />
     <Compile Include="MCC\FileWriter.cs" />
     <Compile Include="MCC\FixedPoint.cs" />
-    <Compile Include="MCC\FunctionDefinition.cs" />
+    <Compile Include="MCC\LegacyFunctionDefinition.cs" />
     <Compile Include="MCC\LegacyTokenFeeder.cs" />
-    <Compile Include="MCC\ValueManager.cs" />
+    <Compile Include="MCC\LegacyValueManager.cs" />
+    <Compile Include="MCC\Scoreboard.cs" />
     <Compile Include="Modding\BehaviorPack.cs" />
     <Compile Include="Modding\Manifest.cs" />
     <Compile Include="Modding\StructureFile.cs" />

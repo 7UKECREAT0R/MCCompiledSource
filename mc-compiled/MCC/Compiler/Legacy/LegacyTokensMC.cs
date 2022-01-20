@@ -85,7 +85,7 @@ namespace mc_compiled.MCC.Compiler
 
                 string src = match.Value;
                 string valueName = match.Groups[1].Value;
-                if (caller.values.TryGetValue(valueName, out Value output))
+                if (caller.values.TryGetValue(valueName, out LegacyValue output))
                     terms.AddRange(output.ToRawText(caller.values, sel));
                 else terms.Add(new JSONText(src));
             }
@@ -230,7 +230,7 @@ namespace mc_compiled.MCC.Compiler
         {
             string output = caller.ReplacePPV(valueName);
 
-            if (!caller.values.TryGetValue(output, out Value value))
+            if (!caller.values.TryGetValue(output, out LegacyValue value))
                 throw new TokenException(this, $"No value exists with the name \"{output}\"");
 
             string[] scores = value.GetScoreboards(caller.values);
@@ -289,21 +289,21 @@ namespace mc_compiled.MCC.Compiler
             }
         }
 
-        static string OperationString(ValueOperation op)
+        static string OperationString(LegacyValueOperation op)
         {
             switch (op)
             {
-                case ValueOperation.ADD:
+                case LegacyValueOperation.ADD:
                     return "+=";
-                case ValueOperation.SUB:
+                case LegacyValueOperation.SUB:
                     return "-=";
-                case ValueOperation.MUL:
+                case LegacyValueOperation.MUL:
                     return "*=";
-                case ValueOperation.DIV:
+                case LegacyValueOperation.DIV:
                     return "/=";
-                case ValueOperation.MOD:
+                case LegacyValueOperation.MOD:
                     return "%=";
-                case ValueOperation.SET:
+                case LegacyValueOperation.SET:
                     return "=";
                 default:
                     return null;
@@ -318,7 +318,7 @@ namespace mc_compiled.MCC.Compiler
 
         // value <a> <operation> <b>
         string valueName;
-        ValueOperation operation;
+        LegacyValueOperation operation;
         bool bIsConstant; // Decides if you should use valueB or constantB
         bool bIsPPV;      // Decides if should still evaluate valueB
         string valueB;
@@ -362,40 +362,40 @@ namespace mc_compiled.MCC.Compiler
                 switch (operationString)
                 {
                     case "ADD":
-                        operation = ValueOperation.ADD;
+                        operation = LegacyValueOperation.ADD;
                         break;
                     case "SUB":
-                        operation = ValueOperation.SUB;
+                        operation = LegacyValueOperation.SUB;
                         break;
                     case "MUL":
-                        operation = ValueOperation.MUL;
+                        operation = LegacyValueOperation.MUL;
                         break;
                     case "DIV":
-                        operation = ValueOperation.DIV;
+                        operation = LegacyValueOperation.DIV;
                         break;
                     case "MOD":
-                        operation = ValueOperation.MOD;
+                        operation = LegacyValueOperation.MOD;
                         break;
                     case "SET":
-                        operation = ValueOperation.SET;
+                        operation = LegacyValueOperation.SET;
                         break;
                     case "+=":
-                        operation = ValueOperation.ADD;
+                        operation = LegacyValueOperation.ADD;
                         break;
                     case "-=":
-                        operation = ValueOperation.SUB;
+                        operation = LegacyValueOperation.SUB;
                         break;
                     case "*=":
-                        operation = ValueOperation.MUL;
+                        operation = LegacyValueOperation.MUL;
                         break;
                     case "/=":
-                        operation = ValueOperation.DIV;
+                        operation = LegacyValueOperation.DIV;
                         break;
                     case "%=":
-                        operation = ValueOperation.MOD;
+                        operation = LegacyValueOperation.MOD;
                         break;
                     case "=":
-                        operation = ValueOperation.SET;
+                        operation = LegacyValueOperation.SET;
                         break;
                     default:
                         throw new TokenException(this, $"Invalid value operation {operationString}");
@@ -451,7 +451,7 @@ namespace mc_compiled.MCC.Compiler
             if (secondValue != null && !caller.values.HasValue(secondValue) && !bIsPPV)
                 throw new TokenException(this, $"No value exists with the name \"{secondValue}\"");
 
-            Value sourceValue = caller.values[_sourceValue];
+            LegacyValue sourceValue = caller.values[_sourceValue];
 
             // Resolve PPV value
             if (bIsPPV)
@@ -462,7 +462,7 @@ namespace mc_compiled.MCC.Compiler
                 caller.CreateTemplate(LegacyExecutor.MATH_TEMP, new[] { $"scoreboard objectives add {LegacyExecutor.MATH_TEMP} dummy" });
 
             // Create decimal unit objective for fixed point operations
-            if(sourceValue.type == ValueType.DECIMAL)
+            if(sourceValue.type == LegacyValueType.DECIMAL)
             {
                 caller.CreateTemplate(LegacyExecutor.MATH_TEMP, new[] { $"scoreboard objectives add {LegacyExecutor.MATH_TEMP} dummy" });
                 caller.CreateTemplate(LegacyExecutor.DECIMAL_UNIT, new[] { $"scoreboard objectives add {LegacyExecutor.DECIMAL_UNIT} dummy" });
@@ -473,12 +473,12 @@ namespace mc_compiled.MCC.Compiler
             {
                 switch (operation)
                 {
-                    case ValueOperation.ADD:
-                        foreach (string line in ValueManager.ExpressionAddConstant(sourceValue, selector, constantB))
+                    case LegacyValueOperation.ADD:
+                        foreach (string line in LegacyValueManager.ExpressionAddConstant(sourceValue, selector, constantB))
                             caller.FinishRaw(line, false);
                         return;
-                    case ValueOperation.SUB:
-                        if (sourceValue.type == ValueType.DECIMAL)
+                    case LegacyValueOperation.SUB:
+                        if (sourceValue.type == LegacyValueType.DECIMAL)
                         {
                             string functionName = LegacyExecutor.DECIMAL_SUB_CARRY + sourceValue.name;
                             caller.CreateTemplate(functionName, new string[]
@@ -487,24 +487,24 @@ namespace mc_compiled.MCC.Compiler
                                 $"scoreboard players add {selector} {sourceValue.WholePart} -1",
                                 $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {LegacyExecutor.DECIMAL_UNIT}"
                             }, true);
-                            foreach (string line in ValueManager.ExpressionSubtractConstant(sourceValue, selector, constantB))
+                            foreach (string line in LegacyValueManager.ExpressionSubtractConstant(sourceValue, selector, constantB))
                                 caller.FinishRaw(line, false);
                         }
                         return;
-                    case ValueOperation.MUL:
-                        foreach (string line in ValueManager.ExpressionMultiplyConstant(sourceValue, selector, constantB))
+                    case LegacyValueOperation.MUL:
+                        foreach (string line in LegacyValueManager.ExpressionMultiplyConstant(sourceValue, selector, constantB))
                             caller.FinishRaw(line, false);
                         return;
-                    case ValueOperation.SET:
-                        foreach (string line in ValueManager.ExpressionSetConstant(sourceValue, selector, constantB))
+                    case LegacyValueOperation.SET:
+                        foreach (string line in LegacyValueManager.ExpressionSetConstant(sourceValue, selector, constantB))
                             caller.FinishRaw(line, false);
                         return;
-                    case ValueOperation.DIV:
-                        foreach (string line in ValueManager.ExpressionDivideConstant(sourceValue, selector, constantB))
+                    case LegacyValueOperation.DIV:
+                        foreach (string line in LegacyValueManager.ExpressionDivideConstant(sourceValue, selector, constantB))
                             caller.FinishRaw(line, false);
                         return;
-                    case ValueOperation.MOD:
-                        foreach (string line in ValueManager.ExpressionModuloConstant(sourceValue, selector, constantB))
+                    case LegacyValueOperation.MOD:
+                        foreach (string line in LegacyValueManager.ExpressionModuloConstant(sourceValue, selector, constantB))
                             caller.FinishRaw(line, false);
                         return;
                     default:
@@ -513,14 +513,14 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                Value otherValue = caller.values[secondValue];
+                LegacyValue otherValue = caller.values[secondValue];
                 switch (operation)
                 {
-                    case ValueOperation.ADD:
-                        foreach (string line in ValueManager.ExpressionAddValue(sourceValue, otherValue, selector))
+                    case LegacyValueOperation.ADD:
+                        foreach (string line in LegacyValueManager.ExpressionAddValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
                         break;
-                    case ValueOperation.SUB:
+                    case LegacyValueOperation.SUB:
                         string functionName = LegacyExecutor.DECIMAL_SUB_CARRY + sourceValue.name;
                         caller.CreateTemplate(functionName, new string[]
                         {
@@ -528,23 +528,23 @@ namespace mc_compiled.MCC.Compiler
                                 $"scoreboard players add {selector} {sourceValue.WholePart} -1",
                                 $"scoreboard players operation {selector} {sourceValue.DecimalPart} = {selector} {LegacyExecutor.DECIMAL_UNIT}"
                         }, true);
-                        foreach (string line in ValueManager.ExpressionSubtractValue(sourceValue, otherValue, selector))
+                        foreach (string line in LegacyValueManager.ExpressionSubtractValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
                         break;
-                    case ValueOperation.MUL:
-                        foreach (string line in ValueManager.ExpressionMultiplyValue(sourceValue, otherValue, selector))
+                    case LegacyValueOperation.MUL:
+                        foreach (string line in LegacyValueManager.ExpressionMultiplyValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
                         break;
-                    case ValueOperation.SET:
-                        foreach (string line in ValueManager.ExpressionSetValue(sourceValue, otherValue, selector))
+                    case LegacyValueOperation.SET:
+                        foreach (string line in LegacyValueManager.ExpressionSetValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
                         break;
-                    case ValueOperation.DIV:
-                        foreach (string line in ValueManager.ExpressionDivideValue(sourceValue, otherValue, selector))
+                    case LegacyValueOperation.DIV:
+                        foreach (string line in LegacyValueManager.ExpressionDivideValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
                         break;
-                    case ValueOperation.MOD:
-                        foreach (string line in ValueManager.ExpressionModuloValue(sourceValue, otherValue, selector))
+                    case LegacyValueOperation.MOD:
+                        foreach (string line in LegacyValueManager.ExpressionModuloValue(sourceValue, otherValue, selector))
                             caller.FinishRaw(line, false);
                         break;
                     default:
@@ -928,7 +928,7 @@ namespace mc_compiled.MCC.Compiler
                 if(potentialBlock is LegacyTokenBlock)
                 {
                     LegacyTokenBlock block = tokens.Next() as LegacyTokenBlock;
-                    FunctionDefinition a = new FunctionDefinition()
+                    LegacyFunctionDefinition a = new LegacyFunctionDefinition()
                     {
                         name = BranchFunctionName(block),
                         isNamespaced = true,
@@ -959,7 +959,7 @@ namespace mc_compiled.MCC.Compiler
                     LegacyTokenBlock elseBlock = tokens.Next() as LegacyTokenBlock;
                     forceInvert = true;
                     selector = ConstructSelector(caller.selection, ref caller);
-                    FunctionDefinition b = new FunctionDefinition()
+                    LegacyFunctionDefinition b = new LegacyFunctionDefinition()
                     {
                         name = BranchFunctionName(elseBlock),
                         isNamespaced = true,

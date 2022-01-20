@@ -12,7 +12,7 @@ namespace mc_compiled.MCC
     /// Caches and tracks values and their types. Also holds onto and enforces struct definitions.
     /// In a sense, this class doubles as an advanced code generator too.
     /// </summary>
-    public class ValueManager
+    public class LegacyValueManager
     {
         private readonly StructDefinition[] BUILT_IN_STRUCTS =
         {
@@ -21,16 +21,16 @@ namespace mc_compiled.MCC
         };
 
         List<StructDefinition> structs;
-        Dictionary<string, Value> values;
+        Dictionary<string, LegacyValue> values;
         public int Count
         {
             get; private set;
         }
 
-        public ValueManager()
+        public LegacyValueManager()
         {
             Count = 0;
-            values = new Dictionary<string, Value>();
+            values = new Dictionary<string, LegacyValue>();
 
             structs = new List<StructDefinition>();
             structs.AddRange(BUILT_IN_STRUCTS);
@@ -40,9 +40,9 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public StructDefinition GetStructForValue(Value value)
+        public StructDefinition GetStructForValue(LegacyValue value)
         {
-            if (value.type != ValueType.STRUCT)
+            if (value.type != LegacyValueType.STRUCT)
                 throw new ArgumentException("Value must be a struct instance.");
             return structs[value.information];
         }
@@ -57,7 +57,7 @@ namespace mc_compiled.MCC
             if(args.Length == 1)
             {
                 string valueName = args[0];
-                return DefineValue(valueName, ValueType.REGULAR, 0);
+                return DefineValue(valueName, LegacyValueType.REGULAR, 0);
             } else
             {
                 string valueName = args[args.Length - 1];
@@ -66,15 +66,15 @@ namespace mc_compiled.MCC
                 if(structs.Any(sd => sd.name.Equals(_type)))
                 {
                     int index = structs.IndexOf(structs.First(sd => sd.name.Equals(_type)));
-                    return DefineValue(valueName, ValueType.STRUCT, index);
+                    return DefineValue(valueName, LegacyValueType.STRUCT, index);
                 } else if(_type.ToUpper().Equals("DECIMAL"))
                 {
                     if (!int.TryParse(args[1], out int precision))
                         throw new ArgumentException("No valid precision specified for decimal value.");
-                    return DefineValue(valueName, ValueType.DECIMAL, precision);
+                    return DefineValue(valueName, LegacyValueType.DECIMAL, precision);
                 } else
                 {
-                    return DefineValue(valueName, ValueType.REGULAR, 0);
+                    return DefineValue(valueName, LegacyValueType.REGULAR, 0);
                 }
             }
         }
@@ -85,17 +85,17 @@ namespace mc_compiled.MCC
         /// <param name="type"></param>
         /// <param name="information"></param>
         /// <returns>The commands to setup this value.</returns>
-        public string[] DefineValue(string name, ValueType type = ValueType.REGULAR, int information = 0)
+        public string[] DefineValue(string name, LegacyValueType type = LegacyValueType.REGULAR, int information = 0)
         {
             if(name.Any(c => !CommandLimits.SCOREBOARD_ALLOWED.Contains(c)))
                 throw new ArgumentException($"Illegal character in value name \"{name}\"");
             if (name.Length > CommandLimits.SCOREBOARD_LIMIT)
                 throw new ArgumentException($"Value name cannot be longer than {CommandLimits.SCOREBOARD_LIMIT} characters.");
             // Reserve 2 characters for the compressed struct parameters.
-            if(type != ValueType.REGULAR && name.Length > CommandLimits.SCOREBOARD_LIMIT - 2)
+            if(type != LegacyValueType.REGULAR && name.Length > CommandLimits.SCOREBOARD_LIMIT - 2)
                 throw new ArgumentException($"Typed value name cannot be longer than {CommandLimits.SCOREBOARD_LIMIT - 2} characters.");
 
-            Value value = new Value(name, information, type);
+            LegacyValue value = new LegacyValue(name, information, type);
             values.Add(name, value);
             Count++;
 
@@ -112,7 +112,7 @@ namespace mc_compiled.MCC
                     throw new ArgumentException("Value name cannot start or end with an accessor (: or .)");
                 string main = name.Substring(0, index);
                 string sub = name.Substring(index + 1);
-                if (values.TryGetValue(main, out Value output))
+                if (values.TryGetValue(main, out LegacyValue output))
                 {
                     StructDefinition info = GetStructForValue(output);
                     return info.fields.Contains(sub);
@@ -122,7 +122,7 @@ namespace mc_compiled.MCC
             else
                 return values.ContainsKey(name);
         }
-        public bool TryGetValue(string name, out Value output)
+        public bool TryGetValue(string name, out LegacyValue output)
         {
             int index;
             if((index = name.IndexOf(':')) != -1)
@@ -140,7 +140,7 @@ namespace mc_compiled.MCC
             } else
                 return values.TryGetValue(name, out output);
         }
-        public Value GetValue(string name)
+        public LegacyValue GetValue(string name)
         {
             int index;
             if ((index = name.IndexOf(':')) != -1)
@@ -153,17 +153,17 @@ namespace mc_compiled.MCC
             else
                 return values[name];
         }
-        public Value this[string valueName]
+        public LegacyValue this[string valueName]
         {
             get { return values[valueName]; }
             private set { values[valueName] = value; }
         }
 
-        public static string[] ExpressionAddConstant(Value source, string selector, Dynamic value)
+        public static string[] ExpressionAddConstant(LegacyValue source, string selector, Dynamic value)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
                 return new[] { $"scoreboard players add {selector} {source} {value.data.i}" };
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
@@ -186,11 +186,11 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Le
             }
             else return null;
         }
-        public static string[] ExpressionSubtractConstant(Value source, string selector, Dynamic value)
+        public static string[] ExpressionSubtractConstant(LegacyValue source, string selector, Dynamic value)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
                 return new[] { $"scoreboard players add {selector} {source} {value.data.i * -1}" };
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 if (value.data.d < 0.0)
                     return ExpressionAddConstant(source, selector, value.Inverse());
@@ -220,15 +220,15 @@ $"scoreboard players add {selector} {source.DecimalPart} -{value.GetDecimalPart(
             }
             else return null;
         }
-        public static string[] ExpressionMultiplyConstant(Value source, string selector, Dynamic value)
+        public static string[] ExpressionMultiplyConstant(LegacyValue source, string selector, Dynamic value)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
                 return new[]
                 {
 $"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.data.i}",
 $"scoreboard players operation {selector} {source} *= {selector} {LegacyExecutor.MATH_TEMP}"
                 };
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
@@ -253,9 +253,9 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Le
             }
             else return null;
         }
-        public static string[] ExpressionDivideConstant(Value source, string selector, Dynamic value)
+        public static string[] ExpressionDivideConstant(LegacyValue source, string selector, Dynamic value)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
             {
                 if (value.data.i == 0)
                     throw new Exception("Cannot divide by zero.");
@@ -265,15 +265,15 @@ $"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.data.i}",
 $"scoreboard players operation {selector} {source} /= {selector} {LegacyExecutor.MATH_TEMP}"
                 };
             }
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 throw new Exception("Decimal over decimal division is not supported.");
             }
             else return null;
         }
-        public static string[] ExpressionModuloConstant(Value source, string selector, Dynamic value)
+        public static string[] ExpressionModuloConstant(LegacyValue source, string selector, Dynamic value)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
             {
                 if (value.data.i == 0)
                     throw new Exception("Cannot divide by zero.");
@@ -283,22 +283,22 @@ $"scoreboard players set {selector} {LegacyExecutor.MATH_TEMP} {value.data.i}",
 $"scoreboard players operation {selector} {source} %= {selector} {LegacyExecutor.MATH_TEMP}"
                 };
             }
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 throw new Exception("Decimal over decimal modulus is not supported.");
             }
             else return null;
         }
-        public static string[] ExpressionSetConstant(Value source, string selector, Dynamic value)
+        public static string[] ExpressionSetConstant(LegacyValue source, string selector, Dynamic value)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
             {
                 return new[]
                 {
 $"scoreboard players set {selector} {source} {value.data.i}",
                 };
             }
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 int precision = source.information;
                 int mult = (int)Math.Pow(10, precision);
@@ -313,11 +313,11 @@ $"scoreboard players set {selector} {source.DecimalPart} {decimalPart}",
             else return null;
         }
 
-        public static string[] ExpressionAddValue(Value source, Value b, string selector)
+        public static string[] ExpressionAddValue(LegacyValue source, LegacyValue b, string selector)
         {
-            if (source.type == ValueType.REGULAR)
-                return new[] { $"scoreboard players operation {selector} {source} += {selector} {(b.type == ValueType.DECIMAL ? b.WholePart : b.ToString())}" };
-            else if (source.type == ValueType.DECIMAL)
+            if (source.type == LegacyValueType.REGULAR)
+                return new[] { $"scoreboard players operation {selector} {source} += {selector} {(b.type == LegacyValueType.DECIMAL ? b.WholePart : b.ToString())}" };
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
@@ -340,11 +340,11 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Le
             }
             else return null;
         }
-        public static string[] ExpressionSubtractValue(Value source, Value b, string selector)
+        public static string[] ExpressionSubtractValue(LegacyValue source, LegacyValue b, string selector)
         {
-            if (source.type == ValueType.REGULAR)
-                return new[] { $"scoreboard players operation {selector} {source} -= {selector} {(b.type == ValueType.DECIMAL ? b.WholePart : b.ToString())}" };
-            else if (source.type == ValueType.DECIMAL)
+            if (source.type == LegacyValueType.REGULAR)
+                return new[] { $"scoreboard players operation {selector} {source} -= {selector} {(b.type == LegacyValueType.DECIMAL ? b.WholePart : b.ToString())}" };
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
@@ -371,14 +371,14 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {b.
             }
             else return null;
         }
-        public static string[] ExpressionMultiplyValue(Value source, Value b, string selector)
+        public static string[] ExpressionMultiplyValue(LegacyValue source, LegacyValue b, string selector)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
                 return new[]
                 {
-$"scoreboard players operation {selector} {source} *= {selector} {(b.type==ValueType.DECIMAL?b.WholePart:b.ToString())}"
+$"scoreboard players operation {selector} {source} *= {selector} {(b.type==LegacyValueType.DECIMAL?b.WholePart:b.ToString())}"
                 };
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
                 int p = source.information;
                 string unit = ((int)Math.Pow(10, p)).ToString(); // 10^unit; 100:2 1000:3 etc...
@@ -401,55 +401,55 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Le
             }
             else return null;
         }
-        public static string[] ExpressionDivideValue(Value source, Value b, string selector)
+        public static string[] ExpressionDivideValue(LegacyValue source, LegacyValue b, string selector)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
             {
                 return new[]
                 {
-$"scoreboard players operation {selector} {source} /= {selector} {(b.type==ValueType.DECIMAL?b.WholePart:b.ToString())}"
+$"scoreboard players operation {selector} {source} /= {selector} {(b.type==LegacyValueType.DECIMAL?b.WholePart:b.ToString())}"
                 };
             }
-            else if (source.type == ValueType.DECIMAL || b.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL || b.type == LegacyValueType.DECIMAL)
             {
                 throw new Exception("Decimal over decimal division is not supported.");
             }
             else return null;
         }
-        public static string[] ExpressionModuloValue(Value source, Value b, string selector)
+        public static string[] ExpressionModuloValue(LegacyValue source, LegacyValue b, string selector)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
             {
                 return new[]
                 {
-$"scoreboard players operation {selector} {source} %= {selector} {(b.type==ValueType.DECIMAL?b.WholePart:b.ToString())}"
+$"scoreboard players operation {selector} {source} %= {selector} {(b.type==LegacyValueType.DECIMAL?b.WholePart:b.ToString())}"
                 };
             }
-            else if (source.type == ValueType.DECIMAL || b.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL || b.type == LegacyValueType.DECIMAL)
             {
                 throw new Exception("Decimal over decimal modulus is not supported.");
             }
             else return null;
         }
-        public static string[] ExpressionSetValue(Value source, Value b, string selector)
+        public static string[] ExpressionSetValue(LegacyValue source, LegacyValue b, string selector)
         {
-            if (source.type == ValueType.REGULAR)
+            if (source.type == LegacyValueType.REGULAR)
             {
                 return new[]
                 {
 $"scoreboard players operation {selector} {source} = {selector} {b}",
                 };
             }
-            else if (source.type == ValueType.DECIMAL)
+            else if (source.type == LegacyValueType.DECIMAL)
             {
-                if (b.type == ValueType.DECIMAL)
+                if (b.type == LegacyValueType.DECIMAL)
                 {
                     return new[] {
 $"scoreboard players operation {selector} {source.WholePart} = {selector} {b.WholePart}",
 $"scoreboard players operation {selector} {source.DecimalPart} = {selector} {b.DecimalPart}",
                     };
                 }
-                else if (b.type == ValueType.REGULAR)
+                else if (b.type == LegacyValueType.REGULAR)
                 {
                     return new[] {
 $"scoreboard players operation {selector} {source.WholePart} = {selector} {b}",
@@ -464,7 +464,7 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
     /// <summary>
     /// An operation on two values. If (value % 2 == 1), then a temp scoreboard objective is needed.
     /// </summary>
-    enum ValueOperation : byte
+    enum LegacyValueOperation : byte
     {
         ADD = 0,
         SUB = 2,
@@ -473,43 +473,43 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
         DIV = 5,
         MOD = 7,
     }
-    public enum ValueType
+    public enum LegacyValueType
     {
         REGULAR,
         DECIMAL,
         STRUCT, // Built-in types use this endpoint too.
     }
-    public struct Value
+    public struct LegacyValue
     {
         public string name;
         public int information;
-        public ValueType type;
+        public LegacyValueType type;
 
-        public Value(string name, int information = 0, ValueType type = ValueType.REGULAR)
+        public LegacyValue(string name, int information = 0, LegacyValueType type = LegacyValueType.REGULAR)
         {
             this.name = name;
             this.information = information;
             this.type = type;
         }
-        public Value(string name, Dynamic copyFrom)
+        public LegacyValue(string name, Dynamic copyFrom)
         {
             if (copyFrom.type == Dynamic.Type.STRING)
             {
                 this.name = copyFrom.data.s;
                 information = 0;
-                type = ValueType.REGULAR;
+                type = LegacyValueType.REGULAR;
             }
             else if (copyFrom.type == Dynamic.Type.DECIMAL)
             {
                 this.name = name;
                 information = copyFrom.data.d.GetPrecision();
-                type = ValueType.DECIMAL;
+                type = LegacyValueType.DECIMAL;
             }
             else
             {
                 this.name = name;
                 information = 0;
-                type = ValueType.REGULAR;
+                type = LegacyValueType.REGULAR;
             }
         }
         /// <summary>
@@ -517,15 +517,15 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
         /// </summary>
         /// <param name="manager"></param>
         /// <returns></returns>
-        public string[] GetScoreboards(ValueManager manager)
+        public string[] GetScoreboards(LegacyValueManager manager)
         {
             switch (type)
             {
-                case ValueType.REGULAR:
+                case LegacyValueType.REGULAR:
                     return new string[] { name };
-                case ValueType.DECIMAL:
+                case LegacyValueType.DECIMAL:
                     return new string[] { $"{name}:w", $"{name}:d" };
-                case ValueType.STRUCT:
+                case LegacyValueType.STRUCT:
                     StructDefinition info = manager.GetStructForValue(this);
                     string[] result = new string[info.internalFields.Length];
                     for (int i = 0; i < result.Length; i++)
@@ -540,20 +540,20 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
         /// </summary>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public JSONRawTerm[] ToRawText(ValueManager manager, string selector)
+        public JSONRawTerm[] ToRawText(LegacyValueManager manager, string selector)
         {
             switch (type)
             {
-                case ValueType.REGULAR:
+                case LegacyValueType.REGULAR:
                     return new JSONRawTerm[] { new JSONScore(selector, name) };
-                case ValueType.DECIMAL:
+                case LegacyValueType.DECIMAL:
                     return new JSONRawTerm[]
                     {
                         new JSONScore(selector, WholePart),
                         new JSONText("."),
                         new JSONScore(selector, DecimalPart)
                     };
-                case ValueType.STRUCT:
+                case LegacyValueType.STRUCT:
                     StructDefinition info = manager.GetStructForValue(this);
                     JSONRawTerm[] ret = new JSONRawTerm[(info.fields.Length * 3 - 1) + 2];
                     ret[0] = new JSONText("(");

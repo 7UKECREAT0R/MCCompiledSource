@@ -12,7 +12,7 @@ namespace mc_compiled.MCC
         SECURE,
         HARSH
     }
-    public struct FunctionDefinition
+    public struct LegacyFunctionDefinition
     {
         public string name;
         public string[] args;
@@ -50,9 +50,9 @@ namespace mc_compiled.MCC
             }
         }
 
-        public static FunctionDefinition Parse(string def)
+        public static LegacyFunctionDefinition Parse(string def)
         {
-            FunctionDefinition func = new FunctionDefinition();
+            LegacyFunctionDefinition func = new LegacyFunctionDefinition();
 
             // namespace(utils) delay(100) purge amount
             List<string> args = new List<string>();

@@ -85,7 +85,7 @@ namespace mc_compiled.MCC
         public readonly Dictionary<string, Macro> macros;
         public readonly LegacyTokenFeeder tokens;
 
-        public ValueManager values;
+        public LegacyValueManager values;
         public Selector.Core selection;
         
 
@@ -121,7 +121,7 @@ namespace mc_compiled.MCC
 
         internal List<MCFunction> functionsToBeWritten = new List<MCFunction>();
         internal List<Tuple<string, ItemStack>> itemsToBeWritten = new List<Tuple<string, ItemStack>>();
-        public List<FunctionDefinition> functionsDefined = new List<FunctionDefinition>();
+        public List<LegacyFunctionDefinition> functionsDefined = new List<LegacyFunctionDefinition>();
 
         public string projectName = "DefaultProject";
         public string projectDesc = "Default project description.";
@@ -228,7 +228,7 @@ namespace mc_compiled.MCC
 
             ppv = new Dictionary<string, Dynamic>();
             selection = Selector.Core.s;
-            values = new ValueManager();
+            values = new LegacyValueManager();
 
             this.tokens = new LegacyTokenFeeder(tokens);
 
