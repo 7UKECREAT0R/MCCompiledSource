@@ -57,7 +57,7 @@ namespace mc_compiled.MCC
             else
             {
                 List<string> nfile = new List<string>(code);
-                functionsToBeWritten.Add(new MCFunction(name, null, nfile));
+                functionsToBeWritten.Add(new LegacyMCFunction(name, null, nfile));
             }
         }
 
@@ -119,14 +119,14 @@ namespace mc_compiled.MCC
             }
         }
 
-        internal List<MCFunction> functionsToBeWritten = new List<MCFunction>();
+        internal List<LegacyMCFunction> functionsToBeWritten = new List<LegacyMCFunction>();
         internal List<Tuple<string, ItemStack>> itemsToBeWritten = new List<Tuple<string, ItemStack>>();
         public List<LegacyFunctionDefinition> functionsDefined = new List<LegacyFunctionDefinition>();
 
         public string projectName = "DefaultProject";
         public string projectDesc = "Default project description.";
         public string baseFileName;     // The base file name for all the functions.
-        Stack<FileWriter> fileStack; // Files the executor will write to.
+        Stack<LegacyFileWriter> fileStack; // Files the executor will write to.
 
         /// <summary>
         /// Finish the current line and append it to the current file.
@@ -134,7 +134,7 @@ namespace mc_compiled.MCC
         /// <param name="line"></param>
         public void FinishRaw(string line, bool modifyBuffer = true)
         {
-            FileWriter writer = fileStack.Peek();
+            LegacyFileWriter writer = fileStack.Peek();
             writer.ApplyBuffer(line, modifyBuffer);
         }
         /// <summary>
@@ -160,12 +160,12 @@ namespace mc_compiled.MCC
         /// <param name="fileName"></param>
         /// <param name="fileFolder"></param>
         /// <returns></returns>
-        public FileWriter PushFile(string fileName, string fileFolder = null)
+        public LegacyFileWriter PushFile(string fileName, string fileFolder = null)
         {
             if (AtBaseScope && fileFolder == null)
                 fileName = baseFileName + '-' + fileName;
 
-            FileWriter toPush = new FileWriter(fileName, fileFolder);
+            LegacyFileWriter toPush = new LegacyFileWriter(fileName, fileFolder);
             fileStack.Push(toPush);
             return toPush;
         }
@@ -174,8 +174,8 @@ namespace mc_compiled.MCC
         /// </summary>
         public void PopFile()
         {
-            FileWriter apply = fileStack.Pop();
-            MCFunction final = apply.Finalize();
+            LegacyFileWriter apply = fileStack.Pop();
+            LegacyMCFunction final = apply.Finalize();
             functionsToBeWritten.Add(final);
         }
 
@@ -222,8 +222,8 @@ namespace mc_compiled.MCC
             this.decorate = decorate;
             this.baseFileName = baseFileName;
             projectName = baseFileName;
-            fileStack = new Stack<FileWriter>();
-            fileStack.Push(new FileWriter(baseFileName));
+            fileStack = new Stack<LegacyFileWriter>();
+            fileStack.Push(new LegacyFileWriter(baseFileName));
             macros = new Dictionary<string, Macro>();
 
             ppv = new Dictionary<string, Dynamic>();
@@ -284,10 +284,10 @@ namespace mc_compiled.MCC
         /// Get the compiled files after execution.
         /// </summary>
         /// <returns></returns>
-        public MCFunction[] GetFiles()
+        public LegacyMCFunction[] GetFiles()
         {
             if (functionsToBeWritten == null || functionsToBeWritten.Count < 1)
-                return new MCFunction[0];
+                return new LegacyMCFunction[0];
 
             return functionsToBeWritten.ToArray();
         }

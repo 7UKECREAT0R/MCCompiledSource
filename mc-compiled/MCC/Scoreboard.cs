@@ -65,6 +65,61 @@ namespace mc_compiled.MCC
         public abstract JSONRawTerm[] ToRawText(string accessor, string selector, int index, string prefix = "");
 
         /// <summary>
+        /// this = other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsSet(ScoreboardValue other);
+        /// <summary>
+        /// this += other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsAdd(ScoreboardValue other);
+        /// <summary>
+        /// this -= other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsSub(ScoreboardValue other);
+        /// <summary>
+        /// this *= other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsMul(ScoreboardValue other);
+        /// <summary>
+        /// this /= other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsDiv(ScoreboardValue other);
+        /// <summary>
+        /// this %= other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsMod(ScoreboardValue other);
+        /// <summary>
+        /// Swap this and other.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsSwap(ScoreboardValue other);
+        /// <summary>
+        /// Set this to the smaller of the two.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsMin(ScoreboardValue other);
+        /// <summary>
+        /// Set this to the larger of the two.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract string[] CommandsMax(ScoreboardValue other);
+
+        /// <summary>
         /// Get the maximum name length for this scoreboard value type.
         /// </summary>
         /// <returns></returns>
@@ -341,6 +396,9 @@ namespace mc_compiled.MCC
     /// </summary>
     public class ScoreboardManager
     {
+        private const string TEMP_PREFIX = "_mcc_temp";
+        private int tempIndex;
+
         readonly Dictionary<string, ScoreboardValue> values;
 
         public ScoreboardManager()
@@ -362,6 +420,11 @@ namespace mc_compiled.MCC
             {
                 values[sb.baseName.ToUpper()] = sb;
             }
+        }
+
+        public ScoreboardValue PushTemp()
+        {
+
         }
     }
 }

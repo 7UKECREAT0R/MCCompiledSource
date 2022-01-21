@@ -17,7 +17,7 @@ namespace mc_compiled.Modding
         public string packName = "mcc-default";
         public Manifest manifest = new Manifest("mcc-default", "MCCompiled Default Behavior Pack");
 
-        public MCFunction[] functions;
+        public LegacyMCFunction[] functions;
         public StructureFile[] structures;
 
         public void Write()
@@ -36,7 +36,7 @@ namespace mc_compiled.Modding
             {
                 string functionsLocation = $"{packName}\\functions";
                 Directory.CreateDirectory(functionsLocation);
-                foreach(MCFunction function in functions)
+                foreach(LegacyMCFunction function in functions)
                     function.WriteFile(functionsLocation);
             }
             if(structures != null && structures.Length > 0)

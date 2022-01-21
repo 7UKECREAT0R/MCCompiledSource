@@ -10,7 +10,7 @@ namespace mc_compiled.MCC
     /// <summary>
     /// A .mcfunction file waiting to be written.
     /// </summary>
-    public class MCFunction
+    public class LegacyMCFunction
     {
         public const string EXT = ".mcfunction";
         public string fileName;
@@ -28,7 +28,7 @@ namespace mc_compiled.MCC
             }
         }
 
-        public MCFunction(string fileName, string fileFolder, List<string> lines)
+        public LegacyMCFunction(string fileName, string fileFolder, List<string> lines)
         {
             this.fileName = fileName;
             this.fileFolder = fileFolder;

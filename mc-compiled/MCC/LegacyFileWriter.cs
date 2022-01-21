@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.MCC
 {
-    public class FileWriter
+    public class LegacyFileWriter
     {
         public readonly string fileName;
         public readonly string fileFolder;
         public readonly List<string> lines;
         public readonly StringBuilder addLineBuffer;
 
-        public FileWriter(string name, string folder = null)
+        public LegacyFileWriter(string name, string folder = null)
         {
             fileName = name;
             fileFolder = folder;
@@ -64,9 +64,9 @@ namespace mc_compiled.MCC
         /// Finalize this writer by converting it to an MCFunction.
         /// </summary>
         /// <returns></returns>
-        public MCFunction Finalize()
+        public LegacyMCFunction Finalize()
         {
-            return new MCFunction(fileName, fileFolder, lines);
+            return new LegacyMCFunction(fileName, fileFolder, lines);
         }
     }
 }

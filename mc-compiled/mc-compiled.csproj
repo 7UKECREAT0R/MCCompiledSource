@@ -57,7 +57,7 @@
     <Compile Include="MCC\Compiler\TokensMain.cs" />
     <Compile Include="MCC\Compiler\TokensOperators.cs" />
     <Compile Include="MCC\Compiler\TypePattern.cs" />
-    <Compile Include="MCC\FileWriter.cs" />
+    <Compile Include="MCC\LegacyFileWriter.cs" />
     <Compile Include="MCC\FixedPoint.cs" />
     <Compile Include="MCC\LegacyFunctionDefinition.cs" />
     <Compile Include="MCC\LegacyTokenFeeder.cs" />
@@ -87,7 +87,7 @@
     <Compile Include="MCC\Dynamic.cs" />
     <Compile Include="MCC\LegacyExecutor.cs" />
     <Compile Include="MCC\Macro.cs" />
-    <Compile Include="MCC\MCFunction.cs" />
+    <Compile Include="MCC\LegacyMCFunction.cs" />
     <Compile Include="MCC\Operator.cs" />
     <Compile Include="MCC\Compiler\Legacy\LegacyTokensMC.cs" />
     <Compile Include="NBT\BlockIndicesNBT.cs" />

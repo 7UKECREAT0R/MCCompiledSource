@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
-    /// Executes statements and holds information about the current state.
+    /// The final stage of the compilation process. Runs statements and holds state on 
     /// </summary>
     public class Executor
     {
