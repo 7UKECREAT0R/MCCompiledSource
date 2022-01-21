@@ -63,6 +63,7 @@
     <Compile Include="MCC\LegacyTokenFeeder.cs" />
     <Compile Include="MCC\LegacyValueManager.cs" />
     <Compile Include="MCC\Scoreboard.cs" />
+    <Compile Include="MCC\StructDefinition.cs" />
     <Compile Include="Modding\BehaviorPack.cs" />
     <Compile Include="Modding\Manifest.cs" />
     <Compile Include="Modding\StructureFile.cs" />

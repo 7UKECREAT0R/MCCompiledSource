@@ -21,15 +21,18 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class TokenNumberLiteral : TokenLiteral
     {
-        public TokenNumberLiteral(int lineNumber) : base(lineNumber)
-        {
+        public TokenNumberLiteral(int lineNumber) : base(lineNumber) { }
 
+        public int GetNumberInt()
+        {
+            return (int)Math.Round(GetNumber());
         }
+
         /// <summary>
         /// Get the number stored in this literal.
         /// </summary>
         /// <returns></returns>
-        public abstract float GetNumber();
+        public abstract double GetNumber();
     }
 
     public sealed class TokenStringLiteral : TokenLiteral
@@ -46,18 +49,18 @@ namespace mc_compiled.MCC.Compiler
     }
     public sealed class TokenDecimalLiteral : TokenNumberLiteral
     {
-        public readonly float number;
+        public readonly double number;
         public override string AsString() => number.ToString();
         public TokenDecimalLiteral(float number, int lineNumber) : base(lineNumber)
         {
             this.number = number;
         }
-        public override float GetNumber()
+        public override double GetNumber()
         {
             return number;
         }
 
-        public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
+        public static implicit operator double(TokenDecimalLiteral literal) => literal.number;
     }
     public class TokenIntegerLiteral : TokenNumberLiteral
     {
@@ -67,7 +70,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.number = number;
         }
-        public override float GetNumber()
+        public override double GetNumber()
         {
             return number;
         }
@@ -82,7 +85,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.coordinate = coordinate;
         }
-        public override float GetNumber()
+        public override double GetNumber()
         {
             if (coordinate.isFloat)
                 return coordinate.valuef;

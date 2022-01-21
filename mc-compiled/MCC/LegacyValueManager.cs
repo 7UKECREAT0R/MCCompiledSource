@@ -14,13 +14,13 @@ namespace mc_compiled.MCC
     /// </summary>
     public class LegacyValueManager
     {
-        private readonly StructDefinition[] BUILT_IN_STRUCTS =
+        private readonly LegacyStructDefinition[] BUILT_IN_STRUCTS =
         {
-            new StructDefinition("point", "x", "y"),
-            new StructDefinition("color", "r", "g", "b")
+            new LegacyStructDefinition("point", "x", "y"),
+            new LegacyStructDefinition("color", "r", "g", "b")
         };
 
-        List<StructDefinition> structs;
+        List<LegacyStructDefinition> structs;
         Dictionary<string, LegacyValue> values;
         public int Count
         {
@@ -32,7 +32,7 @@ namespace mc_compiled.MCC
             Count = 0;
             values = new Dictionary<string, LegacyValue>();
 
-            structs = new List<StructDefinition>();
+            structs = new List<LegacyStructDefinition>();
             structs.AddRange(BUILT_IN_STRUCTS);
         }
         /// <summary>
@@ -40,7 +40,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public StructDefinition GetStructForValue(LegacyValue value)
+        public LegacyStructDefinition GetStructForValue(LegacyValue value)
         {
             if (value.type != LegacyValueType.STRUCT)
                 throw new ArgumentException("Value must be a struct instance.");
@@ -114,7 +114,7 @@ namespace mc_compiled.MCC
                 string sub = name.Substring(index + 1);
                 if (values.TryGetValue(main, out LegacyValue output))
                 {
-                    StructDefinition info = GetStructForValue(output);
+                    LegacyStructDefinition info = GetStructForValue(output);
                     return info.fields.Contains(sub);
                 }
                 else return false;
@@ -133,7 +133,7 @@ namespace mc_compiled.MCC
                 string sub = name.Substring(index + 1);
                 if (values.TryGetValue(main, out output))
                 {
-                    StructDefinition info = GetStructForValue(output);
+                    LegacyStructDefinition info = GetStructForValue(output);
                     return info.fields.Contains(sub);
                 }
                 else return false;
@@ -526,7 +526,7 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
                 case LegacyValueType.DECIMAL:
                     return new string[] { $"{name}:w", $"{name}:d" };
                 case LegacyValueType.STRUCT:
-                    StructDefinition info = manager.GetStructForValue(this);
+                    LegacyStructDefinition info = manager.GetStructForValue(this);
                     string[] result = new string[info.internalFields.Length];
                     for (int i = 0; i < result.Length; i++)
                         result[i] = $"{name}:{info.internalFields[i]}";
@@ -554,7 +554,7 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
                         new JSONScore(selector, DecimalPart)
                     };
                 case LegacyValueType.STRUCT:
-                    StructDefinition info = manager.GetStructForValue(this);
+                    LegacyStructDefinition info = manager.GetStructForValue(this);
                     JSONRawTerm[] ret = new JSONRawTerm[(info.fields.Length * 3 - 1) + 2];
                     ret[0] = new JSONText("(");
                     ret[ret.Length - 1] = new JSONText(")");
@@ -585,7 +585,7 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
             get { return name + ":d"; }
         }
     }
-    public struct StructDefinition
+    public struct LegacyStructDefinition
     {
         private static readonly char[] TRANSLATION_KEYS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_".ToCharArray();
         private static readonly int MAX_FIELDS = TRANSLATION_KEYS.Length;
@@ -594,7 +594,7 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
         public string[] fields;
         public char[] internalFields;
 
-        public StructDefinition(string name, params string[] fields)
+        public LegacyStructDefinition(string name, params string[] fields)
         {
             this.name = name;
             fields = fields.Distinct().ToArray();

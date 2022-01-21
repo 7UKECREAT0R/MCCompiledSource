@@ -33,26 +33,19 @@ namespace mc_compiled.Json
     }
     public class JSONScore : JSONRawTerm
     {
-        string selector, objective, forceValue;
-        public JSONScore(string selector, string objective, string forceValue = null)
+        string selector, objective;
+        public JSONScore(string selector, string objective)
         {
             this.selector = selector;
             this.objective = objective;
-            this.forceValue = forceValue;
         }
         public override string GetString()
         {
-            if (forceValue == null)
-                return $@"{{""score"": {{""name"":""{selector}"", ""objective"": ""{objective}""}}}}";
-            else
-                return $@"{{""score"": {{""name"":""{selector}"", ""objective"": ""{objective}"", ""value"": ""{forceValue}""}}}}";
+            return $@"{{""score"": {{""name"":""{selector}"", ""objective"": ""{objective}""}}}}";
         }
         public override string PreviewString()
         {
-            if (forceValue == null)
-                return "[SCORE " + objective + " OF " + selector + ']';
-            else
-                return "[SCORE " + objective + " OF " + selector + ", FORCE: " + forceValue + ']';
+            return "[SCORE " + objective + " OF " + selector + ']';
         }
     }
     public class JSONSelector : JSONRawTerm

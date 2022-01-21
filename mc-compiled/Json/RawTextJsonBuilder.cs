@@ -37,6 +37,7 @@ namespace mc_compiled.Json
             string inner = string.Join(", ", from term in terms select term.GetString());
             return $@"{{""rawtext"":[{inner}]}}";
         }
+
         public void ConsoleInterface()
         {
             while (true)

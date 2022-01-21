@@ -325,6 +325,8 @@ namespace mc_compiled.Commands
             $"scoreboard players operation {target} \"{a}\" {op.String()} {target} \"{b}\"";
         public static string ScoreboardOpRaw(string a, ScoreboardOp op, string b) =>
             $"scoreboard players operation * \"{a}\" {op.String()} @a \"{b}\"";
+        public static string ScoreboardOpSet(string a, string b) =>
+            $"scoreboard players operation * \"{a}\" = @a \"{b}\"";
         public static string ScoreboardOpAdd(string a, string b) =>
             $"scoreboard players operation * \"{a}\" += @a \"{b}\"";
         public static string ScoreboardOpSub(string a, string b) =>
@@ -341,6 +343,8 @@ namespace mc_compiled.Commands
             $"scoreboard players operation * \"{a}\" < @a \"{b}\"";
         public static string ScoreboardOpMax(string a, string b) =>
             $"scoreboard players operation * \"{a}\" > @a \"{b}\"";
+        public static string ScoreboardOpSet(string target, string a, string b) =>
+            $"scoreboard players operation {target} \"{a}\" = {target} \"{b}\"";
         public static string ScoreboardOpAdd(string target, string a, string b) =>
             $"scoreboard players operation {target} \"{a}\" += {target} \"{b}\"";
         public static string ScoreboardOpSub(string target, string a, string b) =>
