@@ -45,7 +45,7 @@ namespace mc_compiled.MCC.Compiler
     /// Represents a token which doesn't have any identifiable tokenization-time category,
     /// but is probably an identifier. Should probably resolve when possible.
     /// </summary>
-    public class TokenIdentifier : Token
+    public class TokenIdentifier : Token, IObjectable
     {
         public readonly string word;
 
@@ -54,6 +54,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.word = word;
         }
+        public object GetObject() => word;
     }
     /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.
@@ -65,7 +66,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.
     /// </summary>
-    public sealed class TokenEnumIdentifier : TokenIdentifier
+    public sealed class TokenEnumIdentifier : TokenIdentifier, IObjectable
     {
         public readonly Enum @enum;
 

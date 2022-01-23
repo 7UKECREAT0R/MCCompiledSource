@@ -19,7 +19,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a generic number literal.
     /// </summary>
-    public abstract class TokenNumberLiteral : TokenLiteral
+    public abstract class TokenNumberLiteral : TokenLiteral, IObjectable
     {
         public TokenNumberLiteral(int lineNumber) : base(lineNumber) { }
 
@@ -33,9 +33,11 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <returns></returns>
         public abstract double GetNumber();
+
+        public abstract object GetObject();
     }
 
-    public sealed class TokenStringLiteral : TokenLiteral
+    public sealed class TokenStringLiteral : TokenLiteral, IObjectable
     {
         public readonly string text;
 
@@ -44,6 +46,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.text = text;
         }
+        public object GetObject() =>  text;
 
         public static implicit operator string(TokenStringLiteral literal) => literal.text;
     }
@@ -55,6 +58,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.number = number;
         }
+        public override object GetObject() => number;
         public override double GetNumber()
         {
             return number;
@@ -70,6 +74,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.number = number;
         }
+        public override object GetObject() => number;
         public override double GetNumber()
         {
             return number;
@@ -92,12 +97,13 @@ namespace mc_compiled.MCC.Compiler
             else
                 return coordinate.valuei;
         }
+        public override object GetObject() => coordinate;
 
         public static implicit operator Coord(TokenCoordinateLiteral literal) => literal.coordinate;
         public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valuei;
         public static implicit operator float(TokenCoordinateLiteral literal) => literal;
     }
-    public sealed class TokenBooleanLiteral : TokenLiteral
+    public sealed class TokenBooleanLiteral : TokenLiteral, IObjectable
     {
         public readonly bool boolean;
         public override string AsString() => boolean.ToString();
@@ -105,6 +111,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.boolean = boolean;
         }
+        public object GetObject() => boolean;
 
         public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
     }

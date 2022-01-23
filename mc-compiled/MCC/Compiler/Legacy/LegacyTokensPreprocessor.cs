@@ -704,7 +704,7 @@ namespace mc_compiled.MCC.Compiler
             if(potentialBlock != null && potentialBlock is LegacyTokenBlock)
             {
                 LegacyTokenBlock block = tokens.Next() as LegacyTokenBlock;
-                Macro macro = new Macro(name, args, block.contents.GetArray());
+                LegacyMacro macro = new LegacyMacro(name, args, block.contents.GetArray());
 
                 if (caller.debug)
                     Console.WriteLine("Defined macro '{0}' with {1} argument(s) and {2} statements inside.",
@@ -715,7 +715,7 @@ namespace mc_compiled.MCC.Compiler
             }
             
             // Macro call case.
-            if(caller.macros.TryGetValue(name.Trim().ToUpper(), out Macro find))
+            if(caller.macros.TryGetValue(name.Trim().ToUpper(), out LegacyMacro find))
             {
                 if (args.Length < find.args.Length)
                     throw new TokenException(this, $"Not enough arguments specified for macro {name}. " +

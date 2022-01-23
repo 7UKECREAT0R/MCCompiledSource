@@ -542,6 +542,7 @@ namespace mc_compiled.Commands
     {
         force, move, normal
     }
+    [EnumParsable(typeof(DifficultyMode))]
     public enum DifficultyMode : int
     {
         peaceful = 0,
@@ -549,10 +550,12 @@ namespace mc_compiled.Commands
         normal = 2,
         hard = 3
     }
+    [EnumParsable(typeof(OldObjectHandling))]
     public enum OldObjectHandling
     {
         destroy, keep, hollow, outline, replace
     }
+    [EnumParsable(typeof(PotionEffect))]
     public enum PotionEffect : int
     {
         speed = 1,
@@ -586,6 +589,7 @@ namespace mc_compiled.Commands
         hero_of_the_village = 29,
         darkness = -1
     }
+    [EnumParsable(typeof(Enchantment))]
     public enum Enchantment
     {
         protection,
@@ -624,12 +628,14 @@ namespace mc_compiled.Commands
         piercing,
         quick_charge
     }
+    [EnumParsable(typeof(GameMode))]
     public enum GameMode : int
     {
         survival = 0,
         creative = 1,
         adventure = 2
     }
+    [EnumParsable(typeof(GameRule))]
     public enum GameRule
     {
         commandBlocksEnabled,
@@ -662,6 +668,7 @@ namespace mc_compiled.Commands
         tntExplodes,
         showTags
     }
+    [EnumParsable(typeof(StructureType))]
     public enum StructureType
     {
         bastionremnant,
@@ -679,6 +686,7 @@ namespace mc_compiled.Commands
         temple,
         village
     }
+    [EnumParsable(typeof(MobEventType))]
     public enum MobEventType
     {
         pillager_patrols_event,
@@ -689,6 +697,7 @@ namespace mc_compiled.Commands
         play_once,
         loop
     }
+    [EnumParsable(typeof(EquipmentSlotType))]
     public enum EquipmentSlotType
     {
         slot_armor_head,
@@ -751,6 +760,7 @@ namespace mc_compiled.Commands
         gametime,
         day
     }
+    [EnumParsable(typeof(TimeSpec))]
     public enum TimeSpec : int
     {
         day = 1000,

@@ -16,7 +16,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="executor"></param>
         /// <param name="tokens"></param>
-        public delegate void DirectiveImpl(Executor executor, Token[] tokens);
+        public delegate void DirectiveImpl(Executor executor, Statement tokens);
 
 
         private static short nextIndex = 0;
@@ -54,30 +54,40 @@ namespace mc_compiled.MCC.Compiler
         public static Directive[] REGISTRY =
         {
             new Directive(DirectiveImplementations._var, "$var", "Set Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
             new Directive(DirectiveImplementations._inc, "$inc", "Increment Preprocessor Variable",
                 new TypePattern(typeof(TokenIdentifier))),
             new Directive(DirectiveImplementations._dec, "$dec", "Decrement Preprocessor Variable",
                 new TypePattern(typeof(TokenIdentifier))),
             new Directive(DirectiveImplementations._add, "$add", "Add to Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
             new Directive(DirectiveImplementations._sub, "$sub", "Subtract from Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
             new Directive(DirectiveImplementations._mul, "$mul", "Multiply with Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
             new Directive(DirectiveImplementations._div, "$div", "Divide Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
             new Directive(DirectiveImplementations._mod, "$mod", "Modulo Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
-            new Directive(DirectiveImplementations._if, "$if", "Preprocessor If"),
+                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
+            new Directive(DirectiveImplementations._swap, "$swap", "Swap Preprocessor Variables",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._if, "$if", "Preprocessor If",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenCompare), typeof(IObjectable))),
             new Directive(DirectiveImplementations._else, "$else", "Preprocessor Else"),
-            new Directive(DirectiveImplementations._repeat, "$repeat", "Preprocessor Repeat"),
-            new Directive(DirectiveImplementations._log, "$log", "Preprocessor Log to Console"),
-            new Directive(DirectiveImplementations._macro, "$macro", "Define/Call Preprocessor Macro"),
-            new Directive(DirectiveImplementations._include, "$include", "Include other File"),
-            new Directive(DirectiveImplementations._strfriendly, "$strfriendly", "Preprocessor String Friendly Name"),
-            new Directive(DirectiveImplementations._strupper, "$strupper", "Preprocessor String Uppercase"),
-            new Directive(DirectiveImplementations._strlower, "$strlower", "Preprocessor String Lowercase"),
+            new Directive(DirectiveImplementations._repeat, "$repeat", "Preprocessor Repeat",
+                new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifier>()),
+            new Directive(DirectiveImplementations._log, "$log", "Preprocessor Log to Console",
+                new TypePattern(typeof(TokenStringLiteral))),
+            new Directive(DirectiveImplementations._macro, "$macro", "Define/Call Preprocessor Macro",
+                new TypePattern(typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._include, "$include", "Include other File",
+                new TypePattern(typeof(TokenStringLiteral))),
+            new Directive(DirectiveImplementations._strfriendly, "$strfriendly", "Preprocessor String Friendly Name",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._strupper, "$strupper", "Preprocessor String Uppercase",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._strlower, "$strlower", "Preprocessor String Lowercase",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
 
             new Directive("mc", "Minecraft Command"),
             new Directive("select", "Select Target"),

@@ -50,10 +50,13 @@
     <Compile Include="Commands\CommandEnumParser.cs" />
     <Compile Include="Commands\CommandLimits.cs" />
     <Compile Include="Commands\Command.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="MCC\Compiler\CommandFile.cs" />
     <Compile Include="MCC\Compiler\DirectiveImplementations.cs" />
     <Compile Include="MCC\Compiler\Directives.cs" />
     <Compile Include="MCC\Compiler\Executor.cs" />
+    <Compile Include="MCC\Compiler\Statements.cs" />
+    <Compile Include="MCC\Macro.cs" />
     <Compile Include="Modding\IBehaviorOutput.cs" />
     <Compile Include="MCC\Compiler\Statement.cs" />
     <Compile Include="MCC\Compiler\Token.cs" />
@@ -90,7 +93,7 @@
     <Compile Include="MCC\Definitions.cs" />
     <Compile Include="MCC\LegacyDynamic.cs" />
     <Compile Include="MCC\LegacyExecutor.cs" />
-    <Compile Include="MCC\Macro.cs" />
+    <Compile Include="MCC\LegacyMacro.cs" />
     <Compile Include="MCC\LegacyMCFunction.cs" />
     <Compile Include="MCC\Operator.cs" />
     <Compile Include="MCC\Compiler\Legacy\LegacyTokensMC.cs" />
@@ -127,6 +130,9 @@
     <Compile Include="MCC\Compiler\Legacy\LegacyTokensPreprocessor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.editorconfig">
+      <Link>.editorconfig</Link>
+    </None>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>

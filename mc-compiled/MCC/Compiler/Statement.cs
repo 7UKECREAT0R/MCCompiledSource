@@ -21,9 +21,15 @@ namespace mc_compiled.MCC.Compiler
         Token[] tokens;
         int currentToken;
 
+        public bool HasNext
+        {
+            get => currentToken < tokens.Length;
+        }
         public Token NextToken() => tokens[currentToken++];
         public Token PeekToken() => tokens[currentToken];
-        public bool PeekIs<T>() => tokens[currentToken] is T;
+        public T NextToken<T>() where T: class => tokens[currentToken++] as T;
+        public T PeekToken<T>() where T: class => tokens[currentToken] as T;
+        public bool NextIs<T>() => tokens[currentToken] is T;
 
         protected abstract TypePattern[] GetValidPatterns();
         /// <summary>
@@ -51,6 +57,18 @@ namespace mc_compiled.MCC.Compiler
                     return true;
                 return patterns.All(tp => tp.Check(tokens));
             }
+        }
+    }
+
+    /// <summary>
+    /// Indicates something has blown up while executing a statement.
+    /// </summary>
+    public class StatementException : Exception
+    {
+        public readonly Statement statement;
+        public StatementException(Statement statement, string message) : base(message)
+        {
+            this.statement = statement;
         }
     }
 }

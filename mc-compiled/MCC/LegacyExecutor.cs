@@ -82,7 +82,7 @@ namespace mc_compiled.MCC
         public readonly bool debug;
         public readonly bool decorate;
         public readonly Dictionary<string, LegacyDynamic> ppv;
-        public readonly Dictionary<string, Macro> macros;
+        public readonly Dictionary<string, LegacyMacro> macros;
         public readonly LegacyTokenFeeder tokens;
 
         public LegacyValueManager values;
@@ -212,7 +212,7 @@ namespace mc_compiled.MCC
             projectName = baseFileName;
             fileStack = new Stack<LegacyFileWriter>();
             fileStack.Push(new LegacyFileWriter(baseFileName));
-            macros = new Dictionary<string, Macro>();
+            macros = new Dictionary<string, LegacyMacro>();
 
             ppv = new Dictionary<string, LegacyDynamic>();
             selection = Selector.Core.s;

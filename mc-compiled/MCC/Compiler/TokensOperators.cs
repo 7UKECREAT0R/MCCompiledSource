@@ -54,10 +54,22 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a generic comparison operator.
     /// </summary>
-    public class TokenCompare : TokenOperator
+    public abstract class TokenCompare : TokenOperator
     {
+        public enum Type
+        {
+            EQUAL,
+            NOT_EQUAL,
+            LESS_THAN,
+            LESS_OR_EQUAL,
+            GREATER_THAN,
+            GREATER_OR_EQUAL
+        }
+
         public override string AsString() => "<? compare>";
         public TokenCompare(int lineNumber) : base(lineNumber) { }
+
+        public abstract Type GetCompareType();
     }
 
     /// <summary>
@@ -147,30 +159,42 @@ namespace mc_compiled.MCC.Compiler
     {
         public override string AsString() => "==";
         public TokenEquality(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetCompareType() => Type.EQUAL;
     }
     public sealed class TokenInequality : TokenCompare
     {
         public override string AsString() => "!=";
         public TokenInequality(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetCompareType() => Type.NOT_EQUAL;
     }
     public sealed class TokenLessThan : TokenCompare
     {
         public override string AsString() => "<";
         public TokenLessThan(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetCompareType() => Type.LESS_THAN;
     }
     public sealed class TokenGreaterThan : TokenCompare
     {
         public override string AsString() => ">";
         public TokenGreaterThan(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetCompareType() => Type.GREATER_THAN;
     }
     public sealed class TokenLessThanEqual : TokenCompare
     {
         public override string AsString() => "<=";
         public TokenLessThanEqual(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetCompareType() => Type.LESS_OR_EQUAL;
     }
     public sealed class TokenGreaterThanEqual : TokenCompare
     {
         public override string AsString() => ">=";
         public TokenGreaterThanEqual(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetCompareType() => Type.GREATER_OR_EQUAL;
     }
 }

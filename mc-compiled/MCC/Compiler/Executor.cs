@@ -12,12 +12,41 @@ namespace mc_compiled.MCC.Compiler
     public class Executor
     {
         public readonly string projectName;
-        public readonly Dictionary<string, dynamic> ppv;
 
-        readonly Statement[] statements;
+        Statement[] statements;
+        int readIndex = 0;
+
+        readonly List<Macro> macros;
+        readonly bool[] lastPreprocessorCompare;
+        readonly Dictionary<string, dynamic> ppv;
         readonly Stack<CommandFile> currentFiles;
         readonly List<CommandFile> filesToWrite;
         readonly StringBuilder prependBuffer;
+
+        public bool HasNext
+        {
+            get => readIndex < statements.Length;
+        }
+        public Statement Peek() => statements[readIndex];
+        public Statement Next() => statements[readIndex++];
+        public T Next<T>() where T: Statement => statements[readIndex++] as T;
+        public T Peek<T>() where T : Statement => statements[readIndex] as T;
+        public bool NextIs<T>() where T: Statement => statements[readIndex] is T;
+        /// <summary>
+        /// Return an array of the next x statements.
+        /// </summary>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public Statement[] Peek(int amount)
+        {
+            Statement[] ret = new Statement[amount];
+
+            int write = 0;
+            for(int i = readIndex; i < statements.Length; i++)
+                ret[write++] = statements[i];
+
+            return ret;
+        }
 
         /// <summary>
         /// Pop the prepend buffer's contents and return it.
@@ -35,19 +64,70 @@ namespace mc_compiled.MCC.Compiler
             this.statements = statements;
             this.projectName = projectName;
 
+            macros = new List<Macro>();
+            lastPreprocessorCompare = new bool[100];
             currentFiles = new Stack<CommandFile>();
             filesToWrite = new List<CommandFile>();
             prependBuffer = new StringBuilder();
 
             currentFiles.Push(new CommandFile(projectName));
         }
+        /// <summary>
+        /// Run this executor start to finish.
+        /// </summary>
         public void Execute()
         {
-            for(int i = 0; i < statements.Length; i++)
+            readIndex = 0;
+
+            while(HasNext)
             {
-                Statement statement = statements[i];
+                Statement statement = Next();
                 statement.Run0(this);
             }
+        }
+        /// <summary>
+        /// Temporarily run another subsection of statements then resume this executor.
+        /// </summary>
+        public void ExecuteSubsection(Statement[] section)
+        {
+            Statement[] restore0 = statements;
+            int restore1 = readIndex;
+
+            statements = section;
+            readIndex = 0;
+            while (HasNext)
+            {
+                Statement statement = Next();
+                statement.Run0(this);
+            }
+
+            // now its done, so restore state
+            statements = restore0;
+            readIndex = restore1;
+        }
+
+        /// <summary>
+        /// Set the result of the last preprocessor-if comparison in this scope.
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetLastIfResult(bool value) => lastPreprocessorCompare[ScopeLevel] = value;
+        /// <summary>
+        /// Get the result of the last preprocessor-if comparison in this scope.
+        /// </summary>
+        /// <returns></returns>
+        public bool GetLastIfResult() => lastPreprocessorCompare[ScopeLevel];
+
+        /// <summary>
+        /// Add a macro to be looked up later.
+        /// </summary>
+        /// <param name="macro"></param>
+        public void AddMacro(Macro macro) => macros.Add(macro);
+        public Macro? LookupMacro(string name)
+        {
+            foreach (Macro macro in macros)
+                if (macro.Matches(name))
+                    return macro;
+            return null;
         }
 
         /// <summary>
