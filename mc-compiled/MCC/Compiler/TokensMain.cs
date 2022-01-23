@@ -42,15 +42,15 @@ namespace mc_compiled.MCC.Compiler
     }
 
     /// <summary>
-    /// Represents a token which doesn't have any identifiable tokenization-time category.
-    /// This shouldn't be ignored, since it could be a PPV or variable name, it just needs to be resolved at compile time.
+    /// Represents a token which doesn't have any identifiable tokenization-time category,
+    /// but is probably an identifier. Should probably resolve when possible.
     /// </summary>
-    public class TokenUnresolved : Token
+    public class TokenIdentifier : Token
     {
         public readonly string word;
 
         public override string AsString() => word;
-        public TokenUnresolved(string word, int lineNumber) : base(lineNumber)
+        public TokenIdentifier(string word, int lineNumber) : base(lineNumber)
         {
             this.word = word;
         }
@@ -58,8 +58,28 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.
     /// </summary>
-    public sealed class TokenUnresolvedPPV : TokenUnresolved
+    public sealed class TokenUnresolvedPPV : TokenIdentifier
     {
         public TokenUnresolvedPPV(string word, int lineNumber) : base(word, lineNumber) { }
+    }
+    /// <summary>
+    /// Represents a likely preprocessor variable that needs to be resolved.
+    /// </summary>
+    public sealed class TokenEnumIdentifier : TokenIdentifier
+    {
+        public readonly Enum @enum;
+
+        public TokenEnumIdentifier(string word, Enum @enum, int lineNumber) : base(word, lineNumber)
+        {
+            this.@enum = @enum;
+        }
+    }
+
+    /// <summary>
+    /// Allows this object to return an object that can go into a PPV.
+    /// </summary>
+    public interface IObjectable
+    {
+        object GetObject();
     }
 }

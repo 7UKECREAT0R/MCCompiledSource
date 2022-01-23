@@ -322,7 +322,7 @@ namespace mc_compiled.MCC.Compiler
         bool bIsConstant; // Decides if you should use valueB or constantB
         bool bIsPPV;      // Decides if should still evaluate valueB
         string valueB;
-        Dynamic constantB;
+        LegacyDynamic constantB;
 
         public LegacyTokenVALUE(string text)
         {
@@ -410,9 +410,9 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 if ((bIsConstant = long.TryParse(bString, out long lparsed)))
-                    constantB = new Dynamic(lparsed);
+                    constantB = new LegacyDynamic(lparsed);
                 else if (bIsConstant = double.TryParse(bString, out double dparsed))
-                    constantB = new Dynamic(dparsed);
+                    constantB = new LegacyDynamic(dparsed);
                 else
                     valueB = bString;
             }

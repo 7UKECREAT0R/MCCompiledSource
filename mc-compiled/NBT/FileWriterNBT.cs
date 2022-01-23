@@ -63,6 +63,15 @@ namespace mc_compiled.NBT
                 }
             }
         }
+        public static byte[] GetBytes(NBTNode[] nodes)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(stream))
+            {
+                WriteToExisting(nodes, writer);
+                return stream.ToArray();
+            }
+        }
 
         /*public static FileWriterNBT ConstructFloatingItem()
         {

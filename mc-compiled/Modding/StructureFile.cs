@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Modding
 {
-    public struct StructureFile
+    public struct StructureFile : IBehaviorOutput
     {
         public string name;
         public StructureNBT structure;
@@ -17,5 +17,12 @@ namespace mc_compiled.Modding
             this.name = name;
             this.structure = structure;
         }
+
+        public string GetOutputDirectory() =>
+            "structures\\";
+        public string GetOutputFile() =>
+            $"{name}.mcstructure";
+        public byte[] GetOutputData() =>
+            FileWriterNBT.GetBytes(structure.ToNBT());
     }
 }

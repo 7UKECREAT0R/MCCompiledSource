@@ -159,7 +159,7 @@ namespace mc_compiled.MCC
             private set { values[valueName] = value; }
         }
 
-        public static string[] ExpressionAddConstant(LegacyValue source, string selector, Dynamic value)
+        public static string[] ExpressionAddConstant(LegacyValue source, string selector, LegacyDynamic value)
         {
             if (source.type == LegacyValueType.REGULAR)
                 return new[] { $"scoreboard players add {selector} {source} {value.data.i}" };
@@ -186,7 +186,7 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Le
             }
             else return null;
         }
-        public static string[] ExpressionSubtractConstant(LegacyValue source, string selector, Dynamic value)
+        public static string[] ExpressionSubtractConstant(LegacyValue source, string selector, LegacyDynamic value)
         {
             if (source.type == LegacyValueType.REGULAR)
                 return new[] { $"scoreboard players add {selector} {source} {value.data.i * -1}" };
@@ -220,7 +220,7 @@ $"scoreboard players add {selector} {source.DecimalPart} -{value.GetDecimalPart(
             }
             else return null;
         }
-        public static string[] ExpressionMultiplyConstant(LegacyValue source, string selector, Dynamic value)
+        public static string[] ExpressionMultiplyConstant(LegacyValue source, string selector, LegacyDynamic value)
         {
             if (source.type == LegacyValueType.REGULAR)
                 return new[]
@@ -253,7 +253,7 @@ $"scoreboard players operation {selector} {source.DecimalPart} -= {selector} {Le
             }
             else return null;
         }
-        public static string[] ExpressionDivideConstant(LegacyValue source, string selector, Dynamic value)
+        public static string[] ExpressionDivideConstant(LegacyValue source, string selector, LegacyDynamic value)
         {
             if (source.type == LegacyValueType.REGULAR)
             {
@@ -271,7 +271,7 @@ $"scoreboard players operation {selector} {source} /= {selector} {LegacyExecutor
             }
             else return null;
         }
-        public static string[] ExpressionModuloConstant(LegacyValue source, string selector, Dynamic value)
+        public static string[] ExpressionModuloConstant(LegacyValue source, string selector, LegacyDynamic value)
         {
             if (source.type == LegacyValueType.REGULAR)
             {
@@ -289,7 +289,7 @@ $"scoreboard players operation {selector} {source} %= {selector} {LegacyExecutor
             }
             else return null;
         }
-        public static string[] ExpressionSetConstant(LegacyValue source, string selector, Dynamic value)
+        public static string[] ExpressionSetConstant(LegacyValue source, string selector, LegacyDynamic value)
         {
             if (source.type == LegacyValueType.REGULAR)
             {
@@ -491,15 +491,15 @@ $"scoreboard players set {selector} {source.DecimalPart} 0",
             this.information = information;
             this.type = type;
         }
-        public LegacyValue(string name, Dynamic copyFrom)
+        public LegacyValue(string name, LegacyDynamic copyFrom)
         {
-            if (copyFrom.type == Dynamic.Type.STRING)
+            if (copyFrom.type == LegacyDynamic.Type.STRING)
             {
                 this.name = copyFrom.data.s;
                 information = 0;
                 type = LegacyValueType.REGULAR;
             }
-            else if (copyFrom.type == Dynamic.Type.DECIMAL)
+            else if (copyFrom.type == LegacyDynamic.Type.DECIMAL)
             {
                 this.name = name;
                 information = copyFrom.data.d.GetPrecision();

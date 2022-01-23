@@ -86,7 +86,7 @@ namespace mc_compiled.MCC.Compiler
     public class LegacyTokenPPV : LegacyToken
     {
         public string name;
-        public Dynamic value;
+        public LegacyDynamic value;
 
         public LegacyTokenPPV(string expression)
         {
@@ -95,11 +95,11 @@ namespace mc_compiled.MCC.Compiler
 
             int index = expression.IndexOf(' ');
             name = expression.Substring(0, index);
-            value = Dynamic.Parse(expression.Substring(index + 1));
+            value = LegacyDynamic.Parse(expression.Substring(index + 1));
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (value.type == Dynamic.Type.STRING && caller.TryGetPPV(value.data.s, out Dynamic source))
+            if (value.type == LegacyDynamic.Type.STRING && caller.TryGetPPV(value.data.s, out LegacyDynamic source))
                 caller.ppv[name] = source;
             else
                 caller.ppv[name] = value;
@@ -121,7 +121,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if(caller.TryGetPPV(varName, out Dynamic value))
+            if(caller.TryGetPPV(varName, out LegacyDynamic value))
             {
                 value++;
                 caller.ppv[varName] = value;
@@ -148,7 +148,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out LegacyDynamic value))
             {
                 value--;
                 caller.ppv[varName] = value;
@@ -169,7 +169,7 @@ namespace mc_compiled.MCC.Compiler
         public string varName;
 
         public bool usePPV = false;
-        public Dynamic constant;
+        public LegacyDynamic constant;
         public string ppv;
 
         public LegacyTokenPPADD(string expression)
@@ -179,9 +179,9 @@ namespace mc_compiled.MCC.Compiler
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
-            constant = Dynamic.Parse(expression.Substring(index + 1));
+            constant = LegacyDynamic.Parse(expression.Substring(index + 1));
 
-            if (constant.type == Dynamic.Type.STRING)
+            if (constant.type == LegacyDynamic.Type.STRING)
             {
                 ppv = constant.data.s;
                 usePPV = true;
@@ -189,10 +189,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out LegacyDynamic value))
             {
-                Dynamic constant = this.constant;
-                if(usePPV && caller.TryGetPPV(ppv, out Dynamic other))
+                LegacyDynamic constant = this.constant;
+                if(usePPV && caller.TryGetPPV(ppv, out LegacyDynamic other))
                     constant = other;
 
                 value += constant;
@@ -215,7 +215,7 @@ namespace mc_compiled.MCC.Compiler
         public string varName;
 
         public bool usePPV = false;
-        public Dynamic constant;
+        public LegacyDynamic constant;
         public string ppv;
 
         public LegacyTokenPPSUB(string expression)
@@ -225,9 +225,9 @@ namespace mc_compiled.MCC.Compiler
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
-            constant = Dynamic.Parse(expression.Substring(index + 1));
+            constant = LegacyDynamic.Parse(expression.Substring(index + 1));
 
-            if (constant.type == Dynamic.Type.STRING)
+            if (constant.type == LegacyDynamic.Type.STRING)
             {
                 ppv = constant.data.s;
                 usePPV = true;
@@ -235,10 +235,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out LegacyDynamic value))
             {
-                Dynamic constant = this.constant;
-                if (usePPV && caller.TryGetPPV(ppv, out Dynamic other))
+                LegacyDynamic constant = this.constant;
+                if (usePPV && caller.TryGetPPV(ppv, out LegacyDynamic other))
                     constant = other;
 
                 value -= constant;
@@ -261,7 +261,7 @@ namespace mc_compiled.MCC.Compiler
         public string varName;
 
         public bool usePPV = false;
-        public Dynamic constant;
+        public LegacyDynamic constant;
         public string ppv;
 
         public LegacyTokenPPMUL(string expression)
@@ -271,9 +271,9 @@ namespace mc_compiled.MCC.Compiler
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
-            constant = Dynamic.Parse(expression.Substring(index + 1));
+            constant = LegacyDynamic.Parse(expression.Substring(index + 1));
 
-            if (constant.type == Dynamic.Type.STRING)
+            if (constant.type == LegacyDynamic.Type.STRING)
             {
                 ppv = constant.data.s;
                 usePPV = true;
@@ -281,10 +281,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out LegacyDynamic value))
             {
-                Dynamic constant = this.constant;
-                if (usePPV && caller.TryGetPPV(ppv, out Dynamic other))
+                LegacyDynamic constant = this.constant;
+                if (usePPV && caller.TryGetPPV(ppv, out LegacyDynamic other))
                     constant = other;
 
                 value *= constant;
@@ -307,7 +307,7 @@ namespace mc_compiled.MCC.Compiler
         public string varName;
 
         public bool usePPV = false;
-        public Dynamic constant;
+        public LegacyDynamic constant;
         public string ppv;
 
         public LegacyTokenPPDIV(string expression)
@@ -317,9 +317,9 @@ namespace mc_compiled.MCC.Compiler
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
-            constant = Dynamic.Parse(expression.Substring(index + 1));
+            constant = LegacyDynamic.Parse(expression.Substring(index + 1));
 
-            if (constant.type == Dynamic.Type.STRING)
+            if (constant.type == LegacyDynamic.Type.STRING)
             {
                 ppv = constant.data.s;
                 usePPV = true;
@@ -327,10 +327,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out LegacyDynamic value))
             {
-                Dynamic constant = this.constant;
-                if (usePPV && caller.TryGetPPV(ppv, out Dynamic other))
+                LegacyDynamic constant = this.constant;
+                if (usePPV && caller.TryGetPPV(ppv, out LegacyDynamic other))
                     constant = other;
 
                 value /= constant;
@@ -353,7 +353,7 @@ namespace mc_compiled.MCC.Compiler
         public string varName;
 
         public bool usePPV = false;
-        public Dynamic constant;
+        public LegacyDynamic constant;
         public string ppv;
 
         public LegacyTokenPPMOD(string expression)
@@ -363,9 +363,9 @@ namespace mc_compiled.MCC.Compiler
 
             int index = expression.IndexOf(' ');
             varName = expression.Substring(0, index);
-            constant = Dynamic.Parse(expression.Substring(index + 1));
+            constant = LegacyDynamic.Parse(expression.Substring(index + 1));
 
-            if (constant.type == Dynamic.Type.STRING)
+            if (constant.type == LegacyDynamic.Type.STRING)
             {
                 ppv = constant.data.s;
                 usePPV = true;
@@ -373,11 +373,11 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(varName, out Dynamic value))
+            if (caller.TryGetPPV(varName, out LegacyDynamic value))
             {
-                Dynamic temp = constant;
-                if (temp.type == Dynamic.Type.STRING &&
-                caller.TryGetPPV(temp.data.s, out Dynamic other))
+                LegacyDynamic temp = constant;
+                if (temp.type == LegacyDynamic.Type.STRING &&
+                caller.TryGetPPV(temp.data.s, out LegacyDynamic other))
                     temp = other;
 
                 value %= temp;
@@ -397,7 +397,7 @@ namespace mc_compiled.MCC.Compiler
     }
     public class LegacyTokenPPIF : LegacyToken
     {
-        public Dynamic constantA, constantB;
+        public LegacyDynamic constantA, constantB;
         public Operator comparison;
 
         public LegacyTokenPPIF(string expression)
@@ -410,9 +410,9 @@ namespace mc_compiled.MCC.Compiler
             if(parts.Length < 3)
                 throw new TokenException(this, "Incomplete PPIF statement.");
 
-            constantA = Dynamic.Parse(parts[0]);
+            constantA = LegacyDynamic.Parse(parts[0]);
             comparison = Operator.Parse(parts[1]);
-            constantB = Dynamic.Parse(parts[2]);
+            constantB = LegacyDynamic.Parse(parts[2]);
 
             if(comparison == null)
                 throw new TokenException(this, $"Invalid comparison operator \"{parts[1]}\"");
@@ -424,15 +424,15 @@ namespace mc_compiled.MCC.Compiler
             {
                 LegacyTokenBlock runBlock = potential as LegacyTokenBlock;
                 
-                Dynamic a = constantA;
-                Dynamic b = constantB;
+                LegacyDynamic a = constantA;
+                LegacyDynamic b = constantB;
 
-                if (a.type == Dynamic.Type.STRING &&
-                caller.TryGetPPV(a.data.s, out Dynamic aAlt))
+                if (a.type == LegacyDynamic.Type.STRING &&
+                caller.TryGetPPV(a.data.s, out LegacyDynamic aAlt))
                     a = aAlt;
 
-                if (b.type == Dynamic.Type.STRING &&
-                caller.TryGetPPV(b.data.s, out Dynamic bAlt))
+                if (b.type == LegacyDynamic.Type.STRING &&
+                caller.TryGetPPV(b.data.s, out LegacyDynamic bAlt))
                     b = bAlt;
 
                 if (comparison.Compare(a, b))
@@ -491,9 +491,9 @@ namespace mc_compiled.MCC.Compiler
         {
             int count = 0;
 
-            if (caller.TryGetPPV(amount, out Dynamic value))
+            if (caller.TryGetPPV(amount, out LegacyDynamic value))
             {
-                if (value.type == Dynamic.Type.STRING)
+                if (value.type == LegacyDynamic.Type.STRING)
                     throw new TokenException(this, $"PPREP value cannot be a string. It must be a whole number. Variable \"{amount}\" with value {value.data.s}");
                 count = (int)value.data.i;
             }
@@ -632,14 +632,14 @@ namespace mc_compiled.MCC.Compiler
                 string selector = "@" + caller.SelectionReference;
                 string sourceValue = function.args[i];
                 string inputValue = caller.ReplacePPV(args[i]);
-                Dynamic inputConstant = Dynamic.Parse(inputValue);
+                LegacyDynamic inputConstant = LegacyDynamic.Parse(inputValue);
 
                 // Define the target scoreboard(s) if they haven't already.
                 LegacyTokenDEFINE init = new LegacyTokenDEFINE(sourceValue);
                 init.Execute(caller, tokens);
 
                 // Check the input type to decide how to pass in this argument.
-                if (inputConstant.type == Dynamic.Type.STRING)
+                if (inputConstant.type == LegacyDynamic.Type.STRING)
                 {
                     // This is a value instead.
                     if (!caller.values.TryGetValue(inputValue, out LegacyValue value))
@@ -722,10 +722,10 @@ namespace mc_compiled.MCC.Compiler
                         $"Needs {find.args.Length} but got {args.Length}");
 
                 // Save previous definitions from being overwritten in a macro.
-                Dictionary<string, Dynamic> existedBefore = new Dictionary<string, Dynamic>();
+                Dictionary<string, LegacyDynamic> existedBefore = new Dictionary<string, LegacyDynamic>();
                 List<string> deleteVars = new List<string>();
                 foreach (string overwrite in find.args)
-                    if (caller.TryGetPPV(overwrite, out Dynamic add))
+                    if (caller.TryGetPPV(overwrite, out LegacyDynamic add))
                         existedBefore[overwrite] = add;
                     else
                         deleteVars.Add(overwrite);
@@ -733,9 +733,9 @@ namespace mc_compiled.MCC.Compiler
                 for (int i = 0; i < find.args.Length; i++)
                 {
                     string argName = find.args[i];
-                    Dynamic value = Dynamic.Parse(args[i]);
+                    LegacyDynamic value = LegacyDynamic.Parse(args[i]);
 
-                    if (value.type == Dynamic.Type.STRING && caller.TryGetPPV(value.data.s, out Dynamic otherValue))
+                    if (value.type == LegacyDynamic.Type.STRING && caller.TryGetPPV(value.data.s, out LegacyDynamic otherValue))
                         value = otherValue;
 
                     caller.ppv[argName] = value;
@@ -805,9 +805,9 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if(caller.TryGetPPV(variable, out Dynamic value))
+            if(caller.TryGetPPV(variable, out LegacyDynamic value))
             {
-                if (value.type != Dynamic.Type.STRING)
+                if (value.type != LegacyDynamic.Type.STRING)
                     throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
                 string str = value.data.s;
                 string[] parts = str.Split('_', '-', ' ');
@@ -842,9 +842,9 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(variable, out Dynamic value))
+            if (caller.TryGetPPV(variable, out LegacyDynamic value))
             {
-                if (value.type != Dynamic.Type.STRING)
+                if (value.type != LegacyDynamic.Type.STRING)
                     throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
                 string str = value.data.s;
                 value.data.s = str.ToUpper();
@@ -871,9 +871,9 @@ namespace mc_compiled.MCC.Compiler
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
-            if (caller.TryGetPPV(variable, out Dynamic value))
+            if (caller.TryGetPPV(variable, out LegacyDynamic value))
             {
-                if (value.type != Dynamic.Type.STRING)
+                if (value.type != LegacyDynamic.Type.STRING)
                     throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
                 string str = value.data.s;
                 value.data.s = str.ToLower();

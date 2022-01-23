@@ -400,10 +400,12 @@ namespace mc_compiled.MCC
         private int tempIndex;
 
         readonly Dictionary<string, ScoreboardValue> values;
+        readonly Executor executor;
 
-        public ScoreboardManager()
+        public ScoreboardManager(Executor executor)
         {
             values = new Dictionary<string, ScoreboardValue>();
+            this.executor = executor;
         }
 
         public ScoreboardValue this[string name]

@@ -47,10 +47,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\CommandEnumParser.cs" />
     <Compile Include="Commands\CommandLimits.cs" />
     <Compile Include="Commands\Command.cs" />
+    <Compile Include="MCC\Compiler\CommandFile.cs" />
+    <Compile Include="MCC\Compiler\DirectiveImplementations.cs" />
     <Compile Include="MCC\Compiler\Directives.cs" />
     <Compile Include="MCC\Compiler\Executor.cs" />
+    <Compile Include="Modding\IBehaviorOutput.cs" />
     <Compile Include="MCC\Compiler\Statement.cs" />
     <Compile Include="MCC\Compiler\Token.cs" />
     <Compile Include="MCC\Compiler\TokensLiterals.cs" />
@@ -84,7 +88,7 @@
     <Compile Include="Json\RawTextJsonTerms.cs" />
     <Compile Include="MCC\Compiler\Tokenizer.cs" />
     <Compile Include="MCC\Definitions.cs" />
-    <Compile Include="MCC\Dynamic.cs" />
+    <Compile Include="MCC\LegacyDynamic.cs" />
     <Compile Include="MCC\LegacyExecutor.cs" />
     <Compile Include="MCC\Macro.cs" />
     <Compile Include="MCC\LegacyMCFunction.cs" />

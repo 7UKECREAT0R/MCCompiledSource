@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.MCC
 {
-    public struct Dynamic
+    public struct LegacyDynamic
     {
         /// <summary>
         /// Base type of the variable data.
@@ -15,14 +15,6 @@ namespace mc_compiled.MCC
         public enum Type
         {
             INTEGER, DECIMAL, STRING
-        }
-        /// <summary>
-        /// The alternate, more specific type of this variable.
-        /// </summary>
-        public enum AltType
-        {
-            NONE,           // altdata:                         | Regular Variable
-            VECTOR,         // altdata:                         | Ghost Numerical ID
         }
         /// <summary>
         /// The data held in this variable.
@@ -38,67 +30,69 @@ namespace mc_compiled.MCC
         }
 
         public Type type;
-        public AltType alt;
         public Data data;
 
-        private Dynamic(Type type, Data data, AltType alt = AltType.NONE)
+        private LegacyDynamic(Type type, Data data)
         {
             this.type = type;
-            this.alt = alt;
             this.data = data;
         }
-        public Dynamic(int i)
+        public LegacyDynamic(int i)
         {
             type = Type.INTEGER;
-            alt = AltType.NONE;
+            data.i = i;
+            data.d = i;
+            data.s = i.ToString();
+            data.altData = 0;
+
+            object o = (object)29;
+
+            if(o is int)
+            {
+
+            }
+
+        }
+        public LegacyDynamic(long i)
+        {
+            type = Type.INTEGER;
             data.i = i;
             data.d = i;
             data.s = i.ToString();
             data.altData = 0;
         }
-        public Dynamic(long i)
-        {
-            type = Type.INTEGER;
-            alt = AltType.NONE;
-            data.i = i;
-            data.d = i;
-            data.s = i.ToString();
-            data.altData = 0;
-        }
-        public Dynamic(double d)
+        public LegacyDynamic(double d)
         {
             type = Type.DECIMAL;
-            alt = AltType.NONE;
             data.d = d;
             data.i = (int)d;
             data.s = d.ToString();
             data.altData = 0;
         }
-        public Dynamic(string str)
+        public LegacyDynamic(string str)
         {
             type = Type.STRING;
-            alt = AltType.NONE;
             data.s = str;
             data.i = 0;
             data.d = 0;
             data.altData = 0;
         }
-        public Dynamic Inverse()
+        public LegacyDynamic Inverse()
         {
             switch (type)
             {
                 case Type.INTEGER:
-                    return new Dynamic(data.i * -1);
+                    return new LegacyDynamic(data.i * -1);
                 case Type.DECIMAL:
-                    return new Dynamic(data.d * -1.0);
+                    return new LegacyDynamic(data.d * -1.0);
                 case Type.STRING:
-                    return new Dynamic(new string(data.s.Reverse().ToArray()));
+                    return new LegacyDynamic(new string(data.s.Reverse().ToArray()));
                 default:
                     return this;
             }
         }
 
-        public static Dynamic operator ++(Dynamic a)
+        public static LegacyDynamic operator ++(LegacyDynamic a)
         {
             if (a.type == Type.STRING)
                 throw new Exception("Cannot increment a string variable.");
@@ -107,7 +101,7 @@ namespace mc_compiled.MCC
             a.data.s = a.data.i.ToString();
             return a;
         }
-        public static Dynamic operator --(Dynamic a)
+        public static LegacyDynamic operator --(LegacyDynamic a)
         {
             if (a.type == Type.STRING)
                 throw new Exception("Cannot decrement a string variable.");
@@ -117,21 +111,21 @@ namespace mc_compiled.MCC
             return a;
         }
 
-        public static Dynamic operator +(Dynamic a, Dynamic b)
+        public static LegacyDynamic operator +(LegacyDynamic a, LegacyDynamic b)
         {
             bool str1 = a.type == Type.STRING;
             bool str2 = b.type == Type.STRING;
             if (str1 & str2)
-                return new Dynamic(a.data.s + b.data.s);
+                return new LegacyDynamic(a.data.s + b.data.s);
             else if (str1 | str2)
                 throw new Exception("PPADD incompatible types.");
 
             if (a.type == Type.INTEGER && b.type == Type.INTEGER)
-                return new Dynamic(a.data.i + b.data.i);
+                return new LegacyDynamic(a.data.i + b.data.i);
             else
-                return new Dynamic(a.data.d + b.data.d);
+                return new LegacyDynamic(a.data.d + b.data.d);
         }
-        public static Dynamic operator -(Dynamic a, Dynamic b)
+        public static LegacyDynamic operator -(LegacyDynamic a, LegacyDynamic b)
         {
             bool str1 = a.type == Type.STRING;
             bool str2 = b.type == Type.STRING;
@@ -140,11 +134,11 @@ namespace mc_compiled.MCC
                 throw new Exception("PPSUB incompatible types.");
 
             if (a.type == Type.INTEGER && b.type == Type.INTEGER)
-                return new Dynamic(a.data.i - b.data.i);
+                return new LegacyDynamic(a.data.i - b.data.i);
             else
-                return new Dynamic(a.data.d - b.data.d);
+                return new LegacyDynamic(a.data.d - b.data.d);
         }
-        public static Dynamic operator *(Dynamic a, Dynamic b)
+        public static LegacyDynamic operator *(LegacyDynamic a, LegacyDynamic b)
         {
             bool str1 = a.type == Type.STRING;
             bool str2 = b.type == Type.STRING;
@@ -153,11 +147,11 @@ namespace mc_compiled.MCC
                 throw new Exception("PPMUL incompatible types.");
 
             if (a.type == Type.INTEGER && b.type == Type.INTEGER)
-                return new Dynamic(a.data.i * b.data.i);
+                return new LegacyDynamic(a.data.i * b.data.i);
             else
-                return new Dynamic(a.data.d * b.data.d);
+                return new LegacyDynamic(a.data.d * b.data.d);
         }
-        public static Dynamic operator /(Dynamic a, Dynamic b)
+        public static LegacyDynamic operator /(LegacyDynamic a, LegacyDynamic b)
         {
             bool str1 = a.type == Type.STRING;
             bool str2 = b.type == Type.STRING;
@@ -166,11 +160,11 @@ namespace mc_compiled.MCC
                 throw new Exception("PPDIV incompatible types.");
 
             if (a.type == Type.INTEGER && b.type == Type.INTEGER)
-                return new Dynamic(a.data.i / b.data.i);
+                return new LegacyDynamic(a.data.i / b.data.i);
             else
-                return new Dynamic(a.data.d / b.data.d);
+                return new LegacyDynamic(a.data.d / b.data.d);
         }
-        public static Dynamic operator %(Dynamic a, Dynamic b)
+        public static LegacyDynamic operator %(LegacyDynamic a, LegacyDynamic b)
         {
             bool str1 = a.type == Type.STRING;
             bool str2 = b.type == Type.STRING;
@@ -179,12 +173,12 @@ namespace mc_compiled.MCC
                 throw new Exception("PPMOD incompatible types.");
 
             if (a.type == Type.INTEGER && b.type == Type.INTEGER)
-                return new Dynamic(a.data.i % b.data.i);
+                return new LegacyDynamic(a.data.i % b.data.i);
             else
-                return new Dynamic(a.data.d % b.data.d);
+                return new LegacyDynamic(a.data.d % b.data.d);
         }
 
-        public static bool operator ==(Dynamic a, Dynamic b)
+        public static bool operator ==(LegacyDynamic a, LegacyDynamic b)
         {
             if (a.type != b.type)
                 return false;
@@ -196,7 +190,7 @@ namespace mc_compiled.MCC
             else
                 return a.data.s.Equals(b.data.s);
         }
-        public static bool operator !=(Dynamic a, Dynamic b)
+        public static bool operator !=(LegacyDynamic a, LegacyDynamic b)
         {
             if (a.type != b.type)
                 return true;
@@ -208,7 +202,7 @@ namespace mc_compiled.MCC
             else
                 return !a.data.s.Equals(b.data.s);
         }
-        public static bool operator >(Dynamic a, Dynamic b)
+        public static bool operator >(LegacyDynamic a, LegacyDynamic b)
         {
             if (a.type != b.type)
                 return false;
@@ -220,7 +214,7 @@ namespace mc_compiled.MCC
             else
                 return a.data.d > b.data.d;
         }
-        public static bool operator <(Dynamic a, Dynamic b)
+        public static bool operator <(LegacyDynamic a, LegacyDynamic b)
         {
             if (a.type != b.type)
                 return false;
@@ -239,7 +233,7 @@ namespace mc_compiled.MCC
         }
         public override bool Equals(object obj)
         {
-            if (obj is Dynamic dynamic)
+            if (obj is LegacyDynamic dynamic)
                 return this == dynamic;
             else return false;
         }
@@ -248,13 +242,13 @@ namespace mc_compiled.MCC
             return data.s;
         }
 
-        public static Dynamic Parse(string str)
+        public static LegacyDynamic Parse(string str)
         {
             if (long.TryParse(str, out long l))
-                return new Dynamic(l);
+                return new LegacyDynamic(l);
             else if (double.TryParse(str, out double d))
-                return new Dynamic(d);
-            else return new Dynamic(str);
+                return new LegacyDynamic(d);
+            else return new LegacyDynamic(str);
         }
         
         /// <summary>

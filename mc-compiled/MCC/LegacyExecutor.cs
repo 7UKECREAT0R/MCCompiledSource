@@ -22,7 +22,7 @@ namespace mc_compiled.MCC
         {
             get
             {
-                if(ppv.TryGetValue("functionCommandLimit", out Dynamic d))
+                if(ppv.TryGetValue("functionCommandLimit", out LegacyDynamic d))
                 {
                     return d.data.i;
                 }
@@ -81,7 +81,7 @@ namespace mc_compiled.MCC
 
         public readonly bool debug;
         public readonly bool decorate;
-        public readonly Dictionary<string, Dynamic> ppv;
+        public readonly Dictionary<string, LegacyDynamic> ppv;
         public readonly Dictionary<string, Macro> macros;
         public readonly LegacyTokenFeeder tokens;
 
@@ -189,19 +189,7 @@ namespace mc_compiled.MCC
             var all = ppv.AsEnumerable();
 
             foreach (var entry in all)
-            {
-                switch (entry.Value.alt)
-                {
-                    case Dynamic.AltType.NONE:
-                        input = input.Replace('$' + entry.Key, entry.Value.data.s);
-                        break;
-                    case Dynamic.AltType.VECTOR:
-                        input = input.Replace('$' + entry.Key, $"@e[type=armor_stand,name=\"{GHOST_TAG}{entry.Value.data.altData}\"");
-                        break;
-                    default:
-                        break;
-                }
-            }
+                input = input.Replace('$' + entry.Key, entry.Value.data.s);
             return input;
         }
         public bool HasPPV(string name)
@@ -210,7 +198,7 @@ namespace mc_compiled.MCC
                 name = name.Substring(1);
             return ppv.ContainsKey(name);
         }
-        public bool TryGetPPV(string name, out Dynamic value)
+        public bool TryGetPPV(string name, out LegacyDynamic value)
         {
             if (name.StartsWith("$"))
                 name = name.Substring(1);
@@ -226,15 +214,15 @@ namespace mc_compiled.MCC
             fileStack.Push(new LegacyFileWriter(baseFileName));
             macros = new Dictionary<string, Macro>();
 
-            ppv = new Dictionary<string, Dynamic>();
+            ppv = new Dictionary<string, LegacyDynamic>();
             selection = Selector.Core.s;
             values = new LegacyValueManager();
 
             this.tokens = new LegacyTokenFeeder(tokens);
 
-            ppv["_compilerversion"] = new Dynamic(MCC_VERSION);
-            ppv["_mcversion"] = new Dynamic(MCC_VERSION);
-            ppv["_lines"] = new Dynamic(tokens.Length);
+            ppv["_compilerversion"] = new LegacyDynamic(MCC_VERSION);
+            ppv["_mcversion"] = new LegacyDynamic(MCC_VERSION);
+            ppv["_lines"] = new LegacyDynamic(tokens.Length);
         }
 
         /// <summary>

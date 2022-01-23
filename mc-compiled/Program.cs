@@ -16,6 +16,7 @@ namespace mc_compiled
     {
         public static bool OBFUSCATE = false;
         public static bool DEBUG = false;
+        public static bool DECORATE = false;
 
         static void Help()
         {

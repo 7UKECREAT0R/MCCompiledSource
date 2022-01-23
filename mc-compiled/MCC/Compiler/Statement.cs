@@ -29,20 +29,26 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Run this statement/continue where it left off.
         /// </summary>
-        protected abstract void Run();
+        protected abstract void Run(Executor executor);
 
         /// <summary>
         /// Run this statement from square one.
         /// </summary>
-        public void Run0()
+        public void Run0(Executor executor)
         {
             currentToken = 0;
-            Run();
+            Run(executor);
         }
+
+        /// <summary>
+        /// If the tokens inside this statement match its pattern, if any.
+        /// </summary>
         public bool IsValid
         {
             get
             {
+                if (patterns.Length < 1)
+                    return true;
                 return patterns.All(tp => tp.Check(tokens));
             }
         }

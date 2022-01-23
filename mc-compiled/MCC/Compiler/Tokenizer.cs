@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
 using mc_compiled.Commands.Native;
+using mc_compiled.Commands;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -240,8 +241,15 @@ namespace mc_compiled.MCC.Compiler
             if (directive != null)
                 return new TokenDirective(directive, CURRENT_LINE);
 
+            // check for enum constant
+            if (CommandEnumParser.TryParse(word, out Enum enumValue))
+                return new TokenEnumIdentifier(word, enumValue, CURRENT_LINE);
+
             // unresolved
-            return new TokenUnresolved(word, CURRENT_LINE);
+            if (word.StartsWith("$"))
+                return new TokenUnresolvedPPV(word, CURRENT_LINE);
+            
+            return new TokenIdentifier(word, CURRENT_LINE);
         }
 
         public TokenNumberLiteral NextNumberIdentifier(char first)

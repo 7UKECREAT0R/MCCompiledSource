@@ -11,13 +11,23 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Directive
     {
+        /// <summary>
+        /// An implementation of a directive call.
+        /// </summary>
+        /// <param name="executor"></param>
+        /// <param name="tokens"></param>
+        public delegate void DirectiveImpl(Executor executor, Token[] tokens);
+
+
         private static short nextIndex = 0;
-        internal Directive(string identifier, string fullName)
+        internal Directive(DirectiveImpl call, string identifier,
+            string fullName, params TypePattern[] patterns)
         {
             index = nextIndex++;
+            this.call = call;
             this.identifier = identifier;
             this.fullName = fullName;
-
+            this.patterns = patterns;
         }
 
         /// <summary>
@@ -34,6 +44,8 @@ namespace mc_compiled.MCC.Compiler
         public readonly short index;
         public readonly string identifier;
         public readonly string fullName;
+        public readonly DirectiveImpl call;
+        public readonly TypePattern[] patterns;
 
         public override int GetHashCode() => identifier.GetHashCode();
     }
@@ -41,23 +53,31 @@ namespace mc_compiled.MCC.Compiler
     {
         public static Directive[] REGISTRY =
         {
-            new Directive("$var", "Set Preprocessor Variable"),
-            new Directive("$inc", "Increment Preprocessor Variable"),
-            new Directive("$dec", "Decrement Preprocessor Variable"),
-            new Directive("$add", "Add to Preprocessor Variable"),
-            new Directive("$sub", "Subtract from Preprocessor Variable"),
-            new Directive("$mul", "Multiply with Preprocessor Variable"),
-            new Directive("$div", "Divide Preprocessor Variable"),
-            new Directive("$mod", "Modulo Preprocessor Variable"),
-            new Directive("$if", "Preprocessor If"),
-            new Directive("$else", "Preprocessor Else"),
-            new Directive("$repeat", "Preprocessor Repeat"),
-            new Directive("$log", "Preprocessor Log to Console"),
-            new Directive("$macro", "Define/Call Preprocessor Macro"),
-            new Directive("$include", "Include other File"),
-            new Directive("$strfriendly", "Preprocessor String Friendly Name"),
-            new Directive("$strupper", "Preprocessor String Uppercase"),
-            new Directive("$strlower", "Preprocessor String Lowercase"),
+            new Directive(DirectiveImplementations._var, "$var", "Set Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+            new Directive(DirectiveImplementations._inc, "$inc", "Increment Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._dec, "$dec", "Decrement Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._add, "$add", "Add to Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+            new Directive(DirectiveImplementations._sub, "$sub", "Subtract from Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+            new Directive(DirectiveImplementations._mul, "$mul", "Multiply with Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+            new Directive(DirectiveImplementations._div, "$div", "Divide Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+            new Directive(DirectiveImplementations._mod, "$mod", "Modulo Preprocessor Variable",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenLiteral))),
+            new Directive(DirectiveImplementations._if, "$if", "Preprocessor If"),
+            new Directive(DirectiveImplementations._else, "$else", "Preprocessor Else"),
+            new Directive(DirectiveImplementations._repeat, "$repeat", "Preprocessor Repeat"),
+            new Directive(DirectiveImplementations._log, "$log", "Preprocessor Log to Console"),
+            new Directive(DirectiveImplementations._macro, "$macro", "Define/Call Preprocessor Macro"),
+            new Directive(DirectiveImplementations._include, "$include", "Include other File"),
+            new Directive(DirectiveImplementations._strfriendly, "$strfriendly", "Preprocessor String Friendly Name"),
+            new Directive(DirectiveImplementations._strupper, "$strupper", "Preprocessor String Uppercase"),
+            new Directive(DirectiveImplementations._strlower, "$strlower", "Preprocessor String Lowercase"),
 
             new Directive("mc", "Minecraft Command"),
             new Directive("select", "Select Target"),

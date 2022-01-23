@@ -13,7 +13,7 @@ namespace mc_compiled.MCC
         {
             this.type = type;
         }
-        public bool Compare(Dynamic a, Dynamic b)
+        public bool Compare(LegacyDynamic a, LegacyDynamic b)
         {
             switch(type)
             {
