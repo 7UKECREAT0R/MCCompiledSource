@@ -12,7 +12,7 @@ namespace mc_compiled.MCC.Compiler
     public class Executor
     {
         public readonly string projectName;
-        public readonly Dictionary<string, LegacyDynamic> ppv;
+        public readonly Dictionary<string, dynamic> ppv;
 
         readonly Statement[] statements;
         readonly Stack<CommandFile> currentFiles;
@@ -117,18 +117,23 @@ namespace mc_compiled.MCC.Compiler
             prependBuffer.Append(content);
 
         /// <summary>
-        /// 
+        /// Try to get a preprocessor variable.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool TryGetPPV(string name, out LegacyDynamic value)
+        public bool TryGetPPV(string name, out dynamic value)
         {
             if (name.StartsWith("$"))
                 name = name.Substring(1);
             return ppv.TryGetValue(name, out value);
         }
-        public void SetPPV(string name, LegacyDynamic value) =>
+        /// <summary>
+        /// Set or create a preprocessor variable.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void SetPPV(string name, object value) =>
             ppv[name] = value;
 
 
