@@ -322,7 +322,14 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _include(Executor executor, Statement tokens)
         {
-            // HANDLED IN TOKENIZATION
+            string file = tokens.NextToken<TokenStringLiteral>();
+
+            if (!System.IO.File.Exists(file))
+                throw new StatementException(tokens, "Cannot find file '" + file + "'.");
+
+            Token[] includedTokens = Tokenizer.TokenizeFile(file);
+            // TODO assemble statements
+            // executor.ExecuteSubsection(statements);
         }
         public static void _strfriendly(Executor executor, Statement tokens)
         {
