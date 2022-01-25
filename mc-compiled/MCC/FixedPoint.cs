@@ -14,34 +14,34 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Limit this double to a specific number of digits.
         /// </summary>
-        /// <param name="d"></param>
+        /// <param name="f"></param>
         /// <param name="digits"></param>
         /// <returns></returns>
-        public static double FixPoint(this double d, int digits)
+        public static float FixPoint(this float f, int digits)
         {
-            double pow = Math.Pow(10, digits);
-            d *= pow;
-            d = Math.Floor(d);
-            return d / pow;
+            float pow = (float)Math.Pow(10, digits);
+            f *= pow;
+            f = (float)Math.Floor(f);
+            return f / pow;
         }
         /// <summary>
-        /// Remove the decimal point from this double, to a certain precision.
+        /// Remove the decimal point from this float, to a certain precision.
         /// <code>12.34567.ToFixedInt(3) = 12345</code>
         /// </summary>
-        /// <param name="d"></param>
+        /// <param name="f"></param>
         /// <param name="digits"></param>
         /// <returns></returns>
-        public static int ToFixedInt(this double d, int digits)
+        public static int ToFixedInt(this float f, int digits)
         {
-            d *= Math.Pow(10, digits);
-            return (int)(Math.Floor(d));
+            f *= (float)Math.Pow(10, digits);
+            return (int)(Math.Floor(f));
         }
         /// <summary>
         /// Get the level of precision needed to represent this double.
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        public static int GetPrecision(this double d)
+        public static int GetPrecision(this float d)
         {
             string str = d.ToString();
             return str.Length - str.IndexOf('.') - 1;

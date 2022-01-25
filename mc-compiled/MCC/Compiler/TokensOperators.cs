@@ -154,7 +154,12 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => "%=";
         public TokenModuloAssignment(int lineNumber) : base(lineNumber) { }
     }
-    
+    public sealed class TokenSwapAssignment : TokenArithmatic, CompoundAssignment
+    {
+        public override string AsString() => "><";
+        public TokenSwapAssignment(int lineNumber) : base(lineNumber) { }
+    }
+
     public sealed class TokenEquality : TokenCompare
     {
         public override string AsString() => "==";

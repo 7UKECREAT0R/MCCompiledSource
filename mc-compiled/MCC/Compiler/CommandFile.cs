@@ -22,6 +22,16 @@ namespace mc_compiled.MCC.Compiler
             this.name = name;
             this.folder = folder;
         }
+        public string QualifiedName
+        {
+            get
+            {
+                if (folder == null)
+                    return name;
+                else
+                    return folder + '/' + name;
+            }
+        }
 
         public void Add(string command) =>
             commands.Add(command);

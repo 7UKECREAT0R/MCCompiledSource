@@ -13,15 +13,17 @@ namespace mc_compiled.MCC
     {
         static readonly string[] fieldNamesInternal =
             "abcdefghijklmnopqrstuvwxyz".ToCharArray().Select(c => c.ToString()).ToArray();
-        readonly Dictionary<string, ScoreboardValue> values;
+        readonly Dictionary<string, ScoreboardValue> fields;
+        public readonly string name;
 
         /// <summary>
         /// Create a struct definition using these scoreboard values as templates.
         /// </summary>
         /// <param name="values"></param>
-        public StructDefinition(params ScoreboardValue[] values)
+        public StructDefinition(string name, params ScoreboardValue[] values)
         {
-            this.values = new Dictionary<string, ScoreboardValue>();
+            this.name = name.ToUpper();
+            this.fields = new Dictionary<string, ScoreboardValue>();
 
             int a = 0;
             int b = 0;
@@ -37,11 +39,18 @@ namespace mc_compiled.MCC
                     b++;
                 }
 
-                string name = value.baseName;
+                string key = value.baseName;
                 value.baseName = fieldNamesInternal[a++] + fieldNamesInternal[b];
-                this.values[name] = value;
+                this.fields[key] = value;
             }
         }
+        /// <summary>
+        /// Create a new scoreboard value using this struct as a template.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public ScoreboardValueStruct Create(string name) =>
+            new ScoreboardValueStruct(name, this);
 
         /// <summary>
         /// Get the internal 2-letter name for a field.
@@ -50,14 +59,33 @@ namespace mc_compiled.MCC
         /// <returns>Null if no </returns>
         public string GetFieldId(string fieldName)
         {
-            if (values.TryGetValue(fieldName, out ScoreboardValue value))
+            if (fields.TryGetValue(fieldName, out ScoreboardValue value))
                 return value.baseName;
             return null;
         }
-        public ScoreboardValue GetField(string fieldName)
+        public ScoreboardValue GetFieldFromAccessor(string accessor)
         {
-            if (values.TryGetValue(fieldName, out ScoreboardValue value))
-                return value;
+            string[] parts = accessor.Split(':');
+
+            if (parts.Length < 2)
+                throw new Exception("Struct accessor was not in format NAME:FIELD");
+
+            string baseName = parts[0];
+            string fieldName = parts[1];
+            string id = GetFieldId(fieldName);
+
+            if(id == null)
+                throw new Exception("Invalid field for struct " + name + ": '" + fieldName + "'");
+
+            return GetField(baseName, id);
+        }
+        public ScoreboardValue GetField(string baseName, string id)
+        {
+            if (fields.TryGetValue(id, out ScoreboardValue _value))
+            {
+                ScoreboardValue value = _value.Clone() as ScoreboardValue;
+                value.baseName = baseName + ':' + value.baseName;
+            }
             return null;
         }
         /// <summary>
@@ -82,7 +110,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public ScoreboardValue[] GetFields()
         {
-            return values.Values.ToArray();
+            return fields.Values.ToArray();
         }
         /// <summary>
         /// Get all the internal accessor names of the struct.
@@ -90,7 +118,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public string[] GetInternalFieldNames()
         {
-            return values.Values.Select(f => f.baseName).ToArray();
+            return fields.Values.Select(f => f.baseName).ToArray();
         }
         /// <summary>
         /// Get all the accessor names of the struct.
@@ -98,7 +126,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public string[] GetFieldNames()
         {
-            return values.Keys.ToArray();
+            return fields.Keys.ToArray();
         }
         /// <summary>
         /// Get all of the fully qualified strings that can be used to access this struct.

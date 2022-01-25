@@ -22,9 +22,9 @@ namespace mc_compiled.MCC.Compiler
                     return;
 
                 // skip over
-                if (executor.NextIs<StatementBlock>())
+                if (executor.NextIs<StatementOpenBlock>())
                 {
-                    StatementBlock block = executor.Next<StatementBlock>();
+                    StatementOpenBlock block = executor.Next<StatementOpenBlock>();
                     for (int i = 0; i < block.statementsInside; i++)
                         executor.Next(); // skip this block
                 }
@@ -189,33 +189,31 @@ namespace mc_compiled.MCC.Compiler
 
             executor.SetLastIfResult(run);
 
-            if (executor.NextIs<StatementBlock>())
+            if (run)
+                return;
+
+            if (executor.NextIs<StatementOpenBlock>())
             {
-                if (!run)
-                {
-                    StatementBlock block = executor.Next<StatementBlock>();
-                    for (int i = 0; i <= block.statementsInside; i++)
-                        executor.Next(); // skip this block
-                }
+                StatementOpenBlock block = executor.Next<StatementOpenBlock>();
+                for (int i = 0; i <= block.statementsInside; i++)
+                    executor.Next(); // skip this block
             }
-            else if(!run)
-                executor.Next(); // skip the next statement
+            else executor.Next(); // skip the next statement
         }
         public static void _else(Executor executor, Statement tokens)
         {
             bool run = !executor.GetLastIfResult();
 
-            if (executor.NextIs<StatementBlock>())
+            if (run)
+                return;
+
+            if (executor.NextIs<StatementOpenBlock>())
             {
-                if (!run)
-                {
-                    StatementBlock block = executor.Next<StatementBlock>();
-                    for (int i = 0; i <= block.statementsInside; i++)
-                        executor.Next(); // skip this block
-                }
+                StatementOpenBlock block = executor.Next<StatementOpenBlock>();
+                for (int i = 0; i <= block.statementsInside; i++)
+                    executor.Next(); // skip this entire block
             }
-            else if (!run)
-                executor.Next(); // skip the next statement
+            else executor.Next(); // skip the next statement
         }
         public static void _repeat(Executor executor, Statement tokens)
         {
@@ -228,9 +226,9 @@ namespace mc_compiled.MCC.Compiler
             int skipAfter = 0;
             Statement[] statements;
 
-            if (executor.NextIs<StatementBlock>())
+            if (executor.NextIs<StatementOpenBlock>())
             {
-                StatementBlock block = executor.Next<StatementBlock>();
+                StatementOpenBlock block = executor.Next<StatementOpenBlock>();
                 skipAfter = block.statementsInside;
                 statements = executor.Peek(skipAfter);
             } else
@@ -256,7 +254,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _macro(Executor executor, Statement tokens)
         {
-            if (executor.NextIs<StatementBlock>())
+            if (executor.NextIs<StatementOpenBlock>())
                 _macrodefine(executor, tokens);
             else
                 _macrocall(executor, tokens);
@@ -269,7 +267,7 @@ namespace mc_compiled.MCC.Compiler
             while (tokens.HasNext && tokens.NextIs<TokenIdentifier>())
                 args.Add(tokens.NextToken<TokenIdentifier>().word);
 
-            StatementBlock block = executor.Next<StatementBlock>();
+            StatementOpenBlock block = executor.Next<StatementOpenBlock>();
             int count = block.statementsInside;
             Statement[] statements = executor.Peek(count);
 
@@ -377,6 +375,77 @@ namespace mc_compiled.MCC.Compiler
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
+        }
+
+        public static void mc(Executor executor, Statement tokens)
+        {
+            string command = tokens.NextToken<TokenStringLiteral>();
+            executor.AddCommandDirty(command);
+        }
+        public static void select(Executor executor, Statement tokens)
+        {
+            TokenSelectorLiteral selector = tokens.NextToken<TokenSelectorLiteral>();
+
+        }
+        public static void print(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void printp(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void define(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void init(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void @if(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void @else(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void give(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void tp(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void face(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void place(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void fill(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void replace(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void kill(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void title(Executor executor, Statement tokens)
+        {
+
+        }
+        public static void halt(Executor executor, Statement tokens)
+        {
+
         }
 
     }

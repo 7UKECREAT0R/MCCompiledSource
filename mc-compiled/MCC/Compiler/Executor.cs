@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,8 +21,27 @@ namespace mc_compiled.MCC.Compiler
         readonly bool[] lastPreprocessorCompare;
         readonly Dictionary<string, dynamic> ppv;
         readonly Stack<CommandFile> currentFiles;
+        readonly Stack<Selector.Core> selections;
         readonly List<CommandFile> filesToWrite;
         readonly StringBuilder prependBuffer;
+
+        public readonly ScoreboardManager scoreboard;
+
+        public Selector.Core ActiveSelector
+        {
+            get => selections.Peek();
+            set
+            {
+                selections.Pop();
+                selections.Push(value);
+            }
+        }
+        public void PushSelector() =>
+            selections.Push(ActiveSelector);
+        public void PushSelector(Selector.Core core) =>
+            selections.Push(core);
+        public void PopSelector() =>
+            selections.Pop();
 
         public bool HasNext
         {
@@ -65,11 +85,13 @@ namespace mc_compiled.MCC.Compiler
             this.projectName = projectName;
 
             macros = new List<Macro>();
+            selections = new Stack<Selector.Core>();
             lastPreprocessorCompare = new bool[100];
             currentFiles = new Stack<CommandFile>();
             filesToWrite = new List<CommandFile>();
             prependBuffer = new StringBuilder();
 
+            selections.Push(Selector.Core.s);
             currentFiles.Push(new CommandFile(projectName));
         }
         /// <summary>
@@ -134,6 +156,8 @@ namespace mc_compiled.MCC.Compiler
         /// Get the current file that should be written to.
         /// </summary>
         public CommandFile CurrentFile { get => currentFiles.Peek(); }
+        public CommandFile HeadFile { get => currentFiles.First(); }
+
         /// <summary>
         /// Get the current scope level.
         /// </summary>
@@ -171,17 +195,26 @@ namespace mc_compiled.MCC.Compiler
         public void AddCommandsClean(IEnumerable<string> commands) =>
             CurrentFile.Add(commands);
         /// <summary>
-        /// Add a command to the top of the current file. Does not affect the prepend buffer.
+        /// Add a file on its own to the list.
+        /// </summary>
+        /// <param name="file"></param>
+        public void AddExtraFile(CommandFile file)
+        {
+            if (!filesToWrite.Any(f => f.name == file.name && f.folder == file.folder))
+                filesToWrite.Add(file);
+        }
+        /// <summary>
+        /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="command"></param>
-        public void AddCommandTop(string command) =>
-            CurrentFile.AddTop(command);
+        public void AddCommandHead(string command) =>
+            HeadFile.AddTop(command);
         /// <summary>
-        /// Add a set of commands to the top of the current file. Does not affect the prepend buffer.
+        /// Adds a set of commands to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="commands"></param>
-        public void AddCommandsTop(IEnumerable<string> commands) =>
-            CurrentFile.AddTop(commands);
+        public void AddCommandsHead(IEnumerable<string> commands) =>
+            HeadFile.AddTop(commands);
 
         /// <summary>
         /// Set the content that will prepend the next added dirty command.
@@ -215,7 +248,41 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="value"></param>
         public void SetPPV(string name, object value) =>
             ppv[name] = value;
+        /// <summary>
+        /// Resolve all preprocessor variables in a string.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public string ResolveString(string str)
+        {
+            foreach(var kv in ppv)
+            {
+                string name = '$' + kv.Key;
+                string value = kv.Value.ToString();
+                str = str.Replace(name, value);
+            }
 
+            return str;
+        }
+        public TokenLiteral ResolvePPV(TokenUnresolvedPPV unresolved)
+        {
+            int line = unresolved.lineNumber;
+            string word = unresolved.word;
+
+            if(ppv.TryGetValue(word, out dynamic value))
+            {
+                if (value is int)
+                    return new TokenIntegerLiteral(value, line);
+                if (value is float)
+                    return new TokenDecimalLiteral(value, line);
+                if (value is bool)
+                    return new TokenBooleanLiteral(value, line);
+                if (value is string)
+                    return new TokenStringLiteral(value, line);
+            }
+
+            return null;
+        }
 
         public void PushFile(CommandFile file) =>
             currentFiles.Push(file);

@@ -19,7 +19,7 @@ namespace mc_compiled.Commands
 
         public bool isFloat, isRelative, isFacingOffset;
 
-        private Coord(float value, bool isFloat, bool isRelative, bool isFacingOffset)
+        public Coord(float value, bool isFloat, bool isRelative, bool isFacingOffset)
         {
             valuef = value;
             valuei = (int)Math.Round(value);
@@ -27,7 +27,7 @@ namespace mc_compiled.Commands
             this.isRelative = isRelative;
             this.isFacingOffset = isFacingOffset;
         }
-        private Coord(int value, bool isFloat, bool isRelative, bool isFacingOffset)
+        public Coord(int value, bool isFloat, bool isRelative, bool isFacingOffset)
         {
             valuef = value;
             valuei = value;

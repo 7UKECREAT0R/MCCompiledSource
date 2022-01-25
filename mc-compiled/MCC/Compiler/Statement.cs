@@ -9,7 +9,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// A fully qualified statement which can be run.
     /// </summary>
-    public abstract class Statement
+    public abstract class Statement : ICloneable
     {
         private readonly TypePattern[] patterns;
         public Statement(Token[] tokens)
@@ -44,6 +44,47 @@ namespace mc_compiled.MCC.Compiler
         {
             currentToken = 0;
             Run(executor);
+        }
+        /// <summary>
+        /// Clone this statement and resolve its unidentified tokens based off the current executor's state.
+        /// </summary>
+        /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
+        public Statement CloneResolve(Executor executor)
+        {
+            Statement statement = MemberwiseClone() as Statement;
+            int length = statement.tokens.Length;
+            Token[] allUnresolved = statement.tokens;
+            Token[] allResolved = new Token[length];
+
+            for(int i = 0; i < length; i++)
+            {
+                Token unresolved = allUnresolved[i];
+                Token resolved = unresolved;
+                int line = unresolved.lineNumber;
+
+                if (unresolved is TokenStringLiteral)
+                    resolved = new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line);
+                if (unresolved is TokenUnresolvedPPV)
+                    resolved = (executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? unresolved);
+
+                if(unresolved is TokenIdentifier)
+                {
+                    string word = (unresolved as TokenIdentifier).word;
+                    if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value))
+                        resolved = new TokenIdentifierValue(word, value, line);
+                    if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))
+                        resolved = new TokenIdentifierStruct(word, @struct, line);
+                }
+
+                allResolved[i] = resolved;
+            }
+
+            statement.tokens = allResolved;
+            return statement;
+        }
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
 
         /// <summary>

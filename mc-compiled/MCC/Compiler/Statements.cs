@@ -24,12 +24,12 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Indicates opening a block.
     /// </summary>
-    public sealed class StatementBlock : Statement
+    public sealed class StatementOpenBlock : Statement
     {
         public readonly int statementsInside;
         public readonly CommandFile file;
 
-        public StatementBlock(int toSkip, CommandFile file) : base(null)
+        public StatementOpenBlock(int toSkip, CommandFile file) : base(null)
         {
             this.statementsInside = toSkip;
             this.file = file;
@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.Compiler
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            // no action
+            executor.PushSelector(); // push a level up
         }
     }
 }

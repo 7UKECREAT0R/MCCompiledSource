@@ -57,6 +57,7 @@
     <Compile Include="MCC\Compiler\Executor.cs" />
     <Compile Include="MCC\Compiler\Statements.cs" />
     <Compile Include="MCC\Macro.cs" />
+    <Compile Include="MCC\ScoreboardManager.cs" />
     <Compile Include="Modding\IBehaviorOutput.cs" />
     <Compile Include="MCC\Compiler\Statement.cs" />
     <Compile Include="MCC\Compiler\Token.cs" />

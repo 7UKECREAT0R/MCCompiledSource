@@ -66,13 +66,53 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.
     /// </summary>
-    public sealed class TokenEnumIdentifier : TokenIdentifier, IObjectable
+    public sealed class TokenIdentifierEnum : TokenIdentifier, IObjectable
     {
         public readonly Enum @enum;
 
-        public TokenEnumIdentifier(string word, Enum @enum, int lineNumber) : base(word, lineNumber)
+        public TokenIdentifierEnum(string word, Enum @enum, int lineNumber) : base(word, lineNumber)
         {
             this.@enum = @enum;
+        }
+    }
+    /// <summary>
+    /// Represents a reference to a scoreboard value.
+    /// </summary>
+    public sealed class TokenIdentifierValue : TokenIdentifier
+    {
+        /// <summary>
+        /// The value this identifier references.
+        /// </summary>
+        public readonly ScoreboardValue value;
+
+        /// <summary>
+        /// Get the full name used to access this value.
+        /// </summary>
+        public string Accessor { get => word; }
+
+        public TokenIdentifierValue(string accessor, ScoreboardValue value, int lineNumber) : base(accessor, lineNumber)
+        {
+            this.value = value;
+        }
+    }
+    /// <summary>
+    /// Represents a reference to a user-defined struct.
+    /// </summary>
+    public sealed class TokenIdentifierStruct : TokenIdentifier
+    {
+        /// <summary>
+        /// The value this identifier references.
+        /// </summary>
+        public readonly StructDefinition @struct;
+
+        /// <summary>
+        /// Get the full name used to access this value.
+        /// </summary>
+        public string Accessor { get => word; }
+
+        public TokenIdentifierStruct(string word, StructDefinition @struct, int lineNumber) : base(word, lineNumber)
+        {
+            this.@struct = @struct;
         }
     }
 

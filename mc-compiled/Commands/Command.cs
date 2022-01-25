@@ -1,4 +1,5 @@
 ﻿using mc_compiled.MCC;
+using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -132,8 +133,8 @@ namespace mc_compiled.Commands
 
         public static string Function(string name) =>
             $"function {name}";
-        public static string Function(LegacyFunctionDefinition function) =>
-            $"function {function.CommandName}";
+        public static string Function(CommandFile function) =>
+            $"function {function.QualifiedName}";
 
         public static string Gamemode(string target, GameMode mode) =>
             $"gamemode {mode} {target}";

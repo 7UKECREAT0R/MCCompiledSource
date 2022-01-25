@@ -148,6 +148,28 @@ namespace mc_compiled.MCC.Compiler
                 case '}':
                     return new TokenCloseBlock(CURRENT_LINE);
             }
+
+            if(firstChar == '@')
+            {
+                switch (char.ToUpper(secondChar))
+                {
+                    case 'P':
+                        NextChar();
+                        return new TokenSelectorLiteral(Selector.Core.p, CURRENT_LINE);
+                    case 'S':
+                        NextChar();
+                        return new TokenSelectorLiteral(Selector.Core.s, CURRENT_LINE);
+                    case 'A':
+                        NextChar();
+                        return new TokenSelectorLiteral(Selector.Core.a, CURRENT_LINE);
+                    case 'E':
+                        NextChar();
+                        return new TokenSelectorLiteral(Selector.Core.e, CURRENT_LINE);
+                    default:
+                        throw new FormatException("Invalid selector. '" +
+                            secondChar + "'. Valid options: @p, @s, @a, or @e");
+                }
+            }
             
             // comment, read to EOL
             if(firstChar == '/' && secondChar == '/')
@@ -178,6 +200,16 @@ namespace mc_compiled.MCC.Compiler
                 return new TokenInequality(CURRENT_LINE);
             }
 
+            // check for math token
+            if (firstChar == '>' && secondChar == '<')
+                return new TokenSwapAssignment(CURRENT_LINE);
+            else if (ARITHMATIC_CHARS.Contains(firstChar))
+            {
+                bool assignment = secondChar == '=';
+                if (assignment) NextChar();
+                return ArithmaticIdentifier(firstChar, assignment);
+            }
+
             // comparison
             bool lessThan;
             if((lessThan = firstChar == '<') || firstChar == '>')
@@ -187,12 +219,28 @@ namespace mc_compiled.MCC.Compiler
                 return CompareIdentifier(lessThan, orEqual);
             }
 
-            // check for math token
-            if(ARITHMATIC_CHARS.Contains(firstChar))
+            // coordinate literals
+            if(firstChar == '~')
             {
-                bool assignment = secondChar == '=';
-                if (assignment) NextChar();
-                return ArithmaticIdentifier(firstChar, assignment);
+                NextChar();
+                if (char.IsDigit(secondChar))
+                {
+                    TokenNumberLiteral number = NextNumberIdentifier(secondChar);
+                    string str = '~' + number.AsString();
+                    return new TokenCoordinateLiteral(Coord.Parse(str).Value, CURRENT_LINE);
+                }
+                return new TokenCoordinateLiteral(new Coord(0, false, true, false), CURRENT_LINE);
+            }
+            if (firstChar == '^')
+            {
+                NextChar();
+                if (char.IsDigit(secondChar))
+                {
+                    TokenNumberLiteral number = NextNumberIdentifier(secondChar);
+                    string str = '^' + number.AsString();
+                    return new TokenCoordinateLiteral(Coord.Parse(str).Value, CURRENT_LINE);
+                }
+                return new TokenCoordinateLiteral(new Coord(0, false, false, true), CURRENT_LINE);
             }
 
             // check for number literal
@@ -243,7 +291,7 @@ namespace mc_compiled.MCC.Compiler
 
             // check for enum constant
             if (CommandEnumParser.TryParse(word, out Enum enumValue))
-                return new TokenEnumIdentifier(word, enumValue, CURRENT_LINE);
+                return new TokenIdentifierEnum(word, enumValue, CURRENT_LINE);
 
             // unresolved
             if (word.StartsWith("$"))
