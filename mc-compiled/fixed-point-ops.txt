@@ -1,0 +1,51 @@
+3.35 * 3.80 = 12.73
+
+temp = wholeA	// 3
+temp2 = wholeB	// 3
+temp *= base	// 3000
+temp2 *= base	// 3000
+temp += partA	// 3350
+temp2 += partB	// 3800
+
+temp *= temp2	// 12,730,000
+temp /= base	// 12,730
+wholeA = temp	// 12,730
+partA = temp	// 12,730
+wholeA /= base	// 12
+temp = wholeA	// 12
+temp *= base	// 12,000
+partA -= temp	// 730
+
+5.250 / 2.660 = 1.973
+temp = wholeA	// 5
+temp2 = wholeB	// 2
+temp *= base	// 5000
+temp2 *= base	// 2000
+temp += partA	// 5250
+temp2 += partB	// 2660
+temp *= base	// 5,250,000
+temp /= temp2	// 1,973
+wholeA = temp	// 1,973
+partA = temp	// 1,973
+wholeA /= base	// 1
+temp = wholeA	// 1
+temp *= base	// 1,000
+partA -= temp	// 973
+
+5.254 % 1.500 = 0.754
+temp = wholeA	// 5
+temp2 = wholeB	// 1
+temp *= base	// 5000
+temp2 *= base	// 1000
+temp += partA	// 5254
+temp2 += partB	// 1500
+temp *= base	// 5,254,000
+temp2 *= base	// 1,500,000
+temp %= temp2	// 754000
+
+temp /= base	// 754
+partA = temp	// 754
+temp /= base	// 0
+wholeA = temp	// 0
+temp *= base	// 0
+partA -= temp	// 754

@@ -199,7 +199,6 @@ namespace mc_compiled.MCC.Compiler
                 NextChar();
                 return new TokenInequality(CURRENT_LINE);
             }
-            // test commit w comment
 
             // check for math token
             if (firstChar == '>' && secondChar == '<')
