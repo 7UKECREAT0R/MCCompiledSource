@@ -851,7 +851,6 @@ namespace mc_compiled.MCC
     }
     public sealed class ScoreboardValueBoolean : ScoreboardValueInteger
     {
-        // test commit
         public ScoreboardValueBoolean(string baseName, ScoreboardManager manager) : base(baseName, manager) { }
 
         public override string[] CommandsDefine(string prefix = "")

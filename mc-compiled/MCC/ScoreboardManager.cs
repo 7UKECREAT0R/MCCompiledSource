@@ -76,7 +76,6 @@ namespace mc_compiled.MCC
             tempIndex++;
             return created;
         }
-
         /// <summary>
         /// Release the temp variable that was most recently created.
         /// Should be called always when done using variable from RequestTemp().

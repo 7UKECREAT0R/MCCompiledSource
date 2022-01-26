@@ -1,12 +1,37 @@
-3.35 * 3.80 = 12.73
+Add two fixed-point units (always carrying)
+base = 1000		// base for this example (10^3)
+wholeA += wholeB
+partA += partB
+temp = partA
+temp /= base
+wholeA += temp
+temp *= base
+partA -= temp
 
+Subtract two fixed-point units (conditional carrying)
+base = -1			// temporary for negating
+wholeA -= wholeB
+partA -= partB
+if(partA <= 0):
+	partA *= base	// get absolute
+	temp2 = partA
+	base = 1000		// base for this example (10^3)
+	partA += base	// simulate behavior of ceil
+	temp = partA
+	temp /= base
+	wholeA -= temp
+	temp *= base
+	temp -= temp2
+	partA = temp
+
+Multiply two fixed-point units
+base = 1000		// base for this example (10^3)
 temp = wholeA	// 3
 temp2 = wholeB	// 3
 temp *= base	// 3000
 temp2 *= base	// 3000
 temp += partA	// 3350
 temp2 += partB	// 3800
-
 temp *= temp2	// 12,730,000
 temp /= base	// 12,730
 wholeA = temp	// 12,730
@@ -16,7 +41,8 @@ temp = wholeA	// 12
 temp *= base	// 12,000
 partA -= temp	// 730
 
-5.250 / 2.660 = 1.973
+Divide two fixed-point units
+base = 1000		// base for this example (10^3)
 temp = wholeA	// 5
 temp2 = wholeB	// 2
 temp *= base	// 5000
@@ -32,7 +58,8 @@ temp = wholeA	// 1
 temp *= base	// 1,000
 partA -= temp	// 973
 
-5.254 % 1.500 = 0.754
+Modulus two fixed-point units
+base = 1000		// base for this example (10^3)
 temp = wholeA	// 5
 temp2 = wholeB	// 1
 temp *= base	// 5000
@@ -42,7 +69,6 @@ temp2 += partB	// 1500
 temp *= base	// 5,254,000
 temp2 *= base	// 1,500,000
 temp %= temp2	// 754000
-
 temp /= base	// 754
 partA = temp	// 754
 temp /= base	// 0
