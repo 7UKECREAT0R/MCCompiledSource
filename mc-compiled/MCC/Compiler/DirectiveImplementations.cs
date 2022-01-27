@@ -1,6 +1,9 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
+using mc_compiled.Modding;
+using mc_compiled.NBT;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -606,12 +609,7 @@ namespace mc_compiled.MCC.Compiler
                 GameMode gameMode;
 
                 if (tokens.NextIs<TokenIdentifierEnum>())
-                {
-                    Enum @enum = tokens.Next<TokenIdentifierEnum>().@enum;
-                    if (!(@enum is GameMode))
-                        throw new StatementException(tokens, "Invalid gamemode given: " + @enum.ToString());
-                    gameMode = (GameMode)@enum;
-                }
+                    gameMode = (GameMode)tokens.Next<TokenIdentifierEnum>().value;
                 else
                     gameMode = (GameMode)tokens.Next<TokenIntegerLiteral>().number;
 
@@ -684,7 +682,96 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void give(Executor executor, Statement tokens)
         {
+            string itemName = tokens.Next<TokenStringLiteral>();
+            bool needsStructure = false;
 
+            int count = 1;
+            int data = 0;
+            bool keep = false;
+            bool lockInventory = false;
+            bool lockSlot = false;
+            List<string> canPlaceOn = new List<string>();
+            List<string> canDestroy = new List<string>();
+            List<Tuple<Enchantment, int>> enchants = new List<Tuple<Enchantment, int>>();
+            string displayName = null;
+
+
+            if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+            {
+                count = tokens.Next<TokenIntegerLiteral>();
+
+                if(tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                    data = tokens.Next<TokenIntegerLiteral>();
+            }
+
+            while(tokens.HasNext && tokens.NextIs<TokenBuilderIdentifier>())
+            {
+                TokenBuilderIdentifier builderIdentifier = tokens.Next<TokenBuilderIdentifier>();
+                string builderField = builderIdentifier.builderField.ToUpper();
+
+                switch(builderField)
+                {
+                    case "KEEP":
+                        keep = true;
+                        needsStructure = true;
+                        break;
+                    case "LOCKINVENTORY":
+                        lockInventory = true;
+                        needsStructure = true;
+                        break;
+                    case "LOCKSLOT":
+                        lockSlot = true;
+                        needsStructure = true;
+                        break;
+                    case "CANPLACEON":
+                        canPlaceOn.Add(tokens.Next<TokenStringLiteral>());
+                        break;
+                    case "CANDESTROY":
+                        canDestroy.Add(tokens.Next<TokenStringLiteral>());
+                        break;
+                    case "ENCHANT":
+                        Enchantment enchantment = (Enchantment)tokens.Next<TokenIdentifierEnum>().value;
+                        int level = tokens.Next<TokenIntegerLiteral>();
+                        enchants.Add(new Tuple<Enchantment, int>(enchantment, level));
+                        needsStructure = true;
+                        break;
+                    case "NAME":
+                        displayName = tokens.Next<TokenStringLiteral>();
+                        needsStructure = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // create a structure file since this item is too complex
+            if(needsStructure)
+            {
+                ItemStack item = new ItemStack()
+                {
+                    id = itemName,
+                    count = count,
+                    damage = data,
+                    keep = keep,
+                    lockMode = lockInventory ? NBT.ItemLockMode.LOCK_IN_INVENTORY :
+                        lockSlot ? NBT.ItemLockMode.LOCK_IN_SLOT : NBT.ItemLockMode.NONE,
+                    displayName = displayName,
+                    enchantments = enchants.Select(e => new EnchantmentEntry(e.Item1, e.Item2)).ToArray(),
+                    canPlaceOn = canPlaceOn.ToArray(),
+                    canDestroy = canDestroy.ToArray()
+                };
+                StructureFile file = new StructureFile(item.GenerateUID(), StructureNBT.SingleItem(item));
+                executor.AddExtraFile(file);
+                Selector.Core core = executor.ActiveSelector;
+
+                string cmd = Command.StructureLoad(file.name, Coord.here, Coord.here, Coord.here,
+                    StructureRotation._0_degrees, StructureMirror.none, true, false);
+
+                if(core != Selector.Core.s && core != Selector.Core.p)
+                    executor.AddCommand(Command.Execute("@" + core, Coord.here, Coord.here, Coord.here, cmd));
+                else
+                    executor.AddCommand(cmd);
+            }
         }
         public static void tp(Executor executor, Statement tokens)
         {

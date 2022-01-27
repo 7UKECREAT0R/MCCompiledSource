@@ -1017,7 +1017,7 @@ namespace mc_compiled.MCC.Compiler
         bool lockSlot;
         List<string> canPlaceOn = new List<string>();
         List<string> canDestroy = new List<string>();
-        List<EnchantmentObject> enchants = new List<EnchantmentObject>();
+        List<LegacyEnchantmentObject> enchants = new List<LegacyEnchantmentObject>();
         string displayName;
 
         bool useStructure;  // If a structure needs to be loaded
@@ -1070,7 +1070,7 @@ namespace mc_compiled.MCC.Compiler
                     string enchantment = args[++i];
                     string level = args[++i];
 
-                    enchants.Add(new EnchantmentObject(enchantment, level));
+                    enchants.Add(new LegacyEnchantmentObject(enchantment, level));
                     useStructure = true;
 
                 } else if (str.Equals("NAME"))
@@ -1101,7 +1101,7 @@ namespace mc_compiled.MCC.Compiler
                     lockMode = lockInventory ? ItemLockMode.LOCK_IN_INVENTORY :
                         lockSlot ? ItemLockMode.LOCK_IN_SLOT : ItemLockMode.NONE,
                     displayName = displayName,
-                    enchantments = enchants.Select(e => e.Resolve(caller)).ToArray(),
+                    //enchantments = enchants.Select(e => e.Resolve(caller)).ToArray(),
                     canDestroy = canDestroy.ToArray(),
                     canPlaceOn = canPlaceOn.ToArray()
                 };

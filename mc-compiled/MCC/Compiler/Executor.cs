@@ -1,5 +1,6 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Json;
+using mc_compiled.Modding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace mc_compiled.MCC.Compiler
         readonly Dictionary<string, dynamic> ppv;
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector.Core> selections;
-        readonly List<CommandFile> filesToWrite;
+        readonly List<IBehaviorFile> filesToWrite;
         readonly StringBuilder prependBuffer;
 
         public readonly ScoreboardManager scoreboard;
@@ -263,11 +264,8 @@ namespace mc_compiled.MCC.Compiler
         /// Add a file on its own to the list.
         /// </summary>
         /// <param name="file"></param>
-        public void AddExtraFile(CommandFile file)
-        {
-            if (!filesToWrite.Any(f => f.name == file.name && f.folder == file.folder))
-                filesToWrite.Add(file);
-        }
+        public void AddExtraFile(IBehaviorFile file) =>
+            filesToWrite.Add(file);
         /// <summary>
         /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>

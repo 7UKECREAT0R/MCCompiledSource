@@ -50,6 +50,7 @@
     <Compile Include="Commands\CommandEnumParser.cs" />
     <Compile Include="Commands\CommandLimits.cs" />
     <Compile Include="Commands\Command.cs" />
+    <Compile Include="Commands\Native\EnchantmentEntry.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="MCC\Compiler\CommandFile.cs" />
     <Compile Include="MCC\Compiler\DirectiveImplementations.cs" />
@@ -58,7 +59,7 @@
     <Compile Include="MCC\Compiler\Statements.cs" />
     <Compile Include="MCC\Macro.cs" />
     <Compile Include="MCC\ScoreboardManager.cs" />
-    <Compile Include="Modding\IBehaviorOutput.cs" />
+    <Compile Include="Modding\IBehaviorFile.cs" />
     <Compile Include="MCC\Compiler\Statement.cs" />
     <Compile Include="MCC\Compiler\Token.cs" />
     <Compile Include="MCC\Compiler\TokensLiterals.cs" />
@@ -83,7 +84,7 @@
     <Compile Include="Commands\Selectors\Player.cs" />
     <Compile Include="Commands\Selectors\Tag.cs" />
     <Compile Include="Commands\Native\Block.cs" />
-    <Compile Include="Commands\Native\EnchantmentObject.cs" />
+    <Compile Include="Commands\Native\LegacyEnchantmentObject.cs" />
     <Compile Include="Commands\Native\ItemStack.cs" />
     <Compile Include="Commands\Range.cs" />
     <Compile Include="Commands\Selectors\Scores.cs" />

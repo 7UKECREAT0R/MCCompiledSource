@@ -34,7 +34,7 @@ namespace mc_compiled.MCC.Compiler
                 this.chars = chars.ToCharArray();
             }
         }
-        static readonly char[] WORD_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:".ToCharArray();
+        static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:".ToCharArray();
         static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
         static bool IsWhiteSpace(char c) => c == ' ' | c == '\t';
 
@@ -265,7 +265,7 @@ namespace mc_compiled.MCC.Compiler
             while (HasNext)
             {
                 char next = Peek();
-                if (WORD_CHARS.Contains(next))
+                if (IDENTIFIER_CHARS.Contains(next))
                     sb.Append(NextChar());
                 else
                     break;
@@ -284,19 +284,23 @@ namespace mc_compiled.MCC.Compiler
                     break;
             }
 
+            // check for probable builder field
+            if (word.EndsWith(":"))
+                return new TokenBuilderIdentifier(word, CURRENT_LINE);
+
             // check for directive
             Directive directive = Directives.Query(word);
             if (directive != null)
                 return new TokenDirective(directive, CURRENT_LINE);
 
             // check for enum constant
-            if (CommandEnumParser.TryParse(word, out Enum enumValue))
+            if (CommandEnumParser.TryParse(word, out object enumValue))
                 return new TokenIdentifierEnum(word, enumValue, CURRENT_LINE);
 
             // unresolved
             if (word.StartsWith("$"))
                 return new TokenUnresolvedPPV(word, CURRENT_LINE);
-            
+
             return new TokenIdentifier(word, CURRENT_LINE);
         }
 

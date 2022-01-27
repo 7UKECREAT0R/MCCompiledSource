@@ -8,13 +8,13 @@ namespace mc_compiled.Commands
 {
     public static class CommandEnumParser
     {
-        static Dictionary<string, Enum> parser = new Dictionary<string, Enum>();
+        static Dictionary<string, object> parser = new Dictionary<string, object>();
 
-        public static bool TryParse(string input, out Enum result) =>
+        public static bool TryParse(string input, out object result) =>
             parser.TryGetValue(input.ToUpper(), out result);
-        public static void Put(Enum value) =>
+        public static void Put(object value) =>
             parser[value.ToString().ToUpper()] = value;
-        public static void Put(string key, Enum value) =>
+        public static void Put(string key, object value) =>
             parser[key.ToUpper()] = value;
     }
 
@@ -26,8 +26,8 @@ namespace mc_compiled.Commands
             if (!type.IsEnum)
                 return;
 
-            IEnumerable<Enum> array = type.GetEnumValues().Cast<Enum>();
-            foreach(Enum value in array)
+            IEnumerable<object> array = type.GetEnumValues().Cast<object>();
+            foreach(object value in array)
             {
                 string key = value.ToString();
                 CommandEnumParser.Put(key, value);

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Modding
 {
-    public struct StructureFile : IBehaviorOutput
+    public struct StructureFile : IBehaviorFile
     {
         public string name;
         public StructureNBT structure;

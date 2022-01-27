@@ -64,15 +64,26 @@ namespace mc_compiled.MCC.Compiler
         public TokenUnresolvedPPV(string word, int lineNumber) : base(word, lineNumber) { }
     }
     /// <summary>
+    /// Represents a reference to what is probably a directive's builder field.
+    /// </summary>
+    public sealed class TokenBuilderIdentifier : TokenIdentifier
+    {
+        public readonly string builderField;
+        public TokenBuilderIdentifier(string fullWord, int lineNumber) : base(fullWord, lineNumber)
+        {
+            if(fullWord.EndsWith(":")) // it should 100% of the time
+                builderField = fullWord.Substring(0, fullWord.Length - 1);
+        }
+    }
+    /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.
     /// </summary>
     public sealed class TokenIdentifierEnum : TokenIdentifier, IObjectable
     {
-        public readonly Enum @enum;
-
-        public TokenIdentifierEnum(string word, Enum @enum, int lineNumber) : base(word, lineNumber)
+        public readonly object value;
+        public TokenIdentifierEnum(string word, object value, int lineNumber) : base(word, lineNumber)
         {
-            this.@enum = @enum;
+            this.value = value;
         }
     }
     /// <summary>

@@ -17,13 +17,13 @@ namespace mc_compiled.Commands.Native
         public int damage;
 
         public string displayName;
-        public EnchantmentObject[] enchantments;
+        public EnchantmentEntry[] enchantments;
         public bool keep;
         public string[] canPlaceOn;
         public string[] canDestroy;
         public ItemLockMode lockMode;
 
-        public ItemStack(string id, int count = 1, int damage = 0, string displayName = null, EnchantmentObject[] enchantments = null,
+        public ItemStack(string id, int count = 1, int damage = 0, string displayName = null, EnchantmentEntry[] enchantments = null,
             bool keep = false, string[] canPlaceOn = null, string[] canDestroy = null, ItemLockMode lockMode = ItemLockMode.NONE)
         {
             // namespace required
@@ -41,7 +41,7 @@ namespace mc_compiled.Commands.Native
             this.canDestroy = canDestroy;
             this.lockMode = lockMode;
         }
-        
+
         /// <summary>
         /// Generate a unique identifier for this item stack.
         /// </summary>
@@ -53,7 +53,7 @@ namespace mc_compiled.Commands.Native
             id -= damage;
             id ^= displayName == null ? 0 : displayName.GetHashCode();
             if (enchantments != null)
-                foreach (EnchantmentObject ench in enchantments)
+                foreach (EnchantmentEntry ench in enchantments)
                     id ^= ench.GetHashCode();
             if (keep) id *= -1;
             if (canPlaceOn != null)
