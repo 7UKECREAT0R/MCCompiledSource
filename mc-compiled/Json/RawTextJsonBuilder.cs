@@ -28,6 +28,10 @@ namespace mc_compiled.Json
         {
             terms.Add(term);
         }
+        public void AddTerms(IEnumerable<JSONRawTerm> terms)
+        {
+            this.terms.AddRange(terms);
+        }
         public string BuildPreviewString()
         {
             return string.Join(" ", from term in terms select term.PreviewString());

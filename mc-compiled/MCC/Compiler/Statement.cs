@@ -25,10 +25,10 @@ namespace mc_compiled.MCC.Compiler
         {
             get => currentToken < tokens.Length;
         }
-        public Token NextToken() => tokens[currentToken++];
-        public Token PeekToken() => tokens[currentToken];
-        public T NextToken<T>() where T: class => tokens[currentToken++] as T;
-        public T PeekToken<T>() where T: class => tokens[currentToken] as T;
+        public Token Next() => tokens[currentToken++];
+        public Token Peek() => tokens[currentToken];
+        public T Next<T>() where T: class => tokens[currentToken++] as T;
+        public T Peek<T>() where T: class => tokens[currentToken] as T;
         public bool NextIs<T>() => tokens[currentToken] is T;
 
         protected abstract TypePattern[] GetValidPatterns();
@@ -64,7 +64,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if (unresolved is TokenStringLiteral)
                     resolved = new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line);
-                if (unresolved is TokenUnresolvedPPV)
+                else if (unresolved is TokenUnresolvedPPV)
                     resolved = (executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? unresolved);
 
                 if(unresolved is TokenIdentifier)
@@ -72,7 +72,7 @@ namespace mc_compiled.MCC.Compiler
                     string word = (unresolved as TokenIdentifier).word;
                     if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value))
                         resolved = new TokenIdentifierValue(word, value, line);
-                    if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))
+                    else if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))
                         resolved = new TokenIdentifierStruct(word, @struct, line);
                 }
 

@@ -20,6 +20,12 @@ namespace mc_compiled.MCC
 
         public ScoreboardValue(string baseName, ScoreboardManager manager)
         {
+            int len = baseName.Length;
+            int max = GetMaxNameLength();
+
+            if (len > max)
+                throw new Exception($"Cannot define variable named '{baseName}'. Max length for this type is {max}.");
+
             this.manager = manager;
             this.baseName = baseName;
         }

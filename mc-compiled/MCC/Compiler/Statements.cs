@@ -26,20 +26,69 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementOpenBlock : Statement
     {
-        public readonly int statementsInside;
-        public readonly CommandFile file;
+        private static int branchIndex;
+        public static CommandFile GetNextBranchFile() =>
+            new CommandFile("branch" + (branchIndex++), "_branching");
 
-        public StatementOpenBlock(int toSkip, CommandFile file) : base(null)
+        public readonly int statementsInside;
+        public bool shouldRun = false;
+        private CommandFile file;
+
+        public StatementOpenBlock(int statementsInside, CommandFile file) : base(null)
         {
-            this.statementsInside = toSkip;
+            this.statementsInside = statementsInside;
             this.file = file;
+        }
+        public bool HasTargetFile
+        {
+            get => file != null;
+        }
+        public CommandFile TargetFile
+        {
+            set => file = value;
+        }
+
+
+        protected override TypePattern[] GetValidPatterns()
+            => new TypePattern[0];
+        protected override void Run(Executor executor)
+        {
+            // get the closer and tell it whether to pop file or not.
+            StatementCloseBlock closer = executor.Peek<StatementCloseBlock>(statementsInside);
+
+            if (shouldRun)
+            {
+                closer.popFile = file != null;
+                if (file != null)
+                    executor.PushFile(file);
+                executor.PushSelector(); // push a level up
+            } else
+            {
+                closer.popFile = false;
+                for (int i = 0; i < statementsInside; i++)
+                    executor.Next();
+            }
+        }
+    }
+    /// <summary>
+    /// Closes a block.
+    /// </summary>
+    public sealed class StatementCloseBlock : Statement
+    {
+        public bool popFile;
+        public StatementCloseBlock() : base(null)
+        {
+            this.popFile = false;
         }
 
         protected override TypePattern[] GetValidPatterns()
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            executor.PushSelector(); // push a level up
+            if (popFile)
+                executor.PopFile();
+
+            executor.PopSelector();
         }
     }
 }

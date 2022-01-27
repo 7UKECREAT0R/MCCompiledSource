@@ -1,8 +1,10 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
@@ -12,6 +14,8 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Executor
     {
+        public static readonly Regex FSTRING_VAR = new Regex("{([a-zA-Z-:._]{1,16})}");
+
         public readonly string projectName;
 
         Statement[] statements;
@@ -26,6 +30,44 @@ namespace mc_compiled.MCC.Compiler
         readonly StringBuilder prependBuffer;
 
         public readonly ScoreboardManager scoreboard;
+        /// <summary>
+        /// Resolve an FString into rawtext terms. Also adds all setup commands for variables.
+        /// </summary>
+        /// <param name="fstring"></param>
+        /// <returns></returns>
+        public List<JSONRawTerm> FString(string fstring)
+        {
+            MatchCollection matches = FSTRING_VAR.Matches(fstring);
+            if (matches.Count < 1)
+                return new List<JSONRawTerm>() { new JSONText(fstring) };
+
+            List<JSONRawTerm> terms = new List<JSONRawTerm>();
+            Stack<string> pieces = new Stack<string>(FSTRING_VAR.Split(fstring).Reverse());
+
+            int index = 0;
+            string sel = "@" + ActiveSelector;
+            foreach (Match match in matches)
+            {
+                if (match.Index != 0 && pieces.Count > 0)
+                    terms.Add(new JSONText(pieces.Pop()));
+                pieces.Pop();
+
+                string src = match.Value;
+                string accessor = match.Groups[1].Value;
+
+                if(scoreboard.TryGetByAccessor(accessor, out ScoreboardValue value))
+                {
+                    AddCommandsClean(value.CommandsRawTextSetup(accessor, sel, index));
+                    terms.AddRange(value.ToRawText(accessor, sel, index++));
+                } else
+                    terms.Add(new JSONText(src));
+            }
+
+            while (pieces.Count > 0)
+                terms.Add(new JSONText(pieces.Pop()));
+
+            return terms;
+        }
 
         public Selector.Core ActiveSelector
         {
@@ -35,6 +77,10 @@ namespace mc_compiled.MCC.Compiler
                 selections.Pop();
                 selections.Push(value);
             }
+        }
+        public string ActiveSelectorStr
+        {
+            get => $"@{ActiveSelector}";
         }
         public void PushSelector() =>
             selections.Push(ActiveSelector);
@@ -51,6 +97,7 @@ namespace mc_compiled.MCC.Compiler
         public Statement Next() => statements[readIndex++];
         public T Next<T>() where T: Statement => statements[readIndex++] as T;
         public T Peek<T>() where T : Statement => statements[readIndex] as T;
+        public T Peek<T>(int skip) where T : Statement => statements[readIndex + skip] as T;
         public bool NextIs<T>() where T: Statement => statements[readIndex] is T;
         /// <summary>
         /// Return an array of the next x statements.
@@ -171,13 +218,13 @@ namespace mc_compiled.MCC.Compiler
         /// Add a command to the current file, with prepend buffer.
         /// </summary>
         /// <param name="command"></param>
-        public void AddCommandDirty(string command) =>
+        public void AddCommand(string command) =>
             CurrentFile.Add(PopPrepend() + command);
         /// <summary>
         /// Add a set of commands to the current file, all with the prepend buffer.
         /// </summary>
         /// <param name="commands"></param>
-        public void AddCommandsDirty(IEnumerable<string> commands)
+        public void AddCommands(IEnumerable<string> commands)
         {
             string prepend = PopPrepend();
             CurrentFile.Add(commands.Select(c => prepend + c));
