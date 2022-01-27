@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.MCC;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -62,6 +63,14 @@ namespace mc_compiled.Commands.Selectors
             if (levelMax.HasValue)
                 strings.Add("lm=" + levelMax.Value);
             return strings.ToArray();
+        }
+
+        public string AsStoreIn(string selector, string objective)
+        {
+            IEnumerable<string> parts = GetSections();
+            string tags = string.Join(",", parts);
+
+            return $"execute {selector}[{tags}] ~~~ scoreboard players set @s {objective} 1";
         }
     }
 

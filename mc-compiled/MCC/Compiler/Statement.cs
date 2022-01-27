@@ -31,6 +31,17 @@ namespace mc_compiled.MCC.Compiler
         public T Peek<T>() where T: class => tokens[currentToken] as T;
         public bool NextIs<T>() => tokens[currentToken] is T;
 
+        /// <summary>
+        /// Return the remaining tokens in this statement.
+        /// </summary>
+        /// <returns></returns>
+        public Token[] GetRemainingTokens()
+        {
+            Token[] ret = new Token[tokens.Length - currentToken];
+            for (int i = currentToken; i < tokens.Length; i++)
+                ret[i] = tokens[i];
+            return ret;
+        }
         protected abstract TypePattern[] GetValidPatterns();
         /// <summary>
         /// Run this statement/continue where it left off.

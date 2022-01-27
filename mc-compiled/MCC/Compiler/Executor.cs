@@ -23,6 +23,7 @@ namespace mc_compiled.MCC.Compiler
 
         readonly List<Macro> macros;
         readonly bool[] lastPreprocessorCompare;
+        readonly Token[][] lastActualCompare;
         readonly Dictionary<string, dynamic> ppv;
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector.Core> selections;
@@ -82,10 +83,13 @@ namespace mc_compiled.MCC.Compiler
         {
             get => $"@{ActiveSelector}";
         }
-        public void PushSelector() =>
-            selections.Push(ActiveSelector);
-        public void PushSelector(Selector.Core core) =>
-            selections.Push(core);
+        public void PushSelector(bool doesAlign)
+        {
+            if (doesAlign)
+                selections.Push(Selector.Core.s);
+            else
+                selections.Push(ActiveSelector);
+        }
         public void PopSelector() =>
             selections.Pop();
 
@@ -134,6 +138,7 @@ namespace mc_compiled.MCC.Compiler
             macros = new List<Macro>();
             selections = new Stack<Selector.Core>();
             lastPreprocessorCompare = new bool[100];
+            lastActualCompare = new Token[100][];
             currentFiles = new Stack<CommandFile>();
             filesToWrite = new List<CommandFile>();
             prependBuffer = new StringBuilder();
@@ -185,6 +190,19 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <returns></returns>
         public bool GetLastIfResult() => lastPreprocessorCompare[ScopeLevel];
+
+        /// <summary>
+        /// Set the last if-statement tokens used at this scope.
+        /// </summary>
+        /// <param name="selector"></param>
+        public void SetLastCompare(Token[] inputTokens) =>
+            lastActualCompare[ScopeLevel] = inputTokens;
+        /// <summary>
+        /// Get the last if-statement tokens used at this scope.
+        /// </summary>
+        /// <returns></returns>
+        public Token[] GetLastCompare() =>
+            lastActualCompare[ScopeLevel];
 
         /// <summary>
         /// Add a macro to be looked up later.

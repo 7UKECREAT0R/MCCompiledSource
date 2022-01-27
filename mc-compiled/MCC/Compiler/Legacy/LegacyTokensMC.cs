@@ -697,7 +697,7 @@ namespace mc_compiled.MCC.Compiler
                                 $"scoreboard objectives add {inverterName} dummy"
                             });
                             context.FinishRaw($"scoreboard players set @{context.SelectionReference} {inverterName} 0", false);
-                            context.FinishRaw(blockCheck.AsStoreIn(inverterName), false); // will set to 1 if found
+                            context.FinishRaw(blockCheck.AsStoreIn($"@{context.SelectionReference}", inverterName), false); // will set to 1 if found
                             selector.blockCheck = BlockCheck.DISABLED;
                             selector.scores.checks.Add(new Commands.Selectors.ScoresEntry(inverterName, new Range(0, false)));
                         }
@@ -737,6 +737,7 @@ namespace mc_compiled.MCC.Compiler
                         return;
                     case Type.IN:
                         if (not) // Would require a 6-region check which I'm just not ready to do
+                            // (note from me in the future: pussyyyy)
                             throw new NotSupportedException("IN if-statments cannot be inverted.");
                         string _sizeX = args[0];
                         string _sizeY = args[1];

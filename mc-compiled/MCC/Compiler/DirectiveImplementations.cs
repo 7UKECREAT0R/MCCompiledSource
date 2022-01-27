@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using System;
 using System.Collections.Generic;
@@ -194,6 +195,7 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
+                block.aligns = false;
                 block.shouldRun = run;
                 return;
             }
@@ -207,6 +209,7 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
+                block.aligns = false;
                 block.shouldRun = run;
                 return;
             }
@@ -229,7 +232,7 @@ namespace mc_compiled.MCC.Compiler
                 StatementOpenBlock block = executor.Next<StatementOpenBlock>();
                 skipAfter = block.statementsInside;
                 statements = executor.Peek(skipAfter);
-                executor.Next<StatementCloseBlock>(); // skip that
+                executor.Next<StatementOpenBlock>(); // skip that
             } else
             {
                 skipAfter = 0;
@@ -412,9 +415,9 @@ namespace mc_compiled.MCC.Compiler
             {
                 TokenIdentifierStruct _struct = tokens.Next<TokenIdentifierStruct>();
                 TokenStringLiteral @string = tokens.Next<TokenStringLiteral>();
-                ScoreboardValueStruct value = new ScoreboardValueStruct
+                ScoreboardValueStruct sbValue = new ScoreboardValueStruct
                     (@string, _struct.@struct, executor.scoreboard);
-                executor.scoreboard.Add(value);
+                executor.scoreboard.Add(sbValue);
                 return;
             }
 
@@ -444,14 +447,14 @@ namespace mc_compiled.MCC.Compiler
                         type = TYPE_TIME;
                         break;
                     default:
-                        throw new Exception($"Invalid type identifier '{typeWord}'.");
+                        throw new StatementException(tokens, $"Invalid type identifier '{typeWord}'.");
                 }
             }
 
             if (type == TYPE_DECIMAL)
             {
                 if (!tokens.NextIs<TokenIntegerLiteral>())
-                    throw new Exception($"No precision specified for decimal value");
+                    throw new StatementException(tokens, $"No precision specified for decimal value");
                 int precision = tokens.Next<TokenIntegerLiteral>();
                 string decimalName = tokens.Next<TokenStringLiteral>();
                 ScoreboardValueDecimal decimalValue = new ScoreboardValueDecimal
@@ -470,7 +473,7 @@ namespace mc_compiled.MCC.Compiler
             else if (type == TYPE_TIME)
                 value = new ScoreboardValueTime(name, executor.scoreboard);
             else
-                throw new Exception($"Variable type corrupted for '{name}'.");
+                throw new StatementException(tokens, $"Variable type corrupted for '{name}'.");
 
             executor.scoreboard.Add(value);
         }
@@ -479,13 +482,205 @@ namespace mc_compiled.MCC.Compiler
             TokenIdentifierValue _value = tokens.Next<TokenIdentifierValue>();
             executor.AddCommands(_value.value.CommandsInit());
         }
-        public static void @if(Executor executor, Statement tokens)
+        public static void @if(Executor executor, Statement tokens) =>
+            @if(executor, tokens, false);
+        public static void @if(Executor executor, Statement tokens, bool invert)
         {
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            string entity = executor.ActiveSelectorStr;
+            Token[] tokensUsed = tokens.GetRemainingTokens();
+            bool not = invert;
 
+            Selector selector = new Selector();
+            selector.core = executor.ActiveSelector;
+
+            // check for word "not"
+            if (word.ToUpper().Equals("NOT"))
+            {
+                not = !invert;
+                word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            }
+
+            if (word.Equals("BLOCK"))
+            {
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                string block = tokens.Next<TokenStringLiteral>();
+                int? data = null;
+
+                if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                    data = tokens.Next<TokenIntegerLiteral>();
+
+                BlockCheck blockCheck = new BlockCheck(x, y, z, block, data);
+
+                if (not)
+                {
+                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                    executor.AddCommands(new[] {
+                         Command.ScoreboardSet(entity, inverter, 0),
+                         blockCheck.AsStoreIn(entity, inverter)
+                    });
+                    selector.blockCheck = BlockCheck.DISABLED;
+                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                    executor.scoreboard.ReleaseTemp();
+                }
+                else
+                    selector.blockCheck = blockCheck;
+            }
+            else if (word.Equals("NEAR"))
+            {
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                int radius = tokens.Next<TokenIntegerLiteral>();
+
+                int? minRadius = null;
+                if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                    minRadius = tokens.Next<TokenIntegerLiteral>();
+
+                Area area = new Area(x, y, z, minRadius, radius);
+
+                if (not && minRadius != null)
+                {
+                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                    executor.AddCommands(new[] {
+                         Command.ScoreboardSet(entity, inverter, 0),
+                         area.AsStoreIn(entity, inverter)
+                    });
+                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                    executor.scoreboard.ReleaseTemp();
+                }
+                else if (not)
+                {
+                    area.radiusMin = area.radiusMax;
+                    area.radiusMax = 999999999f;
+                    selector.area = area;
+                }
+                else
+                    selector.area = area;
+            }
+            else if (word.Equals("INSIDE"))
+            {
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                int sizeX = tokens.Next<TokenIntegerLiteral>();
+                int sizeY = tokens.Next<TokenIntegerLiteral>();
+                int sizeZ = tokens.Next<TokenIntegerLiteral>();
+
+                Area area = new Area(x, y, z, null, null, sizeX, sizeY, sizeZ);
+
+                if (not)
+                {
+                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                    executor.AddCommands(new[] {
+                         Command.ScoreboardSet(entity, inverter, 0),
+                         area.AsStoreIn(entity, inverter)
+                    });
+                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                    executor.scoreboard.ReleaseTemp();
+                }
+                else
+                    selector.area = area;
+            }
+            else if (word.Equals("TYPE"))
+            {
+                string type = tokens.Next<TokenStringLiteral>();
+                if (not) type = '!' + type;
+                selector.entity.type = type;
+            }
+            else if (word.Equals("FAMILY"))
+            {
+                string family = tokens.Next<TokenStringLiteral>();
+                if (not) family = '!' + family;
+                selector.entity.type = family;
+            }
+            else if (word.Equals("TAG"))
+            {
+                string tag = tokens.Next<TokenStringLiteral>();
+                selector.tags.Add(new Tag(tag, not));
+            }
+            else if (word.Equals("MODE"))
+            {
+                GameMode gameMode;
+
+                if (tokens.NextIs<TokenIdentifierEnum>())
+                {
+                    Enum @enum = tokens.Next<TokenIdentifierEnum>().@enum;
+                    if (!(@enum is GameMode))
+                        throw new StatementException(tokens, "Invalid gamemode given: " + @enum.ToString());
+                    gameMode = (GameMode)@enum;
+                }
+                else
+                    gameMode = (GameMode)tokens.Next<TokenIntegerLiteral>().number;
+
+                selector.player.gamemode = gameMode;
+                selector.player.gamemodeNot = not;
+            }
+            else if (word.Equals("LEVEL"))
+            {
+                int levelMin = tokens.Next<TokenIntegerLiteral>();
+                int? levelMax = null;
+
+                if (tokens.HasNext)
+                    levelMax = tokens.Next<TokenIntegerLiteral>();
+
+                if (not && levelMax == null)
+                {
+                    selector.player.levelMin = 0;
+                    selector.player.levelMax = levelMin;
+                }
+                else if (not)
+                {
+                    Player invertCondition = new Player(null, levelMin, levelMax);
+                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                    executor.AddCommands(new[] {
+                         Command.ScoreboardSet(entity, inverter, 0),
+                         invertCondition.AsStoreIn(entity, inverter)
+                    });
+                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                    executor.scoreboard.ReleaseTemp();
+                }
+                else
+                {
+                    selector.player.levelMin = levelMin;
+                    selector.player.levelMax = levelMax;
+                }
+            }
+            else if (word.Equals("NAME"))
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+                if (not) name = '!' + name;
+                selector.entity.name = name;
+            }
+            else if (word.Equals("LIMIT"))
+            {
+                if (not)
+                    throw new StatementException(tokens, "Cannot invert a limit check.");
+
+                int count = tokens.Next<TokenIntegerLiteral>();
+                selector.count = new Count(count);
+            }
+
+            // the selector is now ready to use and commands are setup
+            executor.SetLastCompare(tokensUsed);
+            string prefix = selector.GetAsPrefix();
+            executor.SetCommandPrepend(prefix);
+
+            if(executor.NextIs<StatementOpenBlock>())
+            {
+                StatementOpenBlock openBlock = executor.Next<StatementOpenBlock>();
+                openBlock.aligns = true;
+                openBlock.shouldRun = true;
+                openBlock.TargetFile = StatementOpenBlock.GetNextBranchFile();
+                return;
+            }
         }
         public static void @else(Executor executor, Statement tokens)
         {
-
+            Token[] toRun = executor.GetLastCompare();
+            @if(executor, new StatementDirective(null, toRun), true);
         }
         public static void give(Executor executor, Statement tokens)
         {

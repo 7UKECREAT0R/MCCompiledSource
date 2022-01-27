@@ -32,6 +32,7 @@ namespace mc_compiled.MCC.Compiler
 
         public readonly int statementsInside;
         public bool shouldRun = false;
+        public bool aligns = false;
         private CommandFile file;
 
         public StatementOpenBlock(int statementsInside, CommandFile file) : base(null)
@@ -61,7 +62,7 @@ namespace mc_compiled.MCC.Compiler
                 closer.popFile = file != null;
                 if (file != null)
                     executor.PushFile(file);
-                executor.PushSelector(); // push a level up
+                executor.PushSelector(aligns); // push a level up
             } else
             {
                 closer.popFile = false;

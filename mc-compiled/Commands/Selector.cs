@@ -66,7 +66,7 @@ namespace mc_compiled.Commands
             blockCheck = copy.blockCheck;
         }
 
-        public Core core;              // Base selector.
+        public Core core;               // Base selector.
 
         public Selectors.Area area;       // The area where targets should be selected.
         public Selectors.Scores scores;   // The scores that should be evaluated.

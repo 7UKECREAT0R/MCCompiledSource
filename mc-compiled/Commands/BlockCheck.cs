@@ -54,9 +54,9 @@ namespace mc_compiled.Commands
         /// Get this BlockCheck as a testfor statement.
         /// </summary>
         /// <returns></returns>
-        public string AsStoreIn(string objective)
+        public string AsStoreIn(string selector, string objective)
         {
-            return $"execute @s ~~~ detect {x} {y} {z} {block} {data ?? 0} scoreboard players set @s {objective} 1";
+            return $"execute {selector} ~~~ detect {x} {y} {z} {block} {data ?? 0} scoreboard players set @s {objective} 1";
         }
     }
 }

@@ -136,5 +136,13 @@ namespace mc_compiled.Commands.Selectors
 
             return parts.ToArray();
         }
+
+        public string AsStoreIn(string selector, string objective)
+        {
+            IEnumerable<string> parts = GetSections();
+            string tags = string.Join(",", parts);
+
+            return $"execute {selector}[{tags}] ~~~ scoreboard players set @s {objective} 1";
+        }
     }
 }
