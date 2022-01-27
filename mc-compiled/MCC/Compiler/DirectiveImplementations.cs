@@ -772,6 +772,33 @@ namespace mc_compiled.MCC.Compiler
                 else
                     executor.AddCommand(cmd);
             }
+
+            List<string> json = new List<string>();
+
+            if (keep)
+                json.Add("\"keep_on_death\":{}");
+
+            if (lockSlot)
+                json.Add("\"item_lock\":{\"mode\":\"lock_in_slot\"}");
+            else if (lockInventory)
+                json.Add("\"item_lock\":{\"mode\":\"lock_in_inventory\"}");
+
+            if (canPlaceOn.Count > 0)
+            {
+                string blocks = string.Join(",", canPlaceOn.Select(c => $"\"{c}\""));
+                json.Add($"\"minecraft:can_place_on\":{{\"blocks\":[{blocks}]}}");
+            }
+            if (canDestroy.Count > 0)
+            {
+                string blocks = string.Join(",", canDestroy.Select(c => $"\"{c}\""));
+                json.Add($"\"minecraft:can_destroy\":{{\"blocks\":[{blocks}]}}");
+            }
+
+            string command = Command.Give(executor.ActiveSelectorStr, itemName, count, data);
+            if(json.Count > 0)
+                command += $" {{{string.Join(",", json)}}}";
+
+            executor.AddCommand(command);
         }
         public static void tp(Executor executor, Statement tokens)
         {
