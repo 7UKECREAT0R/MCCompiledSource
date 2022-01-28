@@ -16,7 +16,7 @@ namespace mc_compiled.MCC
     /// </summary>
     public class LegacyExecutor
     {
-        public const double MCC_VERSION = 0.51;             // _compilerversion
+        public const double MCC_VERSION = 0.60;             // _compilerversion
         public static string MINECRAFT_VERSION = "1.17.41"; // _mcversion
         public long HaltFunctionCount
         {

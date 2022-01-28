@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace mc_compiled.Commands.Selectors
 {
     /// <summary>
-    /// Represents selector option which limits based on count. Only here for future proofing.
+    /// Represents selector option which limits based on count.
     /// </summary>
     public struct Count
     {
@@ -18,9 +18,26 @@ namespace mc_compiled.Commands.Selectors
         {
             this.count = count;
         }
-        public static Count Parse(string str)
+        public static Count Parse(string[] chunks)
         {
-            return new Count(int.Parse(str));
+            int endCount = NONE;
+
+            foreach (string chunk in chunks)
+            {
+                int index = chunk.IndexOf('=');
+                if (index == -1)
+                    continue;
+                string a = chunk.Substring(0, index).Trim().ToUpper();
+                string b = chunk.Substring(index + 1).Trim();
+
+                if (a.Equals("C"))
+                {
+                    endCount = int.Parse(b);
+                    break;
+                }
+            }
+
+            return new Count(endCount);
         }
         public string GetSection()
         {

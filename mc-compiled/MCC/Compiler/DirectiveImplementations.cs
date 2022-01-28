@@ -391,7 +391,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void select(Executor executor, Statement tokens)
         {
-            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+            TokenSimpleSelectorLiteral selector = tokens.Next<TokenSimpleSelectorLiteral>();
             executor.ActiveSelector = selector.core;
         }
         public static void print(Executor executor, Statement tokens)

@@ -40,7 +40,7 @@ namespace mc_compiled.MCC.Compiler
 
         readonly char[] content;
         readonly StringBuilder sb;
-        private int index;          // the index of the reader
+        private int index; // the index of the reader
 
         /// <summary>
         /// Splits by space but preserves arguments encapsulated with quotation marks.
@@ -151,24 +151,34 @@ namespace mc_compiled.MCC.Compiler
 
             if(firstChar == '@')
             {
+                Selector.Core core;
+
                 switch (char.ToUpper(secondChar))
                 {
                     case 'P':
                         NextChar();
-                        return new TokenSelectorLiteral(Selector.Core.p, CURRENT_LINE);
+                        core = Selector.Core.p;
+                        break;
                     case 'S':
                         NextChar();
-                        return new TokenSelectorLiteral(Selector.Core.s, CURRENT_LINE);
+                        core = Selector.Core.s;
+                        break;
                     case 'A':
                         NextChar();
-                        return new TokenSelectorLiteral(Selector.Core.a, CURRENT_LINE);
+                        core = Selector.Core.a;
+                        break;
                     case 'E':
                         NextChar();
-                        return new TokenSelectorLiteral(Selector.Core.e, CURRENT_LINE);
+                        core = Selector.Core.e;
+                        break;
                     default:
                         throw new FormatException("Invalid selector. '" +
                             secondChar + "'. Valid options: @p, @s, @a, or @e");
                 }
+                if (Peek() == '[')
+                    return NextSelectorLiteral(core);
+                else
+                    return new TokenSimpleSelectorLiteral(core, CURRENT_LINE);
             }
             
             // comment, read to EOL
@@ -361,6 +371,47 @@ namespace mc_compiled.MCC.Compiler
             }
 
             return new TokenStringLiteral(sb.ToString(), CURRENT_LINE);
+        }
+        public TokenSelectorLiteral NextSelectorLiteral(Selector.Core core)
+        {
+            if (Peek() == '[')
+                NextChar();
+
+            int level = 0;
+            bool escaped = false;
+            bool inQuotes = false;
+
+            while (HasNext)
+            {
+                char c = NextChar();
+                sb.Append(c);
+
+                if (c == '\\')
+                    escaped = !escaped;
+
+                if(!escaped)
+                {
+                    if (!inQuotes)
+                    {
+                        if (c == '[')
+                            level++;
+                        if (c == ']')
+                        {
+                            level--;
+                            if (level < 0)
+                                break;
+                        }
+                    }
+                    else if (c == '"')
+                        inQuotes = !inQuotes;
+                }
+                else if (c != '\\')
+                    escaped = false;
+            }
+
+            string str = sb.ToString();
+            Selector selector = Selector.Parse(core, str);
+            return new TokenSelectorLiteral(selector, CURRENT_LINE);
         }
         public TokenArithmatic ArithmaticIdentifier(char a, bool assignment)
         {

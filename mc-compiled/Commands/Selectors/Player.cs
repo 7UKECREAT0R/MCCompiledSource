@@ -28,31 +28,63 @@ namespace mc_compiled.Commands.Selectors
             this.levelMin = levelMin;
             this.levelMax = levelMax;
         }
+        public static Player Parse(string[] chunks)
+        {
+            GameMode? gamemode = null;
+            int? levelMin = null;
+            int? levelMax = null;
 
-        public void ParseGamemode(string parse, bool not)
+            foreach (string chunk in chunks)
+            {
+                int index = chunk.IndexOf('=');
+                if (index == -1)
+                    continue;
+                string a = chunk.Substring(0, index).Trim().ToUpper();
+                string b = chunk.Substring(index + 1).Trim();
+
+                switch (a)
+                {
+                    case "M":
+                        gamemode = ParseGameMode(b.Trim('\"'));
+                        break;
+                    case "LM":
+                        levelMin = int.Parse(b);
+                        break;
+                    case "L":
+                        levelMax = int.Parse(b);
+                        break;
+                }
+            }
+
+            return new Player(gamemode, levelMin, levelMax);
+        }
+
+        public void InsertGameMode(GameMode? mode, bool not)
         {
             gamemodeNot = not;
-            switch (parse.ToUpper())
+            gamemode = mode;
+        }
+        public static GameMode? ParseGameMode(string str)
+        {
+            switch (str.ToUpper())
             {
                 case "S":
                 case "SURVIVAL":
                 case "0":
-                    gamemode = GameMode.survival;
-                    break;
+                    return GameMode.survival;
                 case "C":
                 case "CREATIVE":
                 case "1":
-                    gamemode = GameMode.creative;
-                    break;
+                    return GameMode.creative;
                 case "A":
                 case "ADVENTURE":
                 case "2":
-                    gamemode = GameMode.adventure;
-                    break;
+                    return GameMode.adventure;
                 default:
-                    throw new FormatException("Not a valid gamemode.");
+                    return null;
             }
         }
+
         public string[] GetSections()
         {
             List<string> strings = new List<string>();

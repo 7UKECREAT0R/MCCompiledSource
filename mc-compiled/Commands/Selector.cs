@@ -65,16 +65,48 @@ namespace mc_compiled.Commands
             tags = new List<Selectors.Tag>(copy.tags);
             blockCheck = copy.blockCheck;
         }
+        public static Selector Parse(Core core, string str)
+        {
+            str = str.TrimStart('[').TrimEnd(']');
+            string[] chunks = str.Split(',')
+                .Select(c => c.Trim()).ToArray();
+
+            Selector selector = new Selector()
+            {
+                core = core,
+                area = Selectors.Area.Parse(chunks),
+                scores = Selectors.Scores.Parse(str),
+                count = Selectors.Count.Parse(chunks),
+                entity = Selectors.Entity.Parse(chunks),
+                player = Selectors.Player.Parse(chunks)
+            };
+
+            foreach (string chunk in chunks)
+            {
+                int index = chunk.IndexOf('=');
+                if (index == -1)
+                    continue;
+                string a = chunk.Substring(0, index).Trim().ToUpper();
+
+                if (a.Equals("TAG"))
+                {
+                    string b = chunk.Substring(index + 1).Trim();
+                    selector.tags.Add(Selectors.Tag.Parse(b));
+                }
+            }
+
+            return selector;
+        }
 
         public Core core;               // Base selector.
 
-        public Selectors.Area area;       // The area where targets should be selected.
-        public Selectors.Scores scores;   // The scores that should be evaluated.
-        public Selectors.Count count;     // The limit of entities that can be selected.
-        public Selectors.Entity entity;   // The entity/player's status (name, rotation, etc.)
-        public Selectors.Player player;   // The player's specific stats (level, gamemode, etc.)
-        public List<Selectors.Tag> tags;   // The tags this entity/player has. Can have multiple.
-        public BlockCheck blockCheck;
+        public Selectors.Area area;     // The area where targets should be selected.
+        public Selectors.Scores scores; // The scores that should be evaluated.
+        public Selectors.Count count;   // The limit of entities that can be selected.
+        public Selectors.Entity entity; // The entity/player's status (name, rotation, etc.)
+        public Selectors.Player player; // The player's specific stats (level, gamemode, etc.)
+        public List<Selectors.Tag> tags;// The tags this entity/player has. Can have multiple.
+        public BlockCheck blockCheck;   // The block to check.
 
         public override string ToString()
         {

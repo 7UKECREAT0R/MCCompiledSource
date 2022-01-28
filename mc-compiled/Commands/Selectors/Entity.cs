@@ -32,6 +32,55 @@ namespace mc_compiled.Commands.Selectors
             this.rotYMin = rotYMin;
             this.rotYMax = rotYMax;
         }
+        public static Entity Parse(string[] chunks)
+        {
+            string name = null;
+            string type = null;
+            string family = null;
+
+            int?
+                rotXMin = null,
+                rotXMax = null,
+                rotYMin = null,
+                rotYMax = null;
+
+            foreach (string chunk in chunks)
+            {
+                int index = chunk.IndexOf('=');
+                if (index == -1)
+                    continue;
+                string a = chunk.Substring(0, index).Trim().ToUpper();
+                string b = chunk.Substring(index + 1).Trim();
+
+                switch (a)
+                {
+                    case "NAME":
+                        name = b.Trim('\"');
+                        break;
+                    case "TYPE":
+                        name = b.Trim('\"');
+                        break;
+                    case "FAMILY":
+                        family = b.Trim('\"');
+                        break;
+                    case "RX":
+                        rotXMax = int.Parse(b);
+                        break;
+                    case "RXM":
+                        rotXMin = int.Parse(b);
+                        break;
+                    case "RY":
+                        rotYMax = int.Parse(b);
+                        break;
+                    case "RYM":
+                        rotYMin = int.Parse(b);
+                        break;
+                }
+            }
+
+            return new Entity(name, type, family,
+                rotXMin, rotXMax, rotYMin, rotYMax);
+        }
 
         public string[] GetSections()
         {

@@ -714,7 +714,8 @@ namespace mc_compiled.MCC.Compiler
                         selector.tags.Add(new Commands.Selectors.Tag(args[0], not));
                         return;
                     case Type.GAMEMODE:
-                        selector.player.ParseGamemode(args[0], not);
+                        GameMode? gm = Commands.Selectors.Player.ParseGameMode(args[0]);
+                        selector.player.InsertGameMode(gm, not);
                         return;
                     case Type.NEAR:
                         if (not) // Would need to check for both sides of the range.

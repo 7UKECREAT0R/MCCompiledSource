@@ -40,11 +40,11 @@ namespace mc_compiled.Commands.Selectors
             str = str.Trim();
 
             if(str.Length == 0)
-                return new Tag(null, false);
+                return new Tag("", false);
 
             if (str.StartsWith("!"))
                 if (str.Length == 1)
-                    return new Tag(null, true);
+                    return new Tag("", true);
                 else
                     return new Tag(str.Substring(1), true);
             else
@@ -56,7 +56,8 @@ namespace mc_compiled.Commands.Selectors
             string s = tagName ?? "";
             if (not)
                 return "tag=!" + s;
-            else return "tag=" + s;
+            else
+                return "tag=" + s;
         }
     }
 }

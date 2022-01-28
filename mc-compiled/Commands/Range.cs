@@ -8,7 +8,7 @@ namespace mc_compiled.Commands
 {
     /// <summary>
     /// Represents a range value in selector options. Examples:
-    /// "3..999", "0..10", "50..100", "10", "!1"
+    /// "3..999", "0..10", "50..100", "10", "!1", "!9..100"
     /// </summary>
     public struct Range
     {
@@ -16,11 +16,11 @@ namespace mc_compiled.Commands
         public int? min;
         public int? max;
 
-        public Range(int? min, int? max)
+        public Range(int? min, int? max, bool not = false)
         {
             this.min = min;
             this.max = max;
-            invert = false;
+            invert = not;
             single = false;
         }
         public Range(int number, bool not)
@@ -40,7 +40,12 @@ namespace mc_compiled.Commands
         {
             if (str == null)
                 return null;
-            if(str.Contains(".."))
+
+            bool not;
+            if ((not = str.StartsWith("!")))
+                str = str.Substring(1);
+
+            if (str.Contains(".."))
             {
                 int index = str.IndexOf("..");
                 if (index == -1)
@@ -49,12 +54,9 @@ namespace mc_compiled.Commands
                 string _b = str.Substring(index + 2);
                 int a = int.Parse(_a);
                 int b = int.Parse(_b);
-                return new Range(a, b);
+                return new Range(a, b, not);
             } else
             {
-                bool not;
-                if ((not = str.StartsWith("!")))
-                    str = str.Substring(1);
                 int parse = int.Parse(str);
                 return new Range(parse, not);
             }

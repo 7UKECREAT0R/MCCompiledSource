@@ -141,7 +141,7 @@ namespace mc_compiled.MCC.Compiler
             lastPreprocessorCompare = new bool[100];
             lastActualCompare = new Token[100][];
             currentFiles = new Stack<CommandFile>();
-            filesToWrite = new List<CommandFile>();
+            filesToWrite = new List<IBehaviorFile>();
             prependBuffer = new StringBuilder();
 
             selections.Push(Selector.Core.s);

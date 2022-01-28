@@ -33,11 +33,8 @@ namespace mc_compiled.Commands.Selectors
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static Area Parse(string str)
+        public static Area Parse(string[] chunks)
         {
-            str = str.Trim().TrimStart('[').TrimEnd(']');
-            string[] specifiedParts = str.Split(',');
-
             Coord?
                 x = null,
                 y = null,
@@ -50,14 +47,13 @@ namespace mc_compiled.Commands.Selectors
                 volumeY = null,
                 volumeZ = null;
 
-            IEnumerable<string> parts = from s in specifiedParts select s.Trim();
-            foreach(string part in parts)
+            foreach(string chunk in chunks)
             {
-                int index = part.IndexOf('=');
+                int index = chunk.IndexOf('=');
                 if (index == -1)
                     continue;
-                string a = part.Substring(0, index).Trim().ToUpper();
-                string b = part.Substring(index + 1).Trim();
+                string a = chunk.Substring(0, index).Trim().ToUpper();
+                string b = chunk.Substring(index + 1).Trim();
 
                 switch(a)
                 {
