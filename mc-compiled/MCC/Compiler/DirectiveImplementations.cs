@@ -391,8 +391,11 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void select(Executor executor, Statement tokens)
         {
-            TokenSimpleSelectorLiteral selector = tokens.Next<TokenSimpleSelectorLiteral>();
-            executor.ActiveSelector = selector.core;
+            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+            if (!selector.simple)
+                Console.WriteLine("WARNING: Advanced selectors cannot be used in 'select' directive.");
+
+            executor.ActiveSelector = selector;
         }
         public static void print(Executor executor, Statement tokens)
         {

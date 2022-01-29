@@ -136,6 +136,7 @@ namespace mc_compiled.MCC.Compiler
             this.statements = statements;
             this.projectName = projectName;
 
+            ppv = new Dictionary<string, dynamic>();
             macros = new List<Macro>();
             selections = new Stack<Selector.Core>();
             lastPreprocessorCompare = new bool[100];

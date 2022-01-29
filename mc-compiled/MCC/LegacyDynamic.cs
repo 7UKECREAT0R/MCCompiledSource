@@ -22,7 +22,7 @@ namespace mc_compiled.MCC
         public struct Data
         {
             public long i;
-            public double d;
+            public float d;
             public string s;
 
             // Modifier data for AltType
@@ -61,7 +61,7 @@ namespace mc_compiled.MCC
             data.s = i.ToString();
             data.altData = 0;
         }
-        public LegacyDynamic(double d)
+        public LegacyDynamic(float d)
         {
             type = Type.DECIMAL;
             data.d = d;
@@ -84,7 +84,7 @@ namespace mc_compiled.MCC
                 case Type.INTEGER:
                     return new LegacyDynamic(data.i * -1);
                 case Type.DECIMAL:
-                    return new LegacyDynamic(data.d * -1.0);
+                    return new LegacyDynamic(data.d * -1.0f);
                 case Type.STRING:
                     return new LegacyDynamic(new string(data.s.Reverse().ToArray()));
                 default:
@@ -97,7 +97,7 @@ namespace mc_compiled.MCC
             if (a.type == Type.STRING)
                 throw new Exception("Cannot increment a string variable.");
             a.data.i++;
-            a.data.d += 1.0;
+            a.data.d += 1.0f;
             a.data.s = a.data.i.ToString();
             return a;
         }
@@ -106,7 +106,7 @@ namespace mc_compiled.MCC
             if (a.type == Type.STRING)
                 throw new Exception("Cannot decrement a string variable.");
             a.data.i--;
-            a.data.d -= 1.0;
+            a.data.d -= 1.0f;
             a.data.s = a.data.i.ToString();
             return a;
         }
@@ -246,7 +246,7 @@ namespace mc_compiled.MCC
         {
             if (long.TryParse(str, out long l))
                 return new LegacyDynamic(l);
-            else if (double.TryParse(str, out double d))
+            else if (float.TryParse(str, out float d))
                 return new LegacyDynamic(d);
             else return new LegacyDynamic(str);
         }
@@ -268,22 +268,22 @@ namespace mc_compiled.MCC
         /// Get the decimal part from this number.
         /// </summary>
         /// <returns></returns>
-        public double GetDecimalPart()
+        public float GetDecimalPart()
         {
             if (type == Type.STRING)
                 throw new Exception("Cannot perform arithmatic with a string value.");
             if (type == Type.INTEGER)
-                return 0.0; // No decimal part on integers.
+                return 0.0f; // No decimal part on integers.
 
-            return Math.Abs(data.d) % 1.0;
+            return Math.Abs(data.d) % 1.0f;
         }
         /// <summary>
         /// Get the decimal part from this number to a certain precision (in digits after point).
         /// </summary>
         /// <returns></returns>
-        public double GetDecimalPart(int withPrecision)
+        public float GetDecimalPart(int withPrecision)
         {
-            double part = GetDecimalPart();
+            float part = GetDecimalPart();
             return part.FixPoint(withPrecision);
         }
     }

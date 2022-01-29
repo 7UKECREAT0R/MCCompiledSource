@@ -618,6 +618,7 @@ namespace mc_compiled.Commands
         infinity,
         efficiency,
         silk_touch,
+        unbreaking,
         fortune,
         luck_of_the_sea,
         lure,

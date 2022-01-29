@@ -178,7 +178,7 @@ namespace mc_compiled.MCC.Compiler
                 if (Peek() == '[')
                     return NextSelectorLiteral(core);
                 else
-                    return new TokenSimpleSelectorLiteral(core, CURRENT_LINE);
+                    return new TokenSelectorLiteral(core, CURRENT_LINE);
             }
             
             // comment, read to EOL

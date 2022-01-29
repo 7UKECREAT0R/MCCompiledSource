@@ -411,7 +411,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if ((bIsConstant = long.TryParse(bString, out long lparsed)))
                     constantB = new LegacyDynamic(lparsed);
-                else if (bIsConstant = double.TryParse(bString, out double dparsed))
+                else if (bIsConstant = float.TryParse(bString, out float dparsed))
                     constantB = new LegacyDynamic(dparsed);
                 else
                     valueB = bString;

@@ -118,21 +118,27 @@ namespace mc_compiled.MCC.Compiler
         public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
     }
 
-    public class TokenSimpleSelectorLiteral : TokenLiteral
+    public sealed class TokenSelectorLiteral : TokenLiteral
     {
-        public readonly Selector.Core core;
-        public TokenSimpleSelectorLiteral(Selector.Core core, int lineNumber) : base(lineNumber)
-        {
-            this.core = core;
-        }
-    }
-    public sealed class TokenSelectorLiteral : TokenSimpleSelectorLiteral
-    {
+        public readonly bool simple;
         public readonly Selector selector;
 
-        public TokenSelectorLiteral(Selector selector, int lineNumber) : base(selector.core, lineNumber)
+        public TokenSelectorLiteral(Selector selector, int lineNumber) : base(lineNumber)
         {
+            simple = false;
             this.selector = selector;
         }
+        public TokenSelectorLiteral(Selector.Core core, int lineNumber) : base(lineNumber)
+        {
+            simple = true;
+            this.selector = new Selector()
+            {
+                core = core
+            };
+        }
+
+        public static implicit operator Selector(TokenSelectorLiteral t) => t.selector;
+        public static implicit operator Selector.Core(TokenSelectorLiteral t) => t.selector.core;
+
     }
 }

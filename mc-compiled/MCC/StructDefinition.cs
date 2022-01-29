@@ -49,8 +49,8 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public ScoreboardValueStruct Create(string name) =>
-            new ScoreboardValueStruct(name, this);
+        public ScoreboardValueStruct Create(string name, ScoreboardManager manager) =>
+            new ScoreboardValueStruct(name, this, manager);
 
         /// <summary>
         /// Get the internal 2-letter name for a field.

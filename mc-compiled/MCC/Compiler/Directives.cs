@@ -92,7 +92,7 @@ namespace mc_compiled.MCC.Compiler
             new Directive(DirectiveImplementations.mc, "mc", "Minecraft Command",
                 new TypePattern(typeof(TokenStringLiteral))),
             new Directive(DirectiveImplementations.select, "select", "Select Target",
-                new TypePattern(typeof(TokenSimpleSelectorLiteral))),
+                new TypePattern(typeof(TokenSelectorLiteral))),
             new Directive(DirectiveImplementations.print, "print", "Print to All Chat",
                 new TypePattern(typeof(TokenStringLiteral))),
             new Directive(DirectiveImplementations.printp, "printp", "Print to Selected Entity",
