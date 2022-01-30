@@ -127,6 +127,8 @@ namespace mc_compiled.MCC.Compiler
             new Directive(DirectiveImplementations.face, "face", "Face Selected Entity",
                 new TypePattern(typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)),
                 new TypePattern(typeof(TokenSelectorLiteral))),
+            new Directive(DirectiveImplementations.facehere, "facehere", "Face Entity Towards Selected",
+                new TypePattern(typeof(TokenSelectorLiteral))),
             new Directive(DirectiveImplementations.rotate, "rotate", "Rotate Selected Entity",
                 new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>()),
             new Directive(DirectiveImplementations.place, "place", "Place Block"),

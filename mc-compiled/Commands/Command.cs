@@ -24,22 +24,43 @@ namespace mc_compiled.Commands
 
             public string MakeInvisible(string entity) =>
                 Command.Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
-            public string[] RequestPoint(Coord x, Coord y, Coord z)
+            public string[] RequestPoint(out Selector selector) =>
+                RequestPoint(Coord.here, Coord.here, Coord.here, out selector);
+            public string[] RequestPoint(Coord x, Coord y, Coord z, out Selector selector)
             {
-                string name = POINT_PREFIX + pointIndex;
-                pointIndex++;
+                string name = POINT_PREFIX + pointIndex++;
+                selector = new Selector()
+                {
+                    count = new Selectors.Count(1),
+                    entity = new Selectors.Entity(name, "minecraft:armor_stand", null)
+                };
 
                 return new string[]
                 {
                     Command.Summon("minecraft:armor_stand", x, y, z, name),
-                    MakeInvisible($"@e[c=1,name={name},type=minecraft:armor_stand]")
+                    MakeInvisible(selector.ToString())
+                };
+            }
+            public string[] RequestPoint(Selector atEntity, out Selector selector)
+            {
+                string name = POINT_PREFIX + pointIndex++;
+                selector = new Selector()
+                {
+                    count = new Selectors.Count(1),
+                    entity = new Selectors.Entity(name, "minecraft:armor_stand", null)
+                };
+
+                return new string[]
+                {
+                    Command.Execute(atEntity.ToString(), Coord.here, Coord.here, Coord.here,
+                        Command.Summon("minecraft:armor_stand", Coord.here, Coord.here, Coord.here, name)),
+                    MakeInvisible(selector.ToString())
                 };
             }
             public string[] ReleasePoint()
             {
-                string name = POINT_PREFIX + pointIndex;
+                string name = POINT_PREFIX + pointIndex--;
                 string selector = $"@e[c=1,name={name},type=minecraft:armor_stand]";
-                pointIndex--;
 
                 return new string[]
                 {

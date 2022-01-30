@@ -859,9 +859,12 @@ namespace mc_compiled.MCC.Compiler
         public static void facehere(Executor executor, Statement tokens)
         {
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-
             List<string> commands = new List<string>();
-
+            commands.AddRange(Command.UTIL.RequestPoint(out Selector point));
+            commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
+                Command.TeleportFacing(Coord.here, Coord.here, Coord.here, point.ToString())));
+            commands.AddRange(Command.UTIL.ReleasePoint());
+            executor.AddCommands(commands);
         }
         public static void rotate(Executor executor, Statement tokens)
         {
