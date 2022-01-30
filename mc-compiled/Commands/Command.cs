@@ -13,6 +13,45 @@ namespace mc_compiled.Commands
     /// </summary>
     public static class Command
     {
+        /// <summary>
+        /// Command utils that require instance stuff.
+        /// </summary>
+        public class Util
+        {
+            const string POINT_PREFIX = "_mcc_ghost";
+
+            int pointIndex;
+
+            public string MakeInvisible(string entity) =>
+                Command.Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
+            public string[] RequestPoint(Coord x, Coord y, Coord z)
+            {
+                string name = POINT_PREFIX + pointIndex;
+                pointIndex++;
+
+                return new string[]
+                {
+                    Command.Summon("minecraft:armor_stand", x, y, z, name),
+                    MakeInvisible($"@e[c=1,name={name},type=minecraft:armor_stand]")
+                };
+            }
+            public string[] ReleasePoint()
+            {
+                string name = POINT_PREFIX + pointIndex;
+                string selector = $"@e[c=1,name={name},type=minecraft:armor_stand]";
+                pointIndex--;
+
+                return new string[]
+                {
+                    Command.Execute(selector, Coord.here, Coord.here, Coord.here,
+                        Command.Teleport(Coord.here, new Coord(-1000, false, true, false), Coord.here)),
+                    Command.Execute(selector, Coord.here, Coord.here, Coord.here, Command.Kill())
+                };
+            }
+        }
+
+        public static readonly Util UTIL = new Util();
+
         public static string String(this EquipmentSlotType slot) => slot.ToString().Replace('_', '.');
         public static string String(this ScoreboardOp op)
         {
@@ -166,6 +205,8 @@ namespace mc_compiled.Commands
         public static string Kick(string target, string reason) =>
             $"kick {target} {reason}";
 
+        public static string Kill() =>
+            $"kill";
         public static string Kill(string target) =>
             $"kill {target}";
 

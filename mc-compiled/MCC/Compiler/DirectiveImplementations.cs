@@ -856,9 +856,33 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, x, y, z));
             }
         }
+        public static void facehere(Executor executor, Statement tokens)
+        {
+            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+
+            List<string> commands = new List<string>();
+
+        }
         public static void rotate(Executor executor, Statement tokens)
         {
+            TokenNumberLiteral number = tokens.Next<TokenNumberLiteral>();
+            Coord ry, rx = Coord.here;
 
+            if (number is TokenDecimalLiteral)
+                ry = new Coord(number.GetNumber(), true, true, false);
+            else
+                ry = new Coord(number.GetNumberInt(), false, true, false);
+
+            if(tokens.HasNext && tokens.NextIs<TokenNumberLiteral>())
+            {
+                number = tokens.Next<TokenNumberLiteral>();
+                if (number is TokenDecimalLiteral)
+                    rx = new Coord(number.GetNumber(), true, true, false);
+                else
+                    rx = new Coord(number.GetNumberInt(), false, true, false);
+            }
+
+            executor.AddCommand(Command.Teleport(Coord.here, Coord.here, Coord.here, ry, rx));
         }
         public static void place(Executor executor, Statement tokens)
         {

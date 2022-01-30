@@ -26,6 +26,11 @@ namespace mc_compiled.MCC.Compiler
             pattern.Add(new MultiType(false, typeof(A)));
             return this;
         }
+        public TypePattern Optional<A>()
+        {
+            pattern.Add(new MultiType(true, typeof(A)));
+            return this;
+        }
 
         public bool Check(Token[] tokens)
         {
