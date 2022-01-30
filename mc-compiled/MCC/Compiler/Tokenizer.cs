@@ -147,6 +147,10 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenOpenBlock(CURRENT_LINE);
                 case '}':
                     return new TokenCloseBlock(CURRENT_LINE);
+                case '&':
+                    return new TokenAnd(CURRENT_LINE);
+                default:
+                    break;
             }
 
             if(firstChar == '@')

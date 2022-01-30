@@ -19,46 +19,11 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="initial"></param>
         public TypePattern(params Type[] initial)
         {
-            pattern = new List<MultiType>() { new MultiType(false, initial) };
+            pattern = initial.Select(type => new MultiType(false, type)).ToList();
         }
         public TypePattern And<A>()
         {
             pattern.Add(new MultiType(false, typeof(A)));
-            return this;
-        }
-        public TypePattern And<A, B>()
-        {
-            pattern.Add(new MultiType(false, typeof(A), typeof(B)));
-            return this;
-        }
-        public TypePattern And<A, B, C>()
-        {
-            pattern.Add(new MultiType(false, typeof(A), typeof(B), typeof(C)));
-            return this;
-        }
-        public TypePattern And<A, B, C, D>()
-        {
-            pattern.Add(new MultiType(false, typeof(A), typeof(B), typeof(C), typeof(D)));
-            return this;
-        }
-        public TypePattern Optional<A>()
-        {
-            pattern.Add(new MultiType(true, typeof(A)));
-            return this;
-        }
-        public TypePattern Optional<A, B>()
-        {
-            pattern.Add(new MultiType(true, typeof(A), typeof(B)));
-            return this;
-        }
-        public TypePattern Optional<A, B, C>()
-        {
-            pattern.Add(new MultiType(true, typeof(A), typeof(B), typeof(C)));
-            return this;
-        }
-        public TypePattern Optional<A, B, C, D>()
-        {
-            pattern.Add(new MultiType(true, typeof(A), typeof(B), typeof(C), typeof(D)));
             return this;
         }
 

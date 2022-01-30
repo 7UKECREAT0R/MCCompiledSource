@@ -99,6 +99,14 @@ namespace mc_compiled.MCC.Compiler
         public TokenCloseBlock(int lineNumber) : base(lineNumber) { }
     }
 
+    /// <summary>
+    /// An & character.
+    /// </summary>
+    public sealed class TokenAnd : TokenOperator
+    {
+        public override string AsString() => "&";
+        public TokenAnd(int lineNumber) : base(lineNumber) { }
+    }
     public sealed class TokenAssignment : TokenOperator
     {
         public override string AsString() => "=";

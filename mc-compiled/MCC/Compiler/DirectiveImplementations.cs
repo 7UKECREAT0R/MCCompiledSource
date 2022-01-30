@@ -805,9 +805,58 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tp(Executor executor, Statement tokens)
         {
+            if(tokens.NextIs<TokenSelectorLiteral>())
+            {
+                TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+                executor.AddCommand(Command.Teleport(selector.selector.ToString()));
+            } else
+            {
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
 
+                if(tokens.HasNext && tokens.NextIs<TokenCoordinateLiteral>())
+                {
+                    Coord ry = tokens.Next<TokenCoordinateLiteral>();
+                    Coord rx = tokens.Next<TokenCoordinateLiteral>();
+                    executor.AddCommand(Command.Teleport(x, y, z, ry, rx));
+                }
+                else
+                    executor.AddCommand(Command.Teleport(x, y, z));
+            }
+        }
+        public static void tphere(Executor executor, Statement tokens)
+        {
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
+            Coord offsetX = Coord.here;
+            Coord offsetY = Coord.here;
+            Coord offsetZ = Coord.here;
+
+            if(tokens.HasNext && tokens.NextIs<TokenCoordinateLiteral>())
+            {
+                offsetX = tokens.Next<TokenCoordinateLiteral>();
+                offsetY = tokens.Next<TokenCoordinateLiteral>();
+                offsetZ = tokens.Next<TokenCoordinateLiteral>();
+            }
+
+            executor.AddCommand(Command.Teleport(selector.ToString(), offsetX, offsetY, offsetZ));
         }
         public static void face(Executor executor, Statement tokens)
+        {
+            if (tokens.NextIs<TokenSelectorLiteral>())
+            {
+                TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+                executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, selector.ToString()));
+            }
+            else
+            {
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, x, y, z));
+            }
+        }
+        public static void rotate(Executor executor, Statement tokens)
         {
 
         }
