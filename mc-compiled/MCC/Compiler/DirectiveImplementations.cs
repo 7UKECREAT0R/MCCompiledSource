@@ -374,7 +374,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.ActiveSelector = selector;
         }
-        public static void print(Executor executor, Statement tokens)
+        public static void globalprint(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
             RawTextJsonBuilder builder = new RawTextJsonBuilder();
@@ -383,7 +383,7 @@ namespace mc_compiled.MCC.Compiler
             string output = builder.BuildString();
             executor.AddCommand(Command.Tellraw(output));
         }
-        public static void printp(Executor executor, Statement tokens)
+        public static void print(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
             RawTextJsonBuilder builder = new RawTextJsonBuilder();
@@ -1037,13 +1037,127 @@ namespace mc_compiled.MCC.Compiler
                 Command.Kill()
             });
         }
+        public static void globaltitle(Executor executor, Statement tokens)
+        {
+            if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string str = tokens.Next<TokenStringLiteral>();
+                RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                builder.AddTerms(executor.FString(str));
+
+                string output = builder.BuildString();
+                executor.AddCommand(Command.Title("@a", output));
+                return;
+            }
+
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            if (word.Equals("TIMES"))
+            {
+                int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                int stay = tokens.Next<TokenIntegerLiteral>();
+                int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
+                return;
+            } else if (word.Equals("SUBTITLE"))
+            {
+                string str = tokens.Next<TokenStringLiteral>();
+                RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                builder.AddTerms(executor.FString(str));
+                string output = builder.BuildString();
+                executor.AddCommand(Command.TitleSubtitle("@a", output));
+                return;
+            } else
+                throw new StatementException(tokens, $"Invalid globaltitle subcommand '{word}'. Must be 'times' or 'subtitle'.");
+        }
         public static void title(Executor executor, Statement tokens)
         {
+            string selector = executor.ActiveSelectorStr;
 
+            if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string str = tokens.Next<TokenStringLiteral>();
+                RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                builder.AddTerms(executor.FString(str));
+
+                string output = builder.BuildString();
+                executor.AddCommand(Command.Title(selector, output));
+                return;
+            }
+
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            if (word.Equals("TIMES"))
+            {
+                int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                int stay = tokens.Next<TokenIntegerLiteral>();
+                int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
+                return;
+            }
+            else if (word.Equals("SUBTITLE"))
+            {
+                string str = tokens.Next<TokenStringLiteral>();
+                RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                builder.AddTerms(executor.FString(str));
+                string output = builder.BuildString();
+                executor.AddCommand(Command.TitleSubtitle(selector, output));
+                return;
+            }
+            else
+                throw new StatementException(tokens, $"Invalid title subcommand '{word}'. Must be 'times' or 'subtitle'.");
+        }
+        public static void globalactionbar(Executor executor, Statement tokens)
+        {
+            if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string str = tokens.Next<TokenStringLiteral>();
+                RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                builder.AddTerms(executor.FString(str));
+
+                string output = builder.BuildString();
+                executor.AddCommand(Command.TitleActionBar("@a", output));
+                return;
+            }
+
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            int fadeIn = tokens.Next<TokenIntegerLiteral>();
+            int stay = tokens.Next<TokenIntegerLiteral>();
+            int fadeOut = tokens.Next<TokenIntegerLiteral>();
+            executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
+            return;
+        }
+        public static void actionbar(Executor executor, Statement tokens)
+        {
+            string selector = executor.ActiveSelectorStr;
+
+            if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string str = tokens.Next<TokenStringLiteral>();
+                RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                builder.AddTerms(executor.FString(str));
+
+                string output = builder.BuildString();
+                executor.AddCommand(Command.TitleActionBar(selector, output));
+                return;
+            }
+
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            int fadeIn = tokens.Next<TokenIntegerLiteral>();
+            int stay = tokens.Next<TokenIntegerLiteral>();
+            int fadeOut = tokens.Next<TokenIntegerLiteral>();
+            executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
+            return;
         }
         public static void halt(Executor executor, Statement tokens)
         {
+            const string id = "halt_execution";
 
+            if (executor.HasSTDFile(id))
+                return;
+
+            // recursively call self until function command limit reached
+            CommandFile file = new CommandFile("halt_execution", "_misc");
+            file.Add(Command.Function(file));
+            executor.DefineSTDFile(id, file);
         }
 
     }

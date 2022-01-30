@@ -85,6 +85,10 @@ namespace mc_compiled.MCC.Compiler
             definedStdFiles.Add(id);
             AddExtraFile(file);
         }
+        public bool HasSTDFile(string id)
+        {
+            return definedStdFiles.Contains(id);
+        }
 
         public Selector.Core ActiveSelector
         {
