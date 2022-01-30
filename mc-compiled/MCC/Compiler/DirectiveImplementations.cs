@@ -14,30 +14,7 @@ namespace mc_compiled.MCC.Compiler
 {
     public static class DirectiveImplementations
     {
-        public static void _CheckElse(Executor executor, Statement tokens, bool runIt)
-        {
-            if (executor.NextIs<StatementDirective>())
-            {
-                StatementDirective directive = executor.Peek<StatementDirective>();
-                if (directive.directive.call != _else)
-                    return;
-
-                executor.Next();
-
-                if (runIt)
-                    return;
-
-                // skip over
-                if (executor.NextIs<StatementOpenBlock>())
-                {
-                    StatementOpenBlock block = executor.Next<StatementOpenBlock>();
-                    for (int i = 0; i < block.statementsInside; i++)
-                        executor.Next(); // skip this block
-                }
-                else
-                    executor.Next(); // skip the next statement
-            }
-        }
+        public static int scatterFile = 0;
 
         public static void _var(Executor executor, Statement tokens)
         {
@@ -887,13 +864,127 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.Teleport(Coord.here, Coord.here, Coord.here, ry, rx));
         }
-        public static void place(Executor executor, Statement tokens)
+        public static void block(Executor executor, Statement tokens)
         {
+            OldObjectHandling handling = OldObjectHandling.replace;
+            
+            if(tokens.NextIs<TokenIdentifier>())
+            {
+                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+                if (word.Equals("DESTROY"))
+                    handling = OldObjectHandling.destroy;
+                if (word.Equals("KEEP"))
+                    handling = OldObjectHandling.keep;
+            }
 
+            string block = tokens.Next<TokenStringLiteral>();
+            Coord x = tokens.Next<TokenCoordinateLiteral>();
+            Coord y = tokens.Next<TokenCoordinateLiteral>();
+            Coord z = tokens.Next<TokenCoordinateLiteral>();
+
+            int data = 0;
+            if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                data = tokens.Next<TokenIntegerLiteral>();
+
+            executor.AddCommand(Command.SetBlock(x, y, z, block, data, handling));
         }
         public static void fill(Executor executor, Statement tokens)
         {
+            OldObjectHandling handling = OldObjectHandling.replace;
 
+            if (tokens.NextIs<TokenIdentifier>())
+            {
+                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+                if (word.Equals("DESTROY"))
+                    handling = OldObjectHandling.destroy;
+                if (word.Equals("KEEP"))
+                    handling = OldObjectHandling.keep;
+                if (word.Equals("HOLLOW"))
+                    handling = OldObjectHandling.hollow;
+                if (word.Equals("OUTLINE"))
+                    handling = OldObjectHandling.outline;
+
+            }
+
+            string block = tokens.Next<TokenStringLiteral>();
+            Coord x1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord y1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord z1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord x2 = tokens.Next<TokenCoordinateLiteral>();
+            Coord y2 = tokens.Next<TokenCoordinateLiteral>();
+            Coord z2 = tokens.Next<TokenCoordinateLiteral>();
+
+            int data = 0;
+            if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                data = tokens.Next<TokenIntegerLiteral>();
+
+            executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, block, data, handling));
+        }
+        public static void scatter(Executor executor, Statement tokens)
+        {
+            string block = tokens.Next<TokenStringLiteral>();
+            int percent = tokens.Next<TokenIntegerLiteral>();
+            int data = tokens.Next<TokenIntegerLiteral>();
+            Coord x1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord y1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord z1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord x2 = tokens.Next<TokenCoordinateLiteral>();
+            Coord y2 = tokens.Next<TokenCoordinateLiteral>();
+            Coord z2 = tokens.Next<TokenCoordinateLiteral>();
+
+            string seed = null;
+            if (tokens.HasNext && tokens.NextIs<TokenStringLiteral>())
+                seed = tokens.Next<TokenStringLiteral>();
+
+            // generate a structure file for this zone.
+            if (Program.DEBUG)
+                Console.WriteLine("Attempting to build scatter file... This may take a couple minutes.");
+            int sizeX = Math.Abs(x2.valuei - x1.valuei);
+            int sizeY = Math.Abs(y2.valuei - y1.valuei);
+            int sizeZ = Math.Abs(z2.valuei - z1.valuei);
+            if (sizeX > 64 || sizeY > 256 || sizeZ > 64)
+                throw new StatementException(tokens, "Scatter zone size cannot be larger than 64x256x64.");
+
+            int[,,] blocks = new int[sizeX, sizeY, sizeZ];
+            for (int x = 0; x < sizeX; x++)
+                for (int y = 0; y < sizeY; y++)
+                    for (int z = 0; z < sizeZ; z++)
+                        blocks[x, y, z] = 0;
+
+            StructureNBT structure = new StructureNBT()
+            {
+                formatVersion = 1,
+                size = new VectorIntNBT(sizeX, sizeY, sizeZ),
+                worldOrigin = new VectorIntNBT(0, 0, 0),
+
+                palette = new PaletteNBT(new PaletteEntryNBT(block)),
+                entities = new EntityListNBT(new EntityNBT[0]),
+                indices = new BlockIndicesNBT(blocks)
+            };
+            string fileName = "scatter_" + scatterFile++;
+            StructureFile file = new StructureFile(fileName, structure);
+            executor.WriteFileNow(file);
+
+            blocks = null;
+            structure = new StructureNBT();
+            file = new StructureFile();
+
+            Console.WriteLine("Cleaning up from scatter file...");
+            GC.Collect();
+
+            Coord minX = Coord.Min(x1, x2);
+            Coord minY = Coord.Min(y1, y2);
+            Coord minZ = Coord.Min(z1, z2);
+
+            if(seed == null)
+            {
+                executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
+                    StructureRotation._0_degrees, StructureMirror.none, false, true, percent));
+            } else
+            {
+                executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
+                    StructureRotation._0_degrees, StructureMirror.none, false, true, percent, seed));
+            }
         }
         public static void replace(Executor executor, Statement tokens)
         {

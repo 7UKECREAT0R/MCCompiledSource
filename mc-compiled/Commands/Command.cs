@@ -18,7 +18,7 @@ namespace mc_compiled.Commands
         /// </summary>
         public class Util
         {
-            const string POINT_PREFIX = "_mcc_ghost";
+            const string POINT_PREFIX = "_mcc_point";
 
             int pointIndex;
 

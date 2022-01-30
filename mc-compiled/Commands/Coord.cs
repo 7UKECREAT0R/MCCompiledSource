@@ -89,5 +89,34 @@ namespace mc_compiled.Commands
 
             return s;
         }
+
+        /// <summary>
+        /// Return the smaller of the two coords.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Coord Min(Coord a, Coord b)
+        {
+            if (a.valuef < b.valuef)
+                return a;
+            if (a.valuef > b.valuef)
+                return b;
+            return a; // default
+        }
+        /// <summary>
+        /// Return the larger of the two coords.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Coord Max(Coord a, Coord b)
+        {
+            if (a.valuef < b.valuef)
+                return b;
+            if (a.valuef > b.valuef)
+                return a;
+            return a; // default
+        }
     }
 }

@@ -3,6 +3,7 @@ using mc_compiled.Json;
 using mc_compiled.Modding;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -352,5 +353,31 @@ namespace mc_compiled.MCC.Compiler
             currentFiles.Push(file);
         public void PopFile() =>
             filesToWrite.Add(currentFiles.Pop());
+
+        /// <summary>
+        /// Write all files that have been generated.
+        /// </summary>
+        public void WriteAllFiles()
+        {
+            foreach(IBehaviorFile file in filesToWrite)
+            {
+                string dir = Path.Combine(projectName, file.GetOutputDirectory());
+                Directory.CreateDirectory(dir);
+                string outputFile = Path.Combine(dir, file.GetOutputFile());
+                File.WriteAllBytes(outputFile, file.GetOutputData());
+            }
+            filesToWrite.Clear();
+        }
+        /// <summary>
+        /// Write an output file right now. Should be used when it might take up too much memory to hold.
+        /// </summary>
+        /// <param name="file"></param>
+        public void WriteFileNow(IBehaviorFile file)
+        {
+            string dir = Path.Combine(projectName, file.GetOutputDirectory());
+            Directory.CreateDirectory(dir);
+            string outputFile = Path.Combine(dir, file.GetOutputFile());
+            File.WriteAllBytes(outputFile, file.GetOutputData());
+        }
     }
 }

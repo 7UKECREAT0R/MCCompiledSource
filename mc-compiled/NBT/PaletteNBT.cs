@@ -12,6 +12,10 @@ namespace mc_compiled.NBT
 
         // NBTCompound blockPositionData;    // Unimplemented. This will break more complex structures!
 
+        public PaletteNBT(params PaletteEntryNBT[] entries)
+        {
+            block_palette = entries;
+        }
         public NBTCompound ToNBT()
         {
             return new NBTCompound()

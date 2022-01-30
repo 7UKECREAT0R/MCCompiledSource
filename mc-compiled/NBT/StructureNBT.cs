@@ -16,9 +16,9 @@ namespace mc_compiled.NBT
         public VectorIntNBT worldOrigin;
 
         // for 'structure' compound
-        BlockIndicesNBT indices;
-        EntityListNBT entities;
-        PaletteNBT palette;
+        internal BlockIndicesNBT indices;
+        internal EntityListNBT entities;
+        internal PaletteNBT palette;
 
         public NBTNode[] ToNBT()
         {
