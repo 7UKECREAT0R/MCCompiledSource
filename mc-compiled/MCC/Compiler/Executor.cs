@@ -23,6 +23,7 @@ namespace mc_compiled.MCC.Compiler
         Statement[] statements;
         int readIndex = 0;
 
+        readonly List<string> definedStdFiles;
         readonly List<Macro> macros;
         readonly bool[] lastPreprocessorCompare;
         readonly Token[][] lastActualCompare;
@@ -70,6 +71,19 @@ namespace mc_compiled.MCC.Compiler
                 terms.Add(new JSONText(pieces.Pop()));
 
             return terms;
+        }
+
+        /// <summary>
+        /// Define a file that relates to a "standard library." Will only be added once.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="file"></param>
+        public void DefineSTDFile(string id, CommandFile file)
+        {
+            if (definedStdFiles.Contains(id))
+                return;
+            definedStdFiles.Add(id);
+            AddExtraFile(file);
         }
 
         public Selector.Core ActiveSelector
@@ -137,6 +151,7 @@ namespace mc_compiled.MCC.Compiler
             this.statements = statements;
             this.projectName = projectName;
 
+            definedStdFiles = new List<string>();
             ppv = new Dictionary<string, dynamic>();
             macros = new List<Macro>();
             selections = new Stack<Selector.Core>();

@@ -903,7 +903,6 @@ namespace mc_compiled.MCC.Compiler
                     handling = OldObjectHandling.hollow;
                 if (word.Equals("OUTLINE"))
                     handling = OldObjectHandling.outline;
-
             }
 
             string block = tokens.Next<TokenStringLiteral>();
@@ -988,11 +987,55 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void replace(Executor executor, Statement tokens)
         {
+            string src = tokens.Next<TokenStringLiteral>();
+            int srcData = -1;
+            if (tokens.NextIs<TokenIntegerLiteral>())
+                srcData = tokens.Next<TokenIntegerLiteral>();
 
+            Coord x1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord y1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord z1 = tokens.Next<TokenCoordinateLiteral>();
+            Coord x2 = tokens.Next<TokenCoordinateLiteral>();
+            Coord y2 = tokens.Next<TokenCoordinateLiteral>();
+            Coord z2 = tokens.Next<TokenCoordinateLiteral>();
+
+            string dst = tokens.Next<TokenStringLiteral>();
+            int dstData = -1;
+            if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                dstData = tokens.Next<TokenIntegerLiteral>();
+
+            executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, src, srcData, dst, dstData));
         }
         public static void kill(Executor executor, Statement tokens)
         {
+            if(tokens.HasNext && tokens.NextIs<TokenSelectorLiteral>())
+            {
+                Selector selector = tokens.Next<TokenSelectorLiteral>();
+                executor.AddCommand(Command.Kill(selector.ToString()));
+                return;
+            }
+            executor.AddCommand(Command.Kill());
+        }
+        public static void remove(Executor executor, Statement tokens)
+        {
+            if (tokens.HasNext && tokens.NextIs<TokenSelectorLiteral>())
+            {
+                Selector selector = tokens.Next<TokenSelectorLiteral>();
+                CommandFile file = new CommandFile("silent_remove", "_branching");
+                file.Add(new[] {
+                    Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
+                    Command.Kill()
+                });
+                executor.DefineSTDFile("silent_remove", file);
+                executor.AddCommand(Command.Execute(selector.ToString(),
+                    Coord.here, Coord.here, Coord.here, Command.Function(file)));
+                return;
+            }
 
+            executor.AddCommands(new[] {
+                Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
+                Command.Kill()
+            });
         }
         public static void title(Executor executor, Statement tokens)
         {
