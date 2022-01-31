@@ -16,13 +16,13 @@ namespace mc_compiled.MCC
         private int tempIndex;
 
         public readonly Executor executor;
-        readonly List<int> definedTempVars;
+        readonly List<string> definedTempVars;
         readonly Dictionary<string, StructDefinition> structs;
         readonly List<ScoreboardValue> values;
 
         public ScoreboardManager(Executor executor)
         {
-            definedTempVars = new List<int>();
+            definedTempVars = new List<string>();
             structs = new Dictionary<string, StructDefinition>();
             values = new List<ScoreboardValue>();
             this.executor = executor;
@@ -67,11 +67,36 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public ScoreboardValueInteger RequestTemp()
         {
-            var created = new ScoreboardValueInteger(TEMP_PREFIX + tempIndex, this);
-            if (!definedTempVars.Contains(tempIndex))
+            string name = TEMP_PREFIX + tempIndex;
+            var created = new ScoreboardValueInteger(name, this);
+            name += created.GetMaxNameLength().ToString();
+            if (!definedTempVars.Contains(name))
             {
-                definedTempVars.Add(tempIndex);
-                executor.AddCommandsHead(created.CommandsInit()); // init at top of file
+                definedTempVars.Add(name);
+                executor.AddCommandsHead(created.CommandsInit());
+                executor.AddCommandsHead(created.CommandsDefine());
+            }
+            tempIndex++;
+            return created;
+        }
+        /// <summary>
+        /// Request a temp variable be created, cloning the properties of another scoreboard value.
+        /// </summary>
+        /// <returns></returns>
+        public ScoreboardValue RequestTemp(ScoreboardValue clone)
+        {
+            ScoreboardValue created = clone.Clone() as ScoreboardValue;
+            created.baseName = TEMP_PREFIX + tempIndex;
+            string name = created.baseName + clone.GetMaxNameLength(); // make an 'id' out of this
+
+            foreach (string accessor in created.GetAccessibleNames())
+            {
+                if (!definedTempVars.Contains(name))
+                {
+                    definedTempVars.Add(name);
+                    executor.AddCommandsHead(created.CommandsInit());
+                    executor.AddCommandsHead(created.CommandsDefine());
+                }
             }
             tempIndex++;
             return created;

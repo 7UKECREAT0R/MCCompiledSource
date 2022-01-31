@@ -142,7 +142,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public abstract int GetMaxNameLength();
         /// <summary>
-        /// Get the accessibile names that can be used to reference this variable.
+        /// Get the accessible names that can be used to reference this variable.
         /// </summary>
         /// <returns></returns>
         public abstract string[] GetAccessibleNames();
@@ -957,36 +957,155 @@ namespace mc_compiled.MCC
 
         public override string[] CommandsSet(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
+            if(other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            {
+                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
+                if (structure.Equals(structB.structure))
+                {
+                    List<string> commands = new List<string>();
+                    int count = structure.GetFieldCount();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        commands.AddRange(fieldDst.CommandsSet(selector, fieldSrc, thisAccessor, thatAccessor));
+                    }
+                    return commands.ToArray();
+                }
+            }
+
             ScoreboardValue b = FullyResolveAccessor(thisAccessor);
             return b.CommandsSet(selector, other, "", "");
         }
         public override string[] CommandsAdd(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
+            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            {
+                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
+                if (structure.Equals(structB.structure))
+                {
+                    List<string> commands = new List<string>();
+                    int count = structure.GetFieldCount();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        commands.AddRange(fieldDst.CommandsAdd(selector, fieldSrc, thisAccessor, thatAccessor));
+                    }
+                    return commands.ToArray();
+                }
+            }
+
             ScoreboardValue b = FullyResolveAccessor(thisAccessor);
             return b.CommandsAdd(selector, other, "", "");
         }
         public override string[] CommandsSub(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
+            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            {
+                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
+                if (structure.Equals(structB.structure))
+                {
+                    List<string> commands = new List<string>();
+                    int count = structure.GetFieldCount();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        commands.AddRange(fieldDst.CommandsSub(selector, fieldSrc, thisAccessor, thatAccessor));
+                    }
+                    return commands.ToArray();
+                }
+            }
+
             ScoreboardValue b = FullyResolveAccessor(thisAccessor);
             return b.CommandsSub(selector, other, "", "");
         }
         public override string[] CommandsMul(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
+            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            {
+                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
+                if (structure.Equals(structB.structure))
+                {
+                    List<string> commands = new List<string>();
+                    int count = structure.GetFieldCount();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        commands.AddRange(fieldDst.CommandsMul(selector, fieldSrc, thisAccessor, thatAccessor));
+                    }
+                    return commands.ToArray();
+                }
+            }
+
             ScoreboardValue b = FullyResolveAccessor(thisAccessor);
             return b.CommandsMul(selector, other, "", "");
         }
         public override string[] CommandsDiv(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
+            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            {
+                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
+                if (structure.Equals(structB.structure))
+                {
+                    List<string> commands = new List<string>();
+                    int count = structure.GetFieldCount();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        commands.AddRange(fieldDst.CommandsDiv(selector, fieldSrc, thisAccessor, thatAccessor));
+                    }
+                    return commands.ToArray();
+                }
+            }
+
             ScoreboardValue b = FullyResolveAccessor(thisAccessor);
             return b.CommandsDiv(selector, other, "", "");
         }
         public override string[] CommandsMod(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
+            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            {
+                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
+                if (structure.Equals(structB.structure))
+                {
+                    List<string> commands = new List<string>();
+                    int count = structure.GetFieldCount();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        commands.AddRange(fieldDst.CommandsMod(selector, fieldSrc, thisAccessor, thatAccessor));
+                    }
+                    return commands.ToArray();
+                }
+            }
+
             ScoreboardValue b = FullyResolveAccessor(thisAccessor);
             return b.CommandsMod(selector, other, "", "");
         }
         public override string[] CommandsSwap(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
+            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            {
+                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
+                if (structure.Equals(structB.structure))
+                {
+                    List<string> commands = new List<string>();
+                    int count = structure.GetFieldCount();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        commands.AddRange(fieldDst.CommandsSwap(selector, fieldSrc, thisAccessor, thatAccessor));
+                    }
+                    return commands.ToArray();
+                }
+            }
+
             ScoreboardValue b = FullyResolveAccessor(thisAccessor);
             return b.CommandsSwap(selector, other, "", "");
         }

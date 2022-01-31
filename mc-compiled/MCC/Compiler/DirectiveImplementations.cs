@@ -469,177 +469,216 @@ namespace mc_compiled.MCC.Compiler
             @if(executor, tokens, false);
         public static void @if(Executor executor, Statement tokens, bool invert)
         {
-            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-            string entity = executor.ActiveSelectorStr;
-            Token[] tokensUsed = tokens.GetRemainingTokens();
-            bool not = invert;
-
             Selector selector = new Selector();
             selector.core = executor.ActiveSelector;
+            Token[] tokensUsed = tokens.GetRemainingTokens();
+            int tempsToRelease = 0;
 
-            // check for word "not"
-            if (word.ToUpper().Equals("NOT"))
+            List<string> commands;
+
+            do
             {
-                not = !invert;
-                word = tokens.Next<TokenIdentifier>().word.ToUpper();
-            }
+                string entity = executor.ActiveSelectorStr;
+                bool not = invert;
+                bool isScore = tokens.NextIs<TokenIdentifierValue>();
+                TokenIdentifier currentToken = tokens.Next<TokenIdentifier>();
+                string word = currentToken.word.ToUpper();
 
-            if (word.Equals("BLOCK"))
-            {
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
-                string block = tokens.Next<TokenStringLiteral>();
-                int? data = null;
+                // check for word "not"
 
-                if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
-                    data = tokens.Next<TokenIntegerLiteral>();
-
-                BlockCheck blockCheck = new BlockCheck(x, y, z, block, data);
-
-                if (not)
+                if (word.ToUpper().Equals("NOT"))
                 {
-                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                    executor.AddCommands(new[] {
-                         Command.ScoreboardSet(entity, inverter, 0),
-                         blockCheck.AsStoreIn(entity, inverter)
-                    });
-                    selector.blockCheck = BlockCheck.DISABLED;
-                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                    executor.scoreboard.ReleaseTemp();
+                    not = !invert;
+                    isScore = tokens.NextIs<TokenIdentifierValue>();
+                    currentToken = tokens.Next<TokenIdentifier>();
+                    word = currentToken.word.ToUpper();
                 }
-                else
-                    selector.blockCheck = blockCheck;
-            }
-            else if (word.Equals("NEAR"))
-            {
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
-                int radius = tokens.Next<TokenIntegerLiteral>();
 
-                int? minRadius = null;
-                if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
-                    minRadius = tokens.Next<TokenIntegerLiteral>();
-
-                Area area = new Area(x, y, z, minRadius, radius);
-
-                if (not && minRadius != null)
+                if(isScore)
                 {
-                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                    executor.AddCommands(new[] {
-                         Command.ScoreboardSet(entity, inverter, 0),
-                         area.AsStoreIn(entity, inverter)
-                    });
-                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                    executor.scoreboard.ReleaseTemp();
+                    TokenIdentifierValue value = currentToken as TokenIdentifierValue;
+
+                    // if <boolean> {}
+                    if(!tokens.HasNext || !tokens.NextIs<TokenCompare>())
+                    {
+                        selector.scores.checks.Add(new ScoresEntry(value.value, new Range(1, not)));
+                    }
+                    // if <value> <comp> <other>
+                    else
+                    {
+                        ScoreboardValue temp = executor.scoreboard.RequestTemp(value.value);
+                        commands.Add(temp.CommandsSet(entity, value.value, null, null));
+                    }
                 }
-                else if (not)
+
+                if (word.Equals("BLOCK"))
                 {
-                    area.radiusMin = area.radiusMax;
-                    area.radiusMax = 999999999f;
-                    selector.area = area;
+                    Coord x = tokens.Next<TokenCoordinateLiteral>();
+                    Coord y = tokens.Next<TokenCoordinateLiteral>();
+                    Coord z = tokens.Next<TokenCoordinateLiteral>();
+                    string block = tokens.Next<TokenStringLiteral>();
+                    int? data = null;
+
+                    if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                        data = tokens.Next<TokenIntegerLiteral>();
+
+                    BlockCheck blockCheck = new BlockCheck(x, y, z, block, data);
+
+                    if (not)
+                    {
+                        tempsToRelease++;
+                        ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                        commands.AddRange(new[] {
+                            Command.ScoreboardSet(entity, inverter, 0),
+                            blockCheck.AsStoreIn(entity, inverter)
+                        });
+                        selector.blockCheck = BlockCheck.DISABLED;
+                        selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                        executor.scoreboard.ReleaseTemp();
+                    }
+                    else
+                        selector.blockCheck = blockCheck;
                 }
-                else
-                    selector.area = area;
-            }
-            else if (word.Equals("INSIDE"))
-            {
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
-                int sizeX = tokens.Next<TokenIntegerLiteral>();
-                int sizeY = tokens.Next<TokenIntegerLiteral>();
-                int sizeZ = tokens.Next<TokenIntegerLiteral>();
-
-                Area area = new Area(x, y, z, null, null, sizeX, sizeY, sizeZ);
-
-                if (not)
+                else if (word.Equals("NEAR"))
                 {
-                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                    executor.AddCommands(new[] {
-                         Command.ScoreboardSet(entity, inverter, 0),
-                         area.AsStoreIn(entity, inverter)
-                    });
-                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                    executor.scoreboard.ReleaseTemp();
+                    Coord x = tokens.Next<TokenCoordinateLiteral>();
+                    Coord y = tokens.Next<TokenCoordinateLiteral>();
+                    Coord z = tokens.Next<TokenCoordinateLiteral>();
+                    int radius = tokens.Next<TokenIntegerLiteral>();
+
+                    int? minRadius = null;
+                    if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                        minRadius = tokens.Next<TokenIntegerLiteral>();
+
+                    Area area = new Area(x, y, z, minRadius, radius);
+
+                    if (not && minRadius != null)
+                    {
+                        tempsToRelease++;
+                        ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                        commands.AddRange(new[] {
+                            Command.ScoreboardSet(entity, inverter, 0),
+                            area.AsStoreIn(entity, inverter)
+                        });
+                        selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                        executor.scoreboard.ReleaseTemp();
+                    }
+                    else if (not)
+                    {
+                        area.radiusMin = area.radiusMax;
+                        area.radiusMax = 999999999f;
+                        selector.area = area;
+                    }
+                    else
+                        selector.area = area;
                 }
-                else
-                    selector.area = area;
-            }
-            else if (word.Equals("TYPE"))
-            {
-                string type = tokens.Next<TokenStringLiteral>();
-                if (not) type = '!' + type;
-                selector.entity.type = type;
-            }
-            else if (word.Equals("FAMILY"))
-            {
-                string family = tokens.Next<TokenStringLiteral>();
-                if (not) family = '!' + family;
-                selector.entity.type = family;
-            }
-            else if (word.Equals("TAG"))
-            {
-                string tag = tokens.Next<TokenStringLiteral>();
-                selector.tags.Add(new Tag(tag, not));
-            }
-            else if (word.Equals("MODE"))
-            {
-                GameMode gameMode;
-
-                if (tokens.NextIs<TokenIdentifierEnum>())
-                    gameMode = (GameMode)tokens.Next<TokenIdentifierEnum>().value;
-                else
-                    gameMode = (GameMode)tokens.Next<TokenIntegerLiteral>().number;
-
-                selector.player.gamemode = gameMode;
-                selector.player.gamemodeNot = not;
-            }
-            else if (word.Equals("LEVEL"))
-            {
-                int levelMin = tokens.Next<TokenIntegerLiteral>();
-                int? levelMax = null;
-
-                if (tokens.HasNext)
-                    levelMax = tokens.Next<TokenIntegerLiteral>();
-
-                if (not && levelMax == null)
+                else if (word.Equals("INSIDE"))
                 {
-                    selector.player.levelMin = 0;
-                    selector.player.levelMax = levelMin;
-                }
-                else if (not)
-                {
-                    Player invertCondition = new Player(null, levelMin, levelMax);
-                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                    executor.AddCommands(new[] {
-                         Command.ScoreboardSet(entity, inverter, 0),
-                         invertCondition.AsStoreIn(entity, inverter)
-                    });
-                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                    executor.scoreboard.ReleaseTemp();
-                }
-                else
-                {
-                    selector.player.levelMin = levelMin;
-                    selector.player.levelMax = levelMax;
-                }
-            }
-            else if (word.Equals("NAME"))
-            {
-                string name = tokens.Next<TokenStringLiteral>();
-                if (not) name = '!' + name;
-                selector.entity.name = name;
-            }
-            else if (word.Equals("LIMIT"))
-            {
-                if (not)
-                    throw new StatementException(tokens, "Cannot invert a limit check.");
+                    Coord x = tokens.Next<TokenCoordinateLiteral>();
+                    Coord y = tokens.Next<TokenCoordinateLiteral>();
+                    Coord z = tokens.Next<TokenCoordinateLiteral>();
+                    int sizeX = tokens.Next<TokenIntegerLiteral>();
+                    int sizeY = tokens.Next<TokenIntegerLiteral>();
+                    int sizeZ = tokens.Next<TokenIntegerLiteral>();
 
-                int count = tokens.Next<TokenIntegerLiteral>();
-                selector.count = new Count(count);
-            }
+                    Area area = new Area(x, y, z, null, null, sizeX, sizeY, sizeZ);
+
+                    if (not)
+                    {
+                        tempsToRelease++;
+                        ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                        commands.AddRange(new[] {
+                            Command.ScoreboardSet(entity, inverter, 0),
+                            area.AsStoreIn(entity, inverter)
+                        });
+                        selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                        executor.scoreboard.ReleaseTemp();
+                    }
+                    else
+                        selector.area = area;
+                }
+                else if (word.Equals("TYPE"))
+                {
+                    string type = tokens.Next<TokenStringLiteral>();
+                    if (not) type = '!' + type;
+                    selector.entity.type = type;
+                }
+                else if (word.Equals("FAMILY"))
+                {
+                    string family = tokens.Next<TokenStringLiteral>();
+                    if (not) family = '!' + family;
+                    selector.entity.type = family;
+                }
+                else if (word.Equals("TAG"))
+                {
+                    string tag = tokens.Next<TokenStringLiteral>();
+                    selector.tags.Add(new Tag(tag, not));
+                }
+                else if (word.Equals("MODE"))
+                {
+                    GameMode gameMode;
+
+                    if (tokens.NextIs<TokenIdentifierEnum>())
+                        gameMode = (GameMode)tokens.Next<TokenIdentifierEnum>().value;
+                    else
+                        gameMode = (GameMode)tokens.Next<TokenIntegerLiteral>().number;
+
+                    selector.player.gamemode = gameMode;
+                    selector.player.gamemodeNot = not;
+                }
+                else if (word.Equals("LEVEL"))
+                {
+                    int levelMin = tokens.Next<TokenIntegerLiteral>();
+                    int? levelMax = null;
+
+                    if (tokens.HasNext)
+                        levelMax = tokens.Next<TokenIntegerLiteral>();
+
+                    if (not && levelMax == null)
+                    {
+                        selector.player.levelMin = 0;
+                        selector.player.levelMax = levelMin;
+                    }
+                    else if (not)
+                    {
+                        Player invertCondition = new Player(null, levelMin, levelMax);
+                        tempsToRelease++;
+                        ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                        commands.AddRange(new[] {
+                            Command.ScoreboardSet(entity, inverter, 0),
+                            invertCondition.AsStoreIn(entity, inverter)
+                        });
+                        selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                        executor.scoreboard.ReleaseTemp();
+                    }
+                    else
+                    {
+                        selector.player.levelMin = levelMin;
+                        selector.player.levelMax = levelMax;
+                    }
+                }
+                else if (word.Equals("NAME"))
+                {
+                    string name = tokens.Next<TokenStringLiteral>();
+                    if (not) name = '!' + name;
+                    selector.entity.name = name;
+                }
+                else if (word.Equals("LIMIT"))
+                {
+                    if (not)
+                        throw new StatementException(tokens, "Cannot invert a limit check.");
+
+                    int count = tokens.Next<TokenIntegerLiteral>();
+                    selector.count = new Count(count);
+                }
+            // repeat all that as long as there continues to be an &
+            } while (tokens.HasNext && tokens.NextIs<TokenAnd>());
+
+            if (commands.Count > 0)
+                executor.AddCommands(commands);
+
+            for (int i = 0; i < tempsToRelease; i++)
+                executor.scoreboard.ReleaseTemp();
 
             // the selector is now ready to use and commands are setup
             executor.SetLastCompare(tokensUsed);
@@ -876,7 +915,7 @@ namespace mc_compiled.MCC.Compiler
             commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
                 Command.TeleportFacing(Coord.here, Coord.here, Coord.here, point.ToString())));
             commands.AddRange(Command.UTIL.ReleasePoint());
-            executor.AddCommands(commands);
+            commands.AddRange(commands);
         }
         public static void rotate(Executor executor, Statement tokens)
         {

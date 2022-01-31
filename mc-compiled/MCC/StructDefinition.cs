@@ -51,6 +51,15 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public ScoreboardValueStruct Create(string name, ScoreboardManager manager) =>
             new ScoreboardValueStruct(name, this, manager);
+        public override bool Equals(object obj)
+        {
+            if (!(obj is StructDefinition))
+                return false;
+            StructDefinition other = obj as StructDefinition;
+            return name.Equals(other.name);
+        }
+        public override int GetHashCode() =>
+            name.GetHashCode();
 
         /// <summary>
         /// Get the internal 2-letter name for a field.
@@ -63,6 +72,12 @@ namespace mc_compiled.MCC
                 return value.baseName;
             return null;
         }
+        /// <summary>
+        /// Get the number of fields defined in this struct.
+        /// </summary>
+        /// <returns></returns>
+        public int GetFieldCount() =>
+            fields.Count;
         public ScoreboardValue GetFieldFromAccessor(string accessor)
         {
             string[] parts = accessor.Split(':');
@@ -86,6 +101,13 @@ namespace mc_compiled.MCC
                 ScoreboardValue value = _value.Clone() as ScoreboardValue;
                 value.baseName = baseName + ':' + value.baseName;
             }
+            return null;
+        }
+        public ScoreboardValue GetFieldByIndex(string baseName, int index)
+        {
+            ScoreboardValue _value = fields.ElementAt(index).Value;
+            ScoreboardValue value = _value.Clone() as ScoreboardValue;
+            value.baseName = baseName + ':' + value.baseName;
             return null;
         }
         /// <summary>

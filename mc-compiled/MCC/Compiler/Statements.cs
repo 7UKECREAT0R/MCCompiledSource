@@ -15,7 +15,10 @@ namespace mc_compiled.MCC.Compiler
             this.directive = directive;
         }
 
-        protected override TypePattern[] GetValidPatterns() => directive.patterns;
+        protected override TypePattern[] GetValidPatterns()
+        {
+            return directive.patterns;
+        }
         protected override void Run(Executor executor)
         {
             directive.call(executor, this);
@@ -102,6 +105,17 @@ namespace mc_compiled.MCC.Compiler
         public StatementMath(ScoreboardValue finalResult, Token[] tokens) : base(tokens)
         {
             this.finalResult = finalResult;
+        }
+
+        protected override TypePattern[] GetValidPatterns()
+        {
+            return new[] {
+                new TypePattern(typeof(CompoundAssignment))
+            };
+        }
+        protected override void Run(Executor executor)
+        {
+            throw new NotImplementedException();
         }
     }
 }

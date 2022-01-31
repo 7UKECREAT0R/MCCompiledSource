@@ -21,6 +21,16 @@ namespace mc_compiled.MCC.Compiler
         {
             pattern = initial.Select(type => new MultiType(false, type)).ToList();
         }
+        public TypePattern Prepend<A>()
+        {
+            pattern.Insert(0, new MultiType(false, typeof(A)));
+            return this;
+        }
+        public TypePattern PrependOptional<A>()
+        {
+            pattern.Insert(0, new MultiType(true, typeof(A)));
+            return this;
+        }
         public TypePattern And<A>()
         {
             pattern.Add(new MultiType(false, typeof(A)));
