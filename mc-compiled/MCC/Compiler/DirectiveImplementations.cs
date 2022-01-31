@@ -472,9 +472,9 @@ namespace mc_compiled.MCC.Compiler
             Selector selector = new Selector();
             selector.core = executor.ActiveSelector;
             Token[] tokensUsed = tokens.GetRemainingTokens();
-            int tempsToRelease = 0;
 
-            List<string> commands;
+            executor.scoreboard.PushTempState();
+            List<string> commands = new List<string>();
 
             do
             {
@@ -494,21 +494,93 @@ namespace mc_compiled.MCC.Compiler
                     word = currentToken.word.ToUpper();
                 }
 
-                if(isScore)
+                if (isScore)
                 {
-                    TokenIdentifierValue value = currentToken as TokenIdentifierValue;
+                    TokenIdentifierValue a = currentToken as TokenIdentifierValue;
 
                     // if <boolean> {}
-                    if(!tokens.HasNext || !tokens.NextIs<TokenCompare>())
+                    if (!tokens.HasNext || !tokens.NextIs<TokenCompare>())
                     {
-                        selector.scores.checks.Add(new ScoresEntry(value.value, new Range(1, not)));
+                        selector.scores.checks.Add(new ScoresEntry(a.value, new Range(1, not)));
                     }
                     // if <value> <comp> <other>
-                    else
+                    else if (tokens.NextIs<TokenCompare>())
                     {
-                        ScoreboardValue temp = executor.scoreboard.RequestTemp(value.value);
-                        commands.Add(temp.CommandsSet(entity, value.value, null, null));
+                        TokenCompare compare = tokens.Next<TokenCompare>();
+                        TokenCompare.Type ctype = compare.GetCompareType();
+                        
+                        // invert the type (bad code on their part tbh)
+                        if(not)
+                            switch (ctype)
+                            {
+                                case TokenCompare.Type.EQUAL:
+                                    ctype = TokenCompare.Type.NOT_EQUAL;
+                                    break;
+                                case TokenCompare.Type.NOT_EQUAL:
+                                    ctype = TokenCompare.Type.EQUAL;
+                                    break;
+                                case TokenCompare.Type.LESS_THAN:
+                                    ctype = TokenCompare.Type.GREATER_OR_EQUAL;
+                                    break;
+                                case TokenCompare.Type.LESS_OR_EQUAL:
+                                    ctype = TokenCompare.Type.GREATER_THAN;
+                                    break;
+                                case TokenCompare.Type.GREATER_THAN:
+                                    ctype = TokenCompare.Type.LESS_OR_EQUAL;
+                                    break;
+                                case TokenCompare.Type.GREATER_OR_EQUAL:
+                                    ctype = TokenCompare.Type.LESS_THAN;
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                        // if <value> <comp> identifier
+                        if (tokens.NextIs<TokenIdentifierValue>())
+                        {
+                            TokenIdentifierValue b = tokens.Next<TokenIdentifierValue>();
+                            ScoreboardValue temp = executor.scoreboard.RequestTemp(a.value);
+                            commands.AddRange(temp.CommandsSet(entity, a.value, a.word, b.word));
+                            commands.AddRange(temp.CommandsSub(entity, b.value, a.word, b.word));
+                            Range check;
+
+                            switch (ctype)
+                            {
+                                case TokenCompare.Type.EQUAL:
+                                    check = new Range(0, false);
+                                    break;
+                                case TokenCompare.Type.NOT_EQUAL:
+                                    check = new Range(0, true);
+                                    break;
+                                case TokenCompare.Type.LESS_THAN:
+                                    check = new Range(null, -1);
+                                    break;
+                                case TokenCompare.Type.LESS_OR_EQUAL:
+                                    check = new Range(null, 0);
+                                    break;
+                                case TokenCompare.Type.GREATER_THAN:
+                                    check = new Range(1, null);
+                                    break;
+                                case TokenCompare.Type.GREATER_OR_EQUAL:
+                                    check = new Range(0, null);
+                                    break;
+                                default:
+                                    check = new Range();
+                                    break;
+                            }
+                            selector.scores.checks.Add(new ScoresEntry(temp, check));
+                            // if <vale> <comp> 1234.5
+                        }
+                        else if (tokens.NextIs<TokenNumberLiteral>())
+                        {
+                            TokenNumberLiteral number = tokens.Next<TokenNumberLiteral>();
+                            var output = a.value.CompareToLiteral(a.word, entity, ctype, number);
+                            selector.scores.checks.AddRange(output.Item1);
+                            commands.AddRange(output.Item2);
+                        }
+                        else throw new StatementException(tokens, "Attempted to compare value with invalid token.");
                     }
+                    else break;
                 }
 
                 if (word.Equals("BLOCK"))
@@ -526,7 +598,6 @@ namespace mc_compiled.MCC.Compiler
 
                     if (not)
                     {
-                        tempsToRelease++;
                         ScoreboardValue inverter = executor.scoreboard.RequestTemp();
                         commands.AddRange(new[] {
                             Command.ScoreboardSet(entity, inverter, 0),
@@ -534,7 +605,6 @@ namespace mc_compiled.MCC.Compiler
                         });
                         selector.blockCheck = BlockCheck.DISABLED;
                         selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                        executor.scoreboard.ReleaseTemp();
                     }
                     else
                         selector.blockCheck = blockCheck;
@@ -554,14 +624,12 @@ namespace mc_compiled.MCC.Compiler
 
                     if (not && minRadius != null)
                     {
-                        tempsToRelease++;
                         ScoreboardValue inverter = executor.scoreboard.RequestTemp();
                         commands.AddRange(new[] {
                             Command.ScoreboardSet(entity, inverter, 0),
                             area.AsStoreIn(entity, inverter)
                         });
                         selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                        executor.scoreboard.ReleaseTemp();
                     }
                     else if (not)
                     {
@@ -585,14 +653,12 @@ namespace mc_compiled.MCC.Compiler
 
                     if (not)
                     {
-                        tempsToRelease++;
                         ScoreboardValue inverter = executor.scoreboard.RequestTemp();
                         commands.AddRange(new[] {
                             Command.ScoreboardSet(entity, inverter, 0),
                             area.AsStoreIn(entity, inverter)
                         });
                         selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                        executor.scoreboard.ReleaseTemp();
                     }
                     else
                         selector.area = area;
@@ -642,14 +708,12 @@ namespace mc_compiled.MCC.Compiler
                     else if (not)
                     {
                         Player invertCondition = new Player(null, levelMin, levelMax);
-                        tempsToRelease++;
                         ScoreboardValue inverter = executor.scoreboard.RequestTemp();
                         commands.AddRange(new[] {
                             Command.ScoreboardSet(entity, inverter, 0),
                             invertCondition.AsStoreIn(entity, inverter)
                         });
                         selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
-                        executor.scoreboard.ReleaseTemp();
                     }
                     else
                     {
@@ -677,8 +741,8 @@ namespace mc_compiled.MCC.Compiler
             if (commands.Count > 0)
                 executor.AddCommands(commands);
 
-            for (int i = 0; i < tempsToRelease; i++)
-                executor.scoreboard.ReleaseTemp();
+            // done with temporary variables
+            executor.scoreboard.PopTempState();
 
             // the selector is now ready to use and commands are setup
             executor.SetLastCompare(tokensUsed);

@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Compiler;
 using System;
@@ -57,7 +58,7 @@ namespace mc_compiled.MCC
         /// <param name="prefix"></param>
         
         public abstract string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "");
-
+        public abstract Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "");
         /// <summary>
         /// Setup temporary variables before printing this variable as rawtext.
         /// </summary>
@@ -174,7 +175,41 @@ namespace mc_compiled.MCC
 
             return new string[] { };
         }
+        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "")
+        {
+            int value = literal.GetNumberInt();
 
+            Range range;
+            switch (ctype)
+            {
+                case TokenCompare.Type.EQUAL:
+                    range = new Range(value, false);
+                    break;
+                case TokenCompare.Type.NOT_EQUAL:
+                    range = new Range(value, true);
+                    break;
+                case TokenCompare.Type.LESS_THAN:
+                    range = new Range(null, value - 1);
+                    break;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    range = new Range(null, value);
+                    break;
+                case TokenCompare.Type.GREATER_THAN:
+                    range = new Range(value + 1, null);
+                    break;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    range = new Range(value, null);
+                    break;
+                default:
+                    range = new Range();
+                    break;
+            }
+
+            return new Tuple<ScoresEntry[], string[]>(new[]
+            {
+                new ScoresEntry(prefix + baseName, range)
+            }, new string[0]);
+        }
         public override string[] CommandsRawTextSetup(string accessor, string selector, int index, string prefix = "")
         {
             return new string[0];
@@ -442,6 +477,51 @@ namespace mc_compiled.MCC
                 return new string[] { };
 
             return new string[] { };
+        }
+        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "")
+        {
+            ScoreboardValueInteger temp = manager.RequestTemp();
+
+            Range range;
+            switch (ctype)
+            {
+                case TokenCompare.Type.EQUAL:
+                    range = new Range(0, false);
+                    break;
+                case TokenCompare.Type.NOT_EQUAL:
+                    range = new Range(0, true);
+                    break;
+                case TokenCompare.Type.LESS_THAN:
+                    range = new Range(null, -1);
+                    break;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    range = new Range(null, 0);
+                    break;
+                case TokenCompare.Type.GREATER_THAN:
+                    range = new Range(1, null);
+                    break;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    range = new Range(0, null);
+                    break;
+                default:
+                    range = new Range();
+                    break;
+            }
+
+            int exp = (int)Math.Pow(10, precision);
+            float _number = literal.GetNumber();
+            int number = (int)Math.Round(_number * (float)exp);
+
+            return new Tuple<ScoresEntry[], string[]>(new[]
+            {
+                new ScoresEntry(temp, range)
+            }, new[]
+            {
+                Command.ScoreboardSet(selector, temp, exp),
+                Command.ScoreboardOpMul(selector, temp, WholeName),
+                Command.ScoreboardOpAdd(selector, temp, DecimalName),
+                Command.ScoreboardSubtract(selector, temp, number)
+            });
         }
 
         public override string[] CommandsRawTextSetup(string accessor, string selector, int index, string prefix = "")
@@ -937,6 +1017,11 @@ namespace mc_compiled.MCC
         {
             ScoreboardValue value = FullyResolveAccessor(accessor);
             return value.CommandsSetLiteral("", selector, token, prefix);
+        }
+        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "")
+        {
+            ScoreboardValue value = FullyResolveAccessor(accessor);
+            return value.CompareToLiteral(accessor, selector, ctype, literal, prefix);
         }
 
         public override string[] CommandsRawTextSetup(string accessor, string selector, int index, string prefix = "")

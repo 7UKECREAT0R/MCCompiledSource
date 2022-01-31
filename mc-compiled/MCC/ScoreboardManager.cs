@@ -14,6 +14,7 @@ namespace mc_compiled.MCC
     {
         private const string TEMP_PREFIX = "_mcc_temp";
         private int tempIndex;
+        private Stack<int> tempStack;
 
         public readonly Executor executor;
         readonly List<string> definedTempVars;
@@ -22,6 +23,9 @@ namespace mc_compiled.MCC
 
         public ScoreboardManager(Executor executor)
         {
+            tempIndex = 0;
+            tempStack = new Stack<int>();
+
             definedTempVars = new List<string>();
             structs = new Dictionary<string, StructDefinition>();
             values = new List<ScoreboardValue>();
@@ -107,6 +111,17 @@ namespace mc_compiled.MCC
         /// </summary>
         public void ReleaseTemp() =>
             tempIndex--;
+
+        /// <summary>
+        /// Save the current temp level to be recalled later using PopTempState().
+        /// </summary>
+        public void PushTempState() =>
+            tempStack.Push(tempIndex);
+        /// <summary>
+        /// Restore the temp level to what it was at the last PushTempState() call.
+        /// </summary>
+        public void PopTempState() =>
+            tempIndex = tempStack.Pop();
 
         /// <summary>
         /// Get a scoreboard value by its BASE NAME.

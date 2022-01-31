@@ -48,8 +48,11 @@ namespace mc_compiled.Commands
             if (str.Contains(".."))
             {
                 int index = str.IndexOf("..");
-                if (index == -1)
-                    return null;
+                if (index == 0) // ..10
+                    return new Range(null, int.Parse(str.Substring(index + 2)), not);
+                if (index + 2 >= str.Length) // 10..
+                    return new Range(int.Parse(str.Substring(0, index)), null, not);
+
                 string _a = str.Substring(0, index);
                 string _b = str.Substring(index + 2);
                 int a = int.Parse(_a);
