@@ -92,4 +92,16 @@ namespace mc_compiled.MCC.Compiler
             executor.PopSelector();
         }
     }
+    /// <summary>
+    /// Performs a multiple level order-of-operations math statement on scoreboard values.
+    /// </summary>
+    public sealed class StatementMath : Statement
+    {
+        ScoreboardValue finalResult;
+
+        public StatementMath(ScoreboardValue finalResult, Token[] tokens) : base(tokens)
+        {
+            this.finalResult = finalResult;
+        }
+    }
 }

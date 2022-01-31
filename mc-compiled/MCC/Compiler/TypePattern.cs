@@ -55,9 +55,9 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 MultiType mtt = pattern[self];
-                Type type = tokens[external].GetType();
+                Token token = tokens[external];
 
-                if(mtt.Check(type))
+                if(mtt.Check(token))
                 {
                     self++;
                     external++;
@@ -93,9 +93,20 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public bool Check(Type type)
+        public bool Check(object obj)
         {
-            return types.Any(t => t.IsAssignableFrom(type));
+            Type type = obj.GetType();
+            if (types.Any(t => t.IsAssignableFrom(type)))
+                return true;
+
+            if(obj is IImplicitToken)
+            {
+                Type conversion = (obj as IImplicitToken).GetImplicitType();
+                if (types.Any(t => t.IsAssignableFrom(type)))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

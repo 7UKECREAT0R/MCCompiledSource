@@ -72,7 +72,7 @@ namespace mc_compiled.MCC.Compiler
         {
             // Load file
             if (!File.Exists(file))
-                throw new FileNotFoundException("File specified could not be found.");
+                throw new TokenizerException("File specified could not be found.");
 
             string content = File.ReadAllText(file);
             return new Tokenizer(content).Tokenize();
@@ -176,7 +176,7 @@ namespace mc_compiled.MCC.Compiler
                         core = Selector.Core.e;
                         break;
                     default:
-                        throw new FormatException("Invalid selector. '" +
+                        throw new TokenizerException("Invalid selector. '" +
                             secondChar + "'. Valid options: @p, @s, @a, or @e");
                 }
                 if (Peek() == '[')

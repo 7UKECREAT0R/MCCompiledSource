@@ -45,7 +45,7 @@ namespace mc_compiled.MCC.Compiler
     /// Represents a token which doesn't have any identifiable tokenization-time category,
     /// but is probably an identifier. Should probably resolve when possible.
     /// </summary>
-    public class TokenIdentifier : Token, IObjectable
+    public class TokenIdentifier : Token, IObjectable, IImplicitToken
     {
         public readonly string word;
 
@@ -55,6 +55,11 @@ namespace mc_compiled.MCC.Compiler
             this.word = word;
         }
         public object GetObject() => word;
+
+        public Type GetImplicitType() =>
+            typeof(TokenStringLiteral);
+        public Token Convert() =>
+            new TokenStringLiteral(word, lineNumber);
     }
     /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.

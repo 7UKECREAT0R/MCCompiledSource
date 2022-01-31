@@ -28,7 +28,6 @@ namespace mc_compiled
             Console.Write("\t  --decorate\tDecorate and include source comments in the output files.\n");
             Console.Write("\t  -o\tObfuscate scoreboard names and other values.\n");
             Console.Write("\t  -d\tDebug information during compilation.\n");
-            Console.Write("\t  -r\tDisable the macro recursion guard.\n\n");
         }
         [STAThread]
         static void Main(string[] args)
@@ -94,7 +93,20 @@ namespace mc_compiled
             DEBUG = debug;
             OBFUSCATE = obf;
 
-            Token[] tokens = Tokenizer.TokenizeFile(file);
+            Token[] tokens;
+            try
+            {
+                tokens = Tokenizer.TokenizeFile(file);
+            } catch(TokenizerException exc)
+            {
+                int line = exc.line;
+                string message = exc.Message;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Problem encountered during tokenization of file:\n" +
+                    $"\tLINE {line}: {message}\n\nCompilation cannot be continued.");
+                Console.ReadLine();
+                return;
+            }
 
             if (DEBUG)
             {

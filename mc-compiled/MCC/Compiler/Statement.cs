@@ -25,11 +25,55 @@ namespace mc_compiled.MCC.Compiler
         {
             get => currentToken < tokens.Length;
         }
-        public Token Next() => tokens[currentToken++];
-        public Token Peek() => tokens[currentToken];
-        public T Next<T>() where T: class => tokens[currentToken++] as T;
-        public T Peek<T>() where T: class => tokens[currentToken] as T;
-        public bool NextIs<T>() => tokens[currentToken] is T;
+        public Token Next()
+        {
+            return tokens[currentToken++];
+        }
+        public Token Peek()
+        {
+            return tokens[currentToken];
+        }
+        public T Next<T>() where T : class
+        {
+            Token token = tokens[currentToken++];
+            if (!(token is T))
+            {
+                if (token is IImplicitToken)
+                {
+                    IImplicitToken implicitToken = token as IImplicitToken;
+                    Type otherType = implicitToken.GetImplicitType();
+
+                    if (token.GetType().IsAssignableFrom(otherType))
+                        return implicitToken.Convert() as T;
+                }
+                throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
+            }
+            else
+                return token as T;
+        }
+        public T Peek<T>() where T : class
+        {
+            Token token = tokens[currentToken];
+            if(!(token is T))
+            {
+                if (token is IImplicitToken)
+                {
+                    IImplicitToken implicitToken = token as IImplicitToken;
+                    Type otherType = implicitToken.GetImplicitType();
+
+                    if (token.GetType().IsAssignableFrom(otherType))
+                        return implicitToken.Convert() as T;
+                }
+                throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
+            } else
+                return token as T;
+        }
+        public bool NextIs<T>()
+        {
+            if (!HasNext)
+                return false;
+            return tokens[currentToken] is T;
+        }
 
         /// <summary>
         /// Return the remaining tokens in this statement.

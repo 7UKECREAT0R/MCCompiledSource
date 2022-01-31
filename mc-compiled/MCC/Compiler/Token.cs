@@ -51,4 +51,21 @@ namespace mc_compiled.MCC.Compiler
             this.keyword = keyword;
         }
     }
+    /// <summary>
+    /// Decorates a token which can be implicitly converted to another type if needed.
+    /// </summary>
+    public interface IImplicitToken
+    {
+        /// <summary>
+        /// Get the type this token can be implicitly converted to.
+        /// </summary>
+        /// <returns></returns>
+        Type GetImplicitType();
+
+        /// <summary>
+        /// Convert this token to its alternate type.
+        /// </summary>
+        /// <returns></returns>
+        Token Convert();
+    }
 }
