@@ -818,6 +818,41 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.Teleport(selector.ToString(), offsetX, offsetY, offsetZ));
         }
+        public static void move(Executor executor, Statement tokens)
+        {
+            string direction = tokens.Next<TokenIdentifier>().word.ToUpper();
+            float amount = tokens.Next<TokenNumberLiteral>().GetNumber();
+
+            Coord x = Coord.here;
+            Coord y = Coord.here;
+            Coord z = Coord.here;
+
+            switch(direction)
+            {
+                case "LEFT":
+                    x = new Coord(amount, true, false, true);
+                    break;
+                case "RIGHT":
+                    x = new Coord(-amount, true, false, true);
+                    break;
+                case "UP":
+                    y = new Coord(amount, true, false, true);
+                    break;
+                case "DOWN":
+                    y = new Coord(-amount, true, false, true);
+                    break;
+                case "FORWARD":
+                case "FORWARDS":
+                    z = new Coord(amount, true, false, true);
+                    break;
+                case "BACKWARD":
+                case "BACKWARDS":
+                    z = new Coord(-amount, true, false, true);
+                    break;
+            }
+
+            executor.AddCommand(Command.Teleport(x, y, z));
+        }
         public static void face(Executor executor, Statement tokens)
         {
             if (tokens.NextIs<TokenSelectorLiteral>())
@@ -1159,6 +1194,5 @@ namespace mc_compiled.MCC.Compiler
             file.Add(Command.Function(file));
             executor.DefineSTDFile(id, file);
         }
-
     }
 }

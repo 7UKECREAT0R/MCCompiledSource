@@ -49,7 +49,7 @@ namespace mc_compiled.MCC.Compiler
             Stack<string> pieces = new Stack<string>(FSTRING_VAR.Split(fstring).Reverse());
 
             int index = 0;
-            string sel = "@" + ActiveSelector;
+            string sel = ActiveSelectorStr;
             foreach (Match match in matches)
             {
                 if (match.Index != 0 && pieces.Count > 0)

@@ -124,6 +124,8 @@ namespace mc_compiled.MCC.Compiler
                 new TypePattern(typeof(TokenSelectorLiteral))),
             new Directive(DirectiveImplementations.tphere, "tphere", "Teleport Entity to Selected",
                 new TypePattern(typeof(TokenSelectorLiteral)).Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>()),
+            new Directive(DirectiveImplementations.move, "move", "Move Selected Entity",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenNumberLiteral))),
             new Directive(DirectiveImplementations.face, "face", "Face Selected Entity",
                 new TypePattern(typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)),
                 new TypePattern(typeof(TokenSelectorLiteral))),
