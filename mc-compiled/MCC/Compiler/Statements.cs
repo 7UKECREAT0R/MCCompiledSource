@@ -96,21 +96,61 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
-    /// Performs a multiple level order-of-operations math statement on scoreboard values.
+    /// Statement that assigns a scoreboard value and may also perform a set of arithmatic.<br />
+    /// Examples:<br />
+    ///     a *= b + (c - d) * e<br />
+    ///     a += b<br />
+    ///     d = b + f<br />
+    ///     a = x<br />
     /// </summary>
-    public sealed class StatementMath : Statement
+    public sealed class StatementOperation : Statement
     {
-        ScoreboardValue finalResult;
+        bool isResolved;
 
-        public StatementMath(ScoreboardValue finalResult, Token[] tokens) : base(tokens)
+        TokenIdentifier aUnresovled;
+        TokenIdentifierValue a = null;
+
+        IAssignment assignmentOperator;
+
+        Token[] tokensUnresolved;
+
+        public StatementOperation(TokenIdentifier a, IAssignment assignment, Token[] tokens) : base(null)
         {
-            this.finalResult = finalResult;
+            isResolved = false;
+            aUnresovled = a;
+            assignmentOperator = assignment;
+            tokensUnresolved = tokens;
+        }
+        /// <summary>
+        /// Resolve all scoreboard identifiers.
+        /// </summary>
+        /// <param name="executor"></param>
+        public void ResolveAll(Executor executor)
+        {
+            int length = tokensUnresolved.Length;
+            tokens = new Token[length];
+
+            for(int i = 0; i < length; i++)
+            {
+                Token token = tokensUnresolved[i];
+                tokens[i] = token;
+                if (!(token is TokenIdentifier))
+                    continue;
+                if (token is TokenIdentifierValue)
+                    continue;
+
+                string accessor = (token as TokenIdentifier).word;
+                if(executor.scoreboard.TryGetByAccessor(accessor, out ScoreboardValue output)) {
+                    tokens[i] = new TokenIdentifierValue(accessor, output, token.lineNumber);
+                    continue;
+                }
+            }
         }
 
         protected override TypePattern[] GetValidPatterns()
         {
             return new[] {
-                new TypePattern(typeof(CompoundAssignment))
+                new TypePattern(typeof(TokenIdentifier))
             };
         }
         protected override void Run(Executor executor)

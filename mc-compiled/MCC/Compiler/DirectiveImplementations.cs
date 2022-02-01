@@ -1164,7 +1164,7 @@ namespace mc_compiled.MCC.Compiler
                     Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
                     Command.Kill()
                 });
-                executor.DefineSTDFile("silent_remove", file);
+                executor.DefineSTDFile(file);
                 executor.AddCommand(Command.Execute(selector.ToString(),
                     Coord.here, Coord.here, Coord.here, Command.Function(file)));
                 return;
@@ -1287,15 +1287,16 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void halt(Executor executor, Statement tokens)
         {
-            const string id = "halt_execution";
-
-            if (executor.HasSTDFile(id))
-                return;
-
-            // recursively call self until function command limit reached
             CommandFile file = new CommandFile("halt_execution", "_misc");
-            file.Add(Command.Function(file));
-            executor.DefineSTDFile(id, file);
+
+            if (!executor.HasSTDFile(file))
+            {
+                // recursively call self until function command limit reached
+                file.Add(Command.Function(file));
+                executor.DefineSTDFile(file);
+            }
+
+            executor.AddCommand(Command.Function(file));
         }
     }
 }

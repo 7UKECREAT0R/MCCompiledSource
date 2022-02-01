@@ -22,6 +22,20 @@ namespace mc_compiled.MCC.Compiler
             this.name = name;
             this.folder = folder;
         }
+        public override bool Equals(object obj)
+        {
+            return obj is CommandFile file &&
+                   folder == file.folder &&
+                   name == file.name;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = -172474549;
+            hashCode = hashCode * -1521134295 + folder.GetHashCode();
+            hashCode = hashCode * -1521134295 + name.GetHashCode();
+            return hashCode;
+        }
+
         public string QualifiedName
         {
             get

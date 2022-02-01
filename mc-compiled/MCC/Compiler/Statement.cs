@@ -18,8 +18,8 @@ namespace mc_compiled.MCC.Compiler
             patterns = GetValidPatterns();
         }
 
-        Token[] tokens;
-        int currentToken;
+        protected Token[] tokens;
+        protected int currentToken;
 
         public bool HasNext
         {

@@ -45,10 +45,20 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents an arithmatic operator token.
     /// </summary>
-    public class TokenArithmatic : Token
+    public class TokenArithmatic : TokenOperator
     {
         public override string AsString() => "<? arithmatic>";
         public TokenArithmatic(int lineNumber) : base(lineNumber) { }
+    }
+    public class TokenArithmaticFirst : TokenArithmatic
+    {
+        public override string AsString() => "<? */%>";
+        public TokenArithmaticFirst(int lineNumber) : base(lineNumber) { }
+    }
+    public class TokenArithmaticSecond : TokenArithmatic
+    {
+        public override string AsString() => "<? +->";
+        public TokenArithmaticSecond(int lineNumber) : base(lineNumber) { }
     }
 
     /// <summary>
@@ -75,8 +85,11 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Used to indicate a math operator is also compounded with an assignment e.g. += -= *= or /=
     /// </summary>
-    public interface CompoundAssignment { }
-
+    public interface IAssignment { }
+    /// <summary>
+    /// Used to indicate when a token should terminate the Assembler's token collector and start a new line.
+    /// </summary>
+    public interface ITerminating { }
 
     public sealed class TokenOpenParenthesis : TokenOpenBracket
     {
@@ -88,12 +101,12 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => ")";
         public TokenCloseParenthesis(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenOpenBlock : TokenOpenBracket
+    public sealed class TokenOpenBlock : TokenOpenBracket, ITerminating
     {
         public override string AsString() => "{";
         public TokenOpenBlock(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenCloseBlock : TokenOpenBracket
+    public sealed class TokenCloseBlock : TokenCloseBracket, ITerminating
     {
         public override string AsString() => "}";
         public TokenCloseBlock(int lineNumber) : base(lineNumber) { }
@@ -107,62 +120,62 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => "&";
         public TokenAnd(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenAssignment : TokenOperator
+    public sealed class TokenAssignment : TokenOperator, IAssignment
     {
         public override string AsString() => "=";
         public TokenAssignment(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenAdd : TokenArithmatic
+    public sealed class TokenAdd : TokenArithmaticSecond
     {
         public override string AsString() => "+";
         public TokenAdd(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenSubtract : TokenArithmatic
+    public sealed class TokenSubtract : TokenArithmaticSecond
     {
         public override string AsString() => "-";
         public TokenSubtract(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenMultiply : TokenArithmatic
+    public sealed class TokenMultiply : TokenArithmaticFirst
     {
         public override string AsString() => "*";
         public TokenMultiply(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenDivide : TokenArithmatic
+    public sealed class TokenDivide : TokenArithmaticFirst
     {
         public override string AsString() => "/";
         public TokenDivide(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenModulo : TokenArithmatic
+    public sealed class TokenModulo : TokenArithmaticFirst
     {
         public override string AsString() => "%";
         public TokenModulo(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenAddAssignment : TokenArithmatic, CompoundAssignment
+    public sealed class TokenAddAssignment : TokenArithmaticSecond, IAssignment
     {
         public override string AsString() => "+=";
         public TokenAddAssignment(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenSubtractAssignment : TokenArithmatic, CompoundAssignment
+    public sealed class TokenSubtractAssignment : TokenArithmaticSecond, IAssignment
     {
         public override string AsString() => "-=";
         public TokenSubtractAssignment(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenMultiplyAssignment : TokenArithmatic, CompoundAssignment
+    public sealed class TokenMultiplyAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "*=";
         public TokenMultiplyAssignment(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenDivideAssignment : TokenArithmatic, CompoundAssignment
+    public sealed class TokenDivideAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "/=";
         public TokenDivideAssignment(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenModuloAssignment : TokenArithmatic, CompoundAssignment
+    public sealed class TokenModuloAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "%=";
         public TokenModuloAssignment(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenSwapAssignment : TokenArithmatic, CompoundAssignment
+    public sealed class TokenSwapAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "><";
         public TokenSwapAssignment(int lineNumber) : base(lineNumber) { }

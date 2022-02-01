@@ -23,7 +23,7 @@ namespace mc_compiled.MCC.Compiler
         Statement[] statements;
         int readIndex = 0;
 
-        readonly List<string> definedStdFiles;
+        readonly List<int> definedStdFiles;
         readonly List<Macro> macros;
         readonly bool[] lastPreprocessorCompare;
         readonly Token[][] lastActualCompare;
@@ -74,20 +74,20 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Define a file that relates to a "standard library." Will only be added once.
+        /// Define a file that sort-of equates to a "standard library." Will only be added once.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="file"></param>
-        public void DefineSTDFile(string id, CommandFile file)
+        public void DefineSTDFile(CommandFile file)
         {
-            if (definedStdFiles.Contains(id))
+            if (definedStdFiles.Contains(file.GetHashCode()))
                 return;
-            definedStdFiles.Add(id);
+            definedStdFiles.Add(file.GetHashCode());
             AddExtraFile(file);
         }
-        public bool HasSTDFile(string id)
+        public bool HasSTDFile(CommandFile file)
         {
-            return definedStdFiles.Contains(id);
+            return definedStdFiles.Contains(file.GetHashCode());
         }
 
         public Selector.Core ActiveSelector
@@ -155,12 +155,15 @@ namespace mc_compiled.MCC.Compiler
             this.statements = statements;
             this.projectName = projectName;
 
-            definedStdFiles = new List<string>();
+            definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic>();
             macros = new List<Macro>();
             selections = new Stack<Selector.Core>();
+
+            // support up to 100 levels of scope before blowing up
             lastPreprocessorCompare = new bool[100];
             lastActualCompare = new Token[100][];
+
             currentFiles = new Stack<CommandFile>();
             filesToWrite = new List<IBehaviorFile>();
             prependBuffer = new StringBuilder();
@@ -270,17 +273,23 @@ namespace mc_compiled.MCC.Compiler
             CurrentFile.Add(commands.Select(c => prepend + c));
         }
         /// <summary>
-        /// Add a command to the current file, ignoring the prepend buffer.
+        /// Add a command to the current file, not modifying the prepend buffer.
         /// </summary>
         /// <param name="command"></param>
-        public void AddCommandClean(string command) =>
-            CurrentFile.Add(command);
+        public void AddCommandClean(string command)
+        {
+            string prepend = prependBuffer.ToString();
+            CurrentFile.Add(prepend + command);
+        }
         /// <summary>
-        /// Add a set of commands to the current file, ignoring the prepend buffer.
+        /// Add a set of commands to the current file, not modifying the prepend buffer.
         /// </summary>
         /// <param name="commands"></param>
-        public void AddCommandsClean(IEnumerable<string> commands) =>
-            CurrentFile.Add(commands);
+        public void AddCommandsClean(IEnumerable<string> commands)
+        {
+            string prepend = prependBuffer.ToString();
+            CurrentFile.Add(commands.Select(c => prepend + c));
+        }
         /// <summary>
         /// Add a file on its own to the list.
         /// </summary>

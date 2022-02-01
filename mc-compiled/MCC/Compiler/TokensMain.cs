@@ -9,7 +9,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a new line.
     /// </summary>
-    public sealed class TokenNewline : Token
+    public sealed class TokenNewline : Token, ITerminating
     {
         public override string AsString() => "\n";
         public TokenNewline(int lineNumber) : base(lineNumber) {}
@@ -30,7 +30,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a comment that was made using two slashes.
     /// </summary>
-    public sealed class TokenComment : Token
+    public sealed class TokenComment : Token, ITerminating
     {
         public readonly string contents;
 
