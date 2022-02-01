@@ -122,7 +122,7 @@ namespace mc_compiled.MCC.Compiler
             tokensUnresolved = tokens;
         }
         /// <summary>
-        /// Resolve all scoreboard identifiers.
+        /// Resolve all scoreboard and function identifiers.
         /// </summary>
         /// <param name="executor"></param>
         public void ResolveAll(Executor executor)

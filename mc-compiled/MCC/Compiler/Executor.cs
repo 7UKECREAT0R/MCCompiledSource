@@ -23,15 +23,18 @@ namespace mc_compiled.MCC.Compiler
         Statement[] statements;
         int readIndex = 0;
 
+        readonly Function definingFunction;
+
         readonly List<int> definedStdFiles;
         readonly List<Macro> macros;
+        readonly List<Function> functions;
         readonly bool[] lastPreprocessorCompare;
         readonly Token[][] lastActualCompare;
         readonly Dictionary<string, dynamic> ppv;
-        readonly Stack<CommandFile> currentFiles;
-        readonly Stack<Selector.Core> selections;
         readonly List<IBehaviorFile> filesToWrite;
         readonly StringBuilder prependBuffer;
+        readonly Stack<CommandFile> currentFiles;
+        readonly Stack<Selector.Core> selections;
 
         public readonly ScoreboardManager scoreboard;
         /// <summary>
@@ -158,6 +161,7 @@ namespace mc_compiled.MCC.Compiler
             definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic>();
             macros = new List<Macro>();
+            functions = new List<Function>();
             selections = new Stack<Selector.Core>();
 
             // support up to 100 levels of scope before blowing up
@@ -233,12 +237,22 @@ namespace mc_compiled.MCC.Compiler
         /// Add a macro to be looked up later.
         /// </summary>
         /// <param name="macro"></param>
-        public void AddMacro(Macro macro) => macros.Add(macro);
+        public void RegisterMacro(Macro macro) =>
+            macros.Add(macro);
         public Macro? LookupMacro(string name)
         {
             foreach (Macro macro in macros)
                 if (macro.Matches(name))
                     return macro;
+            return null;
+        }
+        public void RegisterFunction(Function function) =>
+            functions.Add(function);
+        public Function LookupFunction(string name)
+        {
+            foreach (Function function in functions)
+                if (function.Matches(name))
+                    return function;
             return null;
         }
 

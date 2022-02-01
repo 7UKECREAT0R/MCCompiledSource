@@ -23,7 +23,7 @@ namespace mc_compiled.MCC
             this.statements = statements;
         }
         /// <summary>
-        /// Fuzzy-match this macro's name.
+        /// Case-insensitive-match this macro's name.
         /// </summary>
         /// <param name="otherName"></param>
         /// <returns></returns>

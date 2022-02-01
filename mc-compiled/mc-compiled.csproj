@@ -58,6 +58,7 @@
     <Compile Include="MCC\Compiler\Directives.cs" />
     <Compile Include="MCC\Compiler\Executor.cs" />
     <Compile Include="MCC\Compiler\Statements.cs" />
+    <Compile Include="MCC\Function.cs" />
     <Compile Include="MCC\Macro.cs" />
     <Compile Include="MCC\ScoreboardManager.cs" />
     <Compile Include="Modding\IBehaviorFile.cs" />

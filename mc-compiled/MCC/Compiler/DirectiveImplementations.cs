@@ -261,7 +261,7 @@ namespace mc_compiled.MCC.Compiler
             executor.Next<StatementCloseBlock>();
 
             Macro macro = new Macro(macroName, args.ToArray(), statements);
-            executor.AddMacro(macro);
+            executor.RegisterMacro(macro);
         }
         public static void _macrocall(Executor executor, Statement tokens)
         {
