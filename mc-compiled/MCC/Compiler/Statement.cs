@@ -102,6 +102,7 @@ namespace mc_compiled.MCC.Compiler
         }
         /// <summary>
         /// Clone this statement and resolve its unidentified tokens based off the current executor's state.
+        /// After this is finished, squash and process any intermediate math or functional operations.
         /// </summary>
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public Statement CloneResolve(Executor executor)
@@ -129,13 +130,60 @@ namespace mc_compiled.MCC.Compiler
                         resolved = new TokenIdentifierValue(word, value, line);
                     else if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))
                         resolved = new TokenIdentifierStruct(word, @struct, line);
+                    else if (executor.TryLookupMacro(word, out Macro? macro))
+                        resolved = new TokenIdentifierMacro(macro.Value, line);
+                    else if (executor.TryLookupFunction(word, out Function function))
+                        resolved = new TokenIdentifierFunction(function, line);
                 }
 
                 allResolved[i] = resolved;
             }
 
-            statement.tokens = allResolved;
+            // TODO squash intermediate operations
+            List<Token> tokens = new List<Token>(allResolved);
+
+
+
+            statement.tokens = tokens.ToArray();
             return statement;
+        }
+        public void Squash<T>(ref List<Token> tokens, Executor executor)
+        {
+            for (int i = 1; i < tokens.Count() - 1; i++)
+            {
+                Token selected = tokens[i];
+                if (!(selected is T))
+                    continue;
+
+                Token _left = tokens[i - 1];
+                Token _right = tokens[i + 1];
+
+                bool leftIsLiteral = _left is TokenLiteral;
+                bool rightIsLiteral = _right is TokenLiteral;
+                bool leftIsValue = _left is TokenIdentifierValue;
+                bool rightIsValue = _right is TokenIdentifierValue;
+
+                if(leftIsLiteral & rightIsLiteral)
+                {
+                    TokenLiteral left = _left as TokenLiteral;
+                    TokenLiteral right = _right as TokenLiteral;
+
+                }
+                else if(leftIsValue & rightIsValue)
+                {
+                    TokenIdentifierValue left = _left as TokenIdentifierValue;
+                    TokenIdentifierValue right = _right as TokenIdentifierValue;
+                    string leftAccessor = left.Accessor;
+                    string rightAccessor = right.Accessor;
+                    ScoreboardValue a = left.value;
+                    ScoreboardValue b = right.value;
+
+                }
+                else
+                {
+
+                }
+            }
         }
         public object Clone()
         {

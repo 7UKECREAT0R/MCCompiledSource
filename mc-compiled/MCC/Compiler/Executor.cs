@@ -23,8 +23,6 @@ namespace mc_compiled.MCC.Compiler
         Statement[] statements;
         int readIndex = 0;
 
-        readonly Function definingFunction;
-
         readonly List<int> definedStdFiles;
         readonly List<Macro> macros;
         readonly List<Function> functions;
@@ -239,6 +237,12 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="macro"></param>
         public void RegisterMacro(Macro macro) =>
             macros.Add(macro);
+        /// <summary>
+        /// Add a function to be looked up later. Its commands can be written to by simply PushFile()ing to this executor.
+        /// </summary>
+        /// <param name="function"></param>
+        public void RegisterFunction(Function function) =>
+            functions.Add(function);
         public Macro? LookupMacro(string name)
         {
             foreach (Macro macro in macros)
@@ -246,8 +250,6 @@ namespace mc_compiled.MCC.Compiler
                     return macro;
             return null;
         }
-        public void RegisterFunction(Function function) =>
-            functions.Add(function);
         public Function LookupFunction(string name)
         {
             foreach (Function function in functions)
@@ -255,11 +257,24 @@ namespace mc_compiled.MCC.Compiler
                     return function;
             return null;
         }
+        public bool TryLookupMacro(string name, out Macro? macro)
+        {
+            macro = LookupMacro(name);
+            return macro.HasValue;
+        }
+        public bool TryLookupFunction(string name, out Function function)
+        {
+            function = LookupFunction(name);
+            return function != null;
+        }
 
         /// <summary>
         /// Get the current file that should be written to.
         /// </summary>
         public CommandFile CurrentFile { get => currentFiles.Peek(); }
+        /// <summary>
+        /// Get the main .mcfunction file for this project.
+        /// </summary>
         public CommandFile HeadFile { get => currentFiles.First(); }
 
         /// <summary>

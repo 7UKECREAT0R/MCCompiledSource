@@ -22,7 +22,7 @@ namespace mc_compiled.MCC
         public Function(string name, bool fromCompiler = false)
         {
             this.name = name;
-            file = new CommandFile(name);
+            file = new CommandFile(name, null, this);
             isCompilerGenerated = fromCompiler;
             inputs = new List<ScoreboardValue>();
         }

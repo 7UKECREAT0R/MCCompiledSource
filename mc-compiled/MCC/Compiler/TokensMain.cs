@@ -131,6 +131,30 @@ namespace mc_compiled.MCC.Compiler
             this.@struct = @struct;
         }
     }
+    public sealed class TokenIdentifierMacro : TokenIdentifier
+    {
+        /// <summary>
+        /// The macro this identifier references.
+        /// </summary>
+        public readonly Macro macro;
+
+        public TokenIdentifierMacro(Macro macro, int lineNumber) : base(macro.name, lineNumber)
+        {
+            this.macro = macro;
+        }
+    }
+    public sealed class TokenIdentifierFunction : TokenIdentifier
+    {
+        /// <summary>
+        /// The function this identifier references.
+        /// </summary>
+        public readonly Function function;
+
+        public TokenIdentifierFunction(Function function, int lineNumber) : base(function.name, lineNumber)
+        {
+            this.function = function;
+        }
+    }
 
     /// <summary>
     /// Allows this object to return an object that can go into a PPV.

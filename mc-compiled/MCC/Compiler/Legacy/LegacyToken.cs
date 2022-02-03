@@ -13,7 +13,7 @@ namespace mc_compiled.MCC.Compiler
 
         public abstract void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens);
     }
-    public class TokenException : Exception
+    public class LegacyTokenException : Exception
     {
         public LegacyToken token;
         public string desc;
@@ -23,7 +23,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="token"></param>
         /// <param name="desc"></param>
-        public TokenException(LegacyToken token, string desc)
+        public LegacyTokenException(LegacyToken token, string desc)
         {
             this.token = token;
             this.desc = desc;

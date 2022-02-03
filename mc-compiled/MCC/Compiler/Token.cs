@@ -68,4 +68,18 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         Token Convert();
     }
+    /// <summary>
+    /// Indicates that a token had some kind of unknown error.
+    /// </summary>
+    public class TokenException : Exception
+    {
+        public Token token;
+        public string desc;
+
+        public TokenException(Token token, string desc)
+        {
+            this.token = token;
+            this.desc = desc;
+        }
+    }
 }

@@ -247,7 +247,7 @@ namespace mc_compiled.MCC
                     token = tokens.Next();
                     token.Execute(this, tokens);
                 }
-            } catch(TokenException texc)
+            } catch(LegacyTokenException texc)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Managed Exception:\n" +

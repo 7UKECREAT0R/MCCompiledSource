@@ -31,7 +31,7 @@ namespace mc_compiled.MCC
             foreach (ScoreboardValue value in values)
             {
                 if (value is ScoreboardValueStruct)
-                    throw new Compiler.TokenException(null, "Cannot contain struct inside of another struct.");
+                    throw new Compiler.LegacyTokenException(null, "Cannot contain struct inside of another struct.");
 
                 if(a >= fieldNamesInternal.Length)
                 {

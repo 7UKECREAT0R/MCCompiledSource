@@ -15,6 +15,7 @@ namespace mc_compiled.MCC
     /// </summary>
     public abstract class ScoreboardValue : ICloneable
     {
+        public const string RETURN_NAME = "_mcc_retn";
         public const int MAX_NAME_LENGTH = 16;
         public string baseName;
         protected readonly ScoreboardManager manager;
@@ -34,7 +35,42 @@ namespace mc_compiled.MCC
         {
             return MemberwiseClone();
         }
+        /// <summary>
+        /// Returns a shallow memberwise clone of some value as a return value.
+        /// </summary>
+        /// <param name="returning"></param>
+        /// <returns></returns>
+        public static ScoreboardValue GetReturnValue(ScoreboardValue returning)
+        {
+            ScoreboardValue clone = returning.Clone() as ScoreboardValue;
+            clone.baseName = RETURN_NAME;
+            return clone;
+        }
+        /// <summary>
+        /// Create a return value based off of a literal.
+        /// </summary>
+        /// <param name="returning"></param>
+        /// <returns></returns>
+        public static ScoreboardValue GetReturnValue(TokenLiteral literal, ScoreboardManager sb, Statement forExceptions)
+        {
+            if (literal is TokenStringLiteral)
+                throw new StatementException(forExceptions, "Cannot return a string.");
+            if(literal is TokenSelectorLiteral)
+                throw new StatementException(forExceptions, "Cannot return a selector.");
 
+            if (literal is TokenIntegerLiteral)
+                return new ScoreboardValueInteger(RETURN_NAME, sb);
+            else if (literal is TokenBooleanLiteral)
+                return new ScoreboardValueBoolean(RETURN_NAME, sb);
+            else if (literal is TokenDecimalLiteral)
+            {
+                float number = (literal as TokenDecimalLiteral).number;
+                int precision = number.GetPrecision();
+                return new ScoreboardValueDecimal(RETURN_NAME, precision, sb);
+            }
+
+            throw new StatementException(forExceptions, "Cannot return this literal.");
+        }
         public static implicit operator string(ScoreboardValue value) => value.baseName;
 
 

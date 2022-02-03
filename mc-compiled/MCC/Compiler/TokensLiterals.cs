@@ -10,10 +10,41 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a literal in code.
     /// </summary>
-    public class TokenLiteral : Token
+    public abstract class TokenLiteral : Token
     {
         public override string AsString() => "<? literal>";
         public TokenLiteral(int lineNumber) : base(lineNumber) { }
+
+        /// <summary>
+        /// Return a NEW token literal that is the result of adding these two literals.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract TokenLiteral AddWithOther(TokenLiteral other);
+        /// <summary>
+        /// Return a NEW token literal that is the result of subtracting these two literals.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract TokenLiteral SubWithOther(TokenLiteral other);
+        /// <summary>
+        /// Return a NEW token literal that is the result of multiplying these two literals.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract TokenLiteral MulWithOther(TokenLiteral other);
+        /// <summary>
+        /// Return a NEW token literal that is the result of dividing these two literals.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract TokenLiteral DivWithOther(TokenLiteral other);
+        /// <summary>
+        /// Return a NEW token literal that is the result of modulo'ing these two literals.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract TokenLiteral ModWithOther(TokenLiteral other);
     }
 
     /// <summary>
@@ -48,6 +79,75 @@ namespace mc_compiled.MCC.Compiler
         public object GetObject() =>  text;
 
         public static implicit operator string(TokenStringLiteral literal) => literal.text;
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            if (!(other is IObjectable))
+                throw new TokenException(this, "Invalid literal operation.");
+
+            string append = (other as IObjectable).GetObject().ToString();
+            return new TokenStringLiteral(text + append, lineNumber);
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            if(other is TokenStringLiteral)
+            {
+                string str = other as TokenStringLiteral;
+                if (text.EndsWith(str))
+                    str = text.Substring(0, text.Length - str.Length);
+                return new TokenStringLiteral(str, lineNumber);
+            } else if(other is TokenNumberLiteral)
+            {
+                int number = (other as TokenNumberLiteral).GetNumberInt();
+                string str;
+
+                if (number > text.Length)
+                    str = "";
+                else
+                    str = text.Substring(0, text.Length - number);
+
+                return new TokenStringLiteral(str, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float number = (other as TokenNumberLiteral).GetNumber();
+                int length = (int)Math.Round(text.Length * number);
+
+                int sample = 0;
+                char[] characters = new char[length];
+                for(int i = 0; i < length; i++)
+                {
+                    characters[i] = text[sample++];
+                    if (sample >= text.Length)
+                        sample = 0;
+                }
+
+                return new TokenStringLiteral(new string(characters), lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float number = (other as TokenNumberLiteral).GetNumber();
+                int length = (int)Math.Round(text.Length / number);
+
+                return new TokenStringLiteral(text.Substring(0, length), lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
     }
     public sealed class TokenBooleanLiteral : TokenLiteral, IObjectable
     {
@@ -60,6 +160,27 @@ namespace mc_compiled.MCC.Compiler
         public object GetObject() => boolean;
 
         public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
     }
 
     public class TokenCoordinateLiteral : TokenNumberLiteral
@@ -82,6 +203,72 @@ namespace mc_compiled.MCC.Compiler
         public static implicit operator Coord(TokenCoordinateLiteral literal) => literal.coordinate;
         public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valuei;
         public static implicit operator float(TokenCoordinateLiteral literal) => literal;
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            if(other is TokenNumberLiteral)
+            {
+                float number = (other as TokenNumberLiteral).GetNumber();
+                Coord coord = new Coord(coordinate);
+                coord.valuef += number;
+                coord.valuei = (int)Math.Round(coord.valuef);
+                return new TokenCoordinateLiteral(coord, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float number = (other as TokenNumberLiteral).GetNumber();
+                Coord coord = new Coord(coordinate);
+                coord.valuef -= number;
+                coord.valuei = (int)Math.Round(coord.valuef);
+                return new TokenCoordinateLiteral(coord, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float number = (other as TokenNumberLiteral).GetNumber();
+                Coord coord = new Coord(coordinate);
+                coord.valuef *= number;
+                coord.valuei = (int)Math.Round(coord.valuef);
+                return new TokenCoordinateLiteral(coord, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float number = (other as TokenNumberLiteral).GetNumber();
+                Coord coord = new Coord(coordinate);
+                coord.valuef /= number;
+                coord.valuei = (int)Math.Round(coord.valuef);
+                return new TokenCoordinateLiteral(coord, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float number = (other as TokenNumberLiteral).GetNumber();
+                Coord coord = new Coord(coordinate);
+                coord.valuef %= number;
+                coord.valuei = (int)Math.Round(coord.valuef);
+                return new TokenCoordinateLiteral(coord, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
     }
     public class TokenIntegerLiteral : TokenCoordinateLiteral
     {
@@ -99,6 +286,86 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public static implicit operator int(TokenIntegerLiteral literal) => literal.number;
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            if(other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenIntegerLiteral(number + i, lineNumber);
+            } else if(other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                value += number;
+                return new TokenDecimalLiteral(value, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenIntegerLiteral(number - i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                value -= number;
+                return new TokenDecimalLiteral(value, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenIntegerLiteral(number * i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                value *= number;
+                return new TokenDecimalLiteral(value, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenIntegerLiteral(number / i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                value /= number;
+                return new TokenDecimalLiteral(value, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenIntegerLiteral(number % i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                value %= number;
+                return new TokenDecimalLiteral(value, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
     }
     public sealed class TokenDecimalLiteral : TokenCoordinateLiteral
     {
@@ -116,6 +383,57 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            if(other is TokenNumberLiteral)
+            {
+                float f = (other as TokenNumberLiteral).GetNumber();
+                return new TokenDecimalLiteral(number + f, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float f = (other as TokenNumberLiteral).GetNumber();
+                return new TokenDecimalLiteral(number - f, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float f = (other as TokenNumberLiteral).GetNumber();
+                return new TokenDecimalLiteral(number * f, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float f = (other as TokenNumberLiteral).GetNumber();
+                return new TokenDecimalLiteral(number / f, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral)
+            {
+                float f = (other as TokenNumberLiteral).GetNumber();
+                return new TokenDecimalLiteral(number % f, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
     }
 
     public sealed class TokenSelectorLiteral : TokenLiteral
@@ -140,5 +458,25 @@ namespace mc_compiled.MCC.Compiler
         public static implicit operator Selector(TokenSelectorLiteral t) => t.selector;
         public static implicit operator Selector.Core(TokenSelectorLiteral t) => t.selector.core;
 
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -231,7 +231,7 @@ namespace mc_compiled.MCC.Compiler
             string output = caller.ReplacePPV(valueName);
 
             if (!caller.values.TryGetValue(output, out LegacyValue value))
-                throw new TokenException(this, $"No value exists with the name \"{output}\"");
+                throw new LegacyTokenException(this, $"No value exists with the name \"{output}\"");
 
             string[] scores = value.GetScoreboards(caller.values);
             foreach (string score in scores)
@@ -332,13 +332,13 @@ namespace mc_compiled.MCC.Compiler
             string[] parts = text.Split(' ');
 
             if (parts.Length < 1)
-                throw new TokenException(this, "Not enough arguments specified.");
+                throw new LegacyTokenException(this, "Not enough arguments specified.");
 
             if(parts[0].ToUpper().Equals("DISPLAY"))
             {
                 isDisplay = true;
                 if(parts.Length < 2)
-                    throw new TokenException(this, "Not enough arguments specified for display statement.");
+                    throw new LegacyTokenException(this, "Not enough arguments specified for display statement.");
                 string _displayMode = parts[1];
                 displayMode = ParseDisplayMode(_displayMode);
 
@@ -353,7 +353,7 @@ namespace mc_compiled.MCC.Compiler
                 isDisplay = false;
 
                 if (parts.Length < 3)
-                    throw new TokenException(this, "Not enough arguments specified for value statement.");
+                    throw new LegacyTokenException(this, "Not enough arguments specified for value statement.");
 
                 valueName = parts[0];
                 string operationString = parts[1].ToUpper();
@@ -398,7 +398,7 @@ namespace mc_compiled.MCC.Compiler
                         operation = LegacyValueOperation.SET;
                         break;
                     default:
-                        throw new TokenException(this, $"Invalid value operation {operationString}");
+                        throw new LegacyTokenException(this, $"Invalid value operation {operationString}");
                 }
 
                 if (Tokenizer.guessedPPValues.Contains(bString.TrimStart('$')))
@@ -447,9 +447,9 @@ namespace mc_compiled.MCC.Compiler
             string selector = '@' + caller.selection.ToString();
 
             if (!caller.values.HasValue(_sourceValue))
-                throw new TokenException(this, $"No value exists with the name \"{_sourceValue}\"");
+                throw new LegacyTokenException(this, $"No value exists with the name \"{_sourceValue}\"");
             if (secondValue != null && !caller.values.HasValue(secondValue) && !bIsPPV)
-                throw new TokenException(this, $"No value exists with the name \"{secondValue}\"");
+                throw new LegacyTokenException(this, $"No value exists with the name \"{secondValue}\"");
 
             LegacyValue sourceValue = caller.values[_sourceValue];
 
@@ -864,7 +864,7 @@ namespace mc_compiled.MCC.Compiler
             if (current.type == Type.VALUE)
                 removed--;
             if (args.Length - removed < minArgCount)
-                throw new TokenException(this, $"Too few arguments for if statement type {current.type}");
+                throw new LegacyTokenException(this, $"Too few arguments for if statement type {current.type}");
 
             int sel = 0;
             current.args = new string[args.Length - removed];
@@ -1031,7 +1031,7 @@ namespace mc_compiled.MCC.Compiler
             string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
-                throw new TokenException(this, "Give statement needs an item to give.");
+                throw new LegacyTokenException(this, "Give statement needs an item to give.");
 
             item = args[0];
 
@@ -1054,19 +1054,19 @@ namespace mc_compiled.MCC.Compiler
                 else if(str.Equals("CANPLACEON"))
                 {
                     if (i + 1 >= args.Length)
-                        throw new TokenException(this, "No block specified for CanPlaceOn.");
+                        throw new LegacyTokenException(this, "No block specified for CanPlaceOn.");
                     string block = args[++i];
                     canPlaceOn.Add(block);
                 } else if (str.Equals("CANDESTROY"))
                 {
                     if (i + 1 >= args.Length)
-                        throw new TokenException(this, "No block specified for CanDestroy.");
+                        throw new LegacyTokenException(this, "No block specified for CanDestroy.");
                     string block = args[++i];
                     canDestroy.Add(block);
                 } else if (str.Equals("ENCHANT"))
                 {
                     if (i + 2 >= args.Length)
-                        throw new TokenException(this, "Enchant modifier needs type and level.");
+                        throw new LegacyTokenException(this, "Enchant modifier needs type and level.");
 
                     string enchantment = args[++i];
                     string level = args[++i];
@@ -1077,7 +1077,7 @@ namespace mc_compiled.MCC.Compiler
                 } else if (str.Equals("NAME"))
                 {
                     if (i + 1 >= args.Length)
-                        throw new TokenException(this, "No name specified for Item Name.");
+                        throw new LegacyTokenException(this, "No name specified for Item Name.");
                     displayName = args[++i];
                     useStructure = true;
                 }
@@ -1168,7 +1168,7 @@ namespace mc_compiled.MCC.Compiler
             type = LEGACYTOKENTYPE.TP;
 
             if(string.IsNullOrWhiteSpace(text))
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             string[] args = text.Split(' ');
 
@@ -1179,7 +1179,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             if (args.Length < 3)
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             x = args[0];
             y = args[1];
@@ -1230,9 +1230,9 @@ namespace mc_compiled.MCC.Compiler
                 } catch(Exception)
                 {
                     if(hasRotation)
-                        throw new TokenException(this, $"Couldn't parse XYZR position/rotation ({_x}, {_y}, {_z}) ({_xRot}, {_yRot})");
+                        throw new LegacyTokenException(this, $"Couldn't parse XYZR position/rotation ({_x}, {_y}, {_z}) ({_xRot}, {_yRot})");
                     else
-                        throw new TokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
+                        throw new LegacyTokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
                 }
             }
             else
@@ -1277,10 +1277,10 @@ namespace mc_compiled.MCC.Compiler
             string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
-                throw new TokenException(this, "\"KICK\" statement needs an Player to Kick.");
+                throw new LegacyTokenException(this, "\"KICK\" statement needs an Player to Kick.");
 
             else if (args.Length < 2)
-                throw new TokenException(this, "\"KICK\" statement needs an Kick Reason.");
+                throw new LegacyTokenException(this, "\"KICK\" statement needs an Kick Reason.");
 
             player = args[0];
             reason = args[1];
@@ -1310,10 +1310,10 @@ namespace mc_compiled.MCC.Compiler
             string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
-                throw new TokenException(this, "\"GAMEMODE\" statement needs an Player to Gamemode.");
+                throw new LegacyTokenException(this, "\"GAMEMODE\" statement needs an Player to Gamemode.");
 
             else if (args.Length < 2)
-                throw new TokenException(this, "\"GAMEMODE\" statement needs an Gamemode ID.");
+                throw new LegacyTokenException(this, "\"GAMEMODE\" statement needs an Gamemode ID.");
 
             player = args[0];
             gamemode = args[1];
@@ -1341,10 +1341,10 @@ namespace mc_compiled.MCC.Compiler
             string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
-                throw new TokenException(this, "\"TIME\" statement needs a Mode.");
+                throw new LegacyTokenException(this, "\"TIME\" statement needs a Mode.");
 
             else if (args.Length < 2)
-                throw new TokenException(this, "\"TIME\" statement needs a Time.");
+                throw new LegacyTokenException(this, "\"TIME\" statement needs a Time.");
 
             uvar1 = args[0];
             uvar2 = args[1];
@@ -1371,7 +1371,7 @@ namespace mc_compiled.MCC.Compiler
             string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
-                throw new TokenException(this, "\"DIFFICULTY\" statement needs an Difficulty.");
+                throw new LegacyTokenException(this, "\"DIFFICULTY\" statement needs an Difficulty.");
 
             difficulty = args[0];
             this.text = text;
@@ -1397,7 +1397,7 @@ namespace mc_compiled.MCC.Compiler
             string[] args = Tokenizer.GetArguments(text);
 
             if (args.Length < 1)
-                throw new TokenException(this, "\"WEATHER\" statement needs an Weather.");
+                throw new LegacyTokenException(this, "\"WEATHER\" statement needs an Weather.");
 
             weather = args[0];
             this.text = text;
@@ -1461,12 +1461,12 @@ namespace mc_compiled.MCC.Compiler
             type = LEGACYTOKENTYPE.MOVE;
 
             if (string.IsNullOrWhiteSpace(text))
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             string[] args = text.Split(' ');
 
             if (args.Length < 2)
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             direction = args[0];
             amount = args[1];
@@ -1482,7 +1482,7 @@ namespace mc_compiled.MCC.Compiler
             MoveDirection d = ParseDirection(inputDirection);
 
             if (d == MoveDirection.NONE)
-                throw new TokenException(this, "Invalid move direction.");
+                throw new LegacyTokenException(this, "Invalid move direction.");
 
             string amountString;
             string selector = "@" + caller.SelectionReference;
@@ -1491,7 +1491,7 @@ namespace mc_compiled.MCC.Compiler
             else if (float.TryParse(inputAmount, out float f))
                 amountString = f.ToString();
             else
-                throw new TokenException(this, $"Invalid move amount \"{inputAmount}\"");
+                throw new LegacyTokenException(this, $"Invalid move amount \"{inputAmount}\"");
 
             switch (d)
             {
@@ -1535,7 +1535,7 @@ namespace mc_compiled.MCC.Compiler
             type = LEGACYTOKENTYPE.FACE;
 
             if (string.IsNullOrWhiteSpace(text))
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             string[] args = text.Split(' ');
 
@@ -1547,7 +1547,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             if (args.Length < 3)
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             x = args[0];
             y = args[1];
@@ -1579,7 +1579,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 catch (Exception)
                 {
-                    throw new TokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
+                    throw new LegacyTokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
                 }
             }
             else
@@ -1607,7 +1607,7 @@ namespace mc_compiled.MCC.Compiler
             string[] args = text.Split(' ');
 
             if (args.Length < 4)
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             block = args[0]; 
             x = args[1];
@@ -1652,7 +1652,7 @@ namespace mc_compiled.MCC.Compiler
             }
             catch (Exception)
             {
-                throw new TokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
+                throw new LegacyTokenException(this, $"Couldn't parse XYZ position ({_x}, {_y}, {_z})");
             }
             return;
         }
@@ -1717,7 +1717,7 @@ namespace mc_compiled.MCC.Compiler
             string[] args = text.Split(' ');
 
             if (args.Length < 7)
-                throw new TokenException(this, "Insufficient arguments.");
+                throw new LegacyTokenException(this, "Insufficient arguments.");
 
             block = args[0];
             x1 = args[1];
@@ -1773,7 +1773,7 @@ namespace mc_compiled.MCC.Compiler
             }
             catch (Exception)
             {
-                throw new TokenException(this, $"Couldn't parse positions [({_x1}, {_y1}, {_z1}), ({_x2}, {_y2}, {_z2})]");
+                throw new LegacyTokenException(this, $"Couldn't parse positions [({_x1}, {_y1}, {_z1}), ({_x2}, {_y2}, {_z2})]");
             }
             return;
         }

@@ -128,7 +128,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             } else
             {
-                throw new TokenException(this, $"Variable {varName} doesn't exist.");
+                throw new LegacyTokenException(this, $"Variable {varName} doesn't exist.");
             }
         }
         public override string ToString()
@@ -156,7 +156,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                throw new TokenException(this, $"Variable {varName} doesn't exist.");
+                throw new LegacyTokenException(this, $"Variable {varName} doesn't exist.");
             }
         }
         public override string ToString()
@@ -200,7 +200,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                throw new TokenException(this, $"Variable {varName} doesn't exist.");
+                throw new LegacyTokenException(this, $"Variable {varName} doesn't exist.");
             }
         }
         public override string ToString()
@@ -246,7 +246,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                throw new TokenException(this, $"Variable {varName} doesn't exist.");
+                throw new LegacyTokenException(this, $"Variable {varName} doesn't exist.");
             }
         }
         public override string ToString()
@@ -292,7 +292,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                throw new TokenException(this, $"Variable {varName} doesn't exist.");
+                throw new LegacyTokenException(this, $"Variable {varName} doesn't exist.");
             }
         }
         public override string ToString()
@@ -338,7 +338,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                throw new TokenException(this, $"Variable {varName} doesn't exist.");
+                throw new LegacyTokenException(this, $"Variable {varName} doesn't exist.");
             }
         }
         public override string ToString()
@@ -385,7 +385,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                throw new TokenException(this, $"Variable {varName} doesn't exist.");
+                throw new LegacyTokenException(this, $"Variable {varName} doesn't exist.");
             }
         }
         public override string ToString()
@@ -408,14 +408,14 @@ namespace mc_compiled.MCC.Compiler
             string[] parts = expression.Split(' ');
 
             if(parts.Length < 3)
-                throw new TokenException(this, "Incomplete PPIF statement.");
+                throw new LegacyTokenException(this, "Incomplete PPIF statement.");
 
             constantA = LegacyDynamic.Parse(parts[0]);
             comparison = Operator.Parse(parts[1]);
             constantB = LegacyDynamic.Parse(parts[2]);
 
             if(comparison == null)
-                throw new TokenException(this, $"Invalid comparison operator \"{parts[1]}\"");
+                throw new LegacyTokenException(this, $"Invalid comparison operator \"{parts[1]}\"");
         }
         public override void Execute(LegacyExecutor caller, LegacyTokenFeeder tokens)
         {
@@ -448,12 +448,12 @@ namespace mc_compiled.MCC.Compiler
                     tokens.Next();
                     potential = tokens.Peek();
                     if (potential == null || !(potential is LegacyTokenBlock))
-                        throw new TokenException(this, "No block after PPELSE statement.");
+                        throw new LegacyTokenException(this, "No block after PPELSE statement.");
                     LegacyTokenBlock elseBlock = tokens.Next() as LegacyTokenBlock;
                     elseBlock.Execute(caller, null);
                 }
 
-            } else throw new TokenException(this, "No block after PPIF statement.");
+            } else throw new LegacyTokenException(this, "No block after PPIF statement.");
         }
         public override string ToString()
         {
@@ -494,11 +494,11 @@ namespace mc_compiled.MCC.Compiler
             if (caller.TryGetPPV(amount, out LegacyDynamic value))
             {
                 if (value.type == LegacyDynamic.Type.STRING)
-                    throw new TokenException(this, $"PPREP value cannot be a string. It must be a whole number. Variable \"{amount}\" with value {value.data.s}");
+                    throw new LegacyTokenException(this, $"PPREP value cannot be a string. It must be a whole number. Variable \"{amount}\" with value {value.data.s}");
                 count = (int)value.data.i;
             }
             else if (!int.TryParse(amount, out count))
-                throw new TokenException(this, $"PPREP input couldn't be parsed. \"{amount}\"");
+                throw new LegacyTokenException(this, $"PPREP input couldn't be parsed. \"{amount}\"");
 
             LegacyToken potentialBlock = tokens.Peek();
             if(potentialBlock != null && potentialBlock is LegacyTokenBlock)
@@ -506,7 +506,7 @@ namespace mc_compiled.MCC.Compiler
                 LegacyTokenBlock block = tokens.Next() as LegacyTokenBlock;
                 for (int r = 0; r < count; r++)
                     block.Execute(caller, null);
-            } else throw new TokenException(this, "No block after PPREP statement.");
+            } else throw new LegacyTokenException(this, "No block after PPREP statement.");
             return;
         }
         public override string ToString()
@@ -573,9 +573,9 @@ namespace mc_compiled.MCC.Compiler
             LegacyFunctionDefinition definition = LegacyFunctionDefinition.Parse(temp);
 
             if (!(tokens.Peek() is LegacyTokenBlock))
-                throw new TokenException(this, "Function definition doesn't have a block after it.");
+                throw new LegacyTokenException(this, "Function definition doesn't have a block after it.");
             if(caller.functionsDefined.Any(f => f.name.Equals(definition.name)))
-                throw new TokenException(this, $"Function \"{definition.name}\" is already defined.");
+                throw new LegacyTokenException(this, $"Function \"{definition.name}\" is already defined.");
 
             caller.functionsDefined.Add(definition);
 
@@ -602,7 +602,7 @@ namespace mc_compiled.MCC.Compiler
 
             int space = signature.IndexOf(' ');
             if (space == -1)
-                throw new TokenException(this, "No function specified to call.");
+                throw new LegacyTokenException(this, "No function specified to call.");
             name = signature.Substring(0, space);
             args = signature.Substring(space + 1).Split(' ');
         }
@@ -618,7 +618,7 @@ namespace mc_compiled.MCC.Compiler
             string callName = caller.ReplacePPV(name);
 
             if (!caller.functionsDefined.Any(df => df.name.Equals(callName)))
-                throw new TokenException(this, $"Function \"{callName}\" is not defined.");
+                throw new LegacyTokenException(this, $"Function \"{callName}\" is not defined.");
 
             LegacyFunctionDefinition function = caller.functionsDefined.First(df => df.name.Equals(callName));
 
@@ -643,7 +643,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     // This is a value instead.
                     if (!caller.values.TryGetValue(inputValue, out LegacyValue value))
-                        throw new TokenException(this, $"Value \"{inputValue}\" passed into function call doesn't exist.");
+                        throw new LegacyTokenException(this, $"Value \"{inputValue}\" passed into function call doesn't exist.");
                     foreach (string line in LegacyValueManager.ExpressionSetValue
                         (new LegacyValue(sourceValue, inputConstant), value, selector))
                     {
@@ -718,7 +718,7 @@ namespace mc_compiled.MCC.Compiler
             if(caller.macros.TryGetValue(name.Trim().ToUpper(), out LegacyMacro find))
             {
                 if (args.Length < find.args.Length)
-                    throw new TokenException(this, $"Not enough arguments specified for macro {name}. " +
+                    throw new LegacyTokenException(this, $"Not enough arguments specified for macro {name}. " +
                         $"Needs {find.args.Length} but got {args.Length}");
 
                 // Save previous definitions from being overwritten in a macro.
@@ -743,7 +743,7 @@ namespace mc_compiled.MCC.Compiler
 
                 int hash = find.name.GetHashCode();
                 if (caller.currentMacroHash == hash)
-                    throw new TokenException(this, "Macro cannot be recursively called.");
+                    throw new LegacyTokenException(this, "Macro cannot be recursively called.");
 
                 int previousHash = caller.currentMacroHash;
                 caller.currentMacroHash = hash;
@@ -754,7 +754,7 @@ namespace mc_compiled.MCC.Compiler
                 foreach(var entry in existedBefore)
                     caller.ppv[entry.Key] = entry.Value;
 
-            } else throw new TokenException(this,
+            } else throw new LegacyTokenException(this,
                 $"No macro named \"{name}\". Make sure it's defined above this line rather than below.");
         }
         public override string ToString()
@@ -808,7 +808,7 @@ namespace mc_compiled.MCC.Compiler
             if(caller.TryGetPPV(variable, out LegacyDynamic value))
             {
                 if (value.type != LegacyDynamic.Type.STRING)
-                    throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
+                    throw new LegacyTokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
                 string str = value.data.s;
                 string[] parts = str.Split('_', '-', ' ');
                 for(int i = 0; i < parts.Length; i++)
@@ -822,7 +822,7 @@ namespace mc_compiled.MCC.Compiler
                 caller.ppv[variable] = value;
             }
             else
-                throw new TokenException(this, $"Variable \"{variable}\" has not been defined.");
+                throw new LegacyTokenException(this, $"Variable \"{variable}\" has not been defined.");
         }
         public override string ToString()
         {
@@ -845,13 +845,13 @@ namespace mc_compiled.MCC.Compiler
             if (caller.TryGetPPV(variable, out LegacyDynamic value))
             {
                 if (value.type != LegacyDynamic.Type.STRING)
-                    throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
+                    throw new LegacyTokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
                 string str = value.data.s;
                 value.data.s = str.ToUpper();
                 caller.ppv[variable] = value;
             }
             else
-                throw new TokenException(this, $"Variable \"{variable}\" has not been defined.");
+                throw new LegacyTokenException(this, $"Variable \"{variable}\" has not been defined.");
         }
         public override string ToString()
         {
@@ -874,13 +874,13 @@ namespace mc_compiled.MCC.Compiler
             if (caller.TryGetPPV(variable, out LegacyDynamic value))
             {
                 if (value.type != LegacyDynamic.Type.STRING)
-                    throw new TokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
+                    throw new LegacyTokenException(this, $"Variable \"{variable}\" was not a string so it can't be converted. (IS {value.type})");
                 string str = value.data.s;
                 value.data.s = str.ToLower();
                 caller.ppv[variable] = value;
             }
             else
-                throw new TokenException(this, $"Variable \"{variable}\" has not been defined.");
+                throw new LegacyTokenException(this, $"Variable \"{variable}\" has not been defined.");
         }
         public override string ToString()
         {

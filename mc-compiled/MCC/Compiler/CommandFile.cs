@@ -15,18 +15,25 @@ namespace mc_compiled.MCC.Compiler
     {
         List<string> commands = new List<string>();
 
+        public readonly Function userFunction;
+        public bool IsUserFunction
+        {
+            get => userFunction != null;
+        } 
+
         public readonly string folder;
         public readonly string name;
-        public CommandFile(string name, string folder = null)
+        public CommandFile(string name, string folder = null, Function userFunction = null)
         {
             this.name = name;
             this.folder = folder;
+            this.userFunction = userFunction;
         }
         public override bool Equals(object obj)
         {
             return obj is CommandFile file &&
-                   folder == file.folder &&
-                   name == file.name;
+                folder == file.folder &&
+                name == file.name;
         }
         public override int GetHashCode()
         {

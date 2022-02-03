@@ -35,6 +35,14 @@ namespace mc_compiled.Commands
             this.isRelative = isRelative;
             this.isFacingOffset = isFacingOffset;
         }
+        public Coord(Coord other)
+        {
+            valuef = other.valuef;
+            valuei = other.valuei;
+            isFloat = other.isFloat;
+            isRelative = other.isRelative;
+            isFacingOffset = other.isFacingOffset;
+        }
 
         /// <summary>
         /// Parse this coordinate value. Returns null if not succeeded.
