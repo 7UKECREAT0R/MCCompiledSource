@@ -131,6 +131,9 @@ namespace mc_compiled.MCC.Compiler
             this.@struct = @struct;
         }
     }
+    /// <summary>
+    /// Represents a reference to a user-defined macro.
+    /// </summary>
     public sealed class TokenIdentifierMacro : TokenIdentifier
     {
         /// <summary>
@@ -143,6 +146,9 @@ namespace mc_compiled.MCC.Compiler
             this.macro = macro;
         }
     }
+    /// <summary>
+    /// Represents a reference to a function.
+    /// </summary>
     public sealed class TokenIdentifierFunction : TokenIdentifier
     {
         /// <summary>

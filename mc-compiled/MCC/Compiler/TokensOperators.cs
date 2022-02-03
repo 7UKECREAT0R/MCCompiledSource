@@ -45,17 +45,25 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents an arithmatic operator token.
     /// </summary>
-    public class TokenArithmatic : TokenOperator
+    public abstract class TokenArithmatic : TokenOperator
     {
+        public enum Type
+        {
+            ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO, SWAP
+        }
+
         public override string AsString() => "<? arithmatic>";
         public TokenArithmatic(int lineNumber) : base(lineNumber) { }
+
+        public abstract Type GetArithmaticType();
     }
-    public class TokenArithmaticFirst : TokenArithmatic
+    public abstract class TokenArithmaticFirst : TokenArithmatic
     {
         public override string AsString() => "<? */%>";
         public TokenArithmaticFirst(int lineNumber) : base(lineNumber) { }
+
     }
-    public class TokenArithmaticSecond : TokenArithmatic
+    public abstract class TokenArithmaticSecond : TokenArithmatic
     {
         public override string AsString() => "<? +->";
         public TokenArithmaticSecond(int lineNumber) : base(lineNumber) { }
@@ -129,56 +137,78 @@ namespace mc_compiled.MCC.Compiler
     {
         public override string AsString() => "+";
         public TokenAdd(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.ADD;
     }
     public sealed class TokenSubtract : TokenArithmaticSecond
     {
         public override string AsString() => "-";
         public TokenSubtract(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.SUBTRACT;
     }
     public sealed class TokenMultiply : TokenArithmaticFirst
     {
         public override string AsString() => "*";
         public TokenMultiply(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.MULTIPLY;
     }
     public sealed class TokenDivide : TokenArithmaticFirst
     {
         public override string AsString() => "/";
         public TokenDivide(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.DIVIDE;
     }
     public sealed class TokenModulo : TokenArithmaticFirst
     {
         public override string AsString() => "%";
         public TokenModulo(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.MODULO;
     }
     public sealed class TokenAddAssignment : TokenArithmaticSecond, IAssignment
     {
         public override string AsString() => "+=";
         public TokenAddAssignment(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.ADD;
     }
     public sealed class TokenSubtractAssignment : TokenArithmaticSecond, IAssignment
     {
         public override string AsString() => "-=";
         public TokenSubtractAssignment(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.SUBTRACT;
     }
     public sealed class TokenMultiplyAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "*=";
         public TokenMultiplyAssignment(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.MULTIPLY;
     }
     public sealed class TokenDivideAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "/=";
         public TokenDivideAssignment(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.DIVIDE;
     }
     public sealed class TokenModuloAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "%=";
         public TokenModuloAssignment(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.MODULO;
     }
     public sealed class TokenSwapAssignment : TokenArithmaticFirst, IAssignment
     {
         public override string AsString() => "><";
         public TokenSwapAssignment(int lineNumber) : base(lineNumber) { }
+
+        public override Type GetArithmaticType() => Type.SWAP;
     }
 
     public sealed class TokenEquality : TokenCompare

@@ -143,7 +143,6 @@ namespace mc_compiled.MCC.Compiler
             List<Token> tokens = new List<Token>(allResolved);
 
 
-
             statement.tokens = tokens.ToArray();
             return statement;
         }
@@ -154,6 +153,9 @@ namespace mc_compiled.MCC.Compiler
                 Token selected = tokens[i];
                 if (!(selected is T))
                     continue;
+
+                // this can be assumed due to how squash is meant to be called
+                TokenArithmatic arithmatic = selected as TokenArithmatic;
 
                 Token _left = tokens[i - 1];
                 Token _right = tokens[i + 1];
@@ -167,7 +169,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     TokenLiteral left = _left as TokenLiteral;
                     TokenLiteral right = _right as TokenLiteral;
-
+                    
                 }
                 else if(leftIsValue & rightIsValue)
                 {
