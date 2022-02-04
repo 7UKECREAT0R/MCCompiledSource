@@ -117,6 +117,28 @@ namespace mc_compiled.MCC
         /// <param name="prefix"></param>
         public abstract JSONRawTerm[] ToRawText(string accessor, string selector, int index, string prefix = "");
 
+        public string[] CommandsFromOperation(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor, TokenArithmatic.Type type)
+        {
+            switch (type)
+            {
+                case TokenArithmatic.Type.ADD:
+                    return CommandsAdd(selector, other, thisAccessor, thatAccessor);
+                case TokenArithmatic.Type.SUBTRACT:
+                    return CommandsSub(selector, other, thisAccessor, thatAccessor);
+                case TokenArithmatic.Type.MULTIPLY:
+                    return CommandsMul(selector, other, thisAccessor, thatAccessor);
+                case TokenArithmatic.Type.DIVIDE:
+                    return CommandsDiv(selector, other, thisAccessor, thatAccessor);
+                case TokenArithmatic.Type.MODULO:
+                    return CommandsMod(selector, other, thisAccessor, thatAccessor);
+                case TokenArithmatic.Type.SWAP:
+                    return CommandsSwap(selector, other, thisAccessor, thatAccessor);
+                default:
+                    break;
+            }
+            return null;
+        }
+
         /// <summary>
         /// this = other
         /// </summary>

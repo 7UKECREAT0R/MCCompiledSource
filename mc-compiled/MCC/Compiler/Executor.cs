@@ -183,7 +183,7 @@ namespace mc_compiled.MCC.Compiler
             while(HasNext)
             {
                 Statement unresolved = Next();
-                Statement statement = unresolved.CloneResolve(this);
+                Statement statement = unresolved.ClonePrepare(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
             }
@@ -202,7 +202,7 @@ namespace mc_compiled.MCC.Compiler
             while (HasNext)
             {
                 Statement unresolved = Next();
-                Statement statement = unresolved.CloneResolve(this);
+                Statement statement = unresolved.ClonePrepare(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
             }

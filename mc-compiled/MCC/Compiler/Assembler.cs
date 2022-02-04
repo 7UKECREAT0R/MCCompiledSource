@@ -42,9 +42,9 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // parse the collected lines into a set of statements
-            for(i = 0; i < lines.Count; i++)
+            foreach(List<Token> line in lines)
             {
-                List<Token> fullLine = lines[i];
+                Token firstToken = line[0];
 
             }
 

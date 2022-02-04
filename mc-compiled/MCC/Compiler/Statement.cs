@@ -106,7 +106,7 @@ namespace mc_compiled.MCC.Compiler
         /// <br />This function pushes the Scoreboard temp state once.
         /// </summary>
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
-        public Statement CloneResolve(Executor executor)
+        public Statement ClonePrepare(Executor executor)
         {
             Statement statement = MemberwiseClone() as Statement;
             int length = statement.tokens.Length;
@@ -322,7 +322,13 @@ namespace mc_compiled.MCC.Compiler
         }
         public void SquashFunctions(ref List<Token> tokens, Executor executor)
         {
-            for(int i = 0; i < (tokens.Count() - 2); i++)
+            int startAt = 0;
+
+            // ignore first function call since thats part of the statement
+            if (this is StatementFunctionCall)
+                startAt = 2;
+
+            for(int i = startAt; i < (tokens.Count() - 2); i++)
             {
                 Token selected = tokens[i];
                 Token second = tokens[i + 1];
@@ -337,17 +343,25 @@ namespace mc_compiled.MCC.Compiler
                 TokenIdentifierFunction func = selected as TokenIdentifierFunction;
                 Function function = func.function;
 
+                // if its not parameterless() then fetch until level <= 0
                 List<Token> passIn = new List<Token>();
                 if (!(third is TokenCloseParenthesis))
                 {
+                    int level = 1;
                     while (o < tokens.Count)
                     {
                         Token check = tokens[o];
                         if (check is TokenCloseParenthesis)
                         {
-                            o++;
-                            break;
+                            level--; o++;
+                            if (level <= 0)
+                                break;
+                            passIn.Add(check);
+                            continue;
                         }
+                        else if (check is TokenOpenParenthesis)
+                            level++;
+
                         o++;
                         passIn.Add(check);
                     }
@@ -370,7 +384,7 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Insert(i, new TokenIdentifierValue(clone.baseName, clone, selected.lineNumber));
 
                 // gets incremented;
-                i = -1;
+                i = startAt - 1;
             }
         }
         public object Clone()

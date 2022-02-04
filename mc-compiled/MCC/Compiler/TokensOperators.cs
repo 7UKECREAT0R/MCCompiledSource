@@ -91,7 +91,7 @@ namespace mc_compiled.MCC.Compiler
     }
 
     /// <summary>
-    /// Used to indicate a math operator is also compounded with an assignment e.g. += -= *= or /=
+    /// Used to indicate that this operator assigns the identifier to the left of it.
     /// </summary>
     public interface IAssignment { }
     /// <summary>

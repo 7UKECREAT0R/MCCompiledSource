@@ -105,57 +105,94 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementOperation : Statement
     {
-        bool isResolved;
-
-        TokenIdentifier aUnresovled;
-        TokenIdentifierValue a = null;
-
-        IAssignment assignmentOperator;
-
-        Token[] tokensUnresolved;
-
-        public StatementOperation(TokenIdentifier a, IAssignment assignment, Token[] tokens) : base(null)
-        {
-            isResolved = false;
-            aUnresovled = a;
-            assignmentOperator = assignment;
-            tokensUnresolved = tokens;
-        }
-        /// <summary>
-        /// Resolve all scoreboard and function identifiers.
-        /// </summary>
-        /// <param name="executor"></param>
-        public void ResolveAll(Executor executor)
-        {
-            int length = tokensUnresolved.Length;
-            tokens = new Token[length];
-
-            for(int i = 0; i < length; i++)
-            {
-                Token token = tokensUnresolved[i];
-                tokens[i] = token;
-                if (!(token is TokenIdentifier))
-                    continue;
-                if (token is TokenIdentifierValue)
-                    continue;
-
-                string accessor = (token as TokenIdentifier).word;
-                if(executor.scoreboard.TryGetByAccessor(accessor, out ScoreboardValue output)) {
-                    tokens[i] = new TokenIdentifierValue(accessor, output, token.lineNumber);
-                    continue;
-                }
-            }
-        }
+        public StatementOperation(Token[] tokens) : base(tokens) {}
 
         protected override TypePattern[] GetValidPatterns()
         {
             return new[] {
-                new TypePattern(typeof(TokenIdentifier))
+                new TypePattern(typeof(TokenIdentifierValue), typeof(IAssignment))
             };
         }
         protected override void Run(Executor executor)
         {
-            throw new NotImplementedException();
+            string selector = executor.ActiveSelectorStr;
+            TokenIdentifierValue value = Next<TokenIdentifierValue>();
+            IAssignment assignment = Next<IAssignment>();
+
+            if (!HasNext)
+                throw new StatementException(this, "Nothing on right-hand side of assignment.");
+
+            if (NextIs<TokenIdentifierValue>())
+            {
+                TokenIdentifierValue next = Next<TokenIdentifierValue>();
+                if (assignment is TokenArithmatic)
+                {
+                    TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
+                    executor.AddCommands(value.value.CommandsFromOperation
+                        (selector, next.value, value.Accessor, next.Accessor, op));
+                } else
+                    executor.AddCommands(value.value.CommandsSet
+                        (selector, next.value, value.Accessor, next.Accessor));
+            }
+            else if (NextIs<TokenLiteral>())
+            {
+                TokenLiteral next = Next<TokenLiteral>();
+                if (assignment is TokenArithmatic)
+                {
+                    ScoreboardValue temp = executor.scoreboard.RequestTemp(next, this);
+                    TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
+                    executor.AddCommands(value.value.CommandsFromOperation
+                        (selector, temp, value.Accessor, temp.baseName, op));
+                    executor.scoreboard.ReleaseTemp();
+                }
+                else
+                    executor.AddCommands(value.value.CommandsSetLiteral
+                        (value.Accessor, selector, next));
+            }
+            else
+                throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType()}\"");
+        }
+    }
+    /// <summary>
+    /// Statement that calls a function without using its return value.
+    /// </summary>
+    public sealed class StatementFunctionCall : Statement
+    {
+        public StatementFunctionCall(Token[] tokens) : base(tokens) { }
+
+        protected override TypePattern[] GetValidPatterns()
+        {
+            return new[] {
+                new TypePattern(typeof(TokenIdentifierFunction), typeof(TokenOpenParenthesis))
+            };
+        }
+        protected override void Run(Executor executor)
+        {
+            string selector = executor.ActiveSelectorStr;
+            TokenIdentifierFunction value = Next<TokenIdentifierFunction>();
+
+            if (NextIs<TokenOpenParenthesis>())
+                Next();
+
+            List<Token> passIn = new List<Token>();
+            int level = 1;
+            while(HasNext)
+            {
+                Token nextToken = Next();
+
+                if(nextToken is TokenCloseParenthesis)
+                {
+                    level--;
+                    if (level < 1)
+                        break;
+                }
+                if (nextToken is TokenOpenParenthesis)
+                {
+                    level++;
+                }
+
+                passIn.Add(nextToken);
+            }
         }
     }
 }
