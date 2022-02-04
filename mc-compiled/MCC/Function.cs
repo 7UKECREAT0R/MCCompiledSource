@@ -17,6 +17,7 @@ namespace mc_compiled.MCC
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
 
+        public ScoreboardValue returnValue;
         public readonly string name;
 
         public Function(string name, bool fromCompiler = false)
@@ -36,12 +37,51 @@ namespace mc_compiled.MCC
             inputs.AddRange(parameters);
             return this;
         }
+        /// <summary>
+        /// Add commands and setup scoreboard to return a value.
+        /// </summary>
+        /// <param name="caller"></param>
+        /// <param name="value"></param>
+        /// <returns>A new scoreboard value that holds the return</returns>
+        public void TryReturnValue(Statement caller, ScoreboardValue value)
+        {
+            if (returnValue != null)
+            {
+                Type type = returnValue.GetType();
+
+                // check if types match
+                if (!type.Equals(value))
+                    throw new StatementException(caller, $"All return statements in this function must return the same type. Required: {GetType()}");
+
+                return;
+            }
+
+            //   only run this code once for this function, that
+            // will sort of 'define' what the return type should be
+            ScoreboardValue clone = ScoreboardValue.GetReturnValue(value);
+            foreach(string name in clone.GetAccessibleNames())
+            {
+                ScoreboardManager sb = value.manager;
+                if(!sb.definedTempVars.Contains(name))
+                {
+                    sb.definedTempVars.Add(name);
+                    AddCommandsTop(clone.CommandsInit());
+                    AddCommandsTop(clone.CommandsDefine());
+                }
+            }
+
+            returnValue = clone;
+        }
 
         public CommandFile File
         {
             get => file;
         }
-        public string[] CallFunction(string selector, params Token[] inputs)
+        public int ParameterCount
+        {
+            get => inputs.Count;
+        }
+        public string[] CallFunction(string selector, Statement caller, params Token[] inputs)
         {
             List<string> commands = new List<string>();
 
@@ -63,6 +103,8 @@ namespace mc_compiled.MCC
                     string thisAccessor = (input as TokenIdentifierValue).word;
                     commands.AddRange(output.CommandsSet(selector, src, thisAccessor, accessor));
                 }
+                else
+                    throw new StatementException(caller, $"Unexcpected parameter type for input {output.baseName}. Got: {input.GetType()}");
             }
 
             commands.Add(Command.Function(this.file));
@@ -74,9 +116,9 @@ namespace mc_compiled.MCC
             file.Add(command);
         public void AddCommandTop(string command) =>
             file.AddTop(command);
-        public void AddCommand(IEnumerable<string> command) =>
+        public void AddCommands(IEnumerable<string> command) =>
             file.Add(command);
-        public void AddCommandTop(IEnumerable<string> command) =>
+        public void AddCommandsTop(IEnumerable<string> command) =>
             file.AddTop(command);
 
         /// <summary>
@@ -88,6 +130,11 @@ namespace mc_compiled.MCC
         {
             return name.ToUpper().Trim().Equals
                 (otherName.ToUpper().Trim());
+        }
+
+        public override string ToString()
+        {
+            return $"{name}({string.Join(" ", inputs.Select(i => i.baseName))})";
         }
     }
 }

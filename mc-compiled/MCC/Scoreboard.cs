@@ -18,7 +18,7 @@ namespace mc_compiled.MCC
         public const string RETURN_NAME = "_mcc_retn";
         public const int MAX_NAME_LENGTH = 16;
         public string baseName;
-        protected readonly ScoreboardManager manager;
+        internal readonly ScoreboardManager manager;
 
         public ScoreboardValue(string baseName, ScoreboardManager manager)
         {

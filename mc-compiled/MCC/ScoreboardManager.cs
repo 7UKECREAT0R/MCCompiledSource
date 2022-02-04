@@ -17,7 +17,7 @@ namespace mc_compiled.MCC
         private Stack<int> tempStack;
 
         public readonly Executor executor;
-        readonly List<string> definedTempVars;
+        public readonly List<string> definedTempVars;
         readonly Dictionary<string, StructDefinition> structs;
         readonly List<ScoreboardValue> values;
 

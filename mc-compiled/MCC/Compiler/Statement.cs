@@ -145,14 +145,14 @@ namespace mc_compiled.MCC.Compiler
             List<Token> tokens = new List<Token>(allResolved);
             Squash<TokenArithmaticFirst>(ref tokens, executor);
             Squash<TokenArithmaticSecond>(ref tokens, executor);
-
+            SquashFunctions(ref tokens, executor);
 
             statement.tokens = tokens.ToArray();
             return statement;
         }
         public void Squash<T>(ref List<Token> tokens, Executor executor)
         {
-            for (int i = 1; i < tokens.Count() - 1; i++)
+            for (int i = 1; i < (tokens.Count() - 1); i++)
             {
                 Token selected = tokens[i];
                 if (!(selected is T))
@@ -316,15 +316,61 @@ namespace mc_compiled.MCC.Compiler
                 tokens.RemoveRange(i - 1, 3);
                 tokens.Insert(i - 1, squashedToken);
 
-                // its about to be incremented so compensate for that
-                i--;
+                // restart oop
+                i = 0;
             }
         }
         public void SquashFunctions(ref List<Token> tokens, Executor executor)
         {
-            for(int i = 0; i < tokens.Count; i++)
+            for(int i = 0; i < (tokens.Count() - 2); i++)
             {
+                Token selected = tokens[i];
+                Token second = tokens[i + 1];
+                Token third = tokens[i + 2];
 
+                if (!(selected is TokenIdentifierFunction))
+                    continue;
+                if (!(second is TokenOpenParenthesis))
+                    continue; // might just be regular identifier
+
+                int o = i + 2;
+                TokenIdentifierFunction func = selected as TokenIdentifierFunction;
+                Function function = func.function;
+
+                List<Token> passIn = new List<Token>();
+                if (!(third is TokenCloseParenthesis))
+                {
+                    while (o < tokens.Count)
+                    {
+                        Token check = tokens[o];
+                        if (check is TokenCloseParenthesis)
+                        {
+                            o++;
+                            break;
+                        }
+                        o++;
+                        passIn.Add(check);
+                    }
+                }
+
+                if (passIn.Count < function.ParameterCount)
+                    throw new StatementException(this, $"Missing parameters for function {function}");
+                if(function.returnValue == null)
+                    throw new StatementException(this, $"Cannot use function in statement since it doesn't return a value.");
+
+                // call function
+                string sel = executor.ActiveSelectorStr;
+                executor.AddCommandsClean(function.CallFunction(sel, this, passIn.ToArray()));
+                // store return value in temp
+                ScoreboardValue clone = executor.scoreboard.RequestTemp(function.returnValue);
+                executor.AddCommandsClean(clone.CommandsSet(sel, function.returnValue, null, null)); // ignore accessors
+
+                int len = o - i;
+                tokens.RemoveRange(i, len);
+                tokens.Insert(i, new TokenIdentifierValue(clone.baseName, clone, selected.lineNumber));
+
+                // gets incremented;
+                i = -1;
             }
         }
         public object Clone()
