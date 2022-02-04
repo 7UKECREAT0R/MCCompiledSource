@@ -441,6 +441,7 @@ namespace mc_compiled.MCC.Compiler
         public readonly bool simple;
         public readonly Selector selector;
 
+        public override string AsString() => selector.ToString();
         public TokenSelectorLiteral(Selector selector, int lineNumber) : base(lineNumber)
         {
             simple = false;

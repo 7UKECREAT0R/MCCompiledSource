@@ -134,7 +134,7 @@ namespace mc_compiled.MCC.Compiler
             Statement[] ret = new Statement[amount];
 
             int write = 0;
-            for(int i = readIndex; i < statements.Length; i++)
+            for (int i = readIndex; i < statements.Length && i < readIndex + amount; i++)
                 ret[write++] = statements[i];
 
             return ret;
@@ -169,6 +169,7 @@ namespace mc_compiled.MCC.Compiler
             currentFiles = new Stack<CommandFile>();
             filesToWrite = new List<IBehaviorFile>();
             prependBuffer = new StringBuilder();
+            scoreboard = new ScoreboardManager(this);
 
             selections.Push(Selector.Core.s);
             currentFiles.Push(new CommandFile(projectName));

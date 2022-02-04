@@ -6,6 +6,8 @@ using mc_compiled.Modding;
 using mc_compiled.NBT;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -93,66 +95,65 @@ namespace mc_compiled
             DEBUG = debug;
             OBFUSCATE = obf;
 
-            Token[] tokens;
             try
             {
-                tokens = Tokenizer.TokenizeFile(file);
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                Token[] tokens = Tokenizer.TokenizeFile(file);
+
+                if (DEBUG)
+                {
+                    Console.WriteLine("\tA detailed overview of the tokenization results follows:");
+                    Console.WriteLine(string.Join("", from t in tokens select t.DebugString()));
+                    Console.WriteLine();
+                    Console.WriteLine("\tReconstruction of the processed code through tokens:");
+                    Console.WriteLine(string.Join(" ", from t in tokens select t.AsString()));
+                    Console.WriteLine();
+                }
+
+                // shouldn't throw unless unintentional
+                Statement[] statements = Assembler.AssembleTokens(tokens);
+
+                if(DEBUG)
+                {
+                    Console.WriteLine("\tThe overview of assembled statements is as follows:");
+                    Console.WriteLine(string.Join("\n", from s in statements select s.ToString()));
+                    Console.WriteLine();
+                }
+
+                Executor executor = new Executor(statements, Path.GetFileNameWithoutExtension(file));
+                executor.Execute();
+
+                Console.WriteLine("Writing files...");
+                executor.WriteAllFiles();
+                stopwatch.Stop();
+
+                Console.WriteLine($"Completed in {stopwatch.Elapsed.TotalSeconds} seconds.");
+
+                if (DEBUG)
+                    Console.ReadLine();
+                else
+                    System.Threading.Thread.Sleep(3000);
             } catch(TokenizerException exc)
             {
                 int line = exc.line;
                 string message = exc.Message;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Problem encountered during tokenization of file:\n" +
-                    $"\tLINE {line}: {message}\n\nCompilation cannot be continued.");
+                    $"\tLINE {line}: {message}\n\nTokenization cannot be continued.");
+                Console.ReadLine();
+                return;
+            } catch(StatementException exc)
+            {
+                Statement thrower = exc.statement;
+                string message = exc.Message;
+                int line = thrower.Line;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("An error has occurred during compilation:\n" +
+                    $"\tLN{line} {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
                 Console.ReadLine();
                 return;
             }
-
-            if (DEBUG)
-            {
-                Console.WriteLine("\tA detailed overview of the tokenization results follows:");
-                Console.WriteLine(string.Join("", from t in tokens select t.DebugString()));
-                Console.WriteLine();
-                Console.WriteLine("\tReconstruction of the processed code through tokens:");
-                Console.WriteLine(string.Join(" ", from t in tokens select t.AsString()));
-                Console.WriteLine();
-            }
-
-            // assemble tokens into coherent 'statements' ex:
-            // Statement[] assembled = tokenizer.Assemble(tokens)
-
-            /*Executor executor = new Executor(null, debug, decor,
-                System.IO.Path.GetFileNameWithoutExtension(file));
-
-            executor.Run();
-
-            BehaviorPack pack = executor.GetAsPack();
-            Tuple<string, ItemStack>[] items = executor.GetItemDefinitions();
-            List<StructureFile> itemStructures = new List<StructureFile>();
-
-            foreach(var kvp in items)
-            {
-                string name = kvp.Item1;
-                ItemStack stack = kvp.Item2;
-                itemStructures.Add(new StructureFile
-                    (name, StructureNBT.SingleItem(stack)));
-            }
-
-            if (pack.structures != null)
-            {
-                List<StructureFile> structureFiles = pack.structures.ToList();
-                structureFiles.AddRange(itemStructures);
-                pack.structures = structureFiles.ToArray();
-            } else  pack.structures = itemStructures.ToArray();*/
-
-            Console.WriteLine("Writing files...");
-            //pack.Write();
-            Console.WriteLine("Finished");
-
-            if (DEBUG)
-                Console.ReadLine();
-            else
-                System.Threading.Thread.Sleep(3000);
         }
     }
 }

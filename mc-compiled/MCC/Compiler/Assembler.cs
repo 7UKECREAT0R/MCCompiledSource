@@ -25,25 +25,27 @@ namespace mc_compiled.MCC.Compiler
             {
                 Token current = tokens[i];
 
-                if (current is TokenOpenBlock)
-                {
-                    StatementOpenBlock block = new StatementOpenBlock(statements.Count, null);
-                    statements.Add(block);
-                    blocks.Push(block);
-                    continue;
-                } else if(current is TokenCloseBlock)
-                {
-                    StatementCloseBlock closeBlock = new StatementCloseBlock();
-                    statements.Add(closeBlock);
-                    StatementOpenBlock opener = blocks.Pop();
-                    opener.statementsInside -= statements.Count;
-                    continue;
-                } else if (current is ITerminating)
+                if (current is ITerminating)
                 {
                     if (buffer.Count > 0)
                     {
                         TryAssembleLine(new List<Token>(buffer), ref statements);
                         buffer.Clear();
+                    }
+                    if (current is TokenOpenBlock)
+                    {
+                        StatementOpenBlock block = new StatementOpenBlock(statements.Count + 1, null);
+                        statements.Add(block);
+                        blocks.Push(block);
+                        continue;
+                    }
+                    else if (current is TokenCloseBlock)
+                    {
+                        StatementCloseBlock closeBlock = new StatementCloseBlock();
+                        StatementOpenBlock opener = blocks.Pop();
+                        opener.statementsInside = statements.Count - opener.statementsInside;
+                        statements.Add(closeBlock);
+                        continue;
                     }
                     continue;
                 } else
@@ -67,6 +69,7 @@ namespace mc_compiled.MCC.Compiler
                 Directive directive = (firstToken as TokenDirective).directive;
                 StatementDirective add = new StatementDirective(directive, rest);
                 statements.Add(add);
+                return;
             }
 
             if (line.Count <= 1)

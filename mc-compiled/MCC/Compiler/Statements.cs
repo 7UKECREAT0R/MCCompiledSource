@@ -10,9 +10,13 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly Directive directive;
 
-        public StatementDirective(Directive directive, Token[] tokens) : base(tokens)
+        public StatementDirective(Directive directive, Token[] tokens) : base(tokens, true)
         {
             this.directive = directive;
+        }
+        public override string ToString()
+        {
+            return $"[DIRECTIVE] {directive.fullName} -> {string.Join(" ", from t in tokens select t.DebugString())}";
         }
 
         protected override TypePattern[] GetValidPatterns()
@@ -42,6 +46,10 @@ namespace mc_compiled.MCC.Compiler
         {
             this.statementsInside = statementsInside;
             this.file = file;
+        }
+        public override string ToString()
+        {
+            return $"[OPEN BLOCK: {statementsInside} STATEMENTS]";
         }
         public bool HasTargetFile
         {
@@ -84,6 +92,10 @@ namespace mc_compiled.MCC.Compiler
         {
             this.popFile = false;
         }
+        public override string ToString()
+        {
+            return $"[CLOSE BLOCK]";
+        }
 
         protected override TypePattern[] GetValidPatterns()
             => new TypePattern[0];
@@ -106,6 +118,10 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementOperation : Statement
     {
         public StatementOperation(Token[] tokens) : base(tokens) {}
+        public override string ToString()
+        {
+            return $"[OPERATION] {string.Join(" ", from t in tokens select t.AsString())}";
+        }
 
         protected override TypePattern[] GetValidPatterns()
         {
@@ -159,6 +175,10 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementFunctionCall : Statement
     {
         public StatementFunctionCall(Token[] tokens) : base(tokens) { }
+        public override string ToString()
+        {
+            return $"[CALL FUNCTION {tokens[0]} WITH {tokens.Length - 1} PARAMETERS]";
+        }
 
         protected override TypePattern[] GetValidPatterns()
         {

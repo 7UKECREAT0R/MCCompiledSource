@@ -12,10 +12,15 @@ namespace mc_compiled.MCC.Compiler
     public abstract class Statement : ICloneable
     {
         private readonly TypePattern[] patterns;
-        public Statement(Token[] tokens)
+        public Statement(Token[] tokens, bool waitForPatterns = false)
         {
             this.tokens = tokens;
-            patterns = GetValidPatterns();
+            if (!waitForPatterns)
+                patterns = GetValidPatterns();
+        }
+        public int Line
+        {
+            get => HasNext ? Peek().lineNumber : tokens[0].lineNumber;
         }
 
         protected Token[] tokens;
