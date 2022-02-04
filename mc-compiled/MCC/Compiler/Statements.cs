@@ -33,7 +33,7 @@ namespace mc_compiled.MCC.Compiler
         public static CommandFile GetNextBranchFile() =>
             new CommandFile("branch" + (branchIndex++), "_branching");
 
-        public readonly int statementsInside;
+        public int statementsInside;
         public bool shouldRun = false;
         public bool aligns = false;
         private CommandFile file;

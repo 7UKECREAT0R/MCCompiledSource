@@ -17,38 +17,84 @@ namespace mc_compiled.MCC.Compiler
             List<List<Token>> lines = new List<List<Token>>();
             List<Token> buffer = new List<Token>();
 
-            // fetch all lines into a nice array
+            Stack<StatementOpenBlock> blocks = new Stack<StatementOpenBlock>();
+
+            // assemble all lines via TryAssembleLine()
             int i = -1;
             while(++i < tokens.Length)
             {
                 Token current = tokens[i];
 
-                if (current is ITerminating)
+                if (current is TokenOpenBlock)
+                {
+                    StatementOpenBlock block = new StatementOpenBlock(statements.Count, null);
+                    statements.Add(block);
+                    blocks.Push(block);
+                    continue;
+                } else if(current is TokenCloseBlock)
+                {
+                    StatementCloseBlock closeBlock = new StatementCloseBlock();
+                    statements.Add(closeBlock);
+                    StatementOpenBlock opener = blocks.Pop();
+                    opener.statementsInside -= statements.Count;
+                    continue;
+                } else if (current is ITerminating)
                 {
                     if (buffer.Count > 0)
                     {
-                        lines.Add(new List<Token>(buffer));
+                        TryAssembleLine(new List<Token>(buffer), ref statements);
                         buffer.Clear();
                     }
                     continue;
-                }
-
-                buffer.Add(current);
+                } else
+                    buffer.Add(current);
             }
             if (buffer.Count > 0)
             {
-                lines.Add(new List<Token>(buffer));
+                TryAssembleLine(new List<Token>(buffer), ref statements);
                 buffer.Clear();
             }
 
-            // parse the collected lines into a set of statements
-            foreach(List<Token> line in lines)
-            {
-                Token firstToken = line[0];
+            return statements.ToArray();
+        }
+        public static void TryAssembleLine(List<Token> line, ref List<Statement> statements)
+        {
+            Token firstToken = line[0];
 
+            if (firstToken is TokenDirective)
+            {
+                Token[] rest = line.Skip(1).ToArray();
+                Directive directive = (firstToken as TokenDirective).directive;
+                StatementDirective add = new StatementDirective(directive, rest);
+                statements.Add(add);
             }
 
-            return statements.ToArray();
+            if (line.Count <= 1)
+            {
+                if (Program.DEBUG)
+                    Console.WriteLine($"Skipping garbage token {firstToken} because it's not valid alone.");
+                return;
+            }
+            if (!(firstToken is TokenIdentifier))
+            {
+                if (Program.DEBUG)
+                    Console.WriteLine($"Skipping garbage tokens beginning with {firstToken} because it's not a valid identifier.");
+                return;
+            }
+
+            TokenIdentifier identifier = firstToken as TokenIdentifier;
+            Token secondToken = line[1];
+
+            if (secondToken is IAssignment)
+                statements.Add(new StatementOperation(line.ToArray()));
+            else if (secondToken is TokenOpenParenthesis)
+                statements.Add(new StatementFunctionCall(line.ToArray()));
+            else
+            {
+                if (Program.DEBUG)
+                    Console.WriteLine($"Skipping garbage tokens beginning with {firstToken} {secondToken} because it's unidentifiable.");
+                return;
+            }
         }
     }
 }
