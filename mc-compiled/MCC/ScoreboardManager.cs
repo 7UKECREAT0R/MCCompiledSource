@@ -12,7 +12,7 @@ namespace mc_compiled.MCC
     /// </summary>
     public class ScoreboardManager
     {
-        private const string TEMP_PREFIX = "_mcc_temp";
+        private const string TEMP_PREFIX = "_mcc_tmp";
         private int tempIndex;
         private Stack<int> tempStack;
 
@@ -102,6 +102,42 @@ namespace mc_compiled.MCC
                     executor.AddCommandsHead(created.CommandsDefine());
                 }
             }
+            tempIndex++;
+            return created;
+        }
+        /// <summary>
+        /// Request a temp value that is able to hold this literal.
+        /// </summary>
+        /// <param name="literal"></param>
+        /// <returns></returns>
+        public ScoreboardValue RequestTemp(TokenLiteral literal, Statement forExceptions)
+        {
+            ScoreboardValue created;
+            if (literal is TokenIntegerLiteral)
+                created = new ScoreboardValueInteger(TEMP_PREFIX + tempIndex, this);
+            else if (literal is TokenBooleanLiteral)
+                created = new ScoreboardValueBoolean(TEMP_PREFIX + tempIndex, this);
+            else if (literal is TokenDecimalLiteral)
+            {
+                float number = (literal as TokenDecimalLiteral).number;
+                int precision = number.GetPrecision();
+                created = new ScoreboardValueDecimal(TEMP_PREFIX + tempIndex, precision, this);
+            }
+            else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
+                    $"create temporary value for invalid literal type {literal.GetType()}.");
+
+            string name = created.baseName + created.GetMaxNameLength(); // make an 'id' out of this
+
+            foreach (string accessor in created.GetAccessibleNames())
+            {
+                if (!definedTempVars.Contains(name))
+                {
+                    definedTempVars.Add(name);
+                    executor.AddCommandsHead(created.CommandsInit());
+                    executor.AddCommandsHead(created.CommandsDefine());
+                }
+            }
+
             tempIndex++;
             return created;
         }

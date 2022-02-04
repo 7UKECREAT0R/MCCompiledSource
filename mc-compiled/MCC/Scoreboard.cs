@@ -71,6 +71,7 @@ namespace mc_compiled.MCC
 
             throw new StatementException(forExceptions, "Cannot return this literal.");
         }
+
         public static implicit operator string(ScoreboardValue value) => value.baseName;
 
 

@@ -182,8 +182,10 @@ namespace mc_compiled.MCC.Compiler
 
             while(HasNext)
             {
-                Statement statement = Next();
+                Statement unresolved = Next();
+                Statement statement = unresolved.CloneResolve(this);
                 statement.Run0(this);
+                scoreboard.PopTempState();
             }
         }
         /// <summary>
@@ -191,6 +193,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void ExecuteSubsection(Statement[] section)
         {
+            scoreboard.PushTempState();
             Statement[] restore0 = statements;
             int restore1 = readIndex;
 
@@ -198,11 +201,14 @@ namespace mc_compiled.MCC.Compiler
             readIndex = 0;
             while (HasNext)
             {
-                Statement statement = Next();
+                Statement unresolved = Next();
+                Statement statement = unresolved.CloneResolve(this);
                 statement.Run0(this);
+                scoreboard.PopTempState();
             }
 
             // now its done, so restore state
+            scoreboard.PopTempState();
             statements = restore0;
             readIndex = restore1;
         }

@@ -102,7 +102,8 @@ namespace mc_compiled.MCC.Compiler
         }
         /// <summary>
         /// Clone this statement and resolve its unidentified tokens based off the current executor's state.
-        /// After this is finished, squash and process any intermediate math or functional operations.
+        /// After this is finished, squash and process any intermediate math or functional operations.<br />
+        /// <br />This function pushes the Scoreboard temp state once.
         /// </summary>
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public Statement CloneResolve(Executor executor)
@@ -140,7 +141,10 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // TODO squash intermediate operations
+            executor.scoreboard.PushTempState();
             List<Token> tokens = new List<Token>(allResolved);
+            Squash<TokenArithmaticFirst>(ref tokens, executor);
+            Squash<TokenArithmaticSecond>(ref tokens, executor);
 
 
             statement.tokens = tokens.ToArray();
@@ -155,7 +159,9 @@ namespace mc_compiled.MCC.Compiler
                     continue;
 
                 // this can be assumed due to how squash is meant to be called
-                TokenArithmatic arithmatic = selected as TokenArithmatic;
+                TokenArithmatic.Type op = (selected as TokenArithmatic).GetArithmaticType();
+                Token squashedToken = null;
+                string selector = executor.ActiveSelectorStr;
 
                 Token _left = tokens[i - 1];
                 Token _right = tokens[i + 1];
@@ -169,7 +175,27 @@ namespace mc_compiled.MCC.Compiler
                 {
                     TokenLiteral left = _left as TokenLiteral;
                     TokenLiteral right = _right as TokenLiteral;
-                    
+
+                    switch (op)
+                    {
+                        case TokenArithmatic.Type.ADD:
+                            squashedToken = left.AddWithOther(right);
+                            break;
+                        case TokenArithmatic.Type.SUBTRACT:
+                            squashedToken = left.SubWithOther(right);
+                            break;
+                        case TokenArithmatic.Type.MULTIPLY:
+                            squashedToken = left.MulWithOther(right);
+                            break;
+                        case TokenArithmatic.Type.DIVIDE:
+                            squashedToken = left.DivWithOther(right);
+                            break;
+                        case TokenArithmatic.Type.MODULO:
+                            squashedToken = left.ModWithOther(right);
+                            break;
+                        default:
+                            break;
+                    }
                 }
                 else if(leftIsValue & rightIsValue)
                 {
@@ -180,11 +206,125 @@ namespace mc_compiled.MCC.Compiler
                     ScoreboardValue a = left.value;
                     ScoreboardValue b = right.value;
 
+                    ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
+                    string accessorTemp = temp.baseName;
+                    if(temp is ScoreboardValueStruct && left.word.Contains(':'))
+                    {
+                        StructDefinition structure = (temp as ScoreboardValueStruct).structure;
+                        string field = left.word.Split(':')[1];
+                        accessorTemp = structure.GetAccessor(accessorTemp, field);
+                    }
+
+                    executor.AddCommandsClean(temp.CommandsSet(selector, a, accessorTemp, right.word));
+                    squashedToken = new TokenIdentifierValue(accessorTemp, temp, selected.lineNumber);
+
+                    switch (op)
+                    {
+                        case TokenArithmatic.Type.ADD:
+                            executor.AddCommandsClean(temp.CommandsAdd(selector, b, accessorTemp, right.word));
+                            break;
+                        case TokenArithmatic.Type.SUBTRACT:
+                            executor.AddCommandsClean(temp.CommandsSub(selector, b, accessorTemp, right.word));
+                            break;
+                        case TokenArithmatic.Type.MULTIPLY:
+                            executor.AddCommandsClean(temp.CommandsMul(selector, b, accessorTemp, right.word));
+                            break;
+                        case TokenArithmatic.Type.DIVIDE:
+                            executor.AddCommandsClean(temp.CommandsDiv(selector, b, accessorTemp, right.word));
+                            break;
+                        case TokenArithmatic.Type.MODULO:
+                            executor.AddCommandsClean(temp.CommandsMod(selector, b, accessorTemp, right.word));
+                            break;
+                        default:
+                            break;
+                    }
                 }
                 else
                 {
 
+                    if(leftIsLiteral)
+                    {
+                        ScoreboardValue temp = executor.scoreboard.RequestTemp(_left as TokenLiteral, this);
+                        executor.AddCommandsClean(temp.CommandsSetLiteral(temp.baseName, selector, _left as TokenLiteral));
+                        TokenIdentifierValue b = _right as TokenIdentifierValue;
+                        squashedToken = new TokenIdentifierValue(temp.baseName, temp, selected.lineNumber);
+
+                        switch (op)
+                        {
+                            case TokenArithmatic.Type.ADD:
+                                executor.AddCommandsClean(temp.CommandsAdd(selector, b.value, temp.baseName, b.word));
+                                break;
+                            case TokenArithmatic.Type.SUBTRACT:
+                                executor.AddCommandsClean(temp.CommandsSub(selector, b.value, temp.baseName, b.word));
+                                break;
+                            case TokenArithmatic.Type.MULTIPLY:
+                                executor.AddCommandsClean(temp.CommandsMul(selector, b.value, temp.baseName, b.word));
+                                break;
+                            case TokenArithmatic.Type.DIVIDE:
+                                executor.AddCommandsClean(temp.CommandsDiv(selector, b.value, temp.baseName, b.word));
+                                break;
+                            case TokenArithmatic.Type.MODULO:
+                                executor.AddCommandsClean(temp.CommandsMod(selector, b.value, temp.baseName, b.word));
+                                break;
+                            default:
+                                break;
+                        }
+                    } else
+                    {
+                        TokenIdentifierValue a = _left as TokenIdentifierValue;
+                        TokenLiteral b = _right as TokenLiteral;
+                        ScoreboardValue temp = executor.scoreboard.RequestTemp(a.value);
+
+                        ScoreboardValue bTemp = executor.scoreboard.RequestTemp(b, this);
+                        executor.AddCommandsClean(bTemp.CommandsSetLiteral(bTemp.baseName, selector, b));
+
+                        string accessorTemp = temp.baseName;
+                        if (temp is ScoreboardValueStruct && a.word.Contains(':'))
+                        {
+                            StructDefinition structure = (temp as ScoreboardValueStruct).structure;
+                            string field = a.word.Split(':')[1];
+                            accessorTemp = structure.GetAccessor(accessorTemp, field);
+                        }
+
+                        executor.AddCommandsClean(temp.CommandsSet(selector, a.value, accessorTemp, a.word));
+                        squashedToken = new TokenIdentifierValue(accessorTemp, temp, selected.lineNumber);
+
+                        switch (op)
+                        {
+                            case TokenArithmatic.Type.ADD:
+                                executor.AddCommandsClean(temp.CommandsAdd(selector, bTemp, accessorTemp, bTemp.baseName));
+                                break;
+                            case TokenArithmatic.Type.SUBTRACT:
+                                executor.AddCommandsClean(temp.CommandsSub(selector, bTemp, accessorTemp, bTemp.baseName));
+                                break;
+                            case TokenArithmatic.Type.MULTIPLY:
+                                executor.AddCommandsClean(temp.CommandsMul(selector, bTemp, accessorTemp, bTemp.baseName));
+                                break;
+                            case TokenArithmatic.Type.DIVIDE:
+                                executor.AddCommandsClean(temp.CommandsDiv(selector, bTemp, accessorTemp, bTemp.baseName));
+                                break;
+                            case TokenArithmatic.Type.MODULO:
+                                executor.AddCommandsClean(temp.CommandsMod(selector, bTemp, accessorTemp, bTemp.baseName));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 }
+
+                // replace those three tokens with the one squashed one
+                tokens.RemoveRange(i - 1, 3);
+                tokens.Insert(i - 1, squashedToken);
+
+                // its about to be incremented so compensate for that
+                i--;
+            }
+        }
+        public void SquashFunctions(ref List<Token> tokens, Executor executor)
+        {
+            for(int i = 0; i < tokens.Count; i++)
+            {
+
             }
         }
         public object Clone()
