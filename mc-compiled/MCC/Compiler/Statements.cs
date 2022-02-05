@@ -34,6 +34,10 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementOpenBlock : Statement
     {
         private static int branchIndex;
+        /// <summary>
+        /// Construct the next file which branched commands should go into.
+        /// </summary>
+        /// <returns></returns>
         public static CommandFile GetNextBranchFile() =>
             new CommandFile("branch" + (branchIndex++), "_branching");
 
@@ -67,13 +71,13 @@ namespace mc_compiled.MCC.Compiler
         {
             // get the closer and tell it whether to pop file or not.
             StatementCloseBlock closer = executor.Peek<StatementCloseBlock>(statementsInside);
+            executor.PushSelector(aligns); // push a level up
 
             if (shouldRun)
             {
                 closer.popFile = file != null;
                 if (file != null)
                     executor.PushFile(file);
-                executor.PushSelector(aligns); // push a level up
             } else
             {
                 closer.popFile = false;

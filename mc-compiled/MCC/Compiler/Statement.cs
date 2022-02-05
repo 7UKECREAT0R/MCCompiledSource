@@ -48,7 +48,7 @@ namespace mc_compiled.MCC.Compiler
                     IImplicitToken implicitToken = token as IImplicitToken;
                     Type otherType = implicitToken.GetImplicitType();
 
-                    if (token.GetType().IsAssignableFrom(otherType))
+                    if (typeof(T).IsAssignableFrom(otherType))
                         return implicitToken.Convert() as T;
                 }
                 throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
@@ -66,7 +66,7 @@ namespace mc_compiled.MCC.Compiler
                     IImplicitToken implicitToken = token as IImplicitToken;
                     Type otherType = implicitToken.GetImplicitType();
 
-                    if (token.GetType().IsAssignableFrom(otherType))
+                    if (typeof(T).IsAssignableFrom(otherType))
                         return implicitToken.Convert() as T;
                 }
                 throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
@@ -77,7 +77,22 @@ namespace mc_compiled.MCC.Compiler
         {
             if (!HasNext)
                 return false;
-            return tokens[currentToken] is T;
+
+            Token token = tokens[currentToken];
+
+            if (token is T)
+                return true;
+
+            if(token is IImplicitToken)
+            {
+                IImplicitToken implicitToken = token as IImplicitToken;
+                Type otherType = implicitToken.GetImplicitType();
+
+                if (typeof(T).IsAssignableFrom(otherType))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -114,6 +129,14 @@ namespace mc_compiled.MCC.Compiler
         public Statement ClonePrepare(Executor executor)
         {
             Statement statement = MemberwiseClone() as Statement;
+
+            // e.g. close/open block
+            if (statement.tokens == null)
+            {
+                executor.scoreboard.PushTempState();
+                return statement;
+            }
+
             int length = statement.tokens.Length;
             Token[] allUnresolved = statement.tokens;
             Token[] allResolved = new Token[length];

@@ -114,6 +114,16 @@ namespace mc_compiled.MCC.Compiler
         public void PopSelector() =>
             selections.Pop();
 
+
+        int popSelectorsAfterNext = 0;
+        /// <summary>
+        /// Schedules a selector pop after the next statement is run.
+        /// </summary>
+        public void PopSelectorAfterNext()
+        {
+            popSelectorsAfterNext = 2;
+        }
+
         public bool HasNext
         {
             get => readIndex < statements.Length;
@@ -171,7 +181,7 @@ namespace mc_compiled.MCC.Compiler
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
 
-            selections.Push(Selector.Core.s);
+            PushSelector(true);
             currentFiles.Push(new CommandFile(projectName));
         }
         /// <summary>
@@ -187,7 +197,17 @@ namespace mc_compiled.MCC.Compiler
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
+
+                if(popSelectorsAfterNext >= 0)
+                {
+                    popSelectorsAfterNext--;
+                    if(popSelectorsAfterNext == 0)
+                        PopSelector();
+                }
             }
+
+            while (currentFiles.Count > 0)
+                PopFile();
         }
         /// <summary>
         /// Temporarily run another subsection of statements then resume this executor.
@@ -206,6 +226,13 @@ namespace mc_compiled.MCC.Compiler
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
+
+                if (popSelectorsAfterNext >= 0)
+                {
+                    popSelectorsAfterNext--;
+                    if (popSelectorsAfterNext == 0)
+                        PopSelector();
+                }
             }
 
             // now its done, so restore state

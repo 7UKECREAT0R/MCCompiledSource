@@ -236,9 +236,9 @@ namespace mc_compiled.MCC.Compiler
             // coordinate literals
             if(firstChar == '~')
             {
-                NextChar();
                 if (char.IsDigit(secondChar))
                 {
+                    NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
                     string str = '~' + number.AsString();
                     return new TokenCoordinateLiteral(Coord.Parse(str).Value, CURRENT_LINE);

@@ -390,7 +390,8 @@ namespace mc_compiled.MCC.Compiler
             builder.AddTerms(executor.FString(str));
 
             string output = builder.BuildString();
-            executor.AddCommand(Command.Tellraw(executor.ActiveSelectorStr, output));
+            string selector = executor.ActiveSelectorStr;
+            executor.AddCommand(Command.Tellraw(selector, output));
         }
         public static void define(Executor executor, Statement tokens)
         {
@@ -478,6 +479,9 @@ namespace mc_compiled.MCC.Compiler
 
             do
             {
+                if (tokens.NextIs<TokenAnd>())
+                    tokens.Next();
+
                 string entity = executor.ActiveSelectorStr;
                 bool not = invert;
                 bool isScore = tokens.NextIs<TokenIdentifierValue>();
@@ -749,13 +753,19 @@ namespace mc_compiled.MCC.Compiler
             string prefix = selector.GetAsPrefix();
             executor.SetCommandPrepend(prefix);
 
-            if(executor.NextIs<StatementOpenBlock>())
+            if (executor.NextIs<StatementOpenBlock>())
             {
-                StatementOpenBlock openBlock = executor.Next<StatementOpenBlock>();
+                CommandFile nextBranchFile = StatementOpenBlock.GetNextBranchFile();
+                StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
                 openBlock.aligns = true;
                 openBlock.shouldRun = true;
-                openBlock.TargetFile = StatementOpenBlock.GetNextBranchFile();
+                openBlock.TargetFile = nextBranchFile;
+                executor.AddCommand(Command.Function(nextBranchFile));
                 return;
+            } else
+            {
+                executor.PushSelector(true);
+                executor.PopSelectorAfterNext();
             }
         }
         public static void @else(Executor executor, Statement tokens)
@@ -1006,14 +1016,8 @@ namespace mc_compiled.MCC.Compiler
         {
             OldObjectHandling handling = OldObjectHandling.replace;
             
-            if(tokens.NextIs<TokenIdentifier>())
-            {
-                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-                if (word.Equals("DESTROY"))
-                    handling = OldObjectHandling.destroy;
-                if (word.Equals("KEEP"))
-                    handling = OldObjectHandling.keep;
-            }
+            if(tokens.NextIs<TokenIdentifierEnum>())
+                handling = (OldObjectHandling)tokens.Next<TokenIdentifierEnum>().value;
 
             string block = tokens.Next<TokenStringLiteral>();
             Coord x = tokens.Next<TokenCoordinateLiteral>();
@@ -1030,18 +1034,8 @@ namespace mc_compiled.MCC.Compiler
         {
             OldObjectHandling handling = OldObjectHandling.replace;
 
-            if (tokens.NextIs<TokenIdentifier>())
-            {
-                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-                if (word.Equals("DESTROY"))
-                    handling = OldObjectHandling.destroy;
-                if (word.Equals("KEEP"))
-                    handling = OldObjectHandling.keep;
-                if (word.Equals("HOLLOW"))
-                    handling = OldObjectHandling.hollow;
-                if (word.Equals("OUTLINE"))
-                    handling = OldObjectHandling.outline;
-            }
+            if (tokens.NextIs<TokenIdentifierEnum>())
+                handling = (OldObjectHandling)tokens.Next<TokenIdentifierEnum>().value;
 
             string block = tokens.Next<TokenStringLiteral>();
             Coord x1 = tokens.Next<TokenCoordinateLiteral>();
