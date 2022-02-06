@@ -13,7 +13,7 @@ namespace mc_compiled.MCC
     /// </summary>
     public class Function
     {
-        readonly List<ScoreboardValue> inputs;
+        readonly List<string> inputs;
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
 
@@ -25,14 +25,14 @@ namespace mc_compiled.MCC
             this.name = name;
             file = new CommandFile(name, null, this);
             isCompilerGenerated = fromCompiler;
-            inputs = new List<ScoreboardValue>();
+            inputs = new List<string>();
         }
-        public Function AddParameter(ScoreboardValue parameter)
+        public Function AddParameter(string parameter)
         {
             inputs.Add(parameter);
             return this;
         }
-        public Function AddParameters(IEnumerable<ScoreboardValue> parameters)
+        public Function AddParameters(IEnumerable<string> parameters)
         {
             inputs.AddRange(parameters);
             return this;
@@ -42,7 +42,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="caller"></param>
         /// <param name="value"></param>
-        /// <returns>A new scoreboard value that holds the return</returns>
+        /// <returns>A new scoreboard value that holds the returned value</returns>
         public void TryReturnValue(Statement caller, ScoreboardValue value)
         {
             if (returnValue != null)
@@ -72,6 +72,39 @@ namespace mc_compiled.MCC
 
             returnValue = clone;
         }
+        /// <summary>
+        /// Add commands and setup scoreboard to return a value.
+        /// </summary>
+        /// <param name="caller"></param>
+        /// <param name="value"></param>
+        /// <returns>A new scoreboard value that holds the returned value</returns>
+        public void TryReturnValue(Statement caller, ScoreboardManager sb, TokenLiteral value)
+        {
+            
+            if (returnValue != null)
+            {
+                Type type = returnValue.GetType();
+
+                // check if types match
+                if (!type.Equals(value))
+                    throw new StatementException(caller, $"All return statements in this function must return the same type. Required: {GetType()}");
+
+                return;
+            }
+
+            ScoreboardValue variable = ScoreboardValue.GetReturnValue(value, sb, caller);
+            foreach (string name in variable.GetAccessibleNames())
+            {
+                if (!sb.definedTempVars.Contains(name))
+                {
+                    sb.definedTempVars.Add(name);
+                    AddCommandsTop(variable.CommandsInit());
+                    AddCommandsTop(variable.CommandsDefine());
+                }
+            }
+
+            returnValue = variable;
+        }
 
         public CommandFile File
         {
@@ -81,16 +114,20 @@ namespace mc_compiled.MCC
         {
             get => inputs.Count;
         }
-        public string[] CallFunction(string selector, Statement caller, params Token[] inputs)
+        public string[] CallFunction(string selector, Statement caller, ScoreboardManager sb, params Token[] inputs)
         {
             List<string> commands = new List<string>();
+
+            sb.PushTempState();
 
             int count = this.inputs.Count;
             for(int i = 0; i < count; i++)
             {
                 Token input = inputs[i];
-                ScoreboardValue output = this.inputs[i];
-                string accessor = output.baseName;
+                string accessor = this.inputs[i];
+
+                ScoreboardValue output = new ScoreboardValueInteger(accessor, sb);
+                commands.AddRange(output.CommandsInit());
 
                 if (input is TokenLiteral)
                 {
@@ -106,6 +143,8 @@ namespace mc_compiled.MCC
                 else
                     throw new StatementException(caller, $"Unexcpected parameter type for input {output.baseName}. Got: {input.GetType()}");
             }
+
+            sb.PopTempState();
 
             commands.Add(Command.Function(this.file));
             return commands.ToArray();
@@ -134,7 +173,7 @@ namespace mc_compiled.MCC
 
         public override string ToString()
         {
-            return $"{name}({string.Join(" ", inputs.Select(i => i.baseName))})";
+            return $"{name}({string.Join(" ", inputs)})";
         }
     }
 }

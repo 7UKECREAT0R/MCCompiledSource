@@ -1292,5 +1292,47 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.Function(file));
         }
+
+        public static void function(Executor executor, Statement tokens)
+        {
+            string functionName = tokens.Next<TokenIdentifier>().word;
+            List<string> args = new List<string>();
+            while(tokens.HasNext && tokens.NextIs<TokenIdentifier>())
+            {
+                TokenIdentifier token = tokens.Next<TokenIdentifier>();
+                args.Add(token.word);
+            }
+
+            Function function = new Function(functionName).AddParameters(args);
+            executor.RegisterFunction(function);
+
+            if (executor.NextIs<StatementOpenBlock>())
+            {
+                StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
+                openBlock.aligns = true;
+                openBlock.shouldRun = true;
+                openBlock.TargetFile = function.File;
+                return;
+            }
+            else
+                throw new StatementException(tokens, "No block following function definition.");
+        }
+        public static void @return(Executor executor, Statement tokens)
+        {
+            Function activeFunction = executor.CurrentFile.userFunction;
+
+            if (activeFunction == null)
+                throw new StatementException(tokens, "Cannot return a value outside of a function.");
+
+            if(tokens.NextIs<TokenIdentifierValue>())
+            {
+                TokenIdentifierValue token = tokens.Next<TokenIdentifierValue>();
+                activeFunction.TryReturnValue(tokens, token.value);
+            } else
+            {
+                TokenLiteral token = tokens.Next<TokenLiteral>();
+                activeFunction.TryReturnValue(tokens, executor.scoreboard, token);
+            }
+        }
     }
 }

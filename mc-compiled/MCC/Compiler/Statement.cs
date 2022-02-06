@@ -367,7 +367,7 @@ namespace mc_compiled.MCC.Compiler
                 if (!(second is TokenOpenParenthesis))
                     continue; // might just be regular identifier
 
-                int o = i + 2;
+                int x = i + 2;
                 TokenIdentifierFunction func = selected as TokenIdentifierFunction;
                 Function function = func.function;
 
@@ -376,21 +376,20 @@ namespace mc_compiled.MCC.Compiler
                 if (!(third is TokenCloseParenthesis))
                 {
                     int level = 1;
-                    while (o < tokens.Count)
+                    while (x < tokens.Count)
                     {
-                        Token check = tokens[o];
+                        Token check = tokens[x];
+
                         if (check is TokenCloseParenthesis)
                         {
-                            level--; o++;
+                            level--;
                             if (level <= 0)
                                 break;
-                            passIn.Add(check);
-                            continue;
                         }
                         else if (check is TokenOpenParenthesis)
                             level++;
 
-                        o++;
+                        x++;
                         passIn.Add(check);
                     }
                 }
@@ -402,12 +401,13 @@ namespace mc_compiled.MCC.Compiler
 
                 // call function
                 string sel = executor.ActiveSelectorStr;
-                executor.AddCommandsClean(function.CallFunction(sel, this, passIn.ToArray()));
+                executor.AddCommandsClean(function.CallFunction(sel, this, executor.scoreboard, passIn.ToArray()));
+
                 // store return value in temp
                 ScoreboardValue clone = executor.scoreboard.RequestTemp(function.returnValue);
                 executor.AddCommandsClean(clone.CommandsSet(sel, function.returnValue, null, null)); // ignore accessors
 
-                int len = o - i;
+                int len = x - i;
                 tokens.RemoveRange(i, len);
                 tokens.Insert(i, new TokenIdentifierValue(clone.baseName, clone, selected.lineNumber));
 

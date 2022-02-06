@@ -112,20 +112,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public ScoreboardValue RequestTemp(TokenLiteral literal, Statement forExceptions)
         {
-            ScoreboardValue created;
-            if (literal is TokenIntegerLiteral)
-                created = new ScoreboardValueInteger(TEMP_PREFIX + tempIndex, this);
-            else if (literal is TokenBooleanLiteral)
-                created = new ScoreboardValueBoolean(TEMP_PREFIX + tempIndex, this);
-            else if (literal is TokenDecimalLiteral)
-            {
-                float number = (literal as TokenDecimalLiteral).number;
-                int precision = number.GetPrecision();
-                created = new ScoreboardValueDecimal(TEMP_PREFIX + tempIndex, precision, this);
-            }
-            else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
-                    $"create temporary value for invalid literal type {literal.GetType()}.");
-
+            ScoreboardValue created = CreateFromLiteral(TEMP_PREFIX + tempIndex, literal, forExceptions);
             string name = created.baseName + created.GetMaxNameLength(); // make an 'id' out of this
 
             foreach (string accessor in created.GetAccessibleNames())
@@ -147,6 +134,22 @@ namespace mc_compiled.MCC
         /// </summary>
         public void ReleaseTemp() =>
             tempIndex--;
+
+        public ScoreboardValue CreateFromLiteral(string name, TokenLiteral literal, Statement forExceptions)
+        {
+            if (literal is TokenIntegerLiteral)
+                return new ScoreboardValueInteger(name, this);
+            else if (literal is TokenBooleanLiteral)
+                return new ScoreboardValueBoolean(name, this);
+            else if (literal is TokenDecimalLiteral)
+            {
+                float number = (literal as TokenDecimalLiteral).number;
+                int precision = number.GetPrecision();
+                return new ScoreboardValueDecimal(name, precision, this);
+            }
+            else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
+                    $"create a scoreboard value for invalid literal type {literal.GetType()}.");
+        }
 
         /// <summary>
         /// Save the current temp level to be recalled later using PopTempState().

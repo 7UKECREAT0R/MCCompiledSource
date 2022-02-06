@@ -217,6 +217,10 @@ namespace mc_compiled.MCC.Compiler
 
                 passIn.Add(nextToken);
             }
+
+            executor.AddCommands(value.function.CallFunction(
+                selector, this, executor.scoreboard, passIn.ToArray()));
+            return;
         }
     }
 }

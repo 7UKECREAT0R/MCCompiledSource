@@ -165,6 +165,12 @@ namespace mc_compiled.MCC.Compiler
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
                 new TypePattern(typeof(TokenStringLiteral))),
             new Directive(DirectiveImplementations.halt, "halt", "Halt Execution"),
+
+            new Directive(DirectiveImplementations.function, "function", "Define Function",
+                new TypePattern(typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations.@return, "return", "Set Return Value",
+                new TypePattern(typeof(TokenIdentifierValue)),
+                new TypePattern(typeof(TokenLiteral))),
         };
 
         static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();

@@ -110,7 +110,6 @@ namespace mc_compiled
                     Console.WriteLine();
                 }
 
-                // shouldn't throw unless unintentional
                 Statement[] statements = Assembler.AssembleTokens(tokens);
 
                 if(DEBUG)
