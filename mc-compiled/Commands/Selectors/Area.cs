@@ -15,7 +15,7 @@ namespace mc_compiled.Commands.Selectors
         public float? radiusMin, radiusMax;
         public int? volumeX, volumeY, volumeZ;
 
-        public Area(Coord x, Coord y, Coord z, float? radiusMin = null,
+        public Area(Coord? x, Coord? y, Coord? z, float? radiusMin = null,
             float? radiusMax = null, int? volumeX = null, int? volumeY = null, int? volumeZ = null)
         {
             this.x = x;
@@ -89,14 +89,14 @@ namespace mc_compiled.Commands.Selectors
                 }
             }
 
-            if (!x.HasValue)
+            /*if (!x.HasValue)
                 x = Coord.here;
             if (!y.HasValue)
                 y = Coord.here;
             if (!z.HasValue)
-                z = Coord.here;
+                z = Coord.here;*/
 
-            return new Area(x.Value, y.Value, z.Value, radiusMin, radiusMax, volumeX, volumeY, volumeZ);
+            return new Area(x, y, z, radiusMin, radiusMax, volumeX, volumeY, volumeZ);
         }
 
         /// <summary>

@@ -216,7 +216,10 @@ namespace mc_compiled.MCC.Compiler
 
             // check for math token
             if (firstChar == '>' && secondChar == '<')
+            {
+                NextChar();
                 return new TokenSwapAssignment(CURRENT_LINE);
+            }
             else if (ARITHMATIC_CHARS.Contains(firstChar))
             {
                 bool assignment = secondChar == '=';
@@ -236,7 +239,7 @@ namespace mc_compiled.MCC.Compiler
             // coordinate literals
             if(firstChar == '~')
             {
-                if (char.IsDigit(secondChar))
+                if (char.IsDigit(secondChar) || secondChar == '-')
                 {
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
@@ -247,7 +250,7 @@ namespace mc_compiled.MCC.Compiler
             }
             if (firstChar == '^')
             {
-                if (char.IsDigit(secondChar))
+                if (char.IsDigit(secondChar) || secondChar == '-')
                 {
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);

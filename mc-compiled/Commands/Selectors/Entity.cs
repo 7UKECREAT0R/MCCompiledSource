@@ -58,7 +58,7 @@ namespace mc_compiled.Commands.Selectors
                         name = b.Trim('\"');
                         break;
                     case "TYPE":
-                        name = b.Trim('\"');
+                        type = b.Trim('\"');
                         break;
                     case "FAMILY":
                         family = b.Trim('\"');

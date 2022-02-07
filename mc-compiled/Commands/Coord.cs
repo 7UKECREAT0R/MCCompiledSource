@@ -59,14 +59,14 @@ namespace mc_compiled.Commands
             bool rel, off;
             str = str.TrimEnd('f');
             if ((rel = str.StartsWith("~")))
-                str = str.TrimStart('~');
+                str = str.Substring(1);
             if ((off = str.StartsWith("^")))
-                str = str.TrimStart('^');
+                str = str.Substring(1);
 
             if (int.TryParse(str, out int i))
                 return new Coord(i, false, rel, off);
             else if (float.TryParse(str, out float f))
-                return new Coord(f, false, rel, off);
+                return new Coord(f, true, rel, off);
             else
                 return new Coord(0, false, rel, off); // default to 0
         }

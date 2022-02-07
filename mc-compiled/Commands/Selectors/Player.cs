@@ -45,6 +45,7 @@ namespace mc_compiled.Commands.Selectors
                 switch (a)
                 {
                     case "M":
+                    case "MODE":
                         gamemode = ParseGameMode(b.Trim('\"'));
                         break;
                     case "LM":
@@ -91,9 +92,9 @@ namespace mc_compiled.Commands.Selectors
             if (gamemode.HasValue)
                 strings.Add("m=" + (gamemodeNot?"!":"") + ((int)gamemode.Value));
             if (levelMin.HasValue)
-                strings.Add("l=" + levelMin.Value);
+                strings.Add("lm=" + levelMin.Value);
             if (levelMax.HasValue)
-                strings.Add("lm=" + levelMax.Value);
+                strings.Add("l=" + levelMax.Value);
             return strings.ToArray();
         }
 

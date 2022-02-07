@@ -49,8 +49,8 @@ namespace mc_compiled.Commands.Selectors
                 if (index == -1)
                     continue;
 
-                string scoreName = part.Substring(0, index);
-                string _range = part.Substring(index + 1);
+                string scoreName = part.Substring(0, index).Trim();
+                string _range = part.Substring(index + 1).Trim();
                 Range range = Range.Parse(_range).Value;
                 ScoresEntry entry = new ScoresEntry(scoreName, range);
                 scores.checks.Add(entry);
