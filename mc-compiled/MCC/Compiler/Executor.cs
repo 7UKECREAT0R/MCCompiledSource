@@ -491,6 +491,10 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenBooleanLiteral(value, line);
                 if (value is string)
                     return new TokenStringLiteral(value, line);
+                if (value is Coord)
+                    return new TokenCoordinateLiteral(value, line);
+                if (value is Selector)
+                    return new TokenSelectorLiteral(value, line);
             }
 
             return null;

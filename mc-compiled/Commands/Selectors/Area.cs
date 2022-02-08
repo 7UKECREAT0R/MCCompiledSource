@@ -139,5 +139,26 @@ namespace mc_compiled.Commands.Selectors
 
             return $"execute {selector}[{tags}] ~~~ scoreboard players set @s {objective} 1";
         }
+
+        public static Area operator +(Area a, Area other)
+        {
+            if (a.x == null)
+                a.x = other.x;
+            if (a.y == null)
+                a.y = other.y;
+            if (a.z == null)
+                a.z = other.z;
+            if (a.radiusMin == null)
+                a.radiusMin = other.radiusMin;
+            if (a.radiusMax == null)
+                a.radiusMax = other.radiusMax;
+            if (a.volumeX == null)
+                a.volumeX = other.volumeX;
+            if (a.volumeY == null)
+                a.volumeY = other.volumeY;
+            if (a.volumeZ == null)
+                a.volumeZ = other.volumeZ;
+            return a;
+        }
     }
 }

@@ -175,5 +175,24 @@ namespace mc_compiled.Commands
                 return $"execute {ToString()} ~~~ ";
             }
         }
+
+        public static Selector operator +(Selector a, Selector b)
+        {
+            Selector clone = (Selector)a.MemberwiseClone();
+
+            clone.area += b.area;
+            clone.scores += b.scores;
+            clone.count += b.count;
+            clone.entity += b.entity;
+            clone.player += b.player;
+
+            if (!a.blockCheck.present)
+                a.blockCheck = b.blockCheck;
+
+            clone.tags = new List<Selectors.Tag>(a.tags);
+            clone.tags.AddRange(b.tags);
+
+            return clone;
+        }
     }
 }

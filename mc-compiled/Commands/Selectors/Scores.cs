@@ -58,6 +58,14 @@ namespace mc_compiled.Commands.Selectors
 
             return scores;
         }
+
+        public static Scores operator +(Scores a, Scores other)
+        {
+            Scores clone = (Scores)a.MemberwiseClone();
+            clone.checks = new List<ScoresEntry>(a.checks);
+            clone.checks.AddRange(other.checks);
+            return clone;
+        }
     }
     public struct ScoresEntry
     {

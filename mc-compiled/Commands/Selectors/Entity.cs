@@ -106,5 +106,23 @@ namespace mc_compiled.Commands.Selectors
                 parts.Add("ry=" + rotYMax.Value);
             return parts.ToArray();
         }
+        public static Entity operator +(Entity a, Entity other)
+        {
+            if (a.name == null)
+                a.name = other.name;
+            if (a.type == null)
+                a.type = other.type;
+            if (a.family == null)
+                a.family = other.family;
+            if (a.rotXMin == null)
+                a.rotXMin = other.rotXMin;
+            if (a.rotXMax == null)
+                a.rotXMax = other.rotXMax;
+            if (a.rotYMin == null)
+                a.rotYMin = other.rotYMin;
+            if (a.rotYMax == null)
+                a.rotYMax = other.rotYMax;
+            return a;
+        }
     }
 }

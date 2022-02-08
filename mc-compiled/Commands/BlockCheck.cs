@@ -9,6 +9,9 @@ namespace mc_compiled.Commands
     public struct BlockCheck
     {
         public static readonly BlockCheck DISABLED = new BlockCheck() { present = false };
+        /// <summary>
+        /// only false if this blockcheck is disabled
+        /// </summary>
         public bool present;
 
         public Coord x, y, z;

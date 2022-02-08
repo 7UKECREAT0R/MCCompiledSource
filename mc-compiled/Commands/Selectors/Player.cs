@@ -105,6 +105,16 @@ namespace mc_compiled.Commands.Selectors
 
             return $"execute {selector}[{tags}] ~~~ scoreboard players set @s {objective} 1";
         }
+        public static Player operator +(Player a, Player other)
+        {
+            if (a.gamemode == null)
+                a.gamemode = other.gamemode;
+            if (a.levelMin == null)
+                a.levelMin = other.levelMin;
+            if (a.levelMax == null)
+                a.levelMax = other.levelMax;
+            return a;
+        }
     }
 
 }

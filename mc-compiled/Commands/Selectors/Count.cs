@@ -45,5 +45,11 @@ namespace mc_compiled.Commands.Selectors
                 return null;
             return "c=" + count;
         }
+        public static Count operator +(Count a, Count other)
+        {
+            if (a.count == NONE)
+                a.count = other.count;
+            return a;
+        }
     }
 }
