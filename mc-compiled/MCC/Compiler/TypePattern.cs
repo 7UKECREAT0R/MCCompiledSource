@@ -112,7 +112,7 @@ namespace mc_compiled.MCC.Compiler
             if(obj is IImplicitToken)
             {
                 Type conversion = (obj as IImplicitToken).GetImplicitType();
-                if (types.Any(t => t.IsAssignableFrom(type)))
+                if (types.Any(t => t.IsAssignableFrom(conversion)))
                     return true;
             }
 

@@ -28,7 +28,13 @@ namespace mc_compiled.MCC.Compiler
             string varName = tokens.Next<TokenIdentifier>().word;
             if (executor.TryGetPPV(varName, out dynamic value))
             {
-                value++;
+                try
+                {
+                    value++;
+                } catch(Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't increment this value.");
+                }
                 executor.SetPPV(varName, value);
             }
             else
@@ -39,7 +45,14 @@ namespace mc_compiled.MCC.Compiler
             string varName = tokens.Next<TokenIdentifier>().word;
             if (executor.TryGetPPV(varName, out dynamic value))
             {
-                value--;
+                try
+                {
+                    value--;
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't decrement this value.");
+                }
                 executor.SetPPV(varName, value);
             }
             else
@@ -48,11 +61,23 @@ namespace mc_compiled.MCC.Compiler
         public static void _add(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            object other = tokens.Next<IObjectable>().GetObject();
+            IObjectable otherToken = tokens.Next<IObjectable>();
+            dynamic other = otherToken.GetObject();
+
+            if (otherToken is TokenIdentifier)
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
+                    other = ppv;
 
             if (executor.TryGetPPV(varName, out dynamic value))
             {
-                value += other;
+                try
+                {
+                    value += other;
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't add these values.");
+                }
                 executor.SetPPV(varName, value);
             }
             else
@@ -61,11 +86,23 @@ namespace mc_compiled.MCC.Compiler
         public static void _sub(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            object other = tokens.Next<IObjectable>().GetObject();
+            IObjectable otherToken = tokens.Next<IObjectable>();
+            dynamic other = otherToken.GetObject();
+
+            if (otherToken is TokenIdentifier)
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
+                    other = ppv;
 
             if (executor.TryGetPPV(varName, out dynamic value))
             {
-                value -= other;
+                try
+                {
+                    value -= other;
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't subtract these values.");
+                }
                 executor.SetPPV(varName, value);
             }
             else
@@ -74,11 +111,23 @@ namespace mc_compiled.MCC.Compiler
         public static void _mul(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            object other = tokens.Next<IObjectable>().GetObject();
+            IObjectable otherToken = tokens.Next<IObjectable>();
+            dynamic other = otherToken.GetObject();
+
+            if (otherToken is TokenIdentifier)
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
+                    other = ppv;
 
             if (executor.TryGetPPV(varName, out dynamic value))
             {
-                value *= other;
+                try
+                {
+                    value *= other;
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't multiply these values.");
+                }
                 executor.SetPPV(varName, value);
             }
             else
@@ -87,11 +136,23 @@ namespace mc_compiled.MCC.Compiler
         public static void _div(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            object other = tokens.Next<IObjectable>().GetObject();
+            IObjectable otherToken = tokens.Next<IObjectable>();
+            dynamic other = otherToken.GetObject();
+
+            if (otherToken is TokenIdentifier)
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
+                    other = ppv;
 
             if (executor.TryGetPPV(varName, out dynamic value))
             {
-                value /= other;
+                try
+                {
+                    value /= other;
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't divide these values.");
+                }
                 executor.SetPPV(varName, value);
             }
             else
@@ -100,11 +161,23 @@ namespace mc_compiled.MCC.Compiler
         public static void _mod(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            object other = tokens.Next<IObjectable>().GetObject();
+            IObjectable otherToken = tokens.Next<IObjectable>();
+            dynamic other = otherToken.GetObject();
+
+            if (otherToken is TokenIdentifier)
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
+                    other = ppv;
 
             if (executor.TryGetPPV(varName, out dynamic value))
             {
-                value %= other;
+                try
+                {
+                    value %= other;
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't modulo these values.");
+                }
                 executor.SetPPV(varName, value);
             }
             else
@@ -132,36 +205,47 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             TokenCompare compare = tokens.Next<TokenCompare>();
-            object other = tokens.Next<IObjectable>().GetObject();
+            IObjectable otherToken = tokens.Next<IObjectable>();
+            dynamic other = otherToken.GetObject();
+
+            if (otherToken is TokenIdentifier)
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
+                    other = ppv;
 
             // if the next block/statement should be run
             bool run = false;
 
             if(executor.TryGetPPV(varName, out dynamic a))
             {
-                switch (compare.GetCompareType())
+                try
                 {
-                    case TokenCompare.Type.EQUAL:
-                        run = a == other;
-                        break;
-                    case TokenCompare.Type.NOT_EQUAL:
-                        run = a != other;
-                        break;
-                    case TokenCompare.Type.LESS_THAN:
-                        run = a < other;
-                        break;
-                    case TokenCompare.Type.LESS_OR_EQUAL:
-                        run = a <= other;
-                        break;
-                    case TokenCompare.Type.GREATER_THAN:
-                        run = a > other;
-                        break;
-                    case TokenCompare.Type.GREATER_OR_EQUAL:
-                        run = a >= other;
-                        break;
-                    default:
-                        run = false;
-                        break;
+                    switch (compare.GetCompareType())
+                    {
+                        case TokenCompare.Type.EQUAL:
+                            run = a == other;
+                            break;
+                        case TokenCompare.Type.NOT_EQUAL:
+                            run = a != other;
+                            break;
+                        case TokenCompare.Type.LESS_THAN:
+                            run = a < other;
+                            break;
+                        case TokenCompare.Type.LESS_OR_EQUAL:
+                            run = a <= other;
+                            break;
+                        case TokenCompare.Type.GREATER_THAN:
+                            run = a > other;
+                            break;
+                        case TokenCompare.Type.GREATER_OR_EQUAL:
+                            run = a >= other;
+                            break;
+                        default:
+                            run = false;
+                            break;
+                    }
+                } catch(Exception)
+                {
+                    throw new StatementException(tokens, "Could not compare those two types.");
                 }
             }
             else
@@ -305,13 +389,34 @@ namespace mc_compiled.MCC.Compiler
         public static void _include(Executor executor, Statement tokens)
         {
             string file = tokens.Next<TokenStringLiteral>();
+            if (!file.EndsWith(".mcc"))
+                file += ".mcc";
 
             if (!System.IO.File.Exists(file))
                 throw new StatementException(tokens, "Cannot find file '" + file + "'.");
 
             Token[] includedTokens = Tokenizer.TokenizeFile(file);
-            // TODO assemble statements
-            // executor.ExecuteSubsection(statements);
+
+            if (Program.DEBUG)
+            {
+                Console.WriteLine("\t[INCLUDE]\tA detailed overview of the tokenization results follows:");
+                Console.WriteLine(string.Join("", from t in includedTokens select t.DebugString()));
+                Console.WriteLine();
+                Console.WriteLine("\t[INCLUDE]\tReconstruction of the processed code through tokens:");
+                Console.WriteLine(string.Join(" ", from t in includedTokens select t.AsString()));
+                Console.WriteLine();
+            }
+
+            Statement[] statements = Assembler.AssembleTokens(includedTokens);
+
+            if (Program.DEBUG)
+            {
+                Console.WriteLine("\t[INCLUDE]\tThe overview of assembled statements is as follows:");
+                Console.WriteLine(string.Join("\n", from s in statements select s.ToString()));
+                Console.WriteLine();
+            }
+
+            executor.ExecuteSubsection(statements);
         }
         public static void _strfriendly(Executor executor, Statement tokens)
         {
@@ -470,8 +575,7 @@ namespace mc_compiled.MCC.Compiler
             @if(executor, tokens, false);
         public static void @if(Executor executor, Statement tokens, bool invert)
         {
-            Selector selector = new Selector();
-            selector.core = executor.ActiveSelector;
+            Selector selector = new Selector(executor.ActiveSelector);
             Token[] tokensUsed = tokens.GetRemainingTokens();
 
             executor.scoreboard.PushTempState();
@@ -855,13 +959,13 @@ namespace mc_compiled.MCC.Compiler
                 };
                 StructureFile file = new StructureFile(item.GenerateUID(), StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
-                Selector.Core core = executor.ActiveSelector;
+                Selector active = executor.ActiveSelector;
 
                 string cmd = Command.StructureLoad(file.name, Coord.here, Coord.here, Coord.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
 
-                if(core != Selector.Core.s && core != Selector.Core.p)
-                    executor.AddCommand(Command.Execute("@" + core, Coord.here, Coord.here, Coord.here, cmd));
+                if(active.SelectsMultiple)
+                    executor.AddCommand(Command.Execute(active.ToString(), Coord.here, Coord.here, Coord.here, cmd));
                 else
                     executor.AddCommand(cmd);
             }

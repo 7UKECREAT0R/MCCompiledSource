@@ -16,20 +16,18 @@ namespace mc_compiled
 {
     class Program
     {
-        public static bool OBFUSCATE = false;
+        public static bool NO_PAUSE = false;
         public static bool DEBUG = false;
-        public static bool DECORATE = false;
-
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
             Console.Write("\nmc-compiled.exe --jsonbuilder\n");
-            Console.Write("mc-compiled.exe <file> [--decorate] [-o] [-d] [-r]\n");
+            Console.Write("mc-compiled.exe <file> [-d] [--daemon]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\tIf the -jsonbuilder option is specified, the rawtext json builder is opened instead.\n\n");
             Console.Write("\tOptions:\n");
-            Console.Write("\t  --decorate\tDecorate and include source comments in the output files.\n");
-            Console.Write("\t  -o\tObfuscate scoreboard names and other values.\n");
             Console.Write("\t  -d\tDebug information during compilation.\n");
+            Console.Write("\t  --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
+            Console.Write("\t  --nopause\tDoes not wait for user input to close application.\n");
         }
         [STAThread]
         static void Main(string[] args)
@@ -41,43 +39,24 @@ namespace mc_compiled
             }
 
             string file = args[0];
-
-            bool obf = false;
             bool debug = false;
-            bool decor = false;
+            bool daemon = false;
+
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i].Equals("-o"))
-                    obf = true;
                 if (args[i].Equals("-d"))
                     debug = true;
-                if (args[i].Equals("--decorate"))
-                    decor = true;
+                if (args[i].Equals("--daemon"))
+                {
+                    daemon = true;
+                    NO_PAUSE = true;
+                }
+                if (args[i].Equals("--nopause"))
+                    NO_PAUSE = true;
             }
 
             new Definitions(debug);
 
-            if (file.ToUpper().Equals("--TESTNBT"))
-            {
-                ItemStack item = new ItemStack("diamond_boots");
-                item.count = 2;
-                item.displayName = "mega boots";
-                item.keep = true;
-                item.enchantments = new EnchantmentEntry[]
-                {
-                    new EnchantmentEntry(Commands.Enchantment.protection, 10),
-                    new EnchantmentEntry(Commands.Enchantment.frost_walker, 5),
-                    new EnchantmentEntry(Commands.Enchantment.unbreaking, 20)
-                };
-
-                StructureNBT structure = StructureNBT.SingleItem(item);
-
-                FileWriterNBT writer = new FileWriterNBT("test.nbt", structure.ToNBT());
-                writer.Write();
-
-                Console.WriteLine("Wrote test file.");
-                return;
-            }
             if (file.ToUpper().Equals("--JSONBUILDER"))
             {
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
@@ -85,16 +64,47 @@ namespace mc_compiled
                 return;
             }
 
-            if(debug)
+            if (debug)
             {
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("Debug Enabled");
-                Console.WriteLine("\tObfuscate: " + obf.ToString());
-                Console.WriteLine("\tDecorate: " + decor.ToString());
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+            if (daemon)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[DAEMON] WATCHING FILE: {file}");
+                Console.ForegroundColor = ConsoleColor.White;
             }
 
             DEBUG = debug;
-            OBFUSCATE = obf;
 
+            string folder = Path.GetDirectoryName(Path.GetFullPath(file));
+            file = Path.GetFileName(file);
+            Directory.SetCurrentDirectory(folder);
+
+            if (daemon)
+            {
+                FileSystemWatcher watcher = new FileSystemWatcher(folder);
+                watcher.NotifyFilter = NotifyFilters.LastWrite;
+                watcher.Filter = Path.GetFileName(file);
+
+                while(true)
+                {
+                    Console.Clear();
+                    RunMCCompiled(file);
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("[daemon] listening for next update...");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    watcher.WaitForChanged(WatcherChangeTypes.Changed);
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
+
+            RunMCCompiled(file);
+        }
+        public static void RunMCCompiled(string file)
+        {
             try
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
@@ -112,7 +122,7 @@ namespace mc_compiled
 
                 Statement[] statements = Assembler.AssembleTokens(tokens);
 
-                if(DEBUG)
+                if (DEBUG)
                 {
                     Console.WriteLine("\tThe overview of assembled statements is as follows:");
                     Console.WriteLine(string.Join("\n", from s in statements select s.ToString()));
@@ -128,20 +138,21 @@ namespace mc_compiled
 
                 Console.WriteLine($"Completed in {stopwatch.Elapsed.TotalSeconds} seconds.");
 
-                if (DEBUG)
+                if (!NO_PAUSE)
                     Console.ReadLine();
-                else
-                    System.Threading.Thread.Sleep(3000);
-            } catch(TokenizerException exc)
+            }
+            catch (TokenizerException exc)
             {
                 int line = exc.line;
                 string message = exc.Message;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Problem encountered during tokenization of file:\n" +
                     $"\tLINE {line}: {message}\n\nTokenization cannot be continued.");
-                Console.ReadLine();
+                if (!NO_PAUSE)
+                    Console.ReadLine();
                 return;
-            } catch(StatementException exc)
+            }
+            catch (StatementException exc)
             {
                 Statement thrower = exc.statement;
                 string message = exc.Message;
@@ -150,7 +161,8 @@ namespace mc_compiled
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("An error has occurred during compilation:\n" +
                     $"\tLN{line} {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
-                Console.ReadLine();
+                if(!NO_PAUSE)
+                    Console.ReadLine();
                 return;
             }
         }

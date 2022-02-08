@@ -11,7 +11,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class Statement : ICloneable
     {
-        private readonly TypePattern[] patterns;
+        private TypePattern[] patterns;
         public Statement(Token[] tokens, bool waitForPatterns = false)
         {
             this.tokens = tokens;
@@ -117,6 +117,10 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void Run0(Executor executor)
         {
+            if(patterns != null && patterns.Length > 0)
+                if (!patterns.Any(pattern => pattern.Check(tokens)))
+                    throw new StatementException(this, "Invalid call pattern. Make sure you included all arguments of the right type.");
+
             currentToken = 0;
             Run(executor);
         }
@@ -129,7 +133,7 @@ namespace mc_compiled.MCC.Compiler
         public Statement ClonePrepare(Executor executor)
         {
             Statement statement = MemberwiseClone() as Statement;
-
+            
             // e.g. close/open block
             if (statement.tokens == null)
             {
@@ -176,6 +180,7 @@ namespace mc_compiled.MCC.Compiler
             SquashFunctions(ref tokens, executor);
 
             statement.tokens = tokens.ToArray();
+            statement.patterns = statement.GetValidPatterns();
             return statement;
         }
         public void Squash<T>(ref List<Token> tokens, Executor executor)
@@ -301,8 +306,8 @@ namespace mc_compiled.MCC.Compiler
                     {
                         TokenIdentifierValue a = _left as TokenIdentifierValue;
                         TokenLiteral b = _right as TokenLiteral;
-                        ScoreboardValue temp = executor.scoreboard.RequestTemp(a.value);
 
+                        ScoreboardValue temp = executor.scoreboard.RequestTemp(a.value);
                         ScoreboardValue bTemp = executor.scoreboard.RequestTemp(b, this);
                         executor.AddCommandsClean(bTemp.CommandsSetLiteral(bTemp.baseName, selector, b));
 

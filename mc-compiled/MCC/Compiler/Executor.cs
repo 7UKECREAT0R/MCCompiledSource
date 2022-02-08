@@ -32,7 +32,7 @@ namespace mc_compiled.MCC.Compiler
         readonly List<IBehaviorFile> filesToWrite;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
-        readonly Stack<Selector.Core> selections;
+        readonly Stack<Selector> selections;
 
         public readonly ScoreboardManager scoreboard;
         /// <summary>
@@ -91,7 +91,7 @@ namespace mc_compiled.MCC.Compiler
             return definedStdFiles.Contains(file.GetHashCode());
         }
 
-        public Selector.Core ActiveSelector
+        public Selector ActiveSelector
         {
             get => selections.Peek();
             set
@@ -102,12 +102,12 @@ namespace mc_compiled.MCC.Compiler
         }
         public string ActiveSelectorStr
         {
-            get => $"@{ActiveSelector}";
+            get => selections.Peek().ToString();
         }
         public void PushSelector(bool doesAlign)
         {
             if (doesAlign)
-                selections.Push(Selector.Core.s);
+                selections.Push(new Selector() { core = Selector.Core.s });
             else
                 selections.Push(ActiveSelector);
         }
@@ -170,7 +170,7 @@ namespace mc_compiled.MCC.Compiler
             ppv = new Dictionary<string, dynamic>();
             macros = new List<Macro>();
             functions = new List<Function>();
-            selections = new Stack<Selector.Core>();
+            selections = new Stack<Selector>();
 
             // support up to 100 levels of scope before blowing up
             lastPreprocessorCompare = new bool[100];
@@ -425,7 +425,7 @@ namespace mc_compiled.MCC.Compiler
             int line = unresolved.lineNumber;
             string word = unresolved.word;
 
-            if(ppv.TryGetValue(word, out dynamic value))
+            if(TryGetPPV(word, out dynamic value))
             {
                 if (value is int)
                     return new TokenIntegerLiteral(value, line);

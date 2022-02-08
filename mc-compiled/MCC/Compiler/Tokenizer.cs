@@ -214,6 +214,10 @@ namespace mc_compiled.MCC.Compiler
                 return new TokenInequality(CURRENT_LINE);
             }
 
+            // check for number literal
+            if (char.IsDigit(firstChar) || (firstChar == '-' && char.IsDigit(secondChar)))
+                return NextNumberIdentifier(firstChar);
+
             // check for math token
             if (firstChar == '>' && secondChar == '<')
             {
@@ -259,10 +263,6 @@ namespace mc_compiled.MCC.Compiler
                 }
                 return new TokenCoordinateLiteral(new Coord(0, false, false, true), CURRENT_LINE);
             }
-
-            // check for number literal
-            if (char.IsDigit(firstChar) || (firstChar == '-' && char.IsDigit(secondChar)))
-                return NextNumberIdentifier(firstChar);
 
             // check for string literal
             if (firstChar == '"')

@@ -126,5 +126,96 @@ namespace mc_compiled.Commands
                 return a;
             return a; // default
         }
+
+        public static Coord operator +(Coord a, Coord b)
+        {
+            if (a.isFloat || b.isFloat)
+                return new Coord(a.valuef + b.valuef, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei + b.valuei, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator -(Coord a, Coord b)
+        {
+            if (a.isFloat || b.isFloat)
+                return new Coord(a.valuef - b.valuef, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei - b.valuei, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator *(Coord a, Coord b)
+        {
+            if (a.isFloat || b.isFloat)
+                return new Coord(a.valuef * b.valuef, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei * b.valuei, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator /(Coord a, Coord b)
+        {
+            if (a.isFloat || b.isFloat)
+                return new Coord(a.valuef / b.valuef, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei / b.valuei, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator %(Coord a, Coord b)
+        {
+            if (a.isFloat || b.isFloat)
+                return new Coord(a.valuef % b.valuef, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei % b.valuei, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator +(Coord a, int b)
+        {
+            if (a.isFloat)
+                return new Coord(a.valuef + b, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei + b, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator -(Coord a, int b)
+        {
+            if (a.isFloat)
+                return new Coord(a.valuef - b, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei - b, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator *(Coord a, int b)
+        {
+            if (a.isFloat)
+                return new Coord(a.valuef * b, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei * b, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator /(Coord a, int b)
+        {
+            if (a.isFloat)
+                return new Coord(a.valuef / b, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei / b, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator %(Coord a, int b)
+        {
+            if (a.isFloat)
+                return new Coord(a.valuef % b, true, a.isRelative, a.isFacingOffset);
+            else
+                return new Coord(a.valuei % b, false, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator +(Coord a, float b)
+        {
+            return new Coord(a.valuef + b, true, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator -(Coord a, float b)
+        {
+            return new Coord(a.valuef - b, true, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator *(Coord a, float b)
+        {
+            return new Coord(a.valuef * b, true, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator /(Coord a, float b)
+        {
+            return new Coord(a.valuef / b, true, a.isRelative, a.isFacingOffset);
+        }
+        public static Coord operator %(Coord a, float b)
+        {
+            return new Coord(a.valuef % b, true, a.isRelative, a.isFacingOffset);
+        }
     }
 }

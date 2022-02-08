@@ -37,6 +37,17 @@ namespace mc_compiled.Commands
                     throw new FormatException($"Cannot parse selector \"{originalCore}\"");
             }
         }
+        /// <summary>
+        /// Returns if this selector targets multiple entities.
+        /// </summary>
+        public bool SelectsMultiple
+        {
+            get {
+                if (count.count == 1)
+                    return false;
+                return core != Core.s && core != Core.p;
+            }
+        }
 
         public Selector()
         {
@@ -108,6 +119,10 @@ namespace mc_compiled.Commands
         public List<Selectors.Tag> tags;// The tags this entity/player has. Can have multiple.
         public BlockCheck blockCheck;   // The block to check.
 
+        /// <summary>
+        /// Returns the fully qualified minecraft command selector that this represents.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             List<string> parts = new List<string>();
