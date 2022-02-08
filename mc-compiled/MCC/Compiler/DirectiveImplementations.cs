@@ -14,6 +14,10 @@ namespace mc_compiled.MCC.Compiler
 {
     public static class DirectiveImplementations
     {
+        public static void ResetState()
+        {
+            scatterFile = 0;
+        }
         public static int scatterFile = 0;
 
         public static void _var(Executor executor, Statement tokens)
@@ -1213,7 +1217,6 @@ namespace mc_compiled.MCC.Compiler
         {
             string block = tokens.Next<TokenStringLiteral>();
             int percent = tokens.Next<TokenIntegerLiteral>();
-            int data = tokens.Next<TokenIntegerLiteral>();
             Coord x1 = tokens.Next<TokenCoordinateLiteral>();
             Coord y1 = tokens.Next<TokenCoordinateLiteral>();
             Coord z1 = tokens.Next<TokenCoordinateLiteral>();
@@ -1225,9 +1228,10 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenStringLiteral>())
                 seed = tokens.Next<TokenStringLiteral>();
 
-            // generate a structure file for this zone.
             if (Program.DEBUG)
-                Console.WriteLine("Attempting to build scatter file... This may take a couple minutes.");
+                Console.WriteLine("Attempting to build scatter file... This may take a couple seconds.");
+
+            // generate a structure file for this zone.
             int sizeX = Math.Abs(x2.valuei - x1.valuei);
             int sizeY = Math.Abs(y2.valuei - y1.valuei);
             int sizeZ = Math.Abs(z2.valuei - z1.valuei);
@@ -1258,7 +1262,8 @@ namespace mc_compiled.MCC.Compiler
             structure = new StructureNBT();
             file = new StructureFile();
 
-            Console.WriteLine("Cleaning up from scatter file...");
+            if (Program.DEBUG)
+                Console.WriteLine("Cleaning up from scatter file...");
             GC.Collect();
 
             Coord minX = Coord.Min(x1, x2);

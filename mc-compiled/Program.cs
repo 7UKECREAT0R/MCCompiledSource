@@ -66,6 +66,7 @@ namespace mc_compiled
 
             if (debug)
             {
+                DEBUG = true;
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("Debug Enabled");
                 Console.ForegroundColor = ConsoleColor.White;
@@ -77,12 +78,14 @@ namespace mc_compiled
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
-            DEBUG = debug;
+            // initialize enum constants
+            Commands.CommandEnumParser.Init();
 
             string folder = Path.GetDirectoryName(Path.GetFullPath(file));
             file = Path.GetFileName(file);
             Directory.SetCurrentDirectory(folder);
 
+            bool firstRun = true;
             if (daemon)
             {
                 FileSystemWatcher watcher = new FileSystemWatcher(folder);
@@ -91,7 +94,12 @@ namespace mc_compiled
 
                 while(true)
                 {
-                    Console.Clear();
+                    if (firstRun)
+                        firstRun = false;
+                    else
+                        Console.Clear();
+
+                    PrepareToCompile();
                     RunMCCompiled(file);
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("[daemon] listening for next update...");
@@ -102,6 +110,19 @@ namespace mc_compiled
             }
 
             RunMCCompiled(file);
+        }
+        public static void PrepareToCompile()
+        {
+            // reset all that icky static stuff
+            StatementOpenBlock.ResetBranchFile();
+            Commands.Command.ResetState();
+            Tokenizer.CURRENT_LINE = 0;
+            DirectiveImplementations.ResetState();
+
+            // wipe files from output folder
+            string[] files = Directory.GetFiles("/", "*", SearchOption.AllDirectories);
+            foreach (string file in files)
+                File.Delete(file);
         }
         public static void RunMCCompiled(string file)
         {
@@ -129,7 +150,6 @@ namespace mc_compiled
                     Console.WriteLine();
                 }
 
-                StatementOpenBlock.ResetBranchFile();
                 Executor executor = new Executor(statements, Path.GetFileNameWithoutExtension(file));
                 executor.Execute();
 

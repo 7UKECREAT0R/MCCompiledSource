@@ -20,7 +20,7 @@ namespace mc_compiled.Commands
         {
             const string POINT_PREFIX = "_mcc_point";
 
-            int pointIndex;
+            internal int pointIndex;
 
             public string MakeInvisible(string entity) =>
                 Command.Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
@@ -71,7 +71,11 @@ namespace mc_compiled.Commands
                 };
             }
         }
-
+        
+        public static void ResetState()
+        {
+            UTIL.pointIndex = 0;
+        }
         public static readonly Util UTIL = new Util();
 
         public static string String(this EquipmentSlotType slot) => slot.ToString().Replace('_', '.');
@@ -466,12 +470,14 @@ namespace mc_compiled.Commands
         public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
             $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
-                StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = "abc") =>
-            $"structure load {name} {x} {y} {z} {rotation} {flip} {includeEntities} {includeBlocks} {integrity} {seed}";
+                StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
+            seed == null ? $"structure load {name} {x} {y} {z} {rotation} {flip} {includeEntities} {includeBlocks} {integrity}"
+            : $"structure load {name} {x} {y} {z} {rotation} {flip} {includeEntities} {includeBlocks} {integrity} {seed}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, StructureAnimationMode animation = StructureAnimationMode.layer_by_layer,
-                float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = "abc") =>
-            $"structure load {name} {x} {y} {z} {rotation} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity} {seed}";
+                float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
+            seed == null ? $"structure load {name} {x} {y} {z} {rotation} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity}"
+            : $"structure load {name} {x} {y} {z} {rotation} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity} {seed}";
         public static string StructureDelete(string name) =>
             $"structure delete {name}";
 
