@@ -48,6 +48,13 @@ namespace mc_compiled.Commands
                 return core != Core.s && core != Core.p;
             }
         }
+        /// <summary>
+        /// Returns if this selector needs to be aligned before executing locally on this entity.
+        /// </summary>
+        public bool NeedsAlign
+        {
+            get => core != Core.s;
+        }
 
         public Selector()
         {

@@ -179,7 +179,7 @@ namespace mc_compiled.MCC.Compiler
                         throw new TokenizerException("Invalid selector. '" +
                             secondChar + "'. Valid options: @p, @s, @a, or @e");
                 }
-                if (Peek() == '[')
+                if (HasNext && Peek() == '[')
                     return NextSelectorLiteral(core);
                 else
                     return new TokenSelectorLiteral(core, CURRENT_LINE);

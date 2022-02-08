@@ -132,7 +132,6 @@ namespace mc_compiled.Commands.Selectors
 
             return parts.ToArray();
         }
-
         public string AsStoreIn(string selector, string objective)
         {
             IEnumerable<string> parts = GetSections();

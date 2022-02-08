@@ -28,9 +28,10 @@ namespace mc_compiled.Commands
                 RequestPoint(Coord.here, Coord.here, Coord.here, out selector);
             public string[] RequestPoint(Coord x, Coord y, Coord z, out Selector selector)
             {
-                string name = POINT_PREFIX + pointIndex++;
+                string name = POINT_PREFIX + (++pointIndex);
                 selector = new Selector()
                 {
+                    core = Selector.Core.e,
                     count = new Selectors.Count(1),
                     entity = new Selectors.Entity(name, "minecraft:armor_stand", null)
                 };

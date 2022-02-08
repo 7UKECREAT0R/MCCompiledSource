@@ -183,6 +183,38 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
         }
+        public static void _pow(Executor executor, Statement tokens)
+        {
+            string varName = tokens.Next<TokenIdentifier>().word;
+            IObjectable otherToken = tokens.Next<IObjectable>();
+            dynamic other = otherToken.GetObject();
+
+            if (otherToken is TokenIdentifier)
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
+                    other = ppv;
+
+            if(!(other is int))
+                throw new StatementException(tokens, "Can only exponentiate to an integer value.");
+
+            int count = (int)other;
+
+            if (executor.TryGetPPV(varName, out dynamic value))
+            {
+                dynamic result = value;
+                try
+                {
+                    for(int i = 1; i < count; i++)
+                        result *= value;
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't exponentiate that type of value.");
+                }
+                executor.SetPPV(varName, result);
+            }
+            else
+                throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
+        }
         public static void _swap(Executor executor, Statement tokens)
         {
             string aName = tokens.Next<TokenIdentifier>().word;
@@ -473,10 +505,17 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void select(Executor executor, Statement tokens)
         {
+            if(tokens.NextIs<TokenStringLiteral>())
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+                executor.ActiveSelector = new Selector()
+                {
+                    core = Selector.Core.e,
+                    entity = new Entity(name, null, null)
+                };
+                return;
+            }
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-            if (!selector.simple)
-                Console.WriteLine("WARNING: Advanced selectors cannot be used in 'select' directive.");
-
             executor.ActiveSelector = selector;
         }
         public static void globalprint(Executor executor, Statement tokens)
@@ -507,6 +546,7 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValueStruct sbValue = new ScoreboardValueStruct
                     (@string, _struct.@struct, executor.scoreboard);
                 executor.scoreboard.Add(sbValue);
+                executor.AddCommandsHead(sbValue.CommandsDefine());
                 return;
             }
 
@@ -549,6 +589,7 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValueDecimal decimalValue = new ScoreboardValueDecimal
                     (decimalName, precision, executor.scoreboard);
                 executor.scoreboard.Add(decimalValue);
+                executor.AddCommandsHead(decimalValue.CommandsDefine());
                 return;
             }
 
@@ -565,6 +606,7 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, $"Variable type corrupted for '{name}'.");
 
             executor.scoreboard.Add(value);
+            executor.AddCommandsHead(value.CommandsDefine());
         }
         public static void init(Executor executor, Statement tokens)
         {
@@ -999,7 +1041,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tp(Executor executor, Statement tokens)
         {
-            if(tokens.NextIs<TokenSelectorLiteral>())
+            executor.PushSelectorExecute();
+            if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.Teleport(selector.selector.ToString()));
@@ -1013,11 +1056,12 @@ namespace mc_compiled.MCC.Compiler
                 {
                     Coord ry = tokens.Next<TokenCoordinateLiteral>();
                     Coord rx = tokens.Next<TokenCoordinateLiteral>();
-                    executor.AddCommand(Command.Teleport(x, y, z, ry, rx));
+                    executor.AddCommand(Command.Teleport(executor.ActiveSelectorStr, x, y, z, ry, rx));
                 }
                 else
-                    executor.AddCommand(Command.Teleport(x, y, z));
+                    executor.AddCommand(Command.Teleport(executor.ActiveSelectorStr, x, y, z));
             }
+            executor.PopSelector();
         }
         public static void tphere(Executor executor, Statement tokens)
         {
@@ -1033,16 +1077,18 @@ namespace mc_compiled.MCC.Compiler
                 offsetZ = tokens.Next<TokenCoordinateLiteral>();
             }
 
+            executor.PushSelectorExecute();
             executor.AddCommand(Command.Teleport(selector.ToString(), offsetX, offsetY, offsetZ));
+            executor.PopSelector();
         }
         public static void move(Executor executor, Statement tokens)
         {
             string direction = tokens.Next<TokenIdentifier>().word.ToUpper();
             float amount = tokens.Next<TokenNumberLiteral>().GetNumber();
 
-            Coord x = Coord.here;
-            Coord y = Coord.here;
-            Coord z = Coord.here;
+            Coord x = Coord.herefacing;
+            Coord y = Coord.herefacing;
+            Coord z = Coord.herefacing;
 
             switch(direction)
             {
@@ -1068,10 +1114,13 @@ namespace mc_compiled.MCC.Compiler
                     break;
             }
 
+            executor.PushSelectorExecute();
             executor.AddCommand(Command.Teleport(x, y, z));
+            executor.PopSelector();
         }
         public static void face(Executor executor, Statement tokens)
         {
+            executor.PushSelectorExecute();
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
@@ -1082,8 +1131,10 @@ namespace mc_compiled.MCC.Compiler
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
+                
                 executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, x, y, z));
             }
+            executor.PopSelector();
         }
         public static void facehere(Executor executor, Statement tokens)
         {
@@ -1093,7 +1144,10 @@ namespace mc_compiled.MCC.Compiler
             commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
                 Command.TeleportFacing(Coord.here, Coord.here, Coord.here, point.ToString())));
             commands.AddRange(Command.UTIL.ReleasePoint());
-            commands.AddRange(commands);
+
+            executor.PushSelectorExecute();
+            executor.AddCommands(commands);
+            executor.PopSelector();
         }
         public static void rotate(Executor executor, Statement tokens)
         {

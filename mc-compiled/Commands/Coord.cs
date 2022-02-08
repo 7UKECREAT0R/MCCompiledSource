@@ -13,6 +13,7 @@ namespace mc_compiled.Commands
     {
         public static readonly Coord zero = new Coord(0, false, false, false);
         public static readonly Coord here = new Coord(0, false, true, false);
+        public static readonly Coord herefacing = new Coord(0, false, false, true);
 
         public float valuef;
         public int valuei;
@@ -74,10 +75,12 @@ namespace mc_compiled.Commands
         public override string ToString()
         {
             string s;
+            bool anyRelative = isRelative | isFacingOffset;
+
             if (isFloat)
-                s = (valuef == 0f) ? "" : valuef.ToString();
+                s = (valuef == 0f && anyRelative) ? "" : valuef.ToString();
             else
-                s = (valuei == 0) ? "" : valuei.ToString();
+                s = (valuei == 0 && anyRelative) ? "" : valuei.ToString();
 
             if (isRelative)
                 return '~' + s;

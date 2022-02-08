@@ -40,6 +40,10 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public static CommandFile GetNextBranchFile() =>
             new CommandFile("branch" + (branchIndex++), "_branching");
+        public static void ResetBranchFile()
+        {
+            branchIndex = 0;
+        }
 
         public int statementsInside;
         public bool shouldRun = false;

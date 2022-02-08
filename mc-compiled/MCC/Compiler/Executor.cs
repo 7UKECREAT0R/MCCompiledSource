@@ -91,6 +91,9 @@ namespace mc_compiled.MCC.Compiler
             return definedStdFiles.Contains(file.GetHashCode());
         }
 
+        /// <summary>
+        /// Get the active selector.
+        /// </summary>
         public Selector ActiveSelector
         {
             get => selections.Peek();
@@ -100,10 +103,17 @@ namespace mc_compiled.MCC.Compiler
                 selections.Push(value);
             }
         }
+        /// <summary>
+        /// The currently active selector represented as a string.
+        /// </summary>
         public string ActiveSelectorStr
         {
             get => selections.Peek().ToString();
         }
+        /// <summary>
+        /// Push a copy of the current selector to the stack. If doesAlign is set, then the selector is reset to '@s'.
+        /// </summary>
+        /// <param name="doesAlign"></param>
         public void PushSelector(bool doesAlign)
         {
             if (doesAlign)
@@ -111,6 +121,43 @@ namespace mc_compiled.MCC.Compiler
             else
                 selections.Push(ActiveSelector);
         }
+        /// <summary>
+        /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
+        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
+        /// </summary>
+        public void PushSelectorExecute()
+        {
+            Selector active = ActiveSelector;
+            if(active.NeedsAlign)
+            {
+                AppendCommandPrepend(Command.Execute(active.ToString(), Coord.here, Coord.here, Coord.here, ""));
+                PushSelector(true);
+                return;
+            }
+
+            PushSelector(false);
+        }
+        /// <summary>
+        /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
+        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
+        /// 
+        /// This variant offsets the position of the execution relative to each entity.
+        /// </summary>
+        public void PushSelectorExecute(Coord offsetX, Coord offsetY, Coord offsetZ)
+        {
+            Selector active = ActiveSelector;
+            if (active.NeedsAlign)
+            {
+                AppendCommandPrepend(Command.Execute(active.ToString(), offsetX, offsetY, offsetZ, ""));
+                PushSelector(true);
+                return;
+            }
+
+            PushSelector(false);
+        }
+        /// <summary>
+        /// Pop a selector off the stack and return to the previous.
+        /// </summary>
         public void PopSelector() =>
             selections.Pop();
 
@@ -327,13 +374,22 @@ namespace mc_compiled.MCC.Compiler
         public void AddCommand(string command) =>
             CurrentFile.Add(PopPrepend() + command);
         /// <summary>
-        /// Add a set of commands to the current file, all with the prepend buffer.
+        /// Add a set of commands into a new branching file
         /// </summary>
         /// <param name="commands"></param>
         public void AddCommands(IEnumerable<string> commands)
         {
-            string prepend = PopPrepend();
-            CurrentFile.Add(commands.Select(c => prepend + c));
+            if(commands.Count() == 1)
+            {
+                AddCommand(commands.First());
+                return;
+            }
+
+            CommandFile file = StatementOpenBlock.GetNextBranchFile();
+            file.Add(commands);
+
+            AddExtraFile(file);
+            AddCommand(Command.Function(file));
         }
         /// <summary>
         /// Add a command to the current file, not modifying the prepend buffer.

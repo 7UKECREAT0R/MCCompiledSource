@@ -436,7 +436,7 @@ namespace mc_compiled.MCC.Compiler
         }
     }
 
-    public sealed class TokenSelectorLiteral : TokenLiteral
+    public sealed class TokenSelectorLiteral : TokenLiteral, IObjectable
     {
         public readonly bool simple;
         public readonly Selector selector;
@@ -479,5 +479,7 @@ namespace mc_compiled.MCC.Compiler
         {
             throw new NotImplementedException();
         }
+
+        public object GetObject() => selector;
     }
 }

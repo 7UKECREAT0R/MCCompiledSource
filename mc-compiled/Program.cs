@@ -129,6 +129,7 @@ namespace mc_compiled
                     Console.WriteLine();
                 }
 
+                StatementOpenBlock.ResetBranchFile();
                 Executor executor = new Executor(statements, Path.GetFileNameWithoutExtension(file));
                 executor.Execute();
 
