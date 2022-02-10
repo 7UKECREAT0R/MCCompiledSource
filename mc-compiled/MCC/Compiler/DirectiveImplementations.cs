@@ -938,20 +938,38 @@ namespace mc_compiled.MCC.Compiler
 
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end-of-file after if/else statement.");
-            
+
+            StatementOpenBlock opener = null;
             if (executor.NextIs<StatementOpenBlock>())
             {
-                CommandFile nextBranchFile = StatementOpenBlock.GetNextBranchFile();
-                StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
-                openBlock.aligns = true;
-                openBlock.shouldRun = true;
-                openBlock.TargetFile = nextBranchFile;
-                executor.AddCommand(Command.Function(nextBranchFile));
-                return;
-            } else
+                opener = executor.Peek<StatementOpenBlock>();
+
+                // waste of a branching file, so treat as 1 statement.
+                if (opener.statementsInside == 1)
+                {
+                    // skip open block
+                    executor.Next();
+
+                    // make close block only pop selector
+                    StatementCloseBlock closer = executor.Peek<StatementCloseBlock>(1);
+                    closer.popFile = false;
+                    executor.PushSelector(true);
+                    return;
+                }
+            }
+
+            if (opener == null)
             {
                 executor.PushSelector(true);
                 executor.PopSelectorAfterNext();
+            } else
+            {
+                CommandFile nextBranchFile = StatementOpenBlock.GetNextBranchFile();
+                opener.aligns = true;
+                opener.shouldRun = true;
+                opener.TargetFile = nextBranchFile;
+                executor.AddCommand(Command.Function(nextBranchFile));
+                return;
             }
         }
         public static void @else(Executor executor, Statement tokens)
@@ -1521,6 +1539,7 @@ namespace mc_compiled.MCC.Compiler
                 executor.DefineSTDFile(file);
             }
 
+            executor.UnreachableCode();
             executor.AddCommand(Command.Function(file));
         }
 

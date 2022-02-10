@@ -22,6 +22,7 @@ namespace mc_compiled.MCC.Compiler
 
         Statement[] statements;
         int readIndex = 0;
+        int unreachableCode = -1;
 
         readonly List<int> definedStdFiles;
         readonly List<Macro> macros;
@@ -60,7 +61,7 @@ namespace mc_compiled.MCC.Compiler
                 string src = match.Value;
                 string accessor = match.Groups[1].Value;
 
-                if(scoreboard.TryGetByAccessor(accessor, out ScoreboardValue value))
+                if (scoreboard.TryGetByAccessor(accessor, out ScoreboardValue value))
                 {
                     AddCommandsClean(value.CommandsRawTextSetup(accessor, sel, index));
                     terms.AddRange(value.ToRawText(accessor, sel, index++));
@@ -72,6 +73,17 @@ namespace mc_compiled.MCC.Compiler
                 terms.Add(new JSONText(pieces.Pop()));
 
             return terms;
+        }
+        public void UnreachableCode() =>
+            unreachableCode = 1;
+        void CheckUnreachable(Statement current)
+        {
+            if (unreachableCode > 0)
+                unreachableCode--;
+            else if (unreachableCode == 0)
+                throw new StatementException(current, "Unreachable code detected.");
+            else
+                unreachableCode = -1;
         }
 
         /// <summary>
@@ -128,7 +140,7 @@ namespace mc_compiled.MCC.Compiler
         public void PushSelectorExecute()
         {
             Selector active = ActiveSelector;
-            if(active.NeedsAlign)
+            if (active.NeedsAlign)
             {
                 AppendCommandPrepend(Command.Execute(active.ToString(), Coord.here, Coord.here, Coord.here, ""));
                 PushSelector(true);
@@ -158,8 +170,11 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Pop a selector off the stack and return to the previous.
         /// </summary>
-        public void PopSelector() =>
+        public void PopSelector()
+        {
+            unreachableCode = -1;
             selections.Pop();
+        }
 
 
         int popSelectorsAfterNext = 0;
@@ -177,10 +192,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public Statement Peek() => statements[readIndex];
         public Statement Next() => statements[readIndex++];
-        public T Next<T>() where T: Statement => statements[readIndex++] as T;
+        public T Next<T>() where T : Statement => statements[readIndex++] as T;
         public T Peek<T>() where T : Statement => statements[readIndex] as T;
         public T Peek<T>(int skip) where T : Statement => statements[readIndex + skip] as T;
-        public bool NextIs<T>() where T: Statement => statements[readIndex] is T;
+        public bool NextIs<T>() where T : Statement => statements[readIndex] is T;
         /// <summary>
         /// Return an array of the next x statements.
         /// </summary>
@@ -238,17 +253,20 @@ namespace mc_compiled.MCC.Compiler
         {
             readIndex = 0;
 
-            while(HasNext)
+            while (HasNext)
             {
                 Statement unresolved = Next();
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
 
-                if(popSelectorsAfterNext >= 0)
+                // check for unreachable code due to halt directive
+                CheckUnreachable(statement);
+
+                if (popSelectorsAfterNext >= 0)
                 {
                     popSelectorsAfterNext--;
-                    if(popSelectorsAfterNext == 0)
+                    if (popSelectorsAfterNext == 0)
                         PopSelector();
                 }
             }
@@ -273,6 +291,9 @@ namespace mc_compiled.MCC.Compiler
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
+
+                // check for unreachable code due to halt directive
+                CheckUnreachable(statement);
 
                 if (popSelectorsAfterNext >= 0)
                 {
@@ -379,14 +400,14 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="commands"></param>
         public void AddCommands(IEnumerable<string> commands, bool inline = false)
         {
-            if(inline)
+            if (inline)
             {
                 string buffer = PopPrepend();
                 CurrentFile.Add(from c in commands select buffer + c);
                 return;
             }
 
-            if(commands.Count() == 1)
+            if (commands.Count() == 1)
             {
                 AddCommand(commands.First());
                 return;
@@ -492,7 +513,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public string ResolveString(string str)
         {
-            foreach(var kv in ppv)
+            foreach (var kv in ppv)
             {
                 string name = '$' + kv.Key;
                 string value = kv.Value.ToString();
@@ -506,7 +527,7 @@ namespace mc_compiled.MCC.Compiler
             int line = unresolved.lineNumber;
             string word = unresolved.word;
 
-            if(TryGetPPV(word, out dynamic value))
+            if (TryGetPPV(word, out dynamic value))
             {
                 if (value is int)
                     return new TokenIntegerLiteral(value, line);
@@ -527,8 +548,11 @@ namespace mc_compiled.MCC.Compiler
 
         public void PushFile(CommandFile file) =>
             currentFiles.Push(file);
-        public void PopFile() =>
+        public void PopFile()
+        {
+            unreachableCode = -1;
             filesToWrite.Add(currentFiles.Pop());
+        }
 
         /// <summary>
         /// Write all files that have been generated.
