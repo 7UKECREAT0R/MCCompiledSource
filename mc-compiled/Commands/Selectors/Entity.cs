@@ -12,6 +12,8 @@ namespace mc_compiled.Commands.Selectors
     public struct Entity
     {
         public string name;     // The name of this entity/player.
+        public bool nameNot;    // if name is inverted
+
         public string type;     // The type of this entity.
         public string family;   // The family this entity is in.
         public int?
@@ -21,10 +23,11 @@ namespace mc_compiled.Commands.Selectors
             rotYMin,
             rotYMax;
 
-        public Entity(string name, string type, string family, int? rotXMin = null,
-            int? rotXMax = null, int? rotYMin = null, int? rotYMax = null)
+        public Entity(string name, bool nameNot, string type, string family,
+            int? rotXMin = null, int? rotXMax = null, int? rotYMin = null, int? rotYMax = null)
         {
             this.name = name;
+            this.nameNot = nameNot;
             this.type = type;
             this.family = family;
             this.rotXMin = rotXMin;
@@ -35,6 +38,7 @@ namespace mc_compiled.Commands.Selectors
         public static Entity Parse(string[] chunks)
         {
             string name = null;
+            bool nameNot = false;
             string type = null;
             string family = null;
 
@@ -55,6 +59,11 @@ namespace mc_compiled.Commands.Selectors
                 switch (a)
                 {
                     case "NAME":
+                        if (b.StartsWith("!"))
+                        {
+                            nameNot = true;
+                            b = b.Substring(1);
+                        }
                         name = b.Trim('\"');
                         break;
                     case "TYPE":
@@ -78,7 +87,7 @@ namespace mc_compiled.Commands.Selectors
                 }
             }
 
-            return new Entity(name, type, family,
+            return new Entity(name, nameNot, type, family,
                 rotXMin, rotXMax, rotYMin, rotYMax);
         }
 

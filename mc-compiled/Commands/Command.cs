@@ -33,7 +33,7 @@ namespace mc_compiled.Commands
                 {
                     core = Selector.Core.e,
                     count = new Selectors.Count(1),
-                    entity = new Selectors.Entity(name, "minecraft:armor_stand", null)
+                    entity = new Selectors.Entity(name, false, "minecraft:armor_stand", null)
                 };
 
                 return new string[]
@@ -48,7 +48,7 @@ namespace mc_compiled.Commands
                 selector = new Selector()
                 {
                     count = new Selectors.Count(1),
-                    entity = new Selectors.Entity(name, "minecraft:armor_stand", null)
+                    entity = new Selectors.Entity(name, false, "minecraft:armor_stand", null)
                 };
 
                 return new string[]

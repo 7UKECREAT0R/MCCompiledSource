@@ -374,11 +374,18 @@ namespace mc_compiled.MCC.Compiler
         public void AddCommand(string command) =>
             CurrentFile.Add(PopPrepend() + command);
         /// <summary>
-        /// Add a set of commands into a new branching file
+        /// Add a set of commands into a new branching file unless inline is set.
         /// </summary>
         /// <param name="commands"></param>
-        public void AddCommands(IEnumerable<string> commands)
+        public void AddCommands(IEnumerable<string> commands, bool inline = false)
         {
+            if(inline)
+            {
+                string buffer = PopPrepend();
+                CurrentFile.Add(from c in commands select buffer + c);
+                return;
+            }
+
             if(commands.Count() == 1)
             {
                 AddCommand(commands.First());
@@ -401,13 +408,31 @@ namespace mc_compiled.MCC.Compiler
             CurrentFile.Add(prepend + command);
         }
         /// <summary>
-        /// Add a set of commands to the current file, not modifying the prepend buffer.
+        /// Add a set of commands into a new branching file, not modifying the prepend buffer.
+        /// If inline is set, no branching file will be made.
         /// </summary>
         /// <param name="commands"></param>
-        public void AddCommandsClean(IEnumerable<string> commands)
+        public void AddCommandsClean(IEnumerable<string> commands, bool inline = false)
         {
-            string prepend = prependBuffer.ToString();
-            CurrentFile.Add(commands.Select(c => prepend + c));
+            string buffer = prependBuffer.ToString();
+
+            if (inline)
+            {
+                CurrentFile.Add(commands.Select(c => buffer + c));
+                return;
+            }
+
+            if (commands.Count() == 1)
+            {
+                AddCommand(commands.First());
+                return;
+            }
+
+            CommandFile file = StatementOpenBlock.GetNextBranchFile();
+            file.Add(commands);
+
+            AddExtraFile(file);
+            CurrentFile.Add(buffer + Command.Function(file));
         }
         /// <summary>
         /// Add a file on its own to the list.

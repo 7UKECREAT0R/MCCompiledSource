@@ -126,7 +126,7 @@ namespace mc_compiled.MCC
                 Token input = inputs[i];
                 string accessor = this.inputs[i];
 
-                ScoreboardValue output = new ScoreboardValueInteger(accessor, sb);
+                ScoreboardValue output = new ScoreboardValueInteger(accessor, sb, caller);
                 commands.AddRange(output.CommandsInit());
 
                 if (input is TokenLiteral)

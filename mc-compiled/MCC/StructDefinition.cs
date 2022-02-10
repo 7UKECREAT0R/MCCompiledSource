@@ -49,8 +49,8 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public ScoreboardValueStruct Create(string name, ScoreboardManager manager) =>
-            new ScoreboardValueStruct(name, this, manager);
+        public ScoreboardValueStruct Create(string name, ScoreboardManager manager, Compiler.Statement forExceptions) =>
+            new ScoreboardValueStruct(name, this, manager, forExceptions);
         public override bool Equals(object obj)
         {
             if (!(obj is StructDefinition))

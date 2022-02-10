@@ -17,11 +17,17 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a directive call.
     /// </summary>
-    public sealed class TokenDirective : Token
+    public sealed class TokenDirective : Token, IImplicitToken
     {
         public readonly Directive directive;
 
         public override string AsString() => directive.identifier;
+
+        public Type GetImplicitType() =>
+            typeof(TokenIdentifier);
+        public Token Convert() =>
+            new TokenIdentifier(directive.identifier, lineNumber);
+
         public TokenDirective(Directive directive, int lineNumber) : base(lineNumber)
         {
             this.directive = directive;

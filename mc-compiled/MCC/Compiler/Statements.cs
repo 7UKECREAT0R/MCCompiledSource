@@ -16,6 +16,9 @@ namespace mc_compiled.MCC.Compiler
         }
         public override string ToString()
         {
+            if (directive == null)
+                return $"[DIRECTIVE] [PARSING ERROR]";
+
             return $"[DIRECTIVE] {directive.fullName} -> {string.Join(" ", from t in tokens select t.DebugString())}";
         }
 
@@ -44,6 +47,11 @@ namespace mc_compiled.MCC.Compiler
         {
             branchIndex = 0;
         }
+
+        /// <summary>
+        /// Pointer to the closing block.
+        /// </summary>
+        public StatementCloseBlock closer;
 
         public int statementsInside;
         public bool shouldRun = false;
@@ -104,6 +112,11 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"[CLOSE BLOCK]";
         }
+
+        /// <summary>
+        /// Pointer to the opening block.
+        /// </summary>
+        public StatementOpenBlock opener;
 
         protected override TypePattern[] GetValidPatterns()
             => new TypePattern[0];

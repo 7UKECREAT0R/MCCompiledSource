@@ -82,6 +82,7 @@ namespace mc_compiled
             Commands.CommandEnumParser.Init();
 
             string folder = Path.GetDirectoryName(Path.GetFullPath(file));
+            string projectName = Path.GetFileNameWithoutExtension(file);
             file = Path.GetFileName(file);
             Directory.SetCurrentDirectory(folder);
 
@@ -99,7 +100,7 @@ namespace mc_compiled
                     else
                         Console.Clear();
 
-                    PrepareToCompile();
+                    PrepareToCompile(projectName);
                     RunMCCompiled(file);
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("[daemon] listening for next update...");
@@ -109,9 +110,10 @@ namespace mc_compiled
                 }
             }
 
+            PrepareToCompile(projectName);
             RunMCCompiled(file);
         }
-        public static void PrepareToCompile()
+        public static void PrepareToCompile(string projectName)
         {
             // reset all that icky static stuff
             StatementOpenBlock.ResetBranchFile();
@@ -120,7 +122,7 @@ namespace mc_compiled
             DirectiveImplementations.ResetState();
 
             // wipe files from output folder
-            string[] files = Directory.GetFiles("/", "*", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(projectName + "/", "*", SearchOption.AllDirectories);
             foreach (string file in files)
                 File.Delete(file);
         }
@@ -177,11 +179,12 @@ namespace mc_compiled
             {
                 Statement thrower = exc.statement;
                 string message = exc.Message;
-                int line = thrower.Line;
+                int _line = thrower.Line;
+                string line = _line == -1 ? "??" : _line.ToString();
 
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("An error has occurred during compilation:\n" +
-                    $"\tLN{line} {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
+                    $"\tLINE {line} {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
                 if(!NO_PAUSE)
                     Console.ReadLine();
                 return;

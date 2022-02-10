@@ -356,7 +356,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _macro(Executor executor, Statement tokens)
         {
-            if (executor.NextIs<StatementOpenBlock>())
+            if (executor.HasNext && executor.NextIs<StatementOpenBlock>())
                 _macrodefine(executor, tokens);
             else
                 _macrocall(executor, tokens);
@@ -512,10 +512,23 @@ namespace mc_compiled.MCC.Compiler
             if(tokens.NextIs<TokenStringLiteral>())
             {
                 string name = tokens.Next<TokenStringLiteral>();
+                string type = null;
+                if(name.Contains(':'))
+                {
+                    string[] strs = name.Split(':');
+                    name = strs[0].Trim();
+                    if (strs.Length > 1)
+                        type = strs[1].Trim();
+                }
+                if (string.IsNullOrEmpty(name))
+                    name = null;
+                if (string.IsNullOrEmpty(type))
+                    type = null;
+
                 executor.ActiveSelector = new Selector()
                 {
                     core = Selector.Core.e,
-                    entity = new Entity(name, null, null)
+                    entity = new Entity(name, false, type, null)
                 };
                 return;
             }
@@ -548,7 +561,7 @@ namespace mc_compiled.MCC.Compiler
                 TokenIdentifierStruct _struct = tokens.Next<TokenIdentifierStruct>();
                 TokenStringLiteral @string = tokens.Next<TokenStringLiteral>();
                 ScoreboardValueStruct sbValue = new ScoreboardValueStruct
-                    (@string, _struct.@struct, executor.scoreboard);
+                    (@string, _struct.@struct, executor.scoreboard, tokens);
                 executor.scoreboard.Add(sbValue);
                 executor.AddCommandsHead(sbValue.CommandsDefine());
                 return;
@@ -560,6 +573,7 @@ namespace mc_compiled.MCC.Compiler
             const int TYPE_TIME = 3;
 
             int type = TYPE_INT;
+            string name = null;
 
             if(tokens.NextIs<TokenIdentifier>())
             {
@@ -580,7 +594,8 @@ namespace mc_compiled.MCC.Compiler
                         type = TYPE_TIME;
                         break;
                     default:
-                        throw new StatementException(tokens, $"Invalid type identifier '{typeWord}'.");
+                        name = identifier.Convert() as TokenStringLiteral;
+                        break;
                 }
             }
 
@@ -591,21 +606,22 @@ namespace mc_compiled.MCC.Compiler
                 int precision = tokens.Next<TokenIntegerLiteral>();
                 string decimalName = tokens.Next<TokenStringLiteral>();
                 ScoreboardValueDecimal decimalValue = new ScoreboardValueDecimal
-                    (decimalName, precision, executor.scoreboard);
+                    (decimalName, precision, executor.scoreboard, tokens);
                 executor.scoreboard.Add(decimalValue);
                 executor.AddCommandsHead(decimalValue.CommandsDefine());
                 return;
             }
 
-            string name = tokens.Next<TokenStringLiteral>();
+            if(name == null)
+                name = tokens.Next<TokenStringLiteral>();
             ScoreboardValue value;
 
             if (type == TYPE_INT)
-                value = new ScoreboardValueInteger(name, executor.scoreboard);
+                value = new ScoreboardValueInteger(name, executor.scoreboard, tokens);
             else if (type == TYPE_BOOL)
-                value = new ScoreboardValueBoolean(name, executor.scoreboard);
+                value = new ScoreboardValueBoolean(name, executor.scoreboard, tokens);
             else if (type == TYPE_TIME)
-                value = new ScoreboardValueTime(name, executor.scoreboard);
+                value = new ScoreboardValueTime(name, executor.scoreboard, tokens);
             else
                 throw new StatementException(tokens, $"Variable type corrupted for '{name}'.");
 
@@ -614,13 +630,25 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void init(Executor executor, Statement tokens)
         {
-            TokenIdentifierValue _value = tokens.Next<TokenIdentifierValue>();
-            executor.AddCommands(_value.value.CommandsInit());
+            ScoreboardValue value;
+
+            if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+                if (!executor.scoreboard.TryGetByAccessor(name, out value))
+                    throw new StatementException(tokens, $"Attempted to initialize undefined variable '{name}'.");
+            }
+            else
+                value = tokens.Next<TokenIdentifierValue>().value;
+
+
+            executor.AddCommands(value.CommandsInit(), true);
         }
         public static void @if(Executor executor, Statement tokens) =>
             @if(executor, tokens, false);
         public static void @if(Executor executor, Statement tokens, bool invert)
         {
+            executor.PushSelectorExecute();
             Selector selector = new Selector(executor.ActiveSelector);
             Token[] tokensUsed = tokens.GetRemainingTokens();
 
@@ -732,7 +760,11 @@ namespace mc_compiled.MCC.Compiler
                             selector.scores.checks.AddRange(output.Item1);
                             commands.AddRange(output.Item2);
                         }
-                        else throw new StatementException(tokens, "Attempted to compare value with invalid token.");
+                        else
+                        {
+                            executor.PopSelector();
+                            throw new StatementException(tokens, "Attempted to compare value with invalid token.");
+                        }
                     }
                     else break;
                 }
@@ -745,7 +777,7 @@ namespace mc_compiled.MCC.Compiler
                     string block = tokens.Next<TokenStringLiteral>();
                     int? data = null;
 
-                    if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                    if (tokens.NextIs<TokenIntegerLiteral>())
                         data = tokens.Next<TokenIntegerLiteral>();
 
                     BlockCheck blockCheck = new BlockCheck(x, y, z, block, data);
@@ -771,7 +803,7 @@ namespace mc_compiled.MCC.Compiler
                     int radius = tokens.Next<TokenIntegerLiteral>();
 
                     int? minRadius = null;
-                    if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                    if (tokens.NextIs<TokenIntegerLiteral>())
                         minRadius = tokens.Next<TokenIntegerLiteral>();
 
                     Area area = new Area(x, y, z, minRadius, radius);
@@ -788,7 +820,7 @@ namespace mc_compiled.MCC.Compiler
                     else if (not)
                     {
                         area.radiusMin = area.radiusMax;
-                        area.radiusMax = 999999999f;
+                        area.radiusMax = 999999f;
                         selector.area = area;
                     }
                     else
@@ -827,7 +859,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     string family = tokens.Next<TokenStringLiteral>();
                     if (not) family = '!' + family;
-                    selector.entity.type = family;
+                    selector.entity.family = family;
                 }
                 else if (word.Equals("TAG"))
                 {
@@ -851,7 +883,7 @@ namespace mc_compiled.MCC.Compiler
                     int levelMin = tokens.Next<TokenIntegerLiteral>();
                     int? levelMax = null;
 
-                    if (tokens.HasNext)
+                    if (tokens.NextIs<TokenIntegerLiteral>())
                         levelMax = tokens.Next<TokenIntegerLiteral>();
 
                     if (not && levelMax == null)
@@ -878,7 +910,7 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("NAME"))
                 {
                     string name = tokens.Next<TokenStringLiteral>();
-                    if (not) name = '!' + name;
+                    selector.entity.nameNot = not;
                     selector.entity.name = name;
                 }
                 else if (word.Equals("LIMIT"))
@@ -890,19 +922,23 @@ namespace mc_compiled.MCC.Compiler
                     selector.count = new Count(count);
                 }
             // repeat all that as long as there continues to be an &
-            } while (tokens.HasNext && tokens.NextIs<TokenAnd>());
+            } while (tokens.NextIs<TokenAnd>());
 
             if (commands.Count > 0)
-                executor.AddCommands(commands);
+                executor.AddCommandsClean(commands, true);
 
             // done with temporary variables
             executor.scoreboard.PopTempState();
+            executor.PopSelector();
 
             // the selector is now ready to use and commands are setup
             executor.SetLastCompare(tokensUsed);
             string prefix = selector.GetAsPrefix();
-            executor.SetCommandPrepend(prefix);
+            executor.AppendCommandPrepend(prefix);
 
+            if (!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end-of-file after if/else statement.");
+            
             if (executor.NextIs<StatementOpenBlock>())
             {
                 CommandFile nextBranchFile = StatementOpenBlock.GetNextBranchFile();
@@ -1190,7 +1226,9 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
                 data = tokens.Next<TokenIntegerLiteral>();
 
+            executor.PushSelectorExecute();
             executor.AddCommand(Command.SetBlock(x, y, z, block, data, handling));
+            executor.PopSelector();
         }
         public static void fill(Executor executor, Statement tokens)
         {
@@ -1211,7 +1249,9 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
                 data = tokens.Next<TokenIntegerLiteral>();
 
+            executor.PushSelectorExecute();
             executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, block, data, handling));
+            executor.PopSelector();
         }
         public static void scatter(Executor executor, Statement tokens)
         {
@@ -1272,12 +1312,16 @@ namespace mc_compiled.MCC.Compiler
 
             if(seed == null)
             {
+                executor.PushSelectorExecute();
                 executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
                     StructureRotation._0_degrees, StructureMirror.none, false, true, percent));
+                executor.PopSelector();
             } else
             {
+                executor.PushSelectorExecute();
                 executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
                     StructureRotation._0_degrees, StructureMirror.none, false, true, percent, seed));
+                executor.PopSelector();
             }
         }
         public static void replace(Executor executor, Statement tokens)
@@ -1299,7 +1343,9 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
                 dstData = tokens.Next<TokenIntegerLiteral>();
 
+            executor.PushSelectorExecute();
             executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, src, srcData, dst, dstData));
+            executor.PopSelector();
         }
         public static void kill(Executor executor, Statement tokens)
         {
@@ -1309,31 +1355,55 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.Kill(selector.ToString()));
                 return;
             }
-            executor.AddCommand(Command.Kill());
+            executor.AddCommand(Command.Kill(executor.ActiveSelectorStr));
         }
         public static void remove(Executor executor, Statement tokens)
         {
+            CommandFile file = new CommandFile("silent_remove", "_branching");
+            file.Add(new[] {
+                Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
+                Command.Kill()
+            });
+            executor.DefineSTDFile(file);
+
             if (tokens.HasNext && tokens.NextIs<TokenSelectorLiteral>())
             {
                 Selector selector = tokens.Next<TokenSelectorLiteral>();
-                CommandFile file = new CommandFile("silent_remove", "_branching");
-                file.Add(new[] {
-                    Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
-                    Command.Kill()
-                });
-                executor.DefineSTDFile(file);
                 executor.AddCommand(Command.Execute(selector.ToString(),
                     Coord.here, Coord.here, Coord.here, Command.Function(file)));
                 return;
             }
 
-            executor.AddCommands(new[] {
-                Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
-                Command.Kill()
-            });
+            executor.PushSelectorExecute();
+            executor.AddCommand(Command.Function(file));
+            executor.PopSelector();
         }
         public static void globaltitle(Executor executor, Statement tokens)
         {
+            if(tokens.NextIs<TokenIdentifier>())
+            {
+                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+                if (word.Equals("TIMES"))
+                {
+                    int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                    int stay = tokens.Next<TokenIntegerLiteral>();
+                    int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                    executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
+                    return;
+                }
+                else if (word.Equals("SUBTITLE"))
+                {
+                    string str = tokens.Next<TokenStringLiteral>();
+                    RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                    builder.AddTerms(executor.FString(str));
+                    string output = builder.BuildString();
+                    executor.AddCommand(Command.TitleSubtitle("@a", output));
+                    return;
+                }
+                else
+                    throw new StatementException(tokens, $"Invalid globaltitle subcommand '{word}'. Must be 'times' or 'subtitle'.");
+            }
+
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
@@ -1344,29 +1414,34 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.Title("@a", output));
                 return;
             }
-
-            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-            if (word.Equals("TIMES"))
-            {
-                int fadeIn = tokens.Next<TokenIntegerLiteral>();
-                int stay = tokens.Next<TokenIntegerLiteral>();
-                int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
-                return;
-            } else if (word.Equals("SUBTITLE"))
-            {
-                string str = tokens.Next<TokenStringLiteral>();
-                RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str));
-                string output = builder.BuildString();
-                executor.AddCommand(Command.TitleSubtitle("@a", output));
-                return;
-            } else
-                throw new StatementException(tokens, $"Invalid globaltitle subcommand '{word}'. Must be 'times' or 'subtitle'.");
         }
         public static void title(Executor executor, Statement tokens)
         {
             string selector = executor.ActiveSelectorStr;
+
+            if (tokens.NextIs<TokenIdentifier>())
+            {
+                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+                if (word.Equals("TIMES"))
+                {
+                    int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                    int stay = tokens.Next<TokenIntegerLiteral>();
+                    int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                    executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
+                    return;
+                }
+                else if (word.Equals("SUBTITLE"))
+                {
+                    string str = tokens.Next<TokenStringLiteral>();
+                    RawTextJsonBuilder builder = new RawTextJsonBuilder();
+                    builder.AddTerms(executor.FString(str));
+                    string output = builder.BuildString();
+                    executor.AddCommand(Command.TitleSubtitle(selector, output));
+                    return;
+                }
+                else
+                    throw new StatementException(tokens, $"Invalid title subcommand '{word}'. Must be 'times' or 'subtitle'.");
+            }
 
             if (tokens.NextIs<TokenStringLiteral>())
             {
@@ -1378,31 +1453,19 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.Title(selector, output));
                 return;
             }
-
-            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-            if (word.Equals("TIMES"))
-            {
-                int fadeIn = tokens.Next<TokenIntegerLiteral>();
-                int stay = tokens.Next<TokenIntegerLiteral>();
-                int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
-                return;
-            }
-            else if (word.Equals("SUBTITLE"))
-            {
-                string str = tokens.Next<TokenStringLiteral>();
-                RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str));
-                string output = builder.BuildString();
-                executor.AddCommand(Command.TitleSubtitle(selector, output));
-                return;
-            }
-            else
-                throw new StatementException(tokens, $"Invalid title subcommand '{word}'. Must be 'times' or 'subtitle'.");
         }
         public static void globalactionbar(Executor executor, Statement tokens)
         {
-            if (tokens.NextIs<TokenStringLiteral>())
+            if (tokens.NextIs<TokenIdentifier>())
+            {
+                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+                int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                int stay = tokens.Next<TokenIntegerLiteral>();
+                int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
+                return;
+            }
+            else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
@@ -1412,19 +1475,22 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.TitleActionBar("@a", output));
                 return;
             }
-
-            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-            int fadeIn = tokens.Next<TokenIntegerLiteral>();
-            int stay = tokens.Next<TokenIntegerLiteral>();
-            int fadeOut = tokens.Next<TokenIntegerLiteral>();
-            executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
-            return;
+            else throw new StatementException(tokens, "Invalid information given to globalactionbar.");
         }
         public static void actionbar(Executor executor, Statement tokens)
         {
             string selector = executor.ActiveSelectorStr;
 
-            if (tokens.NextIs<TokenStringLiteral>())
+            if (tokens.NextIs<TokenIdentifier>())
+            {
+                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+                int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                int stay = tokens.Next<TokenIntegerLiteral>();
+                int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
+                return;
+            }
+            else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
@@ -1434,13 +1500,15 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.TitleActionBar(selector, output));
                 return;
             }
+            else throw new StatementException(tokens, "Invalid information given to actionbar.");
+        }
+        public static void say(Executor executor, Statement tokens)
+        {
+            string str = tokens.Next<TokenStringLiteral>();
 
-            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-            int fadeIn = tokens.Next<TokenIntegerLiteral>();
-            int stay = tokens.Next<TokenIntegerLiteral>();
-            int fadeOut = tokens.Next<TokenIntegerLiteral>();
-            executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
-            return;
+            executor.PushSelectorExecute();
+            executor.AddCommand(Command.Say(str));
+            executor.PopSelector();
         }
         public static void halt(Executor executor, Statement tokens)
         {

@@ -325,6 +325,7 @@ namespace mc_compiled.MCC.Compiler
         {
             sb.Append(first);
             bool isFloat = false;
+            int multiplier = 1;
 
             char c;
             while (HasNext)
@@ -339,7 +340,24 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 if (!char.IsDigit(c))
+                {
+                    switch(c)
+                    {
+                        case 's':
+                            NextChar();
+                            multiplier = 20;
+                            break;
+                        case 'm':
+                            NextChar();
+                            multiplier = 20 * 60;
+                            break;
+                        case 'h':
+                            NextChar();
+                            multiplier = 20 * 60 * 60;
+                            break;
+                    }
                     break;
+                }
 
                 sb.Append(NextChar());
             }
@@ -348,13 +366,13 @@ namespace mc_compiled.MCC.Compiler
             if(isFloat)
             {
                 if (float.TryParse(str, out float f))
-                    return new TokenDecimalLiteral(f, CURRENT_LINE);
+                    return new TokenDecimalLiteral(f * (float)multiplier, CURRENT_LINE);
                 else
                     throw new TokenizerException("Couldn't parse decimal literal: " + str);
             } else
             {
                 if (int.TryParse(str, out int i))
-                    return new TokenIntegerLiteral(i, CURRENT_LINE);
+                    return new TokenIntegerLiteral(i * multiplier, CURRENT_LINE);
                 else
                     throw new TokenizerException("Couldn't parse integer literal: " + str);
             }

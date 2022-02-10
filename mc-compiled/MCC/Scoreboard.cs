@@ -20,13 +20,13 @@ namespace mc_compiled.MCC
         public string baseName;
         internal readonly ScoreboardManager manager;
 
-        public ScoreboardValue(string baseName, ScoreboardManager manager)
+        public ScoreboardValue(string baseName, ScoreboardManager manager, Statement forExceptions)
         {
             int len = baseName.Length;
             int max = GetMaxNameLength();
 
             if (len > max)
-                throw new Exception($"Cannot define variable named '{baseName}'. Max length for this type is {max}.");
+                throw new StatementException(forExceptions, $"Cannot define variable named '{baseName}'. Max length for this type is {max}.");
 
             this.manager = manager;
             this.baseName = baseName;
@@ -59,14 +59,14 @@ namespace mc_compiled.MCC
                 throw new StatementException(forExceptions, "Cannot return a selector.");
 
             if (literal is TokenIntegerLiteral)
-                return new ScoreboardValueInteger(RETURN_NAME, sb);
+                return new ScoreboardValueInteger(RETURN_NAME, sb, forExceptions);
             else if (literal is TokenBooleanLiteral)
-                return new ScoreboardValueBoolean(RETURN_NAME, sb);
+                return new ScoreboardValueBoolean(RETURN_NAME, sb, forExceptions);
             else if (literal is TokenDecimalLiteral)
             {
                 float number = (literal as TokenDecimalLiteral).number;
                 int precision = number.GetPrecision();
-                return new ScoreboardValueDecimal(RETURN_NAME, precision, sb);
+                return new ScoreboardValueDecimal(RETURN_NAME, precision, sb, forExceptions);
             }
 
             throw new StatementException(forExceptions, "Cannot return this literal.");
@@ -210,7 +210,7 @@ namespace mc_compiled.MCC
 
     public class ScoreboardValueInteger : ScoreboardValue
     {
-        public ScoreboardValueInteger(string baseName, ScoreboardManager manager) : base(baseName, manager) { }
+        public ScoreboardValueInteger(string baseName, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions) { }
 
         public override string[] CommandsDefine(string prefix = "")
         {
@@ -437,7 +437,7 @@ namespace mc_compiled.MCC
         public const string SB_SECONDS = "_mcc_t_secs";
         public const string SB_TEMP = "_mcc_t_temp";
         public const string SB_CONST = "_mcc_t_const";
-        public ScoreboardValueTime(string baseName, ScoreboardManager manager) : base(baseName, manager) { }
+        public ScoreboardValueTime(string baseName, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions) { }
 
         public override string[] CommandsRawTextSetup(string accessor, string selector, int index, string prefix = "")
         {
@@ -491,7 +491,7 @@ namespace mc_compiled.MCC
 
         public readonly int precision;
 
-        public ScoreboardValueDecimal(string baseName, int precision, ScoreboardManager manager) : base(baseName, manager)
+        public ScoreboardValueDecimal(string baseName, int precision, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions)
         {
             this.precision = precision;
         }
@@ -505,7 +505,10 @@ namespace mc_compiled.MCC
         }
         public override string[] CommandsInit(string prefix = "")
         {
-            return new[] { Command.ScoreboardAdd("@a", prefix + baseName, 0) };
+            return new[] {
+                Command.ScoreboardAdd("@a", prefix + WholeName, 0),
+                Command.ScoreboardAdd("@a", prefix + DecimalName, 0),
+            };
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
@@ -996,7 +999,7 @@ namespace mc_compiled.MCC
     }
     public sealed class ScoreboardValueBoolean : ScoreboardValueInteger
     {
-        public ScoreboardValueBoolean(string baseName, ScoreboardManager manager) : base(baseName, manager) { }
+        public ScoreboardValueBoolean(string baseName, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions) { }
 
         public override string[] CommandsDefine(string prefix = "")
         {
@@ -1043,7 +1046,7 @@ namespace mc_compiled.MCC
     {
         public readonly StructDefinition structure;
 
-        public ScoreboardValueStruct(string baseName, StructDefinition structure, ScoreboardManager manager) : base(baseName, manager)
+        public ScoreboardValueStruct(string baseName, StructDefinition structure, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions)
         {
             this.structure = structure;
         }

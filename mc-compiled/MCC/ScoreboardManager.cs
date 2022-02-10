@@ -72,7 +72,7 @@ namespace mc_compiled.MCC
         public ScoreboardValueInteger RequestTemp()
         {
             string name = TEMP_PREFIX + tempIndex;
-            var created = new ScoreboardValueInteger(name, this);
+            var created = new ScoreboardValueInteger(name, this, null);
             name += created.GetMaxNameLength().ToString();
             if (!definedTempVars.Contains(name))
             {
@@ -138,14 +138,14 @@ namespace mc_compiled.MCC
         public ScoreboardValue CreateFromLiteral(string name, TokenLiteral literal, Statement forExceptions)
         {
             if (literal is TokenIntegerLiteral)
-                return new ScoreboardValueInteger(name, this);
+                return new ScoreboardValueInteger(name, this, forExceptions);
             else if (literal is TokenBooleanLiteral)
-                return new ScoreboardValueBoolean(name, this);
+                return new ScoreboardValueBoolean(name, this, forExceptions);
             else if (literal is TokenDecimalLiteral)
             {
                 float number = (literal as TokenDecimalLiteral).number;
                 int precision = number.GetPrecision();
-                return new ScoreboardValueDecimal(name, precision, this);
+                return new ScoreboardValueDecimal(name, precision, this, forExceptions);
             }
             else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
                     $"create a scoreboard value for invalid literal type {literal.GetType()}.");

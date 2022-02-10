@@ -20,7 +20,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public int Line
         {
-            get => HasNext ? Peek().lineNumber : tokens[0].lineNumber;
+            get => HasNext ? Peek().lineNumber : tokens.Length > 0 ? tokens[0].lineNumber : -1;
         }
 
         protected Token[] tokens;
@@ -32,14 +32,21 @@ namespace mc_compiled.MCC.Compiler
         }
         public Token Next()
         {
+            if (currentToken >= tokens.Length)
+                throw new StatementException(this, $"Token expected at end of line.");
             return tokens[currentToken++];
         }
         public Token Peek()
         {
+            if (currentToken >= tokens.Length)
+                throw new StatementException(this, $"Token expected at end of line.");
             return tokens[currentToken];
         }
         public T Next<T>() where T : class
         {
+            if (currentToken >= tokens.Length)
+                throw new StatementException(this, $"Token expected at end of line, type {typeof(T).Name}");
+
             Token token = tokens[currentToken++];
             if (!(token is T))
             {
@@ -51,13 +58,15 @@ namespace mc_compiled.MCC.Compiler
                     if (typeof(T).IsAssignableFrom(otherType))
                         return implicitToken.Convert() as T;
                 }
-                throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
+                throw new StatementException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
             }
             else
                 return token as T;
         }
         public T Peek<T>() where T : class
         {
+            if (currentToken >= tokens.Length)
+                throw new StatementException(this, $"Token expected at end of line, type {typeof(T).Name}");
             Token token = tokens[currentToken];
             if(!(token is T))
             {

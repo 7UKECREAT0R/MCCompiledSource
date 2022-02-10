@@ -41,10 +41,15 @@ namespace mc_compiled.MCC.Compiler
                     }
                     else if (current is TokenCloseBlock)
                     {
-                        StatementCloseBlock closeBlock = new StatementCloseBlock();
+                        StatementCloseBlock closer = new StatementCloseBlock();
                         StatementOpenBlock opener = blocks.Pop();
                         opener.statementsInside = statements.Count - opener.statementsInside;
-                        statements.Add(closeBlock);
+
+                        // pointers
+                        opener.closer = closer;
+                        closer.opener = opener;
+
+                        statements.Add(closer);
                         continue;
                     }
                     continue;
