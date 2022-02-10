@@ -59,11 +59,6 @@ namespace mc_compiled.Commands.Selectors
                 switch (a)
                 {
                     case "NAME":
-                        if (b.StartsWith("!"))
-                        {
-                            nameNot = true;
-                            b = b.Substring(1);
-                        }
                         name = b.Trim('\"');
                         break;
                     case "TYPE":
@@ -96,15 +91,11 @@ namespace mc_compiled.Commands.Selectors
             List<string> parts = new List<string>();
 
             if (name != null)
-                if(name.StartsWith("!"))
-                    parts.Add("name=!\"" + name.Substring(1) + "\"");
-                else
-                    parts.Add("name=\"" + name + "\"");
-
+                parts.Add(nameNot ? $"name=!\"{name}\"" : $"name=\"{name}\"");
             if (type != null)
-                parts.Add("type=" + type + "");
+                parts.Add("type=" + type);
             if (family != null)
-                parts.Add("family=" + family + "");
+                parts.Add("family=" + family);
             if (rotXMin.HasValue)
                 parts.Add("rxm=" + rotXMin.Value);
             if (rotXMax.HasValue)

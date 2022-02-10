@@ -70,17 +70,27 @@ namespace mc_compiled.MCC.Compiler
 
             if (firstToken is TokenDirective)
             {
-                Token[] rest = line.Skip(1).ToArray();
+                List<Token> rest = line.Skip(1).ToList();
                 Directive directive = (firstToken as TokenDirective).directive;
-                StatementDirective add = new StatementDirective(directive, rest);
+                StatementDirective add = new StatementDirective(directive, rest.ToArray());
                 statements.Add(add);
+
+                // continue with this line if there are more tokens
+                // and the first directive didnt take any arguments
+                if (directive.patterns != null && directive.patterns.Length > 0)
+                    return;
+                if (rest.Count == 0)
+                    return;
+
+                // recursively assemble the next statement
+                TryAssembleLine(rest, ref statements);
                 return;
             }
 
             if (line.Count <= 1)
             {
                 if (Program.DEBUG)
-                    Console.WriteLine($"Skipping garbage token {firstToken} because it's not valid alone.");
+                    Console.WriteLine($"Skipping garbage token {firstToken} because is not valid alone.");
                 return;
             }
             if (!(firstToken is TokenIdentifier))

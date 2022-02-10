@@ -81,14 +81,12 @@ namespace mc_compiled.MCC.Compiler
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            // get the closer and tell it whether to pop file or not.
-            StatementCloseBlock closer = executor.Peek<StatementCloseBlock>(statementsInside);
             executor.PushSelector(aligns); // push a level up
 
             if (shouldRun)
             {
                 closer.popFile = file != null;
-                if (file != null)
+                if (closer.popFile)
                     executor.PushFile(file);
             } else
             {
