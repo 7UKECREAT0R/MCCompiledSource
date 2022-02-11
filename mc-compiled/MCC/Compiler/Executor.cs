@@ -1,6 +1,7 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Json;
 using mc_compiled.Modding;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -243,7 +244,28 @@ namespace mc_compiled.MCC.Compiler
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
 
-            Manifest manifestFile = new Manifest(projectName, "MCCompiled Project");
+            // extract guids from existing manifest
+            Guid uuid1, uuid2;
+            string manifestPath = Path.Combine(projectName, "manifest.json");
+
+            if (File.Exists(manifestPath))
+            {
+                Console.WriteLine("Reading GUIDs from existing manifest file.");
+                string manifestData = File.ReadAllText(manifestPath);
+                JObject json = JObject.Parse(manifestData);
+                string strUUID1 = json["header"]["uuid"].ToString();
+                string strUUID2 = json["modules"][0]["uuid"].ToString();
+                uuid1 = new Guid(strUUID1);
+                uuid2 = new Guid(strUUID2);
+            }
+            else
+            {
+                uuid1 = Guid.NewGuid();
+                uuid2 = Guid.NewGuid();
+            }
+
+            Manifest manifestFile = new Manifest(uuid1, uuid2,
+                projectName, "MCCompiled Project");
             filesToWrite.Add(manifestFile);
 
             PushSelector(true);

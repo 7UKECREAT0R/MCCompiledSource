@@ -127,7 +127,11 @@ namespace mc_compiled
             {
                 string[] files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
                 foreach (string file in files)
+                {
+                    if (file.EndsWith("manifest.json"))
+                        continue;
                     File.Delete(file);
+                }
             } else
             {
                 Directory.CreateDirectory(folder);

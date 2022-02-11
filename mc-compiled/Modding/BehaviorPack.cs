@@ -15,7 +15,7 @@ namespace mc_compiled.Modding
     public class BehaviorPack
     {
         public string packName = "mcc-default";
-        public Manifest manifest = new Manifest("mcc-default", "MCCompiled Default Behavior Pack");
+        public Manifest manifest = new Manifest(Guid.NewGuid(), Guid.NewGuid(), "mcc-default", "MCCompiled Default Behavior Pack");
 
         public LegacyMCFunction[] functions;
         public StructureFile[] structures;

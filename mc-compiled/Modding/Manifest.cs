@@ -17,13 +17,13 @@ namespace mc_compiled.Modding
         public int[] version;
         public int[] minEngineVersion;
 
-        public Manifest(string name = "Example Pack", string description = "Test Behavior Pack",
+        public Manifest(Guid uuid1, Guid uuid2, string name = "Example Pack", string description = "Test Behavior Pack",
             int[] minEngineVersion = null, int formatVersion = 2)
         {
             this.formatVersion = formatVersion;
             this.name = name;
-            uuid1 = Guid.NewGuid();
-            uuid2 = Guid.NewGuid();
+            this.uuid1 = uuid1;
+            this.uuid2 = uuid2;
             this.description = description;
             version = new int[] { 0, 0, 1 };
 

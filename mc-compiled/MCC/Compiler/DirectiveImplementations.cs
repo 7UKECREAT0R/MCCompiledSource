@@ -1068,6 +1068,7 @@ namespace mc_compiled.MCC.Compiler
                     executor.AddCommand(Command.Execute(active.ToString(), Coord.here, Coord.here, Coord.here, cmd));
                 else
                     executor.AddCommand(cmd);
+                return;
             }
 
             List<string> json = new List<string>();

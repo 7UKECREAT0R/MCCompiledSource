@@ -288,7 +288,8 @@ namespace mc_compiled.MCC
             BehaviorPack pack = new BehaviorPack()
             {
                 packName = projectName,
-                manifest = new Manifest(projectName, projectDesc),
+                manifest = new Manifest(Guid.NewGuid(), 
+                    Guid.NewGuid(), projectName, projectDesc),
                 functions = GetFiles(),
                 structures = null // Support not implemented yet
             };
