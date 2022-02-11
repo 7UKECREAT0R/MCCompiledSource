@@ -23,9 +23,9 @@ namespace mc_compiled.MCC.Compiler
 
         public override string AsString() => directive.identifier;
 
-        public Type GetImplicitType() =>
-            typeof(TokenIdentifier);
-        public Token Convert() =>
+        public Type[] GetImplicitTypes() =>
+            new[] { typeof(TokenIdentifier) };
+        public Token Convert(int index) =>
             new TokenIdentifier(directive.identifier, lineNumber);
 
         public TokenDirective(Directive directive, int lineNumber) : base(lineNumber)
@@ -55,6 +55,10 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly string word;
 
+        // passed into convert
+        public const int CONVERT_STRING = 0;
+        public const int CONVERT_BUILDER = 1;
+
         public override string AsString() => word;
         public TokenIdentifier(string word, int lineNumber) : base(lineNumber)
         {
@@ -62,10 +66,21 @@ namespace mc_compiled.MCC.Compiler
         }
         public object GetObject() => word;
 
-        public Type GetImplicitType() =>
-            typeof(TokenStringLiteral);
-        public Token Convert() =>
-            new TokenStringLiteral(word, lineNumber);
+        public Type[] GetImplicitTypes() =>
+            new[]
+            {
+                typeof(TokenStringLiteral),
+                typeof(TokenBuilderIdentifier),
+            };
+        public Token Convert(int index)
+        {
+            if(index == CONVERT_STRING)
+                return new TokenStringLiteral(word, lineNumber);
+            else if(index == CONVERT_BUILDER)
+                return new TokenBuilderIdentifier(word, lineNumber);
+
+            return null;
+        }
     }
     /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.
@@ -82,8 +97,10 @@ namespace mc_compiled.MCC.Compiler
         public readonly string builderField;
         public TokenBuilderIdentifier(string fullWord, int lineNumber) : base(fullWord, lineNumber)
         {
-            if(fullWord.EndsWith(":")) // it should 100% of the time
+            if (fullWord.EndsWith(":")) // it should as long as its not implicitly converted from identifier
                 builderField = fullWord.Substring(0, fullWord.Length - 1);
+            else
+                builderField = fullWord;
         }
     }
     /// <summary>

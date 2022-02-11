@@ -53,10 +53,11 @@ namespace mc_compiled.MCC.Compiler
                 if (token is IImplicitToken)
                 {
                     IImplicitToken implicitToken = token as IImplicitToken;
-                    Type otherType = implicitToken.GetImplicitType();
+                    Type[] otherTypes = implicitToken.GetImplicitTypes();
 
-                    if (typeof(T).IsAssignableFrom(otherType))
-                        return implicitToken.Convert() as T;
+                    for(int i = 0; i < otherTypes.Length; i++)
+                        if(typeof(T).IsAssignableFrom(otherTypes[i]))
+                            return implicitToken.Convert(i) as T;    
                 }
                 throw new StatementException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
             }
@@ -73,10 +74,11 @@ namespace mc_compiled.MCC.Compiler
                 if (token is IImplicitToken)
                 {
                     IImplicitToken implicitToken = token as IImplicitToken;
-                    Type otherType = implicitToken.GetImplicitType();
+                    Type[] otherTypes = implicitToken.GetImplicitTypes();
 
-                    if (typeof(T).IsAssignableFrom(otherType))
-                        return implicitToken.Convert() as T;
+                    for (int i = 0; i < otherTypes.Length; i++)
+                        if (typeof(T).IsAssignableFrom(otherTypes[i]))
+                            return implicitToken.Convert(i) as T;
                 }
                 throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
             } else
@@ -95,10 +97,11 @@ namespace mc_compiled.MCC.Compiler
             if(token is IImplicitToken)
             {
                 IImplicitToken implicitToken = token as IImplicitToken;
-                Type otherType = implicitToken.GetImplicitType();
+                Type[] otherTypes = implicitToken.GetImplicitTypes();
 
-                if (typeof(T).IsAssignableFrom(otherType))
-                    return true;
+                for (int i = 0; i < otherTypes.Length; i++)
+                    if (typeof(T).IsAssignableFrom(otherTypes[i]))
+                        return true;
             }
 
             return false;

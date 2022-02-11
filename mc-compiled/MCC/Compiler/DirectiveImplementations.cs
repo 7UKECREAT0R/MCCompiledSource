@@ -594,7 +594,7 @@ namespace mc_compiled.MCC.Compiler
                         type = TYPE_TIME;
                         break;
                     default:
-                        name = identifier.Convert() as TokenStringLiteral;
+                        name = identifier.Convert(0) as TokenStringLiteral;
                         break;
                 }
             }

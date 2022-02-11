@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -27,15 +28,17 @@ namespace mc_compiled.MCC
         public Definitions(bool debugInfo)
         {
             defs = new Dictionary<string, string>();
-            if (!File.Exists(FILE))
+            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string path = Path.Combine(assemblyDir, FILE);
+            if (!File.Exists(path))
             {
                 ConsoleColor errprevious = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("WARN: No '{0}' file found. Constants will not be valid.", FILE);
+                Console.WriteLine("WARNING: No '{0}' file found. Constants will not be valid.", path);
                 Console.ForegroundColor = errprevious;
                 return;
             }
-            string[] lines = File.ReadAllLines(FILE, Encoding.GetEncoding("Windows-1252"));
+            string[] lines = File.ReadAllLines(path, Encoding.GetEncoding("Windows-1252"));
             string category = null;
             int catEntries = 0;
             string[] categoryAliases = new string[0];

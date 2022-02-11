@@ -111,9 +111,11 @@ namespace mc_compiled.MCC.Compiler
 
             if(obj is IImplicitToken)
             {
-                Type conversion = (obj as IImplicitToken).GetImplicitType();
-                if (types.Any(t => t.IsAssignableFrom(conversion)))
-                    return true;
+                Type[] conversion = (obj as IImplicitToken).GetImplicitTypes();
+
+                for (int i = 0; i < conversion.Length; i++)
+                    if (types.Any(t => t.IsAssignableFrom(conversion[i])))
+                        return true;
             }
 
             return false;

@@ -57,16 +57,17 @@ namespace mc_compiled.MCC.Compiler
     public interface IImplicitToken
     {
         /// <summary>
-        /// Get the type this token can be implicitly converted to.
+        /// Get the types this token can be implicitly converted to.
         /// </summary>
         /// <returns></returns>
-        Type GetImplicitType();
+        Type[] GetImplicitTypes();
 
         /// <summary>
-        /// Convert this token to its alternate type.
+        /// Convert this token to an alternate type by index of its valid types.
         /// </summary>
+        /// <param name="index">The index of GetImplicitTypes() to convert to.</param>
         /// <returns></returns>
-        Token Convert();
+        Token Convert(int index);
     }
     /// <summary>
     /// Indicates that a token had some kind of unknown error.

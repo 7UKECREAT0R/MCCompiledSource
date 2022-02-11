@@ -122,9 +122,16 @@ namespace mc_compiled
             DirectiveImplementations.ResetState();
 
             // wipe files from output folder
-            string[] files = Directory.GetFiles(projectName + "/", "*", SearchOption.AllDirectories);
-            foreach (string file in files)
-                File.Delete(file);
+            string folder = projectName + "/";
+            if (Directory.Exists(folder))
+            {
+                string[] files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
+                foreach (string file in files)
+                    File.Delete(file);
+            } else
+            {
+                Directory.CreateDirectory(folder);
+            }
         }
         public static void RunMCCompiled(string file)
         {
