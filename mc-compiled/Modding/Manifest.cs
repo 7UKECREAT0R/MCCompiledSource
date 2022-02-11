@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Modding
 {
-    public struct Manifest
+    public struct Manifest : IBehaviorFile
     {
         public int formatVersion;
 
@@ -31,6 +31,14 @@ namespace mc_compiled.Modding
                 this.minEngineVersion = new int[] { 1, 13, 0 };
             else this.minEngineVersion = minEngineVersion;
         }
+
+        public byte[] GetOutputData() =>
+            Encoding.UTF8.GetBytes(ToString());
+        public string GetOutputDirectory() =>
+            "";
+        public string GetOutputFile() =>
+            "manifest.json";
+
         public override string ToString()
         {
             JObject header = new JObject();

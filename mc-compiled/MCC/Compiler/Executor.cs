@@ -243,6 +243,9 @@ namespace mc_compiled.MCC.Compiler
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
 
+            Manifest manifestFile = new Manifest(projectName, "MCCompiled Project");
+            filesToWrite.Add(manifestFile);
+
             PushSelector(true);
             currentFiles.Push(new CommandFile(projectName));
         }
