@@ -68,17 +68,14 @@ namespace mc_compiled.NBT
             using (MemoryStream stream = new MemoryStream())
             using (BinaryWriter writer = new BinaryWriter(stream))
             {
-                WriteToExisting(nodes, writer);
+                NBTNode[] queue = new NBTNode[]
+                {
+                    new NBTCompound() { name = "", values = nodes.ToArray() },
+                    new NBTEnd()
+                };
+                WriteToExisting(queue, writer);
                 return stream.ToArray();
             }
         }
-
-        /*public static FileWriterNBT ConstructFloatingItem()
-        {
-            NBTNode[] nodes = new NBTNode[]
-            {
-
-            };
-        }*/
     }
 }
