@@ -18,9 +18,19 @@ namespace mc_compiled.MCC.Compiler
             if (!waitForPatterns)
                 patterns = GetValidPatterns();
         }
+
+        public void SetSource(int line, string code)
+        {
+            Line = line;
+            Source = code;
+        }
         public int Line
         {
-            get => HasNext ? Peek().lineNumber : tokens.Length > 0 ? tokens[0].lineNumber : -1;
+            get; private set;
+        }
+        public string Source
+        {
+            get; private set;
         }
 
         protected Token[] tokens;
@@ -144,6 +154,13 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public Statement ClonePrepare(Executor executor)
         {
+            // decorate proceeding commands
+            if (Program.DECORATE)
+            {
+                if(Source != null)
+                    executor.AddCommandClean("\n# " + Source);
+            }
+
             Statement statement = MemberwiseClone() as Statement;
             
             // e.g. close/open block
@@ -186,9 +203,9 @@ namespace mc_compiled.MCC.Compiler
 
             executor.scoreboard.PushTempState();
             List<Token> tokens = new List<Token>(allResolved);
+            SquashFunctions(ref tokens, executor);
             Squash<TokenArithmaticFirst>(ref tokens, executor);
             Squash<TokenArithmaticSecond>(ref tokens, executor);
-            SquashFunctions(ref tokens, executor);
 
             statement.tokens = tokens.ToArray();
             statement.patterns = statement.GetValidPatterns();
@@ -390,7 +407,7 @@ namespace mc_compiled.MCC.Compiler
                 Function function = func.function;
 
                 // if its not parameterless() then fetch until level <= 0
-                List<Token> passIn = new List<Token>();
+                List<Token> tokensInside = new List<Token>();
                 if (!(third is TokenCloseParenthesis))
                 {
                     int level = 1;
@@ -408,24 +425,29 @@ namespace mc_compiled.MCC.Compiler
                             level++;
 
                         x++;
-                        passIn.Add(check);
+                        tokensInside.Add(check);
                     }
+                    SquashFunctions(ref tokensInside, executor);
+                    Squash<TokenArithmaticFirst>(ref tokensInside, executor);
+                    Squash<TokenArithmaticSecond>(ref tokensInside, executor);
+                    tokens.RemoveRange(i + 2, tokensInside.Count);
+                    tokens.InsertRange(i + 2, tokensInside);
                 }
 
-                if (passIn.Count < function.ParameterCount)
+                if (tokensInside.Count < function.ParameterCount)
                     throw new StatementException(this, $"Missing parameters for function {function}");
                 if(function.returnValue == null)
                     throw new StatementException(this, $"Cannot use function in statement since it doesn't return a value.");
 
                 // call function
                 string sel = executor.ActiveSelectorStr;
-                executor.AddCommandsClean(function.CallFunction(sel, this, executor.scoreboard, passIn.ToArray()));
+                executor.AddCommandsClean(function.CallFunction(sel, this, executor.scoreboard, tokensInside.ToArray()));
 
                 // store return value in temp
                 ScoreboardValue clone = executor.scoreboard.RequestTemp(function.returnValue);
                 executor.AddCommandsClean(clone.CommandsSet(sel, function.returnValue, null, null)); // ignore accessors
 
-                int len = x - i;
+                int len = x - i + 1;
                 tokens.RemoveRange(i, len);
                 tokens.Insert(i, new TokenIdentifierValue(clone.baseName, clone, selected.lineNumber));
 

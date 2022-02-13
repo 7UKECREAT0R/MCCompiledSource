@@ -43,7 +43,7 @@ namespace mc_compiled.MCC
         /// <param name="caller"></param>
         /// <param name="value"></param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(Statement caller, ScoreboardValue value)
+        public void TryReturnValue(Statement caller, ScoreboardValue value, Executor executor, string selector)
         {
             if (returnValue != null)
             {
@@ -61,15 +61,15 @@ namespace mc_compiled.MCC
             ScoreboardValue clone = ScoreboardValue.GetReturnValue(value);
             foreach(string name in clone.GetAccessibleNames())
             {
-                ScoreboardManager sb = value.manager;
+                ScoreboardManager sb = executor.scoreboard;
                 if(!sb.definedTempVars.Contains(name))
                 {
                     sb.definedTempVars.Add(name);
-                    AddCommandsTop(clone.CommandsInit());
-                    AddCommandsTop(clone.CommandsDefine());
+                    executor.AddCommandsHead(clone.CommandsDefine());
                 }
             }
 
+            AddCommands(clone.CommandsSet(selector, value, null, null));
             returnValue = clone;
         }
         /// <summary>
@@ -78,9 +78,8 @@ namespace mc_compiled.MCC
         /// <param name="caller"></param>
         /// <param name="value"></param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(Statement caller, ScoreboardManager sb, TokenLiteral value)
+        public void TryReturnValue(Statement caller, Executor executor, TokenLiteral value, string selector)
         {
-            
             if (returnValue != null)
             {
                 Type type = returnValue.GetType();
@@ -92,17 +91,18 @@ namespace mc_compiled.MCC
                 return;
             }
 
+            ScoreboardManager sb = executor.scoreboard;
             ScoreboardValue variable = ScoreboardValue.GetReturnValue(value, sb, caller);
             foreach (string name in variable.GetAccessibleNames())
             {
                 if (!sb.definedTempVars.Contains(name))
                 {
                     sb.definedTempVars.Add(name);
-                    AddCommandsTop(variable.CommandsInit());
-                    AddCommandsTop(variable.CommandsDefine());
+                    executor.AddCommandsHead(variable.CommandsDefine());
                 }
             }
 
+            AddCommands(variable.CommandsSetLiteral(variable.baseName, selector, value));
             returnValue = variable;
         }
 
@@ -127,7 +127,7 @@ namespace mc_compiled.MCC
                 ScoreboardValue output = this.inputs[i];
                 string outputAccessor = output.baseName; // accessor is base name in integer case
 
-                commands.AddRange(output.CommandsInit());
+                commands.AddRange(output.CommandsDefine());
 
                 if (input is TokenLiteral)
                 {

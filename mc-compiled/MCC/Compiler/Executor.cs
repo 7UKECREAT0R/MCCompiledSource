@@ -20,6 +20,7 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_VAR = new Regex("{([a-zA-Z-:._]{1,16})}");
 
         public readonly string projectName;
+        public string lastStatementSource;
 
         Statement[] statements;
         int readIndex = 0;
@@ -402,7 +403,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the main .mcfunction file for this project.
         /// </summary>
-        public CommandFile HeadFile { get => currentFiles.First(); }
+        public CommandFile HeadFile { get => currentFiles.Last(); }
 
         /// <summary>
         /// Get the current scope level.
@@ -517,11 +518,17 @@ namespace mc_compiled.MCC.Compiler
         public void SetCommandPrepend(string content) =>
             prependBuffer.Clear().Append(content);
         /// <summary>
-        /// Append to the content that will prepend the next added dirty command.
+        /// Append to the content to the prepend buffer.
         /// </summary>
         /// <param name="content"></param>
         public void AppendCommandPrepend(string content) =>
             prependBuffer.Append(content);
+        /// <summary>
+        /// Prepend content to the prepend buffer.
+        /// </summary>
+        /// <param name="content"></param>
+        public void PrependCommandPrepend(string content) =>
+            prependBuffer.Insert(0, content);
 
         /// <summary>
         /// Try to get a preprocessor variable.

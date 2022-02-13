@@ -73,6 +73,7 @@ namespace mc_compiled.MCC.Compiler
                 List<Token> rest = line.Skip(1).ToList();
                 Directive directive = (firstToken as TokenDirective).directive;
                 StatementDirective add = new StatementDirective(directive, rest.ToArray());
+                add.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
                 statements.Add(add);
 
                 // continue with this line if there are more tokens
@@ -104,9 +105,17 @@ namespace mc_compiled.MCC.Compiler
             Token secondToken = line[1];
 
             if (secondToken is IAssignment)
-                statements.Add(new StatementOperation(line.ToArray()));
+            {
+                StatementOperation statement = new StatementOperation(line.ToArray());
+                statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                statements.Add(statement);
+            }
             else if (secondToken is TokenOpenParenthesis)
-                statements.Add(new StatementFunctionCall(line.ToArray()));
+            {
+                StatementFunctionCall statement = new StatementFunctionCall(line.ToArray());
+                statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                statements.Add(statement);
+            }
             else
             {
                 if (Program.DEBUG)

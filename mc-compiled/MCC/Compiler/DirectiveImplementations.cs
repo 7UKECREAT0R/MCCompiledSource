@@ -1590,14 +1590,16 @@ namespace mc_compiled.MCC.Compiler
             if (activeFunction == null)
                 throw new StatementException(tokens, "Cannot return a value outside of a function.");
 
+            string selector = executor.ActiveSelectorStr;
+
             if(tokens.NextIs<TokenIdentifierValue>())
             {
                 TokenIdentifierValue token = tokens.Next<TokenIdentifierValue>();
-                activeFunction.TryReturnValue(tokens, token.value);
+                activeFunction.TryReturnValue(tokens, token.value, executor, selector);
             } else
             {
                 TokenLiteral token = tokens.Next<TokenLiteral>();
-                activeFunction.TryReturnValue(tokens, executor.scoreboard, token);
+                activeFunction.TryReturnValue(tokens, executor, token, selector);
             }
         }
     }

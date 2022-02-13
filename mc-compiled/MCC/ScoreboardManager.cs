@@ -73,7 +73,7 @@ namespace mc_compiled.MCC
         {
             string name = TEMP_PREFIX + tempIndex;
             var created = new ScoreboardValueInteger(name, this, null);
-            name += created.GetMaxNameLength().ToString();
+            name += created.GetMaxNameLength().ToString(); // use maxNameLength like an ID
             if (!definedTempVars.Contains(name))
             {
                 definedTempVars.Add(name);

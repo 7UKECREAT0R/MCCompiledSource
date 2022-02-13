@@ -17,17 +17,19 @@ namespace mc_compiled
     class Program
     {
         public static bool NO_PAUSE = false;
+        public static bool DECORATE = false;
         public static bool DEBUG = false;
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
             Console.Write("\nmc-compiled.exe --jsonbuilder\n");
-            Console.Write("mc-compiled.exe <file> [-d] [--daemon]\n");
+            Console.Write("mc-compiled.exe <file> [--debug] [--daemon] [--nopause] [--decorate]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\tIf the -jsonbuilder option is specified, the rawtext json builder is opened instead.\n\n");
             Console.Write("\tOptions:\n");
-            Console.Write("\t  -d\tDebug information during compilation.\n");
+            Console.Write("\t  --debug\tDebug information during compilation.\n");
             Console.Write("\t  --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
             Console.Write("\t  --nopause\tDoes not wait for user input to close application.\n");
+            Console.Write("\t  --decorate\tDecorate the compiled file with original source code (is a bit broken).\n");
         }
         [STAThread]
         static void Main(string[] args)
@@ -44,15 +46,17 @@ namespace mc_compiled
 
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i].Equals("-d"))
+                if (args[i].Equals("--debug"))
                     debug = true;
+                if (args[i].Equals("--nopause"))
+                    NO_PAUSE = true;
+                if (args[i].Equals("--decorate"))
+                    DECORATE = true;
                 if (args[i].Equals("--daemon"))
                 {
                     daemon = true;
                     NO_PAUSE = true;
                 }
-                if (args[i].Equals("--nopause"))
-                    NO_PAUSE = true;
             }
 
             new Definitions(debug);
