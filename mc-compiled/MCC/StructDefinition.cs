@@ -13,8 +13,13 @@ namespace mc_compiled.MCC
     {
         static readonly string[] fieldNamesInternal =
             "abcdefghijklmnopqrstuvwxyz".ToCharArray().Select(c => c.ToString()).ToArray();
-        readonly Dictionary<string, ScoreboardValue> fields;
+
+        // field name, value
+        internal readonly Dictionary<string, ScoreboardValue> fields;
+
         public readonly string name;
+
+        int a = 0, b = 0;
 
         /// <summary>
         /// Create a struct definition using these scoreboard values as templates.
@@ -25,25 +30,27 @@ namespace mc_compiled.MCC
             this.name = name.ToUpper();
             this.fields = new Dictionary<string, ScoreboardValue>();
 
-            int a = 0;
-            int b = 0;
-
             foreach (ScoreboardValue value in values)
             {
                 if (value is ScoreboardValueStruct)
                     throw new Compiler.LegacyTokenException(null, "Cannot contain struct inside of another struct.");
 
-                if(a >= fieldNamesInternal.Length)
-                {
-                    a = 0;
-                    b++;
-                }
-
-                string key = value.baseName;
-                value.baseName = fieldNamesInternal[a++] + fieldNamesInternal[b];
-                this.fields[key] = value;
+                string fieldName = value.baseName;
+                value.baseName = GetNextKey();
+                this.fields[fieldName] = value;
             }
         }
+        internal string GetNextKey()
+        {
+            if (a >= fieldNamesInternal.Length)
+            {
+                a = 0;
+                b++;
+            }
+
+            return fieldNamesInternal[a++] + fieldNamesInternal[b];
+        }
+
         /// <summary>
         /// Create a new scoreboard value using this struct as a template.
         /// </summary>
@@ -87,19 +94,16 @@ namespace mc_compiled.MCC
 
             string baseName = parts[0];
             string fieldName = parts[1];
-            string id = GetFieldId(fieldName);
 
-            if(id == null)
-                throw new Exception("Invalid field for struct " + name + ": '" + fieldName + "'");
-
-            return GetField(baseName, id);
+            return GetField(baseName, fieldName);
         }
-        public ScoreboardValue GetField(string baseName, string id)
+        public ScoreboardValue GetField(string baseName, string fieldName)
         {
-            if (fields.TryGetValue(id, out ScoreboardValue _value))
+            if (fields.TryGetValue(fieldName, out ScoreboardValue _value))
             {
                 ScoreboardValue value = _value.Clone() as ScoreboardValue;
                 value.baseName = baseName + ':' + value.baseName;
+                return value;
             }
             return null;
         }
@@ -113,26 +117,26 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Get the string required to access this field in a struct instance.
         /// </summary>
-        /// <param name="base"></param>
+        /// <param name="baseName"></param>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        public string GetAccessor(string @base, string fieldName)
+        public string GetAccessor(string baseName, string fieldName)
         {
             string id = GetFieldId(fieldName);
 
             if (id == null)
-                return @base + ":XX";
+                return baseName + ":XX";
 
-            return @base + ':' + id;
+            return baseName + ':' + id;
         }
 
         /// <summary>
         /// Get all of the fields in this struct.
         /// </summary>
         /// <returns></returns>
-        public ScoreboardValue[] GetFields()
+        public ScoreboardValue[] GetFields(string baseName)
         {
-            return fields.Values.ToArray();
+            return GetFieldNames().Select(str => GetField(baseName, str)).ToArray();
         }
         /// <summary>
         /// Get all the internal accessor names of the struct.

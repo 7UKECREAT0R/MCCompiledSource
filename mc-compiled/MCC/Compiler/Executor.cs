@@ -36,6 +36,7 @@ namespace mc_compiled.MCC.Compiler
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector> selections;
+        readonly Stack<StructDefinition> definingStructs;
 
         public readonly ScoreboardManager scoreboard;
         /// <summary>
@@ -65,8 +66,9 @@ namespace mc_compiled.MCC.Compiler
 
                 if (scoreboard.TryGetByAccessor(accessor, out ScoreboardValue value))
                 {
-                    AddCommandsClean(value.CommandsRawTextSetup(accessor, sel, index));
-                    terms.AddRange(value.ToRawText(accessor, sel, index++));
+                    AddCommandsClean(value.CommandsRawTextSetup(accessor, sel, ref index));
+                    terms.AddRange(value.ToRawText(accessor, sel, ref index));
+                    index++;
                 } else
                     terms.Add(new JSONText(src));
             }
@@ -104,6 +106,20 @@ namespace mc_compiled.MCC.Compiler
         {
             return definedStdFiles.Contains(file.GetHashCode());
         }
+
+        public void BeginDefiningStruct(StructDefinition definition) =>
+            definingStructs.Push(definition);
+        public void EndDefiningStruct() =>
+            scoreboard.DefineStruct(definingStructs.Pop());
+        public bool IsDefiningStruct
+        {
+            get => definingStructs.Count > 0;
+        }
+        public StructDefinition DefiningStruct
+        {
+            get => definingStructs.Peek();
+        }
+
 
         /// <summary>
         /// Get the active selector.
@@ -240,6 +256,7 @@ namespace mc_compiled.MCC.Compiler
             lastPreprocessorCompare = new bool[100];
             lastActualCompare = new Token[100][];
 
+            definingStructs = new Stack<StructDefinition>();
             currentFiles = new Stack<CommandFile>();
             filesToWrite = new List<IBehaviorFile>();
             prependBuffer = new StringBuilder();

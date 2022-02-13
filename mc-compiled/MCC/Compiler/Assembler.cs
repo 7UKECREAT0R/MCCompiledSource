@@ -88,16 +88,11 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            if (line.Count <= 1)
+            if (line.Count <= 1 || !(firstToken is TokenIdentifier))
             {
-                if (Program.DEBUG)
-                    Console.WriteLine($"Skipping garbage token {firstToken} because is not valid alone.");
-                return;
-            }
-            if (!(firstToken is TokenIdentifier))
-            {
-                if (Program.DEBUG)
-                    Console.WriteLine($"Skipping garbage tokens beginning with {firstToken} because it's not a valid identifier.");
+                StatementUnknown unknown = new StatementUnknown(line.ToArray());
+                unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                statements.Add(unknown);
                 return;
             }
 
@@ -118,8 +113,9 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                if (Program.DEBUG)
-                    Console.WriteLine($"Skipping garbage tokens beginning with {firstToken} {secondToken} because it's unidentifiable.");
+                StatementUnknown unknown = new StatementUnknown(line.ToArray());
+                unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                statements.Add(unknown);
                 return;
             }
         }

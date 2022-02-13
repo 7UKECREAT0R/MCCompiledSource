@@ -219,7 +219,7 @@ namespace mc_compiled.MCC
                 string[] names = value.GetAccessibleNames();
                 if (names.Contains(accessor))
                 {
-                    /*(if (value is ScoreboardValueStruct)
+                    if (value is ScoreboardValueStruct)
                     {
                         ScoreboardValueStruct @struct = value as ScoreboardValueStruct;
                         ScoreboardValue internalValue = @struct.FullyResolveAccessor(accessor);
@@ -227,10 +227,10 @@ namespace mc_compiled.MCC
                         return true;
                     }
                     else
-                    {*/
+                    {
                         output = value;
                         return true;
-                    //}
+                    }
                 }
             }
             output = null;

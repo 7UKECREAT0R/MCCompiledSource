@@ -78,7 +78,7 @@ namespace mc_compiled
             if (daemon)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"[DAEMON] WATCHING FILE: {file}");
+                Console.WriteLine($"[daemon] watching file: {file}");
                 Console.ForegroundColor = ConsoleColor.White;
             }
 

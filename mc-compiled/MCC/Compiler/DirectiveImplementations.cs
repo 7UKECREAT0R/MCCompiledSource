@@ -625,8 +625,18 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, $"Variable type corrupted for '{name}'.");
 
-            executor.scoreboard.Add(value);
-            executor.AddCommandsHead(value.CommandsDefine());
+            if (executor.IsDefiningStruct)
+            {
+                StructDefinition definition = executor.DefiningStruct;
+                string key = definition.GetNextKey();
+                value.baseName = key;
+                definition.fields[name] = value;
+            }
+            else
+            {
+                executor.scoreboard.Add(value);
+                executor.AddCommandsHead(value.CommandsDefine());
+            }
         }
         public static void init(Executor executor, Statement tokens)
         {
@@ -1601,6 +1611,30 @@ namespace mc_compiled.MCC.Compiler
                 TokenLiteral token = tokens.Next<TokenLiteral>();
                 activeFunction.TryReturnValue(tokens, executor, token, selector);
             }
+        }
+        public static void @struct(Executor executor, Statement tokens)
+        {
+            string structName = tokens.Next<TokenIdentifier>().word;
+            StructDefinition item = new StructDefinition(structName);
+            executor.BeginDefiningStruct(item);
+
+            if (!executor.HasNext || !executor.NextIs<StatementOpenBlock>())
+                throw new StatementException(tokens, "No block after struct definition.");
+
+            StatementOpenBlock blockOpen = executor.Next<StatementOpenBlock>();
+            int count = blockOpen.statementsInside;
+
+            for (int i = 0; i < count; i++)
+            {
+                Statement statement = executor.Next();
+                define(executor, statement);
+            }
+
+            if(!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end-of-file after struct definition.");
+
+            executor.EndDefiningStruct();
+            executor.Next<StatementCloseBlock>();
         }
     }
 }

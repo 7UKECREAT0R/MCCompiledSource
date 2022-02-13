@@ -236,4 +236,23 @@ namespace mc_compiled.MCC.Compiler
             return;
         }
     }
+
+    /// <summary>
+    /// An unknown or unidentifiable operation. This performs no operation,
+    /// it's only here to function as potential input for other statements.
+    ///                                 (e.g. as struct fields)
+    /// </summary>
+    public sealed class StatementUnknown : Statement
+    {
+        public StatementUnknown(Token[] tokens) : base(tokens) { }
+        public override string ToString()
+        {
+            return $"[UNKNOWN] {string.Join(" ", from t in tokens select t.AsString())}";
+        }
+
+        public Token[] GetTokens() => tokens;
+
+        protected override TypePattern[] GetValidPatterns() { return new TypePattern[0]; } // always valid
+        protected override void Run(Executor executor) { } // no operation
+    }
 }

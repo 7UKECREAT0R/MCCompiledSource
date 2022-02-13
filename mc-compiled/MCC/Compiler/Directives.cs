@@ -178,6 +178,8 @@ namespace mc_compiled.MCC.Compiler
             new Directive(DirectiveImplementations.@return, "return", "Set Return Value",
                 new TypePattern(typeof(TokenIdentifierValue)),
                 new TypePattern(typeof(TokenLiteral))),
+            new Directive(DirectiveImplementations.@struct, "struct", "Define Struct",
+                new TypePattern(typeof(TokenIdentifier))),
         };
 
         static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
