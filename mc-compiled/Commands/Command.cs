@@ -471,13 +471,13 @@ namespace mc_compiled.Commands
             $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
-            seed == null ? $"structure load {name} {x} {y} {z} {rotation} {flip} {includeEntities} {includeBlocks} {integrity}"
-            : $"structure load {name} {x} {y} {z} {rotation} {flip} {includeEntities} {includeBlocks} {integrity} {seed}";
+            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities} {includeBlocks} {integrity}"
+            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities} {includeBlocks} {integrity} {seed}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, StructureAnimationMode animation = StructureAnimationMode.layer_by_layer,
                 float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
-            seed == null ? $"structure load {name} {x} {y} {z} {rotation} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity}"
-            : $"structure load {name} {x} {y} {z} {rotation} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity} {seed}";
+            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity}"
+            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity} {seed}";
         public static string StructureDelete(string name) =>
             $"structure delete {name}";
 

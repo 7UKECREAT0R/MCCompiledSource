@@ -184,7 +184,6 @@ namespace mc_compiled.MCC.Compiler
                 allResolved[i] = resolved;
             }
 
-            // TODO squash intermediate operations
             executor.scoreboard.PushTempState();
             List<Token> tokens = new List<Token>(allResolved);
             Squash<TokenArithmaticFirst>(ref tokens, executor);
@@ -202,6 +201,8 @@ namespace mc_compiled.MCC.Compiler
                 Token selected = tokens[i];
                 if (!(selected is T))
                     continue;
+                if (selected is IAssignment)
+                    continue; // dont squash assignments
 
                 // this can be assumed due to how squash is meant to be called
                 TokenArithmatic.Type op = (selected as TokenArithmatic).GetArithmaticType();

@@ -425,6 +425,10 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="commands"></param>
         public void AddCommands(IEnumerable<string> commands, bool inline = false)
         {
+            int count = commands.Count();
+            if (count < 1)
+                return;
+
             if (inline)
             {
                 string buffer = PopPrepend();
@@ -432,7 +436,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            if (commands.Count() == 1)
+            if (count == 1)
             {
                 AddCommand(commands.First());
                 return;
@@ -468,9 +472,12 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            if (commands.Count() == 1)
+            int count = commands.Count();
+            if (count < 1)
+                return;
+            if (count == 1)
             {
-                AddCommand(commands.First());
+                AddCommandClean(commands.First());
                 return;
             }
 
@@ -496,8 +503,12 @@ namespace mc_compiled.MCC.Compiler
         /// Adds a set of commands to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="commands"></param>
-        public void AddCommandsHead(IEnumerable<string> commands) =>
+        public void AddCommandsHead(IEnumerable<string> commands)
+        {
+            if (commands.Count() < 1)
+                return;
             HeadFile.AddTop(commands);
+        }
 
         /// <summary>
         /// Set the content that will prepend the next added dirty command.

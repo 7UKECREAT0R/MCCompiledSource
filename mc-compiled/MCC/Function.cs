@@ -13,7 +13,7 @@ namespace mc_compiled.MCC
     /// </summary>
     public class Function
     {
-        readonly List<string> inputs;
+        readonly List<ScoreboardValue> inputs;
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
 
@@ -25,14 +25,14 @@ namespace mc_compiled.MCC
             this.name = name;
             file = new CommandFile(name, null, this);
             isCompilerGenerated = fromCompiler;
-            inputs = new List<string>();
+            inputs = new List<ScoreboardValue>();
         }
-        public Function AddParameter(string parameter)
+        public Function AddParameter(ScoreboardValue parameter)
         {
             inputs.Add(parameter);
             return this;
         }
-        public Function AddParameters(IEnumerable<string> parameters)
+        public Function AddParameters(IEnumerable<ScoreboardValue> parameters)
         {
             inputs.AddRange(parameters);
             return this;
@@ -124,24 +124,24 @@ namespace mc_compiled.MCC
             for(int i = 0; i < count; i++)
             {
                 Token input = inputs[i];
-                string accessor = this.inputs[i];
+                ScoreboardValue output = this.inputs[i];
+                string outputAccessor = output.baseName; // accessor is base name in integer case
 
-                ScoreboardValue output = new ScoreboardValueInteger(accessor, sb, caller);
                 commands.AddRange(output.CommandsInit());
 
                 if (input is TokenLiteral)
                 {
                     TokenLiteral literal = input as TokenLiteral;
-                    commands.AddRange(output.CommandsSetLiteral(accessor, selector, literal));
+                    commands.AddRange(output.CommandsSetLiteral(outputAccessor, selector, literal));
                 }
                 else if (input is TokenIdentifierValue)
                 {
                     ScoreboardValue src = (input as TokenIdentifierValue).value;
                     string thisAccessor = (input as TokenIdentifierValue).word;
-                    commands.AddRange(output.CommandsSet(selector, src, thisAccessor, accessor));
+                    commands.AddRange(output.CommandsSet(selector, src, thisAccessor, outputAccessor));
                 }
                 else
-                    throw new StatementException(caller, $"Unexcpected parameter type for input {output.baseName}. Got: {input.GetType()}");
+                    throw new StatementException(caller, $"Unexpected parameter type for input {output.baseName}. Got: {input.GetType().Name}");
             }
 
             sb.PopTempState();

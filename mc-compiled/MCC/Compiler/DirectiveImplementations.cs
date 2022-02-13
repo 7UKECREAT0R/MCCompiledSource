@@ -1064,7 +1064,7 @@ namespace mc_compiled.MCC.Compiler
                 string cmd = Command.StructureLoad(file.name, Coord.here, Coord.here, Coord.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
 
-                if(active.SelectsMultiple)
+                if(active.NeedsAlign)
                     executor.AddCommand(Command.Execute(active.ToString(), Coord.here, Coord.here, Coord.here, cmd));
                 else
                     executor.AddCommand(cmd);
@@ -1283,6 +1283,13 @@ namespace mc_compiled.MCC.Compiler
             Coord y2 = tokens.Next<TokenCoordinateLiteral>();
             Coord z2 = tokens.Next<TokenCoordinateLiteral>();
 
+            if (x1.isRelative != y1.isRelative ||
+                y1.isRelative != z1.isRelative ||
+                z1.isRelative != x2.isRelative ||
+                x2.isRelative != y2.isRelative ||
+                y2.isRelative != z2.isRelative)
+                throw new StatementException(tokens, "Scatter command requires all coordinate arguments to be relative or exact. (the size needs to be known at compile time.)");
+
             string seed = null;
             if (tokens.HasNext && tokens.NextIs<TokenStringLiteral>())
                 seed = tokens.Next<TokenStringLiteral>();
@@ -1291,9 +1298,9 @@ namespace mc_compiled.MCC.Compiler
                 Console.WriteLine("Attempting to build scatter file... This may take a couple seconds.");
 
             // generate a structure file for this zone.
-            int sizeX = Math.Abs(x2.valuei - x1.valuei);
-            int sizeY = Math.Abs(y2.valuei - y1.valuei);
-            int sizeZ = Math.Abs(z2.valuei - z1.valuei);
+            int sizeX = Math.Abs(x2.valuei - x1.valuei) + 1;
+            int sizeY = Math.Abs(y2.valuei - y1.valuei) + 1;
+            int sizeZ = Math.Abs(z2.valuei - z1.valuei) + 1;
             if (sizeX > 64 || sizeY > 256 || sizeZ > 64)
                 throw new StatementException(tokens, "Scatter zone size cannot be larger than 64x256x64.");
 
@@ -1547,11 +1554,19 @@ namespace mc_compiled.MCC.Compiler
         public static void function(Executor executor, Statement tokens)
         {
             string functionName = tokens.Next<TokenIdentifier>().word;
-            List<string> args = new List<string>();
+            List<ScoreboardValue> args = new List<ScoreboardValue>();
+
+            if (tokens.NextIs<TokenOpenParenthesis>())
+                tokens.Next();
+
+            // this is where the directive feeds in function parameters. if i'm going to do typed
+            // parameter syntax in the future this is where the implementation should be located
             while(tokens.HasNext && tokens.NextIs<TokenIdentifier>())
             {
                 TokenIdentifier token = tokens.Next<TokenIdentifier>();
-                args.Add(token.word);
+                ScoreboardValue value = new ScoreboardValueInteger(token.word, executor.scoreboard, tokens);
+                executor.scoreboard.Add(value);
+                args.Add(value);
             }
 
             Function function = new Function(functionName).AddParameters(args);

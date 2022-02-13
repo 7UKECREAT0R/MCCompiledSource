@@ -196,7 +196,7 @@ namespace mc_compiled.MCC.Compiler
         public StatementFunctionCall(Token[] tokens) : base(tokens) { }
         public override string ToString()
         {
-            return $"[CALL FUNCTION {tokens[0]} WITH {tokens.Length - 1} PARAMETERS]";
+            return $"[CALL FUNCTION {tokens[0]} WITH {tokens.Length - 3} PARAMETERS]";
         }
 
         protected override TypePattern[] GetValidPatterns()
@@ -226,9 +226,7 @@ namespace mc_compiled.MCC.Compiler
                         break;
                 }
                 if (nextToken is TokenOpenParenthesis)
-                {
                     level++;
-                }
 
                 passIn.Add(nextToken);
             }

@@ -55,7 +55,9 @@ namespace mc_compiled.NBT
                 {
                     block_palette = new PaletteEntryNBT[] { new PaletteEntryNBT("minecraft:air") }
                 },
+
                 entities = new EntityListNBT(new EntityNBT(
+                    pos: new VectorNBT(0.5f, 1f, 0.5f),
                     health: 5,
                     invulnerable: true,
                     item: new ItemNBT(item),
