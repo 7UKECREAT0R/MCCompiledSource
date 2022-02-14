@@ -73,7 +73,7 @@ namespace mc_compiled.MCC
         }
 
         public static implicit operator string(ScoreboardValue value) => value.baseName;
-
+        
 
         /// <summary>
         /// Get the commands to define this value.
@@ -526,7 +526,7 @@ namespace mc_compiled.MCC
             if (token is TokenDecimalLiteral)
             {
                 TokenDecimalLiteral literal = token as TokenDecimalLiteral;
-                float number = literal.number.FixPoint(precision);
+                float number = literal.number.LimitDigits(precision);
                 int wholePart = (int)Math.Floor(number);
                 int decimalPart = (number - wholePart).ToFixedInt(precision);
                 return new string[] {

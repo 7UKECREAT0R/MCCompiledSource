@@ -1,3 +1,5 @@
+THESE ARE THE OLD FIXED-POINT OPS USED BEFORE THE REWRITE, HORRID ALGORITHMS
+
 Add two fixed-point units (always carrying)
 base = 1000		// base for this example (10^3)
 wholeA += wholeB

@@ -20,6 +20,7 @@ namespace mc_compiled.MCC.Compiler
         public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]{1,16})})|({(@[psea](\\[.+\\])?)})";
         public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
+
         public readonly string projectName;
         public string lastStatementSource;
 

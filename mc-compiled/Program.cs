@@ -125,7 +125,7 @@ namespace mc_compiled
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();
 
-            // wipe files from output folder
+            // clean output folder
             string folder = projectName + "/";
             if (Directory.Exists(folder))
             {

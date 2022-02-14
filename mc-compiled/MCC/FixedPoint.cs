@@ -12,29 +12,14 @@ namespace mc_compiled.MCC
     public static class FixedPoint
     {
         /// <summary>
-        /// Limit this double to a specific number of digits.
+        /// Convert this float to a fixed point number.
         /// </summary>
         /// <param name="f"></param>
-        /// <param name="digits"></param>
+        /// <param name="precision"></param>
         /// <returns></returns>
-        public static float FixPoint(this float f, int digits)
+        public static int ToFixedPoint(this float f, int precision)
         {
-            float pow = (float)Math.Pow(10, digits);
-            f *= pow;
-            f = (float)Math.Floor(f);
-            return f / pow;
-        }
-        /// <summary>
-        /// Remove the decimal point from this float, to a certain precision.
-        /// <code>12.34567.ToFixedInt(3) = 12345</code>
-        /// </summary>
-        /// <param name="f"></param>
-        /// <param name="digits"></param>
-        /// <returns></returns>
-        public static int ToFixedInt(this float f, int digits)
-        {
-            f *= (float)Math.Pow(10, digits);
-            return (int)(Math.Floor(f));
+            return (int)Math.Floor(f * (float)Math.Pow(10, precision));
         }
         /// <summary>
         /// Get the level of precision needed to represent this double.

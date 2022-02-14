@@ -304,74 +304,45 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else
                 {
-
+                    string aAccessor, bAccessor;
+                    ScoreboardValue a, b;
                     if(leftIsLiteral)
                     {
-                        ScoreboardValue temp = executor.scoreboard.RequestTemp(_left as TokenLiteral, this);
-                        executor.AddCommandsClean(temp.CommandsSetLiteral(temp.baseName, selector, _left as TokenLiteral));
-                        TokenIdentifierValue b = _right as TokenIdentifierValue;
-                        squashedToken = new TokenIdentifierValue(temp.baseName, temp, selected.lineNumber);
-
-                        switch (op)
-                        {
-                            case TokenArithmatic.Type.ADD:
-                                executor.AddCommandsClean(temp.CommandsAdd(selector, b.value, temp.baseName, b.word));
-                                break;
-                            case TokenArithmatic.Type.SUBTRACT:
-                                executor.AddCommandsClean(temp.CommandsSub(selector, b.value, temp.baseName, b.word));
-                                break;
-                            case TokenArithmatic.Type.MULTIPLY:
-                                executor.AddCommandsClean(temp.CommandsMul(selector, b.value, temp.baseName, b.word));
-                                break;
-                            case TokenArithmatic.Type.DIVIDE:
-                                executor.AddCommandsClean(temp.CommandsDiv(selector, b.value, temp.baseName, b.word));
-                                break;
-                            case TokenArithmatic.Type.MODULO:
-                                executor.AddCommandsClean(temp.CommandsMod(selector, b.value, temp.baseName, b.word));
-                                break;
-                            default:
-                                break;
-                        }
+                        a = executor.scoreboard.RequestTemp(_left as TokenLiteral, this);
+                        aAccessor = a.baseName;
+                        executor.AddCommandsClean(a.CommandsSetLiteral(a.baseName, selector, _left as TokenLiteral));
+                        b = (_right as TokenIdentifierValue).value;
+                        bAccessor = (_right as TokenIdentifierValue).Accessor;
                     } else
                     {
-                        TokenIdentifierValue a = _left as TokenIdentifierValue;
-                        TokenLiteral b = _right as TokenLiteral;
+                        b = executor.scoreboard.RequestTemp(_right as TokenLiteral, this);
+                        bAccessor = b.baseName;
+                        executor.AddCommandsClean(b.CommandsSetLiteral(b.baseName, selector, _right as TokenLiteral));
+                        a = (_left as TokenIdentifierValue).value;
+                        aAccessor = (_left as TokenIdentifierValue).Accessor;
+                    }
 
-                        ScoreboardValue temp = executor.scoreboard.RequestTemp(a.value);
-                        ScoreboardValue bTemp = executor.scoreboard.RequestTemp(b, this);
-                        executor.AddCommandsClean(bTemp.CommandsSetLiteral(bTemp.baseName, selector, b));
+                    squashedToken = new TokenIdentifierValue(aAccessor, a, selected.lineNumber);
 
-                        string accessorTemp = temp.baseName;
-                        if (temp is ScoreboardValueStruct && a.word.Contains(':'))
-                        {
-                            StructDefinition structure = (temp as ScoreboardValueStruct).structure;
-                            string field = a.word.Split(':')[1];
-                            accessorTemp = structure.GetAccessor(accessorTemp, field);
-                        }
-
-                        executor.AddCommandsClean(temp.CommandsSet(selector, a.value, accessorTemp, a.word));
-                        squashedToken = new TokenIdentifierValue(accessorTemp, temp, selected.lineNumber);
-
-                        switch (op)
-                        {
-                            case TokenArithmatic.Type.ADD:
-                                executor.AddCommandsClean(temp.CommandsAdd(selector, bTemp, accessorTemp, bTemp.baseName));
-                                break;
-                            case TokenArithmatic.Type.SUBTRACT:
-                                executor.AddCommandsClean(temp.CommandsSub(selector, bTemp, accessorTemp, bTemp.baseName));
-                                break;
-                            case TokenArithmatic.Type.MULTIPLY:
-                                executor.AddCommandsClean(temp.CommandsMul(selector, bTemp, accessorTemp, bTemp.baseName));
-                                break;
-                            case TokenArithmatic.Type.DIVIDE:
-                                executor.AddCommandsClean(temp.CommandsDiv(selector, bTemp, accessorTemp, bTemp.baseName));
-                                break;
-                            case TokenArithmatic.Type.MODULO:
-                                executor.AddCommandsClean(temp.CommandsMod(selector, bTemp, accessorTemp, bTemp.baseName));
-                                break;
-                            default:
-                                break;
-                        }
+                    switch (op)
+                    {
+                        case TokenArithmatic.Type.ADD:
+                            executor.AddCommandsClean(a.CommandsAdd(selector, b, aAccessor, bAccessor));
+                            break;
+                        case TokenArithmatic.Type.SUBTRACT:
+                            executor.AddCommandsClean(a.CommandsSub(selector, b, aAccessor, bAccessor));
+                            break;
+                        case TokenArithmatic.Type.MULTIPLY:
+                            executor.AddCommandsClean(a.CommandsMul(selector, b, aAccessor, bAccessor));
+                            break;
+                        case TokenArithmatic.Type.DIVIDE:
+                            executor.AddCommandsClean(a.CommandsDiv(selector, b, aAccessor, bAccessor));
+                            break;
+                        case TokenArithmatic.Type.MODULO:
+                            executor.AddCommandsClean(a.CommandsMod(selector, b, aAccessor, bAccessor));
+                            break;
+                        default:
+                            break;
                     }
                 }
 

@@ -284,7 +284,7 @@ namespace mc_compiled.MCC
         public float GetDecimalPart(int withPrecision)
         {
             float part = GetDecimalPart();
-            return part.FixPoint(withPrecision);
+            return part.LimitDigits(withPrecision);
         }
     }
 }

@@ -176,8 +176,11 @@ namespace mc_compiled.MCC.Compiler
                 {
                     ScoreboardValue temp = executor.scoreboard.RequestTemp(next, this);
                     TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
-                    executor.AddCommands(value.value.CommandsFromOperation
+                    List<string> commands = new List<string>();
+                    commands.AddRange(temp.CommandsSetLiteral(value.Accessor, selector, next));
+                    commands.AddRange(value.value.CommandsFromOperation
                         (selector, temp, value.Accessor, temp.baseName, op));
+                    executor.AddCommands(commands);
                     executor.scoreboard.ReleaseTemp();
                 }
                 else
@@ -185,7 +188,7 @@ namespace mc_compiled.MCC.Compiler
                         (value.Accessor, selector, next));
             }
             else
-                throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType()}\"");
+                throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");
         }
     }
     /// <summary>

@@ -604,6 +604,11 @@ namespace mc_compiled.MCC.Compiler
                 if (!tokens.NextIs<TokenIntegerLiteral>())
                     throw new StatementException(tokens, $"No precision specified for decimal value");
                 int precision = tokens.Next<TokenIntegerLiteral>();
+                if (precision > 3) {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("WARNING: Decimal precisions >3 could begin to break with numbers greater than 1.");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
                 string decimalName = tokens.Next<TokenStringLiteral>();
                 ScoreboardValueDecimal decimalValue = new ScoreboardValueDecimal
                     (decimalName, precision, executor.scoreboard, tokens);
