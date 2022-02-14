@@ -484,11 +484,6 @@ namespace mc_compiled.MCC
     }
     public sealed class ScoreboardValueDecimal : ScoreboardValue
     {
-        public const string WHOLE_SUFFIX = ":w";
-        public const string DECIMAL_SUFFIX = ":d";
-        public string WholeName { get => baseName + WHOLE_SUFFIX; }
-        public string DecimalName { get => baseName + DECIMAL_SUFFIX; }
-
         public readonly int precision;
 
         public ScoreboardValueDecimal(string baseName, int precision, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions)
@@ -519,19 +514,14 @@ namespace mc_compiled.MCC
             {
                 int integer = (token as TokenIntegerLiteral).number;
                 return new string[] {
-                    Command.ScoreboardSet(selector, prefix + WholeName, integer),
-                    Command.ScoreboardSet(selector, prefix + DecimalName, 0)
+                    Command.ScoreboardSet(selector, prefix + baseName, integer.ToFixedPoint(precision)),
                 };
             }
             if (token is TokenDecimalLiteral)
             {
                 TokenDecimalLiteral literal = token as TokenDecimalLiteral;
-                float number = literal.number.LimitDigits(precision);
-                int wholePart = (int)Math.Floor(number);
-                int decimalPart = (number - wholePart).ToFixedInt(precision);
                 return new string[] {
-                    Command.ScoreboardSet(selector, prefix + WholeName, wholePart),
-                    Command.ScoreboardSet(selector, prefix + DecimalName, decimalPart)
+                    Command.ScoreboardSet(selector, prefix + baseName, literal.number.ToFixedPoint(precision))
                 };
             }
 
