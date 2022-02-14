@@ -112,7 +112,7 @@ namespace mc_compiled.MCC
             ScoreboardValue _value = fields.ElementAt(index).Value;
             ScoreboardValue value = _value.Clone() as ScoreboardValue;
             value.baseName = baseName + ':' + value.baseName;
-            return null;
+            return value;
         }
         /// <summary>
         /// Get the string required to access this field in a struct instance.

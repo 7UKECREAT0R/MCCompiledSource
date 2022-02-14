@@ -17,8 +17,9 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Executor
     {
-        public static readonly Regex FSTRING_VAR = new Regex("{([a-zA-Z-:._]{1,16})}");
-
+        public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]{1,16})})|({(@[psea](\\[.+\\])?)})";
+        public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
+        public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
         public readonly string projectName;
         public string lastStatementSource;
 
@@ -46,30 +47,42 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public List<JSONRawTerm> FString(string fstring)
         {
-            MatchCollection matches = FSTRING_VAR.Matches(fstring);
+            MatchCollection matches = FSTRING_FMT.Matches(fstring);
             if (matches.Count < 1)
                 return new List<JSONRawTerm>() { new JSONText(fstring) };
 
             List<JSONRawTerm> terms = new List<JSONRawTerm>();
-            Stack<string> pieces = new Stack<string>(FSTRING_VAR.Split(fstring).Reverse());
+            IEnumerable<string> piecesReversed = FSTRING_FMT_SPLIT.Split(fstring).Reverse();
+            Stack<string> pieces = new Stack<string>(piecesReversed);
 
             int index = 0;
             string sel = ActiveSelectorStr;
             foreach (Match match in matches)
             {
-                if (match.Index != 0 && pieces.Count > 0)
+                int mindex = match.Index;
+                if (mindex != 0 && pieces.Count > 0)
                     terms.Add(new JSONText(pieces.Pop()));
-                pieces.Pop();
+                else
+                    pieces.Pop();
 
                 string src = match.Value;
-                string accessor = match.Groups[1].Value;
+                string varAccessor = match.Groups[2].Value;
+                string selector = match.Groups[4].Value.Trim('{', '}');
 
-                if (scoreboard.TryGetByAccessor(accessor, out ScoreboardValue value))
+                if (!string.IsNullOrEmpty(varAccessor))
                 {
-                    AddCommandsClean(value.CommandsRawTextSetup(accessor, sel, ref index));
-                    terms.AddRange(value.ToRawText(accessor, sel, ref index));
-                    index++;
-                } else
+                    if (scoreboard.TryGetByAccessor(varAccessor, out ScoreboardValue value))
+                    {
+                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, sel, ref index));
+                        terms.AddRange(value.ToRawText(varAccessor, sel, ref index));
+                        index++;
+                    }
+                    else
+                        terms.Add(new JSONText(src));
+                }
+                else if(!string.IsNullOrEmpty(selector))
+                    terms.Add(new JSONSelector(selector));
+                else
                     terms.Add(new JSONText(src));
             }
 
@@ -278,6 +291,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
+                Console.WriteLine("Generating new manifest file.");
                 uuid1 = Guid.NewGuid();
                 uuid2 = Guid.NewGuid();
             }

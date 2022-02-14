@@ -1064,8 +1064,13 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="accessor"></param>
         /// <returns></returns>
-        public ScoreboardValue FullyResolveAccessor(string accessor) =>
-            structure.GetFieldFromAccessor(accessor);
+        public ScoreboardValue FullyResolveAccessor(string accessor)
+        {
+            if (accessor.IndexOf(':') == -1)
+                return this;
+
+            return structure.GetFieldFromAccessor(accessor);
+        }
 
         public override string[] CommandsDefine(string prefix = "")
         {
@@ -1078,11 +1083,15 @@ namespace mc_compiled.MCC
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
             ScoreboardValue value = FullyResolveAccessor(accessor);
+            if (value == this)
+                return null;
             return value.CommandsSetLiteral("", selector, token, prefix);
         }
         public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "")
         {
             ScoreboardValue value = FullyResolveAccessor(accessor);
+            if(value == this)
+                return null;
             return value.CompareToLiteral(accessor, selector, ctype, literal, prefix);
         }
 
@@ -1126,7 +1135,7 @@ namespace mc_compiled.MCC
             string[] qualified = structure.GetFullyQualifiedNames(baseName).ToArray();
             string[] ret = new string[qualified.Length + 1];
             for (int i = 0; i < qualified.Length; i++)
-                qualified[i] = ret[i];
+                ret[i] = qualified[i];
             ret[qualified.Length] = baseName;
             return ret;
         }
@@ -1177,7 +1186,7 @@ namespace mc_compiled.MCC
         }
         public override string[] CommandsSub(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
-            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
+            if (other is ScoreboardValueStruct || (thisAccessor == null && thatAccessor == null))
             {
                 ScoreboardValueStruct structB = other as ScoreboardValueStruct;
                 if (structure.Equals(structB.structure))

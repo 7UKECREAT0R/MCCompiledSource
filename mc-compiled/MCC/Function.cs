@@ -155,10 +155,10 @@ namespace mc_compiled.MCC
             file.Add(command);
         public void AddCommandTop(string command) =>
             file.AddTop(command);
-        public void AddCommands(IEnumerable<string> command) =>
-            file.Add(command);
-        public void AddCommandsTop(IEnumerable<string> command) =>
-            file.AddTop(command);
+        public void AddCommands(IEnumerable<string> commands) =>
+            file.Add(commands);
+        public void AddCommandsTop(IEnumerable<string> commands) =>
+            file.AddTop(commands);
 
         /// <summary>
         /// Case-insensitive-match this function's name.
