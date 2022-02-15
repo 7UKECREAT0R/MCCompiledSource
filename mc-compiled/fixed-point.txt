@@ -1,0 +1,62 @@
+	fixed-point-ops-v3
+Implementation located in [MCC.Scoreboard.cs]
+
+	Representation
+Fixed point number precision is internally stored during compile-time, however
+the actual precision value is lost after this point. The powers are internally
+pre-calculated as 10^precision and stored in a temporary scoreboard value.
+
+A fixed point number is a decimal number which is represented as an integer. This integer is assumed to represent the target number multiplied by 10^precision. The old method of doing this involved two separate numbers that each represented the whole and decimal part respectively. This model worked well for directly printing the decimal values, however it proved much more difficult to perform the actual operations. Sometimes this model required up to 15 scoreboard commands per operation. This new model only requires 1-3 on average at the expense of print calculations. Overall speedup is estimated to be about 6 times depending on usage.
+
+		Addition
+decimal + decimal:
+	A + B
+decimal + integer:
+	A + (B * BASE)
+
+		Subtraction
+decimal - decimal:
+	A - B
+decimal - integer:
+	A - (B * BASE)
+
+		Multiplication
+decimal * decimal:
+	(A * B) / BASE
+decimal * integer:
+	A * B
+
+		Division
+decimal / decimal:
+	(A * BASE) / B
+decimal / integer:
+	A / B
+
+		Modulus
+decimal % decimal:
+	A % B
+decimal % integer:
+	A % (B * BASE)
+
+		Swap
+decimal >< decimal:
+	A >< B
+decimal >< integer:
+	A >< B
+	A *= BASE
+	B /= BASE
+
+		String Conversion
+The goal of string conversion is to separate the full number into the whole and decimal parts.
+	TEMP = N
+	TEMP /= BASE
+	WHOLE = TEMP
+	TEMP *= BASE
+	DECIMAL = N
+	DECIMAL -= TEMP
+Since negative numbers may show up as -x.-y, it needs to be accounted for.
+	BASE = -1
+	if(DECIMAL < 0)
+		DECIMAL *= BASE
+
+The string can then be printed out as {WHOLE}.{DECIMAL}

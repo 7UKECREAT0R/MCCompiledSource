@@ -290,9 +290,18 @@ namespace mc_compiled.MCC
 
             if(other is ScoreboardValueDecimal)
             {
-                // set this to the whole part of the decimal value (floor)
-                ScoreboardValueDecimal cast = other as ScoreboardValueDecimal;
-                return new[] { Command.ScoreboardOpSet(selector, this, cast.WholeName) };
+                // floor the decimal value
+                ScoreboardValue tempBase = manager.RequestTemp();
+                int precision = (other as ScoreboardValueDecimal).precision;
+
+                string[] commands = new string[] {
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(selector, this, other),
+                    Command.ScoreboardOpDiv(selector, this, tempBase)
+                };
+
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if(other is ScoreboardValueStruct)
@@ -311,9 +320,20 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                // set this to the whole part of the decimal value (floor)
-                ScoreboardValueDecimal cast = other as ScoreboardValueDecimal;
-                return new[] { Command.ScoreboardOpAdd(selector, this, cast.WholeName) };
+                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue temp = manager.RequestTemp();
+                int precision = (other as ScoreboardValueDecimal).precision;
+
+                string[] commands = new string[] {
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(selector, temp, other),
+                    Command.ScoreboardOpDiv(selector, temp, tempBase),
+                    Command.ScoreboardOpAdd(selector, this, temp)
+                };
+
+                manager.ReleaseTemp();
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueStruct)
@@ -332,9 +352,20 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                // set this to the whole part of the decimal value (floor)
-                ScoreboardValueDecimal cast = other as ScoreboardValueDecimal;
-                return new[] { Command.ScoreboardOpSub(selector, this, cast.WholeName) };
+                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue temp = manager.RequestTemp();
+                int precision = (other as ScoreboardValueDecimal).precision;
+
+                string[] commands = new string[] {
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(selector, temp, other),
+                    Command.ScoreboardOpDiv(selector, temp, tempBase),
+                    Command.ScoreboardOpSub(selector, this, temp)
+                };
+
+                manager.ReleaseTemp();
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueStruct)
@@ -354,8 +385,20 @@ namespace mc_compiled.MCC
             if (other is ScoreboardValueDecimal)
             {
                 // set this to the whole part of the decimal value (floor)
-                ScoreboardValueDecimal cast = other as ScoreboardValueDecimal;
-                return new[] { Command.ScoreboardOpMul(selector, this, cast.WholeName) };
+                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue temp = manager.RequestTemp();
+                int precision = (other as ScoreboardValueDecimal).precision;
+
+                string[] commands = new string[] {
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(selector, temp, other),
+                    Command.ScoreboardOpDiv(selector, temp, tempBase),
+                    Command.ScoreboardOpMul(selector, this, temp)
+                };
+
+                manager.ReleaseTemp();
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueStruct)
@@ -374,9 +417,20 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                // set this to the whole part of the decimal value (floor)
-                ScoreboardValueDecimal cast = other as ScoreboardValueDecimal;
-                return new[] { Command.ScoreboardOpDiv(selector, this, cast.WholeName) };
+                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue temp = manager.RequestTemp();
+                int precision = (other as ScoreboardValueDecimal).precision;
+
+                string[] commands = new string[] {
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(selector, temp, other),
+                    Command.ScoreboardOpDiv(selector, temp, tempBase),
+                    Command.ScoreboardOpDiv(selector, this, temp)
+                };
+
+                manager.ReleaseTemp();
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueStruct)
@@ -395,9 +449,20 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                // set this to the whole part of the decimal value (floor)
-                ScoreboardValueDecimal cast = other as ScoreboardValueDecimal;
-                return new[] { Command.ScoreboardOpMod(selector, this, cast.WholeName) };
+                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue temp = manager.RequestTemp();
+                int precision = (other as ScoreboardValueDecimal).precision;
+
+                string[] commands = new string[] {
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(selector, temp, other),
+                    Command.ScoreboardOpDiv(selector, temp, tempBase),
+                    Command.ScoreboardOpMod(selector, this, temp)
+                };
+
+                manager.ReleaseTemp();
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueStruct)
@@ -416,9 +481,19 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                // set this to the whole part of the decimal value (floor)
-                ScoreboardValueDecimal cast = other as ScoreboardValueDecimal;
-                return new[] { Command.ScoreboardOpSwap(selector, this, cast.WholeName) };
+                ScoreboardValue temp = manager.RequestTemp();
+                int precision = (other as ScoreboardValueDecimal).precision;
+
+                string[] commands = new string[]
+                {
+                    Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSwap(selector, baseName, other), // now both values are to the wrong base.
+                    Command.ScoreboardOpDiv(selector, baseName, temp),
+                    Command.ScoreboardOpMul(selector, other, temp)
+                };
+
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueStruct)
@@ -446,13 +521,14 @@ namespace mc_compiled.MCC
             string temporary = SB_TEMP + index;
             string constant = SB_CONST + index;
 
+            manager.AddToStringScoreboards(this,
+                new ScoreboardValueInteger(minutes, manager, null),
+                new ScoreboardValueInteger(seconds, manager, null),
+                new ScoreboardValueInteger(temporary, manager, null),
+                new ScoreboardValueInteger(constant, manager, null));
+
             return new string[]
             {
-                Command.ScoreboardCreateObjective(minutes),
-                Command.ScoreboardCreateObjective(seconds),
-                Command.ScoreboardCreateObjective(temporary),
-                Command.ScoreboardCreateObjective(constant),
-
                 Command.ScoreboardSet("@a", constant, 20),
                 Command.ScoreboardOpSet(selector, temporary, prefix + baseName),
                 Command.ScoreboardOpDiv(selector, temporary, constant),
@@ -486,6 +562,11 @@ namespace mc_compiled.MCC
     {
         public readonly int precision;
 
+        public const string SB_WHOLE = "_mcc_d_whole";
+        public const string SB_PART = "_mcc_d_part";
+        public const string SB_TEMP = "_mcc_d_temp";
+        public const string SB_BASE = "_mcc_d_base";
+
         public ScoreboardValueDecimal(string baseName, int precision, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions)
         {
             this.precision = precision;
@@ -494,15 +575,13 @@ namespace mc_compiled.MCC
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] {
-                Command.ScoreboardCreateObjective(prefix + WholeName),
-                Command.ScoreboardCreateObjective(prefix + DecimalName)
+                Command.ScoreboardCreateObjective(prefix + baseName)
             };
         }
         public override string[] CommandsInit(string prefix = "")
         {
             return new[] {
-                Command.ScoreboardAdd("@a", prefix + WholeName, 0),
-                Command.ScoreboardAdd("@a", prefix + DecimalName, 0),
+                Command.ScoreboardAdd("@a", prefix + baseName, 0)
             };
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
@@ -562,31 +641,56 @@ namespace mc_compiled.MCC
 
             int exp = (int)Math.Pow(10, precision);
             float _number = literal.GetNumber();
-            int number = (int)Math.Round(_number * (float)exp);
+            int number = _number.ToFixedPoint(precision);
 
             return new Tuple<ScoresEntry[], string[]>(new[]
             {
                 new ScoresEntry(temp, range)
             }, new[]
             {
-                Command.ScoreboardSet(selector, temp, exp),
-                Command.ScoreboardOpMul(selector, temp, WholeName),
-                Command.ScoreboardOpAdd(selector, temp, DecimalName),
+                Command.ScoreboardOpSet(selector, temp, baseName),
                 Command.ScoreboardSubtract(selector, temp, number)
             });
         }
 
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
         {
-            return new string[0];
+            string whole = SB_WHOLE + index;
+            string part = SB_PART + index;
+            string temporary = SB_TEMP + index;
+            string tempBase = SB_BASE + index;
+
+            manager.AddToStringScoreboards(this,
+                new ScoreboardValueInteger(whole, manager, null),
+                new ScoreboardValueInteger(part, manager, null),
+                new ScoreboardValueInteger(temporary, manager, null),
+                new ScoreboardValueInteger(tempBase, manager, null));
+
+            return new string[]
+            {
+                Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                Command.ScoreboardOpSet(selector, temporary, baseName),
+                Command.ScoreboardOpDiv(selector, temporary, tempBase),
+                Command.ScoreboardOpDiv(selector, whole, temporary),
+                Command.ScoreboardOpMul(selector, temporary, tempBase),
+                Command.ScoreboardOpSet(selector, part, baseName),
+                Command.ScoreboardOpSub(selector, part, temporary),
+                Command.ScoreboardSet(selector, temporary, -1),
+                Command.Execute(selector, Coord.here, Coord.here, Coord.here,
+                    Command.Execute($"@s[scores={{{part}=..-1}}]",  Coord.here, Coord.here, Coord.here,
+                    Command.ScoreboardOpMul("@s", part, temporary)))
+            };
         }
         public override JSONRawTerm[] ToRawText(string accessor, string selector, ref int index, string prefix = "")
         {
+            string whole = SB_WHOLE + index;
+            string part = SB_PART + index;
+
             return new JSONRawTerm[]
             {
-                new JSONScore(selector, prefix + WholeName),
+                new JSONScore(selector, whole),
                 new JSONText("."),
-                new JSONScore(selector, prefix + DecimalName)
+                new JSONScore(selector, part)
             };
         }
 
@@ -599,20 +703,25 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                return new[]
+                ScoreboardValue tempBase = manager.RequestTemp();
+
+                string[] commands = new string[]
                 {
-                    Command.ScoreboardOpSet(selector, WholeName, other),
-                    Command.ScoreboardSet(selector, DecimalName, 0)
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(selector, baseName, other),
+                    Command.ScoreboardOpMul(selector, baseName, tempBase),
                 };
+
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValueDecimal b = other as ScoreboardValueDecimal;
+                ScoreboardValue tempBase = manager.RequestTemp();
                 return new[]
                 {
-                    Command.ScoreboardOpSet(selector, WholeName, b.WholeName),
-                    Command.ScoreboardOpSet(selector, DecimalName, b.DecimalName)
+                    Command.ScoreboardOpSet(selector, baseName, other)
                 };
             }
 
@@ -629,32 +738,28 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                return new[]
-                {
-                    Command.ScoreboardOpAdd(selector, WholeName, other)
-                };
-            }
-
-            if (other is ScoreboardValueDecimal)
-            {
-                ScoreboardValueDecimal b = other as ScoreboardValueDecimal;
-                ScoreboardValue tempRemainder = manager.RequestTemp();
+                ScoreboardValue tempAccumulator = manager.RequestTemp();
                 ScoreboardValue tempBase = manager.RequestTemp();
 
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpAdd(selector, WholeName, b.WholeName),
-                    Command.ScoreboardOpAdd(selector, DecimalName, b.DecimalName),
-                    Command.ScoreboardOpSet(selector, tempRemainder, DecimalName),
-                    Command.ScoreboardOpDiv(selector, tempRemainder, tempBase),
-                    Command.ScoreboardOpAdd(selector, WholeName, tempRemainder),
-                    Command.ScoreboardOpMul(selector, tempRemainder, tempBase),
-                    Command.ScoreboardOpSub(selector, DecimalName, tempRemainder)
+                    Command.ScoreboardOpSet(selector, tempAccumulator, other),
+                    Command.ScoreboardOpMul(selector, tempAccumulator, tempBase),
+                    Command.ScoreboardOpAdd(selector, baseName, tempAccumulator),
                 };
 
                 manager.ReleaseTemp();
                 manager.ReleaseTemp();
+                return commands;
+            }
+
+            if (other is ScoreboardValueDecimal)
+            {
+                string[] commands = new string[]
+                {
+                    Command.ScoreboardOpAdd(selector, baseName, other),
+                };
                 return commands;
             }
 
@@ -664,58 +769,32 @@ namespace mc_compiled.MCC
                 ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
                 return CommandsAdd(selector, b, thisAccessor, "");
             }
-
+            
             return new string[0];
         }
         public override string[] CommandsSub(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
             if (other is ScoreboardValueInteger)
             {
-                return new[]
+                ScoreboardValue tempBase = manager.RequestTemp();
+
+                string[] commands = new string[]
                 {
-                    Command.ScoreboardOpSub(selector, WholeName, other)
+                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpMul(selector, tempBase, other),
+                    Command.ScoreboardOpSub(selector, baseName, tempBase),
                 };
+
+                manager.ReleaseTemp();
+                return commands;
             }
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValueDecimal b = other as ScoreboardValueDecimal;
-                ScoreboardValue temp = manager.RequestTemp();
-                ScoreboardValue temp2 = manager.RequestTemp();
-                ScoreboardValue tempBase = manager.RequestTemp();
-
-                thisAccessor = thisAccessor.Replace(':', '#');
-                thatAccessor = thatAccessor.Replace(':', '#');
-                string functionName = "carry_" + thisAccessor + "_" + thatAccessor;
-                CommandFile file = new CommandFile(functionName, "_math");
-
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, -1),
-                    Command.ScoreboardOpSub(selector, WholeName, b.WholeName),
-                    Command.ScoreboardOpSub(selector, DecimalName, b.DecimalName),
-                    Command.Execute($"{selector}[scores={{{DecimalName}=..0}}]", Coord.here, Coord.here, Coord.here,
-                        Command.Function(file)),
+                    Command.ScoreboardOpSub(selector, baseName, other),
                 };
-                
-                file.Add(new string[]
-                {
-                    Command.ScoreboardOpMul("@s", DecimalName, tempBase), // invert sign
-                    Command.ScoreboardOpSet("@s", temp2, DecimalName),
-                    Command.ScoreboardSet("@s", tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpAdd("@s", DecimalName, tempBase), // prep for ceil operation
-                    Command.ScoreboardOpSet("@s", temp, DecimalName),
-                    Command.ScoreboardOpDiv("@s", temp, tempBase),
-                    Command.ScoreboardOpSub("@s", WholeName, temp),
-                    Command.ScoreboardOpMul("@s", temp, tempBase),
-                    Command.ScoreboardOpSub("@s", temp, temp2),
-                    Command.ScoreboardOpSet("@s", DecimalName, temp)
-                });
-
-                manager.executor.AddExtraFile(file);
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
                 return commands;
             }
 
@@ -732,64 +811,23 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValueInteger b = other as ScoreboardValueInteger;
-                ScoreboardValue temp = manager.RequestTemp();
-                ScoreboardValue temp2 = manager.RequestTemp();
-                ScoreboardValue tempBase = manager.RequestTemp();
-
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp2, b),
-
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpAdd(selector, temp, DecimalName),
-                    Command.ScoreboardOpMul(selector, temp, temp2),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpSet(selector, WholeName, temp),
-                    Command.ScoreboardOpSet(selector, DecimalName, temp),
-                    Command.ScoreboardOpDiv(selector, WholeName, tempBase),
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpSub(selector, DecimalName, temp),
+                    Command.ScoreboardOpMul(selector, baseName, other),
                 };
-
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
                 return commands;
             }
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValueDecimal b = other as ScoreboardValueDecimal;
-                ScoreboardValue temp = manager.RequestTemp();
-                ScoreboardValue temp2 = manager.RequestTemp();
                 ScoreboardValue tempBase = manager.RequestTemp();
 
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpSet(selector, temp2, b.WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpAdd(selector, temp, DecimalName),
-                    Command.ScoreboardOpAdd(selector, temp2, b.DecimalName),
-                    Command.ScoreboardOpMul(selector, temp, temp2),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpSet(selector, WholeName, temp),
-                    Command.ScoreboardOpSet(selector, DecimalName, temp),
-                    Command.ScoreboardOpDiv(selector, WholeName, tempBase),
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpSub(selector, DecimalName, temp),
+                    Command.ScoreboardOpMul(selector, baseName, other),
+                    Command.ScoreboardOpDiv(selector, baseName, tempBase)
                 };
-
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
                 manager.ReleaseTemp();
                 return commands;
             }
@@ -807,64 +845,23 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValueInteger b = other as ScoreboardValueInteger;
-                ScoreboardValue temp = manager.RequestTemp();
-                ScoreboardValue temp2 = manager.RequestTemp();
-                ScoreboardValue tempBase = manager.RequestTemp();
-
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp2, b),
-
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpAdd(selector, temp, DecimalName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpDiv(selector, temp, temp2),
-                    Command.ScoreboardOpSet(selector, WholeName, temp),
-                    Command.ScoreboardOpSet(selector, DecimalName, temp),
-                    Command.ScoreboardOpDiv(selector, WholeName, tempBase),
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpSub(selector, DecimalName, temp),
+                    Command.ScoreboardOpDiv(selector, baseName, other),
                 };
-
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
                 return commands;
             }
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValueDecimal b = other as ScoreboardValueDecimal;
-                ScoreboardValue temp = manager.RequestTemp();
-                ScoreboardValue temp2 = manager.RequestTemp();
                 ScoreboardValue tempBase = manager.RequestTemp();
 
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpSet(selector, temp2, b.WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpAdd(selector, temp, DecimalName),
-                    Command.ScoreboardOpAdd(selector, temp2, b.DecimalName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpDiv(selector, temp, temp2),
-                    Command.ScoreboardOpSet(selector, WholeName, temp),
-                    Command.ScoreboardOpSet(selector, DecimalName, temp),
-                    Command.ScoreboardOpDiv(selector, WholeName, tempBase),
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpSub(selector, DecimalName, temp),
+                    Command.ScoreboardOpMul(selector, baseName, tempBase),
+                    Command.ScoreboardOpDiv(selector, baseName, other)
                 };
-
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
                 manager.ReleaseTemp();
                 return commands;
             }
@@ -882,67 +879,24 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValueInteger b = other as ScoreboardValueInteger;
-                ScoreboardValue temp = manager.RequestTemp();
-                ScoreboardValue temp2 = manager.RequestTemp();
                 ScoreboardValue tempBase = manager.RequestTemp();
 
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp2, b),
-
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpAdd(selector, temp, WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpMod(selector, temp, temp2),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpSet(selector, DecimalName, temp),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpSet(selector, WholeName, temp),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpSub(selector, DecimalName, temp),
+                    Command.ScoreboardOpMul(selector, tempBase, other),
+                    Command.ScoreboardOpMod(selector, baseName, tempBase)
                 };
-
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
                 manager.ReleaseTemp();
                 return commands;
             }
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValueDecimal b = other as ScoreboardValueDecimal;
-                ScoreboardValue temp = manager.RequestTemp();
-                ScoreboardValue temp2 = manager.RequestTemp();
-                ScoreboardValue tempBase = manager.RequestTemp();
-
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, WholeName),
-                    Command.ScoreboardOpSet(selector, temp2, b.WholeName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpAdd(selector, temp, DecimalName),
-                    Command.ScoreboardOpAdd(selector, temp2, b.DecimalName),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, temp2, tempBase),
-                    Command.ScoreboardOpMod(selector, temp, temp2),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpSet(selector, DecimalName, temp),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpSet(selector, WholeName, temp),
-                    Command.ScoreboardOpMul(selector, temp, tempBase),
-                    Command.ScoreboardOpSub(selector, DecimalName, temp),
+                    Command.ScoreboardOpMod(selector, baseName, other),
                 };
-
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
                 return commands;
             }
 
@@ -959,21 +913,25 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
+                ScoreboardValue temp = manager.RequestTemp();
+
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpSwap(selector, WholeName, other),
-                    Command.ScoreboardSet(selector, DecimalName, 0)
+                    Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSwap(selector, baseName, other), // now both values are to the wrong base.
+                    Command.ScoreboardOpMul(selector, baseName, temp),
+                    Command.ScoreboardOpDiv(selector, other, temp)
                 };
+
+                manager.ReleaseTemp();
                 return commands;
             }
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValueDecimal b = other as ScoreboardValueDecimal;
                 return new[]
                 {
-                    Command.ScoreboardOpSwap(selector, WholeName, b.WholeName),
-                    Command.ScoreboardOpSwap(selector, DecimalName, b.DecimalName)
+                    Command.ScoreboardOpSwap(selector, baseName, other)
                 };
             }
 
@@ -1057,7 +1015,7 @@ namespace mc_compiled.MCC
         public ScoreboardValue FullyResolveAccessor(string accessor)
         {
             if (accessor.IndexOf(':') == -1)
-                return this;
+                throw new Exception("Struct accessor '" + accessor + "' didn't have a field specified.");
 
             return structure.GetFieldFromAccessor(accessor);
         }

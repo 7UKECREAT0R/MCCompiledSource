@@ -31,6 +31,15 @@ namespace mc_compiled.MCC
             values = new List<ScoreboardValue>();
             this.executor = executor;
         }
+        public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
+        {
+            string key = value.baseName + "__toStr";
+            if (definedTempVars.Contains(key))
+                return;
+
+            executor.AddCommandsHead(commands.SelectMany(sb => sb.CommandsDefine()));
+            definedTempVars.Add(key);
+        }
 
         /// <summary>
         /// Define a struct. Overwrites the existing one if it exists.

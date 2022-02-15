@@ -283,8 +283,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public float GetDecimalPart(int withPrecision)
         {
-            float part = GetDecimalPart();
-            return part.LimitDigits(withPrecision);
+            throw new NotImplementedException();
         }
     }
 }
