@@ -277,29 +277,32 @@ namespace mc_compiled.MCC.Compiler
             scoreboard = new ScoreboardManager(this);
 
             // extract guids from existing manifest
-            Guid uuid1, uuid2;
-            string manifestPath = Path.Combine(projectName, "manifest.json");
-
-            if (File.Exists(manifestPath))
+            if (!Program.BASIC_OUTPUT)
             {
-                Console.WriteLine("Reading GUIDs from existing manifest file.");
-                string manifestData = File.ReadAllText(manifestPath);
-                JObject json = JObject.Parse(manifestData);
-                string strUUID1 = json["header"]["uuid"].ToString();
-                string strUUID2 = json["modules"][0]["uuid"].ToString();
-                uuid1 = new Guid(strUUID1);
-                uuid2 = new Guid(strUUID2);
-            }
-            else
-            {
-                Console.WriteLine("Generating new manifest file.");
-                uuid1 = Guid.NewGuid();
-                uuid2 = Guid.NewGuid();
-            }
+                Guid uuid1, uuid2;
+                string manifestPath = Path.Combine(projectName, "manifest.json");
 
-            Manifest manifestFile = new Manifest(uuid1, uuid2,
-                projectName, "MCCompiled Project");
-            filesToWrite.Add(manifestFile);
+                if (File.Exists(manifestPath))
+                {
+                    Console.WriteLine("Reading GUIDs from existing manifest file.");
+                    string manifestData = File.ReadAllText(manifestPath);
+                    JObject json = JObject.Parse(manifestData);
+                    string strUUID1 = json["header"]["uuid"].ToString();
+                    string strUUID2 = json["modules"][0]["uuid"].ToString();
+                    uuid1 = new Guid(strUUID1);
+                    uuid2 = new Guid(strUUID2);
+                }
+                else
+                {
+                    Console.WriteLine("Generating new manifest file.");
+                    uuid1 = Guid.NewGuid();
+                    uuid2 = Guid.NewGuid();
+                }
+
+                Manifest manifestFile = new Manifest(uuid1, uuid2,
+                    projectName, "MCCompiled Project");
+                filesToWrite.Add(manifestFile);
+            }
 
             PushSelector(true);
             currentFiles.Push(new CommandFile(projectName));
@@ -635,12 +638,7 @@ namespace mc_compiled.MCC.Compiler
         public void WriteAllFiles()
         {
             foreach(IBehaviorFile file in filesToWrite)
-            {
-                string dir = Path.Combine(projectName, file.GetOutputDirectory());
-                Directory.CreateDirectory(dir);
-                string outputFile = Path.Combine(dir, file.GetOutputFile());
-                File.WriteAllBytes(outputFile, file.GetOutputData());
-            }
+                WriteFileNow(file);
             filesToWrite.Clear();
         }
         /// <summary>
@@ -649,10 +647,18 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="file"></param>
         public void WriteFileNow(IBehaviorFile file)
         {
-            string dir = Path.Combine(projectName, file.GetOutputDirectory());
-            Directory.CreateDirectory(dir);
-            string outputFile = Path.Combine(dir, file.GetOutputFile());
-            File.WriteAllBytes(outputFile, file.GetOutputData());
+            if (Program.BASIC_OUTPUT)
+            {
+                string output = file.GetOutputFile();
+                File.WriteAllBytes(output, file.GetOutputData());
+            }
+            else
+            {
+                string dir = Path.Combine(projectName, file.GetOutputDirectory());
+                Directory.CreateDirectory(dir);
+                string outputFile = Path.Combine(dir, file.GetOutputFile());
+                File.WriteAllBytes(outputFile, file.GetOutputData());
+            }
         }
     }
 }

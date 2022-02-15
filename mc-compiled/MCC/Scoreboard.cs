@@ -671,7 +671,7 @@ namespace mc_compiled.MCC
                 Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
                 Command.ScoreboardOpSet(selector, temporary, baseName),
                 Command.ScoreboardOpDiv(selector, temporary, tempBase),
-                Command.ScoreboardOpDiv(selector, whole, temporary),
+                Command.ScoreboardOpSet(selector, whole, temporary),
                 Command.ScoreboardOpMul(selector, temporary, tempBase),
                 Command.ScoreboardOpSet(selector, part, baseName),
                 Command.ScoreboardOpSub(selector, part, temporary),

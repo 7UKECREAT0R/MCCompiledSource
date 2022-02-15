@@ -19,6 +19,7 @@ namespace mc_compiled
         public static bool NO_PAUSE = false;
         public static bool DECORATE = false;
         public static bool DEBUG = false;
+        public static bool BASIC_OUTPUT = false;
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
@@ -30,6 +31,7 @@ namespace mc_compiled
             Console.Write("\t  --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
             Console.Write("\t  --nopause\tDoes not wait for user input to close application.\n");
             Console.Write("\t  --decorate\tDecorate the compiled file with original source code (is a bit broken).\n");
+            Console.Write("\t  --basic\tOutput raw files rather than structuring a behavior pack.\n");
         }
         [STAThread]
         static void Main(string[] args)
@@ -52,6 +54,8 @@ namespace mc_compiled
                     NO_PAUSE = true;
                 if (args[i].Equals("--decorate"))
                     DECORATE = true;
+                if (args[i].Equals("--basic"))
+                    BASIC_OUTPUT = true;
                 if (args[i].Equals("--daemon"))
                 {
                     daemon = true;
@@ -127,7 +131,9 @@ namespace mc_compiled
 
             // clean output folder
             string folder = projectName + "/";
-            if (Directory.Exists(folder))
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+            /*if (Directory.Exists(folder))
             {
                 string[] files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
                 foreach (string file in files)
@@ -139,7 +145,7 @@ namespace mc_compiled
             } else
             {
                 Directory.CreateDirectory(folder);
-            }
+            }*/
         }
         public static void RunMCCompiled(string file)
         {
