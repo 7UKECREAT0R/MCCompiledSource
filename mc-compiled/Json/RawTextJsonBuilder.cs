@@ -89,7 +89,9 @@ namespace mc_compiled.Json
                     string comp = text.ToUpper();
                     if (comp.StartsWith("TEXT"))
                     {
-                        terms.Add(new JSONText(text.Substring(5)));
+                        string str = text.Substring(5);
+                        str = MCC.Definitions.GLOBAL_DEFS.ReplaceDefinitions(str);
+                        terms.Add(new JSONText(str));
                         continue;
                     }
                     else if (comp.StartsWith("SCORE"))

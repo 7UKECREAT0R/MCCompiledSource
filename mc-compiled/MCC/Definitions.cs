@@ -25,6 +25,10 @@ namespace mc_compiled.MCC
         {
             return (category + ':' + query).ToUpper();
         }
+        /// <summary>
+        /// Initializes and loads a definitions instance, also setting GLOBAL_DEFS to it.
+        /// </summary>
+        /// <param name="debugInfo"></param>
         public Definitions(bool debugInfo)
         {
             defs = new Dictionary<string, string>();
@@ -33,8 +37,8 @@ namespace mc_compiled.MCC
             if (!File.Exists(path))
             {
                 ConsoleColor errprevious = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("WARNING: No '{0}' file found. Constants will not be valid.", path);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("WARNING: Missing definitions file at '{0}'. Expect everything to blow up.", path);
                 Console.ForegroundColor = errprevious;
                 return;
             }
@@ -116,7 +120,7 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// Replace all definition objects with its definition.<br />
+        /// Replace all definition queries with their resulting values.<br />
         /// [color: RED] -> §c<br />
         /// [wool: BLUE] -> 11<br />
         /// [misc: BELOW] -> ~ ~-1 ~<br />

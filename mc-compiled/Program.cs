@@ -20,18 +20,24 @@ namespace mc_compiled
         public static bool DECORATE = false;
         public static bool DEBUG = false;
         public static bool BASIC_OUTPUT = false;
+        public static bool CLEAN = false;
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
-            Console.Write("\nmc-compiled.exe --jsonbuilder\n");
-            Console.Write("mc-compiled.exe <file> [--debug] [--daemon] [--nopause] [--decorate]\n");
-            Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\tIf the -jsonbuilder option is specified, the rawtext json builder is opened instead.\n\n");
+            Console.Write("\tShow the help menu for this application.\n\n");
+            Console.Write("mc-compiled.exe --jsonbuilder\n");
+            Console.Write("\tOpen a user-interface to build JSON rawtext.\n\n");
+            Console.Write("mc-compiled.exe --manifest <projectName>\n");
+            Console.Write("\tGenerate a behavior pack manifest with valid GUIDs.\n\n");
+            Console.Write("mc-compiled.exe <file> [options...]\n");
+            Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
             Console.Write("\tOptions:\n");
-            Console.Write("\t  --debug\tDebug information during compilation.\n");
-            Console.Write("\t  --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
-            Console.Write("\t  --nopause\tDoes not wait for user input to close application.\n");
-            Console.Write("\t  --decorate\tDecorate the compiled file with original source code (is a bit broken).\n");
-            Console.Write("\t  --basic\tOutput raw files rather than structuring a behavior pack.\n");
+            Console.Write("\t  -b | --basic\tOnly output function/structure files. No behavior pack data.\n");
+            Console.Write("\t  -c | --clean\tWipe all files from the output directory.\n");
+            Console.Write("\t  -dm | --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
+            Console.Write("\t  -db | --debug\tDebug information during compilation.\n");
+            Console.Write("\t  -dc | --decorate\tDecorate the compiled file with original source code (is a bit broken).\n");
+            Console.Write("\t  -np | --nopause\tDoes not wait for user input to close application.\n");
         }
         [STAThread]
         static void Main(string[] args)
@@ -46,29 +52,52 @@ namespace mc_compiled
             bool debug = false;
             bool daemon = false;
 
-            for (int i = 0; i < args.Length; i++)
+            for (int i = 1; i < args.Length; i++)
             {
-                if (args[i].Equals("--debug"))
-                    debug = true;
-                if (args[i].Equals("--nopause"))
-                    NO_PAUSE = true;
-                if (args[i].Equals("--decorate"))
-                    DECORATE = true;
-                if (args[i].Equals("--basic"))
-                    BASIC_OUTPUT = true;
-                if (args[i].Equals("--daemon"))
+                string word = args[i].ToUpper();
+                switch(word)
                 {
-                    daemon = true;
-                    NO_PAUSE = true;
+                    case "--DEBUG":
+                    case "-DB":
+                        debug = true;
+                        break;
+                    case "--NOPAUSE":
+                    case "-NP":
+                        NO_PAUSE = true;
+                        break;
+                    case "--DECORATE":
+                    case "-DC":
+                        DECORATE = true;
+                        break;
+                    case "--BASIC":
+                    case "-B":
+                        BASIC_OUTPUT = true;
+                        break;
+                    case "--CLEAN":
+                    case "-C":
+                        CLEAN = true;
+                        break;
+                    case "--DAEMON":
+                    case "-DM":
+                        daemon = true;
+                        NO_PAUSE = true;
+                        break;
                 }
             }
-
-            new Definitions(debug);
-
             if (file.ToUpper().Equals("--JSONBUILDER"))
             {
+                new Definitions(debug);
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
                 builder.ConsoleInterface();
+                return;
+            }
+            if (file.ToUpper().Equals("--MANIFEST"))
+            {
+                string rest = string.Join(" ", args).Substring(11);
+                Manifest manifest = new Manifest(Guid.NewGuid(), Guid.NewGuid(),
+                    rest, "TODO set description");
+                File.WriteAllBytes("manifest.json", manifest.GetOutputData());
+                Console.WriteLine("Wrote 'manifest.json' to current directory.");
                 return;
             }
 
@@ -86,6 +115,8 @@ namespace mc_compiled
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
+            // initialize definitions resolver
+            new Definitions(debug);
             // initialize enum constants
             Commands.CommandEnumParser.Init();
 
@@ -129,23 +160,27 @@ namespace mc_compiled
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();
 
-            // clean output folder
+            // clean/create output folder
             string folder = projectName + "/";
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-            /*if (Directory.Exists(folder))
+            if (CLEAN)
             {
-                string[] files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
-                foreach (string file in files)
+                if (Directory.Exists(folder))
                 {
-                    if (file.EndsWith("manifest.json"))
-                        continue;
-                    File.Delete(file);
+                    string[] files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
+                    foreach (string file in files)
+                    {
+                        if (file.EndsWith("manifest.json"))
+                            continue;
+                        File.Delete(file);
+                    }
                 }
+                else
+                    Directory.CreateDirectory(folder);
             } else
             {
-                Directory.CreateDirectory(folder);
-            }*/
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+            }
         }
         public static void RunMCCompiled(string file)
         {

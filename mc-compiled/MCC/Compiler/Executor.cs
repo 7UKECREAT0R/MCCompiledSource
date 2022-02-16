@@ -647,18 +647,10 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="file"></param>
         public void WriteFileNow(IBehaviorFile file)
         {
-            if (Program.BASIC_OUTPUT)
-            {
-                string output = file.GetOutputFile();
-                File.WriteAllBytes(output, file.GetOutputData());
-            }
-            else
-            {
-                string dir = Path.Combine(projectName, file.GetOutputDirectory());
-                Directory.CreateDirectory(dir);
-                string outputFile = Path.Combine(dir, file.GetOutputFile());
-                File.WriteAllBytes(outputFile, file.GetOutputData());
-            }
+            string dir = Path.Combine(projectName, file.GetOutputDirectory());
+            Directory.CreateDirectory(dir);
+            string outputFile = Path.Combine(dir, file.GetOutputFile());
+            File.WriteAllBytes(outputFile, file.GetOutputData());
         }
     }
 }
