@@ -324,7 +324,6 @@ namespace mc_compiled.MCC.Compiler
         public TokenNumberLiteral NextNumberIdentifier(char first)
         {
             sb.Append(first);
-            bool isFloat = false;
             int multiplier = 1;
 
             char c;
@@ -334,7 +333,6 @@ namespace mc_compiled.MCC.Compiler
 
                 if (c == '.')
                 {
-                    isFloat = true;
                     sb.Append(NextChar());
                     continue;
                 }
@@ -363,18 +361,21 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string str = sb.ToString();
-            if(isFloat)
+
+            if (int.TryParse(str, out int i))
+                return new TokenIntegerLiteral(i * multiplier, CURRENT_LINE);
+            else
             {
                 if (float.TryParse(str, out float f))
-                    return new TokenDecimalLiteral(f * (float)multiplier, CURRENT_LINE);
+                {
+                    f *= multiplier;
+                    int converted = (int)f;
+                    if(f == (float)converted)
+                        return new TokenIntegerLiteral(converted, CURRENT_LINE);
+                    return new TokenDecimalLiteral(f, CURRENT_LINE);
+                }
                 else
-                    throw new TokenizerException("Couldn't parse decimal literal: " + str);
-            } else
-            {
-                if (int.TryParse(str, out int i))
-                    return new TokenIntegerLiteral(i * multiplier, CURRENT_LINE);
-                else
-                    throw new TokenizerException("Couldn't parse integer literal: " + str);
+                    throw new TokenizerException("Couldn't parse literal: " + str);
             }
         }
         public TokenStringLiteral NextStringIdentifier()
