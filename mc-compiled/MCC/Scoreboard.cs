@@ -138,6 +138,9 @@ namespace mc_compiled.MCC
             }
             return null;
         }
+        public abstract string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions);
+        public abstract string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions);
+
 
         /// <summary>
         /// this = other
@@ -282,6 +285,21 @@ namespace mc_compiled.MCC
             MAX_NAME_LENGTH;
         public override string[] GetAccessibleNames() =>
             new[] { baseName };
+
+        public override string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
+        {
+            if (other is TokenNumberLiteral)
+                return new[] { Command.ScoreboardAdd(selector, baseName, (other as TokenNumberLiteral).GetNumberInt()) };
+            else
+                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + baseName + "'");
+        }
+        public override string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
+        {
+            if (other is TokenNumberLiteral)
+                return new[] { Command.ScoreboardSubtract(selector, baseName, (other as TokenNumberLiteral).GetNumberInt()) };
+            else
+                throw new StatementException(forExceptions, "Attempted to subtract invalid literal from value '" + baseName + "'");
+        }
 
         public override string[] CommandsSet(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
@@ -699,6 +717,41 @@ namespace mc_compiled.MCC
         public override string[] GetAccessibleNames() =>
             new[] { baseName };
 
+        public override string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
+        {
+            if (other is TokenIntegerLiteral)
+            {
+                int value = (other as TokenIntegerLiteral);
+                value = value.ToFixedPoint(precision);
+                return new[] { Command.ScoreboardAdd(selector, baseName, value) };
+            }
+            else if(other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral);
+                int number = value.ToFixedPoint(precision);
+                return new[] { Command.ScoreboardAdd(selector, baseName, number) };
+            }
+            else
+                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + baseName + "'");
+        }
+        public override string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
+        {
+            if (other is TokenIntegerLiteral)
+            {
+                int value = (other as TokenIntegerLiteral);
+                value = value.ToFixedPoint(precision);
+                return new[] { Command.ScoreboardSubtract(selector, baseName, value) };
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral);
+                int number = value.ToFixedPoint(precision);
+                return new[] { Command.ScoreboardSubtract(selector, baseName, number) };
+            }
+            else
+                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + baseName + "'");
+        }
+
         public override string[] CommandsSet(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
         {
             if (other is ScoreboardValueInteger)
@@ -1086,6 +1139,21 @@ namespace mc_compiled.MCC
                 ret[i] = qualified[i];
             ret[qualified.Length] = baseName;
             return ret;
+        }
+
+        public override string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
+        {
+            ScoreboardValue value = FullyResolveAccessor(thisAccessor);
+            if (value == this)
+                return null;
+            return value.CommandsAddLiteral(selector, other, thisAccessor, forExceptions);
+        }
+        public override string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
+        {
+            ScoreboardValue value = FullyResolveAccessor(thisAccessor);
+            if (value == this)
+                return null;
+            return value.CommandsSubLiteral(selector, other, thisAccessor, forExceptions);
         }
 
         public override string[] CommandsSet(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)

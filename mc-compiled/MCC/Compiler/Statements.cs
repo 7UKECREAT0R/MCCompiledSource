@@ -201,12 +201,21 @@ namespace mc_compiled.MCC.Compiler
                 TokenLiteral next = Next<TokenLiteral>();
                 if (assignment is TokenArithmatic)
                 {
-                    ScoreboardValue temp = executor.scoreboard.RequestTemp(next, this);
+                    
                     TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
                     List<string> commands = new List<string>();
-                    commands.AddRange(temp.CommandsSetLiteral(value.Accessor, selector, next));
-                    commands.AddRange(value.value.CommandsFromOperation
-                        (selector, temp, value.Accessor, temp.baseName, op));
+
+                    if (op == TokenArithmatic.Type.ADD)
+                        commands.AddRange(value.value.CommandsAddLiteral(selector, next, value.Accessor, this));
+                    else if (op == TokenArithmatic.Type.SUBTRACT)
+                        commands.AddRange(value.value.CommandsSubLiteral(selector, next, value.Accessor, this));
+                    else
+                    {
+                        ScoreboardValue temp = executor.scoreboard.RequestTemp(next, this);
+                        commands.AddRange(temp.CommandsSetLiteral(value.Accessor, selector, next));
+                        commands.AddRange(value.value.CommandsFromOperation(selector, temp, value.Accessor, temp.baseName, op));
+                    }
+
                     executor.AddCommands(commands);
                     executor.scoreboard.ReleaseTemp();
                 }
