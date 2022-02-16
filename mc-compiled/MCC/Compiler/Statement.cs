@@ -17,6 +17,7 @@ namespace mc_compiled.MCC.Compiler
             this.tokens = tokens;
             if (!waitForPatterns)
                 patterns = GetValidPatterns();
+            DecorateInSource = true;
         }
 
         public void SetSource(int line, string code)
@@ -27,6 +28,10 @@ namespace mc_compiled.MCC.Compiler
         public int Line
         {
             get; private set;
+        }
+        public bool DecorateInSource
+        {
+            get; protected set;
         }
         public string Source
         {
@@ -154,11 +159,11 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public Statement ClonePrepare(Executor executor)
         {
-            // decorate proceeding commands
-            if (Program.DECORATE)
+            // decorator
+            if (Program.DECORATE && DecorateInSource)
             {
                 if(Source != null)
-                    executor.AddCommandClean("\n# " + Source);
+                    executor.CurrentFile.Add("# " + Source);
             }
 
             Statement statement = MemberwiseClone() as Statement;

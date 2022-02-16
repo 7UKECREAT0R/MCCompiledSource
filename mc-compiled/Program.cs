@@ -32,10 +32,10 @@ namespace mc_compiled
             Console.Write("mc-compiled.exe <file> [options...]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
             Console.Write("\tOptions:\n");
-            Console.Write("\t  -b | --basic\tOnly output function/structure files. No behavior pack data.\n");
-            Console.Write("\t  -c | --clean\tWipe all files from the output directory.\n");
+            Console.Write("\t  -b | --basic\t\tOnly output function/structure files. No behavior pack data.\n");
+            Console.Write("\t  -c | --clean\t\tWipe all files from the output directory.\n");
             Console.Write("\t  -dm | --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
-            Console.Write("\t  -db | --debug\tDebug information during compilation.\n");
+            Console.Write("\t  -db | --debug\t\tDebug information during compilation.\n");
             Console.Write("\t  -dc | --decorate\tDecorate the compiled file with original source code (is a bit broken).\n");
             Console.Write("\t  -np | --nopause\tDoes not wait for user input to close application.\n");
         }

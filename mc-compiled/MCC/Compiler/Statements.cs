@@ -31,6 +31,33 @@ namespace mc_compiled.MCC.Compiler
             directive.call(executor, this);
         }
     }
+    public sealed class StatementComment : Statement
+    {
+        public readonly string comment;
+
+        public StatementComment(string comment) : base(new Token[0], true)
+        {
+            this.comment = comment;
+            DecorateInSource = false;
+        }
+        public override string ToString()
+        {
+            return $"[COMMENT] {comment}";
+        }
+
+        protected override TypePattern[] GetValidPatterns()
+        {
+            return new TypePattern[0];
+        }
+        protected override void Run(Executor executor)
+        {
+            if (!Program.DECORATE)
+                return;
+
+            string str = executor.ResolveString(comment);
+            executor.CurrentFile.Add("# " + str);
+        }
+    }
     /// <summary>
     /// Indicates opening a block.
     /// </summary>

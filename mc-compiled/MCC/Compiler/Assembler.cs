@@ -68,6 +68,14 @@ namespace mc_compiled.MCC.Compiler
         {
             Token firstToken = line[0];
 
+            if(firstToken is TokenComment)
+            {
+                TokenComment comment = firstToken as TokenComment;
+                Statement add = new StatementComment(comment.contents);
+                add.SetSource(firstToken.lineNumber, "#" + comment.contents);
+                statements.Add(add);
+                return;
+            }
             if (firstToken is TokenDirective)
             {
                 List<Token> rest = line.Skip(1).ToList();

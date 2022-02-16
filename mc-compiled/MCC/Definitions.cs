@@ -84,7 +84,7 @@ namespace mc_compiled.MCC
                 }
                 else if (line.StartsWith("VERSION"))
                 {
-                    LegacyExecutor.MINECRAFT_VERSION = line.Substring(8);
+                    Compiler.Executor.MINECRAFT_VERSION = line.Substring(8);
                     continue;
                 }
 

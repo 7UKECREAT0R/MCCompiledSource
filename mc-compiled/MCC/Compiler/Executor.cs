@@ -20,6 +20,8 @@ namespace mc_compiled.MCC.Compiler
         public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]{1,16})})|({(@[psea](\\[.+\\])?)})";
         public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
+        public const float MCC_VERSION = 0.90f;             // _compilerversion
+        public static string MINECRAFT_VERSION = "x.xx.xxx"; // _mcversion
 
         public readonly string projectName;
         public string lastStatementSource;
@@ -305,6 +307,8 @@ namespace mc_compiled.MCC.Compiler
             }
 
             PushSelector(true);
+            ppv["minecraftversion"] = MINECRAFT_VERSION;
+            ppv["compilerversion"] = MCC_VERSION;
             currentFiles.Push(new CommandFile(projectName));
         }
         /// <summary>
@@ -320,6 +324,9 @@ namespace mc_compiled.MCC.Compiler
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
+
+                if (statement is StatementComment)
+                    continue; // ignore this statement
 
                 // check for unreachable code due to halt directive
                 CheckUnreachable(statement);
