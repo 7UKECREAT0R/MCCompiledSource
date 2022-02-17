@@ -1,0 +1,745 @@
+This file contains all of the definitions that are used inside the langauge itself. These can be modified or added to as much as you want as long as the format is followed. To use one of these, simply type "[category: query]" anywhere in your code,
+	For example; [wool: LIGHT GREEN] [MOB: Enderman] [Entity: arrow]
+
+Constants are case insensitive snippets which aim to simplify and standardize Minecraft naming protocol along with defining commonly used constants and unnamed IDs. Constants can use spaces in both their category and definition names, increasing code readability and simplicity. They also future proof code for any future changes to object names.
+
+-------------------------------------------------------------------------------
+
+This version reference is used in the $minecraftversion preprocessor variable.
+VERSION 1.18.10
+
+-------------------------------------------------------------------------------
+
+CATEGORY WOOL AND CONCRETE AND CONCRETE POWDER AND CONCRETEPOWDER AND TERRACOTTA AND STAINEDCLAY AND STAINED CLAY
+	WHITE IS 0
+	ORANGE IS 1
+	MAGENTA IS 2
+	LIGHTBLUE IS 3
+	LIGHT BLUE IS 3
+	YELLOW IS 4
+	LIME IS 5
+	LIGHTGREEN IS 5
+	LIGHT GREEN IS 5
+	PINK IS 6
+	GRAY IS 7
+	GREY IS 7
+	LIGHTGRAY IS 8
+	LIGHTGREY IS 8
+	LIGHT GRAY IS 8
+	LIGHT GREY IS 8
+	SILVER IS 8
+	CYAN IS 9
+	PURPLE IS 10
+	BLUE IS 11
+	BROWN IS 12
+	GREEN IS 13
+	DARKGREEN IS 13
+	DARK GREEN IS 13
+	RED IS 14
+	BLACK IS 15
+
+CATEGORY GLAZEDTERRACOTTA AND GLAZED TERRACOTTA
+	BLACK IS black_glazed_terracotta
+	BLUE IS blue_glazed_terracotta
+	BROWN IS brown_glazed_terracotta
+	CYAN IS cyan_glazed_terracotta
+	GRAY IS gray_glazed_terracotta
+	GREY IS gray_glazed_terracotta
+	GREEN IS green_glazed_terracotta
+	LIGHTBLUE IS light_blue_glazed_terracotta
+	LIGHT BLUE IS light_blue_glazed_terracotta
+	LIME IS lime_glazed_terracotta
+	MAGENTA IS magenta_glazed_terracotta
+	ORANGE IS orange_glazed_terracotta
+	PINK IS pink_glazed_terracotta
+	PURPLE IS purple_glazed_terracotta
+	RED IS red_glazed_terracotta
+	SILVER IS silver_glazed_terracotta
+	LIGHTGRAY IS silver_glazed_terracotta
+	LIGHTGREY IS silver_glazed_terracotta
+	LIGHT GRAY IS silver_glazed_terracotta
+	LIGHT GREY IS silver_glazed_terracotta
+	WHITE IS white_glazed_terracotta
+	YELLOW IS yellow_glazed_terracotta
+
+CATEGORY CANDLE
+	REGULAR IS candle
+	NORMAL IS candle
+	UNCOLORED IS candle
+	WHITE IS white_candle
+	ORANGE IS orange_candle
+	MAGENTA IS magenta_candle
+	LIGHTBLUE IS light_blue_candle
+	LIGHT BLUE IS light_blue_candle
+	YELLOW IS yellow_candle
+	LIME IS lime_candle
+	LIGHTGREEN IS lime_candle
+	LIGHT GREEN IS lime_candle
+	PINK IS pink_candle
+	GRAY IS gray_candle
+	GREY IS gray_candle
+	LIGHTGRAY IS light_gray_candle
+	LIGHTGREY IS light_gray_candle
+	LIGHT GRAY IS light_gray_candle
+	LIGHT GREY IS light_gray_candle
+	SILVER IS light_gray_candle
+	CYAN IS cyan_candle
+	PURPLE IS purple_candle
+	BLUE IS blue_candle
+	BROWN IS brown_candle
+	GREEN IS green_candle
+	DARKGREEN IS green_candle
+	DARK GREEN IS green_candle
+	RED IS red_candle
+	BLACK IS black_candle
+
+CATEGORY FLOWER
+	DANDELION IS yellow_flower 
+	POPPY IS red_flower
+	BLUEORCHID IS red_flower
+	BLUE ORCHID IS red_flower
+	ALLIUM IS red_flower
+	AZUREBLUET red_flower
+	AZURE BLUET red_flower
+	REDTULIP IS red_flower
+	ORANGETULIP IS red_flower
+	WHITETULIP IS red_flower
+	PINKTULIP IS red_flower
+	OXEYE IS red_flower
+	OXEYEDAISY IS red_flower
+	OXEYE DAISY IS red_flower
+	CORNFLOWER IS red_flower
+	LILYOFTHEVALLEY IS red_flower
+	LILY OF THE VALLEY IS red_flower
+	LILY IS red_flower
+	SUNFLOWER IS double_plant
+	LILAC IS double_plant
+	ROSE IS double_plant
+	PEONY IS double_plant
+	WITHER IS wither_rose
+	WITHERROSE IS wither_rose
+	WITHER ROSE IS wither_rose
+	DANDELIONID IS 0
+	POPPYID IS 0
+	BLUEORCHIDID IS 1
+	ALLIUMID IS 2
+	AZUREBLUETID 3
+	REDTULIPID IS 4
+	ORANGETULIPID IS 5
+	WHITETULIPID IS 6
+	PINKTULIPID IS 7
+	OXEYEID IS 8
+	OXEYEDAISYID IS 8
+	CORNFLOWERID IS 9
+	LILYOFTHEVALLEYID IS 10
+	LILYID IS 10
+	SUNFLOWERID IS 0
+	LILACID IS 1
+	ROSEID IS 4
+	PEONYID IS 5
+	WITHERID IS wither_rose
+	WITHERROSEID IS wither_rose
+	DANDELION ID IS 0
+	POPPY ID IS 0
+	BLUE ORCHID ID IS 1
+	ALLIUM ID IS 2
+	AZURE BLUET ID 3
+	RED TULIP ID IS 4
+	ORANGE TULIP ID IS 5
+	WHITE TULIP ID IS 6
+	PINK TULIP ID IS 7
+	OXEYE ID IS 8
+	OXEYE DAISY ID IS 8
+	CORNFLOWER ID IS 9
+	LILY OF THE VALLEY ID IS 10
+	LILY ID IS 10
+	SUNFLOWER ID IS 0
+	LILAC ID IS 1
+	ROSE ID IS 4
+	PEONY ID IS 5
+	WITHER ID IS wither_rose
+	WITHER ROSE ID IS wither_rose
+
+CATEGORY DISC AND MUSICDISC AND MUSIC DISC AND DISK AND MUSICDISK AND MUSIC DISK
+	11 IS music_disc_11
+	13 IS music_disc_13
+	BLOCKS IS music_disc_blocks
+	CAT IS music_disc_cat
+	CHIRP IS music_disc_chirp
+	FAR IS music_disc_far
+	MALL IS music_disc_mall
+	MELLOHI IS music_disc_mellohi
+	PIGSTEP IS music_disc_pigstep
+	STAL IS music_disc_stal
+	STRAD IS music_disc_strad
+	WAIT IS music_disc_wait
+	WARD IS music_disc_ward
+
+CATEGORY COLOR AND CHATCOLOR AND CHAT COLOR
+	BLACK IS §0
+	DARKBLUE IS §1
+	DARK BLUE IS §1
+	DARKGREEN IS §2
+	DARK GREEN IS §2
+	DARKAQUA IS §3
+	DARK AQUA IS §3
+	DARKRED IS §4
+	DARK RED IS §4
+	DARKPURPLE IS §5
+	DARK PURPLE IS §5
+	GOLD IS §6
+	GRAY IS §7
+	GREY IS §7
+	DARKGRAY IS §8
+	DARKGREY IS §8
+	DARK GRAY IS §8
+	DARK GREY IS §8
+	BLUE IS §9
+	GREEN IS §a
+	AQUA IS §b
+	RED IS §c
+	LIGHT PURPLE IS §d
+	LIGHTPURPLE IS §d
+	PINK IS §d
+	YELLOW IS §e
+	WHITE IS §f
+	MINECOIN IS §g
+	MINECOINGOLD IS §g
+	MINECOIN GOLD IS §g
+	MINECOINYELLOW IS §g
+	MINECOIN YELLOW IS §g
+	OBF IS §k
+	OBFUSCATED IS §k
+	BOLD IS §l
+	STRIKE IS §m
+	STRIKETHROUGH IS §m
+	STRIKE THROUGH IS §m
+	UNDERLINE IS §n
+	UNDER LINE IS §n
+	ITALIC IS §o
+	ITALICS IS §o
+	RESET IS §r
+	NONE IS §r
+
+CATEGORY UTIL AND UTILITY
+	BELOW IS ~ ~-1 ~
+	BELOWREL IS ~ ~-1 ~
+	BELOWRELATIVE IS ~ ~-1 ~
+	BELOW RELATIVE IS ~ ~-1 ~
+	UNDER IS ~ ~-1 ~
+	UNDERREL IS ~ ~-1 ~
+	UNDERRELATIVE IS ~ ~-1 ~
+	UNDER RELATIVE IS ~ ~-1 ~
+	HEAD IS ~ ~1 ~
+	HEADREL IS ~ ~1 ~
+	HEADRELATIVE IS ~ ~1 ~
+	HEAD REL IS ~ ~1 ~
+	ABOVE IS ~ ~1 ~
+	ABOVEREL IS ~ ~1 ~
+	ABOVERELATIVE IS ~ ~1 ~
+	ABOVE RELATIVE IS ~ ~1 ~
+	RELATIVE IS ~ ~ ~
+	REL IS ~ ~ ~
+	FILLRELATIVE IS ~ ~ ~ ~ ~ ~
+	FILL RELATIVE IS ~ ~ ~ ~ ~ ~
+	FILLREL IS ~ ~ ~ ~ ~ ~
+	FILL1 IS ~-1 ~-1 ~-1 ~1 ~1 ~1
+	FILL2 IS ~-2 ~-2 ~-2 ~2 ~2 ~2
+	FILL3 IS ~-3 ~-3 ~-3 ~3 ~3 ~3
+	FILL4 IS ~-4 ~-4 ~-4 ~4 ~4 ~4
+	FILL5 IS ~-5 ~-5 ~-5 ~5 ~5 ~5
+	FILL6 IS ~-6 ~-6 ~-6 ~6 ~6 ~6
+	FILL7 IS ~-7 ~-7 ~-7 ~7 ~7 ~7
+	FILL8 IS ~-8 ~-8 ~-8 ~8 ~8 ~8
+	FILL9 IS ~-9 ~-9 ~-9 ~9 ~9 ~9
+	FILL10 IS ~-10 ~-10 ~-10 ~10 ~10 ~10
+	FILLREL1 IS ~-1 ~-1 ~-1 ~1 ~1 ~1
+	FILLREL2 IS ~-2 ~-2 ~-2 ~2 ~2 ~2
+	FILLREL3 IS ~-3 ~-3 ~-3 ~3 ~3 ~3
+	FILLREL4 IS ~-4 ~-4 ~-4 ~4 ~4 ~4
+	FILLREL5 IS ~-5 ~-5 ~-5 ~5 ~5 ~5
+	FILLREL6 IS ~-6 ~-6 ~-6 ~6 ~6 ~6
+	FILLREL7 IS ~-7 ~-7 ~-7 ~7 ~7 ~7
+	FILLREL8 IS ~-8 ~-8 ~-8 ~8 ~8 ~8
+	FILLREL9 IS ~-9 ~-9 ~-9 ~9 ~9 ~9
+	FILLREL10 IS ~-10 ~-10 ~-10 ~10 ~10 ~10
+	FILL RELATIVE1 IS ~-1 ~-1 ~-1 ~1 ~1 ~1
+	FILL RELATIVE2 IS ~-2 ~-2 ~-2 ~2 ~2 ~2
+	FILL RELATIVE3 IS ~-3 ~-3 ~-3 ~3 ~3 ~3
+	FILL RELATIVE4 IS ~-4 ~-4 ~-4 ~4 ~4 ~4
+	FILL RELATIVE5 IS ~-5 ~-5 ~-5 ~5 ~5 ~5
+	FILL RELATIVE6 IS ~-6 ~-6 ~-6 ~6 ~6 ~6
+	FILL RELATIVE7 IS ~-7 ~-7 ~-7 ~7 ~7 ~7
+	FILL RELATIVE8 IS ~-8 ~-8 ~-8 ~8 ~8 ~8
+	FILL RELATIVE9 IS ~-9 ~-9 ~-9 ~9 ~9 ~9
+	FILL RELATIVE10 IS ~-10 ~-10 ~-10 ~10 ~10 ~10
+	FILL RELATIVE 1 IS ~-1 ~-1 ~-1 ~1 ~1 ~1
+	FILL RELATIVE 2 IS ~-2 ~-2 ~-2 ~2 ~2 ~2
+	FILL RELATIVE 3 IS ~-3 ~-3 ~-3 ~3 ~3 ~3
+	FILL RELATIVE 4 IS ~-4 ~-4 ~-4 ~4 ~4 ~4
+	FILL RELATIVE 5 IS ~-5 ~-5 ~-5 ~5 ~5 ~5
+	FILL RELATIVE 6 IS ~-6 ~-6 ~-6 ~6 ~6 ~6
+	FILL RELATIVE 7 IS ~-7 ~-7 ~-7 ~7 ~7 ~7
+	FILL RELATIVE 8 IS ~-8 ~-8 ~-8 ~8 ~8 ~8
+	FILL RELATIVE 9 IS ~-9 ~-9 ~-9 ~9 ~9 ~9
+	FILL RELATIVE 10 IS ~-10 ~-10 ~-10 ~10 ~10 ~10
+
+CATEGORY ENTITYSLOT AND ENTITY SLOT AND SLOT
+	ARMOR IS slot.armor
+	CHEST IS slot.armor.chest
+	CHESTPLATE IS slot.armor.chest
+	FEET IS slot.armor.feet
+	BOOTS IS slot.armor.feet
+	HEAD IS slot.armor.head
+	HELMET IS slot.armor.head
+	LEGS IS slot.armor.legs
+	LEGGINGS IS slot.armor.legs
+	CHEST IS slot.chest
+	ENDERCHEST IS slot.chest
+	HOTBAR IS slot.hotbar
+	INVENTORY IS slot.inventory
+	SADDLE IS slot.saddle
+	MAINHAND IS slot.weapon.mainhand
+	MAIN HAND IS slot.weapon.mainhand
+	WEAPON IS slot.weapon.mainhand
+	OFFHAND IS slot.weapon.offhand
+	OFF HAND IS slot.weapon.offhand
+
+CATEGORY BLOCKSLOT AND BLOCK SLOT AND SLOT
+	CONTAINER IS slot.container
+	CHEST IS slot.container
+
+CATEGORY FURNACE AND FURNACESLOT AND FURNACE SLOT
+	COOK IS 0
+	SOURCE IS 0
+	IN IS 0
+	INPUT IS 0
+	FUEL IS 1
+	COAL IS 1
+	POWER IS 1
+	RESULT IS 2
+	DEST IS 2
+	DESTINATION IS 2
+
+CATEGORY CONST AND CONSTANT AND CONSTANTS
+	HOTBAR IS 9
+	HOTBARSIZE IS 9
+	HOTBAR SIZE IS 9
+	INVENTORY IS 36
+	INVENTORYSIZE IS 36
+	INVENTORY SIZE IS 36
+	DROPPERSIZE IS 9
+	DROPPER SIZE IS 9
+	DISPENSERSIZE IS 9
+	DISPENSER SIZE IS 9
+	INVENTORYCENTER IS 13
+	INVENTORY CENTER IS 13
+	CHESTCENTER IS 13
+	CHEST CENTER IS 13
+	DOUBLECHESTCENTER IS 22
+	DOUBLE CHEST CENTER IS 22
+	BIGCHESTCENTER IS 22
+	BIG CHEST CENTER IS 22
+	HOPPERCENTER IS 2
+	HOPPER CENTER IS 2
+	DROPPERCENTER IS 4
+	DROPPER CENTER IS 4
+	DISPENSERCENTER IS 4
+	DISPENSER CENTER IS 4
+
+CATEGORY BUTTON
+	ACACIA IS acacia_button
+	BIRCH IS birch_button
+	CRIMSON IS crimson_button
+	DARKOAK IS dark_oak_button
+	DARK OAK IS dark_oak_button
+	JUNGLE IS jungle_button
+	BLACKSTONE IS polished_blackstone_button
+	POLISHEDBLACKSTONE IS polished_blackstone_button
+	POLISHED BLACKSTONE IS polished_blackstone_button
+	SPRUCE IS spruce_button
+	STONE IS stone_button
+	WARPED IS warped_button
+	WOOD IS wooden_button
+	WOODEN IS wooden_button
+	TOP IS 0
+	UP IS 0
+	BOTTOM IS 1
+	DOWN IS 1
+	SOUTH IS 2
+	NORTH IS 3
+	EAST IS 4
+	WEST IS 5
+	TOPPRESSED IS 8
+	BOTTOMPRESSED IS 9
+	SOUTHPRESSED IS 10
+	NORTHPRESSED IS 11
+	EASTPRESSED IS 12
+	WESTPRESSED IS 13
+	TOP PRESSED IS 8
+	BOTTOM PRESSED IS 9
+	SOUTH PRESSED IS 10
+	NORTH PRESSED IS 11
+	EAST PRESSED IS 12
+	WEST PRESSED IS 13
+
+CATEGORY LEVER
+	BOTTOMEAST IS 0
+	BOTTOMWEST IS 0
+	BOTTOM EAST IS 0
+	BOTTOM WEST IS 0
+	DOWNEAST IS 0
+	DOWNWEST IS 0
+	DOWN EAST IS 0
+	DOWN WEST IS 0
+	BOTTOMNORTH IS 1
+	BOTTOMSOUTH IS 1
+	BOTTOM NORTH IS 1
+	BOTTOM SOUTH IS 1
+	DOWNNORTH IS 1
+	DOWNSOUTH IS 1
+	DOWN NORTH IS 1
+	DOWN SOUTH IS 1
+	EAST IS 2
+	NORTH IS 3
+	SOUTH IS 4
+	TOPEAST IS 5
+	TOPWEST IS 5
+	TOP EAST IS 5
+	TOP WEST IS 5
+	UPEAST IS 5
+	UPWEST IS 5
+	UP EAST IS 5
+	UP WEST IS 5
+	TOPNORTH IS 6
+	TOPSOUTH IS 6
+	TOP NORTH IS 6
+	TOP SOUTH IS 6
+	UPNORTH IS 6
+	UPSOUTH IS 6
+	UP NORTH IS 6
+	UP SOUTH IS 6
+	WEST IS 7
+	BOTTOMEASTPRESSED IS 8
+	BOTTOMWESTPRESSED IS 8
+	BOTTOM EAST PRESSED IS 8
+	BOTTOM WEST PRESSED IS 8
+	DOWNEASTPRESSED IS 8
+	DOWNWESTPRESSED IS 8
+	DOWN EAST PRESSED IS 8
+	DOWN WEST PRESSED IS 8
+	BOTTOMNORTHPRESSED IS 9
+	BOTTOMSOUTHPRESSED IS 9
+	BOTTOM NORTH PRESSED IS 9
+	BOTTOM SOUTH PRESSED IS 9
+	DOWNNORTHPRESSED IS 9
+	DOWNSOUTHPRESSED IS 9
+	DOWN NORTH PRESSED IS 9
+	DOWN SOUTH PRESSED IS 9
+	EASTPRESSED IS 10
+	EAST PRESSED IS 10
+	NORTHPRESSED IS 11
+	NORTH PRESSED IS 11
+	SOUTHPRESSED IS 12
+	SOUTH PRESSED IS 12
+	TOPEASTPRESSED IS 13
+	TOPWESTPRESSED IS 13
+	TOP EAST PRESSED IS 13
+	TOP WEST PRESSED IS 13
+	UPEASTPRESSED IS 13
+	UPWESTPRESSED IS 13
+	UP EAST PRESSED IS 13
+	UP WEST PRESSED IS 13
+	TOPNORTHPRESSED IS 14
+	TOPSOUTHPRESSED IS 14
+	TOP NORTH PRESSED IS 14
+	TOP SOUTH PRESSED IS 14
+	UPNORTHPRESSED IS 14
+	UPSOUTHPRESSED IS 14
+	UP NORTH PRESSED IS 14
+	UP SOUTH PRESSED IS 14
+	WESTPRESSED IS 15
+	WEST PRESSED IS 15
+
+CATEGORY ENCHANT AND ENCHANTMENT
+	AQUAAFFINITY IS 8
+	AQUA AFFINITY IS 8
+	BANEOFARTHROPODS IS 11
+	BANE OF ARTHROPODS IS 11
+	BLASTPROTECTION IS 3
+	BLAST PROTECTION IS 3
+	CHANNELING IS 32
+	DEPTHSTRIDER IS 7
+	DEPTH STRIDER IS 7
+	EFFICIENCY IS 15
+	FEATHERFALLING IS 2
+	FEATHER FALLING IS 2
+	FIREASPECT IS 13
+	FIRE ASPECT IS 13
+	FIREPROTECTION IS 1
+	FIRE PROTECTION IS 1
+	FLAME IS 21
+	FORTUNE IS 18
+	FROSTWALKER IS 25
+	FROST WALKER IS 25
+	IMPALING IS 29
+	INFINITY IS 22
+	KNOCKBACK IS 12
+	LOYALTY IS 31
+	LOOTING IS 14
+	LUCKOFTHESEA IS 23
+	LUCK OF THE SEA IS 23
+	LURE IS 24
+	MENDING IS 26
+	MULTISHOT IS 33
+	PIERCING IS 34
+	POWER IS 19
+	PROJECTILEPROTECTION IS 4
+	PROJECTILE PROTECTION IS 4
+	PROTECTION IS 0
+	PUNCH IS 20
+	QUICKCHARGE IS 35
+	QUICK CHARGE IS 35
+	RESPIRATION IS 6
+	RIPTIDE IS 30
+	SHARPNESS IS 9
+	SILKTOUCH IS 16
+	SILK TOUCH IS 16
+	SMITE IS 10
+	THORNS IS 5
+	UNBREAKING IS 17
+	DURABILITY IS 17
+
+CATEGORY ENTITY
+	ARMOR STAND IS armor_stand
+	ARMORSTAND IS armor_stand
+	ARROW IS arrow
+	BOAT IS boat
+	CHESTMINECART IS chest_minecart
+	MINECARTCHEST IS chest_minecart
+	CHEST MINECART IS chest_minecart
+	MINECART CHEST IS chest_minecart
+	COMMANDBLOCKMINECART IS command_block_minecart
+	MINECARTCOMMANDBLOCK IS command_block_minecart
+	COMMAND BLOCK MINECART IS command_block_minecart
+	MINECART COMMAND BLOCK IS command_block_minecart
+	EGG IS egg
+	THROWN EGG IS egg
+	ELDERGUARDIANGHOST IS elder_guardian_ghost
+	ELDER GUARDIAN GHOST IS elder_guardian_ghost
+	ENDERCRYSTAL IS ender_crystal
+	ENDER CRYSTAL IS ender_crystal
+	ENDCRYSTAL IS ender_crystal
+	END CRYSTAL IS ender_crystal
+	EVOCATIONFANG IS evocation_fang
+	EVOCATION FANG IS evocation_fang
+	FIREWORKSROCKET IS fireworks_rocket
+	FIREWORKS ROCKET IS fireworks_rocket
+	FIREWORKROCKET IS fireworks_rocket
+	FIREWORK ROCKET IS fireworks_rocket
+	FIREWORK IS fireworks_rocket
+	HOPPERMINECART IS hopper_minecart
+	MINECARTHOPPER IS hopper_minecart
+	HOPPER MINECART IS hopper_minecart
+	MINECART HOPPER IS hopper_minecart
+	LEASHKNOT IS leash_knot
+	LEASH KNOT IS leash_knot
+	LEASH IS leash_knot
+	LIGHTNINGBOLT IS lightning_bolt
+	LIGHTNING BOLT IS lightning_bolt
+	LIGHTNING IS lightning_bolt
+	MINECART IS minecart
+	SNOWBALL IS snowball
+	SNOW BALL IS snowball
+	SPLASHPOTION IS splash_potion
+	SPLASH POTION IS splash_potion
+	TNT IS tnt
+	TNTMINECART IS tnt_minecart
+	MINECARTTNT IS tnt_minecart
+	TNT MINECART IS tnt_minecart
+	MINECART TNT IS tnt_minecart
+	XPBOTTLE IS xp_bottle
+	XP BOTTLE IS xp_bottle
+	XPORB IS xp_orb
+	XP ORB IS xp_orb
+
+CATEGORY MOB AND ENTITY
+	AXOLOTL IS axolotl
+	BAT IS bat
+	BEE IS bee
+	BLAZE IS blaze
+	CAT IS cat
+	CAVESPIDER IS cave_spider
+	CAVE SPIDER IS cave_spider
+	CHICKEN IS chicken
+	COD IS cod
+	COW IS cow
+	CREEPER IS creeper
+	DOLPHIN IS dolphin
+	DONKEY IS donkey
+	DROWNED IS drowned
+	DROWNED ZOMBIE IS drowned
+	ELDERGUARDIAN IS elder_guardian
+	ELDER GUARDIAN IS elder_guardian
+	BOSSGUARDIAN IS elder_guardian
+	BOSS GUARDIAN IS elder_guardian
+	ENDERMAN IS enderman
+	ENDER MAN IS enderman
+	ENDERMITE IS endermite
+	ENDER MITE IS endermite
+	EVOCATIONILLAGER IS evocation_illager
+	EVOCATION ILLAGER IS evocation_illager
+	EVOKER IS evocation_illager
+	FOX IS fox
+	GHAST IS ghast
+	GLOWSQUID IS glow_squid
+	GLOW SQUID IS glow_squid
+	GLOWINGSQUID IS glow_squid
+	GLOWING SQUID IS glow_squid
+	GOAT IS goat
+	GUARDIAN IS guardian
+	HOGLIN IS hoglin
+	HORSE IS horse
+	HUSK IS husk
+	DRYZOMBIE IS husk
+	DRY ZOMBIE IS husk
+	DESERTZOMBIE IS husk
+	DESERT ZOMBIE IS husk
+	IRONGOLEM IS iron_golem
+	IRON GOLEM IS iron_golem
+	LLAMA IS llama
+	MAGMACUBE IS magma_cube
+	MAGMA CUBE IS magma_cube
+	NPC IS npc
+	FAKEPLAYER IS npc
+	FAKE PLAYER IS npc
+	NON PLAYER CHARACTER IS npc
+	OCELOT IS ocelot
+	PANDA IS panda
+	PARROT IS parrot
+	PHANTOM IS phantom
+	PIG IS pig
+	PIGLIN IS piglin
+	PIGLINBRUTE IS piglin_brute
+	PIGLIN BRUTE IS piglin_brute
+	BOSS PIGLIN IS piglin_brute
+	PILLAGER IS pillager
+	POLARBEAR IS polar_bear
+	POLAR BEAR IS polar_bear
+	PUFFERFISH IS pufferfish
+	PUFFER FISH IS pufferfish
+	RABBIT IS rabbit
+	BUNNY IS rabbit
+	RAVAGER IS ravager
+	SALMON IS salmon
+	SHEEP IS sheep
+	SHULKER IS shulker
+	SILVERFISH IS silverfish
+	SILVER FISH IS silverfish
+	SKELETON IS skeleton
+	SKELETONHORSE IS skeleton_horse
+	SKELETON HORSE IS skeleton_horse
+	HORSESKELETON IS skeleton_horse
+	HORSE SKELETON IS skeleton_horse
+	SLIME IS slime
+	SNOWGOLEM IS snow_golem
+	SNOW GOLEM IS snow_golem
+	SPIDER IS spider
+	SQUID IS squid
+	STRAY IS stray
+	GHOSTSKELETON IS stray
+	GHOST SKELETON IS stray
+	STRIDER IS strider
+	TROPICALFISH IS tropicalfish
+	TROPICAL FISH IS tropicalfish
+	TURTLE IS turtle
+	VEX IS vex
+	VILLAGER IS villager
+	VINDICATOR IS vindicator
+	WANDERINGTRADER IS wandering_trader
+	WANDERING TRADER IS wandering_trader
+	WITCH IS witch
+	WITHER IS wither
+	WITHERBOSS IS wither
+	WITHER BOSS IS wither
+	WITHERSKELETON IS wither_skeleton
+	WITHER SKELETON IS wither_skeleton
+	WOLF IS wolf
+	ZOGLIN IS zoglin
+	ZOMBIE HOGLIN IS zoglin
+	ZOMBIE IS zombie
+	ZOMBIEHORSE IS zombie_horse
+	ZOMBIE HORSE IS zombie_horse
+	HORSEZOMBIE IS zombie_horse
+	HORSE ZOMBIE IS zombie_horse
+	ZOMBIEPIGMAN IS zombie_pigman
+	ZOMBIE PIGMAN IS zombie_pigman
+	ZOMBIE PIG MAN IS zombie_pigman
+	PIGZOMBIE IS zombie_pigman
+	PIG ZOMBIE IS zombie_pigman
+	ZOMBIEVILLAGER IS zombie_villager
+	ZOMBIE VILLAGER IS zombie_villager
+	VILLAGERZOMBIE IS zombie_villager
+	VILLAGER ZOMBIE IS zombie_villager
+
+CATEGORY FOOD
+	CHICKEN IS cooked_chicken
+	PORKCHOP IS cooked_porkchop
+	STEAK IS cooked_beef
+	BEEF IS cooked_beef
+	MUTTON IS cooked_mutton
+	RABBIT IS cooked_rabbit
+	FISH IS cooked_cod
+	COD IS cooked_cod
+	SALMON IS cooked_salmon
+	BREAD IS bread
+	SOUP IS mushroom_stew
+	MUSHROOMSOUP IS mushroom_stew
+	MUSHROOM SOUP IS mushroom_stew
+	MUSHROOMSTEW IS mushroom_stew
+	MUSHROOM STEW IS mushroom_stew
+	RABBITSOUP IS rabbit_stew
+	RABBIT SOUP IS rabbit_stew
+	RABBITSTEW IS rabbit_stew
+	RABBIT STEW IS rabbit_stew
+	BEETSOUP IS beetroot_soup
+	BEET SOUP IS beetroot_soup
+	BEETSTEW IS beetroot_soup
+	BEET STEW IS beetroot_soup
+	BEETROOTSOUP IS beetroot_soup
+	BEETROOT SOUP IS beetroot_soup
+	BEETROOTSTEW IS beetroot_soup
+	BEETROOT STEW IS beetroot_soup
+	POTATO IS baked_potato
+	COOKIE IS cookie
+	PIE IS pumpkin_pie
+	PUMPKINPIE IS pumpkin_pie
+	PUMPKIN PIE IS pumpkin_pie
+	CAKE IS cake
+
+CATEGORY POTION
+	WATER IS 0
+	MUNDANE IS 1
+	THICK IS 3
+	AWKWARD IS 4
+	NIGHTVISION IS 5
+	NIGHT VISION IS 5
+	INVISIBILITY IS 7
+	LEAPING IS 9
+	FIRERESISTANCE IS 12
+	FIRE RESISTANCE IS 12
+	SWIFTNESS IS 14
+	SLOWNESS IS 17
+	WATERBREATHING IS 19
+	WATER BREATHING IS 19
+	HEALING IS 21
+	HARMING IS 23
+	POISON IS 25
+	REGENERATION IS 28
+	STRENGTH IS 21
+	WEAKNESS IS 34
+	DECAY IS 36
+	TURTLEMASTER IS 37
+	TURTLE MASTER IS 37
+	SLOWFALLING IS 40
+	SLOW FALLING IS 40
