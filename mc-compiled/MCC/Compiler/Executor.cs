@@ -59,7 +59,6 @@ namespace mc_compiled.MCC.Compiler
             Stack<string> pieces = new Stack<string>(piecesReversed);
 
             int index = 0;
-            string sel = ActiveSelectorStr;
             foreach (Match match in matches)
             {
                 int mindex = match.Index;
@@ -76,8 +75,8 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (scoreboard.TryGetByAccessor(varAccessor, out ScoreboardValue value))
                     {
-                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, sel, ref index));
-                        terms.AddRange(value.ToRawText(varAccessor, sel, ref index));
+                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@p", ref index));
+                        terms.AddRange(value.ToRawText(varAccessor, "@p", ref index));
                         index++;
                     }
                     else
