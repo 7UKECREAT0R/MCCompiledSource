@@ -239,7 +239,7 @@ namespace mc_compiled.MCC.Compiler
                 bool leftIsValue = _left is TokenIdentifierValue;
                 bool rightIsValue = _right is TokenIdentifierValue;
 
-                if(leftIsLiteral & rightIsLiteral)
+                if (leftIsLiteral & rightIsLiteral)
                 {
                     TokenLiteral left = _left as TokenLiteral;
                     TokenLiteral right = _right as TokenLiteral;
@@ -265,7 +265,7 @@ namespace mc_compiled.MCC.Compiler
                             break;
                     }
                 }
-                else if(leftIsValue & rightIsValue)
+                else if (leftIsValue & rightIsValue)
                 {
                     TokenIdentifierValue left = _left as TokenIdentifierValue;
                     TokenIdentifierValue right = _right as TokenIdentifierValue;
@@ -276,7 +276,7 @@ namespace mc_compiled.MCC.Compiler
 
                     ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
                     string accessorTemp = temp.baseName;
-                    if(temp is ScoreboardValueStruct && left.word.Contains(':'))
+                    if (temp is ScoreboardValueStruct && left.word.Contains(':'))
                     {
                         StructDefinition structure = (temp as ScoreboardValueStruct).structure;
                         string field = left.word.Split(':')[1];
@@ -307,18 +307,19 @@ namespace mc_compiled.MCC.Compiler
                             break;
                     }
                 }
-                else
+                else if (leftIsValue | rightIsValue && leftIsLiteral | rightIsLiteral)
                 {
                     string aAccessor, bAccessor;
                     ScoreboardValue a, b;
-                    if(leftIsLiteral)
+                    if (leftIsLiteral)
                     {
                         a = executor.scoreboard.RequestTemp(_left as TokenLiteral, this);
                         aAccessor = a.baseName;
                         executor.AddCommandsClean(a.CommandsSetLiteral(a.baseName, selector, _left as TokenLiteral));
                         b = (_right as TokenIdentifierValue).value;
                         bAccessor = (_right as TokenIdentifierValue).Accessor;
-                    } else
+                    }
+                    else
                     {
                         b = executor.scoreboard.RequestTemp(_right as TokenLiteral, this);
                         bAccessor = b.baseName;
@@ -350,6 +351,8 @@ namespace mc_compiled.MCC.Compiler
                             break;
                     }
                 }
+                else
+                    throw new StatementException(this, $"No valid data given in tokens '{_left}' and '{_right}'; was there a misspelling?");
 
                 // replace those three tokens with the one squashed one
                 tokens.RemoveRange(i - 1, 3);
