@@ -73,7 +73,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if (!string.IsNullOrEmpty(varAccessor))
                 {
-                    if (scoreboard.TryGetByAccessor(varAccessor, out ScoreboardValue value))
+                    if (scoreboard.TryGetByAccessor(varAccessor, out ScoreboardValue value, true))
                     {
                         AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@p", ref index));
                         terms.AddRange(value.ToRawText(varAccessor, "@p", ref index));
@@ -121,20 +121,6 @@ namespace mc_compiled.MCC.Compiler
         {
             return definedStdFiles.Contains(file.GetHashCode());
         }
-
-        public void BeginDefiningStruct(StructDefinition definition) =>
-            definingStructs.Push(definition);
-        public void EndDefiningStruct() =>
-            scoreboard.DefineStruct(definingStructs.Pop());
-        public bool IsDefiningStruct
-        {
-            get => definingStructs.Count > 0;
-        }
-        public StructDefinition DefiningStruct
-        {
-            get => definingStructs.Peek();
-        }
-
 
         /// <summary>
         /// Get the active selector.

@@ -556,92 +556,11 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void define(Executor executor, Statement tokens)
         {
-            if(tokens.NextIs<TokenIdentifierStruct>())
-            {
-                TokenIdentifierStruct _struct = tokens.Next<TokenIdentifierStruct>();
-                TokenStringLiteral @string = tokens.Next<TokenStringLiteral>();
-                ScoreboardValueStruct sbValue = new ScoreboardValueStruct
-                    (@string, _struct.@struct, executor.scoreboard, tokens);
-                executor.scoreboard.Add(sbValue);
-                executor.AddCommandsHead(sbValue.CommandsDefine());
-                return;
-            }
-
-            const int TYPE_INT = 0;
-            const int TYPE_DECIMAL = 1;
-            const int TYPE_BOOL = 2;
-            const int TYPE_TIME = 3;
-
-            int type = TYPE_INT;
-            string name = null;
-
-            if(tokens.NextIs<TokenIdentifier>())
-            {
-                TokenIdentifier identifier = tokens.Next<TokenIdentifier>();
-                string typeWord = identifier.word.ToUpper();
-                switch (typeWord)
-                {
-                    case "INT":
-                        type = TYPE_INT;
-                        break;
-                    case "DECIMAL":
-                        type = TYPE_DECIMAL;
-                        break;
-                    case "BOOL":
-                        type = TYPE_BOOL;
-                        break;
-                    case "TIME":
-                        type = TYPE_TIME;
-                        break;
-                    default:
-                        name = identifier.Convert(0) as TokenStringLiteral;
-                        break;
-                }
-            }
-
-            if (type == TYPE_DECIMAL)
-            {
-                if (!tokens.NextIs<TokenIntegerLiteral>())
-                    throw new StatementException(tokens, $"No precision specified for decimal value");
-                int precision = tokens.Next<TokenIntegerLiteral>();
-                if (precision > 3) {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("WARNING: Decimal precisions >3 could begin to break with numbers greater than 1.");
-                    Console.ForegroundColor = ConsoleColor.White;
-                }
-                string decimalName = tokens.Next<TokenStringLiteral>();
-                ScoreboardValueDecimal decimalValue = new ScoreboardValueDecimal
-                    (decimalName, precision, executor.scoreboard, tokens);
-                executor.scoreboard.Add(decimalValue);
-                executor.AddCommandsHead(decimalValue.CommandsDefine());
-                return;
-            }
-
-            if(name == null)
-                name = tokens.Next<TokenStringLiteral>();
-            ScoreboardValue value;
-
-            if (type == TYPE_INT)
-                value = new ScoreboardValueInteger(name, executor.scoreboard, tokens);
-            else if (type == TYPE_BOOL)
-                value = new ScoreboardValueBoolean(name, executor.scoreboard, tokens);
-            else if (type == TYPE_TIME)
-                value = new ScoreboardValueTime(name, executor.scoreboard, tokens);
-            else
-                throw new StatementException(tokens, $"Variable type corrupted for '{name}'.");
-
-            if (executor.IsDefiningStruct)
-            {
-                StructDefinition definition = executor.DefiningStruct;
-                string key = definition.GetNextKey();
-                value.baseName = key;
-                definition.fields[name] = value;
-            }
-            else
-            {
-                executor.scoreboard.Add(value);
-                executor.AddCommandsHead(value.CommandsDefine());
-            }
+            ScoreboardManager.ValueDefinition def = executor
+                .scoreboard.GetNextValueDefinition(tokens);
+            ScoreboardValue value = def.Create(executor.scoreboard, tokens);
+            executor.scoreboard.Add(value);
+            executor.AddCommandsHead(value.CommandsDefine());
         }
         public static void init(Executor executor, Statement tokens)
         {
@@ -650,12 +569,11 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string name = tokens.Next<TokenStringLiteral>();
-                if (!executor.scoreboard.TryGetByAccessor(name, out value))
+                if (!executor.scoreboard.TryGetByAccessor(name, out value, true))
                     throw new StatementException(tokens, $"Attempted to initialize undefined variable '{name}'.");
             }
             else
                 value = tokens.Next<TokenIdentifierValue>().value;
-
 
             executor.AddCommands(value.CommandsInit(), true);
         }
@@ -1621,7 +1539,6 @@ namespace mc_compiled.MCC.Compiler
         {
             string structName = tokens.Next<TokenIdentifier>().word;
             StructDefinition item = new StructDefinition(structName);
-            executor.BeginDefiningStruct(item);
 
             if (!executor.HasNext || !executor.NextIs<StatementOpenBlock>())
                 throw new StatementException(tokens, "No block after struct definition.");
@@ -1629,16 +1546,24 @@ namespace mc_compiled.MCC.Compiler
             StatementOpenBlock blockOpen = executor.Next<StatementOpenBlock>();
             int count = blockOpen.statementsInside;
 
+            StructDefinition definition = new StructDefinition(structName);
+
+            // read every statement in the block assuming they're define format
             for (int i = 0; i < count; i++)
             {
                 Statement statement = executor.Next();
-                define(executor, statement);
+                ScoreboardManager.ValueDefinition def = executor
+                    .scoreboard.GetNextValueDefinition(statement);
+                ScoreboardValue value = def.Create(executor.scoreboard, statement);
+                string key = definition.GetNextKey();
+                value.baseName = key;
+                definition.fields[def.name] = value;
             }
 
-            if(!executor.HasNext)
-                throw new StatementException(tokens, "Unexpected end-of-file after struct definition.");
+            executor.scoreboard.DefineStruct(definition);
 
-            executor.EndDefiningStruct();
+            if(!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end-of-file following struct definition.");
             executor.Next<StatementCloseBlock>();
         }
     }

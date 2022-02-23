@@ -12,6 +12,58 @@ namespace mc_compiled.MCC
     /// </summary>
     public class ScoreboardManager
     {
+        /// <summary>
+        /// A type of value that can be defined.
+        /// </summary>
+        public enum ValueType
+        {
+            INT,
+            DECIMAL,
+            BOOL,
+            TIME,
+            STRUCT
+        }
+        /// <summary>
+        /// A shallow variable definition used in structs, defines, functions, etc...
+        /// </summary>
+        internal struct ValueDefinition
+        {
+            internal string name;
+            internal ValueType type;
+            internal int decimalPrecision;
+            internal StructDefinition @struct;
+
+            internal ValueDefinition(string name, ValueType type, int decimalPrecision = 0, StructDefinition @struct = null)
+            {
+                this.name = name;
+                this.type = type;
+                this.decimalPrecision = decimalPrecision;
+                this.@struct = @struct;
+            }
+            /// <summary>
+            /// Create a scoreboard value based off of this definition.
+            /// </summary>
+            /// <returns></returns>
+            internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
+            {
+                switch (type)
+                {
+                    case ScoreboardManager.ValueType.INT:
+                        return new ScoreboardValueInteger(name, sb, tokens);
+                    case ScoreboardManager.ValueType.DECIMAL:
+                        return new ScoreboardValueDecimal(name, decimalPrecision, sb, tokens);
+                    case ScoreboardManager.ValueType.BOOL:
+                        return new ScoreboardValueBoolean(name, sb, tokens);
+                    case ScoreboardManager.ValueType.TIME:
+                        return new ScoreboardValueTime(name, sb, tokens);
+                    case ScoreboardManager.ValueType.STRUCT:
+                        return new ScoreboardValueStruct(name, @struct, sb, tokens);
+                    default:
+                        throw new StatementException(tokens, "something terrible happened when trying to use value definition");
+                }
+            }
+        }
+
         private const string TEMP_PREFIX = "_mcc_tmp";
         private int tempIndex;
         private Stack<int> tempStack;
@@ -33,7 +85,7 @@ namespace mc_compiled.MCC
         }
         public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
         {
-            string key = value.baseName + "__toStr";
+            string key = value.baseName + "__str";
             if (definedTempVars.Contains(key))
                 return;
 
@@ -144,6 +196,13 @@ namespace mc_compiled.MCC
         public void ReleaseTemp() =>
             tempIndex--;
 
+        /// <summary>
+        /// Implicitly a scoreboard value from a literal value.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="literal"></param>
+        /// <param name="forExceptions"></param>
+        /// <returns></returns>
         public ScoreboardValue CreateFromLiteral(string name, TokenLiteral literal, Statement forExceptions)
         {
             if (literal is TokenIntegerLiteral)
@@ -158,6 +217,72 @@ namespace mc_compiled.MCC
             }
             else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
                     $"create a scoreboard value for invalid literal type {literal.GetType()}.");
+        }
+        /// <summary>
+        /// Fetch a value/field definition from this statement. e.g., 'int coins', 'decimal 3 thing', 'customStruct xyz'
+        /// </summary>
+        /// <param name="tokens"></param>
+        /// <returns></returns>
+        internal ValueDefinition GetNextValueDefinition(Statement tokens)
+        {
+            if (tokens.NextIs<TokenIdentifierStruct>())
+            {
+                TokenIdentifierStruct _struct = tokens.Next<TokenIdentifierStruct>();
+                TokenStringLiteral @string = tokens.Next<TokenStringLiteral>();
+                return new ValueDefinition(@string, ValueType.STRUCT, @struct: _struct.@struct);
+            }
+
+            ValueType type = ValueType.INT;
+            string name = null;
+
+            if (tokens.NextIs<TokenIdentifier>())
+            {
+                TokenIdentifier identifier = tokens.Next<TokenIdentifier>();
+                string typeWord = identifier.word.ToUpper();
+                switch (typeWord)
+                {
+                    case "INT":
+                        type = ValueType.INT;
+                        break;
+                    case "DECIMAL":
+                        type = ValueType.DECIMAL;
+                        break;
+                    case "BOOL":
+                        type = ValueType.BOOL;
+                        break;
+                    case "TIME":
+                        type = ValueType.TIME;
+                        break;
+                    default:
+                        name = identifier.Convert(TokenIdentifier.CONVERT_STRING) as TokenStringLiteral;
+                        break;
+                }
+            }
+
+            if (type == ValueType.DECIMAL)
+            {
+                if (!tokens.NextIs<TokenIntegerLiteral>())
+                    throw new StatementException(tokens, $"No precision specified for decimal value");
+                int precision = tokens.Next<TokenIntegerLiteral>();
+                if (precision > 3)
+                {
+                    ConsoleColor oldColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("WARNING: Decimal precisions >3 could begin to break with numbers greater than 1.");
+                    Console.ForegroundColor = oldColor;
+                }
+                string decimalName = tokens.Next<TokenStringLiteral>();
+                return new ValueDefinition(decimalName, ValueType.DECIMAL, precision);
+            }
+
+            if (name == null)
+            {
+                if (!tokens.NextIs<TokenStringLiteral>())
+                    throw new StatementException(tokens, "No name specified after type.");
+                name = tokens.Next<TokenStringLiteral>();
+            }
+
+            return new ValueDefinition(name, type);
         }
 
         /// <summary>
@@ -221,7 +346,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="accessor"></param>
         /// <returns>True if found and output is set.</returns>
-        public bool TryGetByAccessor(string accessor, out ScoreboardValue output)
+        public bool TryGetByAccessor(string accessor, out ScoreboardValue output, bool allowMissingAccessor = false)
         {
             foreach (ScoreboardValue value in values)
             {
@@ -231,7 +356,7 @@ namespace mc_compiled.MCC
                     if (value is ScoreboardValueStruct)
                     {
                         ScoreboardValueStruct @struct = value as ScoreboardValueStruct;
-                        ScoreboardValue internalValue = @struct.FullyResolveAccessor(accessor);
+                        ScoreboardValue internalValue = @struct.FullyResolveAccessor(accessor, allowMissingAccessor);
                         output = internalValue;
                         return true;
                     }

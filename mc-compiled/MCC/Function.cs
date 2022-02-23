@@ -58,7 +58,7 @@ namespace mc_compiled.MCC
 
             //   only run this code once for this function, that
             // will sort of 'define' what the return type should be
-            ScoreboardValue clone = ScoreboardValue.GetReturnValue(value);
+            ScoreboardValue clone = ScoreboardValue.AsReturnValue(value);
             foreach(string name in clone.GetAccessibleNames())
             {
                 ScoreboardManager sb = executor.scoreboard;
@@ -92,7 +92,7 @@ namespace mc_compiled.MCC
             }
 
             ScoreboardManager sb = executor.scoreboard;
-            ScoreboardValue variable = ScoreboardValue.GetReturnValue(value, sb, caller);
+            ScoreboardValue variable = ScoreboardValue.AsReturnValue(value, sb, caller);
             foreach (string name in variable.GetAccessibleNames())
             {
                 if (!sb.definedTempVars.Contains(name))

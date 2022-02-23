@@ -55,8 +55,13 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly string word;
 
-        // passed into convert
+        /// <summary>
+        /// Convert to STRING token.
+        /// </summary>
         public const int CONVERT_STRING = 0;
+        /// <summary>
+        /// Convert to BUILDER token.
+        /// </summary>
         public const int CONVERT_BUILDER = 1;
 
         public override string AsString() => word;

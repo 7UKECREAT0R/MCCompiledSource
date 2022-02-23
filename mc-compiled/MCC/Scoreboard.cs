@@ -5,6 +5,7 @@ using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -40,7 +41,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="returning"></param>
         /// <returns></returns>
-        public static ScoreboardValue GetReturnValue(ScoreboardValue returning)
+        public static ScoreboardValue AsReturnValue(ScoreboardValue returning)
         {
             ScoreboardValue clone = returning.Clone() as ScoreboardValue;
             clone.baseName = RETURN_NAME;
@@ -51,7 +52,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="returning"></param>
         /// <returns></returns>
-        public static ScoreboardValue GetReturnValue(TokenLiteral literal, ScoreboardManager sb, Statement forExceptions)
+        public static ScoreboardValue AsReturnValue(TokenLiteral literal, ScoreboardManager sb, Statement forExceptions)
         {
             if (literal is TokenStringLiteral)
                 throw new StatementException(forExceptions, "Cannot return a string.");
@@ -1065,10 +1066,14 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="accessor"></param>
         /// <returns></returns>
-        public ScoreboardValue FullyResolveAccessor(string accessor)
+        public ScoreboardValue FullyResolveAccessor(string accessor, bool allowMissingAccessor = false)
         {
             if (accessor.IndexOf(':') == -1)
+            {
+                if (allowMissingAccessor)
+                    return this;
                 throw new Exception("Struct accessor '" + accessor + "' didn't have a field specified.");
+            }
 
             return structure.GetFieldFromAccessor(accessor);
         }
