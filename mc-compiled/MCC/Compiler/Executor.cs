@@ -22,6 +22,7 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
         public const float MCC_VERSION = 0.90f;             // _compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx"; // _mcversion
+        public const string MCC_GENERATED = "_mcc"; // folder that generated functions go into
 
         public readonly string projectName;
         public string lastStatementSource;
@@ -75,7 +76,9 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (scoreboard.TryGetByAccessor(varAccessor, out ScoreboardValue value, true))
                     {
-                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@p", ref index));
+                        // only let one of them increment the actual count
+                        int indexCopy = index;
+                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@p", ref indexCopy));
                         terms.AddRange(value.ToRawText(varAccessor, "@p", ref index));
                         index++;
                     }

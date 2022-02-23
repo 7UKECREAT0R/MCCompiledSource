@@ -1471,7 +1471,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void halt(Executor executor, Statement tokens)
         {
-            CommandFile file = new CommandFile("halt_execution", "_misc");
+            CommandFile file = new CommandFile("halt_execution", Executor.MCC_GENERATED);
 
             if (!executor.HasSTDFile(file))
             {

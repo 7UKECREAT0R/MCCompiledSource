@@ -193,7 +193,7 @@ namespace mc_compiled.MCC.Compiler
                 if(unresolved is TokenIdentifier)
                 {
                     string word = (unresolved as TokenIdentifier).word;
-                    if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value))
+                    if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value, true))
                         resolved = new TokenIdentifierValue(word, value, line);
                     else if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))
                         resolved = new TokenIdentifierStruct(word, @struct, line);

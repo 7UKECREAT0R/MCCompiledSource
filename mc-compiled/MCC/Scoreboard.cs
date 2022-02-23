@@ -1107,10 +1107,13 @@ namespace mc_compiled.MCC
             {
                 ScoreboardValue[] values = structure.GetFields(baseName);
                 List<string> commands = new List<string>();
-                foreach(ScoreboardValue f in values)
+                int remaining = values.Count();
+                foreach (ScoreboardValue f in values)
                 {
                     commands.AddRange(f.CommandsRawTextSetup(accessor, selector, ref index, prefix));
-                    index++;
+                    remaining--;
+                    if (remaining > 1)
+                        index++;
                 }
                 return commands.ToArray();
             }
@@ -1123,10 +1126,13 @@ namespace mc_compiled.MCC
             {
                 ScoreboardValue[] values = structure.GetFields(baseName);
                 List<JSONRawTerm> commands = new List<JSONRawTerm>();
+                int remaining = values.Count();
                 foreach (ScoreboardValue f in values)
                 {
                     commands.AddRange(f.ToRawText(accessor, selector, ref index, prefix));
-                    index++;
+                    remaining--;
+                    if(remaining > 1)
+                        index++;
                 }
                 return commands.ToArray();
             }
