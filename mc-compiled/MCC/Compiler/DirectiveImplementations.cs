@@ -1494,10 +1494,12 @@ namespace mc_compiled.MCC.Compiler
 
             // this is where the directive feeds in function parameters. if i'm going to do typed
             // parameter syntax in the future this is where the implementation should be located
+            //
+            // update: yea that comment was useful i did it
             while(tokens.HasNext && tokens.NextIs<TokenIdentifier>())
             {
-                TokenIdentifier token = tokens.Next<TokenIdentifier>();
-                ScoreboardValue value = new ScoreboardValueInteger(token.word, executor.scoreboard, tokens);
+                var def = executor.scoreboard.GetNextValueDefinition(tokens);
+                ScoreboardValue value = def.Create(executor.scoreboard, tokens);
                 executor.scoreboard.Add(value);
                 args.Add(value);
             }
