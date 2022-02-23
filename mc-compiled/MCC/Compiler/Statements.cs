@@ -63,18 +63,6 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementOpenBlock : Statement
     {
-        private static int branchIndex;
-        /// <summary>
-        /// Construct the next file which branched commands should go into.
-        /// </summary>
-        /// <returns></returns>
-        public static CommandFile GetNextBranchFile() =>
-            new CommandFile("branch" + (branchIndex++), "_branching");
-        public static void ResetBranchFile()
-        {
-            branchIndex = 0;
-        }
-
         /// <summary>
         /// Pointer to the closing block.
         /// </summary>
@@ -191,10 +179,10 @@ namespace mc_compiled.MCC.Compiler
                 {
                     TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
                     executor.AddCommands(value.value.CommandsFromOperation
-                        (selector, next.value, value.Accessor, next.Accessor, op));
+                        (selector, next.value, value.Accessor, next.Accessor, op), "math_op");
                 } else
                     executor.AddCommands(value.value.CommandsSet
-                        (selector, next.value, value.Accessor, next.Accessor));
+                        (selector, next.value, value.Accessor, next.Accessor), "set_op");
             }
             else if (NextIs<TokenLiteral>())
             {
@@ -216,12 +204,12 @@ namespace mc_compiled.MCC.Compiler
                         commands.AddRange(value.value.CommandsFromOperation(selector, temp, value.Accessor, temp.baseName, op));
                     }
 
-                    executor.AddCommands(commands);
+                    executor.AddCommands(commands, "math_op");
                     executor.scoreboard.ReleaseTemp();
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral
-                        (value.Accessor, selector, next));
+                        (value.Accessor, selector, next), "set_op");
             }
             else
                 throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");
@@ -270,8 +258,8 @@ namespace mc_compiled.MCC.Compiler
                 passIn.Add(nextToken);
             }
 
-            executor.AddCommands(value.function.CallFunction(
-                selector, this, executor.scoreboard, passIn.ToArray()));
+            executor.AddCommands(value.function.CallFunction(selector, this,
+                executor.scoreboard, passIn.ToArray()), "call" + value.function.name);
             return;
         }
     }

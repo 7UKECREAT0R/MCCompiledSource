@@ -359,7 +359,7 @@ namespace mc_compiled.MCC.Compiler
                 else
                     throw new StatementException(this, $"No valid data given in tokens '{_left}' and '{_right}'; was there a misspelling?");
 
-                executor.AddCommandsClean(commands);
+                executor.AddCommandsClean(commands, "operation");
 
                 // replace those three tokens with the one squashed one
                 tokens.RemoveRange(i - 1, 3);
@@ -427,11 +427,11 @@ namespace mc_compiled.MCC.Compiler
 
                 // call function
                 string sel = executor.ActiveSelectorStr;
-                executor.AddCommandsClean(function.CallFunction(sel, this, executor.scoreboard, tokensInside.ToArray()));
+                executor.AddCommandsClean(function.CallFunction(sel, this, executor.scoreboard, tokensInside.ToArray()), "call" + function.name);
 
                 // store return value in temp
                 ScoreboardValue clone = executor.scoreboard.RequestTemp(function.returnValue);
-                executor.AddCommandsClean(clone.CommandsSet(sel, function.returnValue, null, null)); // ignore accessors
+                executor.AddCommandsClean(clone.CommandsSet(sel, function.returnValue, null, null), "store" + function.name); // ignore accessors
 
                 int len = x - i + 1;
                 tokens.RemoveRange(i, len);

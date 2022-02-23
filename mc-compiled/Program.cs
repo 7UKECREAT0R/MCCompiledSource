@@ -155,7 +155,7 @@ namespace mc_compiled
         public static void PrepareToCompile(string projectName)
         {
             // reset all that icky static stuff
-            StatementOpenBlock.ResetBranchFile();
+            Executor.ResetGeneratedFile();
             Commands.Command.ResetState();
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();

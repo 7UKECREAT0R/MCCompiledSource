@@ -575,7 +575,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 value = tokens.Next<TokenIdentifierValue>().value;
 
-            executor.AddCommands(value.CommandsInit(), true);
+            executor.AddCommands(value.CommandsInit(), "init" + value.baseName, true);
         }
         public static void @if(Executor executor, Statement tokens) =>
             @if(executor, tokens, false);
@@ -858,7 +858,7 @@ namespace mc_compiled.MCC.Compiler
             } while (tokens.NextIs<TokenAnd>());
 
             if (commands.Count > 0)
-                executor.AddCommandsClean(commands, true);
+                executor.AddCommandsClean(commands, "if_setup", true);
 
             // done with temporary variables
             executor.scoreboard.PopTempState();
@@ -897,7 +897,7 @@ namespace mc_compiled.MCC.Compiler
                 executor.PopSelectorAfterNext();
             } else
             {
-                CommandFile nextBranchFile = StatementOpenBlock.GetNextBranchFile();
+                CommandFile nextBranchFile = Executor.GetNextGeneratedFile("branch");
                 opener.aligns = true;
                 opener.shouldRun = true;
                 opener.TargetFile = nextBranchFile;
@@ -1138,7 +1138,7 @@ namespace mc_compiled.MCC.Compiler
             commands.AddRange(Command.UTIL.ReleasePoint());
 
             executor.PushSelectorExecute();
-            executor.AddCommands(commands);
+            executor.AddCommands(commands, "facehere");
             executor.PopSelector();
         }
         public static void rotate(Executor executor, Statement tokens)

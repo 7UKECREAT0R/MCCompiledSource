@@ -78,7 +78,7 @@ namespace mc_compiled.MCC.Compiler
                     {
                         // only let one of them increment the actual count
                         int indexCopy = index;
-                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@p", ref indexCopy));
+                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@p", ref indexCopy), "string" + value.baseName);
                         terms.AddRange(value.ToRawText(varAccessor, "@p", ref index));
                         index++;
                     }
@@ -453,8 +453,10 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Add a set of commands into a new branching file unless inline is set.
         /// </summary>
+        /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
+        /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
         /// <param name="commands"></param>
-        public void AddCommands(IEnumerable<string> commands, bool inline = false)
+        public void AddCommands(IEnumerable<string> commands, string friendlyName, bool inline = false)
         {
             int count = commands.Count();
             if (count < 1)
@@ -473,7 +475,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            CommandFile file = StatementOpenBlock.GetNextBranchFile();
+            CommandFile file = Executor.GetNextGeneratedFile(friendlyName);
             file.Add(commands);
 
             AddExtraFile(file);
@@ -492,8 +494,10 @@ namespace mc_compiled.MCC.Compiler
         /// Add a set of commands into a new branching file, not modifying the prepend buffer.
         /// If inline is set, no branching file will be made.
         /// </summary>
+        /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
+        /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
         /// <param name="commands"></param>
-        public void AddCommandsClean(IEnumerable<string> commands, bool inline = false)
+        public void AddCommandsClean(IEnumerable<string> commands, string friendlyName, bool inline = false)
         {
             string buffer = prependBuffer.ToString();
 
@@ -512,7 +516,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            CommandFile file = StatementOpenBlock.GetNextBranchFile();
+            CommandFile file = Executor.GetNextGeneratedFile(friendlyName);
             file.Add(commands);
 
             AddExtraFile(file);
@@ -646,6 +650,19 @@ namespace mc_compiled.MCC.Compiler
             Directory.CreateDirectory(dir);
             string outputFile = Path.Combine(dir, file.GetOutputFile());
             File.WriteAllBytes(outputFile, file.GetOutputData());
+        }
+
+        private static int branchIndex;
+        /// <summary>
+        /// Construct the next file which branched commands should go into.
+        /// </summary>
+        /// <param name="friendlyName">A user-friendly name to mark the file by.</param>
+        /// <returns></returns>
+        public static CommandFile GetNextGeneratedFile(string friendlyName) =>
+            new CommandFile(friendlyName + (branchIndex++), MCC_GENERATED);
+        public static void ResetGeneratedFile()
+        {
+            branchIndex = 0;
         }
     }
 }
