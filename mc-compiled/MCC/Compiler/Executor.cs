@@ -49,9 +49,11 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="fstring"></param>
         /// <returns></returns>
-        public List<JSONRawTerm> FString(string fstring)
+        public List<JSONRawTerm> FString(string fstring, out bool advanced)
         {
             MatchCollection matches = FSTRING_FMT.Matches(fstring);
+
+            advanced = false;
             if (matches.Count < 1)
                 return new List<JSONRawTerm>() { new JSONText(fstring) };
 
@@ -76,17 +78,21 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (scoreboard.TryGetByAccessor(varAccessor, out ScoreboardValue value, true))
                     {
-                        // only let one of them increment the actual count
+                        advanced = true;
+                        // only allow one of them to increment the actual count
                         int indexCopy = index;
-                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@p", ref indexCopy), "string" + value.baseName);
-                        terms.AddRange(value.ToRawText(varAccessor, "@p", ref index));
+                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@s", ref indexCopy), "string" + value.baseName);
+                        terms.AddRange(value.ToRawText(varAccessor, "@s", ref index));
                         index++;
                     }
                     else
                         terms.Add(new JSONText(src));
                 }
-                else if(!string.IsNullOrEmpty(selector))
+                else if (!string.IsNullOrEmpty(selector))
+                {
+                    advanced = true;
                     terms.Add(new JSONSelector(selector));
+                }
                 else
                     terms.Add(new JSONText(src));
             }

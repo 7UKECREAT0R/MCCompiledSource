@@ -539,20 +539,32 @@ namespace mc_compiled.MCC.Compiler
         {
             string str = tokens.Next<TokenStringLiteral>();
             RawTextJsonBuilder builder = new RawTextJsonBuilder();
-            builder.AddTerms(executor.FString(str));
-
+            builder.AddTerms(executor.FString(str, out bool advanced));
             string output = builder.BuildString();
-            executor.AddCommand(Command.Tellraw(output));
+
+            if(advanced)
+                executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.Tellraw("@s", output)));
+            else
+                executor.AddCommand(Command.Tellraw("@a", output));
         }
         public static void print(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
             RawTextJsonBuilder builder = new RawTextJsonBuilder();
-            builder.AddTerms(executor.FString(str));
-
+            builder.AddTerms(executor.FString(str, out bool advanced));
             string output = builder.BuildString();
-            string selector = executor.ActiveSelectorStr;
-            executor.AddCommand(Command.Tellraw(selector, output));
+
+            if (advanced)
+            {
+                executor.PushSelectorExecute();
+                string selector = executor.ActiveSelectorStr;
+                executor.AddCommand(Command.Tellraw(selector, output));
+                executor.PopSelector();
+            } else
+            {
+                string selector = executor.ActiveSelectorStr;
+                executor.AddCommand(Command.Tellraw(selector, output));
+            }
         }
         public static void define(Executor executor, Statement tokens)
         {
@@ -1160,7 +1172,9 @@ namespace mc_compiled.MCC.Compiler
                     rx = new Coord(number.GetNumberInt(), false, true, false);
             }
 
+            executor.PushSelectorExecute();
             executor.AddCommand(Command.Teleport(Coord.here, Coord.here, Coord.here, ry, rx));
+            executor.PopSelector();
         }
         public static void block(Executor executor, Statement tokens)
         {
@@ -1354,9 +1368,13 @@ namespace mc_compiled.MCC.Compiler
                 {
                     string str = tokens.Next<TokenStringLiteral>();
                     RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                    builder.AddTerms(executor.FString(str));
+                    builder.AddTerms(executor.FString(str, out bool advanced));
                     string output = builder.BuildString();
-                    executor.AddCommand(Command.TitleSubtitle("@a", output));
+
+                    if(advanced)
+                        executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.TitleSubtitle("@s", output)));
+                    else
+                        executor.AddCommand(Command.TitleSubtitle("@a", output));
                     return;
                 }
                 else
@@ -1367,17 +1385,18 @@ namespace mc_compiled.MCC.Compiler
             {
                 string str = tokens.Next<TokenStringLiteral>();
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str));
+                builder.AddTerms(executor.FString(str, out bool advanced));
 
                 string output = builder.BuildString();
-                executor.AddCommand(Command.Title("@a", output));
+                if (advanced)
+                    executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.Title("@s", output)));
+                else
+                    executor.AddCommand(Command.Title("@a", output));
                 return;
             }
         }
         public static void title(Executor executor, Statement tokens)
         {
-            string selector = executor.ActiveSelectorStr;
-
             if (tokens.NextIs<TokenIdentifier>())
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
@@ -1386,16 +1405,27 @@ namespace mc_compiled.MCC.Compiler
                     int fadeIn = tokens.Next<TokenIntegerLiteral>();
                     int stay = tokens.Next<TokenIntegerLiteral>();
                     int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                    executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
+                    executor.AddCommand(Command.TitleTimes(executor.ActiveSelectorStr, fadeIn, stay, fadeOut));
                     return;
                 }
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
                     RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                    builder.AddTerms(executor.FString(str));
+                    builder.AddTerms(executor.FString(str, out bool advanced));
                     string output = builder.BuildString();
-                    executor.AddCommand(Command.TitleSubtitle(selector, output));
+
+                    if (advanced)
+                    {
+                        executor.PushSelectorExecute();
+                        string selector = executor.ActiveSelectorStr;
+                        executor.AddCommand(Command.TitleSubtitle(selector, output));
+                        executor.PopSelector();
+                    } else
+                    {
+                        string selector = executor.ActiveSelectorStr;
+                        executor.AddCommand(Command.TitleSubtitle(selector, output));
+                    }
                     return;
                 }
                 else
@@ -1406,10 +1436,21 @@ namespace mc_compiled.MCC.Compiler
             {
                 string str = tokens.Next<TokenStringLiteral>();
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str));
-
+                builder.AddTerms(executor.FString(str, out bool advanced));
                 string output = builder.BuildString();
-                executor.AddCommand(Command.Title(selector, output));
+
+                if (advanced)
+                {
+                    executor.PushSelectorExecute();
+                    string selector = executor.ActiveSelectorStr;
+                    executor.AddCommand(Command.Title(selector, output));
+                    executor.PopSelector();
+                }
+                else
+                {
+                    string selector = executor.ActiveSelectorStr;
+                    executor.AddCommand(Command.Title(selector, output));
+                }
                 return;
             }
         }
@@ -1428,35 +1469,47 @@ namespace mc_compiled.MCC.Compiler
             {
                 string str = tokens.Next<TokenStringLiteral>();
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str));
-
+                builder.AddTerms(executor.FString(str, out bool advanced));
                 string output = builder.BuildString();
-                executor.AddCommand(Command.TitleActionBar("@a", output));
+
+                if(advanced)
+                    executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.TitleActionBar("@s", output)));
+                else
+                    executor.AddCommand(Command.TitleActionBar("@a", output));
                 return;
             }
             else throw new StatementException(tokens, "Invalid information given to globalactionbar.");
         }
         public static void actionbar(Executor executor, Statement tokens)
         {
-            string selector = executor.ActiveSelectorStr;
-
             if (tokens.NextIs<TokenIdentifier>())
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
                 int fadeIn = tokens.Next<TokenIntegerLiteral>();
                 int stay = tokens.Next<TokenIntegerLiteral>();
                 int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                executor.AddCommand(Command.TitleTimes(selector, fadeIn, stay, fadeOut));
+                executor.AddCommand(Command.TitleTimes(executor.ActiveSelectorStr, fadeIn, stay, fadeOut));
                 return;
             }
             else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str));
-
+                builder.AddTerms(executor.FString(str, out bool advanced));
                 string output = builder.BuildString();
-                executor.AddCommand(Command.TitleActionBar(selector, output));
+
+                if (advanced)
+                {
+                    executor.PushSelectorExecute();
+                    string selector = executor.ActiveSelectorStr;
+                    executor.AddCommand(Command.TitleActionBar(selector, output));
+                    executor.PopSelector();
+                }
+                else
+                {
+                    string selector = executor.ActiveSelectorStr;
+                    executor.AddCommand(Command.TitleActionBar(selector, output));
+                }
                 return;
             }
             else throw new StatementException(tokens, "Invalid information given to actionbar.");
