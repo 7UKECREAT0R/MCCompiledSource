@@ -20,7 +20,6 @@ namespace mc_compiled
         public static bool DECORATE = false;
         public static bool DEBUG = false;
         public static bool BASIC_OUTPUT = false;
-        public static bool CLEAN = false;
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
@@ -33,7 +32,6 @@ namespace mc_compiled
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
             Console.Write("\tOptions:\n");
             Console.Write("\t  -b | --basic\t\tOnly output function/structure files. No behavior pack data.\n");
-            Console.Write("\t  -c | --clean\t\tWipe all files from the output directory.\n");
             Console.Write("\t  -dm | --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
             Console.Write("\t  -db | --debug\t\tDebug information during compilation.\n");
             Console.Write("\t  -dc | --decorate\tDecorate the compiled file with original source code (is a bit broken).\n");
@@ -72,10 +70,6 @@ namespace mc_compiled
                     case "--BASIC":
                     case "-B":
                         BASIC_OUTPUT = true;
-                        break;
-                    case "--CLEAN":
-                    case "-C":
-                        CLEAN = true;
                         break;
                     case "--DAEMON":
                     case "-DM":
@@ -162,25 +156,16 @@ namespace mc_compiled
 
             // clean/create output folder
             string folder = projectName + "/";
-            if (CLEAN)
+            if (Directory.Exists(folder))
             {
-                if (Directory.Exists(folder))
-                {
-                    string[] files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
-                    foreach (string file in files)
-                    {
-                        if (file.EndsWith("manifest.json"))
-                            continue;
-                        File.Delete(file);
-                    }
-                }
-                else
-                    Directory.CreateDirectory(folder);
+                List<string> files = new List<string>();
+                files.AddRange(Directory.GetFiles(folder, "*.mcstructure", SearchOption.AllDirectories));
+                files.AddRange(Directory.GetFiles(folder, "*.mcfunction", SearchOption.AllDirectories));
+
+                foreach (string file in files)
+                    File.Delete(file);
             } else
-            {
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-            }
+                Directory.CreateDirectory(folder);
         }
         public static void RunMCCompiled(string file)
         {

@@ -278,26 +278,15 @@ namespace mc_compiled.MCC.Compiler
                 Guid uuid1, uuid2;
                 string manifestPath = Path.Combine(projectName, "manifest.json");
 
-                if (File.Exists(manifestPath))
-                {
-                    Console.WriteLine("Reading GUIDs from existing manifest file.");
-                    string manifestData = File.ReadAllText(manifestPath);
-                    JObject json = JObject.Parse(manifestData);
-                    string strUUID1 = json["header"]["uuid"].ToString();
-                    string strUUID2 = json["modules"][0]["uuid"].ToString();
-                    uuid1 = new Guid(strUUID1);
-                    uuid2 = new Guid(strUUID2);
-                }
-                else
+                if (!File.Exists(manifestPath))
                 {
                     Console.WriteLine("Generating new manifest file.");
                     uuid1 = Guid.NewGuid();
                     uuid2 = Guid.NewGuid();
+                    Manifest manifestFile = new Manifest(uuid1, uuid2,
+                        projectName, "Change me!");
+                    filesToWrite.Add(manifestFile);
                 }
-
-                Manifest manifestFile = new Manifest(uuid1, uuid2,
-                    projectName, "MCCompiled Project");
-                filesToWrite.Add(manifestFile);
             }
 
             PushSelector(true);
