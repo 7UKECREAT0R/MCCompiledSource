@@ -33,12 +33,16 @@ namespace mc_compiled.MCC
             internal int decimalPrecision;
             internal StructDefinition @struct;
 
-            internal ValueDefinition(string name, ValueType type, int decimalPrecision = 0, StructDefinition @struct = null)
+            internal Token defaultValue;
+
+            internal ValueDefinition(string name, ValueType type, int decimalPrecision = 0,
+                StructDefinition @struct = null, Token defaultValue = null)
             {
                 this.name = name;
                 this.type = type;
                 this.decimalPrecision = decimalPrecision;
                 this.@struct = @struct;
+                this.defaultValue = defaultValue;
             }
             /// <summary>
             /// Create a scoreboard value based off of this definition.
@@ -219,7 +223,7 @@ namespace mc_compiled.MCC
                     $"create a scoreboard value for invalid literal type {literal.GetType()}.");
         }
         /// <summary>
-        /// Fetch a value/field definition from this statement. e.g., 'int coins', 'decimal 3 thing', 'customStruct xyz'
+        /// Fetch a value/field definition from this statement. e.g., 'int coins = 3', 'decimal 3 thing', 'customStruct xyz'
         /// </summary>
         /// <param name="tokens"></param>
         /// <returns></returns>
@@ -259,6 +263,9 @@ namespace mc_compiled.MCC
                 }
             }
 
+            // the default value to set it to
+            Token defaultValue = null;
+
             if (type == ValueType.DECIMAL)
             {
                 if (!tokens.NextIs<TokenIntegerLiteral>())
@@ -271,8 +278,13 @@ namespace mc_compiled.MCC
                     Console.WriteLine("WARNING: Decimal precisions >3 could begin to break with numbers greater than 1.");
                     Console.ForegroundColor = oldColor;
                 }
-                string decimalName = tokens.Next<TokenStringLiteral>();
-                return new ValueDefinition(decimalName, ValueType.DECIMAL, precision);
+                name = tokens.Next<TokenStringLiteral>();
+                if (tokens.NextIs<TokenAssignment>())
+                {
+                    tokens.Next();
+                    defaultValue = tokens.Next();
+                }
+                return new ValueDefinition(name, ValueType.DECIMAL, precision, null, defaultValue);
             }
 
             if (name == null)
@@ -282,7 +294,12 @@ namespace mc_compiled.MCC
                 name = tokens.Next<TokenStringLiteral>();
             }
 
-            return new ValueDefinition(name, type);
+            if (tokens.NextIs<TokenAssignment>())
+            {
+                tokens.Next();
+                defaultValue = tokens.Next();
+            }
+            return new ValueDefinition(name, type, default, null, defaultValue);
         }
 
         /// <summary>

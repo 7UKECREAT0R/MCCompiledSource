@@ -14,6 +14,7 @@ namespace mc_compiled.MCC
     public class Function
     {
         readonly List<ScoreboardValue> inputs;
+        readonly List<Token> inputDefaults;
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
 
@@ -26,15 +27,18 @@ namespace mc_compiled.MCC
             file = new CommandFile(name, null, this);
             isCompilerGenerated = fromCompiler;
             inputs = new List<ScoreboardValue>();
+            inputDefaults = new List<Token>();
         }
-        public Function AddParameter(ScoreboardValue parameter)
+        public Function AddParameter(ScoreboardValue parameter, TokenLiteral @default = null)
         {
             inputs.Add(parameter);
+            inputDefaults.Add(@default);
             return this;
         }
-        public Function AddParameters(IEnumerable<ScoreboardValue> parameters)
+        public Function AddParameters(IEnumerable<ScoreboardValue> parameters, IEnumerable<Token> defaults)
         {
             inputs.AddRange(parameters);
+            inputDefaults.AddRange(defaults);
             return this;
         }
         /// <summary>
@@ -50,8 +54,8 @@ namespace mc_compiled.MCC
                 Type type = returnValue.GetType();
 
                 // check if types match
-                if (!type.Equals(value))
-                    throw new StatementException(caller, $"All return statements in this function must return the same type. Required: {GetType()}");
+                if (!type.Equals(value.GetType()))
+                    throw new StatementException(caller, $"All return statements in this function must return the same type. Return type: {GetType().Name}");
 
                 return;
             }
@@ -121,10 +125,19 @@ namespace mc_compiled.MCC
             sb.PushTempState();
 
             int count = this.inputs.Count;
+            int inputsLength = inputs.Length;
             for(int i = 0; i < count; i++)
             {
-                Token input = inputs[i];
                 ScoreboardValue output = this.inputs[i];
+                Token input;
+                if (i >= inputsLength)
+                {
+                    input = inputDefaults[i];
+                    if (input == null)
+                        throw new StatementException(caller, $"Missing parameter '{output.baseName}' in function call.");
+                } else
+                    input = inputs[i];
+
                 string outputAccessor = output.baseName; // accessor is base name in integer case
 
                 commands.AddRange(output.CommandsDefine());

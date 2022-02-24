@@ -42,8 +42,8 @@ namespace mc_compiled.MCC.Compiler
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector> selections;
         readonly Stack<StructDefinition> definingStructs;
-
         public readonly ScoreboardManager scoreboard;
+
         /// <summary>
         /// Resolve an FString into rawtext terms. Also adds all setup commands for variables.
         /// </summary>

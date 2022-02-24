@@ -572,7 +572,26 @@ namespace mc_compiled.MCC.Compiler
                 .scoreboard.GetNextValueDefinition(tokens);
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
             executor.scoreboard.Add(value);
-            executor.AddCommandsHead(value.CommandsDefine());
+            List<string> commands = new List<string>();
+            commands.AddRange(value.CommandsDefine());
+
+            if (def.defaultValue != null)
+            {
+                executor.PushSelectorExecute();
+                string sel = executor.ActiveSelectorStr;
+                if (def.defaultValue is TokenLiteral)
+                    commands.AddRange(value.CommandsSetLiteral(value.baseName, sel, def.defaultValue as TokenLiteral));
+                else if (def.defaultValue is TokenIdentifierValue)
+                {
+                    TokenIdentifierValue identifier = def.defaultValue as TokenIdentifierValue;
+                    commands.AddRange(value.CommandsSet(sel, identifier.value, value.baseName, identifier.Accessor));
+                }
+                else
+                    throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
+                executor.PopSelector();
+            }
+
+            executor.AddCommands(commands, "define" + value.baseName);
         }
         public static void init(Executor executor, Statement tokens)
         {
@@ -1541,23 +1560,34 @@ namespace mc_compiled.MCC.Compiler
         {
             string functionName = tokens.Next<TokenIdentifier>().word;
             List<ScoreboardValue> args = new List<ScoreboardValue>();
+            List<Token> defaults = new List<Token>(); // default values
+            bool mustHaveDefault = false;
 
             if (tokens.NextIs<TokenOpenParenthesis>())
                 tokens.Next();
 
-            // this is where the directive feeds in function parameters. if i'm going to do typed
-            // parameter syntax in the future this is where the implementation should be located
-            //
-            // update: yea that comment was useful i did it
+            // this is where the directive takes in function parameters
             while(tokens.HasNext && tokens.NextIs<TokenIdentifier>())
             {
                 var def = executor.scoreboard.GetNextValueDefinition(tokens);
                 ScoreboardValue value = def.Create(executor.scoreboard, tokens);
                 executor.scoreboard.Add(value);
                 args.Add(value);
+
+                if (def.defaultValue == null)
+                {
+                    if (mustHaveDefault)
+                        throw new StatementException(tokens, "All parameters following a parameter with a default must also have defaults.");
+                    defaults.Add(null);
+                }
+                else
+                {
+                    mustHaveDefault = true;
+                    defaults.Add(def.defaultValue);
+                }
             }
 
-            Function function = new Function(functionName).AddParameters(args);
+            Function function = new Function(functionName).AddParameters(args, defaults);
             executor.RegisterFunction(function);
 
             if (executor.NextIs<StatementOpenBlock>())
