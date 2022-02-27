@@ -67,7 +67,7 @@ namespace mc_compiled.MCC.Compiler
         public string GetOutputDirectory()
         {
             if(folder == null)
-                return "functions\\";
+                return "functions";
 
             return Path.Combine("functions", folder);
         }
@@ -78,5 +78,7 @@ namespace mc_compiled.MCC.Compiler
             string text = string.Join("\n", commands);
             return Encoding.UTF8.GetBytes(text);
         }
+        public OutputLocation GetOutputRoot() =>
+            OutputLocation.BEHAVIORS;
     }
 }

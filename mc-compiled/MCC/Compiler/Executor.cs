@@ -20,8 +20,8 @@ namespace mc_compiled.MCC.Compiler
         public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]{1,16})})|({(@[psea](\\[.+\\])?)})";
         public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
-        public const float MCC_VERSION = 0.90f;             // _compilerversion
-        public static string MINECRAFT_VERSION = "x.xx.xxx"; // _mcversion
+        public const float MCC_VERSION = 0.98f;              // compilerversion
+        public static string MINECRAFT_VERSION = "x.xx.xxx"; // mcversion
         public const string MCC_GENERATED = "_mcc"; // folder that generated functions go into
 
         public readonly string projectName;
@@ -98,7 +98,10 @@ namespace mc_compiled.MCC.Compiler
             }
 
             while (pieces.Count > 0)
+            {
+                string text = pieces.Pop();
                 terms.Add(new JSONText(pieces.Pop()));
+            }
 
             return terms;
         }
@@ -275,17 +278,39 @@ namespace mc_compiled.MCC.Compiler
             // extract guids from existing manifest
             if (!Program.BASIC_OUTPUT)
             {
-                Guid uuid1, uuid2;
-                string manifestPath = Path.Combine(projectName, "manifest.json");
+                string manifestPathA = Path.Combine("development_behavior_packs", projectName, "manifest.json");
+                string manifestPathB = Path.Combine("development_resource_packs", projectName, "manifest.json");
+                Manifest resourcesManifest = null;
+                bool usingNewResources = false;
 
-                if (!File.Exists(manifestPath))
+                if (File.Exists(manifestPathB))
+                    resourcesManifest = new Manifest(File.ReadAllText(manifestPathB));
+                else
                 {
-                    Console.WriteLine("Generating new manifest file.");
-                    uuid1 = Guid.NewGuid();
-                    uuid2 = Guid.NewGuid();
-                    Manifest manifestFile = new Manifest(uuid1, uuid2,
-                        projectName, "Change me!");
-                    filesToWrite.Add(manifestFile);
+                    usingNewResources = true;
+                    Console.WriteLine("Generating new resource manifest file.");
+                    Guid uuid = Guid.NewGuid();
+                    resourcesManifest = new Manifest(OutputLocation.RESOURCES, uuid, projectName, "Change me!")
+                        .WithModule(Manifest.Module.ResourceData(projectName));
+                    filesToWrite.Add(resourcesManifest);
+                }
+
+                if (File.Exists(manifestPathA))
+                {
+                    if (usingNewResources)
+                    {
+                        Manifest manifest = new Manifest(File.ReadAllText(manifestPathA));
+                        //manifest.dependsOn = resourcesManifest.uuid;
+                        filesToWrite.Add(manifest);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Generating new behavior manifest file.");
+                    Guid uuid = Guid.NewGuid();
+                    Manifest manifest = new Manifest(OutputLocation.BEHAVIORS, uuid, projectName, "Change me!")
+                        .WithModule(Manifest.Module.BehaviorData(projectName));
+                    filesToWrite.Add(manifest);
                 }
             }
 
@@ -636,14 +661,21 @@ namespace mc_compiled.MCC.Compiler
             filesToWrite.Clear();
         }
         /// <summary>
-        /// Write an output file right now. Should be used when it might take up too much memory to hold.
+        /// Write an output file right now.
         /// </summary>
         /// <param name="file"></param>
         public void WriteFileNow(IBehaviorFile file)
         {
-            string dir = Path.Combine(projectName, file.GetOutputDirectory());
-            Directory.CreateDirectory(dir);
-            string outputFile = Path.Combine(dir, file.GetOutputFile());
+            string folder = file.GetOutputRoot() == OutputLocation.BEHAVIORS ?
+                Path.Combine("development_behavior_packs", projectName) :
+                Path.Combine("development_resource_packs", projectName);
+
+            string extraDirectory = file.GetOutputDirectory();
+            if (!string.IsNullOrWhiteSpace(extraDirectory))
+                folder = Path.Combine(folder, extraDirectory);
+
+            Directory.CreateDirectory(folder);
+            string outputFile = Path.Combine(folder, file.GetOutputFile());
             File.WriteAllBytes(outputFile, file.GetOutputData());
         }
 

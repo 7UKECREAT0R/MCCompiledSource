@@ -88,10 +88,9 @@ namespace mc_compiled
             if (file.ToUpper().Equals("--MANIFEST"))
             {
                 string rest = string.Join(" ", args).Substring(11);
-                Manifest manifest = new Manifest(Guid.NewGuid(), Guid.NewGuid(),
-                    rest, "TODO set description");
+                Manifest manifest = new Manifest(OutputLocation.BEHAVIORS, Guid.NewGuid(), rest, "TODO set description");
                 File.WriteAllBytes("manifest.json", manifest.GetOutputData());
-                Console.WriteLine("Wrote 'manifest.json' to current directory.");
+                Console.WriteLine("Wrote a new 'manifest.json' to current directory.");
                 return;
             }
 
@@ -114,17 +113,22 @@ namespace mc_compiled
             // initialize enum constants
             Commands.CommandEnumParser.Init();
 
-            string folder = Path.GetDirectoryName(Path.GetFullPath(file));
+            // set working directory
+            string rootFolder = Path.GetDirectoryName(Path.GetFullPath(file));
+            Directory.SetCurrentDirectory(rootFolder);
             string projectName = Path.GetFileNameWithoutExtension(file);
+            string projectBehaviorsFolder = Path.Combine("development_behavior_packs", projectName);
+            string projectResourcesFolder = Path.Combine("development_resource_packs", projectName);
+            Directory.CreateDirectory(projectBehaviorsFolder);
+            Directory.CreateDirectory(projectResourcesFolder);
             file = Path.GetFileName(file);
-            Directory.SetCurrentDirectory(folder);
 
             bool firstRun = true;
             if (daemon)
             {
-                FileSystemWatcher watcher = new FileSystemWatcher(folder);
+                FileSystemWatcher watcher = new FileSystemWatcher(rootFolder);
                 watcher.NotifyFilter = NotifyFilters.LastWrite;
-                watcher.Filter = Path.GetFileName(file);
+                watcher.Filter = file;
 
                 while(true)
                 {
@@ -155,17 +159,13 @@ namespace mc_compiled
             DirectiveImplementations.ResetState();
 
             // clean/create output folder
-            string folder = projectName + "/";
-            if (Directory.Exists(folder))
-            {
-                List<string> files = new List<string>();
-                files.AddRange(Directory.GetFiles(folder, "*.mcstructure", SearchOption.AllDirectories));
-                files.AddRange(Directory.GetFiles(folder, "*.mcfunction", SearchOption.AllDirectories));
+            string folder = Path.Combine(Directory.GetCurrentDirectory(), "development_behavior_packs", projectName);
+            List<string> files = new List<string>();
+            files.AddRange(Directory.GetFiles(folder, "*.mcstructure", SearchOption.AllDirectories));
+            files.AddRange(Directory.GetFiles(folder, "*.mcfunction", SearchOption.AllDirectories));
 
-                foreach (string file in files)
-                    File.Delete(file);
-            } else
-                Directory.CreateDirectory(folder);
+            foreach (string file in files)
+                File.Delete(file);
         }
         public static void RunMCCompiled(string file)
         {

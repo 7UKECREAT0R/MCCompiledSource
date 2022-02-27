@@ -27,5 +27,16 @@ namespace mc_compiled.Modding
         /// </summary>
         /// <returns></returns>
         byte[] GetOutputData();
+
+        /// <summary>
+        /// Indicates base location of the output file.
+        /// </summary>
+        /// <returns>The output location of the file.</returns>
+        OutputLocation GetOutputRoot();
+    }
+    public enum OutputLocation
+    {
+        BEHAVIORS,
+        RESOURCES
     }
 }

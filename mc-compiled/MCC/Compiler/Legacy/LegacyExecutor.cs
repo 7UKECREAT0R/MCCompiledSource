@@ -283,7 +283,7 @@ namespace mc_compiled.MCC
         /// Get this executor's results as a proper BehaviorPack.
         /// </summary>
         /// <returns></returns>
-        public BehaviorPack GetAsPack()
+        /*public BehaviorPack GetAsPack()
         {
             BehaviorPack pack = new BehaviorPack()
             {
@@ -295,7 +295,7 @@ namespace mc_compiled.MCC
             };
 
             return pack;
-        }
+        }*/
         /// <summary>
         /// Get the custom item drops defined during execution.
         /// </summary>

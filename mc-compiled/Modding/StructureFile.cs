@@ -19,10 +19,12 @@ namespace mc_compiled.Modding
         }
 
         public string GetOutputDirectory() =>
-            "structures\\";
+            "structures";
         public string GetOutputFile() =>
             $"{name}.mcstructure";
         public byte[] GetOutputData() =>
             FileWriterNBT.GetBytes(structure.ToNBT());
+        public OutputLocation GetOutputRoot() =>
+            OutputLocation.BEHAVIORS;
     }
 }
