@@ -88,7 +88,8 @@ namespace mc_compiled
             if (file.ToUpper().Equals("--MANIFEST"))
             {
                 string rest = string.Join(" ", args).Substring(11);
-                Manifest manifest = new Manifest(OutputLocation.BEHAVIORS, Guid.NewGuid(), rest, "TODO set description");
+                Manifest manifest = new Manifest(OutputLocation.BEHAVIORS, Guid.NewGuid(), rest, "TODO set description")
+                    .WithModule(Manifest.Module.BehaviorData(rest));
                 File.WriteAllBytes("manifest.json", manifest.GetOutputData());
                 Console.WriteLine("Wrote a new 'manifest.json' to current directory.");
                 return;
@@ -128,7 +129,7 @@ namespace mc_compiled
             {
                 FileSystemWatcher watcher = new FileSystemWatcher(rootFolder);
                 watcher.NotifyFilter = NotifyFilters.LastWrite;
-                watcher.Filter = file;
+                watcher.Filter = $"{projectName}.mcc";
 
                 while(true)
                 {

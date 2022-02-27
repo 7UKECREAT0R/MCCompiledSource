@@ -100,7 +100,8 @@ namespace mc_compiled.MCC.Compiler
             while (pieces.Count > 0)
             {
                 string text = pieces.Pop();
-                terms.Add(new JSONText(pieces.Pop()));
+                if(!string.IsNullOrEmpty(text))
+                    terms.Add(new JSONText(text));
             }
 
             return terms;
