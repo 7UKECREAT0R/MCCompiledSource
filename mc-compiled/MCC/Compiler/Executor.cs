@@ -36,7 +36,7 @@ namespace mc_compiled.MCC.Compiler
         readonly List<Function> functions;
         readonly bool[] lastPreprocessorCompare;
         readonly Token[][] lastActualCompare;
-        readonly Dictionary<string, dynamic> ppv;
+        readonly Dictionary<string, dynamic[]> ppv;
         readonly List<IBehaviorFile> filesToWrite;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
@@ -261,7 +261,7 @@ namespace mc_compiled.MCC.Compiler
             this.projectName = projectName;
 
             definedStdFiles = new List<int>();
-            ppv = new Dictionary<string, dynamic>();
+            ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
             functions = new List<Function>();
             selections = new Stack<Selector>();
@@ -316,8 +316,8 @@ namespace mc_compiled.MCC.Compiler
             }
 
             PushSelector(true);
-            ppv["minecraftversion"] = MINECRAFT_VERSION;
-            ppv["compilerversion"] = MCC_VERSION;
+            ppv["minecraftversion"] = new dynamic[] { MINECRAFT_VERSION };
+            ppv["compilerversion"] = new dynamic[] { MCC_VERSION };
             currentFiles.Push(new CommandFile(projectName));
         }
         /// <summary>
@@ -591,7 +591,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool TryGetPPV(string name, out dynamic value)
+        public bool TryGetPPV(string name, out dynamic[] value)
         {
             if (name.StartsWith("$"))
                 name = name.Substring(1);
@@ -602,7 +602,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public void SetPPV(string name, object value) =>
+        public void SetPPV(string name, object[] value) =>
             ppv[name] = value;
         /// <summary>
         /// Resolve all preprocessor variables in a string.
@@ -614,31 +614,37 @@ namespace mc_compiled.MCC.Compiler
             foreach (var kv in ppv)
             {
                 string name = '$' + kv.Key;
-                string value = kv.Value.ToString();
+                string value = string.Join(" ", kv.Value);
                 str = str.Replace(name, value);
             }
 
             return str;
         }
-        public TokenLiteral ResolvePPV(TokenUnresolvedPPV unresolved)
+        public TokenLiteral[] ResolvePPV(TokenUnresolvedPPV unresolved)
         {
             int line = unresolved.lineNumber;
             string word = unresolved.word;
 
-            if (TryGetPPV(word, out dynamic value))
+            if (TryGetPPV(word, out dynamic[] values))
             {
-                if (value is int)
-                    return new TokenIntegerLiteral(value, line);
-                if (value is float)
-                    return new TokenDecimalLiteral(value, line);
-                if (value is bool)
-                    return new TokenBooleanLiteral(value, line);
-                if (value is string)
-                    return new TokenStringLiteral(value, line);
-                if (value is Coord)
-                    return new TokenCoordinateLiteral(value, line);
-                if (value is Selector)
-                    return new TokenSelectorLiteral(value, line);
+                TokenLiteral[] literals = new TokenLiteral[values.Length];
+                for(int i = 0; i < values.Length; i++)
+                {
+                    dynamic value = values[i];
+                    if (value is int)
+                        literals[i] = new TokenIntegerLiteral(value, line);
+                    if (value is float)
+                        literals[i] = new TokenDecimalLiteral(value, line);
+                    if (value is bool)
+                        literals[i] = new TokenBooleanLiteral(value, line);
+                    if (value is string)
+                        literals[i] = new TokenStringLiteral(value, line);
+                    if (value is Coord)
+                        literals[i] = new TokenCoordinateLiteral(value, line);
+                    if (value is Selector)
+                        literals[i] = new TokenSelectorLiteral(value, line);
+                }
+                return literals;
             }
 
             return null;

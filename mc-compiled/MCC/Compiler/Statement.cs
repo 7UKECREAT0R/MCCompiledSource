@@ -177,42 +177,40 @@ namespace mc_compiled.MCC.Compiler
 
             int length = statement.tokens.Length;
             Token[] allUnresolved = statement.tokens;
-            Token[] allResolved = new Token[length];
+            List<Token> allResolved = new List<Token>();
 
             for(int i = 0; i < length; i++)
             {
                 Token unresolved = allUnresolved[i];
-                Token resolved = unresolved;
                 int line = unresolved.lineNumber;
 
                 if (unresolved is TokenStringLiteral)
-                    resolved = new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line);
+                    allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
                 else if (unresolved is TokenUnresolvedPPV)
-                    resolved = (executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? unresolved);
-
-                if(unresolved is TokenIdentifier)
+                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? new Token[] { unresolved });
+                else if(unresolved is TokenIdentifier)
                 {
                     string word = (unresolved as TokenIdentifier).word;
                     if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value, true))
-                        resolved = new TokenIdentifierValue(word, value, line);
+                        allResolved.Add(new TokenIdentifierValue(word, value, line));
                     else if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))
-                        resolved = new TokenIdentifierStruct(word, @struct, line);
+                        allResolved.Add(new TokenIdentifierStruct(word, @struct, line));
                     else if (executor.TryLookupMacro(word, out Macro? macro))
-                        resolved = new TokenIdentifierMacro(macro.Value, line);
+                        allResolved.Add(new TokenIdentifierMacro(macro.Value, line));
                     else if (executor.TryLookupFunction(word, out Function function))
-                        resolved = new TokenIdentifierFunction(function, line);
-                }
-
-                allResolved[i] = resolved;
+                        allResolved.Add(new TokenIdentifierFunction(function, line));
+                    else
+                        allResolved.Add(unresolved);
+                } else
+                    allResolved.Add(unresolved);
             }
 
             executor.scoreboard.PushTempState(); // popped at call site
-            List<Token> tokens = new List<Token>(allResolved);
-            SquashFunctions(ref tokens, executor);
-            Squash<TokenArithmaticFirst>(ref tokens, executor);
-            Squash<TokenArithmaticSecond>(ref tokens, executor);
+            SquashFunctions(ref allResolved, executor);
+            Squash<TokenArithmaticFirst>(ref allResolved, executor);
+            Squash<TokenArithmaticSecond>(ref allResolved, executor);
 
-            statement.tokens = tokens.ToArray();
+            statement.tokens = allResolved.ToArray();
             statement.patterns = statement.GetValidPatterns();
             return statement;
         }

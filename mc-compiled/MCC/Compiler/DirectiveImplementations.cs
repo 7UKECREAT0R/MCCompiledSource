@@ -23,18 +23,21 @@ namespace mc_compiled.MCC.Compiler
         public static void _var(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            object value = tokens.Next<IObjectable>().GetObject();
+            List<dynamic> values = new List<dynamic>();
+            while(tokens.NextIs<IObjectable>())
+                values.Add(tokens.Next<IObjectable>().GetObject());
 
-            executor.SetPPV(varName, value);
+            executor.SetPPV(varName, values.ToArray());
         }
         public static void _inc(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            if (executor.TryGetPPV(varName, out dynamic value))
+            if (executor.TryGetPPV(varName, out dynamic[] value))
             {
                 try
                 {
-                    value++;
+                    for(int i = 0; i < value.Length; i++)
+                        value[i]++;
                 } catch(Exception)
                 {
                     throw new StatementException(tokens, "Couldn't increment this value.");
@@ -47,11 +50,12 @@ namespace mc_compiled.MCC.Compiler
         public static void _dec(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            if (executor.TryGetPPV(varName, out dynamic value))
+            if (executor.TryGetPPV(varName, out dynamic[] value))
             {
                 try
                 {
-                    value--;
+                    for (int i = 0; i < value.Length; i++)
+                        value[i]--;
                 }
                 catch (Exception)
                 {
@@ -66,23 +70,44 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic other = otherToken.GetObject();
 
+            dynamic[] others;
             if (otherToken is TokenIdentifier)
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
-                    other = ppv;
-
-            if (executor.TryGetPPV(varName, out dynamic value))
             {
-                try
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
+                    others = ppv;
+                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
+            } else
+            {
+                List<dynamic> inputs = new List<dynamic>();
+                inputs.Add((otherToken as IObjectable).GetObject());
+                while (tokens.NextIs<IObjectable>())
+                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                others = inputs.ToArray();
+            }
+
+            if (executor.TryGetPPV(varName, out dynamic[] values))
+            {
+                dynamic[] outputs = new dynamic[values.Length];
+                for (int i = 0; i < values.Length; i++)
                 {
-                    value += other;
+                    dynamic a = values[i];
+
+                    dynamic other;
+                    if (others.Length > i)
+                        other = others[i];
+                    else break;
+
+                    try
+                    {
+                        outputs[i] = a + other;
+                    }
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Couldn't add these values.");
+                    }
                 }
-                catch (Exception)
-                {
-                    throw new StatementException(tokens, "Couldn't add these values.");
-                }
-                executor.SetPPV(varName, value);
+                executor.SetPPV(varName, outputs);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
@@ -91,23 +116,45 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic other = otherToken.GetObject();
 
+            dynamic[] others;
             if (otherToken is TokenIdentifier)
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
-                    other = ppv;
-
-            if (executor.TryGetPPV(varName, out dynamic value))
             {
-                try
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
+                    others = ppv;
+                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
+            }
+            else
+            {
+                List<dynamic> inputs = new List<dynamic>();
+                inputs.Add((otherToken as IObjectable).GetObject());
+                while (tokens.NextIs<IObjectable>())
+                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                others = inputs.ToArray();
+            }
+
+            if (executor.TryGetPPV(varName, out dynamic[] values))
+            {
+                dynamic[] outputs = new dynamic[values.Length];
+                for (int i = 0; i < values.Length; i++)
                 {
-                    value -= other;
+                    dynamic a = values[i];
+
+                    dynamic other;
+                    if (others.Length > i)
+                        other = others[i];
+                    else break;
+
+                    try
+                    {
+                        outputs[i] = a - other;
+                    }
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Couldn't subtract these values.");
+                    }
                 }
-                catch (Exception)
-                {
-                    throw new StatementException(tokens, "Couldn't subtract these values.");
-                }
-                executor.SetPPV(varName, value);
+                executor.SetPPV(varName, outputs);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
@@ -116,23 +163,45 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic other = otherToken.GetObject();
 
+            dynamic[] others;
             if (otherToken is TokenIdentifier)
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
-                    other = ppv;
-
-            if (executor.TryGetPPV(varName, out dynamic value))
             {
-                try
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
+                    others = ppv;
+                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
+            }
+            else
+            {
+                List<dynamic> inputs = new List<dynamic>();
+                inputs.Add((otherToken as IObjectable).GetObject());
+                while (tokens.NextIs<IObjectable>())
+                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                others = inputs.ToArray();
+            }
+
+            if (executor.TryGetPPV(varName, out dynamic[] values))
+            {
+                dynamic[] outputs = new dynamic[values.Length];
+                for (int i = 0; i < values.Length; i++)
                 {
-                    value *= other;
+                    dynamic a = values[i];
+
+                    dynamic other;
+                    if (others.Length > i)
+                        other = others[i];
+                    else break;
+
+                    try
+                    {
+                        outputs[i] = a * other;
+                    }
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Couldn't multiply these values.");
+                    }
                 }
-                catch (Exception)
-                {
-                    throw new StatementException(tokens, "Couldn't multiply these values.");
-                }
-                executor.SetPPV(varName, value);
+                executor.SetPPV(varName, outputs);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
@@ -141,23 +210,45 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic other = otherToken.GetObject();
 
+            dynamic[] others;
             if (otherToken is TokenIdentifier)
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
-                    other = ppv;
-
-            if (executor.TryGetPPV(varName, out dynamic value))
             {
-                try
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
+                    others = ppv;
+                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
+            }
+            else
+            {
+                List<dynamic> inputs = new List<dynamic>();
+                inputs.Add((otherToken as IObjectable).GetObject());
+                while (tokens.NextIs<IObjectable>())
+                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                others = inputs.ToArray();
+            }
+
+            if (executor.TryGetPPV(varName, out dynamic[] values))
+            {
+                dynamic[] outputs = new dynamic[values.Length];
+                for (int i = 0; i < values.Length; i++)
                 {
-                    value /= other;
+                    dynamic a = values[i];
+
+                    dynamic other;
+                    if (others.Length > i)
+                        other = others[i];
+                    else break;
+
+                    try
+                    {
+                        outputs[i] = a / other;
+                    }
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Couldn't divide these values.");
+                    }
                 }
-                catch (Exception)
-                {
-                    throw new StatementException(tokens, "Couldn't divide these values.");
-                }
-                executor.SetPPV(varName, value);
+                executor.SetPPV(varName, outputs);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
@@ -166,23 +257,45 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic other = otherToken.GetObject();
 
+            dynamic[] others;
             if (otherToken is TokenIdentifier)
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
-                    other = ppv;
-
-            if (executor.TryGetPPV(varName, out dynamic value))
             {
-                try
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
+                    others = ppv;
+                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
+            }
+            else
+            {
+                List<dynamic> inputs = new List<dynamic>();
+                inputs.Add((otherToken as IObjectable).GetObject());
+                while (tokens.NextIs<IObjectable>())
+                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                others = inputs.ToArray();
+            }
+
+            if (executor.TryGetPPV(varName, out dynamic[] values))
+            {
+                dynamic[] outputs = new dynamic[values.Length];
+                for (int i = 0; i < values.Length; i++)
                 {
-                    value %= other;
+                    dynamic a = values[i];
+
+                    dynamic other;
+                    if (others.Length > i)
+                        other = others[i];
+                    else break;
+
+                    try
+                    {
+                        outputs[i] = a % other;
+                    }
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Couldn't modulo these values.");
+                    }
                 }
-                catch (Exception)
-                {
-                    throw new StatementException(tokens, "Couldn't modulo these values.");
-                }
-                executor.SetPPV(varName, value);
+                executor.SetPPV(varName, outputs);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
@@ -191,30 +304,51 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic other = otherToken.GetObject();
 
+            dynamic[] others;
             if (otherToken is TokenIdentifier)
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
-                    other = ppv;
-
-            if(!(other is int))
-                throw new StatementException(tokens, "Can only exponentiate to an integer value.");
-
-            int count = (int)other;
-
-            if (executor.TryGetPPV(varName, out dynamic value))
             {
-                dynamic result = value;
-                try
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
+                    others = ppv;
+                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
+            }
+            else
+            {
+                List<dynamic> inputLiterals = new List<dynamic>();
+                inputLiterals.Add((otherToken as IObjectable).GetObject());
+                while (tokens.NextIs<IObjectable>())
+                    inputLiterals.Add(tokens.Next<IObjectable>().GetObject());
+                others = inputLiterals.ToArray();
+            }
+
+            if (executor.TryGetPPV(varName, out dynamic[] inputs))
+            {
+                dynamic[] outputs = new dynamic[inputs.Length];
+                for (int i = 0; i < inputs.Length; i++)
                 {
-                    for(int i = 1; i < count; i++)
-                        result *= value;
+                    dynamic input = inputs[i];
+
+                    dynamic other;
+                    if (others.Length > i)
+                        other = others[i];
+                    else break;
+
+                    if (!(other is int))
+                        throw new StatementException(tokens, "Can only exponentiate to an integer value.");
+                    int count = (int)other;
+
+                    try
+                    {
+                        outputs[i] = input;
+                        for (int x = 1; x < count; x++)
+                            outputs[i] *= input;
+                    }
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Couldn't pow these values.");
+                    }
                 }
-                catch (Exception)
-                {
-                    throw new StatementException(tokens, "Couldn't exponentiate that type of value.");
-                }
-                executor.SetPPV(varName, result);
+                executor.SetPPV(varName, outputs);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
@@ -224,9 +358,9 @@ namespace mc_compiled.MCC.Compiler
             string aName = tokens.Next<TokenIdentifier>().word;
             string bName = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(aName, out dynamic a))
+            if (executor.TryGetPPV(aName, out dynamic[] a))
             {
-                if (executor.TryGetPPV(bName, out dynamic b))
+                if (executor.TryGetPPV(bName, out dynamic[] b))
                 {
                     executor.SetPPV(aName, b);
                     executor.SetPPV(bName, a);
@@ -242,46 +376,57 @@ namespace mc_compiled.MCC.Compiler
             string varName = tokens.Next<TokenIdentifier>().word;
             TokenCompare compare = tokens.Next<TokenCompare>();
             IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic other = otherToken.GetObject();
+            dynamic[] others = new dynamic[] { otherToken.GetObject() };
 
             if (otherToken is TokenIdentifier)
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic ppv))
-                    other = ppv;
+                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
+                    others = ppv;
 
             // if the next block/statement should be run
-            bool run = false;
+            bool run = true;
 
-            if(executor.TryGetPPV(varName, out dynamic a))
+            if(executor.TryGetPPV(varName, out dynamic[] firsts))
             {
-                try
+                for(int i = 0; i < firsts.Length; i++)
                 {
-                    switch (compare.GetCompareType())
+                    dynamic a = firsts[i];
+
+                    dynamic other;
+                    if (others.Length > i)
+                        other = others[i];
+                    else
+                        throw new StatementException(tokens, "Preprocessor variable lengths didn't match.");
+
+                    try
                     {
-                        case TokenCompare.Type.EQUAL:
-                            run = a == other;
-                            break;
-                        case TokenCompare.Type.NOT_EQUAL:
-                            run = a != other;
-                            break;
-                        case TokenCompare.Type.LESS_THAN:
-                            run = a < other;
-                            break;
-                        case TokenCompare.Type.LESS_OR_EQUAL:
-                            run = a <= other;
-                            break;
-                        case TokenCompare.Type.GREATER_THAN:
-                            run = a > other;
-                            break;
-                        case TokenCompare.Type.GREATER_OR_EQUAL:
-                            run = a >= other;
-                            break;
-                        default:
-                            run = false;
-                            break;
+                        switch (compare.GetCompareType())
+                        {
+                            case TokenCompare.Type.EQUAL:
+                                run &= a == other;
+                                break;
+                            case TokenCompare.Type.NOT_EQUAL:
+                                run &= a != other;
+                                break;
+                            case TokenCompare.Type.LESS_THAN:
+                                run &= a < other;
+                                break;
+                            case TokenCompare.Type.LESS_OR_EQUAL:
+                                run &= a <= other;
+                                break;
+                            case TokenCompare.Type.GREATER_THAN:
+                                run &= a > other;
+                                break;
+                            case TokenCompare.Type.GREATER_OR_EQUAL:
+                                run &= a >= other;
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                } catch(Exception)
-                {
-                    throw new StatementException(tokens, "Could not compare those two types.");
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Could not compare those two types.");
+                    }
                 }
             }
             else
@@ -342,7 +487,7 @@ namespace mc_compiled.MCC.Compiler
             for (int i = 0; i < amount; i++)
             {
                 if (tracker != null)
-                    executor.SetPPV(tracker, i);
+                    executor.SetPPV(tracker, new dynamic[] { i });
                 executor.ExecuteSubsection(statements);
             }
 
@@ -405,15 +550,15 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // save variables which collide with this macro's args.
-            Dictionary<string, dynamic> collidedValues
-                = new Dictionary<string, dynamic>();
+            Dictionary<string, dynamic[]> collidedValues
+                = new Dictionary<string, dynamic[]>();
             foreach (string arg in lookedUp.argNames)
-                if (executor.TryGetPPV(arg, out dynamic value))
+                if (executor.TryGetPPV(arg, out dynamic[] value))
                     collidedValues[arg] = value;
 
             // set input variables
             for (int i = 0; i < argNames.Length; i++)
-                executor.SetPPV(argNames[i], args[i]);
+                executor.SetPPV(argNames[i], new dynamic[] { args[i] });
 
             // call macro
             executor.ExecuteSubsection(lookedUp.statements);
@@ -459,18 +604,24 @@ namespace mc_compiled.MCC.Compiler
             string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
 
-            if(executor.TryGetPPV(input, out dynamic value))
+            if(executor.TryGetPPV(input, out dynamic[] value))
             {
-                string str = value.ToString();
-                string[] parts = str.Split('_', '-', ' ');
-                for (int i = 0; i < parts.Length; i++)
+                dynamic[] results = new dynamic[value.Length];
+                for (int r = 0; r < value.Length; r++)
                 {
-                    char[] part = parts[i].ToCharArray();
-                    for (int c = 0; c < part.Length; c++)
-                        part[c] = (c == 0) ? char.ToUpper(part[c]) : char.ToLower(part[c]);
-                    parts[i] = new string(part);
+                    string str = value[r].ToString();
+                    string[] parts = str.Split('_', '-', ' ');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        char[] part = parts[i].ToCharArray();
+                        for (int c = 0; c < part.Length; c++)
+                            part[c] = (c == 0) ? char.ToUpper(part[c]) : char.ToLower(part[c]);
+                        parts[i] = new string(part);
+                    }
+                    results[r] = string.Join(" ", parts);
+                    
                 }
-                executor.SetPPV(output, string.Join(" ", parts));
+                executor.SetPPV(output, results);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
@@ -480,10 +631,15 @@ namespace mc_compiled.MCC.Compiler
             string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(input, out dynamic value))
+            if (executor.TryGetPPV(input, out dynamic[] value))
             {
-                string str = value.ToString();
-                executor.SetPPV(output, str.ToUpper());
+                dynamic[] results = new dynamic[value.Length];
+                for (int r = 0; r < value.Length; r++)
+                {
+                    string str = value[r].ToString();
+                    results[r] = str.ToUpper();
+                }
+                executor.SetPPV(output, results);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
@@ -493,10 +649,15 @@ namespace mc_compiled.MCC.Compiler
             string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(input, out dynamic value))
+            if (executor.TryGetPPV(input, out dynamic[] value))
             {
-                string str = value.ToString();
-                executor.SetPPV(output, str.ToLower());
+                dynamic[] results = new dynamic[value.Length];
+                for (int r = 0; r < value.Length; r++)
+                {
+                    string str = value[r].ToString();
+                    results[r] = str.ToLower();
+                }
+                executor.SetPPV(output, results);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
