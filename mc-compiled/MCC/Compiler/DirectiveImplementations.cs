@@ -1356,6 +1356,7 @@ namespace mc_compiled.MCC.Compiler
             bool keep = false;
             bool lockInventory = false;
             bool lockSlot = false;
+            List<string> loreLines = new List<string>();
             List<string> canPlaceOn = new List<string>();
             List<string> canDestroy = new List<string>();
             List<Tuple<Enchantment, int>> enchants = new List<Tuple<Enchantment, int>>();
@@ -1403,6 +1404,10 @@ namespace mc_compiled.MCC.Compiler
                         break;
                     case "NAME":
                         displayName = tokens.Next<TokenStringLiteral>();
+                        needsStructure = true;
+                        break;
+                    case "LORE":
+                        loreLines.Add(tokens.Next<TokenStringLiteral>());
                         needsStructure = true;
                         break;
                     default:
@@ -1569,10 +1574,17 @@ namespace mc_compiled.MCC.Compiler
         {
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
             List<string> commands = new List<string>();
-            commands.AddRange(Command.UTIL.RequestPoint(out Selector point));
+
+            // old dookie commands
+            /*commands.AddRange(Command.UTIL.RequestPoint(out Selector point));
             commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
                 Command.TeleportFacing(Coord.here, Coord.here, Coord.here, point.ToString())));
-            commands.AddRange(Command.UTIL.ReleasePoint());
+            commands.AddRange(Command.UTIL.ReleasePoint());*/
+
+            commands.Add(Command.Tag("@s", "_mcc_here"));
+            commands.Add(Command.Execute(selector.selector.ToString(), Coord.here, Coord.here, Coord.here,
+                Command.TeleportFacing(Coord.here, Coord.here, Coord.here, "@e[tag=\"_mcc_here\",c=1]")));
+            commands.Add(Command.TagRemove("@s", "_mcc_here"));
 
             executor.PushSelectorExecute();
             executor.AddCommands(commands, "facehere");

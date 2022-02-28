@@ -42,6 +42,11 @@ namespace mc_compiled.NBT
             };
         }
 
+        /// <summary>
+        /// Create a structure which holds only a single item.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public static StructureNBT SingleItem(Commands.Native.ItemStack item)
         {
             return new StructureNBT()

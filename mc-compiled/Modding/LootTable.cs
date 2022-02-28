@@ -168,7 +168,10 @@ namespace mc_compiled.Modding
             JObject json = new JObject();
             json["function"] = GetFunctionName();
             foreach (JObject function in GetFunctionFields())
-                json.Add(function);
+            {
+                foreach(JProperty property in function.Properties())
+                    json.Add(property);
+            }
             return json;
         }
 

@@ -85,6 +85,65 @@ namespace mc_compiled
                 builder.ConsoleInterface();
                 return;
             }
+            if (file.ToUpper().Equals("--TESTITEM"))
+            {
+                new Definitions(debug);
+                ItemStack item = new ItemStack()
+                {
+                    id = "minecraft:stick",
+                    count = 1,
+                    displayName = "§bSuper Stick",
+                    enchantments = new EnchantmentEntry[]
+                    {
+                        new EnchantmentEntry(Commands.Enchantment.knockback, 50)
+                    }
+                };
+                StructureNBT nbt = StructureNBT.SingleItem(item);
+                StructureFile itemFile = new StructureFile("testitem", nbt);
+                File.WriteAllBytes("testitem.mcstructure", itemFile.GetOutputData());
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Written test stick to 'testitem.mcstructure'");
+                Console.ForegroundColor = ConsoleColor.White;
+                return;
+            }
+            if (file.ToUpper().Equals("--TESTLOOT"))
+            {
+                new Definitions(debug);
+                LootTable table = new LootTable("test");
+                table.pools.Add(new LootPool(6, new LootEntry[]
+                {
+                    new LootEntry(LootEntry.EntryType.item, "minecraft:iron_sword")
+                        .WithFunction(new LootFunctionEnchant(new EnchantmentEntry("sharpness", 20)))
+                        .WithFunction(new LootFunctionDurability(0.5f))
+                        .WithFunction(new LootFunctionName("§lSuper Sword"))
+                        .WithFunction(new LootFunctionLore(
+                            "§cHi! This is a line of lore.",
+                            "§6Here's another line.")),
+                    new LootEntry(LootEntry.EntryType.item, "minecraft:book")
+                        .WithFunction(new LootFunctionBook("Test Book", "lukecreator",
+                            "yo welcome to the first page!\nSecond line.",
+                            "Second page!")),
+                    new LootEntry(LootEntry.EntryType.item, "minecraft:leather_chestplate")
+                        .WithFunction(new LootFunctionName("Random Enchant"))
+                        .WithFunction(new LootFunctionRandomEnchant(true))
+                        .WithFunction(new LootFunctionRandomDye()),
+                    new LootEntry(LootEntry.EntryType.item, "minecraft:leather_leggings")
+                        .WithFunction(new LootFunctionName("Simulated Enchant"))
+                        .WithFunction(new LootFunctionSimulateEnchant(20, 40)),
+                    new LootEntry(LootEntry.EntryType.item, "minecraft:leather_boots")
+                        .WithFunction(new LootFunctionName("Gear Enchant"))
+                        .WithFunction(new LootFunctionRandomEnchantGear(1.0f)),
+                    new LootEntry(LootEntry.EntryType.item, "minecraft:cooked_beef")
+                        .WithFunction(new LootFunctionCount(2, 64))
+                }));
+
+                File.WriteAllBytes("testloot.json", table.GetOutputData());
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Written test table to 'testloot.json'");
+                Console.ForegroundColor = ConsoleColor.White;
+                return;
+            }
             if (file.ToUpper().Equals("--MANIFEST"))
             {
                 string rest = string.Join(" ", args).Substring(11);

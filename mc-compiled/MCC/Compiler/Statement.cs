@@ -190,7 +190,8 @@ namespace mc_compiled.MCC.Compiler
                     allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? new Token[] { unresolved });
                 else if(unresolved is TokenIdentifier)
                 {
-                    string word = (unresolved as TokenIdentifier).word;
+                    TokenIdentifier identifier = unresolved as TokenIdentifier;
+                    string word = identifier.word;
                     if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value, true))
                         allResolved.Add(new TokenIdentifierValue(word, value, line));
                     else if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))

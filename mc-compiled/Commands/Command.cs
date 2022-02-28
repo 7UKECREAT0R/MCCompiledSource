@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC;
+﻿using mc_compiled.Commands.Native;
+using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using System;
@@ -19,63 +20,56 @@ namespace mc_compiled.Commands
         /// </summary>
         public class Util
         {
-            const string POINT_PREFIX = "_mcc_point";
+            internal readonly Dictionary<int, int> tags = new Dictionary<int, int>();
 
-            internal int pointIndex;
+            /// <summary>
+            /// Get a unique tag incase used somewhere else in-scope.
+            /// </summary>
+            /// <param name="tag"></param>
+            /// <returns></returns>
+            public IndexedTag PushTag(string tag)
+            {
+                int hash = tag.GetHashCode();
+                if(tags.TryGetValue(hash, out int index))
+                {
+                    IndexedTag ret = new IndexedTag()
+                    {
+                        name = tag,
+                        index = index
+                    };
+
+                    index++;
+                    tags[hash] = index;
+                    return ret;
+                } else
+                {
+                    tags[hash] = 1;
+                    return new IndexedTag()
+                    {
+                        name = tag,
+                        index = 0
+                    };
+                }
+            }
+            /// <summary>
+            /// Pop a tag.
+            /// </summary>
+            /// <param name="tag"></param>
+            /// <returns></returns>
+            public void PopTag(IndexedTag tag)
+            {
+                int hash = tag.name.GetHashCode();
+                int index = tags[hash];
+                tags[hash] = index - 1;
+            }
 
             public string MakeInvisible(string entity) =>
                 Command.Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
-            public string[] RequestPoint(out Selector selector) =>
-                RequestPoint(Coord.here, Coord.here, Coord.here, out selector);
-            public string[] RequestPoint(Coord x, Coord y, Coord z, out Selector selector)
-            {
-                string name = POINT_PREFIX + (++pointIndex);
-                selector = new Selector()
-                {
-                    core = Selector.Core.e,
-                    count = new Selectors.Count(1),
-                    entity = new Selectors.Entity(name, false, "minecraft:armor_stand", null)
-                };
-
-                return new string[]
-                {
-                    Command.Summon("minecraft:armor_stand", x, y, z, name),
-                    MakeInvisible(selector.ToString())
-                };
-            }
-            public string[] RequestPoint(Selector atEntity, out Selector selector)
-            {
-                string name = POINT_PREFIX + pointIndex++;
-                selector = new Selector()
-                {
-                    count = new Selectors.Count(1),
-                    entity = new Selectors.Entity(name, false, "minecraft:armor_stand", null)
-                };
-
-                return new string[]
-                {
-                    Command.Execute(atEntity.ToString(), Coord.here, Coord.here, Coord.here,
-                        Command.Summon("minecraft:armor_stand", Coord.here, Coord.here, Coord.here, name)),
-                    MakeInvisible(selector.ToString())
-                };
-            }
-            public string[] ReleasePoint()
-            {
-                string name = POINT_PREFIX + pointIndex--;
-                string selector = $"@e[c=1,name={name},type=minecraft:armor_stand]";
-
-                return new string[]
-                {
-                    Command.Execute(selector, Coord.here, Coord.here, Coord.here,
-                        Command.Teleport(Coord.here, new Coord(-1000, false, true, false), Coord.here)),
-                    Command.Execute(selector, Coord.here, Coord.here, Coord.here, Command.Kill())
-                };
-            }
         }
         
         public static void ResetState()
         {
-            UTIL.pointIndex = 0;
+            UTIL.tags.Clear();
         }
         public static readonly Util UTIL = new Util();
 
@@ -619,6 +613,17 @@ namespace mc_compiled.Commands
             $"xp {amount}L {target}";
     }
 
+    /// <summary>
+    /// A tag that contains an index. Used with Command.UTIL.[Push/Pop]Tag
+    /// </summary>
+    public struct IndexedTag
+    {
+        public string name;
+        public int index;
+
+        public string Tag { get => name + index; }
+        public static implicit operator string(IndexedTag tag) => tag.Tag;
+    }
     public enum CameraShakeType
     {
         positional, rotational
