@@ -37,7 +37,7 @@ namespace mc_compiled.MCC.Compiler
                 try
                 {
                     for(int i = 0; i < value.Length; i++)
-                        value[i]++;
+                        value[i]+=1;
                 } catch(Exception)
                 {
                     throw new StatementException(tokens, "Couldn't increment this value.");
@@ -55,7 +55,7 @@ namespace mc_compiled.MCC.Compiler
                 try
                 {
                     for (int i = 0; i < value.Length; i++)
-                        value[i]--;
+                        value[i]-=1;
                 }
                 catch (Exception)
                 {
@@ -96,7 +96,11 @@ namespace mc_compiled.MCC.Compiler
                     dynamic other;
                     if (others.Length > i)
                         other = others[i];
-                    else break;
+                    else
+                    {
+                        outputs[i] = a;
+                        break;
+                    }
 
                     try
                     {
@@ -143,7 +147,11 @@ namespace mc_compiled.MCC.Compiler
                     dynamic other;
                     if (others.Length > i)
                         other = others[i];
-                    else break;
+                    else
+                    {
+                        outputs[i] = a;
+                        break;
+                    }
 
                     try
                     {
@@ -190,7 +198,11 @@ namespace mc_compiled.MCC.Compiler
                     dynamic other;
                     if (others.Length > i)
                         other = others[i];
-                    else break;
+                    else
+                    {
+                        outputs[i] = a;
+                        break;
+                    }
 
                     try
                     {
@@ -237,7 +249,11 @@ namespace mc_compiled.MCC.Compiler
                     dynamic other;
                     if (others.Length > i)
                         other = others[i];
-                    else break;
+                    else
+                    {
+                        outputs[i] = a;
+                        break;
+                    }
 
                     try
                     {
@@ -284,7 +300,11 @@ namespace mc_compiled.MCC.Compiler
                     dynamic other;
                     if (others.Length > i)
                         other = others[i];
-                    else break;
+                    else
+                    {
+                        outputs[i] = a;
+                        break;
+                    }
 
                     try
                     {
@@ -331,7 +351,11 @@ namespace mc_compiled.MCC.Compiler
                     dynamic other;
                     if (others.Length > i)
                         other = others[i];
-                    else break;
+                    else
+                    {
+                        outputs[i] = input;
+                        break;
+                    }
 
                     if (!(other is int))
                         throw new StatementException(tokens, "Can only exponentiate to an integer value.");
