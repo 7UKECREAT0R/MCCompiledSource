@@ -698,10 +698,17 @@ namespace mc_compiled.MCC.Compiler
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
-                dynamic result = values[0];
-                for (int i = 1; i < values.Length; i++)
-                    result += values[i];
-                executor.SetPPV(output, new dynamic[] { result });
+                try
+                {
+                    dynamic result = values[0];
+                    for (int i = 1; i < values.Length; i++)
+                        result += values[i];
+                    executor.SetPPV(output, new dynamic[] { result });
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't add these values.");
+                }
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
@@ -713,24 +720,31 @@ namespace mc_compiled.MCC.Compiler
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
-                int len = values.Length;
-                if (len < 2)
+                try
                 {
-                    executor.SetPPV(output, new dynamic[] { values[0] });
-                    return;
+                    int len = values.Length;
+                    if (len < 2)
+                    {
+                        executor.SetPPV(output, new dynamic[] { values[0] });
+                        return;
+                    }
+                    else if (len % 2 == 0)
+                    {
+                        int mid = len / 2;
+                        dynamic first = values[mid];
+                        dynamic second = values[mid - 1];
+                        dynamic result = (first + second) / 2;
+                        executor.SetPPV(output, new dynamic[] { result });
+                    }
+                    else
+                    {
+                        dynamic result = values[len / 2]; // truncates to middle index
+                        executor.SetPPV(output, new dynamic[] { result });
+                    }
                 }
-                else if (len % 2 == 0)
+                catch (Exception)
                 {
-                    int mid = len / 2;
-                    dynamic first = values[mid];
-                    dynamic second = values[mid - 1];
-                    dynamic result = (first + second) / 2;
-                    executor.SetPPV(output, new dynamic[] { result });
-                }
-                else
-                {
-                    dynamic result = values[len / 2]; // truncates to middle index
-                    executor.SetPPV(output, new dynamic[] { result });
+                    throw new StatementException(tokens, "Couldn't calculate median of these values.");
                 }
             }
             else
@@ -743,12 +757,19 @@ namespace mc_compiled.MCC.Compiler
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
-                int length = values.Length;
-                dynamic result = values[0];
-                for (int i = 1; i < length; i++)
-                    result += values[i];
-                result /= length;
-                executor.SetPPV(output, new dynamic[] { result });
+                try
+                {
+                    int length = values.Length;
+                    dynamic result = values[0];
+                    for (int i = 1; i < length; i++)
+                        result += values[i];
+                    result /= length;
+                    executor.SetPPV(output, new dynamic[] { result });
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't add/divide these values.");
+                }
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
