@@ -149,7 +149,7 @@ namespace mc_compiled.MCC.Compiler
             throw new TokenException(this, "Invalid literal operation.");
         }
     }
-    public sealed class TokenBooleanLiteral : TokenLiteral, IObjectable
+    public sealed class TokenBooleanLiteral : TokenNumberLiteral, IObjectable
     {
         public readonly bool boolean;
         public override string AsString() => boolean.ToString();
@@ -157,7 +157,11 @@ namespace mc_compiled.MCC.Compiler
         {
             this.boolean = boolean;
         }
-        public object GetObject() => boolean;
+        public override object GetObject() => boolean;
+        public override float GetNumber()
+        {
+            return boolean ? 1 : 0;
+        }
 
         public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
 

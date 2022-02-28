@@ -630,46 +630,40 @@ namespace mc_compiled.MCC
         }
         public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "")
         {
-            ScoreboardValueInteger temp = manager.RequestTemp();
+            int exp = (int)Math.Pow(10, precision);
+            float _number = literal.GetNumber();
+            int number = _number.ToFixedPoint(precision);
 
             Range range;
             switch (ctype)
             {
                 case TokenCompare.Type.EQUAL:
-                    range = new Range(0, false);
+                    range = new Range(number, false);
                     break;
                 case TokenCompare.Type.NOT_EQUAL:
-                    range = new Range(0, true);
+                    range = new Range(number, true);
                     break;
                 case TokenCompare.Type.LESS_THAN:
-                    range = new Range(null, -1);
+                    range = new Range(null, number - 1);
                     break;
                 case TokenCompare.Type.LESS_OR_EQUAL:
-                    range = new Range(null, 0);
+                    range = new Range(null, number);
                     break;
                 case TokenCompare.Type.GREATER_THAN:
-                    range = new Range(1, null);
+                    range = new Range(number + 1, null);
                     break;
                 case TokenCompare.Type.GREATER_OR_EQUAL:
-                    range = new Range(0, null);
+                    range = new Range(number, null);
                     break;
                 default:
                     range = new Range();
                     break;
             }
 
-            int exp = (int)Math.Pow(10, precision);
-            float _number = literal.GetNumber();
-            int number = _number.ToFixedPoint(precision);
-
             return new Tuple<ScoresEntry[], string[]>(new[]
             {
-                new ScoresEntry(temp, range)
-            }, new[]
-            {
-                Command.ScoreboardOpSet(selector, temp, baseName),
-                Command.ScoreboardSubtract(selector, temp, number)
-            });
+                new ScoresEntry(prefix + baseName, range)
+            }, new string[0]);
         }
 
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
@@ -1025,6 +1019,34 @@ namespace mc_compiled.MCC
                     (token as TokenBooleanLiteral).boolean ? 1 : 0)};
 
             return new string[] { };
+        }
+        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "")
+        {
+            if (!(literal is TokenBooleanLiteral))
+                throw new Exception("You can only compare boolean variables to booleans (true or false).");
+
+            bool input = literal as TokenBooleanLiteral;
+            int src = input ? 1 : 0;
+
+            Range range;
+            switch (ctype)
+            {
+                case TokenCompare.Type.EQUAL:
+                    range = new Range(src, true);
+                    break;
+                case TokenCompare.Type.NOT_EQUAL:
+                    range = new Range(src, false);
+                    break;
+
+                // seriously if you use others what the hell are you doing lol?
+                default:
+                    throw new Exception("Boolean variables only support == and != (not sure why you tried that tbh)");
+            }
+
+            return new Tuple<ScoresEntry[], string[]>(new[]
+            {
+                new ScoresEntry(prefix + baseName, range)
+            }, new string[0]);
         }
 
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")

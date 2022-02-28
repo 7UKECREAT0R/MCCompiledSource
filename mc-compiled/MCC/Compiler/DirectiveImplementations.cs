@@ -1119,7 +1119,7 @@ namespace mc_compiled.MCC.Compiler
                                     break;
                             }
                             selector.scores.checks.Add(new ScoresEntry(temp, check));
-                            // if <vale> <comp> 1234.5
+                            // if <value> <comp> 1234.5
                         }
                         else if (tokens.NextIs<TokenNumberLiteral>())
                         {
