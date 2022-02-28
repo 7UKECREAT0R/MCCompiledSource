@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Modding
 {
-    public class Manifest : IBehaviorFile
+    public class Manifest : IAddonFile
     {
         public struct Module
         {

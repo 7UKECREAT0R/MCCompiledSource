@@ -38,7 +38,7 @@ namespace mc_compiled.MCC.Compiler
         readonly bool[] lastPreprocessorCompare;
         readonly Token[][] lastActualCompare;
         readonly Dictionary<string, dynamic[]> ppv;
-        readonly List<IBehaviorFile> filesToWrite;
+        readonly List<IAddonFile> filesToWrite;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector> selections;
@@ -334,7 +334,7 @@ namespace mc_compiled.MCC.Compiler
             loadedFiles = new Dictionary<int, object>();
             definingStructs = new Stack<StructDefinition>();
             currentFiles = new Stack<CommandFile>();
-            filesToWrite = new List<IBehaviorFile>();
+            filesToWrite = new List<IAddonFile>();
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
 
@@ -609,7 +609,7 @@ namespace mc_compiled.MCC.Compiler
         /// Add a file on its own to the list.
         /// </summary>
         /// <param name="file"></param>
-        public void AddExtraFile(IBehaviorFile file) =>
+        public void AddExtraFile(IAddonFile file) =>
             filesToWrite.Add(file);
         /// <summary>
         /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
@@ -725,7 +725,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void WriteAllFiles()
         {
-            foreach(IBehaviorFile file in filesToWrite)
+            foreach(IAddonFile file in filesToWrite)
                 WriteFileNow(file);
             filesToWrite.Clear();
         }
@@ -733,7 +733,7 @@ namespace mc_compiled.MCC.Compiler
         /// Write an output file right now.
         /// </summary>
         /// <param name="file"></param>
-        public void WriteFileNow(IBehaviorFile file)
+        public void WriteFileNow(IAddonFile file)
         {
             string folder = file.GetOutputRoot() == OutputLocation.BEHAVIORS ?
                 Path.Combine("development_behavior_packs", projectName) :

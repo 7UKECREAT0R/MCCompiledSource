@@ -244,6 +244,11 @@ namespace mc_compiled.Commands
         public static string Locate(string structureType) =>
             $"locate {structureType}";
 
+        public static string LootTable(Coord x, Coord y, Coord z, string table) =>
+            $"loot spawn {x} {y} {z} loot {table}";
+        public static string LootEntity(Coord x, Coord y, Coord z, string entity) =>
+            $"loot spawn {x} {y} {z} kill {entity}";
+
         public static string Me(string text) =>
             $"me {text}";
 

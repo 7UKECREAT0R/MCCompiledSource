@@ -9,7 +9,7 @@ namespace mc_compiled.Modding
     /// <summary>
     /// States that this class can be output to a behavior file.
     /// </summary>
-    public interface IBehaviorFile
+    public interface IAddonFile
     {
         /// <summary>
         /// Get the directory that this output file will go in.

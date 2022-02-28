@@ -11,7 +11,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// A file which holds minecraft commands.
     /// </summary>
-    public class CommandFile : IBehaviorFile
+    public class CommandFile : IAddonFile
     {
         List<string> commands = new List<string>();
 
