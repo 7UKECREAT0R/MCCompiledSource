@@ -31,6 +31,7 @@ namespace mc_compiled.MCC.Compiler
         int readIndex = 0;
         int unreachableCode = -1;
 
+        readonly Dictionary<int, object> loadedFiles;
         readonly List<int> definedStdFiles;
         readonly List<Macro> macros;
         readonly List<Function> functions;
@@ -116,6 +117,66 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(current, "Unreachable code detected.");
             else
                 unreachableCode = -1;
+        }
+
+        /// <summary>
+        /// Load JSON file with caching for next use.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public JObject LoadJSONFile(string path)
+        {
+            int hash = path.GetHashCode();
+
+            // cached file, dont read again
+            if(loadedFiles.TryGetValue(hash, out object value))
+                if (value is JObject)
+                    return value as JObject;
+
+            string contents = File.ReadAllText(path);
+            JObject json = JObject.Parse(contents);
+            loadedFiles[hash] = json;
+            return json;
+        }
+        /// <summary>
+        /// Load file with caching for next use.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public string LoadFileString(string path)
+        {
+            int hash = path.GetHashCode();
+
+            // cached file, dont read again
+            if (loadedFiles.TryGetValue(hash, out object value))
+                if (value is string)
+                    return value as string;
+
+            string contents = File.ReadAllText(path);
+            loadedFiles[hash] = contents;
+            return contents;
+        }
+        /// <summary>
+        /// Load file with caching for next use.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public byte[] LoadFileBytes(string path)
+        {
+            int hash = path.GetHashCode();
+
+            // cached file, dont read again
+            if (loadedFiles.TryGetValue(hash, out object value))
+            {
+                if (value is string)
+                    return Encoding.UTF8.GetBytes(value as string);
+                else if (value is byte[])
+                    return value as byte[];
+            }
+
+            byte[] contents = File.ReadAllBytes(path);
+            loadedFiles[hash] = contents;
+            return contents;
         }
 
         /// <summary>
@@ -270,6 +331,7 @@ namespace mc_compiled.MCC.Compiler
             lastPreprocessorCompare = new bool[100];
             lastActualCompare = new Token[100][];
 
+            loadedFiles = new Dictionary<int, object>();
             definingStructs = new Stack<StructDefinition>();
             currentFiles = new Stack<CommandFile>();
             filesToWrite = new List<IBehaviorFile>();
