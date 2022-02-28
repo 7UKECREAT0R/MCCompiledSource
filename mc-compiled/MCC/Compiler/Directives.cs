@@ -98,6 +98,8 @@ namespace mc_compiled.MCC.Compiler
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
             new Directive(DirectiveImplementations._get, "$get", "Preprocessor Get at Index",
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._len, "$len", "Preprocessor Get Array Length",
+                new TypePattern( typeof(TokenIdentifier),  typeof(TokenIdentifier))),
             new Directive(DirectiveImplementations._json, "$json", "Preprocessor Load JSON Value",
                 new TypePattern(typeof(TokenStringLiteral), typeof(TokenIdentifier), typeof(TokenStringLiteral))),
 

@@ -772,6 +772,16 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        public static void _len(Executor executor, Statement tokens)
+        {
+            string input = tokens.Next<TokenIdentifier>().word;
+            string output = tokens.Next<TokenIdentifier>().word;
+
+            if (executor.TryGetPPV(input, out dynamic[] values))
+                executor.SetPPV(output, new dynamic[] { values.Length });
+            else
+                throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
+        }
         public static void _json(Executor executor, Statement tokens)
         {
             string file = tokens.Next<TokenStringLiteral>();
