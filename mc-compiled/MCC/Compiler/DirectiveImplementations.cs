@@ -1963,6 +1963,37 @@ namespace mc_compiled.MCC.Compiler
             executor.UnreachableCode();
             executor.AddCommand(Command.Function(file));
         }
+        public static void damage(Executor executor, Statement tokens)
+        {
+            int damage = tokens.Next<TokenIntegerLiteral>();
+            DamageCause cause = DamageCause.all;
+            Selector blame = null;
+
+            if(tokens.NextIs<TokenIdentifierEnum>())
+            {
+                object value = tokens.Next<TokenIdentifierEnum>();
+                if (!(value is DamageCause))
+                    throw new StatementException(tokens, $"Invalid value given for damage cause: {value.ToString()}");
+                cause = (DamageCause)value;
+            }
+            if (tokens.NextIs<TokenSelectorLiteral>())
+            {
+                TokenSelectorLiteral value = tokens.Next<TokenSelectorLiteral>();
+                blame = value.selector;
+            }
+
+            string command;
+            if (blame == null)
+                command = Command.Damage(executor.ActiveSelectorStr, damage, cause);
+            else
+            {
+                if (blame.SelectsMultiple)
+                    blame.count = new Count(1);
+                command = Command.Damage(executor.ActiveSelectorStr, damage, cause, blame.ToString());
+            }
+
+            executor.AddCommand(command);
+        }
 
         public static void function(Executor executor, Statement tokens)
         {

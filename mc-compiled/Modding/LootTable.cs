@@ -26,9 +26,21 @@ namespace mc_compiled.Modding
             pools = new List<LootPool>();
         }
 
+        /// <summary>
+        /// Get the path meant to be used in a command.
+        /// </summary>
+        public string CommandPath
+        {
+            get => Path.Combine(GetOutputDirectory(), GetOutputFile());
+        }
         public byte[] GetOutputData()
         {
-            throw new NotImplementedException();
+            JArray pools = new JArray(this.pools.Select(pool => pool.ToJSON()));
+            JObject root = new JObject()
+            {
+                ["pools"] = pools
+            };
+            return Encoding.UTF8.GetBytes(root.ToString());
         }
         public string GetOutputDirectory() =>
             subdirectory == null ? "loot_tables" : Path.Combine("loot_tables", subdirectory);

@@ -1,5 +1,6 @@
 ﻿using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.Modding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -141,6 +142,13 @@ namespace mc_compiled.Commands
         public static string ConnectWSServer(string serverUri) =>
             $"wsserver {serverUri}";
 
+        public static string Damage(string target, int amount) =>
+            $"damage {target} {amount}";
+        public static string Damage(string target, int amount, DamageCause cause) =>
+            $"damage {target} {amount} {cause}";
+        public static string Damage(string target, int amount, DamageCause cause, string damager) =>
+            $"damage {target} {amount} {cause} entity {damager}";
+
         public static string Deop(string target) =>
             $"deop {target}";
 
@@ -244,6 +252,8 @@ namespace mc_compiled.Commands
         public static string Locate(string structureType) =>
             $"locate {structureType}";
 
+        public static string LootTable(Coord x, Coord y, Coord z, LootTable table) =>
+            $"loot spawn {x} {y} {z} loot {table.CommandPath}";
         public static string LootTable(Coord x, Coord y, Coord z, string table) =>
             $"loot spawn {x} {y} {z} loot {table}";
         public static string LootEntity(Coord x, Coord y, Coord z, string entity) =>
@@ -710,6 +720,42 @@ namespace mc_compiled.Commands
         survival = 0,
         creative = 1,
         adventure = 2
+    }
+    [EnumParsable(typeof(DamageCause))]
+    public enum DamageCause
+    {
+        all,
+        anvil,
+        block_explosion,
+        charging,
+        contact,
+        drowning,
+        entity_attack,
+        entity_explosion,
+        fall,
+        falling_block,
+        fire,
+        fire_tick,
+        fireworks,
+        fly_into_wall,
+        freezing,
+        lava,
+        lightning,
+        magic,
+        magma,
+        none,
+        @override,
+        piston,
+        projectile,
+        stalactite,
+        stalagmite,
+        starve,
+        suffocation,
+        suicide,
+        temperature,
+        thorns,
+        @void,
+        wither
     }
     [EnumParsable(typeof(GameRule))]
     public enum GameRule

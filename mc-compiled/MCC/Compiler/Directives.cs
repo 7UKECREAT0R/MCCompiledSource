@@ -184,6 +184,8 @@ namespace mc_compiled.MCC.Compiler
             new Directive(DirectiveImplementations.say, "say", "Say As Selected Entity",
                 new TypePattern(typeof(TokenStringLiteral))),
             new Directive(DirectiveImplementations.halt, "halt", "Halt Execution"),
+            new Directive(DirectiveImplementations.damage, "damage", "Damage Selected Entity",
+                new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifierEnum>().Optional<TokenSelectorLiteral>()),
 
             new Directive(DirectiveImplementations.function, "function", "Define Function",
                 new TypePattern(typeof(TokenIdentifier))),

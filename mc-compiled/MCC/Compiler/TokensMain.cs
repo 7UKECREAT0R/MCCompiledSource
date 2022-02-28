@@ -109,7 +109,7 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
-    /// Represents a likely preprocessor variable that needs to be resolved.
+    /// Represents an enum constant defined by the compiler.
     /// </summary>
     public sealed class TokenIdentifierEnum : TokenIdentifier, IObjectable
     {
