@@ -21,5 +21,19 @@ namespace mc_compiled.Commands.Native
             id = enchant.ToString();
             this.level = level;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is EnchantmentEntry entry &&
+                   id == entry.id &&
+                   level == entry.level;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = 192898493;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(id);
+            hashCode = hashCode * -1521134295 + level.GetHashCode();
+            return hashCode;
+        }
     }
 }

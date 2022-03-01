@@ -26,11 +26,15 @@ namespace mc_compiled.NBT
 
             tag = new ItemTagNBT();
             tag.displayName = fromStack.displayName;
+            tag.lore = fromStack.lore;
             tag.damage = fromStack.damage;
             if (fromStack.enchantments != null)
                 tag.ench = (from e in fromStack.enchantments select new EnchantNBT(e)).ToArray();
             tag.keepOnDeath = fromStack.keep;
             tag.lockMode = fromStack.lockMode;
+
+            tag.bookData = fromStack.bookData;
+            tag.customColor = fromStack.customColor;
         }
         public NBTCompound ToNBT()
         {

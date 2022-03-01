@@ -1349,6 +1349,7 @@ namespace mc_compiled.MCC.Compiler
         public static void give(Executor executor, Statement tokens)
         {
             string itemName = tokens.Next<TokenStringLiteral>();
+            string itemNameComp = itemName.ToUpper();
             bool needsStructure = false;
 
             int count = 1;
@@ -1362,6 +1363,9 @@ namespace mc_compiled.MCC.Compiler
             List<Tuple<Enchantment, int>> enchants = new List<Tuple<Enchantment, int>>();
             string displayName = null;
 
+            ItemTagBookData? book = null;
+            List<string> bookPages = null;
+            ItemTagCustomColor? color = null;
 
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
             {
@@ -1413,11 +1417,61 @@ namespace mc_compiled.MCC.Compiler
                     default:
                         break;
                 }
+                if (itemNameComp.Equals("WRITTEN_BOOK"))
+                {
+                    switch (builderField)
+                    {
+                        case "TITLE":
+                            if (book == null)
+                                book = new ItemTagBookData();
+                            ItemTagBookData bookData0 = book.Value;
+                            bookData0.title = tokens.Next<TokenStringLiteral>();
+                            book = bookData0;
+                            needsStructure = true;
+                            break;
+                        case "AUTHOR":
+                            if (book == null)
+                                book = new ItemTagBookData();
+                            ItemTagBookData bookData1 = book.Value;
+                            bookData1.author = tokens.Next<TokenStringLiteral>();
+                            book = bookData1;
+                            needsStructure = true;
+                            break;
+                        case "PAGE":
+                            if (book == null)
+                                book = new ItemTagBookData();
+                            if (bookPages == null)
+                                bookPages = new List<string>();
+                            bookPages.Add(tokens.Next<TokenStringLiteral>().text.Replace("\\n", "\n"));
+                            needsStructure = true;
+                            break;
+                    }
+                }
+                if (itemNameComp.StartsWith("LEATHER_"))
+                {
+                    if(builderField.Equals("DYE"))
+                    {
+                        color = new ItemTagCustomColor()
+                        {
+                            r = (byte)tokens.Next<TokenIntegerLiteral>(),
+                            g = (byte)tokens.Next<TokenIntegerLiteral>(),
+                            b = (byte)tokens.Next<TokenIntegerLiteral>()
+                        };
+                        needsStructure = true;
+                        continue;
+                    }
+                }
             }
 
             // create a structure file since this item is too complex
             if (needsStructure)
             {
+                if (bookPages != null) {
+                    ItemTagBookData bookData = book.Value;
+                    bookData.pages = bookPages.ToArray();
+                    book = bookData;
+                }
+
                 ItemStack item = new ItemStack()
                 {
                     id = itemName,
@@ -1427,11 +1481,14 @@ namespace mc_compiled.MCC.Compiler
                     lockMode = lockInventory ? NBT.ItemLockMode.LOCK_IN_INVENTORY :
                         lockSlot ? NBT.ItemLockMode.LOCK_IN_SLOT : NBT.ItemLockMode.NONE,
                     displayName = displayName,
+                    lore = loreLines.ToArray(),
                     enchantments = enchants.Select(e => new EnchantmentEntry(e.Item1, e.Item2)).ToArray(),
                     canPlaceOn = canPlaceOn.ToArray(),
-                    canDestroy = canDestroy.ToArray()
+                    canDestroy = canDestroy.ToArray(),
+                    bookData = book,
+                    customColor = color
                 };
-                StructureFile file = new StructureFile(item.GenerateUID(), StructureNBT.SingleItem(item));
+                StructureFile file = new StructureFile("item" + item.GetHashCode(), StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
                 Selector active = executor.ActiveSelector;
 

@@ -17,13 +17,17 @@ namespace mc_compiled.Commands.Native
         public int damage;
 
         public string displayName;
+        public string[] lore;
         public EnchantmentEntry[] enchantments;
         public bool keep;
         public string[] canPlaceOn;
         public string[] canDestroy;
         public ItemLockMode lockMode;
 
-        public ItemStack(string id, int count = 1, int damage = 0, string displayName = null, EnchantmentEntry[] enchantments = null,
+        public ItemTagBookData? bookData;
+        public ItemTagCustomColor? customColor;
+
+        public ItemStack(string id, int count = 1, int damage = 0, string displayName = null, string[] lore = null, EnchantmentEntry[] enchantments = null,
             bool keep = false, string[] canPlaceOn = null, string[] canDestroy = null, ItemLockMode lockMode = ItemLockMode.NONE)
         {
             // namespace required
@@ -35,36 +39,35 @@ namespace mc_compiled.Commands.Native
             this.count = count;
             this.damage = damage;
             this.displayName = displayName;
+            this.lore = lore;
             this.enchantments = enchantments;
             this.keep = keep;
             this.canPlaceOn = canPlaceOn;
             this.canDestroy = canDestroy;
             this.lockMode = lockMode;
+
+            bookData = null;
+            customColor = null;
         }
 
         /// <summary>
         /// Generate a unique identifier for this item stack.
         /// </summary>
         /// <returns></returns>
-        public string GenerateUID()
+        public override int GetHashCode()
         {
-            int id = this.id.GetHashCode();
-            id += count;
-            id -= damage;
-            id ^= displayName == null ? 0 : displayName.GetHashCode();
-            if (enchantments != null)
-                foreach (EnchantmentEntry ench in enchantments)
-                    id ^= ench.GetHashCode();
-            if (keep) id *= -1;
-            if (canPlaceOn != null)
-                foreach (string str in canPlaceOn)
-                    id ^= str.GetHashCode();
-            if (canDestroy != null)
-                foreach (string str in canDestroy)
-                    id ^= str.GetHashCode();
-            id += (byte)lockMode;
-            if (id < 0) id *= -7;
-            return "item_" + id;
+            int hashCode = -1625500939;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(id);
+            hashCode = hashCode * -1521134295 + count.GetHashCode();
+            hashCode = hashCode * -1521134295 + damage.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(displayName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string[]>.Default.GetHashCode(lore);
+            hashCode = hashCode * -1521134295 + EqualityComparer<EnchantmentEntry[]>.Default.GetHashCode(enchantments);
+            hashCode = hashCode * -1521134295 + keep.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string[]>.Default.GetHashCode(canPlaceOn);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string[]>.Default.GetHashCode(canDestroy);
+            hashCode = hashCode * -1521134295 + lockMode.GetHashCode();
+            return hashCode;
         }
     }
 }

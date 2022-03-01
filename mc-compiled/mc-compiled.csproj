@@ -112,6 +112,7 @@
     <Compile Include="NBT\NBTCompound.cs" />
     <Compile Include="NBT\NBTDouble.cs" />
     <Compile Include="NBT\NBTFloat.cs" />
+    <Compile Include="NBT\NBTColor.cs" />
     <Compile Include="NBT\NBTInt.cs" />
     <Compile Include="NBT\NBTIntArray.cs" />
     <Compile Include="NBT\NBTList.cs" />

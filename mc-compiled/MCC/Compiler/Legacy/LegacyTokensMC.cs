@@ -1106,7 +1106,7 @@ namespace mc_compiled.MCC.Compiler
                     canDestroy = canDestroy.ToArray(),
                     canPlaceOn = canPlaceOn.ToArray()
                 };
-                var tuple = new Tuple<string, ItemStack>(item.GenerateUID(), item);
+                var tuple = new Tuple<string, ItemStack>(/*item.GenerateUID()*/ null, item);
                 string exportedName = tuple.Item1;
                 caller.itemsToBeWritten.Add(tuple);
 

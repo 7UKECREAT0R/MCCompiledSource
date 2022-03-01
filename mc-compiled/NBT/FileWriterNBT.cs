@@ -55,10 +55,13 @@ namespace mc_compiled.NBT
                 if(node.tagType != TAG.End)
                 {
                     string name = node.name;
-                    ushort length = (ushort)name.Length;
-                    byte[] nBytes = Encoding.UTF8.GetBytes(name);
+                    ushort length = name == null ? (ushort)0 : (ushort)name.Length;
                     writer.Write(length);
-                    writer.Write(nBytes);
+                    if (length > 0)
+                    {
+                        byte[] nBytes = Encoding.UTF8.GetBytes(name);
+                        writer.Write(nBytes);
+                    }
                     node.Write(writer);
                 }
             }

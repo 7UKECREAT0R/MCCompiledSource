@@ -85,7 +85,7 @@ namespace mc_compiled
                 builder.ConsoleInterface();
                 return;
             }
-            if (file.ToUpper().Equals("--TESTITEM"))
+            if (file.ToUpper().Equals("--TESTITEMS"))
             {
                 new Definitions(debug);
                 ItemStack item = new ItemStack()
@@ -93,17 +93,61 @@ namespace mc_compiled
                     id = "minecraft:stick",
                     count = 1,
                     displayName = "§bSuper Stick",
+                    lore = new string[]
+                    {
+                        "This is the super stick.",
+                        "§lHe knok bak"
+                    },
                     enchantments = new EnchantmentEntry[]
                     {
                         new EnchantmentEntry(Commands.Enchantment.knockback, 50)
                     }
                 };
                 StructureNBT nbt = StructureNBT.SingleItem(item);
-                StructureFile itemFile = new StructureFile("testitem", nbt);
-                File.WriteAllBytes("testitem.mcstructure", itemFile.GetOutputData());
+                StructureFile itemFile = new StructureFile("stick", nbt);
+                File.WriteAllBytes("testitem0.mcstructure", itemFile.GetOutputData());
+
+                item = new ItemStack()
+                {
+                    id = "minecraft:written_book",
+                    count = 1,
+                    bookData = new ItemTagBookData()
+                    {
+                        author = "lukecreator",
+                        title = "The MCCompiled Wiki",
+                        pages = new string[]
+                        {
+                            "AAAAAPErheikuhrfewughreeeee\n\n-end of page 1",
+                            "WHWWwhoooahhhhahhh mc compiled whw\n\n-end of page 2",
+                            "The End"
+                        }
+                    }
+                };
+                nbt = StructureNBT.SingleItem(item);
+                itemFile = new StructureFile("testitem", nbt);
+                File.WriteAllBytes("testitem1.mcstructure", itemFile.GetOutputData());
+
+                item = new ItemStack()
+                {
+                    id = "minecraft:leather_chestplate",
+                    count = 1,
+                    enchantments = new EnchantmentEntry[]
+                    {
+                        new EnchantmentEntry(Commands.Enchantment.protection, 20)
+                    },
+                    customColor = new ItemTagCustomColor()
+                    {
+                        r = 255,
+                        g = 0,
+                        b = 0
+                    }
+                };
+                nbt = StructureNBT.SingleItem(item);
+                itemFile = new StructureFile("testitem", nbt);
+                File.WriteAllBytes("testitem2.mcstructure", itemFile.GetOutputData());
 
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Written test stick to 'testitem.mcstructure'");
+                Console.WriteLine("Written test items to 'testitemX.mcstructure'");
                 Console.ForegroundColor = ConsoleColor.White;
                 return;
             }
