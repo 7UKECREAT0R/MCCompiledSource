@@ -1222,6 +1222,56 @@ namespace mc_compiled.MCC.Compiler
                     else
                         selector.area = area;
                 }
+                else if (word.Equals("ROTATION"))
+                {
+                    char axis = char.ToUpper(tokens.Next<TokenIdentifier>().word[0]);
+                    int rotMin = tokens.Next<TokenIntegerLiteral>();
+                    int rotMax = tokens.Next<TokenIntegerLiteral>();
+                    if(rotMin > rotMax)
+                    {
+                        int temp = rotMin;
+                        rotMin = rotMax;
+                        rotMax = temp;
+                    }
+
+                    if (axis == 'X')
+                    {
+                        if (not)
+                        {
+                            ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+                            commands.AddRange(new[] {
+                                Command.ScoreboardSet(entity, inverter, 0),
+                                $"execute {entity}[rxm={rotMin},rx={rotMax}] ~~~ scoreboard players set @s {inverter.baseName} 1"
+                            });
+                            selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                        }
+                        else
+                        {
+                            selector.entity.rotXMin = rotMin;
+                            selector.entity.rotXMax = rotMax;
+                        }
+                    }
+                    else if (axis == 'Y')
+                    {
+                        if (not)
+                        {
+                            ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+
+                            commands.AddRange(new[] {
+                                Command.ScoreboardSet(entity, inverter, 0),
+                                $"execute {entity}[rym={rotMin},ry={rotMax}] ~~~ scoreboard players set @s {inverter.baseName} 1"
+                            });
+                            selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                        }
+                        else
+                        {
+                            selector.entity.rotYMin = rotMin;
+                            selector.entity.rotYMax = rotMax;
+                        }
+                    }
+                    else
+                        throw new StatementException(tokens, "Invalid rotation axis. Valid options can be X or Y.");
+                }
                 else if (word.Equals("TYPE"))
                 {
                     string type = tokens.Next<TokenStringLiteral>();
@@ -1865,9 +1915,9 @@ namespace mc_compiled.MCC.Compiler
                     string[] commands;
 
                     if (advanced)
-                        commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "title @s subtitle "));
+                        commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "titleraw @s subtitle "));
                     else
-                        commands = executor.ResolveRawText(terms, "title @a subtitle ");
+                        commands = executor.ResolveRawText(terms, "titleraw @a subtitle ");
 
                     executor.AddCommands(commands, "subtitle");
                     return;
@@ -1885,7 +1935,7 @@ namespace mc_compiled.MCC.Compiler
                 if (advanced)
                     commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "title @s title "));
                 else
-                    commands = executor.ResolveRawText(terms, "title @a title ");
+                    commands = executor.ResolveRawText(terms, "titleraw @a title ");
 
                 executor.AddCommands(commands, "title");
                 return;
@@ -1914,13 +1964,13 @@ namespace mc_compiled.MCC.Compiler
                     {
                         executor.PushSelectorExecute();
                         string selector = executor.ActiveSelectorStr;
-                        commands = executor.ResolveRawText(terms, $"title {selector} subtitle ");
+                        commands = executor.ResolveRawText(terms, $"titleraw {selector} subtitle ");
                         executor.PopSelector();
                     }
                     else
                     {
                         string selector = executor.ActiveSelectorStr;
-                        commands = executor.ResolveRawText(terms, $"title {selector} subtitle ");
+                        commands = executor.ResolveRawText(terms, $"titleraw {selector} subtitle ");
                     }
 
                     executor.AddCommands(commands, "subtitle");
@@ -1940,13 +1990,13 @@ namespace mc_compiled.MCC.Compiler
                 {
                     executor.PushSelectorExecute();
                     string selector = executor.ActiveSelectorStr;
-                    commands = executor.ResolveRawText(terms, $"title {selector} title ");
+                    commands = executor.ResolveRawText(terms, $"titleraw {selector} title ");
                     executor.PopSelector();
                 }
                 else
                 {
                     string selector = executor.ActiveSelectorStr;
-                    commands = executor.ResolveRawText(terms, $"title {selector} title ");
+                    commands = executor.ResolveRawText(terms, $"titleraw {selector} title ");
                 }
 
                 executor.AddCommands(commands, "title");
@@ -1971,9 +2021,9 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "title @s actionbar "));
+                    commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "titleraw @s actionbar "));
                 else
-                    commands = executor.ResolveRawText(terms, "title @a actionbar ");
+                    commands = executor.ResolveRawText(terms, "titleraw @a actionbar ");
 
                 executor.AddCommands(commands, "actionbar");
                 return;
@@ -2001,13 +2051,13 @@ namespace mc_compiled.MCC.Compiler
                 {
                     executor.PushSelectorExecute();
                     string selector = executor.ActiveSelectorStr;
-                    commands = executor.ResolveRawText(terms, $"title {selector} actionbar ");
+                    commands = executor.ResolveRawText(terms, $"titleraw {selector} actionbar ");
                     executor.PopSelector();
                 }
                 else
                 {
                     string selector = executor.ActiveSelectorStr;
-                    commands = executor.ResolveRawText(terms, $"title {selector} actionbar ");
+                    commands = executor.ResolveRawText(terms, $"titleraw {selector} actionbar ");
                 }
 
                 executor.AddCommands(commands, "actionbar");
