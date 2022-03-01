@@ -941,34 +941,39 @@ namespace mc_compiled.MCC.Compiler
         public static void globalprint(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
-            RawTextJsonBuilder builder = new RawTextJsonBuilder();
-            builder.AddTerms(executor.FString(str, out bool advanced));
-            string output = builder.BuildString();
+            List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+
+            string[] commands;
 
             if (advanced)
-                executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.Tellraw("@s", output)));
+                commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "tellraw @s "));
             else
-                executor.AddCommand(Command.Tellraw("@a", output));
+                commands = executor.ResolveRawText(terms, "tellraw @a ");
+
+            executor.AddCommands(commands, "print");
         }
         public static void print(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
-            RawTextJsonBuilder builder = new RawTextJsonBuilder();
-            builder.AddTerms(executor.FString(str, out bool advanced));
-            string output = builder.BuildString();
+            List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+            string[] commands;
 
             if (advanced)
             {
                 executor.PushSelectorExecute();
                 string selector = executor.ActiveSelectorStr;
-                executor.AddCommand(Command.Tellraw(selector, output));
+                string baseCommand = "tellraw " + selector + ' ';
+                commands = executor.ResolveRawText(terms, baseCommand);
                 executor.PopSelector();
             }
             else
             {
                 string selector = executor.ActiveSelectorStr;
-                executor.AddCommand(Command.Tellraw(selector, output));
+                string baseCommand = "tellraw " + selector + ' ';
+                commands = executor.ResolveRawText(terms, baseCommand);
             }
+
+            executor.AddCommands(commands, "print");
         }
         public static void define(Executor executor, Statement tokens)
         {
@@ -1735,9 +1740,6 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenStringLiteral>())
                 seed = tokens.Next<TokenStringLiteral>();
 
-            if (Program.DEBUG)
-                Console.WriteLine("Attempting to build scatter file... This may take a couple seconds.");
-
             // generate a structure file for this zone.
             int sizeX = Math.Abs(x2.valuei - x1.valuei) + 1;
             int sizeY = Math.Abs(y2.valuei - y1.valuei) + 1;
@@ -1766,11 +1768,8 @@ namespace mc_compiled.MCC.Compiler
             executor.WriteFileNow(file);
 
             blocks = null;
-            structure = new StructureNBT();
-            file = new StructureFile();
-
-            if (Program.DEBUG)
-                Console.WriteLine("Cleaning up from scatter file...");
+            structure = default;
+            file = default;
             GC.Collect();
 
             Coord minX = Coord.Min(x1, x2);
@@ -1862,14 +1861,15 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                    builder.AddTerms(executor.FString(str, out bool advanced));
-                    string output = builder.BuildString();
+                    List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                    string[] commands;
 
                     if (advanced)
-                        executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.TitleSubtitle("@s", output)));
+                        commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "title @s subtitle "));
                     else
-                        executor.AddCommand(Command.TitleSubtitle("@a", output));
+                        commands = executor.ResolveRawText(terms, "title @a subtitle ");
+
+                    executor.AddCommands(commands, "subtitle");
                     return;
                 }
                 else
@@ -1879,14 +1879,15 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str, out bool advanced));
+                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                string[] commands;
 
-                string output = builder.BuildString();
                 if (advanced)
-                    executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.Title("@s", output)));
+                    commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "title @s title "));
                 else
-                    executor.AddCommand(Command.Title("@a", output));
+                    commands = executor.ResolveRawText(terms, "title @a title ");
+
+                executor.AddCommands(commands, "title");
                 return;
             }
         }
@@ -1906,22 +1907,23 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                    builder.AddTerms(executor.FString(str, out bool advanced));
-                    string output = builder.BuildString();
+                    List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                    string[] commands;
 
                     if (advanced)
                     {
                         executor.PushSelectorExecute();
                         string selector = executor.ActiveSelectorStr;
-                        executor.AddCommand(Command.TitleSubtitle(selector, output));
+                        commands = executor.ResolveRawText(terms, $"title {selector} subtitle ");
                         executor.PopSelector();
                     }
                     else
                     {
                         string selector = executor.ActiveSelectorStr;
-                        executor.AddCommand(Command.TitleSubtitle(selector, output));
+                        commands = executor.ResolveRawText(terms, $"title {selector} subtitle ");
                     }
+
+                    executor.AddCommands(commands, "subtitle");
                     return;
                 }
                 else
@@ -1931,22 +1933,23 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str, out bool advanced));
-                string output = builder.BuildString();
+                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                string[] commands;
 
                 if (advanced)
                 {
                     executor.PushSelectorExecute();
                     string selector = executor.ActiveSelectorStr;
-                    executor.AddCommand(Command.Title(selector, output));
+                    commands = executor.ResolveRawText(terms, $"title {selector} title ");
                     executor.PopSelector();
                 }
                 else
                 {
                     string selector = executor.ActiveSelectorStr;
-                    executor.AddCommand(Command.Title(selector, output));
+                    commands = executor.ResolveRawText(terms, $"title {selector} title ");
                 }
+
+                executor.AddCommands(commands, "title");
                 return;
             }
         }
@@ -1964,14 +1967,15 @@ namespace mc_compiled.MCC.Compiler
             else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str, out bool advanced));
-                string output = builder.BuildString();
+                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                string[] commands;
 
                 if (advanced)
-                    executor.AddCommand(Command.Execute("@a", Coord.here, Coord.here, Coord.here, Command.TitleActionBar("@s", output)));
+                    commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "title @s actionbar "));
                 else
-                    executor.AddCommand(Command.TitleActionBar("@a", output));
+                    commands = executor.ResolveRawText(terms, "title @a actionbar ");
+
+                executor.AddCommands(commands, "actionbar");
                 return;
             }
             else throw new StatementException(tokens, "Invalid information given to globalactionbar.");
@@ -1990,22 +1994,23 @@ namespace mc_compiled.MCC.Compiler
             else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                RawTextJsonBuilder builder = new RawTextJsonBuilder();
-                builder.AddTerms(executor.FString(str, out bool advanced));
-                string output = builder.BuildString();
+                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                string[] commands;
 
                 if (advanced)
                 {
                     executor.PushSelectorExecute();
                     string selector = executor.ActiveSelectorStr;
-                    executor.AddCommand(Command.TitleActionBar(selector, output));
+                    commands = executor.ResolveRawText(terms, $"title {selector} actionbar ");
                     executor.PopSelector();
                 }
                 else
                 {
                     string selector = executor.ActiveSelectorStr;
-                    executor.AddCommand(Command.TitleActionBar(selector, output));
+                    commands = executor.ResolveRawText(terms, $"title {selector} actionbar ");
                 }
+
+                executor.AddCommands(commands, "actionbar");
                 return;
             }
             else throw new StatementException(tokens, "Invalid information given to actionbar.");

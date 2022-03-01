@@ -107,6 +107,55 @@ namespace mc_compiled.MCC.Compiler
 
             return terms;
         }
+        /// <summary>
+        /// Append these terms to the end of this command. Will resolve JSONVariant's and construct the command combinations.
+        /// </summary>
+        /// <param name="terms">The terms constructed by FString.</param>
+        /// <param name="command">The command to append the terms to.</param>
+        /// <param name="root">If this is the root call.</param>
+        /// <param name="currentSelector">The current selector that holds all the scores checks. Set to null for default behavior.</param>
+        /// <param name="commands">Used for recursion, set to null.</param>
+        /// <param name="copy">The existing terms to copy from.</param>
+        /// <returns></returns>
+        public string[] ResolveRawText(List<JSONRawTerm> terms, string command, bool root = true,
+            Selector currentSelector = null, List<string> commands = null, RawTextJsonBuilder copy = null)
+        {
+            RawTextJsonBuilder jb = new RawTextJsonBuilder(copy);
+
+            if (currentSelector == null)
+                currentSelector = new Selector() { core = Selector.Core.s };
+            if(commands == null)
+                commands = new List<string>();
+
+            for(int i = 0; i < terms.Count; i++)
+            {
+                JSONRawTerm term = terms[i];
+                if (term is JSONVariant)
+                {
+                    // calculate both variants
+                    JSONVariant variant = term as JSONVariant;
+                    Selector checkA = variant.ConstructSelectorA(currentSelector);
+                    Selector checkB = variant.ConstructSelectorB(currentSelector);
+                    List<JSONRawTerm> restA = terms.Skip(i + 1).ToList();
+                    List<JSONRawTerm> restB = terms.Skip(i + 1).ToList();
+                    restA.InsertRange(0, variant.a);
+                    restB.InsertRange(0, variant.b);
+                    ResolveRawText(restA, command, false, checkA, commands, jb);
+                    ResolveRawText(restB, command, false, checkB, commands, jb);
+                    break;
+                }
+                else
+                    jb.AddTerm(term);
+            }
+
+            if (!terms.Any(t => t is JSONVariant))
+                commands.Add(Command.Execute(currentSelector.ToString(), Coord.here, Coord.here, Coord.here, command + jb.BuildString()));
+
+            if (root)
+                return commands.ToArray();
+
+            return null; // return value isn't used in this case
+        }
         public void UnreachableCode() =>
             unreachableCode = 1;
         void CheckUnreachable(Statement current)

@@ -10,7 +10,7 @@ namespace mc_compiled.Json
     /// <summary>
     /// Utility for building rawtext json for minecraft.
     /// </summary>
-    class RawTextJsonBuilder
+    public class RawTextJsonBuilder
     {
         List<JSONRawTerm> terms;
 
@@ -19,6 +19,13 @@ namespace mc_compiled.Json
         public RawTextJsonBuilder()
         {
             terms = new List<JSONRawTerm>();
+        }
+        public RawTextJsonBuilder(RawTextJsonBuilder copy)
+        {
+            terms = new List<JSONRawTerm>();
+
+            if (copy != null)
+                terms.AddRange(copy.terms);
         }
         public void ClearTerms()
         {

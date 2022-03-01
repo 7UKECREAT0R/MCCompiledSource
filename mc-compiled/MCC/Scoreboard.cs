@@ -567,7 +567,13 @@ namespace mc_compiled.MCC
             return new JSONRawTerm[]
             {
                 new JSONScore(selector, minutes),
-                new JSONText(":"),
+
+                // append an extra 0 if its a single number.
+                new JSONScore(selector, seconds).CreateVariant(
+                    new[] { new JSONText(":0") },
+                    new Range(0, 9),
+                    new[] { new JSONText(":") }),
+
                 new JSONScore(selector, seconds)
             };
         }
@@ -766,11 +772,36 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
-                return new[]
+                ScoreboardValueDecimal @decimal = other as ScoreboardValueDecimal;
+
+                // convert bases if necessary
+                if (precision == @decimal.precision)
+                    return new[] { Command.ScoreboardOpSet(selector, baseName, other) };
+                else if(precision < @decimal.precision)
                 {
-                    Command.ScoreboardOpSet(selector, baseName, other)
-                };
+                    int precisionDiff = @decimal.precision - precision;
+                    ScoreboardValue temp = other.manager.RequestTemp();
+                    string[] commands = new string[]
+                    {
+                        Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff)),
+                        Command.ScoreboardOpSet(selector, baseName, other),
+                        Command.ScoreboardOpDiv(selector, baseName, temp)
+                    };
+                    other.manager.ReleaseTemp();
+                    return commands;
+                } else
+                {
+                    int precisionDiff = precision - @decimal.precision;
+                    ScoreboardValue temp = other.manager.RequestTemp();
+                    string[] commands = new string[]
+                    {
+                        Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff)),
+                        Command.ScoreboardOpSet(selector, baseName, other),
+                        Command.ScoreboardOpMul(selector, baseName, temp)
+                    };
+                    other.manager.ReleaseTemp();
+                    return commands;
+                }
             }
 
             if (other is ScoreboardValueStruct)
@@ -1057,7 +1088,11 @@ namespace mc_compiled.MCC
         {
             return new JSONRawTerm[]
             {
-                new JSONScore(selector, prefix + baseName)
+                new JSONScore(selector, prefix + baseName).CreateVariant(
+                    new[] { new JSONText("True") },
+                    new Range(1, false),
+                    new[] { new JSONText("False") }
+                )
             };
         }
 

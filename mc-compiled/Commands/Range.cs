@@ -68,12 +68,18 @@ namespace mc_compiled.Commands
         public override string ToString()
         {
             if (single)
+            {
                 if (invert)
                     return "!" + min;
-                else return min.ToString();
+                else
+                    return min.ToString();
+            }
             else
-                return (min.HasValue ? min.Value.ToString() : "") + ".." +
+            {
+                return (invert ? "!" : "") +
+                    (min.HasValue ? min.Value.ToString() : "") + ".." +
                     (max.HasValue ? max.Value.ToString() : "");
+            }
         }
     }
 }
