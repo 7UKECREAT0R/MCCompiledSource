@@ -427,9 +427,15 @@ namespace mc_compiled.MCC.Compiler
             }
 
             PushSelector(true);
+            SetCompilerPPVs();
+            currentFiles.Push(new CommandFile(projectName));
+        }
+        void SetCompilerPPVs()
+        {
             ppv["minecraftversion"] = new dynamic[] { MINECRAFT_VERSION };
             ppv["compilerversion"] = new dynamic[] { MCC_VERSION };
-            currentFiles.Push(new CommandFile(projectName));
+            ppv["_true"] = new dynamic[] { "True" };
+            ppv["_false"] = new dynamic[] { "False" };
         }
         /// <summary>
         /// Run this executor start to finish.

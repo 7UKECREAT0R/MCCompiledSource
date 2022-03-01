@@ -1086,12 +1086,16 @@ namespace mc_compiled.MCC
         }
         public override JSONRawTerm[] ToRawText(string accessor, string selector, ref int index, string prefix = "")
         {
+            // you can change these!
+            manager.executor.TryGetPPV("_true", out dynamic[] trueValues);
+            manager.executor.TryGetPPV("_false", out dynamic[] falseValues);
+
             return new JSONRawTerm[]
             {
                 new JSONScore(selector, prefix + baseName).CreateVariant(
-                    new[] { new JSONText("True") },
+                    new[] { new JSONText(trueValues[0].ToString()) },
                     new Range(1, false),
-                    new[] { new JSONText("False") }
+                    new[] { new JSONText(falseValues[0].ToString()) }
                 )
             };
         }
