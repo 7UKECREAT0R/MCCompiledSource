@@ -71,6 +71,23 @@ namespace mc_compiled.Commands
             else
                 return new Coord(0, false, rel, off); // default to 0
         }
+        /// <summary>
+        /// Determine if the size of these corner points can be determined at compile-time
+        /// by ensuring every coordinate is either relative or exact.
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <returns></returns>
+        public static bool SizeKnown(params Coord[] coords)
+        {
+            for(int i = 1; i < coords.Length; i++)
+            {
+                Coord a = coords[i - 1];
+                Coord b = coords[i];
+                if (a.isRelative != b.isRelative)
+                    return false;
+            }
+            return true;
+        }
 
         public override string ToString()
         {

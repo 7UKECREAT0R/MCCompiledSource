@@ -1779,11 +1779,7 @@ namespace mc_compiled.MCC.Compiler
             Coord y2 = tokens.Next<TokenCoordinateLiteral>();
             Coord z2 = tokens.Next<TokenCoordinateLiteral>();
 
-            if (x1.isRelative != y1.isRelative ||
-                y1.isRelative != z1.isRelative ||
-                z1.isRelative != x2.isRelative ||
-                x2.isRelative != y2.isRelative ||
-                y2.isRelative != z2.isRelative)
+            if (Coord.SizeKnown(x1, y1, z1, x2, y2, z2))
                 throw new StatementException(tokens, "Scatter command requires all coordinate arguments to be relative or exact. (the size needs to be known at compile time.)");
 
             string seed = null;
@@ -1794,6 +1790,7 @@ namespace mc_compiled.MCC.Compiler
             int sizeX = Math.Abs(x2.valuei - x1.valuei) + 1;
             int sizeY = Math.Abs(y2.valuei - y1.valuei) + 1;
             int sizeZ = Math.Abs(z2.valuei - z1.valuei) + 1;
+
             if (sizeX > 64 || sizeY > 256 || sizeZ > 64)
                 throw new StatementException(tokens, "Scatter zone size cannot be larger than 64x256x64.");
 
@@ -1813,14 +1810,14 @@ namespace mc_compiled.MCC.Compiler
                 entities = new EntityListNBT(new EntityNBT[0]),
                 indices = new BlockIndicesNBT(blocks)
             };
+
             string fileName = "scatter_" + scatterFile++;
             StructureFile file = new StructureFile(fileName, structure);
-            executor.WriteFileNow(file);
+            executor.project.WriteSingleFile(file);
 
             blocks = null;
             structure = default;
             file = default;
-            GC.Collect();
 
             Coord minX = Coord.Min(x1, x2);
             Coord minY = Coord.Min(y1, y2);
@@ -2075,7 +2072,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void halt(Executor executor, Statement tokens)
         {
-            CommandFile file = new CommandFile("halt_execution", Executor.MCC_GENERATED);
+            CommandFile file = new CommandFile("halt_execution", Executor.MCC_GENERATED_FOLDER);
 
             if (!executor.HasSTDFile(file))
             {

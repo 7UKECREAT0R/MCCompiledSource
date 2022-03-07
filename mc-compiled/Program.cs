@@ -16,10 +16,12 @@ namespace mc_compiled
 {
     class Program
     {
+        public const string APP_ID = "Microsoft.MinecraftUWP_8wekyb3d8bbwe";
         public static bool NO_PAUSE = false;
         public static bool DECORATE = false;
         public static bool DEBUG = false;
-        public static bool BASIC_OUTPUT = false;
+        public static bool CLEAN = false;
+        public static bool REGOLITH = false;
         static void Help()
         {
             Console.Write("\nmc-compiled.exe --help\n");
@@ -28,14 +30,18 @@ namespace mc_compiled
             Console.Write("\tOpen a user-interface to build JSON rawtext.\n\n");
             Console.Write("mc-compiled.exe --manifest <projectName>\n");
             Console.Write("\tGenerate a behavior pack manifest with valid GUIDs.\n\n");
+            Console.Write("mc-compiled.exe --search [options...]\n");
+            Console.Write("\tSearch for MCC files in all subdirectories.\n\n");
             Console.Write("mc-compiled.exe <file> [options...]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
             Console.Write("\tOptions:\n");
-            Console.Write("\t  -b | --basic\t\tOnly output function/structure files. No behavior pack data.\n");
             Console.Write("\t  -dm | --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
             Console.Write("\t  -db | --debug\t\tDebug information during compilation.\n");
-            Console.Write("\t  -dc | --decorate\tDecorate the compiled file with original source code (is a bit broken).\n");
+            Console.Write("\t  -dc | --decorate\tDecorate the compiled file with original source code (doesn't look great).\n");
             Console.Write("\t  -np | --nopause\tDoes not wait for user input to close application.\n");
+            Console.Write("\t  [-obp | --outputbp] <directory>\tOutput behaviors to a specific directory. Use ?project to denote file name.\n");
+            Console.Write("\t  [-orp | --outputrp] <directory>\tOutput resources to a specific directory. Use ?project to denote file name.\n");
+            Console.Write("\t  -od | --outputdevelopment\tOutput files to the com.mojang development_x_packs directory.\n");
         }
         [STAThread]
         static void Main(string[] args)
@@ -46,11 +52,14 @@ namespace mc_compiled
                 return;
             }
 
-            string file = args[0];
+            string[] files = new string[] { args[0] };
             bool debug = false;
+            bool search = false;
             bool daemon = false;
+            string obp = "?project\\BP";
+            string orp = "?project\\RP";
 
-            for (int i = 1; i < args.Length; i++)
+            for (int i = 0; i < args.Length; i++)
             {
                 string word = args[i].ToUpper();
                 switch(word)
@@ -67,25 +76,38 @@ namespace mc_compiled
                     case "-DC":
                         DECORATE = true;
                         break;
-                    case "--BASIC":
-                    case "-B":
-                        BASIC_OUTPUT = true;
-                        break;
                     case "--DAEMON":
                     case "-DM":
                         daemon = true;
                         NO_PAUSE = true;
                         break;
+                    case "-OUTPUTBP":
+                    case "-OBP":
+                        obp = args[++i];
+                        break;
+                    case "-OUTPUTRP":
+                    case "-ORP":
+                        orp = args[++i];
+                        break;
+                    case "-OUTPUTDEVELOPMENT":
+                    case "-OD":
+                        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                        string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
+                        obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project";
+                        orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
+                        break;
                 }
             }
-            if (file.ToUpper().Equals("--JSONBUILDER"))
+
+            string fileUpper = files[0].ToUpper();
+            if (fileUpper.Equals("--JSONBUILDER"))
             {
                 new Definitions(debug);
                 RawTextJsonBuilder builder = new RawTextJsonBuilder();
                 builder.ConsoleInterface();
                 return;
             }
-            if (file.ToUpper().Equals("--TESTITEMS"))
+            if (fileUpper.Equals("--TESTITEMS"))
             {
                 new Definitions(debug);
                 ItemStack item = new ItemStack()
@@ -151,7 +173,7 @@ namespace mc_compiled
                 Console.ForegroundColor = ConsoleColor.White;
                 return;
             }
-            if (file.ToUpper().Equals("--TESTLOOT"))
+            if (fileUpper.Equals("--TESTLOOT"))
             {
                 new Definitions(debug);
                 LootTable table = new LootTable("test");
@@ -188,14 +210,43 @@ namespace mc_compiled
                 Console.ForegroundColor = ConsoleColor.White;
                 return;
             }
-            if (file.ToUpper().Equals("--MANIFEST"))
+            if (fileUpper.Equals("--MANIFEST"))
             {
                 string rest = string.Join(" ", args).Substring(11);
-                Manifest manifest = new Manifest(OutputLocation.BEHAVIORS, Guid.NewGuid(), rest, "TODO set description")
+                Manifest manifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), rest, "TODO set description")
                     .WithModule(Manifest.Module.BehaviorData(rest));
                 File.WriteAllBytes("manifest.json", manifest.GetOutputData());
                 Console.WriteLine("Wrote a new 'manifest.json' to current directory.");
                 return;
+            }
+
+            if (fileUpper.Equals("--SEARCH"))
+            {
+                REGOLITH = false;
+                search = true;
+                NO_PAUSE = true;
+                files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.mcc", SearchOption.AllDirectories);
+
+                if (files.Length == 0)
+                {
+                    Console.WriteLine("No MCC files found.");
+                    return;
+                }
+            }
+            if (fileUpper.Equals("--REGOLITH"))
+            {
+                obp = "BP";
+                orp = "RP";
+                REGOLITH = true;
+                search = true;
+                NO_PAUSE = true;
+                files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.mcc", SearchOption.AllDirectories);
+
+                if (files.Length == 0)
+                {
+                    Console.WriteLine("No MCC files found. Skipping filter.");
+                    return;
+                }
             }
 
             if (debug)
@@ -205,10 +256,13 @@ namespace mc_compiled
                 Console.WriteLine("Debug Enabled");
                 Console.ForegroundColor = ConsoleColor.White;
             }
-            if (daemon)
+            if (daemon & !REGOLITH)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"[daemon] watching file: {file}");
+                if(search)
+                    Console.WriteLine($"[daemon] watching directory: {Directory.GetCurrentDirectory()}");
+                else
+                    Console.WriteLine($"[daemon] watching file: {files}");
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
@@ -217,62 +271,135 @@ namespace mc_compiled
             // initialize enum constants
             Commands.CommandEnumParser.Init();
 
-            // set working directory
-            string rootFolder = Path.GetDirectoryName(Path.GetFullPath(file));
-            Directory.SetCurrentDirectory(rootFolder);
-            string projectName = Path.GetFileNameWithoutExtension(file);
-            string projectBehaviorsFolder = Path.Combine("development_behavior_packs", projectName);
-            string projectResourcesFolder = Path.Combine("development_resource_packs", projectName);
-            Directory.CreateDirectory(projectBehaviorsFolder);
-            Directory.CreateDirectory(projectResourcesFolder);
-            file = Path.GetFileName(file);
-
             bool firstRun = true;
-            if (daemon)
+            if (daemon & !REGOLITH)
             {
-                FileSystemWatcher watcher = new FileSystemWatcher(rootFolder);
-                watcher.NotifyFilter = NotifyFilters.LastWrite;
-                watcher.Filter = $"{projectName}.mcc";
+                FileSystemWatcher watcher;
+                if (search)
+                {
+                    watcher = new FileSystemWatcher(Directory.GetCurrentDirectory());
+                    watcher.NotifyFilter = NotifyFilters.LastWrite;
+                    watcher.Filter = "*.mcc";
+                } else
+                {
+                    watcher = new FileSystemWatcher(Directory.GetCurrentDirectory());
+                    watcher.NotifyFilter = NotifyFilters.LastWrite;
+                    watcher.Filter = $"{Path.GetFileNameWithoutExtension(files[0])}.mcc";
+                }
+
+                Console.TreatControlCAsInput = true;
+                string changedFile = null;
 
                 while(true)
                 {
                     if (firstRun)
+                    {
+                        PrepareToCompile();
                         firstRun = false;
+                        foreach (string file in files)
+                        {
+                            CleanDirectory(obp, file);
+                            CleanDirectory(orp, file);
+                            RunMCCompiled(file, obp, orp);
+                        }
+                    }
                     else
+                    {
                         Console.Clear();
+                        CleanDirectory(obp, changedFile);
+                        CleanDirectory(orp, changedFile);
+                        RunMCCompiled(changedFile, obp, orp);
+                    }
 
-                    PrepareToCompile(projectName);
-                    RunMCCompiled(file);
+                    ConsoleColor oldColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("[daemon] listening for next update...");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    watcher.WaitForChanged(WatcherChangeTypes.Changed);
+                    Console.ForegroundColor = oldColor;
+                    while (true)
+                    {
+                        var e = watcher.WaitForChanged(WatcherChangeTypes.Changed, 500);
+
+                        // flush stdin
+                        while (Console.KeyAvailable)
+                        {
+                            ConsoleKeyInfo key = Console.ReadKey();
+                            if (key.Modifiers == ConsoleModifiers.Control &&
+                                key.Key == ConsoleKey.C)
+                                goto compileEnd;
+                        }
+
+                        if (e.TimedOut)
+                            continue;
+                        else
+                        {
+                            changedFile = e.Name;
+                            break;
+                        }
+                    }
                     System.Threading.Thread.Sleep(100);
                 }
+            compileEnd:
+                watcher.Dispose();
+                return;
             }
 
-            PrepareToCompile(projectName);
-            RunMCCompiled(file);
+            PrepareToCompile();
+            bool silent = REGOLITH;
+
+            if(REGOLITH)
+            {
+                foreach (string file in files)
+                    if (RunMCCompiled(file, obp, orp, silent))
+                        File.Delete(file); // delete if compilation succeeded, otherwise might be another format
+            } else
+            {
+                foreach (string file in files)
+                {
+                    CleanDirectory(obp, file);
+                    CleanDirectory(orp, file);
+                    RunMCCompiled(file, obp, orp, silent);
+                }
+            }
         }
-        public static void PrepareToCompile(string projectName)
+        public static void PrepareToCompile()
         {
             // reset all that icky static stuff
             Executor.ResetGeneratedFile();
             Commands.Command.ResetState();
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();
-
-            // clean/create output folder
-            string folder = Path.Combine(Directory.GetCurrentDirectory(), "development_behavior_packs", projectName);
-            List<string> files = new List<string>();
-            files.AddRange(Directory.GetFiles(folder, "*.mcstructure", SearchOption.AllDirectories));
-            files.AddRange(Directory.GetFiles(folder, "*.mcfunction", SearchOption.AllDirectories));
-
-            foreach (string file in files)
-                File.Delete(file);
         }
-        public static void RunMCCompiled(string file)
+        public static void CleanDirectory(string cleanFolder, string file)
         {
+            cleanFolder = cleanFolder.Replace("?project", Path.GetFileNameWithoutExtension(file));
+
+            if (Directory.Exists(cleanFolder))
+            {
+                List<string> files = new List<string>();
+                files.AddRange(Directory.GetFiles(cleanFolder, "*.mcstructure", SearchOption.AllDirectories));
+                files.AddRange(Directory.GetFiles(cleanFolder, "*.mcfunction", SearchOption.AllDirectories));
+
+                foreach (string del in files)
+                    File.Delete(del);
+            }
+        }
+        /// <summary>
+        /// Compile a file with MCCompiled using the existing options.
+        /// </summary>
+        /// <param name="file">The file to compile.</param>
+        /// <param name="outputBP">The root location that the BP content will be written to.</param>
+        /// <param name="outputRP">The root location that the RP content will be written to.</param>
+        /// <param name="silentErrors">Whether to silently throw away errors.</param>
+        /// <returns>If the compilation succeeded.</returns>
+        public static bool RunMCCompiled(string file, string outputBP, string outputRP, bool silentErrors = false)
+        {
+            string project = Path.GetFileNameWithoutExtension(file);
+            outputBP = outputBP.Replace("?project", project);
+            outputRP = outputRP.Replace("?project", project);
+
+            bool hasBehaviorManifest = File.Exists(Path.Combine(outputBP, "manifest.json"));
+            bool hasResourceManifest = File.Exists(Path.Combine(outputRP, "manifest.json"));
+
             try
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
@@ -297,42 +424,55 @@ namespace mc_compiled
                     Console.WriteLine();
                 }
 
-                Executor executor = new Executor(statements, Path.GetFileNameWithoutExtension(file));
+                Executor executor = new Executor(statements, project, outputBP, outputRP);
                 executor.Execute();
 
                 Console.WriteLine("Writing files...");
-                executor.WriteAllFiles();
+                executor.project.WriteAllFiles();
                 stopwatch.Stop();
 
                 Console.WriteLine($"Completed in {stopwatch.Elapsed.TotalSeconds} seconds.");
 
                 if (!NO_PAUSE)
                     Console.ReadLine();
+
+                return true;
             }
             catch (TokenizerException exc)
             {
-                int line = exc.line;
+                if (silentErrors)
+                    return false;
+
+                int _line = exc.line;
+                string line = _line == -1 ? "??" : _line.ToString();
                 string message = exc.Message;
+                ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Problem encountered during tokenization of file:\n" +
-                    $"\tLINE {line}: {message}\n\nTokenization cannot be continued.");
+                    $"\t{Path.GetFileName(file)}:{line} -- {message}\n\nTokenization cannot be continued.");
+                Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)
                     Console.ReadLine();
-                return;
+                return false;
             }
             catch (StatementException exc)
             {
+                if (silentErrors)
+                    return false;
+
                 Statement thrower = exc.statement;
                 string message = exc.Message;
                 int _line = thrower.Line;
                 string line = _line == -1 ? "??" : _line.ToString();
 
+                ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("An error has occurred during compilation:\n" +
-                    $"\tLINE {line} {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
+                    $"\t{Path.GetFileName(file)}:{line} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
+                Console.ForegroundColor = oldColor;
                 if(!NO_PAUSE)
                     Console.ReadLine();
-                return;
+                return false;
             }
         }
     }

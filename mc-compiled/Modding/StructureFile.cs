@@ -18,13 +18,13 @@ namespace mc_compiled.Modding
             this.structure = structure;
         }
 
-        public string GetOutputDirectory() =>
-            "structures";
+        public string GetExtendedDirectory() =>
+            null;
         public string GetOutputFile() =>
             $"{name}.mcstructure";
         public byte[] GetOutputData() =>
             FileWriterNBT.GetBytes(structure.ToNBT());
-        public OutputLocation GetOutputRoot() =>
-            OutputLocation.BEHAVIORS;
+        public OutputLocation GetOutputLocation() =>
+            OutputLocation.b_STRUCTURES;
     }
 }

@@ -64,13 +64,8 @@ namespace mc_compiled.MCC.Compiler
         public void AddTop(IEnumerable<string> commands) =>
             this.commands.InsertRange(0, commands);
 
-        public string GetOutputDirectory()
-        {
-            if(folder == null)
-                return "functions";
-
-            return Path.Combine("functions", folder);
-        }
+        public string GetExtendedDirectory() =>
+            folder;
         public string GetOutputFile() =>
             $"{name}.mcfunction";
         public byte[] GetOutputData()
@@ -78,7 +73,7 @@ namespace mc_compiled.MCC.Compiler
             string text = string.Join("\n", commands);
             return Encoding.UTF8.GetBytes(text);
         }
-        public OutputLocation GetOutputRoot() =>
-            OutputLocation.BEHAVIORS;
+        public OutputLocation GetOutputLocation() =>
+            OutputLocation.b_FUNCTIONS;
     }
 }

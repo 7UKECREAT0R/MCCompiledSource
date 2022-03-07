@@ -22,9 +22,9 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
         public const float MCC_VERSION = 1.0f;              // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx"; // mcversion
-        public const string MCC_GENERATED = "_mcc"; // folder that generated functions go into
+        public const string MCC_GENERATED_FOLDER = "_mcc"; // folder that generated functions go into
 
-        public readonly string projectName;
+        internal readonly ProjectManager project;
         public string lastStatementSource;
 
         Statement[] statements;
@@ -38,7 +38,6 @@ namespace mc_compiled.MCC.Compiler
         readonly bool[] lastPreprocessorCompare;
         readonly Token[][] lastActualCompare;
         readonly Dictionary<string, dynamic[]> ppv;
-        readonly List<IAddonFile> filesToWrite;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector> selections;
@@ -148,8 +147,12 @@ namespace mc_compiled.MCC.Compiler
                     jb.AddTerm(term);
             }
 
-            if (!terms.Any(t => t is JSONVariant))
-                commands.Add(Command.Execute(currentSelector.ToString(), Coord.here, Coord.here, Coord.here, command + jb.BuildString()));
+            bool hasVariant = terms.Any(t => t is JSONVariant);
+            if (!root && !hasVariant)
+                commands.Add(Command.Execute(currentSelector.ToString(),
+                    Coord.here, Coord.here, Coord.here, command + jb.BuildString()));
+            else if(root && !hasVariant)
+                commands.Add(command + jb.BuildString());
 
             if (root)
                 return commands.ToArray();
@@ -365,10 +368,11 @@ namespace mc_compiled.MCC.Compiler
             return ret;
         }
 
-        public Executor(Statement[] statements, string projectName)
+        public Executor(Statement[] statements,
+            string projectName, string bpBase, string rpBase)
         {
             this.statements = statements;
-            this.projectName = projectName;
+            this.project = new ProjectManager(projectName, bpBase, rpBase);
 
             definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic[]>();
@@ -383,48 +387,8 @@ namespace mc_compiled.MCC.Compiler
             loadedFiles = new Dictionary<int, object>();
             definingStructs = new Stack<StructDefinition>();
             currentFiles = new Stack<CommandFile>();
-            filesToWrite = new List<IAddonFile>();
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
-
-            // extract guids from existing manifest
-            if (!Program.BASIC_OUTPUT)
-            {
-                string manifestPathA = Path.Combine("development_behavior_packs", projectName, "manifest.json");
-                string manifestPathB = Path.Combine("development_resource_packs", projectName, "manifest.json");
-                Manifest resourcesManifest = null;
-                bool usingNewResources = false;
-
-                if (File.Exists(manifestPathB))
-                    resourcesManifest = new Manifest(File.ReadAllText(manifestPathB));
-                else
-                {
-                    usingNewResources = true;
-                    Console.WriteLine("Generating new resource manifest file.");
-                    Guid uuid = Guid.NewGuid();
-                    resourcesManifest = new Manifest(OutputLocation.RESOURCES, uuid, projectName, "Change me!")
-                        .WithModule(Manifest.Module.ResourceData(projectName));
-                    filesToWrite.Add(resourcesManifest);
-                }
-
-                if (File.Exists(manifestPathA))
-                {
-                    if (usingNewResources)
-                    {
-                        Manifest manifest = new Manifest(File.ReadAllText(manifestPathA));
-                        //manifest.dependsOn = resourcesManifest.uuid;
-                        filesToWrite.Add(manifest);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Generating new behavior manifest file.");
-                    Guid uuid = Guid.NewGuid();
-                    Manifest manifest = new Manifest(OutputLocation.BEHAVIORS, uuid, projectName, "Change me!")
-                        .WithModule(Manifest.Module.BehaviorData(projectName));
-                    filesToWrite.Add(manifest);
-                }
-            }
 
             PushSelector(true);
             SetCompilerPPVs();
@@ -665,7 +629,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="file"></param>
         public void AddExtraFile(IAddonFile file) =>
-            filesToWrite.Add(file);
+            project.AddFile(file);
         /// <summary>
         /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
@@ -772,48 +736,27 @@ namespace mc_compiled.MCC.Compiler
         public void PopFile()
         {
             unreachableCode = -1;
-            filesToWrite.Add(currentFiles.Pop());
+            project.AddFile(currentFiles.Pop());
         }
 
-        /// <summary>
-        /// Write all files that have been generated.
-        /// </summary>
-        public void WriteAllFiles()
-        {
-            foreach(IAddonFile file in filesToWrite)
-                WriteFileNow(file);
-            filesToWrite.Clear();
-        }
-        /// <summary>
-        /// Write an output file right now.
-        /// </summary>
-        /// <param name="file"></param>
-        public void WriteFileNow(IAddonFile file)
-        {
-            string folder = file.GetOutputRoot() == OutputLocation.BEHAVIORS ?
-                Path.Combine("development_behavior_packs", projectName) :
-                Path.Combine("development_resource_packs", projectName);
-
-            string extraDirectory = file.GetOutputDirectory();
-            if (!string.IsNullOrWhiteSpace(extraDirectory))
-                folder = Path.Combine(folder, extraDirectory);
-
-            Directory.CreateDirectory(folder);
-            string outputFile = Path.Combine(folder, file.GetOutputFile());
-            File.WriteAllBytes(outputFile, file.GetOutputData());
-        }
-
-        private static int branchIndex;
+        private static Dictionary<int, int> branchFileIndexes = new Dictionary<int, int>();
         /// <summary>
         /// Construct the next file which branched commands should go into.
         /// </summary>
         /// <param name="friendlyName">A user-friendly name to mark the file by.</param>
         /// <returns></returns>
-        public static CommandFile GetNextGeneratedFile(string friendlyName) =>
-            new CommandFile(friendlyName + (branchIndex++), MCC_GENERATED);
+        public static CommandFile GetNextGeneratedFile(string friendlyName)
+        {
+            int hash = friendlyName.GetHashCode();
+            if (!branchFileIndexes.TryGetValue(hash, out int index))
+                index = 0;
+
+            branchFileIndexes[hash] = index + 1;
+            return new CommandFile(friendlyName + index, MCC_GENERATED_FOLDER);
+        }
         public static void ResetGeneratedFile()
         {
-            branchIndex = 0;
+            branchFileIndexes.Clear();
         }
     }
 }

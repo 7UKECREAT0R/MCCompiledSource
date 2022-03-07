@@ -74,7 +74,7 @@ namespace mc_compiled.Modding
         public Manifest(OutputLocation type, Guid uuid, string name = "Example Pack", string description = "Test Behavior Pack",
             int[] minEngineVersion = null, int formatVersion = 2, Guid? dependsOn = null)
         {
-            manifestType = type;
+            location = type;
             this.formatVersion = formatVersion;
             this.name = name;
             this.uuid = uuid;
@@ -128,7 +128,7 @@ namespace mc_compiled.Modding
 
         public byte[] GetOutputData() =>
             Encoding.UTF8.GetBytes(ToString());
-        public string GetOutputDirectory() =>
+        public string GetExtendedDirectory() =>
             null;
         public string GetOutputFile() =>
             "manifest.json";
@@ -166,8 +166,8 @@ namespace mc_compiled.Modding
             return main.ToString();
         }
 
-        public OutputLocation manifestType;
-        public OutputLocation GetOutputRoot() =>
-            manifestType;
+        public OutputLocation location;
+        public OutputLocation GetOutputLocation() =>
+            location;
     }
 }

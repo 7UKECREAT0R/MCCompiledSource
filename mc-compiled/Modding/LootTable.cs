@@ -31,7 +31,7 @@ namespace mc_compiled.Modding
         /// </summary>
         public string CommandPath
         {
-            get => Path.Combine(GetOutputDirectory(), GetOutputFile());
+            get => Path.Combine(GetExtendedDirectory(), GetOutputFile());
         }
         public byte[] GetOutputData()
         {
@@ -42,12 +42,12 @@ namespace mc_compiled.Modding
             };
             return Encoding.UTF8.GetBytes(root.ToString());
         }
-        public string GetOutputDirectory() =>
-            subdirectory == null ? "loot_tables" : Path.Combine("loot_tables", subdirectory);
+        public string GetExtendedDirectory() =>
+            subdirectory;
         public string GetOutputFile() =>
             name + ".json";
-        public OutputLocation GetOutputRoot() =>
-            OutputLocation.BEHAVIORS;
+        public OutputLocation GetOutputLocation() =>
+            OutputLocation.b_LOOT_TABLES;
     }
     /// <summary>
     /// Represents a pool in a loot table. Use LootPoolWeighted or LootPoolTiered.
