@@ -63,8 +63,26 @@ namespace mc_compiled.Commands
                 tags[hash] = index - 1;
             }
 
+            /// <summary>
+            /// Make an entity invisible via a potion effect.
+            /// </summary>
+            /// <param name="entity"></param>
+            /// <returns></returns>
             public string MakeInvisible(string entity) =>
                 Command.Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
+
+            /// <summary>
+            /// Prepends "minecraft:" if no namespace is given.
+            /// </summary>
+            /// <param name="identifier"></param>
+            /// <returns></returns>
+            public string RequireNamespace(string identifier)
+            {
+                if (identifier.Contains(':'))
+                    return identifier;
+                else
+                    return "minecraft:" + identifier;
+            }
         }
         
         public static void ResetState()
@@ -495,7 +513,7 @@ namespace mc_compiled.Commands
         public static string Summon(string entity, Coord x, Coord y, Coord z) =>
             $"summon {entity} {x} {y} {z}";
         public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag) =>
-            $"summon {entity} {x} {y} {z} none \"{nameTag}\"";
+            $"summon {entity} {x} {y} {z} named \"{nameTag}\"";
 
         public static string Tag(string targets, string tag) =>
             $"tag {targets} add {tag}";

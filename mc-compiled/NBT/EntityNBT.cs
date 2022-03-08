@@ -9,10 +9,22 @@ namespace mc_compiled.NBT
     public struct EntityNBT
     {
         public short age;               // Ticks this entity has lived.
+        public short air;               // Amount of air the entity has left.
+        public EquipmentNBT[] armor;    // The armor equipped on the entity.
+        public short attackTime;        // (?) instance hit delay?
+        public List<AttributeNBT> attributes; // looks like interface for data-driven stuff. 
+        public float bodyRot;           // Base part rotation Y
+        public int breedCooldown;       // Time between breed ticks
         public bool chested;            // (?) Unknown
         public byte color;              // The color of this entity.
         public byte color2;             // The alternate color of this entity.
+        public string customName;       // The nametag for this entity.
+        public bool customNameVisible;  // If the nametag should be visible to the player.
+        public bool dead;               // Is this entity is dead?
+        public short deathTime;         // (?) probably for despawning
         public float fallDistance;      // The distance this entity has been falling for.
+        public short hurtTime;          // (?) instance hurt delay?
+        public int inLove;              // remaining ticks inlove for
         public short fire;              // The ticks left of fire on this entity
         public short health;            // The health of this entity.
         public bool invulnerable;       // Whether this entity is invulnerable
@@ -55,7 +67,9 @@ namespace mc_compiled.NBT
         public byte[] definitions;      // Entity definitions. Unknown type.
         public string identifier;       // The actual namespaced ID of this entity (minecraft:pig)
 
-        public EntityNBT(short age = 200, bool chested = false, byte color = 0, byte color2 = 0, float fallDistance = 0, short fire = 0,
+        public EntityNBT(short age = 200, short air = 300, short attackTime = 0, bool chested = false, float bodyRot = 0f, int breedCooldown = 0,
+            string customName = null, bool customNameVisible = true, bool dead = false, short deathTime = 0, short hurtTime = 0, int inLove = 0,
+            byte color = 0, byte color2 = 0, float fallDistance = 0, short fire = 0,
             short health = 20, bool invulnerable = false, bool isAngry = false, bool isAutonomous = false, bool isBaby = false, bool isEating = false,
             bool isGliding = false, bool isGlobal = false, bool isIllagerCaptain = false, bool isOrphaned = false, bool isOutOfControl = false,
             bool isRoaring = false, bool isScared = false, bool isStunned = false, bool isSwimming = false, bool isTamed = false, bool isTrusting = false,
@@ -64,11 +78,29 @@ namespace mc_compiled.NBT
             bool sheared = false, bool showBottom = false, bool sitting = false, int skinID = 0, int strength = 0, int strengthMax = 0, byte[] tags = null,
             long uniqueID = 123456, int variant = 0, byte[] definitions = null, string identifier = "minecraft:armor_stand")
         {
+            EquipmentNBT[] armor = new EquipmentNBT[4];
+            armor[0] = new EquipmentNBT(0);
+            armor[1] = new EquipmentNBT(0);
+            armor[2] = new EquipmentNBT(0);
+            armor[3] = new EquipmentNBT(0);
+
             this.age = age;
+            this.air = air;
+            this.armor = armor;
+            this.attackTime = attackTime;
+            this.attributes = new List<AttributeNBT>();
+            this.bodyRot = bodyRot;
+            this.breedCooldown = breedCooldown;
             this.chested = chested;
             this.color = color;
             this.color2 = color2;
+            this.customName = customName;
+            this.customNameVisible = customNameVisible;
+            this.dead = dead;
+            this.deathTime = deathTime;
             this.fallDistance = fallDistance;
+            this.hurtTime = hurtTime;
+            this.inLove = inLove;
             this.fire = fire;
             this.health = health;
             this.invulnerable = invulnerable;
@@ -117,10 +149,39 @@ namespace mc_compiled.NBT
         {
             List<NBTNode> nodes = new List<NBTNode>();
             nodes.Add(new NBTShort() { name = "Age", value = age });
+            nodes.Add(new NBTShort() { name = "Air", value = air });
+            nodes.Add(new NBTShort() { name = "AttackTime", value = attackTime });
+            nodes.Add(new NBTFloat() { name = "BodyRot", value = bodyRot });
+            nodes.Add(new NBTInt() { name = "BreedCooldown", value = breedCooldown });
+
+            nodes.Add(new NBTList()
+            {
+                name = "Armor",
+                listType = TAG.Compound,
+                values = armor.Select(tag => tag.ToNBT()).ToArray()
+            });
+            nodes.Add(new NBTList()
+            {
+                name = "Attributes",
+                listType = TAG.Compound,
+                values = attributes.Select(attrib => attrib.ToNBT()).ToArray()
+            });
+
             nodes.Add(new NBTByte() { name = "Chested", value = (byte)(chested ? 1 : 0) });
             nodes.Add(new NBTByte() { name = "Color", value = color });
             nodes.Add(new NBTByte() { name = "Color2", value = color2 });
+
+            if (customName != null)
+            {
+                nodes.Add(new NBTString() { name = "CustomName", value = customName });
+                nodes.Add(new NBTByte() { name = "CustomNameVisible", value = (byte)(customNameVisible ? 1 : 0) });
+            }
+
+            nodes.Add(new NBTByte() { name = "Dead", value = (byte)(dead ? 1 : 0) });
+            nodes.Add(new NBTShort() { name = "DeathTime", value = deathTime });
             nodes.Add(new NBTFloat() { name = "FallDistance", value = fallDistance });
+            nodes.Add(new NBTShort() { name = "HurtTime", value = hurtTime });
+            nodes.Add(new NBTInt() { name = "InLove", value = inLove });
             nodes.Add(new NBTShort() { name = "Fire", value = fire });
             nodes.Add(new NBTShort() { name = "Health", value = health });
             nodes.Add(new NBTByte() { name = "Invulnerable", value = (byte)(invulnerable ? 1 : 0) });

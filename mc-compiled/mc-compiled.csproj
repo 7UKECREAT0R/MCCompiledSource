@@ -104,8 +104,10 @@
     <Compile Include="MCC\Compiler\Legacy\LegacyTokensMC.cs" />
     <Compile Include="NBT\BlockIndicesNBT.cs" />
     <Compile Include="NBT\EnchantNBT.cs" />
+    <Compile Include="NBT\AttributeNBT.cs" />
     <Compile Include="NBT\EntityListNBT.cs" />
     <Compile Include="NBT\EntityNBT.cs" />
+    <Compile Include="NBT\EquipmentNBT.cs" />
     <Compile Include="NBT\FileWriterNBT.cs" />
     <Compile Include="NBT\ItemNBT.cs" />
     <Compile Include="NBT\ItemTagNBT.cs" />

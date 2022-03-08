@@ -1433,7 +1433,7 @@ namespace mc_compiled.MCC.Compiler
             while (tokens.HasNext && tokens.NextIs<TokenBuilderIdentifier>())
             {
                 TokenBuilderIdentifier builderIdentifier = tokens.Next<TokenBuilderIdentifier>();
-                string builderField = builderIdentifier.builderField.ToUpper();
+                string builderField = builderIdentifier.BuilderField;
 
                 switch (builderField)
                 {

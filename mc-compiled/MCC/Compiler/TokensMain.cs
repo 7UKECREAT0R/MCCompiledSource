@@ -99,13 +99,21 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenBuilderIdentifier : TokenIdentifier
     {
-        public readonly string builderField;
+        private string builderField;
+
+        /// <summary>
+        /// This builder field converted to full upper-case.
+        /// </summary>
+        public string BuilderField
+        {
+            get => builderField.ToUpper();
+        }
         public TokenBuilderIdentifier(string fullWord, int lineNumber) : base(fullWord, lineNumber)
         {
             if (fullWord.EndsWith(":")) // it should as long as its not implicitly converted from identifier
-                builderField = fullWord.Substring(0, fullWord.Length - 1);
+                builderField = fullWord.Substring(0, fullWord.Length - 1).Trim();
             else
-                builderField = fullWord;
+                builderField = fullWord.Trim();
         }
     }
     /// <summary>
