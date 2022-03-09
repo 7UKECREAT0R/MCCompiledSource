@@ -207,13 +207,50 @@ namespace mc_compiled.MCC.Compiler
             }
 
             executor.scoreboard.PushTempState(); // popped at call site
-            SquashFunctions(ref allResolved, executor);
-            Squash<TokenArithmaticFirst>(ref allResolved, executor);
-            Squash<TokenArithmaticSecond>(ref allResolved, executor);
+            SquashAll(ref allResolved, executor);
 
             statement.tokens = allResolved.ToArray();
             statement.patterns = statement.GetValidPatterns();
             return statement;
+        }
+        public void SquashAll(ref List<Token> tokens, Executor executor)
+        {
+            // recursively call parenthesis first
+            for(int i = 0; i < tokens.Count; i++)
+            {
+                Token token = tokens[i];
+                if (!(token is TokenOpenParenthesis))
+                    continue;
+
+                int level = 1;
+                List<Token> toSquash = new List<Token>();
+                for(int x = i + 1; x < tokens.Count; x++)
+                {
+                    token = tokens[x];
+                    if (token is TokenOpenParenthesis)
+                        level++;
+                    else if(token is TokenCloseParenthesis)
+                    {
+                        level--;
+                        if (level < 1)
+                            goto properlyClosed;
+                    }
+                    toSquash.Add(token);
+                }
+                throw new StatementException(this, "Unexpected end-of-line inside parenthesis.");
+            properlyClosed:
+
+                // inside parentheses
+                SquashAll(ref toSquash, executor);
+                tokens.RemoveRange(i, toSquash.Count + 1);
+                tokens.InsertRange(i, tokens);
+                i = -1; // reset back to the start
+            }
+
+            // root of the statement
+            Squash<TokenArithmaticFirst>(ref tokens, executor);
+            Squash<TokenArithmaticSecond>(ref tokens, executor);
+            SquashFunctions(ref tokens, executor);
         }
         public void Squash<T>(ref List<Token> tokens, Executor executor)
         {
@@ -365,7 +402,7 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Insert(i - 1, squashedToken);
 
                 // restart order-of-operations
-                i = 0;
+                i = -1;
             }
         }
         public void SquashFunctions(ref List<Token> tokens, Executor executor)
@@ -422,7 +459,7 @@ namespace mc_compiled.MCC.Compiler
                 if (tokensInside.Count < function.ParameterCount)
                     throw new StatementException(this, $"Missing parameters for function {function}");
                 if(function.returnValue == null)
-                    throw new StatementException(this, $"Cannot use function in statement since it doesn't return a value.");
+                    throw new StatementException(this, $"Function does not have a return value.");
 
                 // call function
                 string sel = executor.ActiveSelectorStr;
