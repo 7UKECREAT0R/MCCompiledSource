@@ -754,7 +754,7 @@ namespace mc_compiled.MCC.Compiler
             branchFileIndexes[hash] = index + 1;
             return new CommandFile(friendlyName + index, MCC_GENERATED_FOLDER);
         }
-        public static void ResetGeneratedFile()
+        public static void ResetGeneratedFiles()
         {
             branchFileIndexes.Clear();
         }

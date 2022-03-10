@@ -306,6 +306,7 @@ namespace mc_compiled
                     else
                     {
                         Console.Clear();
+                        PrepareToCompile();
                         CleanDirectory(obp, changedFile);
                         CleanDirectory(orp, changedFile);
                         RunMCCompiled(changedFile, obp, orp);
@@ -364,7 +365,7 @@ namespace mc_compiled
         public static void PrepareToCompile()
         {
             // reset all that icky static stuff
-            Executor.ResetGeneratedFile();
+            Executor.ResetGeneratedFiles();
             Commands.Command.ResetState();
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();

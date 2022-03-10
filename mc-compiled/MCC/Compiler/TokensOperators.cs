@@ -101,6 +101,7 @@ namespace mc_compiled.MCC.Compiler
 
     public sealed class TokenOpenParenthesis : TokenOpenBracket
     {
+        public bool hasBeenSquashed = false; // used to prevent function squashing from recursing infinitely
         public override string AsString() => "(";
         public TokenOpenParenthesis(int lineNumber) : base(lineNumber) { }
     }

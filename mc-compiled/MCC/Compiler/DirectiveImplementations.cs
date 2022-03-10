@@ -1339,10 +1339,19 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("LIMIT"))
                 {
                     if (not)
-                        throw new StatementException(tokens, "Cannot invert a limit check.");
+                        throw new StatementException(tokens, "Cannot invert a limit.");
 
                     int count = tokens.Next<TokenIntegerLiteral>();
                     selector.count = new Count(count);
+                }
+                else if (word.Equals("OFFSET"))
+                {
+                    if (not)
+                        throw new StatementException(tokens, "Cannot invert an offset.");
+
+                    selector.offsetX = tokens.Next<TokenCoordinateLiteral>();
+                    selector.offsetY = tokens.Next<TokenCoordinateLiteral>();
+                    selector.offsetZ = tokens.Next<TokenCoordinateLiteral>();
                 }
                 // repeat all that as long as there continues to be an &
             } while (tokens.NextIs<TokenAnd>());

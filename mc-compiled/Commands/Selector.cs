@@ -117,6 +117,9 @@ namespace mc_compiled.Commands
         }
 
         public Core core;               // Base selector.
+        public Coord offsetX = Coord.here;
+        public Coord offsetY = Coord.here;
+        public Coord offsetZ = Coord.here;
 
         public Selectors.Area area;     // The area where targets should be selected.
         public Selectors.Scores scores; // The scores that should be evaluated.
@@ -157,22 +160,22 @@ namespace mc_compiled.Commands
                 if (core == Core.p)
                 {
                     core = Core.s;
-                    string ret = $"execute @p ~~~ execute {ToString()} ~~~ {blockCheck} ";
+                    string ret = $"execute @p ~ ~ ~ execute {ToString()} {offsetX} {offsetY} {offsetZ} {blockCheck} ";
                     core = Core.p;
                     return ret;
                 }
-                return $"execute {ToString()} ~~~ {blockCheck} ";
+                return $"execute {ToString()} {offsetX} {offsetY} {offsetZ} {blockCheck} ";
             }
             else
             {
                 if (core == Core.p)
                 {
                     core = Core.s;
-                    string ret = $"execute @p ~~~ execute {ToString()} ~~~ ";
+                    string ret = $"execute @p ~ ~ ~ execute {ToString()} {offsetX} {offsetY} {offsetZ} ";
                     core = Core.p;
                     return ret;
                 }
-                return $"execute {ToString()} ~~~ ";
+                return $"execute {ToString()} {offsetX} {offsetY} {offsetZ} ";
             }
         }
 
@@ -180,6 +183,9 @@ namespace mc_compiled.Commands
         {
             Selector clone = (Selector)a.MemberwiseClone();
 
+            clone.offsetX += b.offsetX;
+            clone.offsetY += b.offsetY;
+            clone.offsetZ += b.offsetZ;
             clone.area += b.area;
             clone.scores += b.scores;
             clone.count += b.count;

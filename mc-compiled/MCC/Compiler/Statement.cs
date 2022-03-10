@@ -219,7 +219,9 @@ namespace mc_compiled.MCC.Compiler
             for(int i = 0; i < tokens.Count; i++)
             {
                 Token token = tokens[i];
-                if (!(token is TokenOpenParenthesis))
+                if (!(token is TokenOpenParenthesis parenthesis))
+                    continue;
+                else if (parenthesis.hasBeenSquashed)
                     continue;
 
                 int level = 1;
@@ -238,19 +240,28 @@ namespace mc_compiled.MCC.Compiler
                     toSquash.Add(token);
                 }
                 throw new StatementException(this, "Unexpected end-of-line inside parenthesis.");
+
             properlyClosed:
+                int startIndex = i;
+                int removeLength = toSquash.Count;
+
+                if (this is StatementFunctionCall && i == 1)
+                    startIndex += 1;
+                else
+                    removeLength += 2;
 
                 // inside parentheses
                 SquashAll(ref toSquash, executor);
-                tokens.RemoveRange(i, toSquash.Count + 1);
-                tokens.InsertRange(i, tokens);
+                tokens.RemoveRange(startIndex, removeLength);
+                tokens.InsertRange(startIndex, toSquash);
+                parenthesis.hasBeenSquashed = true;
                 i = -1; // reset back to the start
             }
 
             // root of the statement
+            SquashFunctions(ref tokens, executor);
             Squash<TokenArithmaticFirst>(ref tokens, executor);
             Squash<TokenArithmaticSecond>(ref tokens, executor);
-            SquashFunctions(ref tokens, executor);
         }
         public void Squash<T>(ref List<Token> tokens, Executor executor)
         {
