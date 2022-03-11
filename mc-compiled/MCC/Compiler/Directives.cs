@@ -20,7 +20,7 @@ namespace mc_compiled.MCC.Compiler
 
 
         private static short nextIndex = 0;
-        internal Directive(DirectiveImpl call, string identifier,
+        public Directive(DirectiveImpl call, string identifier,
             string fullName, params TypePattern[] patterns)
         {
             index = nextIndex++;
@@ -28,6 +28,17 @@ namespace mc_compiled.MCC.Compiler
             this.identifier = identifier;
             this.fullName = fullName;
             this.patterns = patterns;
+        }
+        public Directive WithAttribute(DirectiveAttribute attribute)
+        {
+            this.attributes |= (int)attribute;
+            return this;
+        }
+        public Directive WithAttributes(params DirectiveAttribute[] attributes)
+        {
+            foreach (DirectiveAttribute attribute in attributes)
+                this.attributes |= (int)attribute;
+            return this;
         }
 
         /// <summary>
@@ -46,12 +57,20 @@ namespace mc_compiled.MCC.Compiler
         public readonly string fullName;
         public readonly DirectiveImpl call;
         public readonly TypePattern[] patterns;
+        public int attributes;
 
         public override int GetHashCode() => identifier.GetHashCode();
     }
+    /// <summary>
+    /// Attributes used to modify how directive statements behave.
+    /// </summary>
+    public enum DirectiveAttribute : int
+    {
+        DONT_EXPAND_PPV = 1 << 0
+    }
     public static class Directives
     {
-        public static Directive[] REGISTRY =
+        public static List<Directive> REGISTRY = new List<Directive>(new[]
         {
             new Directive(DirectiveImplementations._var, "$var", "Set Preprocessor Variable",
                 new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
@@ -81,7 +100,8 @@ namespace mc_compiled.MCC.Compiler
             new Directive(DirectiveImplementations._log, "$log", "Preprocessor Log to Console",
                 new TypePattern(typeof(TokenStringLiteral))),
             new Directive(DirectiveImplementations._macro, "$macro", "Define/Call Preprocessor Macro",
-                new TypePattern(typeof(TokenIdentifier))),
+                new TypePattern(typeof(TokenIdentifier)))
+                .WithAttribute(DirectiveAttribute.DONT_EXPAND_PPV),
             new Directive(DirectiveImplementations._include, "$include", "Include other File",
                 new TypePattern(typeof(TokenStringLiteral))),
             new Directive(DirectiveImplementations._strfriendly, "$strfriendly", "Preprocessor String Friendly Name",
@@ -135,7 +155,8 @@ namespace mc_compiled.MCC.Compiler
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenStringLiteral)),
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenIdentifierEnum)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>()),
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>(),
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral))),
             new Directive(DirectiveImplementations.@else, "else", "Else Directive"),
             new Directive(DirectiveImplementations.give, "give", "Give Item to Selected",
                 new TypePattern(typeof(TokenStringLiteral)).Optional<TokenIntegerLiteral>().Optional<TokenIntegerLiteral>()),
@@ -194,13 +215,13 @@ namespace mc_compiled.MCC.Compiler
                 new TypePattern(typeof(TokenLiteral))),
             new Directive(DirectiveImplementations.@struct, "struct", "Define Struct",
                 new TypePattern(typeof(TokenIdentifier))),
-        };
+        });
 
         static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
         static Directives()
         {
             foreach (Directive directive in REGISTRY)
-                directiveLookup.Add(directive.DictValue, directive);
+                directiveLookup[directive.DictValue] = directive;
         }
 
         /// <summary>
@@ -213,6 +234,11 @@ namespace mc_compiled.MCC.Compiler
             if (directiveLookup.TryGetValue(token.ToUpper(), out Directive directive))
                 return directive;
             return null;
+        }
+        public static void RegisterDirective(Directive directive)
+        {
+            REGISTRY.Add(directive);
+            directiveLookup[directive.DictValue] = directive;
         }
     }
 }

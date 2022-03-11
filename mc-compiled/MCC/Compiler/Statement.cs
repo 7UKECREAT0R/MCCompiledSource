@@ -19,7 +19,18 @@ namespace mc_compiled.MCC.Compiler
                 patterns = GetValidPatterns();
             DecorateInSource = true;
         }
+        /// <summary>
+        /// Returns if this statement type is a directive and it has this attribute.
+        /// </summary>
+        /// <param name="attribute"></param>
+        /// <returns></returns>
+        public abstract bool HasAttribute(DirectiveAttribute attribute);
 
+        /// <summary>
+        /// Set the line of source this statement relates to. Used in "errors."
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="code"></param>
         public void SetSource(int line, string code)
         {
             Line = line;
@@ -175,6 +186,7 @@ namespace mc_compiled.MCC.Compiler
                 return statement;
             }
 
+            bool resolvePPVs = !HasAttribute(DirectiveAttribute.DONT_EXPAND_PPV);
             int length = statement.tokens.Length;
             Token[] allUnresolved = statement.tokens;
             List<Token> allResolved = new List<Token>();
@@ -186,7 +198,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if (unresolved is TokenStringLiteral)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
-                else if (unresolved is TokenUnresolvedPPV)
+                else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
                     allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? new Token[] { unresolved });
                 else if(unresolved is TokenIdentifier)
                 {

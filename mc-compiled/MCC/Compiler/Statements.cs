@@ -14,6 +14,12 @@ namespace mc_compiled.MCC.Compiler
         {
             this.directive = directive;
         }
+        public override bool HasAttribute(DirectiveAttribute attribute)
+        {
+            if (directive == null)
+                return false;
+            return (directive.attributes &= (int)attribute) != 0;
+        }
         public override string ToString()
         {
             if (directive == null)
@@ -40,6 +46,7 @@ namespace mc_compiled.MCC.Compiler
             this.comment = comment;
             DecorateInSource = false;
         }
+        public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
             return $"[COMMENT] {comment}";
@@ -78,6 +85,7 @@ namespace mc_compiled.MCC.Compiler
             this.statementsInside = statementsInside;
             this.file = file;
         }
+        public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
             return $"[OPEN BLOCK: {statementsInside} STATEMENTS]";
@@ -121,6 +129,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.popFile = false;
         }
+        public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
             return $"[CLOSE BLOCK]";
@@ -152,6 +161,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementOperation : Statement
     {
         public StatementOperation(Token[] tokens) : base(tokens) {}
+        public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
             return $"[OPERATION] {string.Join(" ", from t in tokens select t.AsString())}";
@@ -221,6 +231,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementFunctionCall : Statement
     {
         public StatementFunctionCall(Token[] tokens) : base(tokens) { }
+        public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
             return $"[CALL FUNCTION {tokens[0]} WITH {tokens.Length - 3} PARAMETERS]";
@@ -272,6 +283,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementUnknown : Statement
     {
         public StatementUnknown(Token[] tokens) : base(tokens) { }
+        public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
             return $"[UNKNOWN] {string.Join(" ", from t in tokens select t.AsString())}";
