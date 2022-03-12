@@ -13,6 +13,7 @@ namespace mc_compiled.MCC.Compiler
     public abstract class TokenLiteral : Token
     {
         public override string AsString() => "<? literal>";
+        public abstract override string ToString();
         public TokenLiteral(int lineNumber) : base(lineNumber) { }
 
         /// <summary>
@@ -76,6 +77,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.text = text;
         }
+        public override string ToString() => text;
         public object GetObject() =>  text;
 
         public static implicit operator string(TokenStringLiteral literal) => literal.text;
@@ -157,6 +159,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.boolean = boolean;
         }
+        public override string ToString() => boolean.ToString();
         public override object GetObject() => boolean;
         public override float GetNumber()
         {
@@ -191,6 +194,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly Coord coordinate;
         public override string AsString() => coordinate.ToString();
+        public override string ToString() => coordinate.ToString();
         public TokenCoordinateLiteral(Coord coordinate, int lineNumber) : base(lineNumber)
         {
             this.coordinate = coordinate;
@@ -283,6 +287,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.number = number;
         }
+        public override string ToString() => number.ToString();
         public override object GetObject() => number;
         public override float GetNumber()
         {
@@ -380,6 +385,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.number = number;
         }
+        public override string ToString() => number.ToString();
         public override object GetObject() => number;
         public override float GetNumber()
         {
@@ -459,6 +465,7 @@ namespace mc_compiled.MCC.Compiler
                 core = core
             };
         }
+        public override string ToString() => selector.ToString();
 
         public static implicit operator Selector(TokenSelectorLiteral t) => t.selector;
         public static implicit operator Selector.Core(TokenSelectorLiteral t) => t.selector.core;

@@ -496,21 +496,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenIdentifier>())
                 tracker = tokens.Next<TokenIdentifier>().word;
 
-            int skipAfter = 0;
-            Statement[] statements;
-
-            if (executor.NextIs<StatementOpenBlock>())
-            {
-                StatementOpenBlock block = executor.Next<StatementOpenBlock>();
-                skipAfter = block.statementsInside;
-                statements = executor.Peek(skipAfter);
-                executor.Next<StatementOpenBlock>(); // skip that
-            }
-            else
-            {
-                skipAfter = 0;
-                statements = new[] { executor.Next() };
-            }
+            Statement[] statements = executor.NextExecutionSet();
 
             for (int i = 0; i < amount; i++)
             {
@@ -518,9 +504,6 @@ namespace mc_compiled.MCC.Compiler
                     executor.SetPPV(tracker, new dynamic[] { i });
                 executor.ExecuteSubsection(statements);
             }
-
-            for (int i = 0; i < skipAfter; i++)
-                executor.Next();
         }
         public static void _log(Executor executor, Statement tokens)
         {
@@ -566,16 +549,24 @@ namespace mc_compiled.MCC.Compiler
 
             Macro lookedUp = _lookedUp.Value;
             string[] argNames = lookedUp.argNames;
-            object[] args = new object[argNames.Length];
+            dynamic[][] args = new dynamic[argNames.Length][];
 
             // get input variables
             for (int i = 0; i < argNames.Length; i++)
             {
                 if (!tokens.HasNext)
                     throw new StatementException(tokens, "Missing argument '" + argNames[i] + "' in macro call.");
+
+                if (tokens.NextIs<TokenUnresolvedPPV>())
+                {
+                    args[i] = executor.ResolvePPV(tokens.Next<TokenUnresolvedPPV>());
+                    continue;
+                }
+
                 if (!tokens.NextIs<IObjectable>())
                     throw new StatementException(tokens, "Invalid argument type for '" + argNames[i] + "' in macro call.");
-                args[i] = tokens.Next<IObjectable>().GetObject();
+
+                args[i] = new dynamic[] { tokens.Next<IObjectable>().GetObject() };
             }
 
             // save variables which collide with this macro's args.
@@ -587,7 +578,7 @@ namespace mc_compiled.MCC.Compiler
 
             // set input variables
             for (int i = 0; i < argNames.Length; i++)
-                executor.SetPPV(argNames[i], new dynamic[] { args[i] });
+                executor.SetPPV(argNames[i], args[i]);
 
             // call macro
             executor.ExecuteSubsection(lookedUp.statements);
@@ -774,24 +765,38 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        public static void _iterate(Executor executor, Statement tokens)
+        {
+            string input = tokens.Next<TokenIdentifier>().word;
+            string current = tokens.Next<TokenIdentifier>().word;
+
+            if (!executor.TryGetPPV(input, out dynamic[] values))
+                throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
+
+            Statement[] statements = executor.NextExecutionSet();
+
+            foreach (dynamic value in values)
+            {
+                executor.SetPPV(current, new dynamic[] { value });
+                executor.ExecuteSubsection(statements);
+            }
+        }
         public static void _get(Executor executor, Statement tokens)
         {
             string input = tokens.Next<TokenIdentifier>().word;
             int index = tokens.Next<TokenIntegerLiteral>();
             string output = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(input, out dynamic[] values))
-            {
-                if (index >= values.Length)
-                    throw new StatementException(tokens, $"Index {index} is too large for preprocessor variable '{input}'. Max: {values.Length - 1}");
-                if (index < 0)
-                    throw new StatementException(tokens, $"Index cannot be less than zero (was {index}).");
-
-                dynamic result = values[index];
-                executor.SetPPV(output, new dynamic[] { result });
-            }
-            else
+            if (!executor.TryGetPPV(input, out dynamic[] values))
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
+            
+            if (index >= values.Length)
+                throw new StatementException(tokens, $"Index {index} is too large for preprocessor variable '{input}'. Max: {values.Length - 1}");
+            if (index < 0)
+                throw new StatementException(tokens, $"Index cannot be less than zero (was {index}).");
+
+            dynamic result = values[index];
+            executor.SetPPV(output, new dynamic[] { result });
         }
         public static void _len(Executor executor, Statement tokens)
         {

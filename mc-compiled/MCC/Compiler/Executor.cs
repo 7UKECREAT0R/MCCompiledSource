@@ -356,6 +356,27 @@ namespace mc_compiled.MCC.Compiler
 
             return ret;
         }
+        /// <summary>
+        /// Gets the next statement, or set of statements if it is a block.
+        /// </summary>
+        /// <returns></returns>
+        public Statement[] NextExecutionSet()
+        {
+            Statement current = statements[readIndex - 1];
+
+            if(NextIs<StatementOpenBlock>())
+            {
+                StatementOpenBlock block = Next<StatementOpenBlock>();
+                int statements = block.statementsInside;
+                if (statements < 1)
+                    throw new StatementException(current, "No valid statements inside block.");
+                Statement[] code = Peek(statements);
+                readIndex += statements;
+                readIndex++; // block closer
+                return code;
+            }
+            return new[] { Next() };
+        }
 
         /// <summary>
         /// Pop the prepend buffer's contents and return it.
@@ -695,7 +716,14 @@ namespace mc_compiled.MCC.Compiler
             foreach (var kv in ppv)
             {
                 string name = '$' + kv.Key;
-                string value = string.Join(" ", kv.Value);
+                string value;
+
+                // Only join if necessary.
+                if (kv.Value.Length > 1)
+                    value = string.Join(" ", kv.Value);
+                else
+                    value = kv.Value[0].ToString();
+
                 str = str.Replace(name, value);
             }
 

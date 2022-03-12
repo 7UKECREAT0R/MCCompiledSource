@@ -116,6 +116,8 @@ namespace mc_compiled.MCC.Compiler
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
             new Directive(DirectiveImplementations._mean, "$mean", "Preprocessor Get Mean",
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations._iterate, "$iterate", "Iterate Preprocessor Array",
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
             new Directive(DirectiveImplementations._get, "$get", "Preprocessor Get at Index",
                 new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIdentifier))),
             new Directive(DirectiveImplementations._len, "$len", "Preprocessor Get Array Length",

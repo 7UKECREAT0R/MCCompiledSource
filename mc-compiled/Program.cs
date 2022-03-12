@@ -290,11 +290,11 @@ namespace mc_compiled
                 Console.TreatControlCAsInput = true;
                 string changedFile = null;
 
-                while(true)
-                {
-                    if (firstRun)
-                    {
-                        PrepareToCompile();
+                while(true)                              
+                {                                        
+                    if (firstRun)                        
+                    {                                    
+                        PrepareToCompile();              
                         firstRun = false;
                         foreach (string file in files)
                         {
