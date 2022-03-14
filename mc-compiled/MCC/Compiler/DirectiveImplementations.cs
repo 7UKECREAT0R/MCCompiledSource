@@ -467,7 +467,7 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
-                block.aligns = false;
+                block.executeAs = null;
                 block.shouldRun = run;
                 return;
             }
@@ -481,7 +481,7 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
-                block.aligns = false;
+                block.executeAs = null;
                 block.shouldRun = run;
                 return;
             }
@@ -1412,7 +1412,7 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 CommandFile nextBranchFile = Executor.GetNextGeneratedFile("branch");
-                opener.aligns = true;
+                opener.executeAs = new Selector() { core = Selector.Core.s };
                 opener.shouldRun = true;
                 opener.TargetFile = nextBranchFile;
                 executor.AddCommand(Command.Function(nextBranchFile));
@@ -2191,7 +2191,7 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
-                openBlock.aligns = true;
+                openBlock.executeAs = function.defaultSelector;
                 openBlock.shouldRun = true;
                 openBlock.TargetFile = function.File;
                 return;

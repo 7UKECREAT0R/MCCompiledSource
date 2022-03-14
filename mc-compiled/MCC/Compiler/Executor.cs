@@ -279,6 +279,14 @@ namespace mc_compiled.MCC.Compiler
                 selections.Push(ActiveSelector);
         }
         /// <summary>
+        /// Push a selector to the stack.
+        /// </summary>
+        /// <param name="now"></param>
+        public void PushSelector(Selector now)
+        {
+            selections.Push(now);
+        }
+        /// <summary>
         /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>

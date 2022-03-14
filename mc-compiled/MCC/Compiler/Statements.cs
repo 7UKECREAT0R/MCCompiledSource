@@ -77,7 +77,7 @@ namespace mc_compiled.MCC.Compiler
 
         public int statementsInside;
         public bool shouldRun = false;
-        public bool aligns = false;
+        public Commands.Selector executeAs = null;
         private CommandFile file;
 
         public StatementOpenBlock(int statementsInside, CommandFile file) : base(null)
@@ -104,7 +104,10 @@ namespace mc_compiled.MCC.Compiler
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            executor.PushSelector(aligns); // push a level up
+            if (executeAs == null)
+                executor.PushSelector(false); // push a level up
+            else
+                executor.PushSelector(executeAs);
 
             if (shouldRun)
             {
@@ -268,9 +271,12 @@ namespace mc_compiled.MCC.Compiler
 
                 passIn.Add(nextToken);
             }
+            Function function = value.function;
 
-            executor.AddCommands(value.function.CallFunction(selector, this,
+            executor.PushSelectorExecute();
+            executor.AddCommands(function.CallFunction(selector, this,
                 executor.scoreboard, passIn.ToArray()), "call" + value.function.name);
+            executor.PopSelector();
             return;
         }
     }

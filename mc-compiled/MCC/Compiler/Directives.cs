@@ -211,7 +211,7 @@ namespace mc_compiled.MCC.Compiler
                 new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifierEnum>().Optional<TokenSelectorLiteral>()),
 
             new Directive(DirectiveImplementations.function, "function", "Define Function",
-                new TypePattern(typeof(TokenIdentifier))),
+                new TypePattern()),
             new Directive(DirectiveImplementations.@return, "return", "Set Return Value",
                 new TypePattern(typeof(TokenIdentifierValue)),
                 new TypePattern(typeof(TokenLiteral))),

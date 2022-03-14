@@ -17,8 +17,9 @@ namespace mc_compiled.MCC
         readonly List<Token> inputDefaults;
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
-        readonly Selector defaultSelector;
+
         public ScoreboardValue returnValue;
+        public readonly Selector defaultSelector;
         public readonly string name;
 
         public Function(string name, Selector defaultSelector, bool fromCompiler = false)
@@ -157,7 +158,6 @@ namespace mc_compiled.MCC
             }
 
             sb.PopTempState();
-
             commands.Add(Command.Function(this.file));
             return commands.ToArray();
         }
