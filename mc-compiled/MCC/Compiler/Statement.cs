@@ -257,7 +257,13 @@ namespace mc_compiled.MCC.Compiler
                 int startIndex = i;
                 int removeLength = toSquash.Count;
 
-                if (this is StatementFunctionCall && i == 1)
+                // check if this is a function call.
+                bool isFunction = this is StatementFunctionCall && i == 1;
+                if(!isFunction && i > 0)
+                    isFunction |= tokens[i - 1] is TokenIdentifierFunction;
+
+                // only remove parentheses if they're used for grouping
+                if (isFunction)
                     startIndex += 1;
                 else
                     removeLength += 2;
@@ -455,28 +461,13 @@ namespace mc_compiled.MCC.Compiler
                 List<Token> tokensInside = new List<Token>();
                 if (!(third is TokenCloseParenthesis))
                 {
-                    int level = 1;
-                    while (x < tokens.Count)
+                    for(int z = x; z < tokens.Count; z++)
                     {
-                        Token check = tokens[x];
-
-                        if (check is TokenCloseParenthesis)
-                        {
-                            level--;
-                            if (level <= 0)
-                                break;
-                        }
-                        else if (check is TokenOpenParenthesis)
-                            level++;
-
-                        x++;
-                        tokensInside.Add(check);
+                        Token token = tokens[z];
+                        if (token is TokenCloseParenthesis)
+                            break;
+                        tokensInside.Add(tokens[z]);
                     }
-                    SquashFunctions(ref tokensInside, executor);
-                    Squash<TokenArithmaticFirst>(ref tokensInside, executor);
-                    Squash<TokenArithmaticSecond>(ref tokensInside, executor);
-                    tokens.RemoveRange(i + 2, tokensInside.Count);
-                    tokens.InsertRange(i + 2, tokensInside);
                 }
 
                 if (tokensInside.Count < function.ParameterCount)
@@ -492,7 +483,7 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValue clone = executor.scoreboard.RequestTemp(function.returnValue);
                 executor.AddCommandsClean(clone.CommandsSet(sel, function.returnValue, null, null), "store" + function.name); // ignore accessors
 
-                int len = x - i + 1;
+                int len = x - i + (1 + tokensInside.Count);
                 tokens.RemoveRange(i, len);
                 tokens.Insert(i, new TokenIdentifierValue(clone.baseName, clone, selected.lineNumber));
 

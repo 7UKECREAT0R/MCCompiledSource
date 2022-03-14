@@ -17,13 +17,14 @@ namespace mc_compiled.MCC
         readonly List<Token> inputDefaults;
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
-
+        readonly Selector defaultSelector;
         public ScoreboardValue returnValue;
         public readonly string name;
 
-        public Function(string name, bool fromCompiler = false)
+        public Function(string name, Selector defaultSelector, bool fromCompiler = false)
         {
             this.name = name;
+            this.defaultSelector = defaultSelector;
             file = new CommandFile(name, null, this);
             isCompilerGenerated = fromCompiler;
             inputs = new List<ScoreboardValue>();

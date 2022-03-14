@@ -1010,17 +1010,26 @@ namespace mc_compiled.MCC.Compiler
         public static void init(Executor executor, Statement tokens)
         {
             ScoreboardValue value;
+            List<string> commands = new List<string>();
 
-            if (tokens.NextIs<TokenStringLiteral>())
+            StringBuilder union = new StringBuilder();
+            union.Append("init");
+
+            while (tokens.HasNext)
             {
-                string name = tokens.Next<TokenStringLiteral>();
-                if (!executor.scoreboard.TryGetByAccessor(name, out value, true))
-                    throw new StatementException(tokens, $"Attempted to initialize undefined variable '{name}'.");
+                if (tokens.NextIs<TokenStringLiteral>())
+                {
+                    string name = tokens.Next<TokenStringLiteral>();
+                    if (!executor.scoreboard.TryGetByAccessor(name, out value, true))
+                        throw new StatementException(tokens, $"Attempted to initialize undefined variable '{name}'.");
+                }
+                else
+                    value = tokens.Next<TokenIdentifierValue>().value;
+                commands.AddRange(value.CommandsInit());
+                union.Append(value.baseName);
             }
-            else
-                value = tokens.Next<TokenIdentifierValue>().value;
 
-            executor.AddCommands(value.CommandsInit(), "init" + value.baseName, true);
+            executor.AddCommands(commands, union.ToString());
         }
         public static void @if(Executor executor, Statement tokens) =>
             @if(executor, tokens, false);
@@ -2132,6 +2141,17 @@ namespace mc_compiled.MCC.Compiler
 
         public static void function(Executor executor, Statement tokens)
         {
+            // attribute definitions
+            Selector selector;
+
+            if (tokens.NextIs<TokenSelectorLiteral>())
+                selector = tokens.Next<TokenSelectorLiteral>().selector;
+            else
+                selector = new Selector() { core = Selector.Core.s };
+
+            // ... attributes will go here! ...
+
+            // normal definition
             string functionName = tokens.Next<TokenIdentifier>().word;
             List<ScoreboardValue> args = new List<ScoreboardValue>();
             List<Token> defaults = new List<Token>(); // default values
@@ -2161,7 +2181,11 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            Function function = new Function(functionName).AddParameters(args, defaults);
+            // constructor
+            Function function = new Function(functionName, selector, false)
+                .AddParameters(args, defaults);
+
+            // define it with the compiler
             executor.RegisterFunction(function);
 
             if (executor.NextIs<StatementOpenBlock>())
