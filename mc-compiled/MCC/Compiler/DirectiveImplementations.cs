@@ -1012,9 +1012,6 @@ namespace mc_compiled.MCC.Compiler
             ScoreboardValue value;
             List<string> commands = new List<string>();
 
-            StringBuilder union = new StringBuilder();
-            union.Append("init");
-
             while (tokens.HasNext)
             {
                 if (tokens.NextIs<TokenStringLiteral>())
@@ -1026,10 +1023,9 @@ namespace mc_compiled.MCC.Compiler
                 else
                     value = tokens.Next<TokenIdentifierValue>().value;
                 commands.AddRange(value.CommandsInit());
-                union.Append(value.baseName);
             }
 
-            executor.AddCommands(commands, union.ToString());
+            executor.AddCommands(commands, null, true);
         }
         public static void @if(Executor executor, Statement tokens) =>
             @if(executor, tokens, false);
