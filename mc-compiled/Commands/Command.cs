@@ -2,6 +2,7 @@
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
+using mc_compiled.Modding.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Linq;

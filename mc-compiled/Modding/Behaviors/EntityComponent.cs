@@ -35,4 +35,21 @@ namespace mc_compiled.Modding.Behaviors
             return value;
         }
     }
+    public struct EntityEventHandler
+    {
+        public string eventID;
+        public EventSubject target;
+
+        public EntityEventHandler(string eventID, EventSubject target = EventSubject.self)
+        {
+            this.eventID = eventID;
+            this.target = target;
+        }
+        public Newtonsoft.Json.Linq.JObject ToJSON() =>
+            new Newtonsoft.Json.Linq.JObject()
+            {
+                ["event"] = eventID,
+                ["target"] = target.ToString()
+            };
+    }
 }
