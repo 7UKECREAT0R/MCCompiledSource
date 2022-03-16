@@ -41,41 +41,23 @@ namespace mc_compiled.Modding
             switch (output)
             {
                 case OutputLocation.b_ROOT:
-                    return true;
                 case OutputLocation.b_ANIMATIONS:
-                    return true;
                 case OutputLocation.b_ANIMATION_CONTROLLERS:
-                    return true;
                 case OutputLocation.b_BLOCKS:
-                    return true;
                 case OutputLocation.b_BIOMES:
-                    return true;
                 case OutputLocation.b_ENTITIES:
-                    return true;
                 case OutputLocation.b_FEATURES:
-                    return true;
                 case OutputLocation.b_FEATURE_RULES:
-                    return true;
                 case OutputLocation.b_FUNCTIONS:
-                    return true;
                 case OutputLocation.b_ITEMS:
-                    return true;
                 case OutputLocation.b_LOOT_TABLES:
-                    return true;
                 case OutputLocation.b_RECIPES:
-                    return true;
                 case OutputLocation.b_SCRIPTS_CLIENT:
-                    return true;
                 case OutputLocation.b_SCRIPTS_SERVER:
-                    return true;
                 case OutputLocation.b_SCRIPTS_GAMETESTS:
-                    return true;
                 case OutputLocation.b_SPAWN_RULES:
-                    return true;
                 case OutputLocation.b_TEXTS:
-                    return true;
                 case OutputLocation.b_TRADING:
-                    return true;
                 case OutputLocation.b_STRUCTURES:
                     return true;
                 case OutputLocation.r_ROOT:

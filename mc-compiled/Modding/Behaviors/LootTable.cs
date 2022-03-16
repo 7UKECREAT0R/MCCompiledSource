@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mc_compiled.Modding
+namespace mc_compiled.Modding.Behaviors
 {
     /// <summary>
     /// Represents a loot table.
@@ -32,6 +32,13 @@ namespace mc_compiled.Modding
         public string CommandPath
         {
             get => Path.Combine(GetExtendedDirectory(), GetOutputFile());
+        }
+        /// <summary>
+        /// Get the path used in JSON to reference this loot table.
+        /// </summary>
+        public string ResourcePath
+        {
+            get => Path.Combine("loot_tables", GetExtendedDirectory(), GetOutputFile());
         }
         public byte[] GetOutputData()
         {

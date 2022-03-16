@@ -210,8 +210,9 @@ namespace mc_compiled.MCC.Compiler
             new Directive(DirectiveImplementations.damage, "damage", "Damage Selected Entity",
                 new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifierEnum>().Optional<TokenSelectorLiteral>()),
 
-            new Directive(DirectiveImplementations.function, "function", "Define Function",
-                new TypePattern()),
+            new Directive(DirectiveImplementations.intent, "intent", "Allow Intent",
+                new TypePattern(typeof(TokenIdentifier))),
+            new Directive(DirectiveImplementations.function, "function", "Define Function"),
             new Directive(DirectiveImplementations.@return, "return", "Set Return Value",
                 new TypePattern(typeof(TokenIdentifierValue)),
                 new TypePattern(typeof(TokenLiteral))),

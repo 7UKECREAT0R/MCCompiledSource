@@ -450,6 +450,9 @@ namespace mc_compiled.MCC.Compiler
                 // check for unreachable code due to halt directive
                 CheckUnreachable(statement);
 
+                if(Program.DEBUG)
+                    Console.WriteLine("COMPILE LN{0}: {1}", statement.Line, statement.ToString());
+
                 if (popSelectorsAfterNext >= 0)
                 {
                     popSelectorsAfterNext--;

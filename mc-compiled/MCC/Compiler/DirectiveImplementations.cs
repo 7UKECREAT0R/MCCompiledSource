@@ -2135,6 +2135,29 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommand(command);
         }
 
+        public static void intent(Executor executor, Statement tokens)
+        {
+            string intentStr = tokens.Next<TokenIdentifier>().word;
+            Intent intent = Intent.NO_INTENTS;
+
+            switch (intentStr.ToUpper())
+            {
+                case "NULLS":
+                    intent = Intent.NULLS;
+                    break;
+                case "WORKROOM":
+                    intent = Intent.WORKROOM;
+                    break;
+                default:
+                    break;
+            }
+
+            if (intent == Intent.NO_INTENTS)
+                throw new StatementException(tokens, "No valid intent specified.");
+
+            executor.project.GiveIntent(intent);
+            Console.WriteLine("Intent enabled: {0}", intent);
+        }
         public static void function(Executor executor, Statement tokens)
         {
             // attribute definitions

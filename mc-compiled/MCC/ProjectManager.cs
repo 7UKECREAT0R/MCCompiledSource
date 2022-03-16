@@ -18,6 +18,7 @@ namespace mc_compiled.MCC
 
         readonly OutputRegistry registry;
         readonly List<IAddonFile> files;
+        private uint intents;
 
         /// <summary>
         /// Create a new ProjectManager with default description.
@@ -30,6 +31,7 @@ namespace mc_compiled.MCC
             this.name = name;
             registry = new OutputRegistry(bpBase, rpBase);
             files = new List<IAddonFile>();
+            intents = 0;
         }
         internal void AddFile(IAddonFile file) =>
             files.Add(file);
@@ -69,6 +71,19 @@ namespace mc_compiled.MCC
             string output = Path.Combine(folder, file.GetOutputFile());
             File.WriteAllBytes(output, file.GetOutputData());
         }
+
+        /// <summary>
+        /// Allow this project an intent.
+        /// </summary>
+        /// <param name="intent"></param>
+        internal void GiveIntent(Intent intent) =>
+            intents |= (uint)intent;
+        /// <summary>
+        /// Check if this project has an intent.
+        /// </summary>
+        /// <param name="intent"></param>
+        internal bool HasIntent(Intent intent) =>
+            (intents &= (uint)intent) != 0;
     }
     /// <summary>
     /// Generates and holds a "registry" for directing file outputs.
@@ -129,5 +144,12 @@ namespace mc_compiled.MCC
         }
         internal string this[OutputLocation location] =>
             registry[location];
+    }
+    internal enum Intent : uint
+    {
+        NO_INTENTS = 0,     // No intents.
+
+        NULLS = 1 << 0,     // Permission to create nulls.
+        WORKROOM = 1 << 1   // Permission to use the 0, 0 chunk and ticking area.
     }
 }

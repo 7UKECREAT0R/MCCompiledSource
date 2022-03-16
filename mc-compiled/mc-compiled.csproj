@@ -75,9 +75,15 @@
     <Compile Include="MCC\Compiler\Legacy\LegacyValueManager.cs" />
     <Compile Include="MCC\Scoreboard.cs" />
     <Compile Include="MCC\StructDefinition.cs" />
+    <Compile Include="Modding\Behaviors\EntityBehavior.cs" />
+    <Compile Include="Modding\Behaviors\EntityComponent.cs" />
+    <Compile Include="Modding\Behaviors\Lists\EntityComponents.cs" />
+    <Compile Include="Modding\Behaviors\Lists\EntityProperties.cs" />
+    <Compile Include="Modding\FormatVersion.cs" />
     <Compile Include="Modding\IAddonFile.cs" />
-    <Compile Include="Modding\LootTable.cs" />
+    <Compile Include="Modding\Behaviors\LootTable.cs" />
     <Compile Include="Modding\Manifest.cs" />
+    <Compile Include="Modding\Offsets.cs" />
     <Compile Include="Modding\StructureFile.cs" />
     <Compile Include="Commands\BlockCheck.cs" />
     <Compile Include="Commands\Selectors\Area.cs" />
