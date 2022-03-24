@@ -33,12 +33,21 @@ namespace mc_compiled.Modding
         public FormatVersion(string version)
         {
             string[] parts = version.Split('.');
-            if (parts.Length < 3)
+
+            if (parts.Length < 2)
                 throw new Exception("Format version was missing information.");
 
-            release = int.Parse(parts[0]);
-            major = int.Parse(parts[1]);
-            minor = int.Parse(parts[2]);
+            if (parts.Length == 2)
+            {
+                release = int.Parse(parts[0]);
+                major = int.Parse(parts[1]);
+                minor = null;
+            } else
+            {
+                release = int.Parse(parts[0]);
+                major = int.Parse(parts[1]);
+                minor = int.Parse(parts[2]);
+            }
         }
         public override string ToString()
         {

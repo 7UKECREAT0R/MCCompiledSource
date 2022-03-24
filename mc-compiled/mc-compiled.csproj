@@ -77,12 +77,14 @@
     <Compile Include="MCC\StructDefinition.cs" />
     <Compile Include="Modding\Behaviors\EntityBehavior.cs" />
     <Compile Include="Modding\Behaviors\EntityComponent.cs" />
+    <Compile Include="Modding\Behaviors\EntityComponentGroup.cs" />
     <Compile Include="Modding\Behaviors\EventSubject.cs" />
     <Compile Include="Modding\Behaviors\Filter.cs" />
     <Compile Include="Modding\Behaviors\FilterCollection.cs" />
     <Compile Include="Modding\Behaviors\Lists\EntityComponents.cs" />
     <Compile Include="Modding\Behaviors\Lists\EntityFilters.cs" />
     <Compile Include="Modding\Behaviors\Lists\EntityProperties.cs" />
+    <Compile Include="Modding\Behaviors\MolangValue.cs" />
     <Compile Include="Modding\FormatVersion.cs" />
     <Compile Include="Modding\IAddonFile.cs" />
     <Compile Include="Modding\Behaviors\LootTable.cs" />

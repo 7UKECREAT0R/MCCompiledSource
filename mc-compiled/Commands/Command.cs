@@ -749,6 +749,7 @@ namespace mc_compiled.Commands
     public enum DamageCause
     {
         all,
+        fatal,
         anvil,
         block_explosion,
         charging,
