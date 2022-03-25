@@ -75,9 +75,11 @@
     <Compile Include="MCC\Compiler\Legacy\LegacyValueManager.cs" />
     <Compile Include="MCC\Scoreboard.cs" />
     <Compile Include="MCC\StructDefinition.cs" />
+    <Compile Include="Modding\Behaviors\AnimationController.cs" />
     <Compile Include="Modding\Behaviors\EntityBehavior.cs" />
     <Compile Include="Modding\Behaviors\EntityComponent.cs" />
     <Compile Include="Modding\Behaviors\EntityComponentGroup.cs" />
+    <Compile Include="Modding\Behaviors\EntityDescription.cs" />
     <Compile Include="Modding\Behaviors\EventSubject.cs" />
     <Compile Include="Modding\Behaviors\Filter.cs" />
     <Compile Include="Modding\Behaviors\FilterCollection.cs" />

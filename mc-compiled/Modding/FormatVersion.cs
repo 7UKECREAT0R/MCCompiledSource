@@ -10,13 +10,13 @@ namespace mc_compiled.Modding
     {
         // https://wiki.bedrock.dev/guide/format-version.html#format-versions-per-asset-type
         public static readonly FormatVersion r_ENTITY = new FormatVersion(1, 10, 0);
-        public static readonly FormatVersion r_ANIMATION_CONTROLLER = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion r_ANIMATION = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion r_ATTACHABLE = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion r_MODEL = new FormatVersion(1, 8, 0);
         public static readonly FormatVersion r_PARTICLE = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion r_RENDER_CONTROLLER = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion r_PARTICLES = new FormatVersion(1, 10, 0);
+        public static readonly FormatVersion b_ANIMATION_CONTROLLER = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion b_ENTITY = new FormatVersion(1, 16, 0);
         public static readonly FormatVersion b_ITEM = new FormatVersion(1, 10);
         public static readonly FormatVersion b_RECIPE = new FormatVersion(1, 16);
@@ -49,6 +49,11 @@ namespace mc_compiled.Modding
                 minor = int.Parse(parts[2]);
             }
         }
+
+        /// <summary>
+        /// Convert this format version to a proper string.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             if (minor.HasValue)

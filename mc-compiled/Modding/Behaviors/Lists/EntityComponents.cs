@@ -357,9 +357,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             public string babyType;
             public string mateType;
-            public string breedEventToCall;
+            public EntityEventHandler? breedEventToCall;
 
-            public BreedEntity(string babyType, string mateType, string breedEventToCall)
+            public BreedEntity(string babyType, string mateType, EntityEventHandler breedEventToCall)
             {
                 this.babyType = babyType;
                 this.mateType = mateType;
@@ -372,8 +372,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     ["baby_type"] = babyType,
                     ["mate_type"] = mateType
                 };
-                if (breedEventToCall != null)
-                    json["breed_event"] = breedEventToCall;
+
+                if (breedEventToCall.HasValue)
+                    json["breed_event"] = breedEventToCall.Value.ToJSON();
 
                 return json;
             }
