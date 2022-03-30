@@ -1,0 +1,444 @@
+{
+  "preprocessor_variables": [
+    "compilerversion",
+    "minecraftversion",
+    "_true",
+    "_false"
+  ],
+  "mappings": {
+    ".": "Token",
+    "*": "TokenLiteral",
+    "id": "TokenIdentifier",
+    "object": "IObjectable",
+    "compare": "TokenCompare",
+    "int": "TokenIntegerLiteral",
+    "number": "TokenNumberLiteral",
+    "string": "TokenStringLiteral",
+    "selector": "TokenSelectorLiteral",
+    "value": "TokenIdentifierValue",
+    "pos": "TokenCoordinateLiteral",
+    "enum": "TokenIdentifierEnum"
+  },
+  "directives": {
+    "$var": {
+      "description": "Set Preprocessor Variable",
+      "function": "_var",
+      "patterns": [
+        [ "id:variable", "object:values" ]
+      ]
+    },
+    "$inc": {
+      "description": "Increment Preprocessor Variable",
+      "function": "_inc",
+      "patterns": [
+        [ "id:variable" ]
+      ]
+    },
+    "$dec": {
+      "description": "Decrement Preprocessor Variable",
+      "function": "_dec",
+      "patterns": [
+        [ "id:variable" ]
+      ]
+    },
+    "$add": {
+      "description": "Add to Preprocessor Variable",
+      "function": "_add",
+      "patterns": [
+        [ "id:variable", "object:values" ]
+      ]
+    },
+    "$sub": {
+      "description": "Subtract from Preprocessor Variable",
+      "function": "_sub",
+      "patterns": [
+        [ "id:variable", "object:values" ]
+      ]
+    },
+    "$mul": {
+      "description": "Multiply with Preprocessor Variable",
+      "function": "_mul",
+      "patterns": [
+        [ "id:variable", "object:values" ]
+      ]
+    },
+    "$div": {
+      "description": "Divide Preprocessor Variable",
+      "function": "_div",
+      "patterns": [
+        [ "id:variable", "object:values" ]
+      ]
+    },
+    "$mod": {
+      "description": "Modulo Preprocessor Variable",
+      "function": "_mod",
+      "patterns": [
+        [ "id:variable", "object:values" ]
+      ]
+    },
+    "$pow": {
+      "description": "Exponentiate Preprocessor Variable",
+      "function": "_pow",
+      "patterns": [
+        [ "id:variable", "object:values" ]
+      ]
+    },
+    "$swap": {
+      "description": "Swap Preprocessor Variables",
+      "function": "_swap",
+      "patterns": [
+        [ "id:a", "id:b" ]
+      ]
+    },
+    "$if": {
+      "description": "Preprocessor If",
+      "function": "_if",
+      "patterns": [
+        [ "id:a", "compare:comparison", "object:b" ]
+      ]
+    },
+    "$else": {
+      "description": "Preprocessor Else",
+      "function": "_else"
+    },
+    "$repeat": {
+      "description": "Preprocessor Repeat",
+      "function": "_repeat",
+      "patterns": [
+        [ "int:amount", "?id:indicator" ]
+      ]
+    },
+    "$log": {
+      "description": "Log to Console",
+      "function": "_log",
+      "patterns": [
+        [ "string:message" ]
+      ]
+    },
+    "$macro": {
+      "description": "Define/Call Macro",
+      "function": "_macro",
+      "patterns": [
+        [ "id:name" ]
+      ],
+      "attributes": [ "DONT_EXPAND_PPV" ]
+    },
+    "$include": {
+      "description": "Include File",
+      "function": "_include",
+      "patterns": [
+        [ "string:file" ]
+      ]
+    },
+    "$strfriendly": {
+      "description": "Preprocessor String Friendly Name",
+      "function": "_strfriendly",
+      "patterns": [
+        [ "id:variable", "id:result" ]
+      ]
+    },
+    "$strupper": {
+      "description": "Preprocessor String Uppercase",
+      "function": "_strupper",
+      "patterns": [
+        [ "id:variable", "id:result" ]
+      ]
+    },
+    "$strlower": {
+      "description": "Preprocessor String Lowercase",
+      "function": "_strlower",
+      "patterns": [
+        [ "id:variable", "id:result" ]
+      ]
+    },
+    "$sum": {
+      "description": "Preprocessor Array Sum",
+      "function": "_sum",
+      "patterns": [
+        [ "id:variable", "id:result" ]
+      ]
+    },
+    "$median": {
+      "description": "Preprocessor Array Median",
+      "function": "_median",
+      "patterns": [
+        [ "id:variable", "id:result" ]
+      ]
+    },
+    "$mean": {
+      "description": "Preprocessor Array Mean",
+      "function": "_mean",
+      "patterns": [
+        [ "id:variable", "id:result" ]
+      ]
+    },
+    "$iterate": {
+      "description": "Iterate Preprocessor Array",
+      "function": "_iterate",
+      "patterns": [
+        [ "id:variable", "id:current" ]
+      ]
+    },
+    "$get": {
+      "description": "Preprocessor Get at Index",
+      "function": "_get",
+      "patterns": [
+        [ "id:variable", "int:index", "id:result" ]
+      ]
+    },
+    "$len": {
+      "description": "Preprocessor Array Length",
+      "function": "_len",
+      "patterns": [
+        [ "id:variable", "id:result" ]
+      ]
+    },
+    "$json": {
+      "description": "Preprocessor Load JSON Value",
+      "function": "_json",
+      "patterns": [
+        [ "string:", "id", "string" ]
+      ]
+    },
+    "mc": {
+      "description": "Minecraft Command",
+      "patterns": [
+        [ "string:command" ]
+      ]
+    },
+    "select": {
+      "description": "Select Entity",
+      "patterns": [
+        [ "selector:entity" ],
+        [ "string:name" ]
+      ]
+    },
+    "globalprint": {
+      "description": "Print to All Players",
+      "patterns": [
+        [ "string:text" ]
+      ]
+    },
+    "print": {
+      "description": "Print to Selected Entity",
+      "patterns": [
+        [ "string:text" ]
+      ]
+    },
+    "define": {
+      "description": "Define Variable",
+      "patterns": [
+        [ "string:name" ],
+        [ "id:type", "string:name" ],
+        [ "id:type", "int:precision", "string:name" ]
+      ]
+    },
+    "init": {
+      "description": "Initialize Variable",
+      "patterns": [
+        [ "value:variable" ],
+        [ "string:variable name" ]
+      ]
+    },
+    "if": {
+      "description": "If Statement",
+      "function": "@if",
+      "patterns": [
+        [ "value:boolean" ],
+        [ "value:variable", "compare:comparison", ".:other" ],
+        [ "id:not", "value:boolean" ],
+        [ "id:not", "value:variable", "compare:comparison", ".:other" ],
+        [ "id", "pos", "pos", "pos", "string", "?int" ],
+        [ "id", "pos", "pos", "pos", "int", "?int" ],
+        [ "id", "pos", "pos", "pos", "int", "int", "int" ],
+        [ "id", "string" ],
+        [ "id", "enum" ],
+        [ "id", "int", "?int" ],
+        [ "id", "id", "pos" ],
+        [ "id", "id", "pos", "pos", "pos", "string", "?int" ],
+        [ "id", "id", "pos", "pos", "pos", "int", "?int" ],
+        [ "id", "id", "pos", "pos", "pos", "int", "int", "int" ],
+        [ "id", "id", "string" ],
+        [ "id", "id", "enum" ],
+        [ "id", "id", "int", "?int" ],
+        [ "id", "pos", "pos", "pos" ]
+      ]
+    },
+    "else": {
+      "description": "Else Statement",
+      "function": "@else"
+    },
+    "give": {
+      "description": "Give Item to Selected",
+      "patterns": [
+        [ "string:item", "?int:amount", "?int:data" ]
+      ]
+    },
+    "tp": {
+      "description": "Teleport Selected Entity",
+      "patterns": [
+        [ "pos:x", "pos:y", "pos:z" ],
+        [ "selector:other" ],
+        [ "string:other" ]
+      ]
+    },
+    "tphere": {
+      "description": "Teleport Entity to Selected",
+      "patterns": [
+        [ "selector:entity", "?pos:offset x", "?pos:offset y", "?pos:offset z" ],
+        [ "string:entity", "?pos:offset x", "?pos:offset y", "?pos:offset z" ]
+      ]
+    },
+    "move": {
+      "description": "Move Selected Entity",
+      "patterns": [
+        [ "id:direction", "number:amount" ]
+      ]
+    },
+    "face": {
+      "description": "Face Selected Towards...",
+      "patterns": [
+        [ "pos:x", "pos:y", "pos:z" ],
+        [ "selector:other" ],
+        [ "string:other" ]
+      ]
+    },
+    "facehere": {
+      "description": "Face Entity Towards Selected",
+      "patterns": [
+        [ "selector:source" ],
+        [ "string:source" ]
+      ]
+    },
+    "rotate": {
+      "description": "Rotate Selected Entity",
+      "patterns": [
+        [ "int:y", "int:x" ]
+      ]
+    },
+    "block": {
+      "description": "Place Block",
+      "patterns": [
+        [ "id:replace mode", "string:block", "pos:x", "pos:y", "pos:z", "?int:data" ],
+        [ "string:block", "pos:x", "pos:y", "pos:z", "?int:data" ]
+      ]
+    },
+    "fill": {
+      "description": "Fill Region",
+      "patterns": [
+        [ "id:fill mode", "string:block", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2" ],
+        [ "string:block", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2" ]
+      ]
+    },
+    "scatter": {
+      "description": "Scatter Blocks in Region",
+      "patterns": [
+        [ "string:block", "int:percent", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2", "?string:seed" ]
+      ]
+    },
+    "replace": {
+      "description": "Replace in Region",
+      "patterns": [
+        [ "string:source block", "?int:data", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2", "string:result block", "?int:data" ]
+      ]
+    },
+    "kill": {
+      "description": "Kill Selected Entity",
+      "patterns": [
+        [ "?selector:other" ],
+        [ "?string:other" ]
+      ]
+    },
+    "remove": {
+      "description": "Remove Selected Entity",
+      "patterns": [
+        [ "?selector:other" ],
+        [ "?string:other" ]
+      ]
+    },
+    "globaltitle": {
+      "description": "Show Title to All Players",
+      "patterns": [
+        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
+        [ "id:subtitle", "string:text" ],
+        [ "string:text" ]
+      ]
+    },
+    "title": {
+      "description": "Show Title to Selected Entity",
+      "patterns": [
+        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
+        [ "id:subtitle", "string:text" ],
+        [ "string:text" ]
+      ]
+    },
+    "globalactionbar": {
+      "description": "Show Actionbar to All Players",
+      "patterns": [
+        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
+        [ "string:text" ]
+      ]
+    },
+    "actionbar": {
+      "description": "Show Actionbar to Selected Entity",
+      "patterns": [
+        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
+        [ "string:text" ]
+      ]
+    },
+    "say": {
+      "description": "Say as Selected Entity",
+      "patterns": [
+        [ "string:message" ]
+      ]
+    },
+    "halt": {
+      "description": "Halt Execution"
+    },
+    "damage": {
+      "description": "Damage Selected Entity",
+      "patterns": [
+        [ "int:amount", "?enum:damage cause" ],
+        [ "int:amount", "?enum:damage cause", "selector:blame" ],
+        [ "int:amount", "?enum:damage cause", "string:blame" ],
+        [ "int:amount", "?enum:damage cause", "pos:from x", "pos:from y", "pos: from z" ]
+      ]
+    },
+    "null": {
+      "description": "Create/Remove Null Entity",
+      "function": "@null",
+      "patterns": [
+        [ "id:create", "string:name", "pos:x", "pos:y", "pos:x", "?pos:rotation y", "?pos:rotation x" ],
+        [ "id:remove", "string:name" ],
+        [ "id:removeall" ]
+      ]
+    },
+    "intent": {
+      "description": "Grant Intent",
+      "patterns": [
+        [ "id:intent" ]
+      ]
+    },
+    "function": {
+      "description": "Define Function",
+      "patterns": [
+        [ "id:name" ]
+      ]
+    },
+    "return": {
+      "description": "Set Return Value",
+      "function": "@return",
+      "patterns": [
+        [ "value:any" ],
+        [ "*:any" ]
+      ]
+    },
+    "struct": {
+      "description": "Define Struct",
+      "function": "@struct",
+      "patterns": [
+        [ "id:name" ]
+      ]
+    }
+  }
+}

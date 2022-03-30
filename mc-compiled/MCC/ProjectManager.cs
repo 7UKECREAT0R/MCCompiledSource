@@ -13,6 +13,22 @@ namespace mc_compiled.MCC
     /// </summary>
     internal class ProjectManager
     {
+        /// <summary>
+        /// An identifier used in this project's entities/assets.
+        /// </summary>
+        public string Identifier
+        {
+            get => name.ToLower().Replace(' ', '_').Trim();
+        }
+        /// <summary>
+        /// Namespace an identifier for this project.
+        /// <code>this.Identifier + ':' + name</code>
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string Namespace(string name) =>
+            Identifier + ':' + name;
+
         internal readonly string name;
         internal string description = "Change Me!";
 
@@ -150,6 +166,7 @@ namespace mc_compiled.MCC
         NO_INTENTS = 0,     // No intents.
 
         NULLS = 1 << 0,     // Permission to create nulls.
-        WORKROOM = 1 << 1   // Permission to use the 0, 0 chunk and ticking area.
+        WORKROOM = 1 << 1,  // Permission to use the 0, 0 chunk and ticking area.
+        GAMETEST = 1 << 2,  // Permission to use GameTest Framework.
     }
 }

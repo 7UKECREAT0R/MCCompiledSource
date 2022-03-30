@@ -56,8 +56,10 @@
     <Compile Include="MCC\Compiler\CommandFile.cs" />
     <Compile Include="MCC\Compiler\DirectiveImplementations.cs" />
     <Compile Include="MCC\Compiler\Directives.cs" />
+    <Compile Include="MCC\Compiler\EntityManager.cs" />
     <Compile Include="MCC\Compiler\Executor.cs" />
     <Compile Include="MCC\Compiler\Statements.cs" />
+    <Compile Include="MCC\NullManager.cs" />
     <Compile Include="MCC\ProjectManager.cs" />
     <Compile Include="MCC\Function.cs" />
     <Compile Include="MCC\Macro.cs" />
@@ -80,6 +82,7 @@
     <Compile Include="Modding\Behaviors\EntityComponent.cs" />
     <Compile Include="Modding\Behaviors\EntityComponentGroup.cs" />
     <Compile Include="Modding\Behaviors\EntityDescription.cs" />
+    <Compile Include="Modding\Behaviors\EntityEvents.cs" />
     <Compile Include="Modding\Behaviors\EventSubject.cs" />
     <Compile Include="Modding\Behaviors\Filter.cs" />
     <Compile Include="Modding\Behaviors\FilterCollection.cs" />
@@ -156,8 +159,18 @@
       <Link>.editorconfig</Link>
     </None>
     <None Include="App.config" />
+    <None Include="language.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="definitions.def">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="notepadplusplus_language.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

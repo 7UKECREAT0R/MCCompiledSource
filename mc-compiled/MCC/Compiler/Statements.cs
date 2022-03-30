@@ -217,12 +217,12 @@ namespace mc_compiled.MCC.Compiler
                         commands.AddRange(value.value.CommandsFromOperation(selector, temp, value.Accessor, temp.baseName, op));
                     }
 
-                    executor.AddCommands(commands, "math_op");
+                    executor.AddCommands(commands, "mathoperation");
                     executor.scoreboard.ReleaseTemp();
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral
-                        (value.Accessor, selector, next), "set_op");
+                        (value.Accessor, selector, next), "setoperation");
             }
             else
                 throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");

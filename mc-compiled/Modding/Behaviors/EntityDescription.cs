@@ -9,23 +9,35 @@ namespace mc_compiled.Modding.Behaviors
 {
     public struct EntityDescription
     {
-        public struct Animation
-        {
-
-        }
-
         public readonly string identifier;
         public readonly bool isSummonable;
         public readonly bool isSpawnable;
         public readonly bool isExperimental;
+        public string runtimeIdentifier;
 
-        public EntityDescription(string identifier, bool isSummonable = true,
-            bool isSpawnable = false, bool isExperimental = false)
+        public EntityDescription(string identifier, bool isSummonable = true, bool isSpawnable = false,
+            bool isExperimental = false, string runtimeIdentifier = null)
         {
             this.identifier = identifier;
             this.isSummonable = isSummonable;
             this.isSpawnable = isSpawnable;
             this.isExperimental = isExperimental;
+            this.runtimeIdentifier = runtimeIdentifier;
+        }
+        public JObject ToJSON()
+        {
+            JObject json = new JObject()
+            {
+                ["identifier"] = identifier,
+                ["is_spawnable"] = isSpawnable,
+                ["is_summonable"] = isSpawnable,
+                ["is_experimental"] = isExperimental
+            };
+
+            if (runtimeIdentifier != null)
+                json["runtime_identifier"] = runtimeIdentifier;
+
+            return json;
         }
         /// <summary>
         /// Get the entity name without namespace.

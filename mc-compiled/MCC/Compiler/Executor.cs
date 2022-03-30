@@ -20,10 +20,11 @@ namespace mc_compiled.MCC.Compiler
         public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]{1,16})})|({(@[psea](\\[.+\\])?)})";
         public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
-        public const float MCC_VERSION = 1.0f;              // compilerversion
+        public const float MCC_VERSION = 1.02f;              // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx"; // mcversion
         public const string MCC_GENERATED_FOLDER = "_mcc"; // folder that generated functions go into
 
+        internal readonly EntityManager entities;
         internal readonly ProjectManager project;
         public string lastStatementSource;
 
@@ -161,6 +162,19 @@ namespace mc_compiled.MCC.Compiler
         }
         public void UnreachableCode() =>
             unreachableCode = 1;
+        /// <summary>
+        /// Throw a StatementException if an intent is not given.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="intent"></param>
+        internal void RequireIntent(Statement source, Intent intent)
+        {
+            if (project.HasIntent(intent))
+                return;
+
+            string name = intent.ToString();
+            throw new StatementException(source, $"Intent not allowed: {name}. Add 'intent {name.ToLower()}' to the top of the file to grant permission.");
+        }
         void CheckUnreachable(Statement current)
         {
             if (unreachableCode > 0)
@@ -249,7 +263,9 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Get the active selector.
+        /// Get or set the active selector.
+        /// Get peeks the stack.
+        /// Set pushes then pops a new selector to the stack.
         /// </summary>
         public Selector ActiveSelector
         {
@@ -328,8 +344,10 @@ namespace mc_compiled.MCC.Compiler
             unreachableCode = -1;
             selections.Pop();
         }
-
-
+        
+        /// <summary>
+        /// The number of statements which will run before a selector is automatically popped.
+        /// </summary>
         int popSelectorsAfterNext = 0;
         /// <summary>
         /// Schedules a selector pop after the next statement is run.
@@ -402,6 +420,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.statements = statements;
             this.project = new ProjectManager(projectName, bpBase, rpBase);
+            this.entities = new EntityManager(this);
 
             definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic[]>();
@@ -423,12 +442,15 @@ namespace mc_compiled.MCC.Compiler
             SetCompilerPPVs();
             currentFiles.Push(new CommandFile(projectName));
         }
+        /// <summary>
+        /// Setup the default preprocessor variables.
+        /// </summary>
         void SetCompilerPPVs()
         {
             ppv["minecraftversion"] = new dynamic[] { MINECRAFT_VERSION };
             ppv["compilerversion"] = new dynamic[] { MCC_VERSION };
-            ppv["_true"] = new dynamic[] { "True" };
-            ppv["_false"] = new dynamic[] { "False" };
+            ppv["_true"] = new dynamic[] { "true" };
+            ppv["_false"] = new dynamic[] { "false" };
         }
         /// <summary>
         /// Run this executor start to finish.

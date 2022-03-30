@@ -14,6 +14,10 @@ namespace mc_compiled.Modding.Behaviors
         {
             this.name = name;
         }
+        public EntityComponentGroup(string name, params EntityComponent[] initial) : base(initial)
+        {
+            this.name = name;
+        }
 
         public JProperty ToJSON()
         {

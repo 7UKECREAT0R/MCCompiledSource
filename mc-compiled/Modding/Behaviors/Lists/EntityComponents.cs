@@ -66,7 +66,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if (feedItems != null)
                 json["feed_items"] = new JArray(feedItems);
             if (growUpEvent.HasValue)
-                json["grow_up"] = growUpEvent.Value.ToJSON();
+                json["grow_up"] = growUpEvent.Value.ToComponentJSON();
 
             return json;
         }
@@ -177,7 +177,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 json["attack_cooldown_time"] = primaryCooldownTime;
 
             if (onCooldownComplete.HasValue)
-                json["attack_cooldown_complete_event"] = onCooldownComplete.Value.ToJSON();
+                json["attack_cooldown_complete_event"] = onCooldownComplete.Value.ToComponentJSON();
 
             return json;
         }
@@ -374,7 +374,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 };
 
                 if (breedEventToCall.HasValue)
-                    json["breed_event"] = breedEventToCall.Value.ToJSON();
+                    json["breed_event"] = breedEventToCall.Value.ToComponentJSON();
 
                 return json;
             }
@@ -775,11 +775,11 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (driedOutEvent.HasValue)
-                json["dried_out_event"] = driedOutEvent.Value.ToJSON();
+                json["dried_out_event"] = driedOutEvent.Value.ToComponentJSON();
             if (recoverEvent.HasValue)
-                json["recover_after_dried_out_event"] = recoverEvent.Value.ToJSON();
+                json["recover_after_dried_out_event"] = recoverEvent.Value.ToComponentJSON();
             if (stoppedDryingEvent.HasValue)
-                json["stopped_drying_out_event"] = stoppedDryingEvent.Value.ToJSON();
+                json["stopped_drying_out_event"] = stoppedDryingEvent.Value.ToComponentJSON();
 
             return json;
         }
@@ -847,7 +847,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["event"] = eventToFire.ToJSON(),
+                ["event"] = eventToFire.ToComponentJSON(),
                 ["maximum_count"] = maxEntities,
                 ["minimum_count"] = minEntities,
                 ["relative_range"] = relativeRange,
@@ -934,9 +934,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 if (item != null)
                     json["item"] = item;
                 if (onEquipEvent.HasValue)
-                    json["on_equip"] = onEquipEvent.Value.ToJSON();
+                    json["on_equip"] = onEquipEvent.Value.ToComponentJSON();
                 if (onEquipEvent.HasValue)
-                    json["on_unequip"] = onUnequipEvent.Value.ToJSON();
+                    json["on_unequip"] = onUnequipEvent.Value.ToComponentJSON();
 
                 return json;
             }
@@ -1110,7 +1110,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 };
 
                 if (geneBirthEvent.HasValue)
-                    json["birth_event"] = geneBirthEvent.Value.ToJSON();
+                    json["birth_event"] = geneBirthEvent.Value.ToComponentJSON();
 
                 return json;
             }
@@ -1167,7 +1167,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if (acceptedItems != null)
                 json["items"] = new JArray(acceptedItems);
             if (onGiveEvent.HasValue)
-                json["on_give"] = onGiveEvent.Value.ToJSON();
+                json["on_give"] = onGiveEvent.Value.ToComponentJSON();
 
             return json;
         }
@@ -1345,9 +1345,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 json["block"] = block;
 
                 if (enteredBlockEvent.HasValue)
-                    json["entered_block_event"] = enteredBlockEvent.Value.ToJSON();
+                    json["entered_block_event"] = enteredBlockEvent.Value.ToComponentJSON();
                 if (exitedBlockEvent.HasValue)
-                    json["exited_block_event"] = exitedBlockEvent.Value.ToJSON();
+                    json["exited_block_event"] = exitedBlockEvent.Value.ToComponentJSON();
 
                 return json;
             }
@@ -1452,7 +1452,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if (interactText != null)
                 json["interact_text"] = interactText;
             if (onInteractEvent.HasValue)
-                json["on_interact"] = onInteractEvent.Value.ToJSON();
+                json["on_interact"] = onInteractEvent.Value.ToComponentJSON();
             if (particles.HasValue)
                 json["particle_on_start"] = particles.Value.ToJSON();
             if (soundsToPlay != null)
@@ -1552,9 +1552,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (onLeashEvent.HasValue)
-                json["on_leash"] = onLeashEvent.Value.ToJSON();
+                json["on_leash"] = onLeashEvent.Value.ToComponentJSON();
             if (onUnleashEnvent.HasValue)
-                json["on_unleash"] = onUnleashEnvent.Value.ToJSON();
+                json["on_unleash"] = onUnleashEnvent.Value.ToComponentJSON();
 
             return json;
         }
@@ -1764,14 +1764,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     return new JObject()
                     {
                         ["name_filter"] = specialNames[0],
-                        ["on_named"] = onNamedEvent.ToJSON()
+                        ["on_named"] = onNamedEvent.ToComponentJSON()
                     };
                 }
 
                 return new JObject()
                 {
                     ["name_filter"] = new JArray(specialNames),
-                    ["on_named"] = onNamedEvent.ToJSON()
+                    ["on_named"] = onNamedEvent.ToComponentJSON()
                 };
             }
         }
@@ -1792,7 +1792,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (onNamed.HasValue)
-                json["default_trigger"] = onNamed.Value.ToJSON();
+                json["default_trigger"] = onNamed.Value.ToComponentJSON();
             if (specialNames != null)
                 json["name_actions"] = new JArray(specialNames.Select(name => name.ToJSON()));
 
@@ -2207,9 +2207,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["on_close"] = stopPeekingEvent.ToJSON(),
-                ["on_open"] = startPeekingEvent.ToJSON(),
-                ["on_target_open"] = spottedEvent.ToJSON()
+                ["on_close"] = stopPeekingEvent.ToComponentJSON(),
+                ["on_open"] = startPeekingEvent.ToComponentJSON(),
+                ["on_target_open"] = spottedEvent.ToComponentJSON()
             };
         }
     }
@@ -2390,7 +2390,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject();
             if (raidEvent.HasValue)
-                json["triggered_event"] = raidEvent.Value.ToJSON();
+                json["triggered_event"] = raidEvent.Value.ToComponentJSON();
             return json;
         }
     }
@@ -2434,9 +2434,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (onActivateEvent.HasValue)
-                json["on_activate"] = onActivateEvent.Value.ToJSON();
+                json["on_activate"] = onActivateEvent.Value.ToComponentJSON();
             if (onDeactivateEvent.HasValue)
-                json["on_deactivate"] = onDeactivateEvent.Value.ToJSON();
+                json["on_deactivate"] = onDeactivateEvent.Value.ToComponentJSON();
 
             return json;
         }
@@ -2461,7 +2461,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 };
 
                 if (value.HasValue)
-                    json["value"] = value.Value.ToJSON();
+                    json["value"] = value.Value.ToComponentJSON();
 
                 return json;
             }
@@ -2591,7 +2591,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["event"] = call.ToJSON(),
+                    ["event"] = call.ToComponentJSON(),
                     ["filters"] = new JArray(tests.Select(test => test.ToJSON()))
                 };
             }
@@ -2716,9 +2716,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             JObject json = new JObject();
 
             if (sitEvent.HasValue)
-                json["sit_event"] = sitEvent.Value.ToJSON();
+                json["sit_event"] = sitEvent.Value.ToComponentJSON();
             if (standEvent.HasValue)
-                json["stand_event"] = standEvent.Value.ToJSON();
+                json["stand_event"] = standEvent.Value.ToComponentJSON();
 
             return json;
         }
@@ -2764,7 +2764,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 if (requirements != null)
                     json["filters"] = requirements.ToJSON();
                 if (spawnEvent.HasValue)
-                    json["spawn_event"] = spawnEvent.Value.ToJSON();
+                    json["spawn_event"] = spawnEvent.Value.ToComponentJSON();
 
                 return json;
             }
@@ -2797,7 +2797,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (tameEvent.HasValue)
-                json["tame_event"] = tameEvent.Value.ToJSON();
+                json["tame_event"] = tameEvent.Value.ToComponentJSON();
             if (tameItems != null)
                 json["tame_items"] = new JArray(tameItems);
 
@@ -2867,7 +2867,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if (feedItems != null)
                 json["feed_items"] = new JArray(feedItems.Select(item => item.ToJSON()));
             if (tameEvent.HasValue)
-                json["tame_event"] = tameEvent.Value.ToJSON();
+                json["tame_event"] = tameEvent.Value.ToComponentJSON();
             if (feedText != null)
                 json["feed_text"] = feedText;
             if (rideText != null)
@@ -2898,11 +2898,11 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (onInsideRangeEvent.HasValue)
-                json["on_inside_range"] = onInsideRangeEvent.Value.ToJSON();
+                json["on_inside_range"] = onInsideRangeEvent.Value.ToComponentJSON();
             if (onOutsideRangeEvent.HasValue)
-                json["on_outside_range"] = onOutsideRangeEvent.Value.ToJSON();
+                json["on_outside_range"] = onOutsideRangeEvent.Value.ToComponentJSON();
             if (onVisionLostInsideRangeEvent.HasValue)
-                json["on_vision_lost_inside_range"] = onVisionLostInsideRangeEvent.Value.ToJSON();
+                json["on_vision_lost_inside_range"] = onVisionLostInsideRangeEvent.Value.ToComponentJSON();
 
             return json;
         }
@@ -2981,7 +2981,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 ["looping"] = looping,
                 ["randomInterval"] = randomInterval,
-                ["time_down_event"] = call.ToJSON()
+                ["time_down_event"] = call.ToComponentJSON()
             };
 
             if (timeMin == timeMax)
@@ -3138,7 +3138,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             JObject json = new JObject()
             {
                 ["probability"] = probability,
-                ["trust_event"] = trustEvent.ToJSON()
+                ["trust_event"] = trustEvent.ToComponentJSON()
             };
 
             if (trustItems != null)

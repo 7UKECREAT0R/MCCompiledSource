@@ -3,6 +3,7 @@ using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
+using mc_compiled.Modding.Behaviors;
 using mc_compiled.NBT;
 using System;
 using System.Collections.Generic;

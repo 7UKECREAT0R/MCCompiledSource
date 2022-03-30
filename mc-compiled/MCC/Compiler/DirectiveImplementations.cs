@@ -920,6 +920,12 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string name = tokens.Next<TokenStringLiteral>();
+                if(executor.entities.Search(name, out Commands.Selector find))
+                {
+                    executor.ActiveSelector = find;
+                    return;
+                }
+
                 string type = null;
                 if (name.Contains(':'))
                 {
@@ -1611,13 +1617,25 @@ namespace mc_compiled.MCC.Compiler
                 TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.Teleport(selector.selector.ToString()));
             }
+            else if(tokens.NextIs<TokenStringLiteral>())
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+
+                // search for mcc entity reference
+                if (!executor.entities.Search(name, out Selector selector))
+                    throw new StatementException(tokens, $"No entity identified named \"{name}\"");
+                
+                executor.AddCommand(Command.Teleport(selector.ToString()));
+                executor.PopSelector();
+                return;
+            }
             else
             {
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                if (tokens.HasNext && tokens.NextIs<TokenCoordinateLiteral>())
+                if (tokens.NextIs<TokenCoordinateLiteral>())
                 {
                     Coord ry = tokens.Next<TokenCoordinateLiteral>();
                     Coord rx = tokens.Next<TokenCoordinateLiteral>();
@@ -1630,7 +1648,16 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tphere(Executor executor, Statement tokens)
         {
-            Selector selector = tokens.Next<TokenSelectorLiteral>();
+            Selector selector;
+
+            if(tokens.NextIs<TokenSelectorLiteral>())
+                selector = tokens.Next<TokenSelectorLiteral>();
+            else
+            {
+                string search = tokens.Next<TokenStringLiteral>();
+                if (!executor.entities.Search(search, out selector))
+                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
+            }
             Coord offsetX = Coord.here;
             Coord offsetY = Coord.here;
             Coord offsetZ = Coord.here;
@@ -1691,6 +1718,18 @@ namespace mc_compiled.MCC.Compiler
                 TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, selector.ToString()));
             }
+            else if(tokens.NextIs<TokenStringLiteral>())
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+
+                // search for mcc entity reference
+                if (!executor.entities.Search(name, out Selector selector))
+                    throw new StatementException(tokens, $"No entity identified named \"{name}\"");
+
+                executor.AddCommand(Command.Teleport(selector.ToString()));
+                executor.PopSelector();
+                return;
+            }
             else
             {
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
@@ -1703,17 +1742,20 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void facehere(Executor executor, Statement tokens)
         {
-            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+            Selector selector;
+            
+            if(tokens.NextIs<TokenSelectorLiteral>())
+                selector = tokens.Next<TokenSelectorLiteral>();
+            else
+            {
+                string search = tokens.Next<TokenStringLiteral>();
+                if (!executor.entities.Search(search, out selector))
+                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
+            }
+
             List<string> commands = new List<string>();
-
-            // old dookie commands
-            /*commands.AddRange(Command.UTIL.RequestPoint(out Selector point));
-            commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
-                Command.TeleportFacing(Coord.here, Coord.here, Coord.here, point.ToString())));
-            commands.AddRange(Command.UTIL.ReleasePoint());*/
-
             commands.Add(Command.Tag("@s", "_mcc_here"));
-            commands.Add(Command.Execute(selector.selector.ToString(), Coord.here, Coord.here, Coord.here,
+            commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
                 Command.TeleportFacing(Coord.here, Coord.here, Coord.here, "@e[tag=\"_mcc_here\",c=1]")));
             commands.Add(Command.TagRemove("@s", "_mcc_here"));
 
@@ -1882,9 +1924,17 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void kill(Executor executor, Statement tokens)
         {
-            if (tokens.HasNext && tokens.NextIs<TokenSelectorLiteral>())
+            if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 Selector selector = tokens.Next<TokenSelectorLiteral>();
+                executor.AddCommand(Command.Kill(selector.ToString()));
+                return;
+            }
+            else if(tokens.NextIs<TokenStringLiteral>())
+            {
+                string search = tokens.Next<TokenStringLiteral>();
+                if (!executor.entities.Search(search, out Selector selector))
+                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
                 executor.AddCommand(Command.Kill(selector.ToString()));
                 return;
             }
@@ -1893,15 +1943,26 @@ namespace mc_compiled.MCC.Compiler
         public static void remove(Executor executor, Statement tokens)
         {
             CommandFile file = new CommandFile("silent_remove", "_branching");
+
             file.Add(new[] {
                 Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
                 Command.Kill()
             });
+
             executor.DefineSTDFile(file);
 
-            if (tokens.HasNext && tokens.NextIs<TokenSelectorLiteral>())
+            if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 Selector selector = tokens.Next<TokenSelectorLiteral>();
+                executor.AddCommand(Command.Execute(selector.ToString(),
+                    Coord.here, Coord.here, Coord.here, Command.Function(file)));
+                return;
+            }
+            else if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string search = tokens.Next<TokenStringLiteral>();
+                if (!executor.entities.Search(search, out Selector selector))
+                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
                 executor.AddCommand(Command.Execute(selector.ToString(),
                     Coord.here, Coord.here, Coord.here, Command.Function(file)));
                 return;
@@ -2116,10 +2177,41 @@ namespace mc_compiled.MCC.Compiler
                     throw new StatementException(tokens, $"Invalid value given for damage cause: {value.ToString()}");
                 cause = (DamageCause)value;
             }
+
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 TokenSelectorLiteral value = tokens.Next<TokenSelectorLiteral>();
                 blame = value.selector;
+            }
+            else if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string search = tokens.Next<TokenStringLiteral>();
+                if(!executor.entities.Search(search, out blame))
+                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
+            }
+            else if(tokens.NextIs<TokenCoordinateLiteral>())
+            {
+                // spawn null
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+
+                executor.RequireIntent(tokens, Intent.NULLS);
+                const string damagerEntity = "_dmg";
+                List<string> commands = new List<string>();
+               
+                // create null entity at location
+                commands.AddRange(executor.entities.nulls.Create(damagerEntity, x, y, z));
+
+                // hit entity from null entity
+                commands.Add(Command.Damage(executor.ActiveSelectorStr, damage, cause,
+                    executor.entities.nulls.GetStringSelector(damagerEntity)));
+
+                // send kill event to null entity
+                commands.Add(executor.entities.nulls.Destroy(damagerEntity));
+
+                executor.AddCommands(commands.ToArray(), "positioneddamage");
+                return;
             }
 
             string command;
@@ -2134,6 +2226,65 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(command);
         }
+        public static void @null(Executor executor, Statement tokens)
+        {
+            executor.RequireIntent(tokens, Intent.NULLS);
+
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+
+            if (word.Equals("CREATE"))
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+
+                Coord? yRot = null;
+                Coord? xRot = null;
+                if(tokens.NextIs<TokenCoordinateLiteral>())
+                    yRot = tokens.Next<TokenCoordinateLiteral>();
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    xRot = tokens.Next<TokenCoordinateLiteral>();
+
+                string[] commands = executor.entities.nulls.Create(name, x, y, z, yRot, xRot);
+                executor.AddCommands(commands, "createnull");
+                return;
+            }
+            else if (word.Equals("REMOVE"))
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+                int hash = name.GetHashCode();
+
+                if (!executor.entities.nulls.HasEntity(hash))
+                    throw new StatementException(tokens, $"No recognized null named \"{name}\".");
+
+                string command = executor.entities.nulls.Destroy(name);
+                executor.AddCommand(command);
+                return;
+            }
+            else if (word.Equals("SELECT"))
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+                int hash = name.GetHashCode();
+
+                if (!executor.entities.nulls.HasEntity(hash))
+                    throw new StatementException(tokens, $"No recognized null named \"{name}\".");
+
+                Selector selector = executor.entities.nulls.GetSelector(name);
+                executor.ActiveSelector = selector;
+                return;
+
+            }
+            else if (word.Equals("REMOVEALL"))
+            {
+                string selector = executor.entities.nulls.GetAllStringSelector();
+                string command = Command.Execute(selector, Coord.here, Coord.here, Coord.here,
+                    Command.Event("@s", NullManager.destroyEventName));
+                executor.AddCommand(command);
+                return;
+            }
+            else throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, REMOVE, SELECT, REMOVEALL");
+        }
 
         public static void intent(Executor executor, Statement tokens)
         {
@@ -2147,6 +2298,9 @@ namespace mc_compiled.MCC.Compiler
                     break;
                 case "WORKROOM":
                     intent = Intent.WORKROOM;
+                    break;
+                case "GAMETEST":
+                    intent = Intent.GAMETEST;
                     break;
                 default:
                     break;
