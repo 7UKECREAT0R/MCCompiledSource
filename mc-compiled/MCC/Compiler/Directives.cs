@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +29,7 @@ namespace mc_compiled.MCC.Compiler
             index = nextIndex++;
             this.call = call;
             this.identifier = identifier;
-            this.fullName = fullName;
+            this.description = fullName;
             this.patterns = patterns;
         }
         public Directive WithAttribute(DirectiveAttribute attribute)
@@ -54,12 +57,14 @@ namespace mc_compiled.MCC.Compiler
 
         public readonly short index;
         public readonly string identifier;
-        public readonly string fullName;
+        public readonly string description;
         public readonly DirectiveImpl call;
         public readonly TypePattern[] patterns;
         public int attributes;
 
         public override int GetHashCode() => identifier.GetHashCode();
+        public override string ToString() =>
+            $"{identifier} - ptrns: {patterns.Length} - desc: {description}";
     }
     /// <summary>
     /// Attributes used to modify how directive statements behave.
@@ -70,6 +75,8 @@ namespace mc_compiled.MCC.Compiler
     }
     public static class Directives
     {
+        // old hardcoded directives. uses language.json now
+        /*
         public static List<Directive> REGISTRY = new List<Directive>(new[]
         {
             new Directive(DirectiveImplementations._var, "$var", "Set Preprocessor Variable",
@@ -231,13 +238,19 @@ namespace mc_compiled.MCC.Compiler
             new Directive(DirectiveImplementations.@struct, "struct", "Define Struct",
                 new TypePattern(typeof(TokenIdentifier))),
         });
+        */
 
-        static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
+        public static Dictionary<string, DirectiveAttribute> attributeLookup;
         static Directives()
         {
-            foreach (Directive directive in REGISTRY)
-                directiveLookup[directive.DictValue] = directive;
+            attributeLookup = new Dictionary<string, DirectiveAttribute>();
+
+            foreach(object attrib in Enum.GetValues(typeof(DirectiveAttribute)))
+                attributeLookup[attrib.ToString()] = (DirectiveAttribute)attrib;
         }
+
+        public static List<Directive> REGISTRY = new List<Directive>();
+        static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
 
         /// <summary>
         /// Query for a directive that matches this token contents. Case insensitive.
@@ -250,10 +263,158 @@ namespace mc_compiled.MCC.Compiler
                 return directive;
             return null;
         }
+        /// <summary>
+        /// Add a directive to the registry and the lookup dictionary.
+        /// </summary>
+        /// <param name="directive"></param>
         public static void RegisterDirective(Directive directive)
         {
             REGISTRY.Add(directive);
             directiveLookup[directive.DictValue] = directive;
+        }
+
+        const string FILE = "language.json";
+        public static void LoadFromLanguage(bool debug)
+        {
+            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string path = Path.Combine(assemblyDir, FILE);
+            if (!File.Exists(path))
+            {
+                ConsoleColor errprevious = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("WARNING: Missing language.json file at '{0}'. Execution cannot continue.", path);
+                Console.ForegroundColor = errprevious;
+                Console.ReadLine();
+                throw new Exception("missing language.json");
+            }
+
+            if(debug)
+                Console.WriteLine("Parsing language.json...");
+
+            string _json = File.ReadAllText(path);
+            JObject json = JObject.Parse(_json);
+            ReadJSON(json);
+
+            if (debug)
+            {
+                Console.WriteLine("Parsed {0} directives from language.json:", REGISTRY.Count);
+                foreach (Directive directive in REGISTRY)
+                    Console.WriteLine("\t{0}", directive.ToString());
+            }
+        }
+        /// <summary>
+        /// Read all directives from the language.json root object.
+        /// </summary>
+        /// <param name="root"></param>
+        public static void ReadJSON(JObject root)
+        {
+            // read type mappings
+            Dictionary<string, Type> mappings = new Dictionary<string, Type>();
+            var properties = (root["mappings"] as JObject).Properties();
+            foreach (var field in (root["mappings"] as JObject).Properties())
+            {
+                string key = field.Name;
+                Type value = Type.GetType("mc_compiled.MCC.Compiler." + field.Value.ToString(), true, false);
+                mappings[key] = value;
+            }
+
+            Type impls = typeof(DirectiveImplementations);
+
+            // parse directives
+            var allDirectivesJSON = root["directives"] as JObject;
+            foreach(var directiveJSON in allDirectivesJSON)
+            {
+                string identifier = directiveJSON.Key;
+                JObject body = directiveJSON.Value as JObject;
+
+                string description = body["description"].Value<string>();
+
+                string _function = identifier;
+                if (body.ContainsKey("function"))
+                    _function = body["function"].Value<string>();
+
+                // collect all patterns
+                List<TypePattern> patterns = new List<TypePattern>();
+                if(body.ContainsKey("patterns"))
+                {
+                    IEnumerable<JArray> patternsJSON = (body["patterns"] as JArray)
+                        .Select(token => token as JArray);
+
+                    foreach(JArray patternJSON in patternsJSON)
+                    {
+                        string[] args = patternJSON.Select
+                            (jt => jt.Value<string>()).ToArray();
+
+                        TypePattern pattern = new TypePattern();
+
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            string arg = args[i];
+                            int colon = arg.IndexOf(':');
+                            string _type, name;
+
+                            // get argument typename and name
+                            if (colon == -1)
+                            {
+                                name = "arg" + i;
+                                _type = arg;
+                            }
+                            else
+                            {
+                                name = arg.Substring(colon + 1);
+                                _type = arg.Substring(0, colon); 
+                            }
+
+                            // check if optional
+                            bool optional = _type[0] == '?';
+                            if (optional)
+                                _type = _type.Substring(1);
+
+                            // look through mappings for type
+                            Type type = mappings[_type];
+                            if (type == null)
+                                throw new Exception($"Invalid type mapping '{_type}'.");
+
+                            if (optional)
+                                pattern.Optional(type, name);
+                            else
+                                pattern.And(type, name);
+                        }
+
+                        patterns.Add(pattern);
+                    }
+                }
+
+
+                // find call function
+                var info = impls.GetMethod(_function, new[] {
+                    typeof(Executor),
+                    typeof(Statement)
+                });
+
+                // create delegate
+                var function = (Directive.DirectiveImpl)Delegate.CreateDelegate
+                    (typeof(Directive.DirectiveImpl), info);
+
+                // construct directive
+                Directive directive = new Directive(function, identifier, description, patterns.ToArray());
+
+                // attributes, if any
+                if(body.ContainsKey("attributes"))
+                {
+                    JArray array = body["attributes"] as JArray;
+                    IEnumerable<string> strings = array
+                        .Select(jt => jt.Value<string>());
+                    DirectiveAttribute[] attributes = strings
+                        .Select(str => attributeLookup[str])
+                        .ToArray();
+                    directive.WithAttributes(attributes);
+                }
+
+                RegisterDirective(directive);
+            }
+
+            return;
         }
     }
 }

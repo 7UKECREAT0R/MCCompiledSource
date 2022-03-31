@@ -25,7 +25,7 @@ namespace mc_compiled.MCC.Compiler
             if (directive == null)
                 return $"[DIRECTIVE] [PARSING ERROR]";
 
-            return $"[DIRECTIVE] {directive.fullName} -> {string.Join(" ", from t in tokens select t.DebugString())}";
+            return $"[DIRECTIVE] {directive.description} -> {string.Join(" ", from t in tokens select t.DebugString())}";
         }
 
         protected override TypePattern[] GetValidPatterns()

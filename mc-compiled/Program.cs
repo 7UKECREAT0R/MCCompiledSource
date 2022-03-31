@@ -100,6 +100,8 @@ namespace mc_compiled
                 }
             }
 
+            Directives.LoadFromLanguage(debug);
+
             string fileUpper = files[0].ToUpper();
             if (fileUpper.Equals("--JSONBUILDER"))
             {
@@ -263,7 +265,7 @@ namespace mc_compiled
                 if(search)
                     Console.WriteLine($"[daemon] watching directory: {Directory.GetCurrentDirectory()}");
                 else
-                    Console.WriteLine($"[daemon] watching file: {files}");
+                    Console.WriteLine($"[daemon] watching files: {string.Join(", ", files)}");
                 Console.ForegroundColor = ConsoleColor.White;
             }
 

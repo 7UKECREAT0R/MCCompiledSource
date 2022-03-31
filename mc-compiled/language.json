@@ -242,7 +242,6 @@
     },
     "if": {
       "description": "If Statement",
-      "function": "@if",
       "patterns": [
         [ "value:boolean" ],
         [ "value:variable", "compare:comparison", ".:other" ],
@@ -265,8 +264,7 @@
       ]
     },
     "else": {
-      "description": "Else Statement",
-      "function": "@else"
+      "description": "Else Statement"
     },
     "give": {
       "description": "Give Item to Selected",
@@ -406,7 +404,6 @@
     },
     "null": {
       "description": "Create/Remove Null Entity",
-      "function": "@null",
       "patterns": [
         [ "id:create", "string:name", "pos:x", "pos:y", "pos:x", "?pos:rotation y", "?pos:rotation x" ],
         [ "id:remove", "string:name" ],
@@ -427,7 +424,6 @@
     },
     "return": {
       "description": "Set Return Value",
-      "function": "@return",
       "patterns": [
         [ "value:any" ],
         [ "*:any" ]
@@ -435,7 +431,6 @@
     },
     "struct": {
       "description": "Define Struct",
-      "function": "@struct",
       "patterns": [
         [ "id:name" ]
       ]

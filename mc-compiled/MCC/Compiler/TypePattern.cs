@@ -19,9 +19,17 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="initial"></param>
         public TypePattern(params Type[] initial)
         {
-            pattern = initial.Select(type => new MultiType(false, type)).ToList();
+            pattern = initial.Select(type => new MultiType(false, type.Name, type)).ToList();
         }
-        public TypePattern Prepend<A>()
+        /// <summary>
+        /// Construct an empty TypePattern.
+        /// </summary>
+        /// <param name="initial"></param>
+        public TypePattern()
+        {
+            pattern = new List<MultiType>();
+        }
+        /*public TypePattern Prepend<A>()
         {
             pattern.Insert(0, new MultiType(false, typeof(A)));
             return this;
@@ -39,6 +47,16 @@ namespace mc_compiled.MCC.Compiler
         public TypePattern Optional<A>()
         {
             pattern.Add(new MultiType(true, typeof(A)));
+            return this;
+        }*/
+        public TypePattern And(Type type, string argName)
+        {
+            pattern.Add(new MultiType(false, argName, type));
+            return this;
+        }
+        public TypePattern Optional(Type type, string argName)
+        {
+            pattern.Add(new MultiType(true, argName, type));
             return this;
         }
 
@@ -81,15 +99,18 @@ namespace mc_compiled.MCC.Compiler
     }
     /// <summary>
     /// Represents multiple types OR'd together for the TypePattern.
+    /// The OR'ing is currently unused, so only one type should be passed in per MultiType.
     /// </summary>
     public struct MultiType
     {
-        readonly bool optional;
-        readonly Type[] types;
+        internal readonly string argName;
+        internal readonly bool optional;
+        internal readonly Type[] types;
 
-        public MultiType(bool optional, params Type[] types)
+        public MultiType(bool optional, string argName, params Type[] types)
         {
             this.optional = optional;
+            this.argName = argName;
             this.types = types;
         }
 
