@@ -23,7 +23,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             JObject json = new JObject();
             foreach (EntityComponent component in this)
-                json[component.GetIdentifier()] = json[component.GetValue()];
+                json[component.GetIdentifier()] = component.GetValue();
             return new JProperty(name, json);
         }
     }

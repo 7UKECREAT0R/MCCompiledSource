@@ -245,7 +245,7 @@ namespace mc_compiled.Commands
             $"help";
 
         public static string ImmutableWorld(bool immutable) =>
-            $"immutableworld {immutable}";
+            $"immutableworld {immutable.ToString().ToLower()}";
 
         public static string Kick(string target) =>
             $"kick {target}";
@@ -276,9 +276,9 @@ namespace mc_compiled.Commands
             $"me {text}";
 
         public static string MobEvent(MobEventType @event, bool value) =>
-            $"mobevent minecraft:{@event} {value}";
+            $"mobevent minecraft:{@event} {value.ToString().ToLower()}";
         public static string MobEvent(string @event, bool value) =>
-            $"mobevent {@event} {value}";
+            $"mobevent {@event} {value.ToString().ToLower()}";
         public static string MobEvent(MobEventType @event) =>
             $"mobevent minecraft:{@event}";
         public static string MobEvent(string @event) =>
@@ -494,18 +494,18 @@ namespace mc_compiled.Commands
         public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2) =>
             $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} memory";
         public static string StructureSaveDisk(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
-            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} disk {includeBlocks}";
+            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} disk {includeBlocks.ToString().ToLower()}";
         public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
-            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks}";
+            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks.ToString().ToLower()}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
-            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities} {includeBlocks} {integrity}"
-            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities} {includeBlocks} {integrity} {seed}";
+            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity}"
+            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity} {seed}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, StructureAnimationMode animation = StructureAnimationMode.layer_by_layer,
                 float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
-            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity}"
-            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities} {includeBlocks} {integrity} {seed}";
+            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity}"
+            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity} {seed}";
         public static string StructureDelete(string name) =>
             $"structure delete {name}";
 
@@ -514,7 +514,7 @@ namespace mc_compiled.Commands
         public static string Summon(string entity, Coord x, Coord y, Coord z) =>
             $"summon {entity} {x} {y} {z}";
         public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag) =>
-            $"summon {entity} {x} {y} {z} named \"{nameTag}\"";
+            $"summon {entity} \"{nameTag}\" {x} {y} {z}";
 
         public static string Tag(string targets, string tag) =>
             $"tag {targets} add {tag}";
@@ -524,25 +524,25 @@ namespace mc_compiled.Commands
             $"tag {targets} list";
 
         public static string Teleport(string otherEntity, bool checkForBlocks = false) =>
-            $"tp {otherEntity} {checkForBlocks}";
+            $"tp @s {otherEntity} {checkForBlocks.ToString().ToLower()}";
         public static string Teleport(string target, string otherEntity, bool checkForBlocks = false) =>
-            $"tp {target} {otherEntity} {checkForBlocks}";
+            $"tp {target} {otherEntity} {checkForBlocks.ToString().ToLower()}";
         public static string Teleport(Coord x, Coord y, Coord z, bool checkForBlocks = false) =>
-            $"tp {x} {y} {z} {checkForBlocks}";
+            $"tp {x} {y} {z} {checkForBlocks.ToString().ToLower()}";
         public static string Teleport(Coord x, Coord y, Coord z, Coord yRot, Coord xRot, bool checkForBlocks = false) =>
-            $"tp {x} {y} {z} {yRot} {xRot} {checkForBlocks}";
+            $"tp {x} {y} {z} {yRot} {xRot} {checkForBlocks.ToString().ToLower()}";
         public static string Teleport(string target, Coord x, Coord y, Coord z, bool checkForBlocks = false) =>
-            $"tp {target} {x} {y} {z} {checkForBlocks}";
+            $"tp {target} {x} {y} {z} {checkForBlocks.ToString().ToLower()}";
         public static string Teleport(string target, Coord x, Coord y, Coord z, Coord yRot, Coord xRot, bool checkForBlocks = false) =>
-            $"tp {target} {x} {y} {z} {yRot} {xRot} {checkForBlocks}";
+            $"tp {target} {x} {y} {z} {yRot} {xRot} {checkForBlocks.ToString().ToLower()}";
         public static string TeleportFacing(Coord x, Coord y, Coord z, Coord facingX, Coord facingY, Coord facingZ, bool checkForBlocks = false) =>
-            $"tp {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks}";
+            $"tp {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks.ToString().ToLower()}";
         public static string TeleportFacing(Coord x, Coord y, Coord z, string facingEntity, bool checkForBlocks = false) =>
-            $"tp {x} {y} {z} facing {facingEntity} {checkForBlocks}";
+            $"tp {x} {y} {z} facing {facingEntity} {checkForBlocks.ToString().ToLower()}";
         public static string TeleportFacing(string target, Coord x, Coord y, Coord z, Coord facingX, Coord facingY, Coord facingZ, bool checkForBlocks = false) =>
-            $"tp {target} {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks}";
+            $"tp {target} {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks.ToString().ToLower()}";
         public static string TeleportFacing(string target, Coord x, Coord y, Coord z, string facingEntity, bool checkForBlocks = false) =>
-            $"tp {target} {x} {y} {z} facing {facingEntity} {checkForBlocks}";
+            $"tp {target} {x} {y} {z} facing {facingEntity} {checkForBlocks.ToString().ToLower()}";
 
         public static string Tellraw(string jsonMessage) =>
             $"tellraw @a {jsonMessage}";

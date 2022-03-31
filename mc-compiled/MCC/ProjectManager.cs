@@ -51,6 +51,8 @@ namespace mc_compiled.MCC
         }
         internal void AddFile(IAddonFile file) =>
             files.Add(file);
+        internal void AddFiles(IAddonFile[] files) =>
+            this.files.AddRange(files);
         internal void WriteAllFiles()
         {
             // manifests

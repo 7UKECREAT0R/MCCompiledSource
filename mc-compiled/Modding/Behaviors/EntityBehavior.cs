@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Modding.Behaviors.Lists;
+using mc_compiled.Modding.Resources;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -115,58 +116,79 @@ namespace mc_compiled.Modding.Behaviors
         /// Create a null entity that serves to act as points, raycasters, etc...
         /// </summary>
         /// <returns></returns>
-        internal static EntityBehavior CreateNull(string entityID)
+        internal static IAddonFile[] CreateNull(string entityID)
         {
-            return new EntityBehavior()
-            {
-                description = new EntityDescription(entityID),
-                components = new EntityComponent[]
+            string geometryID = "geometry." + entityID.Replace(':', '.');
+            EntityGeometry geometry = new EntityGeometry("null", geometryID);
+
+            return new IAddonFile[] {
+                new EntityBehavior()
                 {
-                    new ComponentCustomHitTest()
+                    description = new EntityDescription(entityID),
+                    components = new EntityComponent[]
                     {
-                        hitboxes = new ComponentCustomHitTest.Hitbox[]
+                        new ComponentNameable()
                         {
-                            new ComponentCustomHitTest.Hitbox(new Offset3(0, 100, 0), 0, 0)
-                        }
-                    },
-                    new ComponentDamageSensor()
-                    {
-                        triggerPool = new ComponentDamageSensor.Trigger[]
+                            allowNametags = true,
+                            alwaysShowName = Program.DEBUG
+                        },
+                        new ComponentCustomHitTest()
                         {
-                            new ComponentDamageSensor.Trigger()
+                            hitboxes = new ComponentCustomHitTest.Hitbox[]
                             {
-                                dealsDamage = false,
-                                cause = Commands.DamageCause.all,
-                                damageModifier = 1,
-                                damageMultiplier = 0
+                                new ComponentCustomHitTest.Hitbox(new Offset3(0, 100, 0), 0, 0)
                             }
+                        },
+                        new ComponentDamageSensor()
+                        {
+                            triggerPool = new ComponentDamageSensor.Trigger[]
+                            {
+                                new ComponentDamageSensor.Trigger()
+                                {
+                                    dealsDamage = false,
+                                    cause = Commands.DamageCause.all,
+                                    damageModifier = 1,
+                                    damageMultiplier = 0
+                                }
+                            }
+                        },
+                        new ComponentPushable()
+                        {
+                            isPushableByEntity = false,
+                            isPushableByPiston = false
+                        },
+                        new ComponentCollisionBox()
+                        {
+                            width = 0.0001f,
+                            height = 0.0001f
+                        },
+                        new ComponentTickWorld()
+                        {
+                            neverDespawn = true,
+                            tickRadius = 2
                         }
                     },
-                    new ComponentPushable()
+                    componentGroups = new EntityComponentGroup[]
                     {
-                        isPushableByEntity = false,
-                        isPushableByPiston = false
+                        new EntityComponentGroup(MCC.NullManager.destroyComponentGroup, new ComponentInstantDespawn())
                     },
-                    new ComponentCollisionBox()
+                    events = new List<EntityEventHandler>(new EntityEventHandler[]
                     {
-                        width = 0.0001f,
-                        height = 0.0001f
+                        new EntityEventHandler(MCC.NullManager.destroyEventName, action:
+                            new EventActionAddGroup(MCC.NullManager.destroyComponentGroup))
+                    })
+                },
+                new EntityResource()
+                {
+                    name = "null",
+                    description = new ClientEntityDescription()
+                    {
+                        identifier = entityID,
+                        geometry = geometry,
+                        material = "entity_alphatest"
                     },
-                    new ComponentTickWorld()
-                    {
-                        neverDespawn = true,
-                        tickRadius = 2
-                    }
                 },
-                componentGroups = new EntityComponentGroup[]
-                {
-                    new EntityComponentGroup(MCC.NullManager.destroyComponentGroup, new ComponentInstantDespawn())
-                },
-                events = new List<EntityEventHandler>(new EntityEventHandler[]
-                {
-                    new EntityEventHandler(MCC.NullManager.destroyEventName, action:
-                        new EventActionAddGroup(MCC.NullManager.destroyComponentGroup))
-                })
+                geometry
             };
         }
     }

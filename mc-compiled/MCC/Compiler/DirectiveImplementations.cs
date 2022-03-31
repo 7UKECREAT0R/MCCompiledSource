@@ -2255,9 +2255,6 @@ namespace mc_compiled.MCC.Compiler
                 string name = tokens.Next<TokenStringLiteral>();
                 int hash = name.GetHashCode();
 
-                if (!executor.entities.nulls.HasEntity(hash))
-                    throw new StatementException(tokens, $"No recognized null named \"{name}\".");
-
                 string command = executor.entities.nulls.Destroy(name);
                 executor.AddCommand(command);
                 return;

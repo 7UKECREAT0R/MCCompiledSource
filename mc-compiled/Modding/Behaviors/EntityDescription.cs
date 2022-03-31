@@ -30,7 +30,7 @@ namespace mc_compiled.Modding.Behaviors
             {
                 ["identifier"] = identifier,
                 ["is_spawnable"] = isSpawnable,
-                ["is_summonable"] = isSpawnable,
+                ["is_summonable"] = isSummonable,
                 ["is_experimental"] = isExperimental
             };
 

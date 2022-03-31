@@ -685,6 +685,12 @@ namespace mc_compiled.MCC.Compiler
         public void AddExtraFile(IAddonFile file) =>
             project.AddFile(file);
         /// <summary>
+        /// Add a set of files on their own to the list.
+        /// </summary>
+        /// <param name="file"></param>
+        public void AddExtraFiles(IAddonFile[] files) =>
+            project.AddFiles(files);
+        /// <summary>
         /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="command"></param>

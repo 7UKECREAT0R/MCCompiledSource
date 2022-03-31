@@ -21,12 +21,12 @@ namespace mc_compiled.MCC
         public readonly string nullType;
 
         readonly Executor parent;
-        bool createdEntityFile;
+        bool createdEntityFiles;
 
         internal NullManager(Executor parent)
         {
             this.parent = parent;
-            createdEntityFile = false;
+            createdEntityFiles = false;
             existingNulls = new HashSet<int>();
             nullType = parent.project.Namespace("null");
         }
@@ -66,11 +66,11 @@ namespace mc_compiled.MCC
         /// </summary>
         internal void EnsureEntity()
         {
-            if (createdEntityFile)
+            if (createdEntityFiles)
                 return;
 
-            parent.AddExtraFile(EntityBehavior.CreateNull(nullType));
-            createdEntityFile = true;
+            parent.AddExtraFiles(EntityBehavior.CreateNull(nullType));
+            createdEntityFiles = true;
             return;
         }
         

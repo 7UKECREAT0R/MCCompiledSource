@@ -95,6 +95,8 @@
     <Compile Include="Modding\Behaviors\LootTable.cs" />
     <Compile Include="Modding\Manifest.cs" />
     <Compile Include="Modding\Offsets.cs" />
+    <Compile Include="Modding\Resources\EntityGeometry.cs" />
+    <Compile Include="Modding\Resources\EntityResource.cs" />
     <Compile Include="Modding\StructureFile.cs" />
     <Compile Include="Commands\BlockCheck.cs" />
     <Compile Include="Commands\Selectors\Area.cs" />
