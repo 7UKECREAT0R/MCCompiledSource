@@ -917,35 +917,6 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void select(Executor executor, Statement tokens)
         {
-            if (tokens.NextIs<TokenStringLiteral>())
-            {
-                string name = tokens.Next<TokenStringLiteral>();
-                if(executor.entities.Search(name, out Commands.Selector find))
-                {
-                    executor.ActiveSelector = find;
-                    return;
-                }
-
-                string type = null;
-                if (name.Contains(':'))
-                {
-                    string[] strs = name.Split(':');
-                    name = strs[0].Trim();
-                    if (strs.Length > 1)
-                        type = strs[1].Trim();
-                }
-                if (string.IsNullOrEmpty(name))
-                    name = null;
-                if (string.IsNullOrEmpty(type))
-                    type = null;
-
-                executor.ActiveSelector = new Selector()
-                {
-                    core = Selector.Core.e,
-                    entity = new Entity(name, false, type, null)
-                };
-                return;
-            }
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
             executor.ActiveSelector = selector;
         }
@@ -1352,6 +1323,55 @@ namespace mc_compiled.MCC.Compiler
                     selector.entity.nameNot = not;
                     selector.entity.name = name;
                 }
+                else if (word.Equals("ANY"))
+                {
+                    Selector testFor = tokens.Next<TokenSelectorLiteral>();
+                    testFor.count = new Count(1);
+
+                    const string counter = "_mcc_counter";
+                    string activeSelector = executor.ActiveSelectorStr;
+
+                    ScoreboardValue temp = executor.scoreboard.RequestTemp();
+
+                    commands.Add(Command.ScoreboardSet(activeSelector, temp, 0));
+                    commands.Add(Command.Tag(activeSelector, counter));
+                    commands.Add(Command.Execute(testFor.ToString(), Coord.here, Coord.here, Coord.here,
+                        Command.ScoreboardSet($"@e[tag={counter}]", temp, 1)));
+                    commands.Add(Command.TagRemove(activeSelector, counter));
+
+                    selector.scores.checks.Add(new ScoresEntry(temp, new Range(1, invert)));
+                }
+                else if (word.Equals("COUNT"))
+                {
+                    Selector testFor = tokens.Next<TokenSelectorLiteral>();
+
+                    Range range;
+                    int min = tokens.Next<TokenIntegerLiteral>();
+
+                    if (tokens.NextIs<TokenIntegerLiteral>())
+                    {
+                        int max = tokens.Next<TokenIntegerLiteral>();
+                        if (min == max)
+                            range = new Range(min, invert);
+                        else
+                            range = new Range(min, max, invert);
+                    }
+                    else
+                        range = new Range(min, null, invert);
+
+                    const string counter = "_mcc_counter";
+                    string activeSelector = executor.ActiveSelectorStr;
+
+                    ScoreboardValue temp = executor.scoreboard.RequestTemp();
+
+                    commands.Add(Command.ScoreboardSet(activeSelector, temp, 0));
+                    commands.Add(Command.Tag(activeSelector, counter));
+                    commands.Add(Command.Execute(testFor.ToString(), Coord.here, Coord.here, Coord.here,
+                        Command.ScoreboardAdd($"@e[tag={counter}]", temp, 1)));
+                    commands.Add(Command.TagRemove(activeSelector, counter));
+
+                    selector.scores.checks.Add(new ScoresEntry(temp, range));
+                }
                 else if (word.Equals("LIMIT"))
                 {
                     if (not)
@@ -1424,7 +1444,10 @@ namespace mc_compiled.MCC.Compiler
         public static void @else(Executor executor, Statement tokens)
         {
             Token[] toRun = executor.GetLastCompare();
-            @if(executor, new StatementDirective(null, toRun), true);
+            Statement theIf = new StatementDirective(null, toRun);
+            theIf.SetSource(tokens.Line, tokens.Source);
+            theIf.SetExecutor(executor);
+            @if(executor, theIf, true);
         }
         public static void give(Executor executor, Statement tokens)
         {
@@ -1617,18 +1640,6 @@ namespace mc_compiled.MCC.Compiler
                 TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.Teleport(selector.selector.ToString()));
             }
-            else if(tokens.NextIs<TokenStringLiteral>())
-            {
-                string name = tokens.Next<TokenStringLiteral>();
-
-                // search for mcc entity reference
-                if (!executor.entities.Search(name, out Selector selector))
-                    throw new StatementException(tokens, $"No entity identified named \"{name}\"");
-                
-                executor.AddCommand(Command.Teleport(selector.ToString()));
-                executor.PopSelector();
-                return;
-            }
             else
             {
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
@@ -1648,16 +1659,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tphere(Executor executor, Statement tokens)
         {
-            Selector selector;
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
 
-            if(tokens.NextIs<TokenSelectorLiteral>())
-                selector = tokens.Next<TokenSelectorLiteral>();
-            else
-            {
-                string search = tokens.Next<TokenStringLiteral>();
-                if (!executor.entities.Search(search, out selector))
-                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
-            }
             Coord offsetX = Coord.here;
             Coord offsetY = Coord.here;
             Coord offsetZ = Coord.here;
@@ -1718,18 +1721,6 @@ namespace mc_compiled.MCC.Compiler
                 TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, selector.ToString()));
             }
-            else if(tokens.NextIs<TokenStringLiteral>())
-            {
-                string name = tokens.Next<TokenStringLiteral>();
-
-                // search for mcc entity reference
-                if (!executor.entities.Search(name, out Selector selector))
-                    throw new StatementException(tokens, $"No entity identified named \"{name}\"");
-
-                executor.AddCommand(Command.Teleport(selector.ToString()));
-                executor.PopSelector();
-                return;
-            }
             else
             {
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
@@ -1742,16 +1733,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void facehere(Executor executor, Statement tokens)
         {
-            Selector selector;
-            
-            if(tokens.NextIs<TokenSelectorLiteral>())
-                selector = tokens.Next<TokenSelectorLiteral>();
-            else
-            {
-                string search = tokens.Next<TokenStringLiteral>();
-                if (!executor.entities.Search(search, out selector))
-                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
-            }
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
 
             List<string> commands = new List<string>();
             commands.Add(Command.Tag("@s", "_mcc_here"));
@@ -1930,14 +1912,7 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.Kill(selector.ToString()));
                 return;
             }
-            else if(tokens.NextIs<TokenStringLiteral>())
-            {
-                string search = tokens.Next<TokenStringLiteral>();
-                if (!executor.entities.Search(search, out Selector selector))
-                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
-                executor.AddCommand(Command.Kill(selector.ToString()));
-                return;
-            }
+
             executor.AddCommand(Command.Kill(executor.ActiveSelectorStr));
         }
         public static void remove(Executor executor, Statement tokens)
@@ -1954,15 +1929,6 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 Selector selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.Execute(selector.ToString(),
-                    Coord.here, Coord.here, Coord.here, Command.Function(file)));
-                return;
-            }
-            else if (tokens.NextIs<TokenStringLiteral>())
-            {
-                string search = tokens.Next<TokenStringLiteral>();
-                if (!executor.entities.Search(search, out Selector selector))
-                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
                 executor.AddCommand(Command.Execute(selector.ToString(),
                     Coord.here, Coord.here, Coord.here, Command.Function(file)));
                 return;
@@ -2182,12 +2148,6 @@ namespace mc_compiled.MCC.Compiler
             {
                 TokenSelectorLiteral value = tokens.Next<TokenSelectorLiteral>();
                 blame = value.selector;
-            }
-            else if (tokens.NextIs<TokenStringLiteral>())
-            {
-                string search = tokens.Next<TokenStringLiteral>();
-                if(!executor.entities.Search(search, out blame))
-                    throw new StatementException(tokens, $"No entity identified named \"{search}\"");
             }
             else if(tokens.NextIs<TokenCoordinateLiteral>())
             {

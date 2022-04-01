@@ -44,7 +44,7 @@ namespace mc_compiled.MCC.Compiler
         readonly Stack<Selector> selections;
         readonly Stack<StructDefinition> definingStructs;
         public readonly ScoreboardManager scoreboard;
-
+        
         /// <summary>
         /// Resolve an FString into rawtext terms. Also adds all setup commands for variables.
         /// </summary>
@@ -463,6 +463,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 Statement unresolved = Next();
                 Statement statement = unresolved.ClonePrepare(this);
+                statement.SetExecutor(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
 
@@ -501,6 +502,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 Statement unresolved = Next();
                 Statement statement = unresolved.ClonePrepare(this);
+                statement.SetExecutor(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
 

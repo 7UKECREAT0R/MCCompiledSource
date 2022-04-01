@@ -115,7 +115,6 @@ namespace mc_compiled.MCC
         public string Destroy(string name)
         {
             EnsureEntity();
-            existingNulls.Remove(name.GetHashCode());
             return Command.Event(GetStringSelector(name), destroyEventName);
         }
 

@@ -260,7 +260,9 @@
         [ "id", "id", "string" ],
         [ "id", "id", "enum" ],
         [ "id", "id", "int", "?int" ],
-        [ "id", "pos", "pos", "pos" ]
+        [ "id", "pos", "pos", "pos" ],
+        [ "id", "selector" ],
+        [ "id", "selector", "int", "?int" ]
       ]
     },
     "else": {

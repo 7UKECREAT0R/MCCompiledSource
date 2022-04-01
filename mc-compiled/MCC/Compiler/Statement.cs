@@ -12,6 +12,7 @@ namespace mc_compiled.MCC.Compiler
     public abstract class Statement : ICloneable
     {
         private TypePattern[] patterns;
+        private Executor executor;
         public Statement(Token[] tokens, bool waitForPatterns = false)
         {
             this.tokens = tokens;
@@ -36,6 +37,15 @@ namespace mc_compiled.MCC.Compiler
             Line = line;
             Source = code;
         }
+        /// <summary>
+        /// Set the executor of this statement.
+        /// </summary>
+        /// <param name="executor"></param>
+        public void SetExecutor(Executor executor)
+        {
+            this.executor = executor;
+        }
+
         public int Line
         {
             get; private set;
@@ -83,7 +93,7 @@ namespace mc_compiled.MCC.Compiler
 
                     for(int i = 0; i < otherTypes.Length; i++)
                         if(typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(i) as T;    
+                            return implicitToken.Convert(executor, i) as T;    
                 }
                 throw new StatementException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
             }
@@ -104,7 +114,7 @@ namespace mc_compiled.MCC.Compiler
 
                     for (int i = 0; i < otherTypes.Length; i++)
                         if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(i) as T;
+                            return implicitToken.Convert(executor, i) as T;
                 }
                 throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
             } else

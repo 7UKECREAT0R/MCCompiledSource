@@ -67,7 +67,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="index">The index of GetImplicitTypes() to convert to.</param>
         /// <returns></returns>
-        Token Convert(int index);
+        Token Convert(Executor executor, int index);
     }
     /// <summary>
     /// Indicates that a token had some kind of unknown error.

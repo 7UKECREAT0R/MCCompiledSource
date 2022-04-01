@@ -25,7 +25,7 @@ namespace mc_compiled.MCC.Compiler
 
         public Type[] GetImplicitTypes() =>
             new[] { typeof(TokenIdentifier) };
-        public Token Convert(int index) =>
+        public Token Convert(Executor executor, int index) =>
             new TokenIdentifier(directive.identifier, lineNumber);
 
         public TokenDirective(Directive directive, int lineNumber) : base(lineNumber)
@@ -77,7 +77,7 @@ namespace mc_compiled.MCC.Compiler
                 typeof(TokenStringLiteral),
                 typeof(TokenBuilderIdentifier),
             };
-        public Token Convert(int index)
+        public Token Convert(Executor executor, int index)
         {
             if(index == CONVERT_STRING)
                 return new TokenStringLiteral(word, lineNumber);

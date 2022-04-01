@@ -258,7 +258,7 @@ namespace mc_compiled.MCC
                         type = ValueType.TIME;
                         break;
                     default:
-                        name = identifier.Convert(TokenIdentifier.CONVERT_STRING) as TokenStringLiteral;
+                        name = identifier.Convert(executor, TokenIdentifier.CONVERT_STRING) as TokenStringLiteral;
                         break;
                 }
             }

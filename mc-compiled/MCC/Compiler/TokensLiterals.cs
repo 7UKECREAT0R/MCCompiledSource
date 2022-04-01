@@ -68,7 +68,7 @@ namespace mc_compiled.MCC.Compiler
 
         public abstract object GetObject();
     }
-    public sealed class TokenStringLiteral : TokenLiteral, IObjectable
+    public sealed class TokenStringLiteral : TokenLiteral, IObjectable, IImplicitToken
     {
         public readonly string text;
 
@@ -149,6 +149,41 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
             throw new TokenException(this, "Invalid literal operation.");
+        }
+
+        public Type[] GetImplicitTypes()
+        {
+            return new[] { typeof(TokenSelectorLiteral) };
+        }
+        public Token Convert(Executor executor, int index)
+        {
+            if(index == 0)
+            {
+                string name = text;
+                if (executor.entities.Search(name, out Selector find))
+                    return new TokenSelectorLiteral(find, lineNumber);
+
+                string type = null;
+                if (name.Contains(':'))
+                {
+                    string[] strs = name.Split(':');
+                    name = strs[0].Trim();
+                    if (strs.Length > 1)
+                        type = strs[1].Trim();
+                }
+                if (string.IsNullOrEmpty(name))
+                    name = null;
+                if (string.IsNullOrEmpty(type))
+                    type = null;
+
+                return new TokenSelectorLiteral(new Selector()
+                {
+                    core = Selector.Core.e,
+                    entity = new Commands.Selectors.Entity(name, false, type, null)
+                }, lineNumber);
+            }
+
+            return null;
         }
     }
     public sealed class TokenBooleanLiteral : TokenNumberLiteral, IObjectable
