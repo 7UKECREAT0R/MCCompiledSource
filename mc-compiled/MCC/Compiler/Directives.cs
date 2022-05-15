@@ -34,13 +34,13 @@ namespace mc_compiled.MCC.Compiler
         }
         public Directive WithAttribute(DirectiveAttribute attribute)
         {
-            this.attributes |= (int)attribute;
+            this.attributes |= attribute;
             return this;
         }
         public Directive WithAttributes(params DirectiveAttribute[] attributes)
         {
             foreach (DirectiveAttribute attribute in attributes)
-                this.attributes |= (int)attribute;
+                this.attributes |= attribute;
             return this;
         }
 
@@ -64,15 +64,16 @@ namespace mc_compiled.MCC.Compiler
         public readonly string description;
         public readonly DirectiveImpl call;
         public readonly TypePattern[] patterns;
-        public int attributes;
+        public DirectiveAttribute attributes;
 
         public override int GetHashCode() => identifier.GetHashCode();
         public override string ToString() =>
-            $"{identifier} - ptrns: {patterns.Length} - desc: {description}";
+            $"{identifier} - patterns: {patterns.Length} - desc: {description}";
     }
     /// <summary>
     /// Attributes used to modify how directive statements behave.
     /// </summary>
+    [Flags]
     public enum DirectiveAttribute : int
     {
         DONT_EXPAND_PPV = 1 << 0    // Won't expand any explicit PPV identifiers. Used in $macro to allow passing in parameters.

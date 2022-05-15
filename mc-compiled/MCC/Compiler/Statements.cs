@@ -18,7 +18,7 @@ namespace mc_compiled.MCC.Compiler
         {
             if (directive == null)
                 return false;
-            return (directive.attributes &= (int)attribute) != 0;
+            return (directive.attributes & attribute) != 0;
         }
         public override string ToString()
         {
