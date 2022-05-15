@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Selectors\HasItems.cs" />
     <Compile Include="MCC\Compiler\Assembler.cs" />
     <Compile Include="Commands\CommandEnumParser.cs" />
     <Compile Include="Commands\CommandLimits.cs" />

@@ -436,6 +436,55 @@ namespace mc_compiled.MCC.Compiler
             throw new TokenException(this, "Invalid literal operation.");
         }
     }
+    public sealed class TokenRangeLiteral : TokenNumberLiteral
+    {
+        public readonly Range range;
+        public override string AsString() => range.ToString();
+        public override string ToString() => range.ToString();
+        public override object GetObject() => range.single ? (object)range.min.Value : (object)range;
+        public override float GetNumber()
+        {
+            return range.min.Value; // i hope this doesnt get called
+        }
+        public TokenRangeLiteral(Range range, int lineNumber) : base(lineNumber)
+        {
+            this.range = range;
+        }
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                Range copy = new Range(range);
+                return new TokenRangeLiteral(number + i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                value += number;
+                return new TokenDecimalLiteral(value, lineNumber);
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+
+        }
+    }
     public sealed class TokenDecimalLiteral : TokenCoordinateLiteral
     {
         public readonly float number;

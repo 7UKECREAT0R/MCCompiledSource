@@ -84,6 +84,13 @@ namespace mc_compiled.Commands
                 string key = value.ToString();
                 ParsedEnumValue finalValue = new ParsedEnumValue(type.Name, value);
                 CommandEnumParser.Put(key, finalValue);
+
+                if(key.Contains("_"))
+                {
+                    // Might use a dot.
+                    finalValue = new ParsedEnumValue(type.Name, value);
+                    CommandEnumParser.Put(key.Replace('_', '.'), finalValue);
+                }
             }
         }
     }

@@ -140,6 +140,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.value = value;
         }
+        public override string AsString() => value.enumName + "::" + value.value.ToString();
     }
     /// <summary>
     /// Represents a reference to a scoreboard value.

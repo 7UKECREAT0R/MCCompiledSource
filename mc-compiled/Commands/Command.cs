@@ -92,7 +92,7 @@ namespace mc_compiled.Commands
         }
         public static readonly Util UTIL = new Util();
 
-        public static string String(this EquipmentSlotType slot) => slot.ToString().Replace('_', '.');
+        public static string String(this ItemSlot slot) => slot.ToString().Replace('_', '.');
         public static string String(this ScoreboardOp op)
         {
             switch (op)
@@ -348,13 +348,13 @@ namespace mc_compiled.Commands
         public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item, int amount, int data, string json) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount} {data} {json}";
 
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item) =>
+        public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling, string item) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item}";
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item, int amount) =>
+        public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling, string item, int amount) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount}";
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item, int amount, int data) =>
+        public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling, string item, int amount, int data) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount} {data}";
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item, int amount, int data, string json) =>
+        public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling, string item, int amount, int data, string json) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount} {data} {json}";
 
         public static string Ride(string sources, string targets, TeleportRules tpRules = TeleportRules.teleport_rider, RideFillType fillType = RideFillType.until_full) =>
@@ -844,22 +844,25 @@ namespace mc_compiled.Commands
         play_once,
         loop
     }
-    [EnumParsable(typeof(EquipmentSlotType))]
-    public enum EquipmentSlotType
+    [EnumParsable(typeof(ItemSlot))]
+    public enum ItemSlot
     {
+        slot_armor,
         slot_armor_head,
         slot_armor_chest,
         slot_armor_legs,
         slot_armor_feet,
+
         slot_weapon_mainhand,
         slot_weapon_offhand,
+
         slot_container,
+        slot_chest,
         slot_enderchest,
-        slot_hotbar,
-        slot_inventory,
         slot_saddle,
-        slot_armor,
-        slot_chest
+
+        slot_hotbar,
+        slot_inventory
     }
     public enum RideFillType
     {

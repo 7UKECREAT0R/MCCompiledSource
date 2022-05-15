@@ -116,7 +116,7 @@ namespace mc_compiled.Modding.Behaviors
     {
         public struct SlotDropChance
         {
-            public EquipmentSlotType slot;
+            public ItemSlot slot;
             public float dropChance; // 0.0 - 1.0
 
             public JObject ToJSON() =>

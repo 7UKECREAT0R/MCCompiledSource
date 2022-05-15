@@ -12,7 +12,7 @@ namespace mc_compiled.Commands.Selectors
     /// </summary>
     public struct Scores
     {
-        public static readonly Regex MATCHER = new Regex(@"scores={([\w\D=]+)}");
+        public static readonly Regex MATCHER = new Regex(@"scores={([\w\d=,.]+)}");
         public List<ScoresEntry> checks;
 
         public Scores(params ScoresEntry[] start)
@@ -34,7 +34,7 @@ namespace mc_compiled.Commands.Selectors
         public static Scores Parse(string fullSelector)
         {
             if (!MATCHER.IsMatch(fullSelector))
-                return new Scores(new ScoresEntry[0]);
+                return new Scores(new List<ScoresEntry>());
 
             Scores scores = new Scores(new List<ScoresEntry>());
 
@@ -58,7 +58,6 @@ namespace mc_compiled.Commands.Selectors
 
             return scores;
         }
-
         public static Scores operator +(Scores a, Scores other)
         {
             Scores clone = (Scores)a.MemberwiseClone();
