@@ -100,6 +100,8 @@ namespace mc_compiled
                 }
             }
 
+            // load enums and directives
+            Commands.CommandEnumParser.Init();
             Directives.LoadFromLanguage(debug);
 
             string fileUpper = files[0].ToUpper();
@@ -269,8 +271,8 @@ namespace mc_compiled
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
+            // load definitions.def
             new Definitions(debug);
-            Commands.CommandEnumParser.Init();
 
             bool firstRun = true;
             if (daemon & !REGOLITH)

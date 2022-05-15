@@ -65,7 +65,8 @@ namespace mc_compiled.Commands
         /// <returns></returns>
         public bool IsType<T>() where T: System.Enum
         {
-            return enumName.Equals(nameof(T));
+            string src = typeof(T).Name;
+            return enumName.Equals(src);
         }
     }
 

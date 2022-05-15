@@ -31,6 +31,10 @@ namespace mc_compiled.MCC.Compiler
             this.identifier = identifier;
             this.description = fullName;
             this.patterns = patterns;
+
+            // cache if this directive overlaps an enum
+            if (Commands.CommandEnumParser.TryParse(identifier, out Commands.ParsedEnumValue result))
+                enumValue = result;
         }
         public Directive WithAttribute(DirectiveAttribute attribute)
         {
@@ -56,7 +60,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         // Directive might overlap an enum value.
-        // In the case this happens, it can use this field to convert itself.
+        // In the case this happens, it can use this field to help convert itself.
         public readonly Commands.ParsedEnumValue? enumValue;
 
         public readonly short index;
@@ -304,7 +308,16 @@ namespace mc_compiled.MCC.Compiler
             {
                 Console.WriteLine("Parsed {0} directives from language.json:", REGISTRY.Count);
                 foreach (Directive directive in REGISTRY)
+                {
+                    if (directive.enumValue.HasValue)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        string className = directive.enumValue.Value.enumName;
+                        Console.WriteLine($"\t\tOverlaps with {className}.{directive.identifier}:");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
                     Console.WriteLine("\t{0}", directive.ToString());
+                }
             }
         }
         /// <summary>

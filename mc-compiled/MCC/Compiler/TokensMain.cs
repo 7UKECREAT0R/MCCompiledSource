@@ -23,10 +23,24 @@ namespace mc_compiled.MCC.Compiler
 
         public override string AsString() => directive.identifier;
 
-        public Type[] GetImplicitTypes() =>
-            new[] { typeof(TokenIdentifier) };
-        public Token Convert(Executor executor, int index) =>
-            new TokenIdentifier(directive.identifier, lineNumber);
+        public Type[] GetImplicitTypes()
+        {
+            if(directive.enumValue.HasValue)
+                return new[] { typeof(TokenIdentifier), typeof(TokenIdentifierEnum) };
+            else
+                return new[] { typeof(TokenIdentifier) };
+        }
+        public Token Convert(Executor executor, int index)
+        {
+            switch(index)
+            {
+                case 0:
+                    return new TokenIdentifier(directive.identifier, lineNumber);
+                case 1:
+                    return new TokenIdentifierEnum(directive.identifier, directive.enumValue.Value, lineNumber);
+            }
+            return null;
+        }
 
         public TokenDirective(Directive directive, int lineNumber) : base(lineNumber)
         {
