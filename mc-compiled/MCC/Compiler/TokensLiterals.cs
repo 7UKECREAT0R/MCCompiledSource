@@ -436,16 +436,11 @@ namespace mc_compiled.MCC.Compiler
             throw new TokenException(this, "Invalid literal operation.");
         }
     }
-    public sealed class TokenRangeLiteral : TokenNumberLiteral
+    public sealed class TokenRangeLiteral : TokenLiteral, IObjectable
     {
         public Range range;
         public override string AsString() => range.ToString();
         public override string ToString() => range.ToString();
-        public override object GetObject() => range.single ? (object)range.min.Value : (object)range;
-        public override float GetNumber()
-        {
-            return range.min.Value; // i hope this doesnt get called
-        }
         public TokenRangeLiteral(Range range, int lineNumber) : base(lineNumber)
         {
             this.range = range;
@@ -550,6 +545,14 @@ namespace mc_compiled.MCC.Compiler
             }
 
             throw new TokenException(this, "Invalid literal operation.");
+        }
+
+        public object GetObject()
+        {
+            if (range.single && !range.invert)
+                return range.min.Value;
+
+            return range;
         }
     }
     public sealed class TokenDecimalLiteral : TokenCoordinateLiteral

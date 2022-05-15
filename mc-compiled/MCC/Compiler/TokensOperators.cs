@@ -129,6 +129,9 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => "..";
         public TokenRangeDots(int lineNumber) : base(lineNumber) { }
     }
+    /// <summary>
+    /// The inverter signaling to invert a range argument.
+    /// </summary>
     public sealed class TokenRangeInvert : Token
     {
         public override string AsString() => "!";
