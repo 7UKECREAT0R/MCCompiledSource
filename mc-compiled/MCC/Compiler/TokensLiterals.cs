@@ -453,36 +453,103 @@ namespace mc_compiled.MCC.Compiler
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
-            if (other is TokenIntegerLiteral)
+            if(other is TokenRangeLiteral)
+            {
+                Range r = (other as TokenRangeLiteral).range;
+                return new TokenRangeLiteral(range + r, lineNumber);
+            }
+            else if (other is TokenIntegerLiteral)
             {
                 int i = (other as TokenIntegerLiteral).number;
-                Range copy = new Range(range);
-                return new TokenRangeLiteral(number + i, lineNumber);
+                return new TokenRangeLiteral(range + i, lineNumber);
             }
             else if (other is TokenDecimalLiteral)
             {
                 float value = (other as TokenDecimalLiteral).number;
-                value += number;
-                return new TokenDecimalLiteral(value, lineNumber);
+                return new TokenRangeLiteral(range + value, lineNumber);
             }
 
             throw new TokenException(this, "Invalid literal operation.");
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
+            if (other is TokenRangeLiteral)
+            {
+                Range r = (other as TokenRangeLiteral).range;
+                return new TokenRangeLiteral(range - r, lineNumber);
+            }
+            else if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenRangeLiteral(range - i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                return new TokenRangeLiteral(range - value, lineNumber);
+            }
 
+            throw new TokenException(this, "Invalid literal operation.");
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
+            if (other is TokenRangeLiteral)
+            {
+                Range r = (other as TokenRangeLiteral).range;
+                return new TokenRangeLiteral(range * r, lineNumber);
+            }
+            else if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenRangeLiteral(range * i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                return new TokenRangeLiteral(range * value, lineNumber);
+            }
 
+            throw new TokenException(this, "Invalid literal operation.");
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
+            if (other is TokenRangeLiteral)
+            {
+                Range r = (other as TokenRangeLiteral).range;
+                return new TokenRangeLiteral(range / r, lineNumber);
+            }
+            else if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenRangeLiteral(range / i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                return new TokenRangeLiteral(range / value, lineNumber);
+            }
 
+            throw new TokenException(this, "Invalid literal operation.");
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
+            if (other is TokenRangeLiteral)
+            {
+                Range r = (other as TokenRangeLiteral).range;
+                return new TokenRangeLiteral(range % r, lineNumber);
+            }
+            else if (other is TokenIntegerLiteral)
+            {
+                int i = (other as TokenIntegerLiteral).number;
+                return new TokenRangeLiteral(range % i, lineNumber);
+            }
+            else if (other is TokenDecimalLiteral)
+            {
+                float value = (other as TokenDecimalLiteral).number;
+                return new TokenRangeLiteral(range % value, lineNumber);
+            }
 
+            throw new TokenException(this, "Invalid literal operation.");
         }
     }
     public sealed class TokenDecimalLiteral : TokenCoordinateLiteral

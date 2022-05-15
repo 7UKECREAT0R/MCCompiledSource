@@ -42,6 +42,8 @@ namespace mc_compiled.MCC.Compiler
                     else if (current is TokenCloseBlock)
                     {
                         StatementCloseBlock closer = new StatementCloseBlock();
+                        if (blocks.Count == 0)
+                            continue; // ignore... i guess?
                         StatementOpenBlock opener = blocks.Pop();
                         opener.statementsInside = statements.Count - opener.statementsInside;
 

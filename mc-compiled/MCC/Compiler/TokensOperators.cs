@@ -122,8 +122,14 @@ namespace mc_compiled.MCC.Compiler
     }
 
     /// <summary>
-    /// An & character.
+    /// The two dots in a range argument. 123..456
     /// </summary>
+    public sealed class TokenRangeDots : Token
+    {
+        public override string AsString() => "..";
+        public TokenRangeDots(int lineNumber) : base(lineNumber) { }
+    }
+
     public sealed class TokenAnd : TokenOperator
     {
         public override string AsString() => "&";

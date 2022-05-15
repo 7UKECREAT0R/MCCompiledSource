@@ -83,6 +83,12 @@ namespace mc_compiled.MCC.Compiler
             get => index < content.Length;
         }
         char Peek() => content[index];
+        char Peek(int amount)
+        {
+            if (index + amount >= content.Length)
+                return '\0';
+            return content[index + amount];
+        }
         char NextChar() => content[index++];
         void FlushWhitespace()
         {
@@ -185,7 +191,7 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenSelectorLiteral(core, CURRENT_LINE);
             }
             
-            // comment, read to EOL
+            // comment
             if(firstChar == '/' && secondChar == '/')
             {
                 NextChar();
@@ -195,9 +201,31 @@ namespace mc_compiled.MCC.Compiler
                 string str = sb.ToString().Trim();
                 return new TokenComment(str, CURRENT_LINE);
             }
-            
+            /* multiline comment, just like this */
+            if (firstChar == '/' && secondChar == '*')
+            {
+                int startLine = CURRENT_LINE;
+
+                NextChar();
+                while (HasNext)
+                {
+                    char next = NextChar();
+                    if (next == '\n')
+                        CURRENT_LINE++;
+                    if (next == '*' && Peek() == '/')
+                    {
+                        NextChar();
+                        break;
+                    }
+                    sb.Append(next);
+                }
+
+                string str = sb.ToString();
+                return new TokenComment(str, startLine);
+            }
+
             // equality/assignment
-            if(firstChar == '=')
+            if (firstChar == '=')
             {
                 if(secondChar == '=')
                 {
@@ -212,6 +240,13 @@ namespace mc_compiled.MCC.Compiler
             {
                 NextChar();
                 return new TokenInequality(CURRENT_LINE);
+            }
+
+            // range operator
+            if(firstChar == '.' && secondChar == '.')
+            {
+                NextChar();
+                return new TokenRangeDots(CURRENT_LINE);
             }
 
             // check for number literal
@@ -321,7 +356,7 @@ namespace mc_compiled.MCC.Compiler
             return new TokenIdentifier(word, CURRENT_LINE);
         }
 
-        public TokenNumberLiteral NextNumberIdentifier(char first)
+        public TokenNumberLiteral NextNumberIdentifier(char first, bool rangeSecondArg = false)
         {
             sb.Append(first);
             int multiplier = 1;
@@ -331,7 +366,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 c = Peek();
 
-                if (c == '.')
+                if (c == '.' && char.IsDigit(Peek(1)))
                 {
                     sb.Append(NextChar());
                     continue;
