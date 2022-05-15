@@ -248,6 +248,12 @@ namespace mc_compiled.MCC.Compiler
                 NextChar();
                 return new TokenRangeDots(CURRENT_LINE);
             }
+            // range inverter (probably)
+            if(firstChar == '!')
+            {
+                if(secondChar == '.' || char.IsDigit(secondChar))
+                    return new TokenRangeInvert(CURRENT_LINE);
+            }
 
             // check for number literal
             if (char.IsDigit(firstChar) || (firstChar == '-' && char.IsDigit(secondChar)))

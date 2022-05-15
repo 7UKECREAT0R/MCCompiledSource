@@ -438,7 +438,7 @@ namespace mc_compiled.MCC.Compiler
     }
     public sealed class TokenRangeLiteral : TokenNumberLiteral
     {
-        public readonly Range range;
+        public Range range;
         public override string AsString() => range.ToString();
         public override string ToString() => range.ToString();
         public override object GetObject() => range.single ? (object)range.min.Value : (object)range;

@@ -129,6 +129,11 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => "..";
         public TokenRangeDots(int lineNumber) : base(lineNumber) { }
     }
+    public sealed class TokenRangeInvert : Token
+    {
+        public override string AsString() => "!";
+        public TokenRangeInvert(int lineNumber) : base(lineNumber) { }
+    }
 
     public sealed class TokenAnd : TokenOperator
     {

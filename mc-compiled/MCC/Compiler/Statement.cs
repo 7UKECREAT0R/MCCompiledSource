@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -198,10 +199,11 @@ namespace mc_compiled.MCC.Compiler
 
             bool resolvePPVs = !HasAttribute(DirectiveAttribute.DONT_EXPAND_PPV);
             int length = statement.tokens.Length;
-            Token[] allUnresolved = statement.tokens;
+            List<Token> allUnresolved = new List<Token>(statement.tokens);
             List<Token> allResolved = new List<Token>();
 
-            for(int i = 0; i < length; i++)
+            // now resolve tokens forward
+            for(int i = 0; i < allUnresolved.Count; i++)
             {
                 Token unresolved = allUnresolved[i];
                 int line = unresolved.lineNumber;
@@ -229,13 +231,93 @@ namespace mc_compiled.MCC.Compiler
             }
 
             executor.scoreboard.PushTempState(); // popped at call site
-            SquashAll(ref allResolved, executor);
+            SquashAll(allResolved, executor);
+            SquashSpecial(allResolved); // ranges, etc..
 
             statement.tokens = allResolved.ToArray();
             statement.patterns = statement.GetValidPatterns();
             return statement;
         }
-        public void SquashAll(ref List<Token> tokens, Executor executor)
+        public void SquashSpecial(List<Token> tokens)
+        {
+            // going over it backwards for merging any particular tokens
+            for (int i = tokens.Count - 1; i >= 0; i--)
+            {
+                Token Previous(int amount)
+                {
+                    if (i - amount < 0)
+                        return null;
+                    return tokens[i - amount];
+                };
+                Token After(int amount)
+                {
+                    if (i + amount >= tokens.Count)
+                        return null;
+                    return tokens[i + amount];
+                };
+
+                Token token = tokens[i];
+
+                // ridiculously complex range stuff
+                if (token is TokenRangeDots)
+                {
+                    TokenRangeLiteral replacement;
+                    int replacementLocation;
+                    int replacementLength;
+
+                    Token back2 = Previous(2);
+                    Token back1 = Previous(1);
+                    Token next1 = After(1);
+
+                    if (back1 is TokenIntegerLiteral)
+                    {
+                        int? numberMax;
+                        if (next1 is TokenIntegerLiteral)
+                            numberMax = next1 as TokenIntegerLiteral;
+                        else
+                            numberMax = null;
+
+                        replacementLocation = -1;
+                        replacementLength = numberMax.HasValue ? 3 : 2;
+                        int numberMin = back1 as TokenIntegerLiteral;
+                        Range range = new Range(numberMin, numberMax, false);
+                        replacement = new TokenRangeLiteral(range, token.lineNumber);
+                    }
+                    else
+                    {
+                        if (!(next1 is TokenIntegerLiteral))
+                            throw new TokenizerException("Range argument only accepts integers.");
+                        replacementLocation = 0;
+                        replacementLength = 2;
+                        int number = next1 as TokenIntegerLiteral;
+                        Range range = new Range(null, number, false);
+                        replacement = new TokenRangeLiteral(range, token.lineNumber);
+                    }
+
+                    i += replacementLocation;
+                    if (Previous(1) is TokenRangeInvert)
+                    {
+                        i--;
+                        replacementLength += 1;
+                        replacement.range.invert = true;
+                    }
+
+                    tokens.RemoveRange(i, replacementLength);
+                    tokens.Insert(i, replacement);
+                }
+                if (token is TokenRangeInvert)
+                {
+                    Token after = After(1);
+                    if (!(after is TokenIntegerLiteral))
+                        throw new TokenizerException("You can only invert integers.");
+                    tokens.RemoveRange(i, 2);
+                    int number = after as TokenIntegerLiteral;
+                    Range range = new Range(number, true);
+                    tokens.Insert(i, new TokenRangeLiteral(range, token.lineNumber));
+                }
+            }
+        }
+        public void SquashAll(List<Token> tokens, Executor executor)
         {
             // recursively call parenthesis first
             for(int i = 0; i < tokens.Count; i++)
@@ -279,7 +361,7 @@ namespace mc_compiled.MCC.Compiler
                     removeLength += 2;
 
                 // inside parentheses
-                SquashAll(ref toSquash, executor);
+                SquashAll(toSquash, executor);
                 tokens.RemoveRange(startIndex, removeLength);
                 tokens.InsertRange(startIndex, toSquash);
                 parenthesis.hasBeenSquashed = true;
