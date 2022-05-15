@@ -37,6 +37,22 @@ namespace mc_compiled.Commands
                     throw new FormatException($"Cannot parse selector \"{originalCore}\"");
             }
         }
+        public static Core ParseCore(char core)
+        {
+            switch (char.ToUpper(core))
+            {
+                case 'P':
+                    return Core.p;
+                case 'S':
+                    return Core.s;
+                case 'A':
+                    return Core.a;
+                case 'E':
+                    return Core.e;
+                default:
+                    throw new FormatException($"Cannot parse selector \"{core}\"");
+            }
+        }
         /// <summary>
         /// Returns if this selector targets multiple entities.
         /// </summary>
@@ -58,6 +74,23 @@ namespace mc_compiled.Commands
 
         public Selector()
         {
+            scores = new Selectors.Scores
+            {
+                checks = new List<Selectors.ScoresEntry>()
+            };
+            count = new Selectors.Count
+            {
+                count = Selectors.Count.NONE
+            };
+            area = new Selectors.Area();
+            entity = new Selectors.Entity();
+            player = new Selectors.Player();
+            tags = new List<Selectors.Tag>();
+            blockCheck = BlockCheck.DISABLED;
+        }
+        public Selector(Core core)
+        {
+            this.core = core;
             scores = new Selectors.Scores
             {
                 checks = new List<Selectors.ScoresEntry>()

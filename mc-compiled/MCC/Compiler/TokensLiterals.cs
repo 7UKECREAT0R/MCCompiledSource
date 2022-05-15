@@ -159,17 +159,42 @@ namespace mc_compiled.MCC.Compiler
         {
             if(index == 0)
             {
+                // try parsing selector from string
+                int len = text.Length;
+
+                if (len == 0)
+                    return new TokenSelectorLiteral(Selector.Core.s, lineNumber);
+
+                if(len > 1 && text[0] == '@')
+                {
+                    char _core = text[1];
+                    Selector.Core core = Selector.ParseCore(_core);
+
+                    if (len > 2)
+                    {
+                        Selector parsed = Selector.Parse(core, text.Substring(2));
+                        return new TokenSelectorLiteral(parsed, lineNumber);
+                    }
+
+                    Selector single = new Selector() { core = core };
+                    return new TokenSelectorLiteral(single, lineNumber);
+                }
+
                 string name = text;
+
+                // try finding by managed entity name
                 if (executor.entities.Search(name, out Selector find))
                     return new TokenSelectorLiteral(find, lineNumber);
 
+                // use name:type format
                 string type = null;
-                if (name.Contains(':'))
+                int colon = name.IndexOf(':');
+                if (colon != -1)
                 {
-                    string[] strs = name.Split(':');
-                    name = strs[0].Trim();
-                    if (strs.Length > 1)
-                        type = strs[1].Trim();
+                    string old = name;
+                    name = old.Substring(0, colon);
+                    if (old.Length >= colon)
+                        type = old.Substring(colon + 1);
                 }
                 if (string.IsNullOrEmpty(name))
                     name = null;

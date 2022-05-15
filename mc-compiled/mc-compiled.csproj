@@ -56,13 +56,16 @@
     <Compile Include="MCC\Compiler\CommandFile.cs" />
     <Compile Include="MCC\Compiler\DirectiveImplementations.cs" />
     <Compile Include="MCC\Compiler\Directives.cs" />
-    <Compile Include="MCC\Compiler\EntityManager.cs" />
+    <Compile Include="MCC\EntityManager.cs" />
     <Compile Include="MCC\Compiler\Executor.cs" />
     <Compile Include="MCC\Compiler\Statements.cs" />
+    <Compile Include="MCC\GlobalManager.cs" />
     <Compile Include="MCC\NullManager.cs" />
     <Compile Include="MCC\ProjectManager.cs" />
     <Compile Include="MCC\Function.cs" />
     <Compile Include="MCC\Macro.cs" />
+    <Compile Include="MCC\Scheduling\ScheduledTask.cs" />
+    <Compile Include="MCC\Scheduling\ScheduledTasks.cs" />
     <Compile Include="MCC\ScoreboardManager.cs" />
     <Compile Include="MCC\Compiler\Statement.cs" />
     <Compile Include="MCC\Compiler\Token.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="MCC\Compiler\Legacy\LegacyValueManager.cs" />
     <Compile Include="MCC\Scoreboard.cs" />
     <Compile Include="MCC\StructDefinition.cs" />
+    <Compile Include="MCC\Scheduling\TickScheduler.cs" />
     <Compile Include="Modding\Behaviors\AnimationController.cs" />
     <Compile Include="Modding\Behaviors\EntityBehavior.cs" />
     <Compile Include="Modding\Behaviors\EntityComponent.cs" />

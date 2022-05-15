@@ -387,7 +387,12 @@ namespace mc_compiled.MCC.Compiler
                 char c = NextChar();
 
                 if (c == '\\')
+                {
                     escaped = !escaped;
+                    if (!escaped)
+                        sb.Append('\\');
+                    continue;
+                }
                 else if (c == '"' && !escaped)
                     break;
                 else if (escaped)

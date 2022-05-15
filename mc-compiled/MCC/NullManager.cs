@@ -14,8 +14,8 @@ namespace mc_compiled.MCC
     /// </summary>
     public class NullManager : ISelectorProvider
     {
-        public const string destroyComponentGroup = "instant_despawn";
-        public const string destroyEventName = "destroy";
+        public const string DESTROY_COMPONENT_GROUP = "instant_despawn";
+        public const string DESTROY_EVENT_NAME = "destroy";
 
         internal HashSet<int> existingNulls;
         public readonly string nullType;
@@ -37,9 +37,8 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public Selector GetSelector(string name)
         {
-            return new Selector()
+            return new Selector(Selector.Core.e)
             {
-                core = Selector.Core.e,
                 count = new Commands.Selectors.Count(1),
                 entity = new Commands.Selectors.Entity()
                 {
@@ -115,7 +114,7 @@ namespace mc_compiled.MCC
         public string Destroy(string name)
         {
             EnsureEntity();
-            return Command.Event(GetStringSelector(name), destroyEventName);
+            return Command.Event(GetStringSelector(name), DESTROY_EVENT_NAME);
         }
 
         public bool HasEntity(int hash) =>

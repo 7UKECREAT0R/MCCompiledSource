@@ -123,7 +123,7 @@ namespace mc_compiled.MCC.Compiler
             RawTextJsonBuilder jb = new RawTextJsonBuilder(copy);
 
             if (currentSelector == null)
-                currentSelector = new Selector() { core = Selector.Core.s };
+                currentSelector = new Selector(Selector.Core.s);
             if(commands == null)
                 commands = new List<string>();
 
@@ -163,17 +163,17 @@ namespace mc_compiled.MCC.Compiler
         public void UnreachableCode() =>
             unreachableCode = 1;
         /// <summary>
-        /// Throw a StatementException if an intent is not given.
+        /// Throw a StatementException if a feature is not enabled.
         /// </summary>
         /// <param name="source"></param>
-        /// <param name="intent"></param>
-        internal void RequireIntent(Statement source, Intent intent)
+        /// <param name="feature"></param>
+        internal void RequireFeature(Statement source, Feature feature)
         {
-            if (project.HasIntent(intent))
+            if (project.HasFeature(feature))
                 return;
 
-            string name = intent.ToString();
-            throw new StatementException(source, $"Intent not allowed: {name}. Add 'intent {name.ToLower()}' to the top of the file to grant permission.");
+            string name = feature.ToString();
+            throw new StatementException(source, $"Feature not enabled: {name}. Enable using the command 'feature {name.ToLower()}' at the top of the file.");
         }
         void CheckUnreachable(Statement current)
         {
@@ -290,7 +290,7 @@ namespace mc_compiled.MCC.Compiler
         public void PushSelector(bool doesAlign)
         {
             if (doesAlign)
-                selections.Push(new Selector() { core = Selector.Core.s });
+                selections.Push(new Selector(Selector.Core.s));
             else
                 selections.Push(ActiveSelector);
         }
@@ -810,7 +810,7 @@ namespace mc_compiled.MCC.Compiler
 
         private static Dictionary<int, int> branchFileIndexes = new Dictionary<int, int>();
         /// <summary>
-        /// Construct the next file which branched commands should go into.
+        /// Construct the next available command file with this name, like input0, input1, input2, etc...
         /// </summary>
         /// <param name="friendlyName">A user-friendly name to mark the file by.</param>
         /// <returns></returns>

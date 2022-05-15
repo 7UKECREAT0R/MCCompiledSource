@@ -890,7 +890,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public Selector ConstructSelector(Selector.Core core, ref LegacyExecutor caller)
         {
-            Selector selector = new Selector() { core = core };
+            Selector selector = new Selector(core);
 
             for (int i = 0; i < statements.Count; i++)
             {

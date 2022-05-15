@@ -21,6 +21,11 @@ namespace mc_compiled.MCC.Compiler
         }
         public static int scatterFile = 0;
 
+        public static readonly Action<Executor> PUSH_COPY = (e) => { e.PushSelector(false); };
+        public static readonly Action<Executor> PUSH_ALIGN = (e) => { e.PushSelector(true); };
+        public static readonly Action<Executor> POP = (e) => { e.PopSelector(); };
+
+
         public static void _var(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
@@ -467,8 +472,21 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
-                block.executeAs = null;
-                block.shouldRun = run;
+                //block.executeAs = null; Legacy
+                //block.shouldRun = run; Legacy
+                if (run)
+                {
+                    block.openAction = PUSH_COPY;
+                    block.CloseAction = POP;
+                } else
+                {
+                    block.openAction = (e) =>
+                    {
+                        block.CloseAction = null;
+                        for (int i = 0; i < block.statementsInside; i++)
+                            e.Next();
+                    };
+                }
                 return;
             }
             else if (!run)
@@ -481,8 +499,22 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
-                block.executeAs = null;
-                block.shouldRun = run;
+                //block.executeAs = null; Legacy
+                //block.shouldRun = run; Legacy
+                if (run)
+                {
+                    block.openAction = PUSH_COPY;
+                    block.CloseAction = POP;
+                }
+                else
+                {
+                    block.openAction = (e) =>
+                    {
+                        block.CloseAction = null;
+                        for (int i = 0; i < block.statementsInside; i++)
+                            e.Next();
+                    };
+                }
                 return;
             }
             else if (!run)
@@ -1006,7 +1038,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void @if(Executor executor, Statement tokens) =>
             @if(executor, tokens, false);
-        public static void @if(Executor executor, Statement tokens, bool invert)
+        public static void @if(Executor executor, Statement tokens, bool forceInvert)
         {
             executor.PushSelectorExecute();
             Selector selector = new Selector(executor.ActiveSelector);
@@ -1021,7 +1053,7 @@ namespace mc_compiled.MCC.Compiler
                     tokens.Next();
 
                 string entity = executor.ActiveSelectorStr;
-                bool not = invert;
+                bool not = forceInvert;
                 bool isScore = tokens.NextIs<TokenIdentifierValue>();
                 TokenIdentifier currentToken = tokens.Next<TokenIdentifier>();
                 string word = currentToken.word.ToUpper();
@@ -1030,7 +1062,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if (word.ToUpper().Equals("NOT"))
                 {
-                    not = !invert;
+                    not = !forceInvert;
                     isScore = tokens.NextIs<TokenIdentifierValue>();
                     currentToken = tokens.Next<TokenIdentifier>();
                     word = currentToken.word.ToUpper();
@@ -1339,7 +1371,7 @@ namespace mc_compiled.MCC.Compiler
                         Command.ScoreboardSet($"@e[tag={counter}]", temp, 1)));
                     commands.Add(Command.TagRemove(activeSelector, counter));
 
-                    selector.scores.checks.Add(new ScoresEntry(temp, new Range(1, invert)));
+                    selector.scores.checks.Add(new ScoresEntry(temp, new Range(1, not)));
                 }
                 else if (word.Equals("COUNT"))
                 {
@@ -1352,12 +1384,12 @@ namespace mc_compiled.MCC.Compiler
                     {
                         int max = tokens.Next<TokenIntegerLiteral>();
                         if (min == max)
-                            range = new Range(min, invert);
+                            range = new Range(min, not);
                         else
-                            range = new Range(min, max, invert);
+                            range = new Range(min, max, not);
                     }
                     else
-                        range = new Range(min, null, invert);
+                        range = new Range(min, null, not);
 
                     const string counter = "_mcc_counter";
                     string activeSelector = executor.ActiveSelectorStr;
@@ -1412,6 +1444,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 opener = executor.Peek<StatementOpenBlock>();
 
+
                 // waste of a branching file, so treat as 1 statement.
                 if (opener.statementsInside == 1)
                 {
@@ -1420,7 +1453,10 @@ namespace mc_compiled.MCC.Compiler
 
                     // make close block only pop selector
                     StatementCloseBlock closer = executor.Peek<StatementCloseBlock>(1);
-                    closer.popFile = false;
+                    closer.closeAction = (e) =>
+                    {
+                        e.PopSelector();
+                    };
                     executor.PushSelector(true);
                     return;
                 }
@@ -1434,9 +1470,19 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 CommandFile nextBranchFile = Executor.GetNextGeneratedFile("branch");
-                opener.executeAs = new Selector() { core = Selector.Core.s };
-                opener.shouldRun = true;
-                opener.TargetFile = nextBranchFile;
+                //opener.executeAs = new Selector(Selector.Core.s);
+                //opener.shouldRun = true;
+                opener.openAction = (e) =>
+                {
+                    e.PushSelector(new Selector(Selector.Core.s));
+                    e.PushFile(nextBranchFile);
+                };
+                opener.CloseAction = (e) =>
+                {
+                    e.PopSelector();
+                    e.PopFile();
+                };
+
                 executor.AddCommand(Command.Function(nextBranchFile));
                 return;
             }
@@ -2156,7 +2202,7 @@ namespace mc_compiled.MCC.Compiler
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                executor.RequireIntent(tokens, Intent.NULLS);
+                executor.RequireFeature(tokens, Feature.NULLS);
                 const string damagerEntity = "_dmg";
                 List<string> commands = new List<string>();
                
@@ -2188,7 +2234,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void @null(Executor executor, Statement tokens)
         {
-            executor.RequireIntent(tokens, Intent.NULLS);
+            executor.RequireFeature(tokens, Feature.NULLS);
 
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 
@@ -2236,38 +2282,40 @@ namespace mc_compiled.MCC.Compiler
             {
                 string selector = executor.entities.nulls.GetAllStringSelector();
                 string command = Command.Execute(selector, Coord.here, Coord.here, Coord.here,
-                    Command.Event("@s", NullManager.destroyEventName));
+                    Command.Event("@s", NullManager.DESTROY_EVENT_NAME));
                 executor.AddCommand(command);
                 return;
             }
             else throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, REMOVE, SELECT, REMOVEALL");
         }
 
-        public static void intent(Executor executor, Statement tokens)
+        public static void feature(Executor executor, Statement tokens)
         {
-            string intentStr = tokens.Next<TokenIdentifier>().word;
-            Intent intent = Intent.NO_INTENTS;
+            string featureStr = tokens.Next<TokenIdentifier>().word;
+            Feature feature = Feature.NO_FEATURES;
 
-            switch (intentStr.ToUpper())
+            switch (featureStr.ToUpper())
             {
                 case "NULLS":
-                    intent = Intent.NULLS;
+                    feature = Feature.NULLS;
                     break;
-                case "WORKROOM":
-                    intent = Intent.WORKROOM;
+                case "GLOBAL":
+                    feature = Feature.GLOBAL;
                     break;
                 case "GAMETEST":
-                    intent = Intent.GAMETEST;
+                    feature = Feature.GAMETEST;
                     break;
                 default:
                     break;
             }
 
-            if (intent == Intent.NO_INTENTS)
-                throw new StatementException(tokens, "No valid intent specified.");
+            if (feature == Feature.NO_FEATURES)
+                throw new StatementException(tokens, "No valid feature specified.");
 
-            executor.project.GiveIntent(intent);
-            Console.WriteLine("Intent enabled: {0}", intent);
+            executor.project.EnableFeature(feature);
+
+            if(Program.DEBUG)
+                Console.WriteLine("Feature enabled: {0}", feature);
         }
         public static void function(Executor executor, Statement tokens)
         {
@@ -2277,7 +2325,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenSelectorLiteral>())
                 selector = tokens.Next<TokenSelectorLiteral>().selector;
             else
-                selector = new Selector() { core = Selector.Core.s };
+                selector = new Selector(Selector.Core.s);
 
             // ... attributes will go here! ...
 
@@ -2321,9 +2369,20 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
-                openBlock.executeAs = function.defaultSelector;
-                openBlock.shouldRun = true;
-                openBlock.TargetFile = function.File;
+                //openBlock.executeAs = function.defaultSelector;
+                //openBlock.shouldRun = true;
+                //openBlock.TargetFile = function.File;
+
+                openBlock.openAction = (e) =>
+                {
+                    e.PushSelector(function.defaultSelector);
+                    e.PushFile(function.File);
+                };
+                openBlock.CloseAction = (e) =>
+                {
+                    e.PopSelector();
+                    e.PopFile();
+                };
                 return;
             }
             else

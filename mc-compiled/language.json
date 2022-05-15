@@ -412,16 +412,16 @@
         [ "id:removeall" ]
       ]
     },
-    "intent": {
-      "description": "Grant Intent",
+    "feature": {
+      "description": "Enable Feature",
       "patterns": [
-        [ "id:intent" ]
+        [ "id:feature" ]
       ]
     },
     "function": {
       "description": "Define Function",
       "patterns": [
-        [ "id:name" ]
+        [ "*:arg"]
       ]
     },
     "return": {

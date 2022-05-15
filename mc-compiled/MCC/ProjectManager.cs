@@ -34,7 +34,7 @@ namespace mc_compiled.MCC
 
         readonly OutputRegistry registry;
         readonly List<IAddonFile> files;
-        private uint intents;
+        private uint features;
 
         /// <summary>
         /// Create a new ProjectManager with default description.
@@ -47,7 +47,7 @@ namespace mc_compiled.MCC
             this.name = name;
             registry = new OutputRegistry(bpBase, rpBase);
             files = new List<IAddonFile>();
-            intents = 0;
+            features = 0;
         }
         internal void AddFile(IAddonFile file) =>
             files.Add(file);
@@ -91,17 +91,17 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// Allow this project an intent.
+        /// Enable a feature for this project.
         /// </summary>
-        /// <param name="intent"></param>
-        internal void GiveIntent(Intent intent) =>
-            intents |= (uint)intent;
+        /// <param name="feature"></param>
+        internal void EnableFeature(Feature feature) =>
+            features |= (uint)feature;
         /// <summary>
-        /// Check if this project has an intent.
+        /// Check if this project has a feature enabled.
         /// </summary>
-        /// <param name="intent"></param>
-        internal bool HasIntent(Intent intent) =>
-            (intents &= (uint)intent) != 0;
+        /// <param name="feature"></param>
+        internal bool HasFeature(Feature feature) =>
+            (features &= (uint)feature) != 0;
     }
     /// <summary>
     /// Generates and holds a "registry" for directing file outputs.
@@ -163,12 +163,12 @@ namespace mc_compiled.MCC
         internal string this[OutputLocation location] =>
             registry[location];
     }
-    internal enum Intent : uint
+    internal enum Feature : uint
     {
-        NO_INTENTS = 0,     // No intents.
+        NO_FEATURES = 0,     // No features enabled.
 
-        NULLS = 1 << 0,     // Permission to create nulls.
-        WORKROOM = 1 << 1,  // Permission to use the 0, 0 chunk and ticking area.
-        GAMETEST = 1 << 2,  // Permission to use GameTest Framework.
+        NULLS = 1 << 0,     // Null Entities
+        GLOBAL = 1 << 1,    // Global Entity for Scoreboards
+        GAMETEST = 1 << 2,  // GameTest Framework
     }
 }

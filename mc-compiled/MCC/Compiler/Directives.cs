@@ -71,7 +71,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public enum DirectiveAttribute : int
     {
-        DONT_EXPAND_PPV = 1 << 0
+        DONT_EXPAND_PPV = 1 << 0    // Won't expand any explicit PPV identifiers. Used in $macro to allow passing in parameters.
     }
     public static class Directives
     {
@@ -371,8 +371,7 @@ namespace mc_compiled.MCC.Compiler
                                 _type = _type.Substring(1);
 
                             // look through mappings for type
-                            Type type = mappings[_type];
-                            if (type == null)
+                            if(!mappings.TryGetValue(_type, out Type type))
                                 throw new Exception($"Invalid type mapping '{_type}'.");
 
                             if (optional)

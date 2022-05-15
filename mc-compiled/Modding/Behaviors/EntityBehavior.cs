@@ -170,12 +170,12 @@ namespace mc_compiled.Modding.Behaviors
                     },
                     componentGroups = new EntityComponentGroup[]
                     {
-                        new EntityComponentGroup(MCC.NullManager.destroyComponentGroup, new ComponentInstantDespawn())
+                        new EntityComponentGroup(MCC.NullManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn())
                     },
                     events = new List<EntityEventHandler>(new EntityEventHandler[]
                     {
-                        new EntityEventHandler(MCC.NullManager.destroyEventName, action:
-                            new EventActionAddGroup(MCC.NullManager.destroyComponentGroup))
+                        new EntityEventHandler(MCC.NullManager.DESTROY_EVENT_NAME, action:
+                            new EventActionAddGroup(MCC.NullManager.DESTROY_COMPONENT_GROUP))
                     })
                 },
                 new EntityResource()

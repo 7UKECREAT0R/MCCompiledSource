@@ -76,35 +76,43 @@ namespace mc_compiled.MCC.Compiler
         public StatementCloseBlock closer;
 
         public int statementsInside;
-        public bool shouldRun = false;
-        public Commands.Selector executeAs = null;
-        private CommandFile file;
+
+        /// <summary>
+        /// The action when this opening block is called.
+        /// </summary>
+        public Action<Executor> openAction;
+        /// <summary>
+        /// The action when the closing block connected to this opener is called.
+        /// </summary>
+        public Action<Executor> CloseAction
+        {
+            get => closer?.closeAction;
+            set { if (closer != null) closer.closeAction = value; }
+        }
 
         public StatementOpenBlock(int statementsInside, CommandFile file) : base(null)
         {
             this.statementsInside = statementsInside;
-            this.file = file;
+            this.openAction = null;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
             return $"[OPEN BLOCK: {statementsInside} STATEMENTS]";
         }
-        public bool HasTargetFile
-        {
-            get => file != null;
-        }
-        public CommandFile TargetFile
-        {
-            set => file = value;
-        }
-
 
         protected override TypePattern[] GetValidPatterns()
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            if (executeAs == null)
+            if (openAction != null)
+                openAction(executor);
+
+            //
+            // Legacy code used before porting over to Action<Executor> model.
+            //
+
+            /*if (executeAs == null)
                 executor.PushSelector(false); // push a level up
             else
                 executor.PushSelector(executeAs);
@@ -119,7 +127,7 @@ namespace mc_compiled.MCC.Compiler
                 closer.popFile = false;
                 for (int i = 0; i < statementsInside; i++)
                     executor.Next();
-            }
+            }*/
         }
     }
     /// <summary>
@@ -127,10 +135,9 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementCloseBlock : Statement
     {
-        public bool popFile;
         public StatementCloseBlock() : base(null)
         {
-            this.popFile = false;
+            this.closeAction = null;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -143,14 +150,30 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public StatementOpenBlock opener;
 
+        /// <summary>
+        /// The action when the opening block connected to this closer is called.
+        /// </summary>
+        public Action<Executor> OpenAction
+        {
+            get => opener?.openAction;
+            set { if(opener != null) opener.openAction = value; }
+        }
+        /// <summary>
+        /// The action when this closing block is called.
+        /// </summary>
+        public Action<Executor> closeAction;
+
         protected override TypePattern[] GetValidPatterns()
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            if (popFile)
+            if (closeAction != null)
+                closeAction(executor);
+
+            /*if (popFile)
                 executor.PopFile();
 
-            executor.PopSelector();
+            executor.PopSelector();*/
         }
     }
     /// <summary>

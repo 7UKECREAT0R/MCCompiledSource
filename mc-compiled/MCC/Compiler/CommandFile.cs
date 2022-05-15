@@ -43,6 +43,9 @@ namespace mc_compiled.MCC.Compiler
             return hashCode;
         }
 
+        /// <summary>
+        /// Get the name used for functions to be able to call this.
+        /// </summary>
         public string QualifiedName
         {
             get

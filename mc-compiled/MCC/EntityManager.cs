@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mc_compiled.MCC.Compiler;
 
-namespace mc_compiled.MCC.Compiler
+namespace mc_compiled.MCC
 {
     /// <summary>
     /// Manages advanced spawned entities for this project. Allows searching and selecting.
@@ -13,10 +14,12 @@ namespace mc_compiled.MCC.Compiler
     {
         internal readonly List<ISelectorProvider> allProviders;
         public readonly NullManager nulls;
+        public readonly GlobalManager global;
 
-        public EntityManager(Executor parent)
+        public EntityManager(Executor executor)
         {
-            nulls = new NullManager(parent);
+            nulls = new NullManager(executor);
+            global = new GlobalManager(executor);
 
             allProviders = new List<ISelectorProvider>()
             {

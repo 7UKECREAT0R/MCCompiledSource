@@ -20,6 +20,8 @@ namespace mc_compiled.Commands
 
         public bool isFloat, isRelative, isFacingOffset;
 
+        public static implicit operator Coord(int convert) => new Coord(convert, false, false, false);
+        public static implicit operator Coord(float convert) => new Coord(convert, true, false, false);
         public Coord(float value, bool isFloat, bool isRelative, bool isFacingOffset)
         {
             valuef = value;
