@@ -203,7 +203,7 @@ namespace mc_compiled.Commands
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block}";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} {data}";
-        public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, OldObjectHandling fillMode) =>
+        public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, OldHandling fillMode) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} {data} {fillMode}";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, string replaceBlock) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} {data} replace {replaceBlock} -1";
@@ -339,22 +339,22 @@ namespace mc_compiled.Commands
         public static string Reload() =>
             $"reload";
 
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldObjectHandling handling, string item) =>
+        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item}";
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldObjectHandling handling, string item, int amount) =>
+        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item, int amount) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount}";
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldObjectHandling handling, string item, int amount, int data) =>
+        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item, int amount, int data) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount} {data}";
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldObjectHandling handling, string item, int amount, int data, string json) =>
+        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item, int amount, int data, string json) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount} {data} {json}";
 
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldObjectHandling handling, string item) =>
+        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item}";
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldObjectHandling handling, string item, int amount) =>
+        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item, int amount) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount}";
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldObjectHandling handling, string item, int amount, int data) =>
+        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item, int amount, int data) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount} {data}";
-        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldObjectHandling handling, string item, int amount, int data, string json) =>
+        public static string ReplaceItemEntity(string target, EquipmentSlotType slotType, int slot, OldHandling handling, string item, int amount, int data, string json) =>
             $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount} {data} {json}";
 
         public static string Ride(string sources, string targets, TeleportRules tpRules = TeleportRules.teleport_rider, RideFillType fillType = RideFillType.until_full) =>
@@ -462,7 +462,7 @@ namespace mc_compiled.Commands
             $"setblock {x} {y} {z} {block}";
         public static string SetBlock(Coord x, Coord y, Coord z, string block, int data) =>
             $"setblock {x} {y} {z} {block} {data}";
-        public static string SetBlock(Coord x, Coord y, Coord z, string block, int data, OldObjectHandling handling) =>
+        public static string SetBlock(Coord x, Coord y, Coord z, string block, int data, OldHandling handling) =>
             $"setblock {x} {y} {z} {block} {data} {handling}";
 
         public static string SetMaxPlayers(int max) =>
@@ -659,8 +659,8 @@ namespace mc_compiled.Commands
         normal = 2,
         hard = 3
     }
-    [EnumParsable(typeof(OldObjectHandling))]
-    public enum OldObjectHandling
+    [EnumParsable(typeof(OldHandling))]
+    public enum OldHandling
     {
         destroy, keep, hollow, outline, replace
     }

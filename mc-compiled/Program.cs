@@ -269,9 +269,7 @@ namespace mc_compiled
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
-            // initialize definitions resolver
             new Definitions(debug);
-            // initialize enum constants
             Commands.CommandEnumParser.Init();
 
             bool firstRun = true;

@@ -121,8 +121,8 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIdentifierEnum : TokenIdentifier, IObjectable
     {
-        public readonly object value;
-        public TokenIdentifierEnum(string word, object value, int lineNumber) : base(word, lineNumber)
+        public readonly Commands.ParsedEnumValue value;
+        public TokenIdentifierEnum(string word, Commands.ParsedEnumValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
         }

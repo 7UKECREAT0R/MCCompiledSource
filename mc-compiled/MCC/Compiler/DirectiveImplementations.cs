@@ -1313,7 +1313,12 @@ namespace mc_compiled.MCC.Compiler
                     GameMode gameMode;
 
                     if (tokens.NextIs<TokenIdentifierEnum>())
-                        gameMode = (GameMode)tokens.Next<TokenIdentifierEnum>().value;
+                    {
+                        ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>().value;
+                        if(!enumValue.IsType<GameMode>())
+                            throw new StatementException(tokens, $"Must specify Enchantment; Given {enumValue.enumName}.");
+                        gameMode = (GameMode)enumValue.value;
+                    }
                     else
                         gameMode = (GameMode)tokens.Next<TokenIntegerLiteral>().number;
 
@@ -1550,7 +1555,10 @@ namespace mc_compiled.MCC.Compiler
                         canDestroy.Add(tokens.Next<TokenStringLiteral>());
                         break;
                     case "ENCHANT":
-                        Enchantment enchantment = (Enchantment)tokens.Next<TokenIdentifierEnum>().value;
+                        ParsedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>().value;
+                        if (!parsedEnchantment.IsType<Enchantment>())
+                            throw new StatementException(tokens, $"Must specify Enchantment; Given {parsedEnchantment.enumName}.");
+                        Enchantment enchantment = (Enchantment)parsedEnchantment.value;
                         int level = tokens.Next<TokenIntegerLiteral>();
                         enchants.Add(new Tuple<Enchantment, int>(enchantment, level));
                         needsStructure = true;
@@ -1816,10 +1824,15 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void block(Executor executor, Statement tokens)
         {
-            OldObjectHandling handling = OldObjectHandling.replace;
+            OldHandling handling = OldHandling.replace;
 
             if (tokens.NextIs<TokenIdentifierEnum>())
-                handling = (OldObjectHandling)tokens.Next<TokenIdentifierEnum>().value;
+            {
+                ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>().value;
+                if(!enumValue.IsType<OldHandling>())
+                    throw new StatementException(tokens, $"Must specify OldObjectHandling; Given {enumValue.enumName}.");
+                handling = (OldHandling)enumValue.value;
+            }
 
             string block = tokens.Next<TokenStringLiteral>();
             Coord x = tokens.Next<TokenCoordinateLiteral>();
@@ -1836,10 +1849,15 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void fill(Executor executor, Statement tokens)
         {
-            OldObjectHandling handling = OldObjectHandling.replace;
+            OldHandling handling = OldHandling.replace;
 
             if (tokens.NextIs<TokenIdentifierEnum>())
-                handling = (OldObjectHandling)tokens.Next<TokenIdentifierEnum>().value;
+            {
+                ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>().value;
+                if (!enumValue.IsType<OldHandling>())
+                    throw new StatementException(tokens, $"Must specify OldObjectHandling; Given {enumValue.enumName}.");
+                handling = (OldHandling)enumValue.value;
+            }
 
             string block = tokens.Next<TokenStringLiteral>();
             Coord x1 = tokens.Next<TokenCoordinateLiteral>();

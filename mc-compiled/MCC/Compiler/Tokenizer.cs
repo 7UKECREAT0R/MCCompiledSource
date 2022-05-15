@@ -311,7 +311,7 @@ namespace mc_compiled.MCC.Compiler
                 return new TokenDirective(directive, CURRENT_LINE);
 
             // check for enum constant
-            if (CommandEnumParser.TryParse(word, out object enumValue))
+            if (CommandEnumParser.TryParse(word, out ParsedEnumValue enumValue))
                 return new TokenIdentifierEnum(word, enumValue, CURRENT_LINE);
 
             // unresolved

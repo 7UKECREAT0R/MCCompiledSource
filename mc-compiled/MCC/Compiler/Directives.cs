@@ -55,6 +55,10 @@ namespace mc_compiled.MCC.Compiler
             }
         }
 
+        // Directive might overlap an enum value.
+        // In the case this happens, it can use this field to convert itself.
+        public readonly Commands.ParsedEnumValue? enumValue;
+
         public readonly short index;
         public readonly string identifier;
         public readonly string description;
