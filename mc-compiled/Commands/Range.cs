@@ -8,7 +8,7 @@ namespace mc_compiled.Commands
 {
     /// <summary>
     /// Represents a range value in selector options. Examples:
-    /// "3..999", "0..10", "50..100", "10", "!1", "!9..100"
+    /// "3..999", "0..10", "50..100", "10", "!1", "!9..100", "!..3"
     /// </summary>
     public struct Range
     {

@@ -365,7 +365,7 @@ namespace mc_compiled.MCC.Compiler
         public TokenNumberLiteral NextNumberIdentifier(char first, bool rangeSecondArg = false)
         {
             sb.Append(first);
-            int multiplier = 1;
+            IntMultiplier multiplier = IntMultiplier.t;
 
             char c;
             while (HasNext)
@@ -380,20 +380,14 @@ namespace mc_compiled.MCC.Compiler
 
                 if (!char.IsDigit(c))
                 {
-                    switch(c)
+                    foreach (IntMultiplier im in TokenIntegerLiteral.ALL_MULTIPLIERS)
                     {
-                        case 's':
+                        if (c == im.ToString()[0])
+                        {
                             NextChar();
-                            multiplier = 20;
+                            multiplier = im;
                             break;
-                        case 'm':
-                            NextChar();
-                            multiplier = 20 * 60;
-                            break;
-                        case 'h':
-                            NextChar();
-                            multiplier = 20 * 60 * 60;
-                            break;
+                        }
                     }
                     break;
                 }
@@ -404,15 +398,15 @@ namespace mc_compiled.MCC.Compiler
             string str = sb.ToString();
 
             if (int.TryParse(str, out int i))
-                return new TokenIntegerLiteral(i * multiplier, CURRENT_LINE);
+                return new TokenIntegerLiteral(i * (int)multiplier, multiplier, CURRENT_LINE);
             else
             {
                 if (float.TryParse(str, out float f))
                 {
-                    f *= multiplier;
+                    f *= (int)multiplier;
                     int converted = (int)f;
                     if(f == (float)converted)
-                        return new TokenIntegerLiteral(converted, CURRENT_LINE);
+                        return new TokenIntegerLiteral(converted, multiplier, CURRENT_LINE);
                     return new TokenDecimalLiteral(f, CURRENT_LINE);
                 }
                 else

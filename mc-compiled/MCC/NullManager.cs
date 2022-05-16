@@ -53,7 +53,7 @@ namespace mc_compiled.MCC
         /// <param name="name"></param>
         /// <returns></returns>
         public string GetStringSelector(string name) =>
-            $"@e[c=1,type={nullType},name={name}]";
+            $"@e[type={nullType},name={name}]";
         /// <summary>
         /// Get a selector to select all null entities.
         /// </summary>
@@ -83,7 +83,7 @@ namespace mc_compiled.MCC
         /// <param name="yRot"></param>
         /// <param name="xRot"></param>
         /// <returns>The commands to create this null entity.</returns>
-        public string[] Create(string name, Coord x, Coord y, Coord z, Coord? yRot = null, Coord? xRot = null)
+        public IEnumerable<string> Create(string name, Coord x, Coord y, Coord z, Coord? yRot = null, Coord? xRot = null)
         {
             EnsureEntity();
             int hash = name.GetHashCode();
@@ -104,7 +104,7 @@ namespace mc_compiled.MCC
                 commands.Add(Command.Teleport(GetStringSelector(name), x, y, z, yRot.Value, xRot.Value));
             }
 
-            return commands.ToArray();
+            return commands;
         }
         /// <summary>
         /// Destroy a null entity.

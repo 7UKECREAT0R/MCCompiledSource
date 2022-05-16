@@ -17,7 +17,9 @@
     "selector": "TokenSelectorLiteral",
     "value": "TokenIdentifierValue",
     "pos": "TokenCoordinateLiteral",
-    "enum": "TokenIdentifierEnum"
+    "enum": "TokenIdentifierEnum",
+    "dots": "TokenRangeDots",
+    "range": "TokenRangeLiteral"
   },
   "directives": {
     "$var": {
@@ -243,26 +245,8 @@
     "if": {
       "description": "If Statement",
       "patterns": [
-        [ "value:boolean" ],
-        [ "value:variable", "compare:comparison", ".:other" ],
-        [ "id:not", "value:boolean" ],
-        [ "id:not", "value:variable", "compare:comparison", ".:other" ],
-        [ "id", "pos", "pos", "pos", "string", "?int" ],
-        [ "id", "pos", "pos", "pos", "int", "?int" ],
-        [ "id", "pos", "pos", "pos", "int", "int", "int" ],
-        [ "id", "string" ],
-        [ "id", "enum" ],
-        [ "id", "int", "?int" ],
-        [ "id", "id", "pos" ],
-        [ "id", "id", "pos", "pos", "pos", "string", "?int" ],
-        [ "id", "id", "pos", "pos", "pos", "int", "?int" ],
-        [ "id", "id", "pos", "pos", "pos", "int", "int", "int" ],
-        [ "id", "id", "string" ],
-        [ "id", "id", "enum" ],
-        [ "id", "id", "int", "?int" ],
-        [ "id", "pos", "pos", "pos" ],
-        [ "id", "selector" ],
-        [ "id", "selector", "int", "?int" ]
+        [ "value:any" ],
+        [ "id:any" ]
       ]
     },
     "else": {
@@ -419,9 +403,9 @@
       ]
     },
     "function": {
-      "description": "Define Function",
+      "description": "Define/Call Function",
       "patterns": [
-        [ "*:arg"]
+        [ "*:arg" ]
       ]
     },
     "return": {

@@ -1,4 +1,5 @@
-﻿using mc_compiled.Modding;
+﻿using mc_compiled.MCC.Compiler;
+using mc_compiled.Modding;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,7 @@ namespace mc_compiled.MCC
 
         readonly OutputRegistry registry;
         readonly List<IAddonFile> files;
-        private uint features;
+        private Feature features;
 
         /// <summary>
         /// Create a new ProjectManager with default description.
@@ -95,13 +96,13 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="feature"></param>
         internal void EnableFeature(Feature feature) =>
-            features |= (uint)feature;
+            features |= feature;
         /// <summary>
         /// Check if this project has a feature enabled.
         /// </summary>
         /// <param name="feature"></param>
         internal bool HasFeature(Feature feature) =>
-            (features &= (uint)feature) != 0;
+            (features &= feature) != Feature.NO_FEATURES;
     }
     /// <summary>
     /// Generates and holds a "registry" for directing file outputs.
@@ -163,6 +164,35 @@ namespace mc_compiled.MCC
         internal string this[OutputLocation location] =>
             registry[location];
     }
+    internal static class FeatureManager
+    {
+        /// <summary>
+        /// All features available for enabling.
+        /// </summary>
+        internal static Feature[] FEATURE_LIST = (Feature[])Enum.GetValues(typeof(Feature));
+
+        /// <summary>
+        /// Dictionary of features and their actions to perform on an executor when enabled.
+        /// </summary>
+        internal static Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
+        {
+            { Feature.NULLS, (executor) => {
+                Console.WriteLine("NULLS ENABLED EWOHAHOAOOO");
+            }}
+        };
+
+        /// <summary>
+        /// Called when a feature is enabled so that its enable action can run.
+        /// </summary>
+        /// <param name="caller"></param>
+        /// <param name="feature"></param>
+        internal static void OnFeatureEnabled(Executor caller, Feature feature)
+        {
+            if(ENABLE_ACTIONS.TryGetValue(feature, out Action<Executor> run))
+                run(caller);
+        }
+    }
+    [Flags]
     internal enum Feature : uint
     {
         NO_FEATURES = 0,     // No features enabled.

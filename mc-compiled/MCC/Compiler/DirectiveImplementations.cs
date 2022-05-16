@@ -2221,7 +2221,7 @@ namespace mc_compiled.MCC.Compiler
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
                 executor.RequireFeature(tokens, Feature.NULLS);
-                const string damagerEntity = "_dmg";
+                const string damagerEntity = "_dmg_from";
                 List<string> commands = new List<string>();
                
                 // create null entity at location
@@ -2270,8 +2270,28 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenCoordinateLiteral>())
                     xRot = tokens.Next<TokenCoordinateLiteral>();
 
-                string[] commands = executor.entities.nulls.Create(name, x, y, z, yRot, xRot);
+                var commands = executor.entities.nulls.Create(name, x, y, z, yRot, xRot);
                 executor.AddCommands(commands, "createnull");
+                return;
+            }
+            else if(word.Equals("SINGLE"))
+            {
+                string name = tokens.Next<TokenStringLiteral>();
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+
+                Coord? yRot = null;
+                Coord? xRot = null;
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    yRot = tokens.Next<TokenCoordinateLiteral>();
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    xRot = tokens.Next<TokenCoordinateLiteral>();
+
+                List<string> commands = new List<string>();
+                commands.Add(executor.entities.nulls.Destroy(name));
+                commands.AddRange(executor.entities.nulls.Create(name, x, y, z, yRot, xRot));
+                executor.AddCommands(commands, "singletonnull");
                 return;
             }
             else if (word.Equals("REMOVE"))
@@ -2294,7 +2314,6 @@ namespace mc_compiled.MCC.Compiler
                 Selector selector = executor.entities.nulls.GetSelector(name);
                 executor.ActiveSelector = selector;
                 return;
-
             }
             else if (word.Equals("REMOVEALL"))
             {
@@ -2304,35 +2323,27 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(command);
                 return;
             }
-            else throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, REMOVE, SELECT, REMOVEALL");
+            else throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, SINGLE, REMOVE, SELECT, REMOVEALL");
         }
 
         public static void feature(Executor executor, Statement tokens)
         {
-            string featureStr = tokens.Next<TokenIdentifier>().word;
+            string featureStr = tokens.Next<TokenIdentifier>().word.ToUpper();
             Feature feature = Feature.NO_FEATURES;
 
-            switch (featureStr.ToUpper())
+            foreach(Feature possibleFeature in FeatureManager.FEATURE_LIST)
             {
-                case "NULLS":
-                    feature = Feature.NULLS;
-                    break;
-                case "GLOBAL":
-                    feature = Feature.GLOBAL;
-                    break;
-                case "GAMETEST":
-                    feature = Feature.GAMETEST;
-                    break;
-                default:
-                    break;
+                if (featureStr.Equals(possibleFeature.ToString().ToUpper()))
+                    feature = possibleFeature;
             }
 
             if (feature == Feature.NO_FEATURES)
                 throw new StatementException(tokens, "No valid feature specified.");
 
             executor.project.EnableFeature(feature);
+            FeatureManager.OnFeatureEnabled(executor, feature);
 
-            if(Program.DEBUG)
+            if (Program.DEBUG)
                 Console.WriteLine("Feature enabled: {0}", feature);
         }
         public static void function(Executor executor, Statement tokens)

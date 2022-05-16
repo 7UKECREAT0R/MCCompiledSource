@@ -782,7 +782,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     dynamic value = values[i];
                     if (value is int)
-                        literals[i] = new TokenIntegerLiteral(value, line);
+                        literals[i] = new TokenIntegerLiteral(value, IntMultiplier.t, line);
                     if (value is float)
                         literals[i] = new TokenDecimalLiteral(value, line);
                     if (value is bool)

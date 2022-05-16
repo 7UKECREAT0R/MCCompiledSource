@@ -58,11 +58,11 @@ namespace mc_compiled.Commands.Selectors
                 HasItemEntry entry = new HasItemEntry();
                 foreach (string section in sections)
                 {
-                    int index = part.IndexOf('=');
+                    int index = section.IndexOf('=');
                     if (index == -1)
                         continue;
-                    string key = part.Substring(0, index).Trim();
-                    string _value = part.Substring(index + 1).Trim();
+                    string key = section.Substring(0, index).Trim();
+                    string _value = section.Substring(index + 1).Trim();
 
                     switch (key.ToUpper())
                     {
@@ -72,9 +72,11 @@ namespace mc_compiled.Commands.Selectors
                             break;
                         case "L":
                         case "LOCATION":
-                            object _location = Enum.Parse(typeof(ItemSlot), _value);
-                            if (_location != null)
-                                entry.location = (ItemSlot)_location;
+                            if (CommandEnumParser.TryParse(_value, out ParsedEnumValue enumValue))
+                            {
+                                if(enumValue.IsType<ItemSlot>())
+                                    entry.location = (ItemSlot)enumValue.value;
+                            }
                             break;
                         case "Q":
                         case "QUANTITY":

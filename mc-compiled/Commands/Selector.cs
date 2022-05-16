@@ -78,6 +78,10 @@ namespace mc_compiled.Commands
             {
                 checks = new List<Selectors.ScoresEntry>()
             };
+            hasItem = new Selectors.HasItems
+            {
+                entries = new List<Selectors.HasItemEntry>()
+            };
             count = new Selectors.Count
             {
                 count = Selectors.Count.NONE
@@ -94,6 +98,10 @@ namespace mc_compiled.Commands
             scores = new Selectors.Scores
             {
                 checks = new List<Selectors.ScoresEntry>()
+            };
+            hasItem = new Selectors.HasItems
+            {
+                entries = new List<Selectors.HasItemEntry>()
             };
             count = new Selectors.Count
             {
@@ -127,6 +135,7 @@ namespace mc_compiled.Commands
                 core = core,
                 area = Selectors.Area.Parse(chunks),
                 scores = Selectors.Scores.Parse(str),
+                hasItem = Selectors.HasItems.Parse(str),
                 count = Selectors.Count.Parse(chunks),
                 entity = Selectors.Entity.Parse(chunks),
                 player = Selectors.Player.Parse(chunks)
@@ -149,18 +158,19 @@ namespace mc_compiled.Commands
             return selector;
         }
 
-        public Core core;               // Base selector.
+        public Core core;
         public Coord offsetX = Coord.here;
         public Coord offsetY = Coord.here;
         public Coord offsetZ = Coord.here;
 
-        public Selectors.Area area;     // The area where targets should be selected.
-        public Selectors.Scores scores; // The scores that should be evaluated.
-        public Selectors.Count count;   // The limit of entities that can be selected.
-        public Selectors.Entity entity; // The entity/player's status (name, rotation, etc.)
-        public Selectors.Player player; // The player's specific stats (level, gamemode, etc.)
-        public List<Selectors.Tag> tags;// The tags this entity/player has. Can have multiple.
-        public BlockCheck blockCheck;   // The block to check.
+        public Selectors.Area area;         // The area where targets should be selected.
+        public Selectors.Scores scores;     // The scores that should be evaluated.
+        public Selectors.HasItems hasItem;  // The items which should be checked.
+        public Selectors.Count count;       // The limit of entities that can be selected.
+        public Selectors.Entity entity;     // The entity/player's status (name, rotation, etc.)
+        public Selectors.Player player;     // The player's specific stats (level, gamemode, etc.)
+        public List<Selectors.Tag> tags;    // The tags this entity/player has. Can have multiple.
+        public BlockCheck blockCheck;       // The block to check.
 
         /// <summary>
         /// Returns the fully qualified minecraft command selector that this represents.
@@ -171,9 +181,13 @@ namespace mc_compiled.Commands
             List<string> parts = new List<string>();
 
             string sScores = scores.GetSection(),
-                   sCount = count.GetSection();
+                sHasItem = hasItem.GetSection(),
+                sCount = count.GetSection();
+
             if (sScores != null)
                 parts.Add(sScores);
+            if (sHasItem != null)
+                parts.Add(sHasItem);
             if (sCount != null)
                 parts.Add(sCount);
 
@@ -221,6 +235,7 @@ namespace mc_compiled.Commands
             clone.offsetZ += b.offsetZ;
             clone.area += b.area;
             clone.scores += b.scores;
+            clone.hasItem += b.hasItem;
             clone.count += b.count;
             clone.entity += b.entity;
             clone.player += b.player;
