@@ -31,6 +31,10 @@ namespace mc_compiled.Commands.Selectors
             else
                 return "hasitem=[" + string.Join(",", (from e in entries select e.ToString())) + "]";
         }
+        public string AsStoreIn(string selector, string objective)
+        {
+            return $"execute {selector}[{GetSection()}] ~~~ scoreboard players set @s {objective} 1";
+        }
 
         public static HasItems Parse(string fullSelector)
         {

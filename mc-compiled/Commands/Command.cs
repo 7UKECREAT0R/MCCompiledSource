@@ -743,7 +743,8 @@ namespace mc_compiled.Commands
     {
         survival = 0,
         creative = 1,
-        adventure = 2
+        adventure = 2,
+        spectator = 6
     }
     [EnumParsable(typeof(DamageCause))]
     public enum DamageCause

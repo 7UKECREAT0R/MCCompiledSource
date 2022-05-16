@@ -47,7 +47,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Selectors\SelectorCodeTransformer.cs" />
     <Compile Include="Commands\Selectors\HasItems.cs" />
+    <Compile Include="Commands\Selectors\SelectorTransformer.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorBlock.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorAny.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorCount.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorScoreOperation.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorOffset.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorLimit.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorWearing.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorHolding.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorItem.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorName.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorLevel.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorMode.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorTag.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorInside.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorNear.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorRotation.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorFamily.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorType.cs" />
     <Compile Include="MCC\Compiler\Assembler.cs" />
     <Compile Include="Commands\CommandEnumParser.cs" />
     <Compile Include="Commands\CommandLimits.cs" />

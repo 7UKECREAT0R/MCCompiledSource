@@ -284,6 +284,13 @@ namespace mc_compiled.MCC.Compiler
             get => selections.Peek().ToString();
         }
         /// <summary>
+        /// The currently active selector core represented as a string.
+        /// </summary>
+        public string ActiveSelectorCore
+        {
+            get => '@' + selections.Peek().core.ToString();
+        }
+        /// <summary>
         /// Push a copy of the current selector to the stack. If doesAlign is set, then the selector is reset to '@s'.
         /// </summary>
         /// <param name="doesAlign"></param>
@@ -344,6 +351,7 @@ namespace mc_compiled.MCC.Compiler
             unreachableCode = -1;
             selections.Pop();
         }
+
         
         /// <summary>
         /// The number of statements which will run before a selector is automatically popped.

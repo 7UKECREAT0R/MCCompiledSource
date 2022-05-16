@@ -118,6 +118,7 @@ namespace mc_compiled.Commands
             core = copy.core;
             area = copy.area;
             scores = new Selectors.Scores(new List<Selectors.ScoresEntry>(copy.scores.checks));
+            hasItem = new Selectors.HasItems(new List<Selectors.HasItemEntry>(copy.hasItem.entries));
             count = copy.count;
             entity = copy.entity;
             player = copy.player;
