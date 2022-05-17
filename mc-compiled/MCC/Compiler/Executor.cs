@@ -313,6 +313,21 @@ namespace mc_compiled.MCC.Compiler
         /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
+        public void PushSelectorExecute(Selector now)
+        {
+            if (now.NeedsAlign)
+            {
+                AppendCommandPrepend(Command.Execute(now.ToString(), Coord.here, Coord.here, Coord.here, ""));
+                PushSelector(true);
+                return;
+            }
+
+            PushSelector(false);
+        }
+        /// <summary>
+        /// Pushes a new selector representing '@s' to the stack and prepends the
+        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
+        /// </summary>
         public void PushSelectorExecute()
         {
             Selector active = ActiveSelector;
@@ -325,8 +340,9 @@ namespace mc_compiled.MCC.Compiler
 
             PushSelector(false);
         }
+
         /// <summary>
-        /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
+        /// Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// 
         /// This variant offsets the position of the execution relative to each entity.

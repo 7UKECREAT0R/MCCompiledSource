@@ -57,7 +57,7 @@ namespace mc_compiled.MCC
 
                 // check if types match
                 if (!type.Equals(value.GetType()))
-                    throw new StatementException(caller, $"All return statements in this function must return the same type. Return type: {GetType().Name}");
+                    throw new StatementException(caller, $"All return statements in this function must return the same type. Return type: {type.Name}");
             }
 
             //   only run this code once for this function, that

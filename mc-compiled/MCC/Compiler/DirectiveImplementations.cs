@@ -950,7 +950,20 @@ namespace mc_compiled.MCC.Compiler
         public static void select(Executor executor, Statement tokens)
         {
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-            executor.ActiveSelector = selector;
+
+            if(executor.HasNext && executor.NextIs<StatementOpenBlock>())
+            {
+                StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
+                block.openAction = (e) =>
+                {
+                    e.PushSelector(selector);
+                };
+                block.CloseAction = (e) =>
+                {
+                    e.PopSelector();
+                };
+            } else
+                executor.ActiveSelector = selector;
         }
         public static void globalprint(Executor executor, Statement tokens)
         {
@@ -1882,7 +1895,9 @@ namespace mc_compiled.MCC.Compiler
                     xRot = tokens.Next<TokenCoordinateLiteral>();
 
                 var commands = executor.entities.nulls.Create(name, x, y, z, yRot, xRot);
+                executor.PushSelectorExecute();
                 executor.AddCommands(commands, "createnull");
+                executor.PopSelector();
                 return;
             }
             else if(word.Equals("SINGLE"))
@@ -1902,7 +1917,9 @@ namespace mc_compiled.MCC.Compiler
                 List<string> commands = new List<string>();
                 commands.Add(executor.entities.nulls.Destroy(name));
                 commands.AddRange(executor.entities.nulls.Create(name, x, y, z, yRot, xRot));
+                executor.PushSelectorExecute();
                 executor.AddCommands(commands, "singletonnull");
+                executor.PopSelector();
                 return;
             }
             else if (word.Equals("REMOVE"))
@@ -1942,19 +1959,28 @@ namespace mc_compiled.MCC.Compiler
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
             string selected = executor.ActiveSelectorStr;
 
-            if(word.Equals("ADD"))
+            if (word.Equals("ADD"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
+                executor.PushSelectorExecute();
                 executor.AddCommand(Command.Tag(selected, tag));
-            } else if(word.Equals("REMOVE"))
+                executor.PopSelector();
+            } else if (word.Equals("REMOVE"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
+                executor.PushSelectorExecute();
                 executor.AddCommand(Command.TagRemove(selected, tag));
-            } else if(word.Equals("SINGLE"))
+                executor.PopSelector();
+            } else if (word.Equals("SINGLE"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
-                executor.AddCommand(Command.TagRemove($"@e[tag=\"{tag}\"]", tag));
-                executor.AddCommand(Command.Tag(selected, tag));
+                executor.PushSelectorExecute();
+                executor.AddCommands(new[]
+                {
+                    Command.TagRemove($"@e[tag=\"{tag}\"]", tag),
+                    Command.Tag(selected, tag)
+                }, "tagsingle");
+                executor.PopSelector();
             } else
                 throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE, SINGLE");
         }
