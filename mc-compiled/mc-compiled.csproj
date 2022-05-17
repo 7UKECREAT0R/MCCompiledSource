@@ -55,7 +55,6 @@
     <Compile Include="Commands\Selectors\Transformers\SelectorCount.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorScoreOperation.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorOffset.cs" />
-    <Compile Include="Commands\Selectors\Transformers\SelectorLimit.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorWearing.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorHolding.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorItem.cs" />

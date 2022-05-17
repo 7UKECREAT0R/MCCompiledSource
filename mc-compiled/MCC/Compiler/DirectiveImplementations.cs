@@ -1934,7 +1934,40 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(command);
                 return;
             }
-            else throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, SINGLE, REMOVE, SELECT, REMOVEALL");
+            else
+                throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, SINGLE, REMOVE, SELECT, REMOVEALL");
+        }
+        public static void tag(Executor executor, Statement tokens)
+        {
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            string selected = executor.ActiveSelectorStr;
+
+            if(word.Equals("ADD"))
+            {
+                string tag = tokens.Next<TokenStringLiteral>();
+                executor.AddCommand(Command.Tag(selected, tag));
+            } else if(word.Equals("REMOVE"))
+            {
+                string tag = tokens.Next<TokenStringLiteral>();
+                executor.AddCommand(Command.TagRemove(selected, tag));
+            } else if(word.Equals("SINGLE"))
+            {
+                string tag = tokens.Next<TokenStringLiteral>();
+                executor.AddCommand(Command.TagRemove($"@e[tag=\"{tag}\"]", tag));
+                executor.AddCommand(Command.Tag(selected, tag));
+            } else
+                throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE, SINGLE");
+        }
+        public static void limit(Executor executor, Statement tokens)
+        {
+            Selector active = executor.ActiveSelector;
+
+            if (tokens.NextIs<TokenIntegerLiteral>())
+                active.count.count = tokens.Next<TokenIntegerLiteral>().number;
+            else
+                active.count.count = Count.NONE;
+
+            executor.ActiveSelector = active;
         }
 
         public static void feature(Executor executor, Statement tokens)

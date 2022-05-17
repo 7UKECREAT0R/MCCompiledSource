@@ -35,7 +35,6 @@ namespace mc_compiled.Commands.Selectors
             { "INSIDE", new SelectorInside() },
             { "ITEM", new SelectorItem() },
             { "LEVEL", new SelectorLevel() },
-            { "LIMIT", new SelectorLimit() },
             { "MODE", new SelectorMode() },
             { "NAME", new SelectorName() },
             { "NEAR", new SelectorNear() },

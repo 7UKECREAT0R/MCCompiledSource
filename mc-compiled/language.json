@@ -396,6 +396,18 @@
         [ "id:removeall" ]
       ]
     },
+    "tag": {
+      "description": "Tag Selected Entity",
+      "patterns": [
+        [ "id:mode", "string:name" ]
+      ]
+    },
+    "limit": {
+      "description": "Limit Number of Selected Entities",
+      "patterns": [
+        [ "?int:count" ]
+      ]
+    },
     "feature": {
       "description": "Enable Feature",
       "patterns": [
