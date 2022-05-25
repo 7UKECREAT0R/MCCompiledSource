@@ -51,7 +51,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public string[] dropItems; // items it drops when it grows up
         public float duration;
         public string[] feedItems;
-        public EntityEventHandler? growUpEvent;
+        public EntityEventHandler growUpEvent;
         
         public override string GetIdentifier() =>
             "minecraft:ageable";
@@ -65,8 +65,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 json["drop_items"] = new JArray(dropItems);
             if (feedItems != null)
                 json["feed_items"] = new JArray(feedItems);
-            if (growUpEvent.HasValue)
-                json["grow_up"] = growUpEvent.Value.ToComponentJSON();
+            if (growUpEvent != null)
+                json["grow_up"] = growUpEvent.ToComponentJSON();
 
             return json;
         }
@@ -160,7 +160,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     }
     public class ComponentAttackCooldown : EntityComponent
     {
-        public EntityEventHandler? onCooldownComplete;
+        public EntityEventHandler onCooldownComplete;
         public float primaryCooldownTime;
         public float? minCooldownTime;
 
@@ -176,8 +176,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             else
                 json["attack_cooldown_time"] = primaryCooldownTime;
 
-            if (onCooldownComplete.HasValue)
-                json["attack_cooldown_complete_event"] = onCooldownComplete.Value.ToComponentJSON();
+            if (onCooldownComplete != null)
+                json["attack_cooldown_complete_event"] = onCooldownComplete.ToComponentJSON();
 
             return json;
         }
@@ -357,7 +357,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             public string babyType;
             public string mateType;
-            public EntityEventHandler? breedEventToCall;
+            public EntityEventHandler breedEventToCall;
 
             public BreedEntity(string babyType, string mateType, EntityEventHandler breedEventToCall)
             {
@@ -373,8 +373,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     ["mate_type"] = mateType
                 };
 
-                if (breedEventToCall.HasValue)
-                    json["breed_event"] = breedEventToCall.Value.ToComponentJSON();
+                if (breedEventToCall != null)
+                    json["breed_event"] = breedEventToCall.ToComponentJSON();
 
                 return json;
             }
@@ -672,7 +672,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             public bool dealsDamage;
             public string onDamageSoundEvent;
             public FilterCollection onDamageFilters;
-            public EntityEventHandler? onDamage;
+            public EntityEventHandler onDamage;
 
             public JObject ToJSON()
             {
@@ -688,7 +688,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     json["on_damage_sound_event"] = onDamageSoundEvent;
 
                 bool hasFilter = onDamageFilters != null;
-                bool hasEvent = onDamage.HasValue;
+                bool hasEvent = onDamage != null;
 
                 if (hasFilter | hasEvent)
                 {
@@ -697,8 +697,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                         child["filters"] = onDamageFilters.ToJSON();
                     if (hasEvent)
                     {
-                        child["event"] = onDamage.Value.eventID;
-                        child["target"] = onDamage.Value.target.ToString();
+                        child["event"] = onDamage.eventID;
+                        child["target"] = onDamage.target.ToString();
                     }
                 }
 
@@ -759,9 +759,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
     public class ComponentDryingOutTimer : EntityComponent
     {
         public float totalTime;
-        public EntityEventHandler? driedOutEvent;
-        public EntityEventHandler? recoverEvent;
-        public EntityEventHandler? stoppedDryingEvent;
+        public EntityEventHandler driedOutEvent;
+        public EntityEventHandler recoverEvent;
+        public EntityEventHandler stoppedDryingEvent;
         public float waterBottleRefillTime;
 
         public override string GetIdentifier() =>
@@ -774,12 +774,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["water_bottle_refill_time"] = waterBottleRefillTime
             };
 
-            if (driedOutEvent.HasValue)
-                json["dried_out_event"] = driedOutEvent.Value.ToComponentJSON();
-            if (recoverEvent.HasValue)
-                json["recover_after_dried_out_event"] = recoverEvent.Value.ToComponentJSON();
-            if (stoppedDryingEvent.HasValue)
-                json["stopped_drying_out_event"] = stoppedDryingEvent.Value.ToComponentJSON();
+            if (driedOutEvent != null)
+                json["dried_out_event"] = driedOutEvent.ToComponentJSON();
+            if (recoverEvent != null)
+                json["recover_after_dried_out_event"] = recoverEvent.ToComponentJSON();
+            if (stoppedDryingEvent != null)
+                json["stopped_drying_out_event"] = stoppedDryingEvent.ToComponentJSON();
 
             return json;
         }
@@ -916,8 +916,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             public string[] acceptedItems;
             public string interactText;
             public string item;
-            public EntityEventHandler? onEquipEvent;
-            public EntityEventHandler? onUnequipEvent;
+            public EntityEventHandler onEquipEvent;
+            public EntityEventHandler onUnequipEvent;
             public int slotNumber;
 
             public JObject ToJSON()
@@ -933,10 +933,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     json["interact_text"] = interactText;
                 if (item != null)
                     json["item"] = item;
-                if (onEquipEvent.HasValue)
-                    json["on_equip"] = onEquipEvent.Value.ToComponentJSON();
-                if (onEquipEvent.HasValue)
-                    json["on_unequip"] = onUnequipEvent.Value.ToComponentJSON();
+                if (onEquipEvent != null)
+                    json["on_equip"] = onEquipEvent.ToComponentJSON();
+                if (onEquipEvent != null)
+                    json["on_unequip"] = onUnequipEvent.ToComponentJSON();
 
                 return json;
             }
@@ -1091,7 +1091,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         }
         public struct GeneticVariant
         {
-            public EntityEventHandler? geneBirthEvent;
+            public EntityEventHandler geneBirthEvent;
             public float mutationRate;
             public int bothAllele;
             public int eitherAllele;
@@ -1109,8 +1109,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     ["main_allele"] = mainAllele
                 };
 
-                if (geneBirthEvent.HasValue)
-                    json["birth_event"] = geneBirthEvent.Value.ToComponentJSON();
+                if (geneBirthEvent != null)
+                    json["birth_event"] = geneBirthEvent.ToComponentJSON();
 
                 return json;
             }
@@ -1154,7 +1154,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         public float? cooldown;
         public string[] acceptedItems;
-        public EntityEventHandler? onGiveEvent;
+        public EntityEventHandler onGiveEvent;
 
         public override string GetIdentifier() =>
             "minecraft:giveable";
@@ -1166,8 +1166,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 json["cooldown"] = cooldown.Value;
             if (acceptedItems != null)
                 json["items"] = new JArray(acceptedItems);
-            if (onGiveEvent.HasValue)
-                json["on_give"] = onGiveEvent.Value.ToComponentJSON();
+            if (onGiveEvent != null)
+                json["on_give"] = onGiveEvent.ToComponentJSON();
 
             return json;
         }
@@ -1322,8 +1322,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             public string blockName;
             public JProperty[] blockStates;
 
-            public EntityEventHandler? enteredBlockEvent;
-            public EntityEventHandler? exitedBlockEvent;
+            public EntityEventHandler enteredBlockEvent;
+            public EntityEventHandler exitedBlockEvent;
 
             public JObject BlockStatesAsJSON()
             {
@@ -1344,10 +1344,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     block["states"] = BlockStatesAsJSON();
                 json["block"] = block;
 
-                if (enteredBlockEvent.HasValue)
-                    json["entered_block_event"] = enteredBlockEvent.Value.ToComponentJSON();
-                if (exitedBlockEvent.HasValue)
-                    json["exited_block_event"] = exitedBlockEvent.Value.ToComponentJSON();
+                if (enteredBlockEvent != null)
+                    json["entered_block_event"] = enteredBlockEvent.ToComponentJSON();
+                if (exitedBlockEvent != null)
+                    json["exited_block_event"] = exitedBlockEvent.ToComponentJSON();
 
                 return json;
             }
@@ -1420,7 +1420,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public LootTable addItems;
         public LootTable spawnItems;
         public string interactText;
-        public EntityEventHandler? onInteractEvent;
+        public EntityEventHandler onInteractEvent;
         public ParticleOnStart? particles;
         public string[] soundsToPlay;
         public string[] entitiesToSpawn;
@@ -1451,8 +1451,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 json["add_items"] = new JObject() { ["table"] = addItems.ResourcePath };
             if (interactText != null)
                 json["interact_text"] = interactText;
-            if (onInteractEvent.HasValue)
-                json["on_interact"] = onInteractEvent.Value.ToComponentJSON();
+            if (onInteractEvent != null)
+                json["on_interact"] = onInteractEvent.ToComponentJSON();
             if (particles.HasValue)
                 json["particle_on_start"] = particles.Value.ToJSON();
             if (soundsToPlay != null)
@@ -1535,7 +1535,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public float hardDistance; // siffens
         public float maxDistance; // breaks
 
-        public EntityEventHandler?
+        public EntityEventHandler
             onLeashEvent,
             onUnleashEnvent;
 
@@ -1551,10 +1551,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["max_distance"] = maxDistance
             };
 
-            if (onLeashEvent.HasValue)
-                json["on_leash"] = onLeashEvent.Value.ToComponentJSON();
-            if (onUnleashEnvent.HasValue)
-                json["on_unleash"] = onUnleashEnvent.Value.ToComponentJSON();
+            if (onLeashEvent != null)
+                json["on_leash"] = onLeashEvent.ToComponentJSON();
+            if (onUnleashEnvent != null)
+                json["on_unleash"] = onUnleashEnvent.ToComponentJSON();
 
             return json;
         }
@@ -1563,7 +1563,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         public bool allowInvulnerable;
         public FilterCollection filters;
-        public EntityEventHandler? lookedAtEvent;
+        public EntityEventHandler lookedAtEvent;
         public float searchRadius;
         public bool attackTargets;
 
@@ -1584,8 +1584,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             if (filters != null)
                 json["filters"] = filters.ToJSON();
-            if (lookedAtEvent.HasValue)
-                json["look_event"] = lookedAtEvent.Value.eventID; // only accepts string :(
+            if (lookedAtEvent != null)
+                json["look_event"] = lookedAtEvent.eventID; // only accepts string :(
 
             return json;
         }
@@ -1778,7 +1778,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
         public bool allowNametags;
         public bool alwaysShowName;
-        public EntityEventHandler? onNamed;
+        public EntityEventHandler onNamed;
         public SpecialNameAction[] specialNames;
 
         public override string GetIdentifier() =>
@@ -1791,8 +1791,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["always_show"] = alwaysShowName
             };
 
-            if (onNamed.HasValue)
-                json["default_trigger"] = onNamed.Value.ToComponentJSON();
+            if (onNamed != null)
+                json["default_trigger"] = onNamed.ToComponentJSON();
             if (specialNames != null)
                 json["name_actions"] = new JArray(specialNames.Select(name => name.ToJSON()));
 
@@ -2383,14 +2383,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         // used only by the player to trigger a raid.
 
-        public EntityEventHandler? raidEvent;
+        public EntityEventHandler raidEvent;
         public override string GetIdentifier() =>
             "minecraft:raid_trigger";
         public override JObject _GetValue()
         {
             JObject json = new JObject();
-            if (raidEvent.HasValue)
-                json["triggered_event"] = raidEvent.Value.ToComponentJSON();
+            if (raidEvent != null)
+                json["triggered_event"] = raidEvent.ToComponentJSON();
             return json;
         }
     }
@@ -2414,8 +2414,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public bool ejectOnActivate;
         public bool ejectOnDeactivate;
 
-        public EntityEventHandler? onActivateEvent;
-        public EntityEventHandler? onDeactivateEvent;
+        public EntityEventHandler onActivateEvent;
+        public EntityEventHandler onDeactivateEvent;
 
         public bool tickCommandBlockOnActivate;
         public bool tickCommandBlockOnDeactivate;
@@ -2433,10 +2433,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["tick_command_block_on_deactivate"] = tickCommandBlockOnDeactivate
             };
 
-            if (onActivateEvent.HasValue)
-                json["on_activate"] = onActivateEvent.Value.ToComponentJSON();
-            if (onDeactivateEvent.HasValue)
-                json["on_deactivate"] = onDeactivateEvent.Value.ToComponentJSON();
+            if (onActivateEvent != null)
+                json["on_activate"] = onActivateEvent.ToComponentJSON();
+            if (onDeactivateEvent != null)
+                json["on_deactivate"] = onDeactivateEvent.ToComponentJSON();
 
             return json;
         }
@@ -2446,7 +2446,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public struct ReactionChoice
         {
             public int weight;
-            public EntityEventHandler? value;
+            public EntityEventHandler value;
 
             public ReactionChoice(int weight, EntityEventHandler value)
             {
@@ -2460,8 +2460,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     ["weight"] = weight
                 };
 
-                if (value.HasValue)
-                    json["value"] = value.Value.ToComponentJSON();
+                if (value != null)
+                    json["value"] = value.ToComponentJSON();
 
                 return json;
             }
@@ -2706,8 +2706,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         // sittable like a cat or dog
 
-        public EntityEventHandler? sitEvent;
-        public EntityEventHandler? standEvent;
+        public EntityEventHandler sitEvent;
+        public EntityEventHandler standEvent;
 
         public override string GetIdentifier() =>
             "minecraft:sittable";
@@ -2715,10 +2715,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject();
 
-            if (sitEvent.HasValue)
-                json["sit_event"] = sitEvent.Value.ToComponentJSON();
-            if (standEvent.HasValue)
-                json["stand_event"] = standEvent.Value.ToComponentJSON();
+            if (sitEvent != null)
+                json["sit_event"] = sitEvent.ToComponentJSON();
+            if (standEvent != null)
+                json["stand_event"] = standEvent.ToComponentJSON();
 
             return json;
         }
@@ -2731,7 +2731,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             public string spawnMethod;
 
             public FilterCollection requirements;
-            public EntityEventHandler? spawnEvent;
+            public EntityEventHandler spawnEvent;
             public string spawnSound;
             public string spawnItem;
 
@@ -2763,8 +2763,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                     json["spawn_sound"] = spawnSound;
                 if (requirements != null)
                     json["filters"] = requirements.ToJSON();
-                if (spawnEvent.HasValue)
-                    json["spawn_event"] = spawnEvent.Value.ToComponentJSON();
+                if (spawnEvent != null)
+                    json["spawn_event"] = spawnEvent.ToComponentJSON();
 
                 return json;
             }
@@ -2785,7 +2785,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         public float probability; // 0.0 - 1.0
         public string[] tameItems;
-        public EntityEventHandler? tameEvent;
+        public EntityEventHandler tameEvent;
 
         public override string GetIdentifier() =>
             "minecraft:tameable";
@@ -2796,8 +2796,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["probability"] = probability
             };
 
-            if (tameEvent.HasValue)
-                json["tame_event"] = tameEvent.Value.ToComponentJSON();
+            if (tameEvent != null)
+                json["tame_event"] = tameEvent.ToComponentJSON();
             if (tameItems != null)
                 json["tame_items"] = new JArray(tameItems);
 
@@ -2847,7 +2847,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
         public AutoRejectItem[] rejectItems;
         public FeedItem[] feedItems;
-        public EntityEventHandler? tameEvent;
+        public EntityEventHandler tameEvent;
         public string feedText;
         public string rideText;
 
@@ -2866,8 +2866,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 json["auto_reject_items"] = new JArray(rejectItems.Select(item => item.ToJSON()));
             if (feedItems != null)
                 json["feed_items"] = new JArray(feedItems.Select(item => item.ToJSON()));
-            if (tameEvent.HasValue)
-                json["tame_event"] = tameEvent.Value.ToComponentJSON();
+            if (tameEvent != null)
+                json["tame_event"] = tameEvent.ToComponentJSON();
             if (feedText != null)
                 json["feed_text"] = feedText;
             if (rideText != null)
@@ -2882,9 +2882,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public float outsideRange;
         public bool mustSee;
 
-        public EntityEventHandler? onInsideRangeEvent;
-        public EntityEventHandler? onOutsideRangeEvent;
-        public EntityEventHandler? onVisionLostInsideRangeEvent;
+        public EntityEventHandler onInsideRangeEvent;
+        public EntityEventHandler onOutsideRangeEvent;
+        public EntityEventHandler onVisionLostInsideRangeEvent;
 
         public override string GetIdentifier() =>
             "minecraft:target_nearby_sensor";
@@ -2897,12 +2897,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["must_see"] = mustSee
             };
 
-            if (onInsideRangeEvent.HasValue)
-                json["on_inside_range"] = onInsideRangeEvent.Value.ToComponentJSON();
-            if (onOutsideRangeEvent.HasValue)
-                json["on_outside_range"] = onOutsideRangeEvent.Value.ToComponentJSON();
-            if (onVisionLostInsideRangeEvent.HasValue)
-                json["on_vision_lost_inside_range"] = onVisionLostInsideRangeEvent.Value.ToComponentJSON();
+            if (onInsideRangeEvent != null)
+                json["on_inside_range"] = onInsideRangeEvent.ToComponentJSON();
+            if (onOutsideRangeEvent != null)
+                json["on_outside_range"] = onOutsideRangeEvent.ToComponentJSON();
+            if (onVisionLostInsideRangeEvent != null)
+                json["on_vision_lost_inside_range"] = onVisionLostInsideRangeEvent.ToComponentJSON();
 
             return json;
         }

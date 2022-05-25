@@ -13,28 +13,6 @@ namespace mc_compiled.MCC
         {
             this.type = type;
         }
-        public bool Compare(LegacyDynamic a, LegacyDynamic b)
-        {
-            switch(type)
-            {
-                case OperatorType._UNKNOWN:
-                    throw new Exception("Attempting to compare with unknown operator.");
-                case OperatorType.EQUAL:
-                    return a == b;
-                case OperatorType.NOT_EQUAL:
-                    return a != b;
-                case OperatorType.LESS_THAN:
-                    return a < b;
-                case OperatorType.LESS_OR_EQUAL:
-                    return a < b || a == b;
-                case OperatorType.GREATER_THAN:
-                    return a > b;
-                case OperatorType.GREATER_OR_EQUAL:
-                    return a > b || a == b;
-                default:
-                    return false;
-            }
-        }
 
         /// <summary>
         /// Parse an operator from a string of text.

@@ -2126,7 +2126,7 @@ namespace mc_compiled.MCC.Compiler
         public static void @struct(Executor executor, Statement tokens)
         {
             string structName = tokens.Next<TokenIdentifier>().word;
-            StructDefinition item = new StructDefinition(structName);
+            StructDefinition item = new StructDefinition(structName, tokens);
 
             if (!executor.HasNext || !executor.NextIs<StatementOpenBlock>())
                 throw new StatementException(tokens, "No block after struct definition.");
@@ -2134,7 +2134,7 @@ namespace mc_compiled.MCC.Compiler
             StatementOpenBlock blockOpen = executor.Next<StatementOpenBlock>();
             int count = blockOpen.statementsInside;
 
-            StructDefinition definition = new StructDefinition(structName);
+            StructDefinition definition = new StructDefinition(structName, tokens);
 
             // read every statement in the block assuming they're define format
             for (int i = 0; i < count; i++)

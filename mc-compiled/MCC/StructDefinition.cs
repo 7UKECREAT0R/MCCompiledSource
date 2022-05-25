@@ -25,7 +25,7 @@ namespace mc_compiled.MCC
         /// Create a struct definition using these scoreboard values as templates.
         /// </summary>
         /// <param name="values"></param>
-        public StructDefinition(string name, params ScoreboardValue[] values)
+        public StructDefinition(string name, Compiler.Statement exception, params ScoreboardValue[] values)
         {
             this.name = name.ToUpper();
             this.fields = new Dictionary<string, ScoreboardValue>();
@@ -33,7 +33,7 @@ namespace mc_compiled.MCC
             foreach (ScoreboardValue value in values)
             {
                 if (value is ScoreboardValueStruct)
-                    throw new Compiler.LegacyTokenException(null, "Cannot contain struct inside of another struct.");
+                    throw new Compiler.StatementException(exception, "Cannot contain struct inside of another struct.");
 
                 string fieldName = value.baseName;
                 value.baseName = GetNextKey();
