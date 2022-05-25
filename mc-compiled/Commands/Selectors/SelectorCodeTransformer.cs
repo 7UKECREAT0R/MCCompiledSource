@@ -38,12 +38,11 @@ namespace mc_compiled.Commands.Selectors
             { "MODE", new SelectorMode() },
             { "NAME", new SelectorName() },
             { "NEAR", new SelectorNear() },
+            { "NULL", new SelectorNull() },
             { "OFFSET", new SelectorOffset() },
             { "ROTATION", new SelectorRotation() },
             { "TAG", new SelectorTag() },
-            { "TYPE", new SelectorType() },
-            { "WEARING", new SelectorWearing() },
-            { "NULL", new SelectorNull() }
+            { "TYPE", new SelectorType() }
         };
         /// <summary>
         /// Read the next selector transformer(s) out of this set of tokens.
