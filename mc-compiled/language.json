@@ -391,7 +391,7 @@
     "null": {
       "description": "Create/Remove Null Entity",
       "patterns": [
-        [ "id:create", "string:name", "pos:x", "pos:y", "pos:x", "?pos:rotation y", "?pos:rotation x" ],
+        [ "id:create", "string:name", "?string:class", "?pos:x", "?pos:y", "?pos:x" ],
         [ "id:remove", "string:name" ],
         [ "id:removeall" ]
       ]

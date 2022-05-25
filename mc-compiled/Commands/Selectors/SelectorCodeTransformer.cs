@@ -42,7 +42,8 @@ namespace mc_compiled.Commands.Selectors
             { "ROTATION", new SelectorRotation() },
             { "TAG", new SelectorTag() },
             { "TYPE", new SelectorType() },
-            { "WEARING", new SelectorWearing() }
+            { "WEARING", new SelectorWearing() },
+            { "NULL", new SelectorNull() }
         };
         /// <summary>
         /// Read the next selector transformer(s) out of this set of tokens.

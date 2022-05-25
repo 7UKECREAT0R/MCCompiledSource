@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Modding.Behaviors
 {
-    public struct EntityEventHandler
+    public class EntityEventHandler
     {
         public string eventID;
         public EventSubject target;
@@ -46,15 +46,15 @@ namespace mc_compiled.Modding.Behaviors
     }
     public class EventActionAddGroup : EntityEventAction
     {
-        public string[] groups;
+        public List<string> groups;
 
         public EventActionAddGroup(params string[] groups)
         {
-            this.groups = groups;
+            this.groups = new List<string>(groups);
         }
         public EventActionAddGroup(params EntityComponentGroup[] groups)
         {
-            this.groups = groups.Select(group => group.name).ToArray();
+            this.groups = groups.Select(group => group.name).ToList();
         }
         public override JProperty ToJSON()
         {
@@ -66,15 +66,15 @@ namespace mc_compiled.Modding.Behaviors
     }
     public class EventActionRemoveGroup : EntityEventAction
     {
-        public string[] groups;
+        public List<string> groups;
 
         public EventActionRemoveGroup(params string[] groups)
         {
-            this.groups = groups;
+            this.groups = new List<string>(groups);
         }
         public EventActionRemoveGroup(params EntityComponentGroup[] groups)
         {
-            this.groups = groups.Select(group => group.name).ToArray();
+            this.groups = groups.Select(group => group.name).ToList();
         }
         public override JProperty ToJSON()
         {
@@ -86,16 +86,16 @@ namespace mc_compiled.Modding.Behaviors
     }
     public class EventActionSequence : EntityEventAction
     {
-        public EntityEventAction[] actions;
+        public List<EntityEventAction> actions;
 
         public EventActionSequence(params EntityEventAction[] actions)
         {
-            this.actions = actions;
+            this.actions = new List<EntityEventAction>(actions);
         }
         public override JProperty ToJSON()
         {
-            JObject[] objects = new JObject[actions.Length];
-            for (int i = 0; i < actions.Length; i++)
+            JObject[] objects = new JObject[actions.Count];
+            for (int i = 0; i < actions.Count; i++)
             {
                 JObject json = new JObject();
                 json.Add(actions[i].ToJSON());

@@ -24,6 +24,29 @@ namespace mc_compiled.MCC.Compiler
         public static string MINECRAFT_VERSION = "x.xx.xxx"; // mcversion
         public const string MCC_GENERATED_FOLDER = "_mcc"; // folder that generated functions go into
 
+        /// <summary>
+        /// Display a warning regardless of debug setting.
+        /// </summary>
+        /// <param name="warning">The warning to display.</param>
+        public static void Warn(string warning, Statement source = null)
+        {
+            ConsoleColor old;
+
+            if (source == null)
+            {
+                old = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("<!> {0}", warning);
+                Console.ForegroundColor = old;
+                return;
+            }
+
+            old = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("<L{0}> {1}", source.Line, warning);
+            Console.ForegroundColor = old;
+        }
+
         internal readonly EntityManager entities;
         internal readonly ProjectManager project;
         public string lastStatementSource;

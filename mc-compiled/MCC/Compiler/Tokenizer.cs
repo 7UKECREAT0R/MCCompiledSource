@@ -34,9 +34,14 @@ namespace mc_compiled.MCC.Compiler
                 this.chars = chars.ToCharArray();
             }
         }
+        static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
         static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:.".ToCharArray();
         static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
-        static bool IsWhiteSpace(char c) => c == ' ' | c == '\t';
+        public static bool IsWhiteSpace(char c) => c == ' ' | c == '\t';
+        public static string StripForPack(string str)
+        {
+            return new string(str.ToLower().Where(c => BP_RP_IDENTIFIER_CHARS.Contains(c)).ToArray());
+        }
 
         readonly char[] content;
         readonly StringBuilder sb;

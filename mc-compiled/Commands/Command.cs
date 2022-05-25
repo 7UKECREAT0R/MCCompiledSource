@@ -515,6 +515,8 @@ namespace mc_compiled.Commands
             $"summon {entity} {x} {y} {z}";
         public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag) =>
             $"summon {entity} \"{nameTag}\" {x} {y} {z}";
+        public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag, string spawnEvent) =>
+            $"summon {entity} {x} {y} {z} \"{spawnEvent}\" \"{nameTag}\"";
 
         public static string Tag(string targets, string tag) =>
             $"tag {targets} add {tag}";

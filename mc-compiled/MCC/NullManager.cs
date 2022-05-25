@@ -15,19 +15,44 @@ namespace mc_compiled.MCC
     public class NullManager : ISelectorProvider
     {
         public const string DESTROY_COMPONENT_GROUP = "instant_despawn";
-        public const string DESTROY_EVENT_NAME = "destroy";
 
-        internal HashSet<int> existingNulls;
+        public const string DESTROY_EVENT_NAME = "destroy";
+        public const string CLEAN_EVENT_NAME = "clean";
+
+        internal HashSet<string> existingNulls;
+        internal HashSet<string> existingClasses;
         public readonly string nullType;
 
         readonly Executor parent;
+
+        NullFiles nullFiles;
         bool createdEntityFiles;
+
+        /// <summary>
+        /// Get the name of the family for a specific null-class name.
+        /// </summary>
+        /// <param name="clazz"></param>
+        /// <returns></returns>
+        public static string FamilyName(string clazz)
+        {
+            return "class_" + Tokenizer.StripForPack(clazz);
+        }
+        /// <summary>
+        /// Get the name of the family for a specific null-class name.
+        /// </summary>
+        /// <param name="clazz"></param>
+        /// <returns></returns>
+        public static string EventName(string clazz)
+        {
+            return "with_" + Tokenizer.StripForPack(clazz);
+        }
 
         internal NullManager(Executor parent)
         {
             this.parent = parent;
             createdEntityFiles = false;
-            existingNulls = new HashSet<int>();
+            existingNulls = new HashSet<string>();
+            existingClasses = new HashSet<string>();
             nullType = parent.project.Namespace("null");
         }
         /// <summary>
@@ -55,11 +80,20 @@ namespace mc_compiled.MCC
         public string GetStringSelector(string name) =>
             $"@e[type={nullType},name={name}]";
         /// <summary>
+        /// Create a string-ed selector for a null entity with a class.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string GetStringSelector(string name, string clazz) =>
+            $"@e[name={name},family={FamilyName(clazz)}]";
+        /// <summary>
         /// Get a selector to select all null entities.
         /// </summary>
         /// <returns></returns>
         public string GetAllStringSelector() =>
             $"@e[type={nullType}]";
+        public string GetAllClassSelector(string clazz) =>
+            $"@e[family={FamilyName(clazz)}]";
         /// <summary>
         /// Ensure that a null entity has been defined. If not, create and append to the project output.
         /// </summary>
@@ -68,7 +102,8 @@ namespace mc_compiled.MCC
             if (createdEntityFiles)
                 return;
 
-            parent.AddExtraFiles(EntityBehavior.CreateNull(nullType));
+            nullFiles = EntityBehavior.CreateNull(nullType);
+            parent.AddExtraFiles(nullFiles.AddonFiles);
             createdEntityFiles = true;
             return;
         }
@@ -83,46 +118,90 @@ namespace mc_compiled.MCC
         /// <param name="yRot"></param>
         /// <param name="xRot"></param>
         /// <returns>The commands to create this null entity.</returns>
-        public IEnumerable<string> Create(string name, Coord x, Coord y, Coord z, Coord? yRot = null, Coord? xRot = null)
+        public string Create(string name, string @class, Coord x, Coord y, Coord z)
         {
             EnsureEntity();
-            int hash = name.GetHashCode();
             List<string> commands = new List<string>();
+            existingNulls.Add(name);
 
-            if (existingNulls.Contains(hash))
-                commands.Add(Destroy(name));
-            else
-                existingNulls.Add(hash);
-
-            commands.Add(Command.Summon(nullType, x, y, z, name));
-
-            if (yRot.HasValue)
+            if(@class != null)
             {
-                if (!xRot.HasValue)
-                    xRot = Coord.here;
-
-                commands.Add(Command.Teleport(GetStringSelector(name), x, y, z, yRot.Value, xRot.Value));
+                string eventName = DefineClass(@class);
+                return Command.Summon(nullType, x, y, z, name, eventName);
             }
 
-            return commands;
+            return Command.Summon(nullType, x, y, z, name);
         }
         /// <summary>
         /// Destroy a null entity.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The name of the null entity to destroy.</param>
+        /// <param name="clazz">If specified, will only remove if in this class.</param>
         /// <returns></returns>
-        public string Destroy(string name)
+        public string Destroy(string name, string clazz = null)
         {
             EnsureEntity();
-            return Command.Event(GetStringSelector(name), DESTROY_EVENT_NAME);
+
+            if(clazz == null)
+                return Command.Event(GetStringSelector(name), DESTROY_EVENT_NAME);
+            else
+                return Command.Event(GetStringSelector(name, clazz), DESTROY_EVENT_NAME);
         }
 
-        public bool HasEntity(int hash) =>
-            existingNulls.Contains(hash);
+        /// <summary>
+        /// Defines and sets up behaviors to handle this class, if not already. If class is defined, no action will happen.
+        /// </summary>
+        /// <param name="class">The name of the class to define.</param>
+        /// <returns>The name of the event to call.</returns>
+        public string DefineClass(string @class)
+        {
+            // Use a spawn event to control the family 
+            @class = Tokenizer.StripForPack(@class);
+            string eventName = "with_" + @class;
+
+            if (!existingClasses.Contains(@class))
+            {
+                string className = "class_" + @class;
+                string groupName = "group_" + @class;
+
+                // Create the family component to add.
+                ComponentFamily family = new ComponentFamily()
+                {
+                    families = new[] { className }
+                };
+
+                // Create the component groups 
+                EntityComponentGroup group = new EntityComponentGroup(groupName, family);
+                EntityEventHandler trigger = new EntityEventHandler(eventName,
+                    action: new EventActionAddGroup(groupName));
+
+                if (nullFiles.cleanEvent.action is EventActionAddGroup)
+                {
+                    EventActionAddGroup addGroup = nullFiles.cleanEvent.action as EventActionAddGroup;
+                    addGroup.groups.Add(groupName);
+                }
+
+                nullFiles.behavior.componentGroups.Add(group);
+                nullFiles.behavior.events.Add(trigger);
+                existingClasses.Add(@class);
+
+                if (Program.DEBUG)
+                {
+                    ConsoleColor old = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Creating null class: " + @class);
+                    Console.ForegroundColor = old;
+                }
+            }
+
+            return eventName;
+        }
+
+        public bool HasEntity(string entity) =>
+            existingNulls.Contains(entity);
         public bool Search(string name, out Commands.Selector selector)
         {
-            int hash = name.GetHashCode();
-            if(existingNulls.Contains(hash))
+            if(existingNulls.Contains(name))
             {
                 selector = GetSelector(name);
                 return true;
@@ -130,6 +209,21 @@ namespace mc_compiled.MCC
 
             selector = default;
             return false;
+        }
+    }
+    public struct NullFiles
+    {
+        public Modding.Behaviors.EntityEventHandler cleanEvent;
+        public Modding.Behaviors.EntityBehavior behavior;
+        public Modding.Resources.EntityResource resources;
+        public Modding.Resources.EntityGeometry geometry;
+
+        public Modding.IAddonFile[] AddonFiles
+        {
+            get => new Modding.IAddonFile[]
+            {
+                behavior, resources, geometry, 
+            };
         }
     }
 }

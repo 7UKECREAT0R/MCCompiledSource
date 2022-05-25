@@ -1846,19 +1846,20 @@ namespace mc_compiled.MCC.Compiler
 
                 executor.RequireFeature(tokens, Feature.NULLS);
                 const string damagerEntity = "_dmg_from";
-                List<string> commands = new List<string>();
-               
-                // create null entity at location
-                commands.AddRange(executor.entities.nulls.Create(damagerEntity, x, y, z));
+                string[] commands = new string[]
+                {
+                    // create null entity at location
+                    executor.entities.nulls.Create(damagerEntity, null, x, y, z),
 
-                // hit entity from null entity
-                commands.Add(Command.Damage(executor.ActiveSelectorStr, damage, cause,
-                    executor.entities.nulls.GetStringSelector(damagerEntity)));
+                    // hit entity from null entity
+                    Command.Damage(executor.ActiveSelectorStr, damage, cause,
+                        executor.entities.nulls.GetStringSelector(damagerEntity)),
 
-                // send kill event to null entity
-                commands.Add(executor.entities.nulls.Destroy(damagerEntity));
+                    // send kill event to null entity
+                    executor.entities.nulls.Destroy(damagerEntity)
+                };
 
-                executor.AddCommands(commands.ToArray(), "positioneddamage");
+                executor.AddCommands(commands, "damagefrom");
                 return;
             }
 
@@ -1883,76 +1884,117 @@ namespace mc_compiled.MCC.Compiler
             if (word.Equals("CREATE"))
             {
                 string name = tokens.Next<TokenStringLiteral>();
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                Coord? yRot = null;
-                Coord? xRot = null;
-                if(tokens.NextIs<TokenCoordinateLiteral>())
-                    yRot = tokens.Next<TokenCoordinateLiteral>();
+                string clazz = null;
+                if (tokens.NextIs<TokenStringLiteral>())
+                    clazz = tokens.Next<TokenStringLiteral>();
+
+                Coord x = Coord.here;
+                Coord y = Coord.here;
+                Coord z = Coord.here;
+
                 if (tokens.NextIs<TokenCoordinateLiteral>())
-                    xRot = tokens.Next<TokenCoordinateLiteral>();
+                    x = tokens.Next<TokenCoordinateLiteral>();
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    y = tokens.Next<TokenCoordinateLiteral>();
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    z = tokens.Next<TokenCoordinateLiteral>();
 
-                var commands = executor.entities.nulls.Create(name, x, y, z, yRot, xRot);
+                string command = executor.entities.nulls.Create(name, clazz, x, y, z);
                 executor.PushSelectorExecute();
-                executor.AddCommands(commands, "createnull");
+                executor.AddCommand(command);
                 executor.PopSelector();
                 return;
             }
-            else if(word.Equals("SINGLE"))
+            else if (word.Equals("SINGLE"))
             {
                 string name = tokens.Next<TokenStringLiteral>();
+
+                string clazz = null;
+                if (tokens.NextIs<TokenStringLiteral>())
+                    clazz = tokens.Next<TokenStringLiteral>();
+
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                Coord? yRot = null;
-                Coord? xRot = null;
-                if (tokens.NextIs<TokenCoordinateLiteral>())
-                    yRot = tokens.Next<TokenCoordinateLiteral>();
-                if (tokens.NextIs<TokenCoordinateLiteral>())
-                    xRot = tokens.Next<TokenCoordinateLiteral>();
-
-                List<string> commands = new List<string>();
-                commands.Add(executor.entities.nulls.Destroy(name));
-                commands.AddRange(executor.entities.nulls.Create(name, x, y, z, yRot, xRot));
                 executor.PushSelectorExecute();
-                executor.AddCommands(commands, "singletonnull");
+
+                executor.AddCommands(new string[] {
+                    executor.entities.nulls.Destroy(name),
+                    executor.entities.nulls.Create(name, clazz, x, y, z)
+                }, "singletonnull");
+
                 executor.PopSelector();
                 return;
             }
             else if (word.Equals("REMOVE"))
             {
-                string name = tokens.Next<TokenStringLiteral>();
-                int hash = name.GetHashCode();
-
-                string command = executor.entities.nulls.Destroy(name);
-                executor.AddCommand(command);
+                string target = executor.ActiveSelectorStr;
+                executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
                 return;
-            }
-            else if (word.Equals("SELECT"))
-            {
+
+                /*                          Old Functionality
+                 * if (!tokens.HasNext)
+                {
+                    string target = executor.ActiveSelectorStr;
+                    executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
+                    return;
+                }
+
+                bool isKeyword = tokens.NextIs<TokenIdentifier>();
+                string token = tokens.Next<TokenStringLiteral>();
+
+                if (isKeyword)
+                {
+                    string kw = token.ToUpper();
+                    if (kw.Equals("ALL"))
+                    {
+                        string selector = executor.entities.nulls.GetAllStringSelector();
+                        executor.AddCommand(Command.Event(selector, NullManager.DESTROY_EVENT_NAME));
+                        return;
+                    } else if(kw.Equals("CLASS"))
+                    {
+                        string className = tokens.Next<TokenStringLiteral>();
+                        string selector = executor.entities.nulls.GetAllClassSelector(className);
+                        executor.AddCommand(Command.Event(selector, NullManager.DESTROY_EVENT_NAME));
+                        return;
+                    }
+                }
+
                 string name = tokens.Next<TokenStringLiteral>();
-                int hash = name.GetHashCode();
+                string clazz = null;
+                if (tokens.NextIs<TokenStringLiteral>())
+                    clazz = tokens.Next<TokenStringLiteral>();
 
-                if (!executor.entities.nulls.HasEntity(hash))
-                    throw new StatementException(tokens, $"No recognized null named \"{name}\".");
-
-                Selector selector = executor.entities.nulls.GetSelector(name);
-                executor.ActiveSelector = selector;
-                return;
-            }
-            else if (word.Equals("REMOVEALL"))
-            {
-                string selector = executor.entities.nulls.GetAllStringSelector();
-                string command = Command.Execute(selector, Coord.here, Coord.here, Coord.here,
-                    Command.Event("@s", NullManager.DESTROY_EVENT_NAME));
+                string command = executor.entities.nulls.Destroy(name, clazz);
                 executor.AddCommand(command);
+                return;*/
+            }
+            else if (word.Equals("CLASS"))
+            {
+                string selector = executor.ActiveSelectorStr;
+                bool isKeyword = tokens.NextIs<TokenIdentifier>();
+                string token = tokens.Next<TokenStringLiteral>();
+
+                // null class remove
+                if (isKeyword && token.ToUpper().Equals("REMOVE"))
+                {
+                    executor.AddCommand(Command.Event(selector, NullManager.CLEAN_EVENT_NAME));
+                    return;
+                }
+
+                // null class <name>
+                string eventName = executor.entities.nulls.DefineClass(token);
+
+                executor.AddCommands(new string[] {
+                    Command.Event(selector, NullManager.CLEAN_EVENT_NAME),
+                    Command.Event(selector, eventName)
+                }, null, true);
                 return;
             }
             else
-                throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, SINGLE, REMOVE, SELECT, REMOVEALL");
+                throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, SINGLE, REMOVE, or CLASS");
         }
         public static void tag(Executor executor, Statement tokens)
         {

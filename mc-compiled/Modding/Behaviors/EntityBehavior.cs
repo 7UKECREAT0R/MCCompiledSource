@@ -16,9 +16,9 @@ namespace mc_compiled.Modding.Behaviors
     {
         public FormatVersion formatVersion = FormatVersion.b_ENTITY;
         public EntityDescription description;
-        public AnimationController[] controllers;
-        public EntityComponent[] components;
-        public EntityComponentGroup[] componentGroups;
+        public List<AnimationController> controllers;
+        public List<EntityComponent> components;
+        public List<EntityComponentGroup> componentGroups;
         public List<EntityEventHandler> events;
 
         public EntityBehavior(string identifier)
@@ -28,6 +28,9 @@ namespace mc_compiled.Modding.Behaviors
         }
         public EntityBehavior()
         {
+            controllers = new List<AnimationController>();
+            components = new List<EntityComponent>();
+            componentGroups = new List<EntityComponentGroup>();
             events = new List<EntityEventHandler>();
         }
         /// <summary>
@@ -116,16 +119,18 @@ namespace mc_compiled.Modding.Behaviors
         /// Create a null entity that serves to act as points, raycasters, etc...
         /// </summary>
         /// <returns></returns>
-        internal static IAddonFile[] CreateNull(string entityID)
+        internal static MCC.NullFiles CreateNull(string entityID)
         {
             string geometryID = "geometry." + entityID.Replace(':', '.');
             EntityGeometry geometry = new EntityGeometry("null", geometryID);
+            EntityEventHandler cleanEvent = new EntityEventHandler(MCC.NullManager.CLEAN_EVENT_NAME);
 
-            return new IAddonFile[] {
-                new EntityBehavior()
+            return new MCC.NullFiles() {
+                cleanEvent = cleanEvent,
+                behavior = new EntityBehavior()
                 {
                     description = new EntityDescription(entityID),
-                    components = new EntityComponent[]
+                    components = new List<EntityComponent>(new EntityComponent[]
                     {
                         new ComponentNameable()
                         {
@@ -167,18 +172,19 @@ namespace mc_compiled.Modding.Behaviors
                             neverDespawn = true,
                             tickRadius = 2
                         }
-                    },
-                    componentGroups = new EntityComponentGroup[]
+                    }),
+                    componentGroups = new List<EntityComponentGroup>(new EntityComponentGroup[]
                     {
                         new EntityComponentGroup(MCC.NullManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn())
-                    },
+                    }),
                     events = new List<EntityEventHandler>(new EntityEventHandler[]
                     {
                         new EntityEventHandler(MCC.NullManager.DESTROY_EVENT_NAME, action:
-                            new EventActionAddGroup(MCC.NullManager.DESTROY_COMPONENT_GROUP))
+                            new EventActionAddGroup(MCC.NullManager.DESTROY_COMPONENT_GROUP)),
+                        cleanEvent
                     })
                 },
-                new EntityResource()
+                resources = new EntityResource()
                 {
                     name = "null",
                     description = new ClientEntityDescription()
@@ -188,7 +194,7 @@ namespace mc_compiled.Modding.Behaviors
                         material = "entity_alphatest"
                     },
                 },
-                geometry
+                geometry = geometry
             };
         }
     }

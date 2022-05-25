@@ -36,7 +36,7 @@ namespace mc_compiled.MCC
             int hash = name.GetHashCode();
 
             return allProviders.Any(provider =>
-                provider.HasEntity(hash));
+                provider.HasEntity(name));
         }
         /// <summary>
         /// Search for a managed entity by name and return its selector.
@@ -62,7 +62,18 @@ namespace mc_compiled.MCC
     /// </summary>
     internal interface ISelectorProvider
     {
-        bool HasEntity(int hash);
+        /// <summary>
+        /// Returns if a managed entity exists with a name.
+        /// </summary>
+        /// <param name="name">The name to search for.</param>
+        /// <returns></returns>
+        bool HasEntity(string name);
+        /// <summary>
+        /// Search and output a selector based on a managed entity name. Returns true if a match was found.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
         bool Search(string name, out Commands.Selector selector);
     }
 }
