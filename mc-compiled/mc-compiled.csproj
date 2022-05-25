@@ -81,7 +81,6 @@
     <Compile Include="MCC\EntityManager.cs" />
     <Compile Include="MCC\Compiler\Executor.cs" />
     <Compile Include="MCC\Compiler\Statements.cs" />
-    <Compile Include="MCC\GlobalManager.cs" />
     <Compile Include="MCC\NullManager.cs" />
     <Compile Include="MCC\ProjectManager.cs" />
     <Compile Include="MCC\Function.cs" />

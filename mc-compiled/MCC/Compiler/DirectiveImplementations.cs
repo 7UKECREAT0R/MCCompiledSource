@@ -1930,46 +1930,20 @@ namespace mc_compiled.MCC.Compiler
             }
             else if (word.Equals("REMOVE"))
             {
-                string target = executor.ActiveSelectorStr;
-                executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
-                return;
-
-                /*                          Old Functionality
-                 * if (!tokens.HasNext)
+                if(tokens.NextIs<TokenIdentifier>())
                 {
-                    string target = executor.ActiveSelectorStr;
-                    executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
-                    return;
-                }
-
-                bool isKeyword = tokens.NextIs<TokenIdentifier>();
-                string token = tokens.Next<TokenStringLiteral>();
-
-                if (isKeyword)
-                {
-                    string kw = token.ToUpper();
-                    if (kw.Equals("ALL"))
+                    string arg = tokens.Next<TokenIdentifier>().word;
+                    if (arg.ToUpper().Equals("ALL"))
                     {
                         string selector = executor.entities.nulls.GetAllStringSelector();
-                        executor.AddCommand(Command.Event(selector, NullManager.DESTROY_EVENT_NAME));
-                        return;
-                    } else if(kw.Equals("CLASS"))
-                    {
-                        string className = tokens.Next<TokenStringLiteral>();
-                        string selector = executor.entities.nulls.GetAllClassSelector(className);
                         executor.AddCommand(Command.Event(selector, NullManager.DESTROY_EVENT_NAME));
                         return;
                     }
                 }
 
-                string name = tokens.Next<TokenStringLiteral>();
-                string clazz = null;
-                if (tokens.NextIs<TokenStringLiteral>())
-                    clazz = tokens.Next<TokenStringLiteral>();
-
-                string command = executor.entities.nulls.Destroy(name, clazz);
-                executor.AddCommand(command);
-                return;*/
+                string target = executor.ActiveSelectorStr;
+                executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
+                return;
             }
             else if (word.Equals("CLASS"))
             {

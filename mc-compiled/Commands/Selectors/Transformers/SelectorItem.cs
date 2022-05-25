@@ -51,6 +51,14 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if (inverted)
             {
+                if(!location.HasValue && !slot.HasValue && !data.HasValue && !quantity.HasValue)
+                {
+                    // very basic clause so checking quantity=0 will work fine
+                    entry.quantity = new Range(0, false);
+                    selector.hasItem.entries.Add(entry);
+                    return;
+                }
+
                 HasItems invertCondition = new HasItems(entry);
                 string entity = executor.ActiveSelectorCore;
                 ScoreboardValue inverter = executor.scoreboard.RequestTemp();

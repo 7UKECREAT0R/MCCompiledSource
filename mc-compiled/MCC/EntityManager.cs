@@ -14,12 +14,10 @@ namespace mc_compiled.MCC
     {
         internal readonly List<ISelectorProvider> allProviders;
         public readonly NullManager nulls;
-        public readonly GlobalManager global;
 
         public EntityManager(Executor executor)
         {
             nulls = new NullManager(executor);
-            global = new GlobalManager(executor);
 
             allProviders = new List<ISelectorProvider>()
             {
