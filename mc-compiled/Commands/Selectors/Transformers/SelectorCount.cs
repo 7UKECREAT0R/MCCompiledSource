@@ -16,20 +16,34 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             Selector testFor = tokens.Next<TokenSelectorLiteral>();
-
+            TokenCompare comparison = tokens.Next<TokenCompare>();
+            int number = tokens.Next<TokenIntegerLiteral>();
             Range range;
-            int min = tokens.Next<TokenIntegerLiteral>();
 
-            if (tokens.NextIs<TokenIntegerLiteral>())
+            switch (comparison.GetCompareType())
             {
-                int max = tokens.Next<TokenIntegerLiteral>();
-                if (min == max)
-                    range = new Range(min, inverted);
-                else
-                    range = new Range(min, max, inverted);
+                case TokenCompare.Type.EQUAL:
+                    range = new Range(number, inverted);
+                    break;
+                case TokenCompare.Type.NOT_EQUAL:
+                    range = new Range(number, !inverted);
+                    break;
+                case TokenCompare.Type.LESS_THAN:
+                    range = new Range(null, number - 1, inverted);
+                    break;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    range = new Range(null, number, inverted);
+                    break;
+                case TokenCompare.Type.GREATER_THAN:
+                    range = new Range(number + 1, null, inverted);
+                    break;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    range = new Range(number, null, inverted);
+                    break;
+                default:
+                    range = new Range(number, inverted);
+                    break;
             }
-            else
-                range = new Range(min, null, inverted);
 
             const string counter = "_mcc_counter";
             string activeSelector = executor.ActiveSelectorStr;
