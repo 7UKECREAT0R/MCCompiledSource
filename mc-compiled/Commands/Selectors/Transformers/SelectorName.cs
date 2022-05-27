@@ -12,7 +12,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "NAME";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             string name = tokens.Next<TokenStringLiteral>();
 
@@ -22,8 +22,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 name = name.Substring(1);
             }
 
-            selector.entity.nameNot = inverted;
-            selector.entity.name = name;
+            alignedSelector.entity.nameNot = inverted;
+            alignedSelector.entity.name = name;
         }
     }
 }

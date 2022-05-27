@@ -54,7 +54,7 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="tokens"></param>
         /// <param name="forceInvert"></param>
         /// <returns></returns>
-        public static void TransformSelector(ref Selector input, Executor executor, Statement tokens, bool forceInvert)
+        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, Statement tokens, bool forceInvert)
         {
             executor.scoreboard.PushTempState();
             List<string> commands = new List<string>();
@@ -81,7 +81,7 @@ namespace mc_compiled.Commands.Selectors
                 if (isScore)
                 {
                     TokenIdentifierValue score = currentToken as TokenIdentifierValue;
-                    SCORE_OPERATION.Transform(ref input, invert, executor, tokens, commands, score);
+                    SCORE_OPERATION.Transform(ref rootSelector, ref alignedSelector, invert, executor, tokens, commands, score);
                     continue;
                 }
 
@@ -91,7 +91,7 @@ namespace mc_compiled.Commands.Selectors
                     if (invert && !transformer.CanBeInverted())
                         throw new StatementException(tokens, $"Operation {transformer.GetKeyword()} cannot be inverted.");
 
-                    transformer.Transform(ref input, invert, executor, tokens, commands);
+                    transformer.Transform(ref rootSelector, ref alignedSelector, invert, executor, tokens, commands);
                     continue;
                 }
 

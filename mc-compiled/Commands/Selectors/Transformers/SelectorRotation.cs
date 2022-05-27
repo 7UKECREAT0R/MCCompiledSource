@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "ROTATION";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             char axis = char.ToUpper(tokens.Next<TokenIdentifier>().word[0]);
             TokenCompare comparison = tokens.Next<TokenCompare>();
@@ -64,7 +64,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
             {
                 if (inverted)
                 {
-                    SelectorUtils.InvertSelector(ref selector,
+                    SelectorUtils.InvertSelector(ref rootSelector,
                         commands, executor, (sel) =>
                         {
                             sel.entity.rotXMin = min;
@@ -73,15 +73,15 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 }
                 else
                 {
-                    selector.entity.rotXMin = min;
-                    selector.entity.rotXMax = max;
+                    rootSelector.entity.rotXMin = min;
+                    rootSelector.entity.rotXMax = max;
                 }
             }
             else if (axis == 'Y')
             {
                 if (inverted)
                 {
-                    SelectorUtils.InvertSelector(ref selector,
+                    SelectorUtils.InvertSelector(ref rootSelector,
                         commands, executor, (sel) =>
                         {
                             sel.entity.rotYMin = min;
@@ -90,8 +90,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 }
                 else
                 {
-                    selector.entity.rotYMin = min;
-                    selector.entity.rotYMax = max;
+                    rootSelector.entity.rotYMin = min;
+                    rootSelector.entity.rotYMax = max;
                 }
             }
             else

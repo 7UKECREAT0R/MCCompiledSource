@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "NEAR";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             Coord x = tokens.Next<TokenCoordinateLiteral>();
             Coord y = tokens.Next<TokenCoordinateLiteral>();
@@ -28,7 +28,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if (inverted && minRadius != null)
             {
-                SelectorUtils.InvertSelector(ref selector,
+                SelectorUtils.InvertSelector(ref rootSelector,
                     commands, executor, (sel) =>
                     {
                         sel.area = area;
@@ -38,10 +38,10 @@ namespace mc_compiled.Commands.Selectors.Transformers
             {
                 area.radiusMin = area.radiusMax;
                 area.radiusMax = 99999999f;
-                selector.area = area;
+                rootSelector.area = area;
             }
             else
-                selector.area = area;
+                rootSelector.area = area;
         }
     }
 }

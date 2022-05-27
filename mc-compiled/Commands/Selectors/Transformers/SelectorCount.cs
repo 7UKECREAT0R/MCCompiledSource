@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "COUNT";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             Selector testFor = tokens.Next<TokenSelectorLiteral>();
 
@@ -35,14 +35,12 @@ namespace mc_compiled.Commands.Selectors.Transformers
             string activeSelector = executor.ActiveSelectorStr;
 
             ScoreboardValue temp = executor.scoreboard.RequestTemp();
-
             commands.Add(Command.ScoreboardSet(activeSelector, temp, 0));
             commands.Add(Command.Tag(activeSelector, counter));
             commands.Add(Command.Execute(testFor.ToString(), Coord.here, Coord.here, Coord.here,
                 Command.ScoreboardAdd($"@e[tag={counter}]", temp, 1)));
             commands.Add(Command.TagRemove(activeSelector, counter));
-
-            selector.scores.checks.Add(new ScoresEntry(temp, range));
+            rootSelector.scores.checks.Add(new ScoresEntry(temp, range));
         }
     }
 }

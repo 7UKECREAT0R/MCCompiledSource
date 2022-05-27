@@ -12,7 +12,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "CLASS";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             string clazz = tokens.Next<TokenStringLiteral>();
             string family = MCC.NullManager.FamilyName(clazz);
@@ -20,7 +20,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
             if (inverted)
                 family = '!' + family;
 
-            selector.entity.family = family;
+            alignedSelector.entity.family = family;
             return;
         }
     }

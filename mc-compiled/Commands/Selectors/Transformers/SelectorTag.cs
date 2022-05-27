@@ -12,7 +12,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "TAG";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             string tag = tokens.Next<TokenStringLiteral>();
 
@@ -22,7 +22,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 tag = tag.Substring(1);
             }
 
-            selector.tags.Add(new Tag(tag, inverted));
+            alignedSelector.tags.Add(new Tag(tag, inverted));
         }
     }
 }

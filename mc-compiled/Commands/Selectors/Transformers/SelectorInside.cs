@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "INSIDE";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             Coord x = tokens.Next<TokenCoordinateLiteral>();
             Coord y = tokens.Next<TokenCoordinateLiteral>();
@@ -49,14 +49,14 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if (inverted)
             {
-                SelectorUtils.InvertSelector(ref selector,
+                SelectorUtils.InvertSelector(ref rootSelector,
                     commands, executor, (sel) =>
                     {
                         sel.area = area;
                     });
             }
             else
-                selector.area = area;
+                rootSelector.area = area;
         }
     }
 }

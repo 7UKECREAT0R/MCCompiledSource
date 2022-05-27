@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "POSITION";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             if(tokens.NextIs<TokenIdentifier>())
             {
@@ -67,10 +67,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 }
 
                 Area area;
-                // Requires being relative to the executing entity.
                 if (axis == 'X')
                 {
-                    area = selector.area.Clone();
+                    area = rootSelector.area.Clone();
                     area.x = start;
                     area.volumeX = planeThickness;
 
@@ -85,7 +84,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 }
                 else if (axis == 'Y')
                 {
-                    area = selector.area.Clone();
+                    area = rootSelector.area.Clone();
                     area.y = start;
                     area.volumeY = planeThickness;
 
@@ -100,7 +99,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 }
                 else if (axis == 'Z')
                 {
-                    area = selector.area.Clone();
+                    area = rootSelector.area.Clone();
                     area.z = start;
                     area.volumeZ = planeThickness;
 
@@ -116,13 +115,13 @@ namespace mc_compiled.Commands.Selectors.Transformers
                     throw new StatementException(tokens, "Invalid axis. Valid options are X, Y, and Z.");
 
                 if (inverted)
-                    SelectorUtils.InvertSelector(ref selector,
+                    SelectorUtils.InvertSelector(ref rootSelector,
                         commands, executor, (sel) =>
                         {
                             sel.area = area;
                         });
                 else
-                    selector.area = area;
+                    rootSelector.area = area;
             } else
             {
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
@@ -133,13 +132,13 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
                 if (inverted)
                 {
-                    SelectorUtils.InvertSelector(ref selector,
+                    SelectorUtils.InvertSelector(ref rootSelector,
                         commands, executor, (sel) =>
                         {
                             sel.area = area;
                         });
                 } else
-                    selector.area = area;
+                    rootSelector.area = area;
             }
         }
     }

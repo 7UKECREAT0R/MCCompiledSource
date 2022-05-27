@@ -12,7 +12,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "TYPE";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             string type = tokens.Next<TokenStringLiteral>();
 
@@ -25,7 +25,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
             if (inverted)
                 type = '!' + type;
 
-            selector.entity.type = type;
+            alignedSelector.entity.type = type;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "HOLDING";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             int? data = null;
             Range? quantity = null;
@@ -39,17 +39,23 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if (inverted)
             {
-                HasItems invertCondition = new HasItems(entry);
-                string entity = executor.ActiveSelectorCore;
-                ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                commands.AddRange(new[] {
-                    Command.ScoreboardSet(entity, inverter, 0),
-                    invertCondition.AsStoreIn(entity, inverter)
-                });
-                selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                if (!data.HasValue && !quantity.HasValue)
+                {
+                    // very basic clause so checking quantity=0 will work fine
+                    entry.quantity = new Range(0, false);
+                    alignedSelector.hasItem.entries.Add(entry);
+                    return;
+                }
+
+                SelectorUtils.InvertSelector(ref alignedSelector,
+                    commands, executor, (sel) =>
+                    {
+                        sel.hasItem.entries.Clear();
+                        sel.hasItem.entries.Add(entry);
+                    });
             }
             else
-                selector.hasItem.entries.Add(entry);
+                alignedSelector.hasItem.entries.Add(entry);
         }
     }
 }

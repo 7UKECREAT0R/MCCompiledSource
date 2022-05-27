@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "LEVEL";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             int levelMin = tokens.Next<TokenIntegerLiteral>();
             int? levelMax;
@@ -25,24 +25,22 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if (inverted && levelMax == null)
             {
-                selector.player.levelMin = 0;
-                selector.player.levelMax = levelMin;
+                alignedSelector.player.levelMin = 0;
+                alignedSelector.player.levelMax = levelMin;
             }
             else if (inverted)
             {
-                Player invertCondition = new Player(null, levelMin, levelMax);
-                string entity = executor.ActiveSelectorCore;
-                ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                commands.AddRange(new[] {
-                            Command.ScoreboardSet(entity, inverter, 0),
-                            invertCondition.AsStoreIn(entity, inverter)
-                        });
-                selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                SelectorUtils.InvertSelector(ref alignedSelector,
+                    commands, executor, (sel) =>
+                    {
+                        sel.player.levelMin = 0;
+                        sel.player.levelMax = levelMin;
+                    });
             }
             else
             {
-                selector.player.levelMin = levelMin;
-                selector.player.levelMax = levelMax;
+                alignedSelector.player.levelMin = levelMin;
+                alignedSelector.player.levelMax = levelMax;
             }
         }
     }

@@ -26,12 +26,14 @@ namespace mc_compiled.Commands.Selectors
         /// <summary>
         /// Take in a set of tokens to transform the selector given, potentially adding commands or changing the project as well.
         /// </summary>
-        /// <param name="selector">The selector to transform.</param>
+        /// <param name="rootSelector">The root selector; still aligned to the active entity.</param>
+        /// <param name="alignedSelector">The selector after being aligned to each individual selected entity.</param>
         /// <param name="inverted">Whether this statement is inverted or not.</param>
         /// <param name="executor">The executor running this transformation.</param>
         /// <param name="tokens">The fed-in tokens which specify how the transformation should occur.</param>
         /// <param name="commands">The list of commands to add to.</param>
-        void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands);
+        void Transform(ref Selector rootSelector, ref Selector alignedSelector,
+            bool inverted, Executor executor, Statement tokens, List<string> commands);
     }
 
     /// <summary>

@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "BLOCK";
         public bool CanBeInverted() => true;
         
-        public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             Coord x = tokens.Next<TokenCoordinateLiteral>();
             Coord y = tokens.Next<TokenCoordinateLiteral>();
@@ -28,17 +28,14 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if (inverted)
             {
-                ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                string entity = executor.ActiveSelectorCore;
-                commands.AddRange(new[] {
-                    Command.ScoreboardSet(entity, inverter, 0),
-                    blockCheck.AsStoreIn(entity, inverter)
-                });
-                selector.blockCheck = BlockCheck.DISABLED;
-                selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                SelectorUtils.InvertSelector(ref alignedSelector,
+                    commands, executor, (sel) =>
+                    {
+                        sel.blockCheck = blockCheck;
+                    });
             }
             else
-                selector.blockCheck = blockCheck;
+                alignedSelector.blockCheck = blockCheck;
         }
     }
 }

@@ -1053,17 +1053,18 @@ namespace mc_compiled.MCC.Compiler
             @if(executor, tokens, false);
         public static void @if(Executor executor, Statement tokens, bool @else)
         {
+            Selector rootSelector = new Selector(executor.ActiveSelector);
             executor.PushSelectorExecute();
-            Selector selector = new Selector(executor.ActiveSelector);
+            Selector alignedSelector = new Selector(executor.ActiveSelector);
             Token[] tokensUsed = tokens.GetRemainingTokens();
 
             // the big man
-            SelectorCodeTransformer.TransformSelector(ref selector, executor, tokens, @else);
+            SelectorCodeTransformer.TransformSelector(ref rootSelector, ref alignedSelector, executor, tokens, @else);
 
             // the selector is now ready to use and commands are setup
             executor.PopSelector();
             executor.SetLastCompare(tokensUsed);
-            string prefix = selector.GetAsPrefix();
+            string prefix = alignedSelector.GetAsPrefix();
             executor.AppendCommandPrepend(prefix);
 
             if (!executor.HasNext)

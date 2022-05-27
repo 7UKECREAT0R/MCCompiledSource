@@ -351,7 +351,7 @@ namespace mc_compiled.MCC.Compiler
         {
             if (now.NeedsAlign)
             {
-                AppendCommandPrepend(Command.Execute(now.ToString(), Coord.here, Coord.here, Coord.here, ""));
+                AppendCommandPrepend(Command.Execute(now.ToString(), now.offsetX, now.offsetY, now.offsetZ, ""));
                 PushSelector(true);
                 return;
             }
@@ -382,14 +382,13 @@ namespace mc_compiled.MCC.Compiler
             Selector active = ActiveSelector;
             if (active.NeedsAlign)
             {
-                AppendCommandPrepend(Command.Execute(active.ToString(), Coord.here, Coord.here, Coord.here, ""));
+                AppendCommandPrepend(Command.Execute(active.ToString(), active.offsetX, active.offsetY, active.offsetZ, ""));
                 PushSelector(true);
                 return;
             }
 
             PushSelector(false);
         }
-
         /// <summary>
         /// Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
