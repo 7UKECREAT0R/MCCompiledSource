@@ -22,8 +22,19 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
         public const float MCC_VERSION = 1.02f;              // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx"; // mcversion
-        public const string MCC_GENERATED_FOLDER = "_mcc"; // folder that generated functions go into
+        public const string MCC_GENERATED_FOLDER = "compiler"; // folder that generated functions go into
 
+        /// <summary>
+        /// Display a success message regardless of debug setting.
+        /// </summary>
+        /// <param name="message">The warning to display.</param>
+        public static void Good(string message)
+        {
+            ConsoleColor old = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ForegroundColor = old;
+        }
         /// <summary>
         /// Display a warning regardless of debug setting.
         /// </summary>
@@ -348,6 +359,21 @@ namespace mc_compiled.MCC.Compiler
             PushSelector(false);
         }
         /// <summary>
+        /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
+        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
+        /// </summary>
+        public void PushSelectorExecute(Selector now, Coord offsetX, Coord offsetY, Coord offsetZ)
+        {
+            if (now.NeedsAlign)
+            {
+                AppendCommandPrepend(Command.Execute(now.ToString(), offsetX, offsetY, offsetZ, ""));
+                PushSelector(true);
+                return;
+            }
+
+            PushSelector(false);
+        }
+        /// <summary>
         /// Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
@@ -462,7 +488,7 @@ namespace mc_compiled.MCC.Compiler
             return ret;
         }
 
-        public Executor(Statement[] statements,
+        internal Executor(Statement[] statements, Program.InputPPV[] inputPPVs,
             string projectName, string bpBase, string rpBase)
         {
             this.statements = statements;
@@ -474,6 +500,10 @@ namespace mc_compiled.MCC.Compiler
             macros = new List<Macro>();
             functions = new List<Function>();
             selections = new Stack<Selector>();
+
+            if (inputPPVs != null && inputPPVs.Length > 0)
+                foreach (Program.InputPPV ppv in inputPPVs)
+                    SetPPV(ppv.name, new object[] { ppv.value });
 
             // support up to 100 levels of scope before blowing up
             lastPreprocessorCompare = new bool[100];

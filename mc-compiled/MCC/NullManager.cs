@@ -175,10 +175,10 @@ namespace mc_compiled.MCC
                 EntityEventHandler trigger = new EntityEventHandler(eventName,
                     action: new EventActionAddGroup(groupName));
 
-                if (nullFiles.cleanEvent.action is EventActionAddGroup)
+                if (nullFiles.cleanEvent.action is EventActionRemoveGroup)
                 {
-                    EventActionAddGroup addGroup = nullFiles.cleanEvent.action as EventActionAddGroup;
-                    addGroup.groups.Add(groupName);
+                    EventActionRemoveGroup removeGroup = nullFiles.cleanEvent.action as EventActionRemoveGroup;
+                    removeGroup.groups.Add(groupName);
                 }
 
                 nullFiles.behavior.componentGroups.Add(group);

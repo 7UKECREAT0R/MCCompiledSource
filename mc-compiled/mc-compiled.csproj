@@ -54,6 +54,7 @@
     <Compile Include="Commands\Selectors\Transformers\SelectorAny.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorCount.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorClass.cs" />
+    <Compile Include="Commands\Selectors\Transformers\SelectorPosition.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorNull.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorScoreOperation.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorOffset.cs" />

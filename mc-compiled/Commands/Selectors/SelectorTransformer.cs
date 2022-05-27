@@ -33,4 +33,61 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="commands">The list of commands to add to.</param>
         void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands);
     }
+
+    /// <summary>
+    /// i mostly just use this for inverting only once lol
+    /// </summary>
+    public static class SelectorUtils
+    {
+        /// <summary>
+        /// Creates the commands needed to properly invert a selector if it doesn't natively support inversion.
+        /// </summary>
+        /// <param name="selector">The selector that will have a new score check added.</param>
+        /// <param name="commands">The list of commands to append to.</param>
+        /// <param name="executor">The parent executor running this.</param>
+        /// <param name="transformer">The way to transform this selector after it's copied.</param>
+        public static void InvertSelector(ref Selector selector, List<string> commands, Executor executor, Action<Selector> transformer)
+        {
+            MCC.ScoreboardValue inverter = executor.scoreboard.RequestTemp();
+            Selector _entity = new Selector(executor.ActiveSelector);
+            transformer(_entity);
+
+            string previousEntity = executor.ActiveSelectorStr;
+            string entity = _entity.ToString();
+
+            commands.AddRange(new[] {
+                Command.ScoreboardSet(previousEntity, inverter, 0),
+                Command.Execute(entity, Coord.here, Coord.here, Coord.here,
+                    Command.ScoreboardSet("@s", inverter.baseName, 1))
+            });
+
+            selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+        }
+
+        /// <summary>
+        /// Invert the functionality of a <see cref="TokenCompare.Type"/>
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static TokenCompare.Type InvertComparison(TokenCompare.Type type)
+        {
+            switch (type)
+            {
+                case TokenCompare.Type.EQUAL:
+                    return TokenCompare.Type.NOT_EQUAL;
+                case TokenCompare.Type.NOT_EQUAL:
+                    return TokenCompare.Type.EQUAL;
+                case TokenCompare.Type.LESS_THAN:
+                    return TokenCompare.Type.GREATER_OR_EQUAL;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    return TokenCompare.Type.GREATER_THAN;
+                case TokenCompare.Type.GREATER_THAN:
+                    return TokenCompare.Type.LESS_OR_EQUAL;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    return TokenCompare.Type.LESS_THAN;
+                default:
+                    return type;
+            }
+        }
+    }
 }

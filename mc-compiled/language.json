@@ -432,6 +432,12 @@
       "patterns": [
         [ "id:name" ]
       ]
+    },
+    "for": {
+      "description": "For Each Entity",
+      "patterns": [
+        [ "selector:entities" ]
+      ]
     }
   }
 }

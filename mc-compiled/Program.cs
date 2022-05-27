@@ -44,6 +44,41 @@ namespace mc_compiled
             Console.Write("\t  [-orp | --outputrp] <directory>\tOutput resources to a specific directory. Use ?project to denote file name.\n");
             Console.Write("\t  -od | --outputdevelopment\tOutput files to the com.mojang development_x_packs directory.\n");
         }
+        internal struct InputPPV
+        {
+            internal string name;
+            internal object value;
+
+            internal InputPPV(string name, string value)
+            {
+                this.name = name;
+
+                if(value.ToUpper().Equals("TRUE"))
+                {
+                    this.value = true;
+                    return;
+                }
+                if (value.ToUpper().Equals("FALSE"))
+                {
+                    this.value = false;
+                    return;
+                }
+                if (int.TryParse(value, out int integer))
+                {
+                    this.value = integer;
+                    return;
+                }
+                if (float.TryParse(value, out float floating))
+                {
+                    this.value = floating;
+                    return;
+                }
+
+                this.value = value;
+                return;
+            }
+        }
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -54,6 +89,7 @@ namespace mc_compiled
             }
 
             string[] files = new string[] { args[0] };
+            List<InputPPV> inputPPVs = new List<InputPPV>();
             bool debug = false;
             bool search = false;
             bool daemon = false;
@@ -82,20 +118,26 @@ namespace mc_compiled
                         daemon = true;
                         NO_PAUSE = true;
                         break;
-                    case "-OUTPUTBP":
+                    case "--OUTPUTBP":
                     case "-OBP":
                         obp = args[++i];
                         break;
-                    case "-OUTPUTRP":
+                    case "--OUTPUTRP":
                     case "-ORP":
                         orp = args[++i];
                         break;
-                    case "-OUTPUTDEVELOPMENT":
+                    case "--OUTPUTDEVELOPMENT":
                     case "-OD":
                         string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                         string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
                         obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project";
                         orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
+                        break;
+                    case "--VARIABLE":
+                    case "-PPV":
+                        string ppvName = args[++i];
+                        string ppvValue = args[++i];
+                        inputPPVs.Add(new InputPPV(ppvName, ppvValue));
                         break;
                 }
             }
@@ -303,7 +345,7 @@ namespace mc_compiled
                         {
                             CleanDirectory(obp, file);
                             CleanDirectory(orp, file);
-                            RunMCCompiled(file, obp, orp);
+                            RunMCCompiled(file, inputPPVs.ToArray(), obp, orp);
                         }
                     }
                     else
@@ -312,7 +354,7 @@ namespace mc_compiled
                         PrepareToCompile();
                         CleanDirectory(obp, changedFile);
                         CleanDirectory(orp, changedFile);
-                        RunMCCompiled(changedFile, obp, orp);
+                        RunMCCompiled(changedFile, inputPPVs.ToArray(), obp, orp);
                     }
 
                     ConsoleColor oldColor = Console.ForegroundColor;
@@ -353,7 +395,7 @@ namespace mc_compiled
             if(REGOLITH)
             {
                 foreach (string file in files)
-                    if (RunMCCompiled(file, obp, orp, silent))
+                    if (RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, silent))
                         File.Delete(file); // delete if compilation succeeded, otherwise might be another format
             } else
             {
@@ -361,11 +403,11 @@ namespace mc_compiled
                 {
                     CleanDirectory(obp, file);
                     CleanDirectory(orp, file);
-                    RunMCCompiled(file, obp, orp, silent);
+                    RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, silent);
                 }
             }
         }
-        public static void PrepareToCompile()
+        internal static void PrepareToCompile()
         {
             // reset all that icky static stuff
             Executor.ResetGeneratedFiles();
@@ -373,7 +415,7 @@ namespace mc_compiled
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();
         }
-        public static void CleanDirectory(string cleanFolder, string file)
+        internal static void CleanDirectory(string cleanFolder, string file)
         {
             cleanFolder = cleanFolder.Replace("?project", Path.GetFileNameWithoutExtension(file));
 
@@ -395,7 +437,7 @@ namespace mc_compiled
         /// <param name="outputRP">The root location that the RP content will be written to.</param>
         /// <param name="silentErrors">Whether to silently throw away errors.</param>
         /// <returns>If the compilation succeeded.</returns>
-        public static bool RunMCCompiled(string file, string outputBP, string outputRP, bool silentErrors = false)
+        internal static bool RunMCCompiled(string file, InputPPV[] ppvs, string outputBP, string outputRP, bool silentErrors = false)
         {
             string project = Path.GetFileNameWithoutExtension(file);
             outputBP = outputBP.Replace("?project", project);
@@ -428,7 +470,7 @@ namespace mc_compiled
                     Console.WriteLine();
                 }
 
-                Executor executor = new Executor(statements, project, outputBP, outputRP);
+                Executor executor = new Executor(statements, ppvs, project, outputBP, outputRP);
                 executor.Execute();
 
                 Console.WriteLine("Writing files...");

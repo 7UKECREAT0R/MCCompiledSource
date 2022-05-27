@@ -31,7 +31,7 @@ namespace mc_compiled.MCC
             Identifier + ':' + name;
 
         internal readonly string name;
-        internal string description = "Change Me!";
+        internal string description = "placeholder";
 
         readonly OutputRegistry registry;
         readonly List<IAddonFile> files;
@@ -176,9 +176,13 @@ namespace mc_compiled.MCC
         /// </summary>
         internal static Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
         {
-            { Feature.NULLS, (executor) => {
-                Console.WriteLine("NULLS ENABLED EWOHAHOAOOO");
-            }}
+            {
+                Feature.NULLS, (executor) => {
+                    executor.entities.nulls.EnsureEntity();
+                    executor.SetPPV("null", new object[] { executor.entities.nulls.nullType });
+                    Executor.Good("null entities enabled");
+                }
+            }
         };
 
         /// <summary>

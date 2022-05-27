@@ -16,53 +16,86 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public void Transform(ref Selector selector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             char axis = char.ToUpper(tokens.Next<TokenIdentifier>().word[0]);
-            int rotMin = tokens.Next<TokenIntegerLiteral>();
-            int rotMax = tokens.Next<TokenIntegerLiteral>();
-            if (rotMin > rotMax)
+            TokenCompare comparison = tokens.Next<TokenCompare>();
+            int number = tokens.Next<TokenIntegerLiteral>();
+            int? min, max;
+
+            TokenCompare.Type compareType = comparison.GetCompareType();
+            if(inverted)
             {
-                int temp = rotMin;
-                rotMin = rotMax;
-                rotMax = temp;
+                inverted = false;
+                compareType = SelectorUtils.InvertComparison(compareType);
+            }
+
+            switch (compareType)
+            {
+                case TokenCompare.Type.EQUAL:
+                    min = number;
+                    max = number;
+                    break;
+                case TokenCompare.Type.NOT_EQUAL:
+                    min = number;
+                    max = number;
+                    inverted = true;
+                    break;
+                case TokenCompare.Type.LESS_THAN:
+                    min = null;
+                    max = number;  // max is exclusive, maybe.
+                    break;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    min = null;
+                    max = number + 1; // max is exclusive, maybe.
+                    break;
+                case TokenCompare.Type.GREATER_THAN:
+                    min = number + 1;
+                    max = null;
+                    break;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    min = number;
+                    max = null;
+                    break;
+                default:
+                    min = null;
+                    max = null;
+                    break;
             }
 
             if (axis == 'X')
             {
                 if (inverted)
                 {
-                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                    string entity = executor.ActiveSelectorCore;
-                    commands.AddRange(new[] {
-                        Command.ScoreboardSet(entity, inverter, 0),
-                        $"execute {entity}[rxm={rotMin},rx={rotMax}] ~~~ scoreboard players set @s {inverter.baseName} 1"
-                    });
-                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                    SelectorUtils.InvertSelector(ref selector,
+                        commands, executor, (sel) =>
+                        {
+                            sel.entity.rotXMin = min;
+                            sel.entity.rotXMax = max;
+                        });
                 }
                 else
                 {
-                    selector.entity.rotXMin = rotMin;
-                    selector.entity.rotXMax = rotMax;
+                    selector.entity.rotXMin = min;
+                    selector.entity.rotXMax = max;
                 }
             }
             else if (axis == 'Y')
             {
                 if (inverted)
                 {
-                    ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                    string entity = executor.ActiveSelectorCore;
-                    commands.AddRange(new[] {
-                        Command.ScoreboardSet(entity, inverter, 0),
-                        $"execute {entity}[rym={rotMin},ry={rotMax}] ~~~ scoreboard players set @s {inverter.baseName} 1"
-                    });
-                    selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                    SelectorUtils.InvertSelector(ref selector,
+                        commands, executor, (sel) =>
+                        {
+                            sel.entity.rotYMin = min;
+                            sel.entity.rotYMax = max;
+                        });
                 }
                 else
                 {
-                    selector.entity.rotYMin = rotMin;
-                    selector.entity.rotYMax = rotMax;
+                    selector.entity.rotYMin = min;
+                    selector.entity.rotYMax = max;
                 }
             }
             else
-                throw new StatementException(tokens, "Invalid rotation axis. Valid options can be X or Y.");
+                throw new StatementException(tokens, "Invalid rotation axis. Valid options are X and Y.");
         }
     }
 }

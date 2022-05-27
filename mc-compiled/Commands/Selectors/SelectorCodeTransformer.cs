@@ -29,6 +29,7 @@ namespace mc_compiled.Commands.Selectors
         {
             { "ANY", new SelectorAny() },
             { "BLOCK", new SelectorBlock() },
+            { "CLASS", new SelectorClass() },
             { "COUNT", new SelectorCount() },
             { "FAMILY", new SelectorFamily() },
             { "HOLDING", new SelectorHolding() },
@@ -40,6 +41,7 @@ namespace mc_compiled.Commands.Selectors
             { "NEAR", new SelectorNear() },
             { "NULL", new SelectorNull() },
             { "OFFSET", new SelectorOffset() },
+            { "POSITION", new SelectorPosition() },
             { "ROTATION", new SelectorRotation() },
             { "TAG", new SelectorTag() },
             { "TYPE", new SelectorType() }

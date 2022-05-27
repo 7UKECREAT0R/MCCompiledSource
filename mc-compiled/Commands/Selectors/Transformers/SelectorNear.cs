@@ -28,13 +28,11 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if (inverted && minRadius != null)
             {
-                ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                string entity = executor.ActiveSelectorCore;
-                commands.AddRange(new[] {
-                    Command.ScoreboardSet(entity, inverter, 0),
-                    area.AsStoreIn(entity, inverter)
-                });
-                selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                SelectorUtils.InvertSelector(ref selector,
+                    commands, executor, (sel) =>
+                    {
+                        sel.area = area;
+                    });
             }
             else if (inverted)
             {

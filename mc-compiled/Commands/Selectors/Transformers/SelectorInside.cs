@@ -22,17 +22,38 @@ namespace mc_compiled.Commands.Selectors.Transformers
             int sizeY = tokens.Next<TokenIntegerLiteral>();
             int sizeZ = tokens.Next<TokenIntegerLiteral>();
 
-            Area area = new Area(x, y, z, null, null, sizeX, sizeY, sizeZ);
+            if(sizeX < 0)
+            {
+                sizeX *= -1;
+                x -= sizeX;
+            }
+            if (sizeY < 0)
+            {
+                sizeY *= -1;
+                y -= sizeY;
+            }
+            if (sizeZ < 0)
+            {
+                sizeZ *= -1;
+                z -= sizeZ;
+            }
+
+            Area area;
+
+            if(sizeX == 0 && sizeY == 0 && sizeZ == 0)
+            {
+                Executor.Warn($"To compare exact position, you *should* use 'if...position <x> <y> <z>'.", tokens);
+                area = new Area(x, y, z);
+            } else
+                area = new Area(x, y, z, null, null, sizeX, sizeY, sizeZ);
 
             if (inverted)
             {
-                ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-                string entity = executor.ActiveSelectorCore;
-                commands.AddRange(new[] {
-                    Command.ScoreboardSet(entity, inverter, 0),
-                    area.AsStoreIn(entity, inverter)
-                });
-                selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));
+                SelectorUtils.InvertSelector(ref selector,
+                    commands, executor, (sel) =>
+                    {
+                        sel.area = area;
+                    });
             }
             else
                 selector.area = area;

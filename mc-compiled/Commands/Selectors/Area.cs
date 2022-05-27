@@ -27,6 +27,7 @@ namespace mc_compiled.Commands.Selectors
             this.volumeY = volumeY;
             this.volumeZ = volumeZ;
         }
+        public Area Clone() => (Area)MemberwiseClone();
 
         /// <summary>
         /// Parse an area from traditional minecraft input.
@@ -131,13 +132,6 @@ namespace mc_compiled.Commands.Selectors
                 parts.Add("r=" + radiusMax.Value);
 
             return parts.ToArray();
-        }
-        public string AsStoreIn(string selector, string objective)
-        {
-            IEnumerable<string> parts = GetSections();
-            string tags = string.Join(",", parts);
-
-            return $"execute {selector}[{tags}] ~~~ scoreboard players set @s {objective} 1";
         }
 
         public static Area operator +(Area a, Area other)

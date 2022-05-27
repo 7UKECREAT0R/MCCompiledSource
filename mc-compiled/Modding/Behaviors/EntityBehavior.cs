@@ -123,7 +123,8 @@ namespace mc_compiled.Modding.Behaviors
         {
             string geometryID = "geometry." + entityID.Replace(':', '.');
             EntityGeometry geometry = new EntityGeometry("null", geometryID);
-            EntityEventHandler cleanEvent = new EntityEventHandler(MCC.NullManager.CLEAN_EVENT_NAME);
+            EntityEventHandler cleanEvent = new EntityEventHandler(MCC.NullManager.CLEAN_EVENT_NAME,
+                EventSubject.self, new EventActionRemoveGroup(new string[] { }));
 
             return new MCC.NullFiles() {
                 cleanEvent = cleanEvent,

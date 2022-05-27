@@ -1930,17 +1930,6 @@ namespace mc_compiled.MCC.Compiler
             }
             else if (word.Equals("REMOVE"))
             {
-                if(tokens.NextIs<TokenIdentifier>())
-                {
-                    string arg = tokens.Next<TokenIdentifier>().word;
-                    if (arg.ToUpper().Equals("ALL"))
-                    {
-                        string selector = executor.entities.nulls.GetAllStringSelector();
-                        executor.AddCommand(Command.Event(selector, NullManager.DESTROY_EVENT_NAME));
-                        return;
-                    }
-                }
-
                 string target = executor.ActiveSelectorStr;
                 executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
                 return;
@@ -1948,15 +1937,16 @@ namespace mc_compiled.MCC.Compiler
             else if (word.Equals("CLASS"))
             {
                 string selector = executor.ActiveSelectorStr;
-                bool isKeyword = tokens.NextIs<TokenIdentifier>();
-                string token = tokens.Next<TokenStringLiteral>();
 
                 // null class remove
-                if (isKeyword && token.ToUpper().Equals("REMOVE"))
+                if (tokens.NextIs<TokenDirective>() && tokens.Next<TokenDirective>()
+                        .directive.identifier.ToUpper().Equals("REMOVE"))
                 {
                     executor.AddCommand(Command.Event(selector, NullManager.CLEAN_EVENT_NAME));
                     return;
                 }
+
+                string token = tokens.Next<TokenStringLiteral>();
 
                 // null class <name>
                 string eventName = executor.entities.nulls.DefineClass(token);
@@ -2153,6 +2143,55 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end-of-file following struct definition.");
             executor.Next<StatementCloseBlock>();
+        }
+        public static void @for(Executor executor, Statement tokens)
+        {
+            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+            Coord x = Coord.here,
+                  y = Coord.here,
+                  z = Coord.here;
+
+            if(tokens.NextIs<TokenIdentifier>())
+            {
+                string identifier = tokens.Next<TokenIdentifier>().word;
+
+                if(identifier.ToUpper().Equals("AT"))
+                {
+                    if (tokens.NextIs<TokenCoordinateLiteral>())
+                        x = tokens.Next<TokenCoordinateLiteral>();
+                    if (tokens.NextIs<TokenCoordinateLiteral>())
+                        y = tokens.Next<TokenCoordinateLiteral>();
+                    if (tokens.NextIs<TokenCoordinateLiteral>())
+                        z = tokens.Next<TokenCoordinateLiteral>();
+                }
+            }
+
+            if (!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end-of-file after for-statement.");
+
+            if(executor.NextIs<StatementOpenBlock>())
+            {
+                StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
+                CommandFile file = Executor.GetNextGeneratedFile("for");
+
+                executor.PushSelectorExecute(selector, x, y, z);
+                executor.AddCommand(Command.Function(file));
+
+                block.openAction = (e) =>
+                {
+                    e.PushFile(file);
+                };
+                block.CloseAction = (e) =>
+                {
+                    e.PopFile();
+                    e.PopSelector();
+                };
+            }
+            else
+            {
+                executor.PushSelectorExecute(selector, x, y, z);
+                executor.PopSelectorAfterNext();
+            }
         }
     }
 }
