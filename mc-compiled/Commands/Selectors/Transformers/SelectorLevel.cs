@@ -15,29 +15,61 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
         public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
-            int levelMin = tokens.Next<TokenIntegerLiteral>();
+            int? levelMin;
             int? levelMax;
 
-            if (tokens.NextIs<TokenIntegerLiteral>())
-                levelMax = tokens.Next<TokenIntegerLiteral>();
-            else
-                levelMax = null;
+            TokenCompare comparison = tokens.Next<TokenCompare>();
+            int number = tokens.Next<TokenIntegerLiteral>();
 
-            if (inverted && levelMax == null)
+            TokenCompare.Type compareType = comparison.GetCompareType();
+            if (inverted)
             {
-                alignedSelector.player.levelMin = 0;
-                alignedSelector.player.levelMax = levelMin;
+                inverted = false;
+                compareType = SelectorUtils.InvertComparison(compareType);
             }
-            else if (inverted)
+
+            switch (compareType)
+            {
+                case TokenCompare.Type.EQUAL:
+                    levelMin = number;
+                    levelMax = number;
+                    break;
+                case TokenCompare.Type.NOT_EQUAL:
+                    levelMin = number;
+                    levelMax = number;
+                    inverted = true;
+                    break;
+                case TokenCompare.Type.LESS_THAN:
+                    levelMin = null;
+                    levelMax = number - 1;
+                    break;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    levelMin = null;
+                    levelMax = number;
+                    break;
+                case TokenCompare.Type.GREATER_THAN:
+                    levelMin = number + 1;
+                    levelMax = null;
+                    break;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    levelMin = number;
+                    levelMax = null;
+                    break;
+                default:
+                    levelMin = number;
+                    levelMax = number;
+                    break;
+            }
+
+            if(inverted)
             {
                 SelectorUtils.InvertSelector(ref alignedSelector,
                     commands, executor, (sel) =>
                     {
-                        sel.player.levelMin = 0;
-                        sel.player.levelMax = levelMin;
+                        sel.player.levelMin = levelMin;
+                        sel.player.levelMax = levelMax;
                     });
-            }
-            else
+            } else
             {
                 alignedSelector.player.levelMin = levelMin;
                 alignedSelector.player.levelMax = levelMax;

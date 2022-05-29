@@ -14,6 +14,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
         public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
+            executor.RequireFeature(tokens, MCC.Feature.NULLS);
+
             string clazz = tokens.Next<TokenStringLiteral>();
             string family = MCC.NullManager.FamilyName(clazz);
 

@@ -18,11 +18,15 @@ namespace mc_compiled.Commands.Selectors.Transformers
             Coord x = tokens.Next<TokenCoordinateLiteral>();
             Coord y = tokens.Next<TokenCoordinateLiteral>();
             Coord z = tokens.Next<TokenCoordinateLiteral>();
-            int radius = tokens.Next<TokenIntegerLiteral>();
 
-            int? minRadius = null;
-            if (tokens.NextIs<TokenIntegerLiteral>())
-                minRadius = tokens.Next<TokenIntegerLiteral>();
+            float radius = tokens.Next<TokenNumberLiteral>().GetNumber();
+
+            float? minRadius;
+
+            if (tokens.NextIs<TokenNumberLiteral>())
+                minRadius = tokens.Next<TokenNumberLiteral>().GetNumber();
+            else
+                minRadius = null;
 
             Area area = new Area(x, y, z, minRadius, radius);
 
@@ -36,8 +40,12 @@ namespace mc_compiled.Commands.Selectors.Transformers
             }
             else if (inverted)
             {
-                area.radiusMin = area.radiusMax;
-                area.radiusMax = 99999999f;
+                byte[] byteArray = BitConverter.GetBytes(area.radiusMax.Value);
+                int integralRepresentation = BitConverter.ToInt32(byteArray, 0);
+                integralRepresentation += 1 << 3; // increment mantissa (probably)
+                byteArray = BitConverter.GetBytes(integralRepresentation);
+                area.radiusMin = BitConverter.ToSingle(byteArray, 0);
+                area.radiusMax = null;
                 rootSelector.area = area;
             }
             else

@@ -13,6 +13,9 @@ namespace mc_compiled.Json
     /// </summary>
     public abstract class JSONRawTerm
     {
+        public static string EscapeString(string text) =>
+            text.Replace(@"\", @"\\").Replace("\"", "\\\"");
+
         public abstract string GetString();
         public abstract string PreviewString();
     }
@@ -25,7 +28,7 @@ namespace mc_compiled.Json
         string text;
         public JSONText(string text)
         {
-            this.text = text;
+            this.text = EscapeString(text);
         }
         public override string GetString()
         {
@@ -44,8 +47,8 @@ namespace mc_compiled.Json
         string selector, objective;
         public JSONScore(string selector, string objective)
         {
-            this.selector = selector;
-            this.objective = objective;
+            this.selector = EscapeString(selector);
+            this.objective = EscapeString(objective);
         }
         public override string GetString()
         {
@@ -74,7 +77,7 @@ namespace mc_compiled.Json
         string selector;
         public JSONSelector(string selector)
         {
-            this.selector = selector;
+            this.selector = EscapeString(selector);
         }
         public override string GetString()
         {
@@ -98,8 +101,8 @@ namespace mc_compiled.Json
         
         public JSONVariant(JSONRawTerm[] a, string selector, string objective, Range condition, JSONRawTerm[] b)
         {
-            this.selector = selector;
-            this.objective = objective;
+            this.selector = EscapeString(selector);
+            this.objective = EscapeString(objective);
             this.condition = condition;
             this.a = a;
             this.b = b;

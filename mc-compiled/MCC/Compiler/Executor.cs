@@ -881,7 +881,19 @@ namespace mc_compiled.MCC.Compiler
         public void PopFile()
         {
             unreachableCode = -1;
-            project.AddFile(currentFiles.Pop());
+
+            CommandFile file = currentFiles.Pop();
+
+            // root file is empty so it causes MC compile errors
+            // solution: print project info!
+            if(currentFiles.Count == 0 && file.Length == 0)
+            {
+                RawTextJsonBuilder jb = new RawTextJsonBuilder();
+                jb.AddTerm(new JSONText(project.name + " for Minecraft " + MINECRAFT_VERSION));
+                file.Add(Command.Tellraw("@s", jb.BuildString()));
+            }
+
+            project.AddFile(file);
         }
 
         private static Dictionary<int, int> branchFileIndexes = new Dictionary<int, int>();

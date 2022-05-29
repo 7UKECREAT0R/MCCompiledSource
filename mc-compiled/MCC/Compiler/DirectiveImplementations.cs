@@ -1053,9 +1053,19 @@ namespace mc_compiled.MCC.Compiler
             @if(executor, tokens, false);
         public static void @if(Executor executor, Statement tokens, bool @else)
         {
-            Selector rootSelector = new Selector(executor.ActiveSelector);
-            executor.PushSelectorExecute();
-            Selector alignedSelector = new Selector(executor.ActiveSelector);
+            Selector rootSelector, alignedSelector;
+
+            rootSelector = new Selector(executor.ActiveSelector);
+            if (rootSelector.NeedsAlign)
+            {
+                executor.PushSelectorExecute();
+                alignedSelector = new Selector(executor.ActiveSelector);
+            } else
+            {
+                executor.PushSelector(rootSelector);
+                alignedSelector = rootSelector;
+            }
+
             Token[] tokensUsed = tokens.GetRemainingTokens();
 
             // the big man
@@ -1915,9 +1925,16 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenStringLiteral>())
                     clazz = tokens.Next<TokenStringLiteral>();
 
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                Coord x = Coord.here;
+                Coord y = Coord.here;
+                Coord z = Coord.here;
+
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    x = tokens.Next<TokenCoordinateLiteral>();
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    y = tokens.Next<TokenCoordinateLiteral>();
+                if (tokens.NextIs<TokenCoordinateLiteral>())
+                    z = tokens.Next<TokenCoordinateLiteral>();
 
                 executor.PushSelectorExecute();
 
@@ -1931,6 +1948,20 @@ namespace mc_compiled.MCC.Compiler
             }
             else if (word.Equals("REMOVE"))
             {
+                if(tokens.NextIs<TokenStringLiteral>())
+                {
+                    string name = tokens.Next<TokenStringLiteral>();
+
+                    // removal by name
+                    string clazz;
+                    if (tokens.NextIs<TokenStringLiteral>())
+                        clazz = tokens.Next<TokenStringLiteral>();
+                    else clazz = null;
+
+                    executor.AddCommand(executor.entities.nulls.Destroy(name, clazz));
+                    return;
+                }
+
                 string target = executor.ActiveSelectorStr;
                 executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
                 return;

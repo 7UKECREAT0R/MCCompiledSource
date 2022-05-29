@@ -14,6 +14,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
         public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
+            executor.RequireFeature(tokens, MCC.Feature.NULLS);
+
             if(inverted)
                 alignedSelector.entity.type = '!' + executor.entities.nulls.nullType;
             else

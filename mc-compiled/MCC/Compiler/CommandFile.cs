@@ -19,7 +19,11 @@ namespace mc_compiled.MCC.Compiler
         public bool IsUserFunction
         {
             get => userFunction != null;
-        } 
+        }
+        public int Length
+        {
+            get => commands.Count;
+        }
 
         public readonly string folder;
         public readonly string name;
