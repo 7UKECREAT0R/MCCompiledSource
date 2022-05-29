@@ -6,7 +6,7 @@ Constants are case insensitive snippets which aim to simplify and standardize Mi
 -------------------------------------------------------------------------------
 
 This version reference is used in the $minecraftversion preprocessor variable.
-VERSION 1.18.10
+VERSION 1.18.31
 
 -------------------------------------------------------------------------------
 
@@ -561,8 +561,12 @@ CATEGORY ENTITY
 	MINECART TNT IS tnt_minecart
 	XPBOTTLE IS xp_bottle
 	XP BOTTLE IS xp_bottle
+	EXPBOTTLE IS xp_bottle
+	EXP BOTTLE IS xp_bottle
 	XPORB IS xp_orb
 	XP ORB IS xp_orb
+	EXPORB IS xp_orb
+	EXP ORB IS xp_orb
 
 CATEGORY MOB AND ENTITY
 	AXOLOTL IS axolotl

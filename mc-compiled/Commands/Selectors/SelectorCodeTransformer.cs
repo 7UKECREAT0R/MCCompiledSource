@@ -54,10 +54,9 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="tokens"></param>
         /// <param name="forceInvert"></param>
         /// <returns></returns>
-        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, Statement tokens, bool forceInvert)
+        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool forceInvert)
         {
             executor.scoreboard.PushTempState();
-            List<string> commands = new List<string>();
 
             do
             {
@@ -96,9 +95,6 @@ namespace mc_compiled.Commands.Selectors
                 }
 
             } while (tokens.NextIs<TokenAnd>());
-
-            if (commands.Count > 0)
-                executor.AddCommandsClean(commands, "selector_setup", true);
 
             // done with temporary variables
             executor.scoreboard.PopTempState();

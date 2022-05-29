@@ -55,12 +55,10 @@ namespace mc_compiled.Commands.Selectors
             transformer(_entity);
 
             string previousEntity = executor.ActiveSelectorStr;
-            string entity = _entity.ToString();
 
             commands.AddRange(new[] {
                 Command.ScoreboardSet(previousEntity, inverter, 0),
-                Command.Execute(entity, Coord.here, Coord.here, Coord.here,
-                    Command.ScoreboardSet("@s", inverter.baseName, 1))
+                _entity.GetAsPrefix() + Command.ScoreboardSet("@s", inverter.baseName, 1)
             });
 
             selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));

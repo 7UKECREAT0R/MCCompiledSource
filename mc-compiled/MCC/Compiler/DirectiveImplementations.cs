@@ -1053,32 +1053,50 @@ namespace mc_compiled.MCC.Compiler
             @if(executor, tokens, false);
         public static void @if(Executor executor, Statement tokens, bool @else)
         {
-            Selector rootSelector, alignedSelector;
+            if (!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end-of-file after if/else statement.");
 
+            Selector originalSelector, rootSelector, alignedSelector;
+            originalSelector = executor.ActiveSelector;
             rootSelector = new Selector(executor.ActiveSelector);
+
+            // If the existing selected entity needs to be aligned:
             if (rootSelector.NeedsAlign)
             {
-                executor.PushSelectorExecute();
-                alignedSelector = new Selector(executor.ActiveSelector);
+                // Align it and use that as the active selector.
+                executor.PushSelector(true);
+                alignedSelector = executor.ActiveSelector;
             } else
             {
+                // Otherwise, just use the same instance as the root selector.
                 executor.PushSelector(rootSelector);
                 alignedSelector = rootSelector;
             }
 
             Token[] tokensUsed = tokens.GetRemainingTokens();
+            List<string> commands = new List<string>();
 
             // the big man
-            SelectorCodeTransformer.TransformSelector(ref rootSelector, ref alignedSelector, executor, tokens, @else);
+            SelectorCodeTransformer.TransformSelector(ref rootSelector, ref alignedSelector, executor, commands, tokens, @else);
 
-            // the selector is now ready to use and commands are setup
             executor.PopSelector();
             executor.SetLastCompare(tokensUsed);
-            string prefix = alignedSelector.GetAsPrefix();
-            executor.AppendCommandPrepend(prefix);
 
-            if (!executor.HasNext)
-                throw new StatementException(tokens, "Unexpected end-of-file after if/else statement.");
+            if (commands.Count > 0)
+                executor.AddCommandsClean(commands, "selectorsetup");
+
+            string commandPrefix;
+            if (rootSelector.NeedsAlign)
+            {
+                string prefix0 = rootSelector.GetAsPrefix();
+                string prefix1 = alignedSelector.GetAsPrefix();
+                commandPrefix = prefix0 + prefix1;
+            }
+            else
+                // same instance, doesn't matter
+                commandPrefix = rootSelector.GetAsPrefix();
+
+            executor.AppendCommandPrepend(commandPrefix);
 
             StatementOpenBlock opener = null;
             if (executor.NextIs<StatementOpenBlock>())
