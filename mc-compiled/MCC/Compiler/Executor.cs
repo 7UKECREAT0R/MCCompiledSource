@@ -429,16 +429,87 @@ namespace mc_compiled.MCC.Compiler
             popSelectorsAfterNext = 2;
         }
 
+        /// <summary>
+        /// Returns if this executor has another statement available to run.
+        /// </summary>
         public bool HasNext
         {
             get => readIndex < statements.Length;
         }
+        /// <summary>
+        /// Peek at the next statement.
+        /// </summary>
+        /// <returns></returns>
         public Statement Peek() => statements[readIndex];
+        /// <summary>
+        /// Get the next statement to be read and then increment the read index.
+        /// </summary>
+        /// <returns></returns>
         public Statement Next() => statements[readIndex++];
+        /// <summary>
+        /// Returns the next statement to be read as a certain type. Increments the read index.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public T Next<T>() where T : Statement => statements[readIndex++] as T;
+        /// <summary>
+        /// Peek at the next statement as a certain type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public T Peek<T>() where T : Statement => statements[readIndex] as T;
+        /// <summary>
+        /// Peek a certain number of statements into the future as a certain type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="skip"></param>
+        /// <returns></returns>
         public T Peek<T>(int skip) where T : Statement => statements[readIndex + skip] as T;
-        public bool NextIs<T>() where T : Statement => statements[readIndex] is T;
+        /// <summary>
+        /// Returns if there's another statement available and it's of a certain type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public bool NextIs<T>() where T : Statement => HasNext && statements[readIndex] is T;
+        /// <summary>
+        /// Returns if the next statement is an unknown statement with builder field(s) in it.
+        /// </summary>
+        /// <returns></returns>
+        public bool NextIsBuilder()
+        {
+            if (!HasNext)
+                return false;
+
+            Statement _tokens = statements[readIndex];
+
+            if (!(_tokens is StatementUnknown))
+                return false;
+
+            StatementUnknown tokens = _tokens as StatementUnknown;
+            return tokens.NextIs<TokenBuilderIdentifier>();
+        }
+        public bool NextBuilderField(ref Statement tokens, out TokenBuilderIdentifier builderField)
+        {
+            // next in statement?
+            if (tokens.NextIs<TokenBuilderIdentifier>())
+            {
+                builderField = tokens.Next<TokenBuilderIdentifier>();
+                return true;
+            }
+
+            // not in the current statement ... look ahead in code
+            if(NextIsBuilder())
+            {
+                // reassigns the field in the caller's code
+                tokens = Next<StatementUnknown>();
+                builderField = tokens.Next<TokenBuilderIdentifier>();
+                return true;
+            }
+
+            // end of builder cycle
+            builderField = null;
+            return false;
+        }
         /// <summary>
         /// Return an array of the next x statements.
         /// </summary>

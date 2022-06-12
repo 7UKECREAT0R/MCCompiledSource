@@ -1183,9 +1183,10 @@ namespace mc_compiled.MCC.Compiler
                     data = tokens.Next<TokenIntegerLiteral>();
             }
 
-            while (tokens.NextIs<TokenBuilderIdentifier>())
+            TokenBuilderIdentifier builderIdentifier;
+
+            while (executor.NextBuilderField(ref tokens, out builderIdentifier))
             {
-                TokenBuilderIdentifier builderIdentifier = tokens.Next<TokenBuilderIdentifier>();
                 string builderField = builderIdentifier.BuilderField;
 
                 switch (builderField)
