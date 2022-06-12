@@ -14,6 +14,7 @@
     "int": "TokenIntegerLiteral",
     "number": "TokenNumberLiteral",
     "string": "TokenStringLiteral",
+    "bool": "TokenBooleanLiteral",
     "selector": "TokenSelectorLiteral",
     "value": "TokenIdentifierValue",
     "pos": "TokenCoordinateLiteral",
@@ -409,6 +410,13 @@
         [ "?int:count" ]
       ]
     },
+    "explode": {
+      "description": "Create Explosion",
+      "patterns": [
+        [ "pos:x", "pos:y", "pos:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ],
+        [ "?int:power", "?int:delay", "?bool:causes fire", "?bool:breaks blocks" ]
+      ]
+    }
     "feature": {
       "description": "Enable Feature",
       "patterns": [

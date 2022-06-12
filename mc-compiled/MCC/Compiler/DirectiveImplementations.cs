@@ -2,6 +2,7 @@
 using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
+using mc_compiled.MCC.CustomEntities;
 using mc_compiled.Modding;
 using mc_compiled.NBT;
 using Newtonsoft.Json.Linq;
@@ -1174,15 +1175,15 @@ namespace mc_compiled.MCC.Compiler
             List<string> bookPages = null;
             ItemTagCustomColor? color = null;
 
-            if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+            if (tokens.NextIs<TokenIntegerLiteral>())
             {
                 count = tokens.Next<TokenIntegerLiteral>();
 
-                if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                if (tokens.NextIs<TokenIntegerLiteral>())
                     data = tokens.Next<TokenIntegerLiteral>();
             }
 
-            while (tokens.HasNext && tokens.NextIs<TokenBuilderIdentifier>())
+            while (tokens.NextIs<TokenBuilderIdentifier>())
             {
                 TokenBuilderIdentifier builderIdentifier = tokens.Next<TokenBuilderIdentifier>();
                 string builderField = builderIdentifier.BuilderField;
@@ -2050,6 +2051,47 @@ namespace mc_compiled.MCC.Compiler
                 active.count.count = Count.NONE;
 
             executor.ActiveSelector = active;
+        }
+        public static void explode(Executor executor, Statement tokens)
+        {
+            executor.RequireFeature(tokens, Feature.EXPLODERS);
+
+            Coord x, y, z;
+
+            if(tokens.NextIs<TokenCoordinateLiteral>())
+            {
+                x = tokens.Next<TokenCoordinateLiteral>();
+                y = tokens.Next<TokenCoordinateLiteral>();
+                z = tokens.Next<TokenCoordinateLiteral>();
+            } 
+            else
+            {
+                x = Coord.here;
+                y = Coord.here;
+                z = Coord.here;
+            }
+
+            int power, delay;
+            bool fire, breaks;
+
+            if (tokens.NextIs<TokenIntegerLiteral>())
+                power = tokens.Next<TokenIntegerLiteral>();
+            else power = 3;
+
+            if (tokens.NextIs<TokenIntegerLiteral>())
+                delay = tokens.Next<TokenIntegerLiteral>();
+            else delay = 0;
+
+            if (tokens.NextIs<TokenBooleanLiteral>())
+                fire = tokens.Next<TokenBooleanLiteral>();
+            else fire = false;
+
+            if (tokens.NextIs<TokenBooleanLiteral>())
+                breaks = tokens.Next<TokenBooleanLiteral>();
+            else breaks = true;
+
+            string command = executor.entities.exploders.CreateExplosion(x, y, z, power, delay, fire, breaks);
+            executor.AddCommand(command);
         }
 
         public static void feature(Executor executor, Statement tokens)

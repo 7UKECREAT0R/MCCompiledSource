@@ -1,4 +1,5 @@
-﻿using mc_compiled.Modding.Behaviors.Lists;
+﻿using mc_compiled.MCC.CustomEntities;
+using mc_compiled.Modding.Behaviors.Lists;
 using mc_compiled.Modding.Resources;
 using Newtonsoft.Json.Linq;
 using System;
@@ -119,14 +120,14 @@ namespace mc_compiled.Modding.Behaviors
         /// Create a null entity that serves to act as points, raycasters, etc...
         /// </summary>
         /// <returns></returns>
-        internal static MCC.NullFiles CreateNull(string entityID)
+        internal static NullFiles CreateNull(string entityID)
         {
             string geometryID = "geometry." + entityID.Replace(':', '.');
             EntityGeometry geometry = new EntityGeometry("null", geometryID);
-            EntityEventHandler cleanEvent = new EntityEventHandler(MCC.NullManager.CLEAN_EVENT_NAME,
+            EntityEventHandler cleanEvent = new EntityEventHandler(NullManager.CLEAN_EVENT_NAME,
                 EventSubject.self, new EventActionRemoveGroup(new string[] { }));
 
-            return new MCC.NullFiles() {
+            return new NullFiles() {
                 cleanEvent = cleanEvent,
                 behavior = new EntityBehavior()
                 {
@@ -176,18 +177,94 @@ namespace mc_compiled.Modding.Behaviors
                     }),
                     componentGroups = new List<EntityComponentGroup>(new EntityComponentGroup[]
                     {
-                        new EntityComponentGroup(MCC.NullManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn())
+                        new EntityComponentGroup(NullManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn())
                     }),
                     events = new List<EntityEventHandler>(new EntityEventHandler[]
                     {
-                        new EntityEventHandler(MCC.NullManager.DESTROY_EVENT_NAME, action:
-                            new EventActionAddGroup(MCC.NullManager.DESTROY_COMPONENT_GROUP)),
+                        new EntityEventHandler(NullManager.DESTROY_EVENT_NAME, action:
+                            new EventActionAddGroup(NullManager.DESTROY_COMPONENT_GROUP)),
                         cleanEvent
                     })
                 },
                 resources = new EntityResource()
                 {
                     name = "null",
+                    description = new ClientEntityDescription()
+                    {
+                        identifier = entityID,
+                        geometry = geometry,
+                        material = "entity_alphatest"
+                    },
+                },
+                geometry = geometry
+            };
+        }
+        /// <summary>
+        /// https://wiki.bedrock.dev/entities/dummy-entities.html
+        /// Create a null entity that is able to explode at either delayed time periods or instantly.
+        /// </summary>
+        /// <returns></returns>
+        internal static ExploderFiles CreateExploder(string entityID)
+        {
+            string geometryID = "geometry." + entityID.Replace(':', '.');
+            EntityGeometry geometry = new EntityGeometry("exploder", geometryID);
+
+            List<EntityComponentGroup> groups = new List<EntityComponentGroup>();
+            List<EntityEventHandler> events = new List<EntityEventHandler>();
+
+
+            return new ExploderFiles()
+            {
+                groups = groups,
+                events = events,
+
+                behavior = new EntityBehavior()
+                {
+                    description = new EntityDescription(entityID),
+                    components = new List<EntityComponent>(new EntityComponent[]
+                    {
+                        new ComponentNameable()
+                        {
+                            allowNametags = true,
+                            alwaysShowName = Program.DEBUG
+                        },
+                        new ComponentCustomHitTest()
+                        {
+                            hitboxes = new ComponentCustomHitTest.Hitbox[]
+                            {
+                                new ComponentCustomHitTest.Hitbox(new Offset3(0, 100, 0), 0, 0)
+                            }
+                        },
+                        new ComponentDamageSensor()
+                        {
+                            triggerPool = new ComponentDamageSensor.Trigger[]
+                            {
+                                new ComponentDamageSensor.Trigger()
+                                {
+                                    dealsDamage = false,
+                                    cause = Commands.DamageCause.all,
+                                    damageModifier = 1,
+                                    damageMultiplier = 0
+                                }
+                            }
+                        },
+                        new ComponentPushable()
+                        {
+                            isPushableByEntity = false,
+                            isPushableByPiston = false
+                        },
+                        new ComponentCollisionBox()
+                        {
+                            width = 0.0001f,
+                            height = 0.0001f
+                        }
+                    }),
+                    componentGroups = groups,
+                    events = events
+                },
+                resources = new EntityResource()
+                {
+                    name = "exploder",
                     description = new ClientEntityDescription()
                     {
                         identifier = entityID,

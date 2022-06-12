@@ -1,5 +1,6 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
 using System;
 using System.Collections.Generic;
@@ -7,12 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mc_compiled.MCC
+namespace mc_compiled.MCC.CustomEntities
 {
     /// <summary>
     /// Manages null entities in a project.
     /// </summary>
-    public class NullManager : ISelectorProvider
+    internal class NullManager : CustomEntityManager
     {
         public const string DESTROY_COMPONENT_GROUP = "instant_despawn";
 
@@ -22,11 +23,7 @@ namespace mc_compiled.MCC
         internal HashSet<string> existingNulls;
         internal HashSet<string> existingClasses;
         public readonly string nullType;
-
-        readonly Executor parent;
-
         NullFiles nullFiles;
-        bool createdEntityFiles;
 
         /// <summary>
         /// Get the name of the family for a specific null-class name.
@@ -47,9 +44,8 @@ namespace mc_compiled.MCC
             return "with_" + Tokenizer.StripForPack(clazz);
         }
 
-        internal NullManager(Executor parent)
+        internal NullManager(Executor parent) : base(parent)
         {
-            this.parent = parent;
             createdEntityFiles = false;
             existingNulls = new HashSet<string>();
             existingClasses = new HashSet<string>();
@@ -94,19 +90,6 @@ namespace mc_compiled.MCC
             $"@e[type={nullType}]";
         public string GetAllClassSelector(string clazz) =>
             $"@e[family={FamilyName(clazz)}]";
-        /// <summary>
-        /// Ensure that a null entity has been defined. If not, create and append to the project output.
-        /// </summary>
-        internal void EnsureEntity()
-        {
-            if (createdEntityFiles)
-                return;
-
-            nullFiles = EntityBehavior.CreateNull(nullType);
-            parent.AddExtraFiles(nullFiles.AddonFiles);
-            createdEntityFiles = true;
-            return;
-        }
         
         /// <summary>
         /// Create a new null entity.
@@ -197,11 +180,16 @@ namespace mc_compiled.MCC
             return eventName;
         }
 
-        public bool HasEntity(string entity) =>
-            existingNulls.Contains(entity);
-        public bool Search(string name, out Commands.Selector selector)
+        internal override IAddonFile[] CreateEntityFiles()
         {
-            if(existingNulls.Contains(name))
+            nullFiles = EntityBehavior.CreateNull(nullType);
+            return nullFiles.AddonFiles;
+        }
+        public override bool HasEntity(string entity) =>
+            existingNulls.Contains(entity);
+        public override bool Search(string name, out Commands.Selector selector)
+        {
+            if (existingNulls.Contains(name))
             {
                 selector = GetSelector(name);
                 return true;
@@ -218,7 +206,7 @@ namespace mc_compiled.MCC
         public Modding.Resources.EntityResource resources;
         public Modding.Resources.EntityGeometry geometry;
 
-        public Modding.IAddonFile[] AddonFiles
+        public IAddonFile[] AddonFiles
         {
             get => new Modding.IAddonFile[]
             {

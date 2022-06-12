@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.CustomEntities;
 
 namespace mc_compiled.MCC
 {
@@ -13,15 +14,18 @@ namespace mc_compiled.MCC
     public class EntityManager
     {
         internal readonly List<ISelectorProvider> allProviders;
-        public readonly NullManager nulls;
+        internal readonly NullManager nulls;
+        internal readonly ExploderManager exploders;
 
         public EntityManager(Executor executor)
         {
             nulls = new NullManager(executor);
+            exploders = new ExploderManager(executor);
 
             allProviders = new List<ISelectorProvider>()
             {
-                nulls
+                nulls,
+                exploders
             };
         }
         /// <summary>

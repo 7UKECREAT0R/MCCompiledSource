@@ -974,10 +974,20 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         public bool breaksBlocks;
         public bool causesFire;
-        public float maxBlockResistance;
         public int power;
-
         public bool followMobGriefingRule;
+        public float? maxBlockResistance;
+
+        public ComponentExplode(MCC.CustomEntities.ExploderPreset preset, bool fuseLit)
+        {
+            breaksBlocks = preset.breaks;
+            causesFire = preset.fire;
+            power = preset.power;
+            followMobGriefingRule = false;
+            maxBlockResistance = null;
+            ConstantFuse = preset.delay / 20f;
+            this.fuseLit = fuseLit;
+        }
 
         /// <summary>
         /// Set a constant fuse rather than a random range.
@@ -1005,9 +1015,11 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["destroy_affected_by_griefing"] = followMobGriefingRule,
                 ["fire_affected_by_griefing"] = followMobGriefingRule,
                 ["fuse_lit"] = fuseLit,
-                ["max_resistance"] = maxBlockResistance,
                 ["power"] = power
             };
+
+            if(maxBlockResistance.HasValue)
+                json["max_resistance"] = maxBlockResistance.Value;
 
             if (fuseMin == fuseMax)
                 json["fuse_length"] = fuseMin;

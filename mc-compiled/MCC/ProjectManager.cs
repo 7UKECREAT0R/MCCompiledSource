@@ -182,6 +182,17 @@ namespace mc_compiled.MCC
                     executor.SetPPV("null", new object[] { executor.entities.nulls.nullType });
                     Executor.Good("null entities enabled");
                 }
+            },
+            {
+                Feature.GAMETEST, (executor) => {
+                    Executor.Warn("gametest integration doesn't currently do anything.");
+                }
+            },
+            {
+                Feature.EXPLODERS, (executor) => {
+                    executor.entities.exploders.EnsureEntity();
+                    Executor.Good("exploder entities enabled");
+                }
             }
         };
 
@@ -202,7 +213,7 @@ namespace mc_compiled.MCC
         NO_FEATURES = 0,     // No features enabled.
 
         NULLS = 1 << 0,     // Null Entities
-        GLOBAL = 1 << 1,    // Global Entity for Scoreboards
-        GAMETEST = 1 << 2,  // GameTest Framework
+        GAMETEST = 1 << 1,  // GameTest Framework
+        EXPLODERS = 1 << 2, // Exploder Entities
     }
 }
