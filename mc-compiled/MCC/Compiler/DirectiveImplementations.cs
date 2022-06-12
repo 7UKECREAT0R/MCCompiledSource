@@ -2075,21 +2075,37 @@ namespace mc_compiled.MCC.Compiler
             int power, delay;
             bool fire, breaks;
 
+            // Get the first two integers
             if (tokens.NextIs<TokenIntegerLiteral>())
+            {
                 power = tokens.Next<TokenIntegerLiteral>();
-            else power = 3;
 
-            if (tokens.NextIs<TokenIntegerLiteral>())
-                delay = tokens.Next<TokenIntegerLiteral>();
-            else delay = 0;
+                if (tokens.NextIs<TokenIntegerLiteral>())
+                    delay = tokens.Next<TokenIntegerLiteral>();
+                else
+                    delay = 0;
+            }
+            else
+            {
+                power = 3;
+                delay = 0;
+            }
 
+            // The two booleans
             if (tokens.NextIs<TokenBooleanLiteral>())
+            {
                 fire = tokens.Next<TokenBooleanLiteral>();
-            else fire = false;
 
-            if (tokens.NextIs<TokenBooleanLiteral>())
-                breaks = tokens.Next<TokenBooleanLiteral>();
-            else breaks = true;
+                if (tokens.NextIs<TokenBooleanLiteral>())
+                    breaks = tokens.Next<TokenBooleanLiteral>();
+                else
+                    breaks = true;
+            }
+            else
+            {
+                fire = false;
+                breaks = true;
+            }
 
             string command = executor.entities.exploders.CreateExplosion(x, y, z, power, delay, fire, breaks);
             executor.AddCommand(command);

@@ -223,11 +223,6 @@ namespace mc_compiled.Modding.Behaviors
                     description = new EntityDescription(entityID),
                     components = new List<EntityComponent>(new EntityComponent[]
                     {
-                        new ComponentNameable()
-                        {
-                            allowNametags = true,
-                            alwaysShowName = Program.DEBUG
-                        },
                         new ComponentCustomHitTest()
                         {
                             hitboxes = new ComponentCustomHitTest.Hitbox[]

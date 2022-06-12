@@ -17,7 +17,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
             executor.RequireFeature(tokens, MCC.Feature.NULLS);
 
             string clazz = tokens.Next<TokenStringLiteral>();
-            string family = MCC.NullManager.FamilyName(clazz);
+            string family = MCC.CustomEntities.NullManager.FamilyName(clazz);
 
             if (inverted)
                 family = '!' + family;

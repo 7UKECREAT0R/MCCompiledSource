@@ -416,7 +416,7 @@
         [ "pos:x", "pos:y", "pos:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ],
         [ "?int:power", "?int:delay", "?bool:causes fire", "?bool:breaks blocks" ]
       ]
-    }
+    },
     "feature": {
       "description": "Enable Feature",
       "patterns": [
