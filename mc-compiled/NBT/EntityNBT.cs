@@ -64,7 +64,7 @@ namespace mc_compiled.NBT
         public byte[] tags;             // Entity tags. Unknown type.
         public long uniqueID;           // The unique identifier for this entity.
         public int variant;             // (?)
-        public byte[] definitions;      // Entity definitions. Unknown type.
+        public string[] definitions;      // Entity definitions. Unknown type.
         public string identifier;       // The actual namespaced ID of this entity (minecraft:pig)
 
         public EntityNBT(short age = 200, short air = 300, short attackTime = 0, bool chested = false, float bodyRot = 0f, int breedCooldown = 0,
@@ -76,7 +76,7 @@ namespace mc_compiled.NBT
             ItemNBT? item = null, int lastDimensionID = 0, bool lootDropped = false, int markVariant = 0, VectorNBT motion = default, bool onGround = true,
             long ownerID = -1, long ownerNew = -1, int portalCooldown = 0, VectorNBT pos = default, RotationNBT rotation = default, bool saddled = false,
             bool sheared = false, bool showBottom = false, bool sitting = false, int skinID = 0, int strength = 0, int strengthMax = 0, byte[] tags = null,
-            long uniqueID = 123456, int variant = 0, byte[] definitions = null, string identifier = "minecraft:armor_stand")
+            long uniqueID = 123456, int variant = 0, string[] definitions = null, string identifier = "minecraft:armor_stand")
         {
             EquipmentNBT[] armor = new EquipmentNBT[4];
             armor[0] = new EquipmentNBT(0);
@@ -225,7 +225,7 @@ namespace mc_compiled.NBT
             if (tags == null)
                 tags = new byte[0];
             if (definitions == null)
-                definitions = new byte[0];
+                definitions = new string[0];
 
             nodes.Add(new NBTList()
             {
@@ -238,8 +238,8 @@ namespace mc_compiled.NBT
             nodes.Add(new NBTList()
             {
                 name = "definitions",
-                listType = TAG.Byte,
-                values = (from t in definitions select new NBTByte() { name = "", value = t }).ToArray()
+                listType = TAG.String,
+                values = (from t in definitions select new NBTString() { name = "", value = t }).ToArray()
             });
             nodes.Add(new NBTString() { name = "identifier", value = identifier });
             nodes.Add(new NBTEnd());
