@@ -433,7 +433,7 @@ namespace mc_compiled.MCC.Compiler
                     ScoreboardValue b = right.value;
 
                     ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
-                    string accessorTemp = temp.baseName;
+                    string accessorTemp = temp.Name;
                     if (temp is ScoreboardValueStruct && left.word.Contains(':'))
                     {
                         StructDefinition structure = (temp as ScoreboardValueStruct).structure;
@@ -472,22 +472,22 @@ namespace mc_compiled.MCC.Compiler
                     if (leftIsLiteral)
                     {
                         a = executor.scoreboard.RequestTemp(_left as TokenLiteral, this);
-                        aAccessor = a.baseName;
-                        commands.AddRange(a.CommandsSetLiteral(a.baseName, selector, _left as TokenLiteral));
+                        aAccessor = a.Name;
+                        commands.AddRange(a.CommandsSetLiteral(a.Name, selector, _left as TokenLiteral));
                         b = (_right as TokenIdentifierValue).value;
                         bAccessor = (_right as TokenIdentifierValue).Accessor;
                     }
                     else
                     {
                         b = executor.scoreboard.RequestTemp(_right as TokenLiteral, this);
-                        bAccessor = b.baseName;
-                        commands.AddRange(b.CommandsSetLiteral(b.baseName, selector, _right as TokenLiteral));
+                        bAccessor = b.Name;
+                        commands.AddRange(b.CommandsSetLiteral(b.Name, selector, _right as TokenLiteral));
 
                         // left is a value, so it needs to be put into a temp variable so that the source is not modified
                         TokenIdentifierValue left = _left as TokenIdentifierValue;
                         a = executor.scoreboard.RequestTemp(left.value);
-                        commands.AddRange(a.CommandsSet(selector, left.value, a.baseName, left.Accessor));
-                        aAccessor = a.baseName;
+                        commands.AddRange(a.CommandsSet(selector, left.value, a.Name, left.Accessor));
+                        aAccessor = a.Name;
                     }
 
                     squashedToken = new TokenIdentifierValue(aAccessor, a, selected.lineNumber);
@@ -577,7 +577,7 @@ namespace mc_compiled.MCC.Compiler
 
                 int len = x - i + (1 + tokensInside.Count);
                 tokens.RemoveRange(i, len);
-                tokens.Insert(i, new TokenIdentifierValue(clone.baseName, clone, selected.lineNumber));
+                tokens.Insert(i, new TokenIdentifierValue(clone.AliasName, clone, selected.lineNumber));
 
                 // gets incremented;
                 i = startAt - 1;

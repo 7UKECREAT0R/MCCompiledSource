@@ -35,8 +35,8 @@ namespace mc_compiled.MCC
                 if (value is ScoreboardValueStruct)
                     throw new Compiler.StatementException(exception, "Cannot contain struct inside of another struct.");
 
-                string fieldName = value.baseName;
-                value.baseName = GetNextKey();
+                string fieldName = value.Name;
+                value.Name = GetNextKey();
                 this.fields[fieldName] = value;
             }
         }
@@ -76,7 +76,7 @@ namespace mc_compiled.MCC
         public string GetFieldId(string fieldName)
         {
             if (fields.TryGetValue(fieldName, out ScoreboardValue value))
-                return value.baseName;
+                return value.Name;
             return null;
         }
         /// <summary>
@@ -102,7 +102,7 @@ namespace mc_compiled.MCC
             if (fields.TryGetValue(fieldName, out ScoreboardValue _value))
             {
                 ScoreboardValue value = _value.Clone() as ScoreboardValue;
-                value.baseName = baseName + ':' + value.baseName;
+                value.Name = baseName + ':' + value.Name;
                 return value;
             }
             return null;
@@ -111,7 +111,7 @@ namespace mc_compiled.MCC
         {
             ScoreboardValue _value = fields.ElementAt(index).Value;
             ScoreboardValue value = _value.Clone() as ScoreboardValue;
-            value.baseName = baseName + ':' + value.baseName;
+            value.Name = baseName + ':' + value.Name;
             return value;
         }
         /// <summary>
@@ -144,7 +144,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public string[] GetInternalFieldNames()
         {
-            return fields.Values.Select(f => f.baseName).ToArray();
+            return fields.Values.Select(f => f.Name).ToArray();
         }
         /// <summary>
         /// Get all the accessor names of the struct.

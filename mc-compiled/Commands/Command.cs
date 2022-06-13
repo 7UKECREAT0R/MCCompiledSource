@@ -393,6 +393,8 @@ namespace mc_compiled.Commands
 
         public static string ScoreboardCreateObjective(string name) =>
             $"scoreboard objectives add \"{name}\" dummy";
+        public static string ScoreboardCreateObjective(string name, string display) =>
+            $"scoreboard objectives add \"{name}\" dummy \"{display}\"";
         public static string ScoreboardRemoveObjective(string name) =>
             $"scoreboard objectives remove \"{name}\"";
         public static string ScoreboardDisplayList(string name) =>

@@ -16,21 +16,85 @@ namespace mc_compiled.MCC
     /// </summary>
     public abstract class ScoreboardValue : ICloneable
     {
+        public static readonly char[] SUPPORTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+
+        /// <summary>
+        /// Convert a string to a scoreboard-supported hash.
+        /// </summary>
+        /// <param name="input">The string to hash.</param>
+        /// <returns>A unique identifier for the string that consists of 8 characters.</returns>
+        public static string ScoreboardHash(string input)
+        {
+            int hash = input.GetHashCode();
+            byte[] bytes = BitConverter.GetBytes(hash);
+            char[] chars = new char[8];
+
+            for (int i = 0; i < 4; i++)
+            {
+                byte b = bytes[i];
+                byte lower = (byte)((b << 2) % SUPPORTED_CHARS.Length);
+                byte upper = (byte)((b >> 2) % SUPPORTED_CHARS.Length);
+
+                char c1 = SUPPORTED_CHARS[lower];
+                char c2 = SUPPORTED_CHARS[upper];
+
+                chars[(i * 2)] = c1;
+                chars[(i * 2) + 1] = c2;
+            }
+
+            return new string(chars);
+        }
+
         public const string RETURN_NAME = "_mcc_retn";
         public const int MAX_NAME_LENGTH = 16;
-        public string baseName;
+
+        string baseName;
+        string aliasName = null;
+
+        /// <summary>
+        /// The internal name that represents the scoreboard objective in the compiled result.
+        /// </summary>
+        public string Name
+        {
+            get => baseName;
+            set
+            {
+                if (value.Length > 16)
+                    baseName = ScoreboardHash(value);
+                else
+                    baseName = value;
+            }
+        }
+        /// <summary>
+        /// The name used to reference this variable in the code.
+        /// </summary>
+        public string AliasName
+        {
+            get => aliasName ?? baseName;
+            set => aliasName = value;
+        }
+
+        /// <summary>
+        /// Require this variable's internal name to be hashed and hidden behind an alias.
+        /// </summary>
+        public void ForceHash()
+        {
+            aliasName = baseName;
+            baseName = ScoreboardHash(aliasName);
+        }
+
         internal readonly ScoreboardManager manager;
 
         public ScoreboardValue(string baseName, ScoreboardManager manager, Statement forExceptions)
         {
             int len = baseName.Length;
-            int max = GetMaxNameLength();
-
-            if (len > max)
-                throw new StatementException(forExceptions, $"Cannot define variable named '{baseName}'. Max length for this type is {max}.");
 
             this.manager = manager;
-            this.baseName = baseName;
+            this.Name = baseName;
+
+            // hash was given to baseName
+            if (baseName.Length > 16)
+                aliasName = baseName;
         }
         public object Clone()
         {
@@ -214,15 +278,15 @@ namespace mc_compiled.MCC
 
     public class ScoreboardValueInteger : ScoreboardValue
     {
-        public ScoreboardValueInteger(string baseName, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions) { }
+        public ScoreboardValueInteger(string name, ScoreboardManager manager, Statement forExceptions) : base(name, manager, forExceptions) { }
 
         public override string[] CommandsDefine(string prefix = "")
         {
-            return new[] { Command.ScoreboardCreateObjective(prefix + baseName) };
+            return new[] { Command.ScoreboardCreateObjective(prefix + Name, AliasName) };
         }
         public override string[] CommandsInit(string prefix = "")
         {
-            return new[] { Command.ScoreboardAdd("@a", prefix + baseName, 0) };
+            return new[] { Command.ScoreboardAdd("@a", prefix + Name, 0) };
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
@@ -230,7 +294,7 @@ namespace mc_compiled.MCC
                 return new string[] { };
 
             if (token is TokenNumberLiteral)
-                return new string[] { Command.ScoreboardSet(selector, prefix + baseName,
+                return new string[] { Command.ScoreboardSet(selector, prefix + Name,
                     (token as TokenNumberLiteral).GetNumberInt())};
 
             if (token is TokenBooleanLiteral)
@@ -270,7 +334,7 @@ namespace mc_compiled.MCC
 
             return new Tuple<ScoresEntry[], string[]>(new[]
             {
-                new ScoresEntry(prefix + baseName, range)
+                new ScoresEntry(prefix + Name, range)
             }, new string[0]);
         }
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
@@ -279,27 +343,27 @@ namespace mc_compiled.MCC
         }
         public override JSONRawTerm[] ToRawText(string accessor, string selector, ref int index, string prefix = "")
         {
-            return new[] { new JSONScore(selector, prefix + baseName) };
+            return new[] { new JSONScore(selector, prefix + Name) };
         }
 
         public override int GetMaxNameLength() =>
             MAX_NAME_LENGTH;
         public override string[] GetAccessibleNames() =>
-            new[] { baseName };
+            new[] { AliasName };
 
         public override string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
         {
             if (other is TokenNumberLiteral)
-                return new[] { Command.ScoreboardAdd(selector, baseName, (other as TokenNumberLiteral).GetNumberInt()) };
+                return new[] { Command.ScoreboardAdd(selector, Name, (other as TokenNumberLiteral).GetNumberInt()) };
             else
-                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + baseName + "'");
+                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
         }
         public override string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
         {
             if (other is TokenNumberLiteral)
-                return new[] { Command.ScoreboardSubtract(selector, baseName, (other as TokenNumberLiteral).GetNumberInt()) };
+                return new[] { Command.ScoreboardSubtract(selector, Name, (other as TokenNumberLiteral).GetNumberInt()) };
             else
-                throw new StatementException(forExceptions, "Attempted to subtract invalid literal from value '" + baseName + "'");
+                throw new StatementException(forExceptions, "Attempted to subtract invalid literal from value '" + Name + "'");
         }
 
         public override string[] CommandsSet(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -506,8 +570,8 @@ namespace mc_compiled.MCC
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSwap(selector, baseName, other), // now both values are to the wrong base.
-                    Command.ScoreboardOpDiv(selector, baseName, temp),
+                    Command.ScoreboardOpSwap(selector, Name, other), // now both values are to the wrong base.
+                    Command.ScoreboardOpDiv(selector, Name, temp),
                     Command.ScoreboardOpMul(selector, other, temp)
                 };
 
@@ -531,7 +595,7 @@ namespace mc_compiled.MCC
         public const string SB_SECONDS = "_mcc_t_secs";
         public const string SB_TEMP = "_mcc_t_temp";
         public const string SB_CONST = "_mcc_t_const";
-        public ScoreboardValueTime(string baseName, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions) { }
+        public ScoreboardValueTime(string Name, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions) { }
 
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
         {
@@ -549,7 +613,7 @@ namespace mc_compiled.MCC
             return new string[]
             {
                 Command.ScoreboardSet("@a", constant, 20),
-                Command.ScoreboardOpSet(selector, temporary, prefix + baseName),
+                Command.ScoreboardOpSet(selector, temporary, prefix + Name),
                 Command.ScoreboardOpDiv(selector, temporary, constant),
                 Command.ScoreboardOpSet(selector, seconds, temporary),
                 Command.ScoreboardSet("@a", constant, 60),
@@ -581,7 +645,7 @@ namespace mc_compiled.MCC
         public override int GetMaxNameLength() =>
             MAX_NAME_LENGTH;
         public override string[] GetAccessibleNames() =>
-            new[] { baseName };
+            new[] { AliasName };
     }
     public sealed class ScoreboardValueDecimal : ScoreboardValue
     {
@@ -592,7 +656,7 @@ namespace mc_compiled.MCC
         public const string SB_TEMP = "_mcc_d_temp";
         public const string SB_BASE = "_mcc_d_base";
 
-        public ScoreboardValueDecimal(string baseName, int precision, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions)
+        public ScoreboardValueDecimal(string Name, int precision, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions)
         {
             this.precision = precision;
         }
@@ -600,13 +664,13 @@ namespace mc_compiled.MCC
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] {
-                Command.ScoreboardCreateObjective(prefix + baseName)
+                Command.ScoreboardCreateObjective(prefix + Name)
             };
         }
         public override string[] CommandsInit(string prefix = "")
         {
             return new[] {
-                Command.ScoreboardAdd("@a", prefix + baseName, 0)
+                Command.ScoreboardAdd("@a", prefix + Name, 0)
             };
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
@@ -618,14 +682,14 @@ namespace mc_compiled.MCC
             {
                 int integer = (token as TokenIntegerLiteral).number;
                 return new string[] {
-                    Command.ScoreboardSet(selector, prefix + baseName, integer.ToFixedPoint(precision)),
+                    Command.ScoreboardSet(selector, prefix + Name, integer.ToFixedPoint(precision)),
                 };
             }
             if (token is TokenDecimalLiteral)
             {
                 TokenDecimalLiteral literal = token as TokenDecimalLiteral;
                 return new string[] {
-                    Command.ScoreboardSet(selector, prefix + baseName, literal.number.ToFixedPoint(precision))
+                    Command.ScoreboardSet(selector, prefix + Name, literal.number.ToFixedPoint(precision))
                 };
             }
 
@@ -668,7 +732,7 @@ namespace mc_compiled.MCC
 
             return new Tuple<ScoresEntry[], string[]>(new[]
             {
-                new ScoresEntry(prefix + baseName, range)
+                new ScoresEntry(prefix + Name, range)
             }, new string[0]);
         }
 
@@ -688,11 +752,11 @@ namespace mc_compiled.MCC
             return new string[]
             {
                 Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                Command.ScoreboardOpSet(selector, temporary, baseName),
+                Command.ScoreboardOpSet(selector, temporary, Name),
                 Command.ScoreboardOpDiv(selector, temporary, tempBase),
                 Command.ScoreboardOpSet(selector, whole, temporary),
                 Command.ScoreboardOpMul(selector, temporary, tempBase),
-                Command.ScoreboardOpSet(selector, part, baseName),
+                Command.ScoreboardOpSet(selector, part, Name),
                 Command.ScoreboardOpSub(selector, part, temporary),
                 Command.ScoreboardSet(selector, temporary, -1),
                 Command.Execute(selector, Coord.here, Coord.here, Coord.here,
@@ -716,7 +780,7 @@ namespace mc_compiled.MCC
         public override int GetMaxNameLength() =>
            MAX_NAME_LENGTH - 2;
         public override string[] GetAccessibleNames() =>
-            new[] { baseName };
+            new[] { AliasName };
 
         public override string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
         {
@@ -724,16 +788,16 @@ namespace mc_compiled.MCC
             {
                 int value = (other as TokenIntegerLiteral);
                 value = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardAdd(selector, baseName, value) };
+                return new[] { Command.ScoreboardAdd(selector, Name, value) };
             }
             else if(other is TokenDecimalLiteral)
             {
                 float value = (other as TokenDecimalLiteral);
                 int number = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardAdd(selector, baseName, number) };
+                return new[] { Command.ScoreboardAdd(selector, Name, number) };
             }
             else
-                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + baseName + "'");
+                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
         }
         public override string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
         {
@@ -741,16 +805,16 @@ namespace mc_compiled.MCC
             {
                 int value = (other as TokenIntegerLiteral);
                 value = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardSubtract(selector, baseName, value) };
+                return new[] { Command.ScoreboardSubtract(selector, Name, value) };
             }
             else if (other is TokenDecimalLiteral)
             {
                 float value = (other as TokenDecimalLiteral);
                 int number = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardSubtract(selector, baseName, number) };
+                return new[] { Command.ScoreboardSubtract(selector, Name, number) };
             }
             else
-                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + baseName + "'");
+                throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
         }
 
         public override string[] CommandsSet(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -762,8 +826,8 @@ namespace mc_compiled.MCC
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, baseName, other),
-                    Command.ScoreboardOpMul(selector, baseName, tempBase),
+                    Command.ScoreboardOpSet(selector, Name, other),
+                    Command.ScoreboardOpMul(selector, Name, tempBase),
                 };
 
                 manager.ReleaseTemp();
@@ -776,7 +840,7 @@ namespace mc_compiled.MCC
 
                 // convert bases if necessary
                 if (precision == @decimal.precision)
-                    return new[] { Command.ScoreboardOpSet(selector, baseName, other) };
+                    return new[] { Command.ScoreboardOpSet(selector, Name, other) };
                 else if(precision < @decimal.precision)
                 {
                     int precisionDiff = @decimal.precision - precision;
@@ -784,8 +848,8 @@ namespace mc_compiled.MCC
                     string[] commands = new string[]
                     {
                         Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff)),
-                        Command.ScoreboardOpSet(selector, baseName, other),
-                        Command.ScoreboardOpDiv(selector, baseName, temp)
+                        Command.ScoreboardOpSet(selector, Name, other),
+                        Command.ScoreboardOpDiv(selector, Name, temp)
                     };
                     other.manager.ReleaseTemp();
                     return commands;
@@ -796,8 +860,8 @@ namespace mc_compiled.MCC
                     string[] commands = new string[]
                     {
                         Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff)),
-                        Command.ScoreboardOpSet(selector, baseName, other),
-                        Command.ScoreboardOpMul(selector, baseName, temp)
+                        Command.ScoreboardOpSet(selector, Name, other),
+                        Command.ScoreboardOpMul(selector, Name, temp)
                     };
                     other.manager.ReleaseTemp();
                     return commands;
@@ -825,7 +889,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
                     Command.ScoreboardOpSet(selector, tempAccumulator, other),
                     Command.ScoreboardOpMul(selector, tempAccumulator, tempBase),
-                    Command.ScoreboardOpAdd(selector, baseName, tempAccumulator),
+                    Command.ScoreboardOpAdd(selector, Name, tempAccumulator),
                 };
 
                 manager.ReleaseTemp();
@@ -837,7 +901,7 @@ namespace mc_compiled.MCC
             {
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpAdd(selector, baseName, other),
+                    Command.ScoreboardOpAdd(selector, Name, other),
                 };
                 return commands;
             }
@@ -861,7 +925,7 @@ namespace mc_compiled.MCC
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
                     Command.ScoreboardOpMul(selector, tempBase, other),
-                    Command.ScoreboardOpSub(selector, baseName, tempBase),
+                    Command.ScoreboardOpSub(selector, Name, tempBase),
                 };
 
                 manager.ReleaseTemp();
@@ -872,7 +936,7 @@ namespace mc_compiled.MCC
             {
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpSub(selector, baseName, other),
+                    Command.ScoreboardOpSub(selector, Name, other),
                 };
                 return commands;
             }
@@ -892,7 +956,7 @@ namespace mc_compiled.MCC
             {
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpMul(selector, baseName, other),
+                    Command.ScoreboardOpMul(selector, Name, other),
                 };
                 return commands;
             }
@@ -904,8 +968,8 @@ namespace mc_compiled.MCC
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, baseName, other),
-                    Command.ScoreboardOpDiv(selector, baseName, tempBase)
+                    Command.ScoreboardOpMul(selector, Name, other),
+                    Command.ScoreboardOpDiv(selector, Name, tempBase)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -926,7 +990,7 @@ namespace mc_compiled.MCC
             {
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpDiv(selector, baseName, other),
+                    Command.ScoreboardOpDiv(selector, Name, other),
                 };
                 return commands;
             }
@@ -938,8 +1002,8 @@ namespace mc_compiled.MCC
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, baseName, tempBase),
-                    Command.ScoreboardOpDiv(selector, baseName, other)
+                    Command.ScoreboardOpMul(selector, Name, tempBase),
+                    Command.ScoreboardOpDiv(selector, Name, other)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -964,7 +1028,7 @@ namespace mc_compiled.MCC
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
                     Command.ScoreboardOpMul(selector, tempBase, other),
-                    Command.ScoreboardOpMod(selector, baseName, tempBase)
+                    Command.ScoreboardOpMod(selector, Name, tempBase)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -974,7 +1038,7 @@ namespace mc_compiled.MCC
             {
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpMod(selector, baseName, other),
+                    Command.ScoreboardOpMod(selector, Name, other),
                 };
                 return commands;
             }
@@ -997,8 +1061,8 @@ namespace mc_compiled.MCC
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSwap(selector, baseName, other), // now both values are to the wrong base.
-                    Command.ScoreboardOpMul(selector, baseName, temp),
+                    Command.ScoreboardOpSwap(selector, Name, other), // now both values are to the wrong base.
+                    Command.ScoreboardOpMul(selector, Name, temp),
                     Command.ScoreboardOpDiv(selector, other, temp)
                 };
 
@@ -1010,7 +1074,7 @@ namespace mc_compiled.MCC
             {
                 return new[]
                 {
-                    Command.ScoreboardOpSwap(selector, baseName, other)
+                    Command.ScoreboardOpSwap(selector, Name, other)
                 };
             }
 
@@ -1026,15 +1090,15 @@ namespace mc_compiled.MCC
     }
     public sealed class ScoreboardValueBoolean : ScoreboardValueInteger
     {
-        public ScoreboardValueBoolean(string baseName, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions) { }
+        public ScoreboardValueBoolean(string Name, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions) { }
 
         public override string[] CommandsDefine(string prefix = "")
         {
-            return new[] { Command.ScoreboardCreateObjective(prefix + baseName) };
+            return new[] { Command.ScoreboardCreateObjective(prefix + Name) };
         }
         public override string[] CommandsInit(string prefix = "")
         {
-            return new[] { Command.ScoreboardAdd("@a", prefix + baseName, 0) }; // init to false
+            return new[] { Command.ScoreboardAdd("@a", prefix + Name, 0) }; // init to false
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
@@ -1042,11 +1106,11 @@ namespace mc_compiled.MCC
                 return new string[] { };
 
             if (token is TokenNumberLiteral)
-                return new string[] { Command.ScoreboardSet(selector, prefix + baseName,
+                return new string[] { Command.ScoreboardSet(selector, prefix + Name,
                     (token as TokenNumberLiteral).GetNumberInt() % 2)};
 
             if (token is TokenBooleanLiteral)
-                return new string[] { Command.ScoreboardSet(selector, prefix + baseName,
+                return new string[] { Command.ScoreboardSet(selector, prefix + Name,
                     (token as TokenBooleanLiteral).boolean ? 1 : 0)};
 
             return new string[] { };
@@ -1076,7 +1140,7 @@ namespace mc_compiled.MCC
 
             return new Tuple<ScoresEntry[], string[]>(new[]
             {
-                new ScoresEntry(prefix + baseName, range)
+                new ScoresEntry(prefix + Name, range)
             }, new string[0]);
         }
 
@@ -1092,7 +1156,7 @@ namespace mc_compiled.MCC
 
             return new JSONRawTerm[]
             {
-                new JSONScore(selector, prefix + baseName).CreateVariant(
+                new JSONScore(selector, prefix + Name).CreateVariant(
                     new[] { new JSONText(trueValues[0].ToString()) },
                     new Range(1, false),
                     new[] { new JSONText(falseValues[0].ToString()) }
@@ -1103,13 +1167,13 @@ namespace mc_compiled.MCC
         public override int GetMaxNameLength() =>
             MAX_NAME_LENGTH;
         public override string[] GetAccessibleNames() =>
-            new[] { baseName };
+            new[] { AliasName };
     }
     public sealed class ScoreboardValueStruct : ScoreboardValue
     {
         public readonly StructDefinition structure;
 
-        public ScoreboardValueStruct(string baseName, StructDefinition structure, ScoreboardManager manager, Statement forExceptions) : base(baseName, manager, forExceptions)
+        public ScoreboardValueStruct(string Name, StructDefinition structure, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions)
         {
             this.structure = structure;
         }
@@ -1121,7 +1185,7 @@ namespace mc_compiled.MCC
         /// <param name="accessor"></param>
         /// <returns></returns>
         public string ResolveAccessor(string accessor) =>
-            structure.GetAccessor(baseName, accessor);
+            structure.GetAccessor(Name, accessor);
         /// <summary>
         /// Fully resolve a field:name accessor to its appropriate scoreboard value.
         /// </summary>
@@ -1141,11 +1205,11 @@ namespace mc_compiled.MCC
 
         public override string[] CommandsDefine(string prefix = "")
         {
-            return structure.GetFields(baseName).SelectMany(f => f.CommandsDefine(prefix)).ToArray();
+            return structure.GetFields(Name).SelectMany(f => f.CommandsDefine(prefix)).ToArray();
         }
         public override string[] CommandsInit(string prefix = "")
         {
-            return structure.GetFields(baseName).SelectMany(f => f.CommandsInit(prefix)).ToArray();
+            return structure.GetFields(Name).SelectMany(f => f.CommandsInit(prefix)).ToArray();
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
@@ -1166,7 +1230,7 @@ namespace mc_compiled.MCC
         {
             if (accessor.IndexOf(':') == -1)
             {
-                ScoreboardValue[] values = structure.GetFields(baseName);
+                ScoreboardValue[] values = structure.GetFields(Name);
                 List<string> commands = new List<string>();
                 int remaining = values.Count();
                 foreach (ScoreboardValue f in values)
@@ -1185,7 +1249,7 @@ namespace mc_compiled.MCC
         {
             if (accessor.IndexOf(':') == -1)
             {
-                ScoreboardValue[] values = structure.GetFields(baseName);
+                ScoreboardValue[] values = structure.GetFields(Name);
                 List<JSONRawTerm> commands = new List<JSONRawTerm>();
                 int remaining = values.Count();
                 foreach (ScoreboardValue f in values)
@@ -1205,11 +1269,11 @@ namespace mc_compiled.MCC
             MAX_NAME_LENGTH - 5; // someName:ab:c
         public override string[] GetAccessibleNames()
         {
-            string[] qualified = structure.GetFullyQualifiedNames(baseName).ToArray();
+            string[] qualified = structure.GetFullyQualifiedNames(AliasName).ToArray();
             string[] ret = new string[qualified.Length + 1];
             for (int i = 0; i < qualified.Length; i++)
                 ret[i] = qualified[i];
-            ret[qualified.Length] = baseName;
+            ret[qualified.Length] = Name;
             return ret;
         }
 
@@ -1239,8 +1303,8 @@ namespace mc_compiled.MCC
                     int count = structure.GetFieldCount();
                     for (int i = 0; i < count; i++)
                     {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
                         commands.AddRange(fieldDst.CommandsSet(selector, fieldSrc, thisAccessor, thatAccessor));
                     }
                     return commands.ToArray();
@@ -1261,8 +1325,8 @@ namespace mc_compiled.MCC
                     int count = structure.GetFieldCount();
                     for (int i = 0; i < count; i++)
                     {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
                         commands.AddRange(fieldDst.CommandsAdd(selector, fieldSrc, thisAccessor, thatAccessor));
                     }
                     return commands.ToArray();
@@ -1283,8 +1347,8 @@ namespace mc_compiled.MCC
                     int count = structure.GetFieldCount();
                     for (int i = 0; i < count; i++)
                     {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
                         commands.AddRange(fieldDst.CommandsSub(selector, fieldSrc, thisAccessor, thatAccessor));
                     }
                     return commands.ToArray();
@@ -1305,8 +1369,8 @@ namespace mc_compiled.MCC
                     int count = structure.GetFieldCount();
                     for (int i = 0; i < count; i++)
                     {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
                         commands.AddRange(fieldDst.CommandsMul(selector, fieldSrc, thisAccessor, thatAccessor));
                     }
                     return commands.ToArray();
@@ -1327,8 +1391,8 @@ namespace mc_compiled.MCC
                     int count = structure.GetFieldCount();
                     for (int i = 0; i < count; i++)
                     {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
                         commands.AddRange(fieldDst.CommandsDiv(selector, fieldSrc, thisAccessor, thatAccessor));
                     }
                     return commands.ToArray();
@@ -1349,8 +1413,8 @@ namespace mc_compiled.MCC
                     int count = structure.GetFieldCount();
                     for (int i = 0; i < count; i++)
                     {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
                         commands.AddRange(fieldDst.CommandsMod(selector, fieldSrc, thisAccessor, thatAccessor));
                     }
                     return commands.ToArray();
@@ -1371,8 +1435,8 @@ namespace mc_compiled.MCC
                     int count = structure.GetFieldCount();
                     for (int i = 0; i < count; i++)
                     {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(baseName, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(baseName, i);
+                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
+                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
                         commands.AddRange(fieldDst.CommandsSwap(selector, fieldSrc, thisAccessor, thatAccessor));
                     }
                     return commands.ToArray();

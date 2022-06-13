@@ -1017,18 +1017,18 @@ namespace mc_compiled.MCC.Compiler
                 executor.PushSelectorExecute();
                 string sel = executor.ActiveSelectorStr;
                 if (def.defaultValue is TokenLiteral)
-                    commands.AddRange(value.CommandsSetLiteral(value.baseName, sel, def.defaultValue as TokenLiteral));
+                    commands.AddRange(value.CommandsSetLiteral(value.Name, sel, def.defaultValue as TokenLiteral));
                 else if (def.defaultValue is TokenIdentifierValue)
                 {
                     TokenIdentifierValue identifier = def.defaultValue as TokenIdentifierValue;
-                    commands.AddRange(value.CommandsSet(sel, identifier.value, value.baseName, identifier.Accessor));
+                    commands.AddRange(value.CommandsSet(sel, identifier.value, value.Name, identifier.Accessor));
                 }
                 else
                     throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
                 executor.PopSelector();
             }
 
-            executor.AddCommands(commands, "define" + value.baseName);
+            executor.AddCommands(commands, "define" + value.AliasName);
         }
         public static void init(Executor executor, Statement tokens)
         {
@@ -2108,6 +2108,41 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string command = executor.entities.exploders.CreateExplosion(x, y, z, power, delay, fire, breaks);
+            executor.PushSelectorExecute();
+            executor.AddCommand(command);
+            executor.PopSelector();
+        }
+        public static void clear(Executor executor, Statement tokens)
+        {
+            string selector;
+            string command;
+
+            if (tokens.NextIs<TokenSelectorLiteral>())
+                selector = tokens.Next<TokenSelectorLiteral>().selector.ToString();
+            else
+                selector = executor.ActiveSelectorStr;
+
+            if (tokens.NextIs<TokenStringLiteral>())
+            {
+                string item = tokens.Next<TokenStringLiteral>();
+
+                if (tokens.NextIs<TokenIntegerLiteral>())
+                {
+                    int data = tokens.Next<TokenIntegerLiteral>();
+                    if (tokens.NextIs<TokenIntegerLiteral>())
+                    {
+                        int maxCount = tokens.Next<TokenIntegerLiteral>();
+                        command = Command.Clear(selector, item, data, maxCount);
+                    }
+                    else
+                        command = Command.Clear(selector, item, data);
+                }
+                else
+                    command = Command.Clear(selector, item);
+            }
+            else
+                command = Command.Clear(selector);
+
             executor.AddCommand(command);
         }
 
@@ -2235,7 +2270,7 @@ namespace mc_compiled.MCC.Compiler
 
             StructDefinition definition = new StructDefinition(structName, tokens);
 
-            // read every statement in the block assuming they're define format
+            // read every statement in the block assuming they are in define format
             for (int i = 0; i < count; i++)
             {
                 Statement statement = executor.Next();
@@ -2243,7 +2278,7 @@ namespace mc_compiled.MCC.Compiler
                     .scoreboard.GetNextValueDefinition(statement);
                 ScoreboardValue value = def.Create(executor.scoreboard, statement);
                 string key = definition.GetNextKey();
-                value.baseName = key;
+                value.Name = key;
                 definition.fields[def.name] = value;
             }
 

@@ -330,15 +330,19 @@
     "kill": {
       "description": "Kill Selected Entity",
       "patterns": [
-        [ "?selector:other" ],
-        [ "?string:other" ]
+        [ "?selector:other" ]
       ]
     },
     "remove": {
       "description": "Remove Selected Entity",
       "patterns": [
-        [ "?selector:other" ],
-        [ "?string:other" ]
+        [ "?selector:other" ]
+      ]
+    },
+    "clear": {
+      "description": "Clear Entity",
+      "patterns": [
+        [ "?selector:other", "?string:item", "?int:data", "?int:max count" ]
       ]
     },
     "globaltitle": {

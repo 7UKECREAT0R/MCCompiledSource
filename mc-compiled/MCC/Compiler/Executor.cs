@@ -17,7 +17,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Executor
     {
-        public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]{1,16})})|({(@[psea](\\[.+\\])?)})";
+        public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]+)})|({(@[psea](\\[.+\\])?)})";
         public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
         public const float MCC_VERSION = 1.04f;              // compilerversion
@@ -116,7 +116,7 @@ namespace mc_compiled.MCC.Compiler
                         advanced = true;
                         // only allow one of them to increment the actual count
                         int indexCopy = index;
-                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@s", ref indexCopy), "string" + value.baseName);
+                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@s", ref indexCopy), "string" + value.AliasName);
                         terms.AddRange(value.ToRawText(varAccessor, "@s", ref index));
                         index++;
                     }

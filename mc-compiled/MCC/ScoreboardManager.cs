@@ -89,7 +89,7 @@ namespace mc_compiled.MCC
         }
         public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
         {
-            string key = value.baseName + "__str";
+            string key = value.Name + "__str";
             if (definedTempVars.Contains(key))
                 return;
 
@@ -155,8 +155,8 @@ namespace mc_compiled.MCC
         public ScoreboardValue RequestTemp(ScoreboardValue clone)
         {
             ScoreboardValue created = clone.Clone() as ScoreboardValue;
-            created.baseName = TEMP_PREFIX + tempIndex;
-            string name = created.baseName + clone.GetMaxNameLength(); // make an 'id' out of this
+            created.Name = TEMP_PREFIX + tempIndex;
+            string name = created.Name + clone.GetMaxNameLength(); // make an 'id' out of this
 
             foreach (string accessor in created.GetAccessibleNames())
             {
@@ -178,7 +178,7 @@ namespace mc_compiled.MCC
         public ScoreboardValue RequestTemp(TokenLiteral literal, Statement forExceptions)
         {
             ScoreboardValue created = CreateFromLiteral(TEMP_PREFIX + tempIndex, literal, forExceptions);
-            string name = created.baseName + created.GetMaxNameLength(); // make an 'id' out of this
+            string name = created.Name + created.GetMaxNameLength(); // make an 'id' out of this
 
             foreach (string accessor in created.GetAccessibleNames())
             {
@@ -275,7 +275,7 @@ namespace mc_compiled.MCC
                 {
                     ConsoleColor oldColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("WARNING: Decimal precisions >3 could begin to break with numbers greater than 1.");
+                    Executor.Warn("Decimal precisions >3 could begin to break with numbers greater than 1.");
                     Console.ForegroundColor = oldColor;
                 }
                 name = tokens.Next<TokenStringLiteral>();
@@ -318,7 +318,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <returns>Null if not found.</returns>
         public ScoreboardValue GetByName(string baseName) =>
-            values.FirstOrDefault(v => v.baseName.Equals(baseName));
+            values.FirstOrDefault(v => v.Name.Equals(baseName));
         /// <summary>
         /// Get a scoreboard value by some accessor of it. e.g. name, name:a, name:field
         /// </summary>
@@ -349,7 +349,7 @@ namespace mc_compiled.MCC
         public bool TryGetByName(string baseName, out ScoreboardValue output)
         {
             foreach (ScoreboardValue value in values)
-                if (value.baseName.Equals(baseName))
+                if (value.Name.Equals(baseName))
                 {
                     output = value;
                     return true;

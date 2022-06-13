@@ -27,6 +27,8 @@ namespace mc_compiled
         {
             Console.Write("\nmc-compiled.exe --help\n");
             Console.Write("\tShow the help menu for this application.\n\n");
+            Console.Write("\nmc-compiled.exe --version\n");
+            Console.Write("\tView this MCCompiled version. Accessed through code with $compilerversion\n\n");
             Console.Write("mc-compiled.exe --jsonbuilder\n");
             Console.Write("\tOpen a user-interface to build JSON rawtext.\n\n");
             Console.Write("mc-compiled.exe --manifest <projectName>\n");
@@ -37,7 +39,7 @@ namespace mc_compiled
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
             Console.Write("\tOptions:\n");
             Console.Write("\t  -dm | --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
-            Console.Write("\t  -db | --debug\t\tDebug information during compilation.\n");
+            Console.Write("\t  -db | --debug\t\tDebug information during compilation. Hits compilation time for large projects.\n");
             Console.Write("\t  -dc | --decorate\tDecorate the compiled file with original source code (doesn't look great).\n");
             Console.Write("\t  -np | --nopause\tDoes not wait for user input to close application.\n");
             Console.Write("\t  [-obp | --outputbp] <directory>\tOutput behaviors to a specific directory. Use ?project to denote file name.\n");
@@ -139,6 +141,10 @@ namespace mc_compiled
                         string ppvValue = args[++i];
                         inputPPVs.Add(new InputPPV(ppvName, ppvValue));
                         break;
+                    case "--VERSION":
+                        Console.WriteLine("MCCompiled Version " + MCC.Compiler.Executor.MCC_VERSION);
+                        Console.WriteLine("Andrew Criswell 2022");
+                        return;
                 }
             }
 
@@ -486,6 +492,8 @@ namespace mc_compiled
             }
             catch (TokenizerException exc)
             {
+                if (DEBUG && Debugger.IsAttached)
+                    throw;
                 if (silentErrors)
                     return false;
 
@@ -503,6 +511,8 @@ namespace mc_compiled
             }
             catch (StatementException exc)
             {
+                if (DEBUG && Debugger.IsAttached)
+                    throw;
                 if (silentErrors)
                     return false;
 

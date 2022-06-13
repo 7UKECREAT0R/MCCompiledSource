@@ -106,7 +106,7 @@ namespace mc_compiled.MCC
                 }
             }
 
-            AddCommands(variable.CommandsSetLiteral(variable.baseName, selector, value));
+            AddCommands(variable.CommandsSetLiteral(variable.Name, selector, value));
             returnValue = variable;
         }
 
@@ -134,11 +134,11 @@ namespace mc_compiled.MCC
                 {
                     input = inputDefaults[i];
                     if (input == null)
-                        throw new StatementException(caller, $"Missing parameter '{output.baseName}' in function call.");
+                        throw new StatementException(caller, $"Missing parameter '{output.AliasName}' in function call.");
                 } else
                     input = inputs[i];
 
-                string outputAccessor = output.baseName; // accessor is base name in integer case
+                string outputAccessor = output.Name; // accessor is base name in integer case
 
                 commands.AddRange(output.CommandsDefine());
 
@@ -154,7 +154,7 @@ namespace mc_compiled.MCC
                     commands.AddRange(output.CommandsSet(selector, src, thisAccessor, outputAccessor));
                 }
                 else
-                    throw new StatementException(caller, $"Unexpected parameter type for input {output.baseName}. Got: {input.GetType().Name}");
+                    throw new StatementException(caller, $"Unexpected parameter type for input {output.AliasName}. Got: {input.GetType().Name}");
             }
 
             sb.PopTempState();

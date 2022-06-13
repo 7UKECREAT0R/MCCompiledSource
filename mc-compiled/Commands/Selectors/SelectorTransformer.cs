@@ -58,7 +58,7 @@ namespace mc_compiled.Commands.Selectors
 
             commands.AddRange(new[] {
                 Command.ScoreboardSet(previousEntity, inverter, 0),
-                _entity.GetAsPrefix() + Command.ScoreboardSet("@s", inverter.baseName, 1)
+                _entity.GetAsPrefix() + Command.ScoreboardSet("@s", inverter.Name, 1)
             });
 
             selector.scores.checks.Add(new ScoresEntry(inverter, new Range(0, false)));

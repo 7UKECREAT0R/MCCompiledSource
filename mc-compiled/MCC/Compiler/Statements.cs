@@ -237,7 +237,7 @@ namespace mc_compiled.MCC.Compiler
                     {
                         ScoreboardValue temp = executor.scoreboard.RequestTemp(next, this);
                         commands.AddRange(temp.CommandsSetLiteral(value.Accessor, selector, next));
-                        commands.AddRange(value.value.CommandsFromOperation(selector, temp, value.Accessor, temp.baseName, op));
+                        commands.AddRange(value.value.CommandsFromOperation(selector, temp, value.Accessor, temp.Name, op));
                     }
 
                     executor.AddCommands(commands, "mathoperation");
@@ -266,12 +266,19 @@ namespace mc_compiled.MCC.Compiler
         protected override TypePattern[] GetValidPatterns()
         {
             return new[] {
-                new TypePattern(typeof(TokenIdentifierFunction), typeof(TokenOpenParenthesis))
+                new TypePattern(typeof(TokenIdentifier), typeof(TokenOpenParenthesis))
             };
         }
         protected override void Run(Executor executor)
         {
             string selector = executor.ActiveSelectorStr;
+
+            if (!NextIs<TokenIdentifierFunction>())
+            {
+                TokenIdentifier id = Next<TokenIdentifier>();
+                throw new StatementException(this, $"Unresolved function name \"{id.word}\". Is it spelled right & defined somewhere above this line?");
+            }
+
             TokenIdentifierFunction value = Next<TokenIdentifierFunction>();
 
             if (NextIs<TokenOpenParenthesis>())
