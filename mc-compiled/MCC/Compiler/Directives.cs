@@ -23,13 +23,12 @@ namespace mc_compiled.MCC.Compiler
 
 
         private static short nextIndex = 0;
-        public Directive(DirectiveImpl call, string identifier,
-            string fullName, params TypePattern[] patterns)
+        public Directive(DirectiveImpl call, string identifier, string description, params TypePattern[] patterns)
         {
             index = nextIndex++;
             this.call = call;
             this.identifier = identifier;
-            this.description = fullName;
+            this.description = description;
             this.patterns = patterns;
 
             // cache if this directive overlaps an enum

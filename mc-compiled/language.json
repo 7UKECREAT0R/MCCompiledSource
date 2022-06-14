@@ -5,6 +5,26 @@
     "_true",
     "_false"
   ],
+  "features": {
+    "NULLS": {
+      "description": "Null Entities",
+      "details": "Allows the creation of null entity behavior/resource files, as well as placing them in the world. Performance impact not measured.",
+      "min-version": 1.02,
+      "value": 1
+    },
+    "GAMETEST": {
+      "description": "GameTest Framework Integration",
+      "details": "to be decided",
+      "min-version": 999,
+      "value": 2
+    },
+    "EXPLODERS": {
+      "description": "Exploding Entities",
+      "details": "Allows the creation of exploder entity behavior/resource files. Allows the use of the explode command by generating presets for the entity. Performance impact not measured.",
+      "min-version": 1.04,
+      "value": 4
+    }
+  },
   "mappings": {
     ".": "Token",
     "*": "TokenLiteral",
@@ -22,9 +42,11 @@
     "dots": "TokenRangeDots",
     "range": "TokenRangeLiteral"
   },
+
   "directives": {
     "$var": {
       "description": "Set Preprocessor Variable",
+      "details": "Sets a preprocessor variable to the value(s) provided.",
       "function": "_var",
       "patterns": [
         [ "id:variable", "object:values" ]
@@ -32,6 +54,7 @@
     },
     "$inc": {
       "description": "Increment Preprocessor Variable",
+      "details": "Increments the given preprocessor variable by one. If multiple values are held, they are all incremented.",
       "function": "_inc",
       "patterns": [
         [ "id:variable" ]
@@ -39,6 +62,7 @@
     },
     "$dec": {
       "description": "Decrement Preprocessor Variable",
+      "details": "Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.",
       "function": "_dec",
       "patterns": [
         [ "id:variable" ]
@@ -46,6 +70,7 @@
     },
     "$add": {
       "description": "Add to Preprocessor Variable",
+      "details": "Adds two preprocessor variables/values together, changing only the first one. A += B",
       "function": "_add",
       "patterns": [
         [ "id:variable", "object:values" ]
@@ -53,6 +78,7 @@
     },
     "$sub": {
       "description": "Subtract from Preprocessor Variable",
+      "details": "Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B",
       "function": "_sub",
       "patterns": [
         [ "id:variable", "object:values" ]
@@ -60,6 +86,7 @@
     },
     "$mul": {
       "description": "Multiply with Preprocessor Variable",
+      "details": "Multiplies two preprocessor variables/values together, changing only the first one. A *= B",
       "function": "_mul",
       "patterns": [
         [ "id:variable", "object:values" ]
@@ -67,6 +94,7 @@
     },
     "$div": {
       "description": "Divide Preprocessor Variable",
+      "details": "Divides two preprocessor variables/values from each other, changing only the first one. A /= B",
       "function": "_div",
       "patterns": [
         [ "id:variable", "object:values" ]
@@ -74,6 +102,7 @@
     },
     "$mod": {
       "description": "Modulo Preprocessor Variable",
+      "details": "Divides two preprocessor variables/values from each other, setting only the first one to the remainder of the operation. A %= B",
       "function": "_mod",
       "patterns": [
         [ "id:variable", "object:values" ]
@@ -81,6 +110,7 @@
     },
     "$pow": {
       "description": "Exponentiate Preprocessor Variable",
+      "details": "Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B",
       "function": "_pow",
       "patterns": [
         [ "id:variable", "object:values" ]
@@ -88,6 +118,7 @@
     },
     "$swap": {
       "description": "Swap Preprocessor Variables",
+      "details": "Swaps the values of two preprocessor variables",
       "function": "_swap",
       "patterns": [
         [ "id:a", "id:b" ]
@@ -95,6 +126,7 @@
     },
     "$if": {
       "description": "Preprocessor If",
+      "details": "Compares a preprocessor variable and another value/variable. If the source variable contains multiple values, they all must match the condition.",
       "function": "_if",
       "patterns": [
         [ "id:a", "compare:comparison", "object:b" ]
@@ -102,10 +134,12 @@
     },
     "$else": {
       "description": "Preprocessor Else",
+      "details": "Directly inverts the result of the last $if call at this level in scope.",
       "function": "_else"
     },
     "$repeat": {
       "description": "Preprocessor Repeat",
+      "details": "Repeats the following statement/block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.",
       "function": "_repeat",
       "patterns": [
         [ "int:amount", "?id:indicator" ]
@@ -113,6 +147,7 @@
     },
     "$log": {
       "description": "Log to Console",
+      "details": "Sends a message to stdout with a line terminator at the end.",
       "function": "_log",
       "patterns": [
         [ "string:message" ]
@@ -120,6 +155,7 @@
     },
     "$macro": {
       "description": "Define/Call Macro",
+      "details": "If a block follows this call, it is treated as a definition. Arguments are passed in as preprocessor variables. If no block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.",
       "function": "_macro",
       "patterns": [
         [ "id:name" ]
@@ -128,6 +164,7 @@
     },
     "$include": {
       "description": "Include File",
+      "details": "Places the contents of the given file in replacement for this statement. Not intended for production use yet.",
       "function": "_include",
       "patterns": [
         [ "string:file" ]
@@ -135,6 +172,7 @@
     },
     "$strfriendly": {
       "description": "Preprocessor String Friendly Name",
+      "details": "Convert the given preprocessor variable value(s) to a string in 'Title Case'.",
       "function": "_strfriendly",
       "patterns": [
         [ "id:variable", "id:result" ]
@@ -142,6 +180,7 @@
     },
     "$strupper": {
       "description": "Preprocessor String Uppercase",
+      "details": "Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.",
       "function": "_strupper",
       "patterns": [
         [ "id:variable", "id:result" ]
@@ -149,6 +188,7 @@
     },
     "$strlower": {
       "description": "Preprocessor String Lowercase",
+      "details": "Convert the given preprocessor variable value(s) to a string in 'lowercase'.",
       "function": "_strlower",
       "patterns": [
         [ "id:variable", "id:result" ]
@@ -156,6 +196,7 @@
     },
     "$sum": {
       "description": "Preprocessor Array Sum",
+      "details": "Adds all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "function": "_sum",
       "patterns": [
         [ "id:variable", "id:result" ]
@@ -163,6 +204,7 @@
     },
     "$median": {
       "description": "Preprocessor Array Median",
+      "details": "Gets the middle value/average of the two middle values and stores it in a result variable.",
       "function": "_median",
       "patterns": [
         [ "id:variable", "id:result" ]
@@ -170,6 +212,7 @@
     },
     "$mean": {
       "description": "Preprocessor Array Mean",
+      "details": "Averages all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "function": "_mean",
       "patterns": [
         [ "id:variable", "id:result" ]
@@ -177,6 +220,7 @@
     },
     "$iterate": {
       "description": "Iterate Preprocessor Array",
+      "details": "Runs the following statement/block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given.",
       "function": "_iterate",
       "patterns": [
         [ "id:variable", "id:current" ]
@@ -184,6 +228,7 @@
     },
     "$get": {
       "description": "Preprocessor Get at Index",
+      "details": "Get the value at a specific 0-based index inside a preprocessor variable and store it in a result variable.",
       "function": "_get",
       "patterns": [
         [ "id:variable", "int:index", "id:result" ]
@@ -191,6 +236,7 @@
     },
     "$len": {
       "description": "Preprocessor Array Length",
+      "details": "Get the number of values inside a preprocessor variable and store it in a result variable.",
       "function": "_len",
       "patterns": [
         [ "id:variable", "id:result" ]
@@ -198,6 +244,7 @@
     },
     "$json": {
       "description": "Preprocessor Load JSON Value",
+      "details": "Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.",
       "function": "_json",
       "patterns": [
         [ "string:", "id", "string" ]
@@ -205,12 +252,14 @@
     },
     "mc": {
       "description": "Minecraft Command",
+      "details": "Places a plain command in the output file, used for when the language lacks a certain feature.",
       "patterns": [
         [ "string:command" ]
       ]
     },
     "select": {
       "description": "Select Entity",
+      "details": "Selects an entity based off of a selector, \"name:type\", or name of any managed entity (e.g., a null). If a block follows this statement, only the code in that block will use the selection specified here before returning to the previous selector.",
       "patterns": [
         [ "selector:entity" ],
         [ "string:name" ]
@@ -218,18 +267,21 @@
     },
     "globalprint": {
       "description": "Print to All Players",
+      "details": "Prints a chat message to all players in the game. Variables/selectors can be inserted using {curly braces}.",
       "patterns": [
         [ "string:text" ]
       ]
     },
     "print": {
       "description": "Print to Selected Entity",
+      "details": "Prints a chat message to the selected player(s). Variables/selectors can be inserted using {curly braces}.",
       "patterns": [
         [ "string:text" ]
       ]
     },
     "define": {
       "description": "Define Variable",
+      "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
       "patterns": [
         [ "string:name" ],
         [ "id:type", "string:name" ],
@@ -238,6 +290,7 @@
     },
     "init": {
       "description": "Initialize Variable",
+      "details": "Ensures the selected entities have a value for the given variable, defaulting to 0 if not. This ensures the selected entities function as intended all the time.",
       "patterns": [
         [ "value:variable" ],
         [ "string:variable name" ]
@@ -245,22 +298,26 @@
     },
     "if": {
       "description": "If Statement",
+      "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by '&' symbols and inverted by the keyword 'not'. Only runs the proceeding statement/block for entities where the condition returns true.",
       "patterns": [
         [ "value:any" ],
         [ "id:any" ]
       ]
     },
     "else": {
-      "description": "Else Statement"
+      "description": "Else Statement",
+      "details": "Inverts the comparison given by the previous if-statement at this scope level."
     },
     "give": {
       "description": "Give Item to Selected",
+      "details": "Gives an item to the selected entities. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.",
       "patterns": [
         [ "string:item", "?int:amount", "?int:data" ]
       ]
     },
     "tp": {
       "description": "Teleport Selected Entity",
+      "details": "Teleports the currently selected entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
       "patterns": [
         [ "pos:x", "pos:y", "pos:z" ],
         [ "selector:other" ],
@@ -269,6 +326,7 @@
     },
     "tphere": {
       "description": "Teleport Entity to Selected",
+      "details": "Teleports an entity to the selected entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
       "patterns": [
         [ "selector:entity", "?pos:offset x", "?pos:offset y", "?pos:offset z" ],
         [ "string:entity", "?pos:offset x", "?pos:offset y", "?pos:offset z" ]
@@ -276,12 +334,14 @@
     },
     "move": {
       "description": "Move Selected Entity",
+      "details": "Moves the selected entities in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.",
       "patterns": [
         [ "id:direction", "number:amount" ]
       ]
     },
     "face": {
       "description": "Face Selected Towards...",
+      "details": "Faces the selected entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
       "patterns": [
         [ "pos:x", "pos:y", "pos:z" ],
         [ "selector:other" ],
@@ -290,6 +350,7 @@
     },
     "facehere": {
       "description": "Face Entity Towards Selected",
+      "details": "Faces an entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls) towards the selected entity.",
       "patterns": [
         [ "selector:source" ],
         [ "string:source" ]
@@ -297,12 +358,14 @@
     },
     "rotate": {
       "description": "Rotate Selected Entity",
+      "details": "Rotates the selected entities a certain number of degrees horizontally and vertically from their current rotation.",
       "patterns": [
         [ "int:y", "int:x" ]
       ]
     },
     "block": {
       "description": "Place Block",
+      "details": "Places a block at a specific position, optionally using a replace mode.",
       "patterns": [
         [ "id:replace mode", "string:block", "pos:x", "pos:y", "pos:z", "?int:data" ],
         [ "string:block", "pos:x", "pos:y", "pos:z", "?int:data" ]
@@ -310,6 +373,7 @@
     },
     "fill": {
       "description": "Fill Region",
+      "details": "Fills blocks in a specific region, optionally using a replace mode.",
       "patterns": [
         [ "id:fill mode", "string:block", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2" ],
         [ "string:block", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2" ]
@@ -317,36 +381,42 @@
     },
     "scatter": {
       "description": "Scatter Blocks in Region",
+      "details": "Randomly scatters blocks throughout a region with a certain percentage.",
       "patterns": [
         [ "string:block", "int:percent", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2", "?string:seed" ]
       ]
     },
     "replace": {
       "description": "Replace in Region",
+      "details": "Replaces all source blocks with a result block in a specific region.",
       "patterns": [
         [ "string:source block", "?int:data", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2", "string:result block", "?int:data" ]
       ]
     },
     "kill": {
       "description": "Kill Selected Entity",
+      "details": "Kills the selected entities, causing the death animation, sounds, and particles to appear.",
       "patterns": [
         [ "?selector:other" ]
       ]
     },
     "remove": {
       "description": "Remove Selected Entity",
+      "details": "Teleports the selected entities deep into the void, causing a silent death.",
       "patterns": [
         [ "?selector:other" ]
       ]
     },
     "clear": {
       "description": "Clear Entity",
+      "details": "Clears the inventories of all selected entities, optionally searching for a specific item and limiting the number of items to remove.",
       "patterns": [
         [ "?selector:other", "?string:item", "?int:data", "?int:max count" ]
       ]
     },
     "globaltitle": {
       "description": "Show Title to All Players",
+      "details": "Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Variables/selectors can be inserted using {curly braces}",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "id:subtitle", "string:text" ],
@@ -355,6 +425,7 @@
     },
     "title": {
       "description": "Show Title to Selected Entity",
+      "details": "Displays a title on the screen of the selected players. Can also be used to set the timings of the title. Variables/selectors can be inserted using {curly braces}",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "id:subtitle", "string:text" ],
@@ -363,6 +434,7 @@
     },
     "globalactionbar": {
       "description": "Show Actionbar to All Players",
+      "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Variables/selectors can be inserted using {curly braces}",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "string:text" ]
@@ -370,6 +442,7 @@
     },
     "actionbar": {
       "description": "Show Actionbar to Selected Entity",
+      "details": "Displays an actionbar on the screen of the selected players. Can also be used to set the timings of the actionbar. Variables/selectors can be inserted using {curly braces}",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "string:text" ]
@@ -377,15 +450,18 @@
     },
     "say": {
       "description": "Say as Selected Entity",
+      "details": "Send a plain-text message as the selected entities. Plain selectors can be used, but not variables.",
       "patterns": [
         [ "string:message" ]
       ]
     },
     "halt": {
-      "description": "Halt Execution"
+      "description": "Halt Execution",
+      "details": "Ends the execution of the code entirely by running out the function command limit."
     },
     "damage": {
       "description": "Damage Selected Entity",
+      "details": "Damages the selected entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
       "patterns": [
         [ "int:amount", "?enum:damage cause" ],
         [ "int:amount", "?enum:damage cause", "selector:blame" ],
@@ -393,8 +469,26 @@
         [ "int:amount", "?enum:damage cause", "pos:from x", "pos:from y", "pos: from z" ]
       ]
     },
+    "effect": {
+      "description": "Give Effect to Selected Entity",
+      "details": "Gives the selected entities a potion effect with visible particles. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect clear'.",
+      "patterns": [
+        [ "id:clear" ],
+        [ "enum:effect", "?int:seconds", "?int:amplifier" ]
+      ]
+    },
+    "effecth": {
+      "description": "Give Hidden Effect to Selected Entity",
+      "details": "Gives the selected entities a potion effect with no particles. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect clear'.",
+      "patterns": [
+        [ "id:clear" ],
+        [ "enum:effect", "?int:seconds", "?int:amplifier" ]
+      ]
+    },
     "null": {
       "description": "Create/Remove Null Entity",
+      "details": "Create a null entity, remove the selected ones, or manage the classes on the selected ones.",
+      "features": 1,
       "patterns": [
         [ "id:create", "string:name", "?string:class", "?pos:x", "?pos:y", "?pos:x" ],
         [ "id:remove", "?string:name", "?string:class" ],
@@ -404,37 +498,43 @@
     },
     "tag": {
       "description": "Tag Selected Entity",
+      "details": "Adds, removes, or singles out a tag on the selected entities.",
       "patterns": [
         [ "id:mode", "string:name" ]
       ]
     },
     "limit": {
       "description": "Limit Number of Selected Entities",
+      "details": "Limits the number of entities that the following commands can target at once.",
       "patterns": [
         [ "?int:count" ]
       ]
     },
     "explode": {
       "description": "Create Explosion",
+      "details": "Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings.",
+      "features": 4,
       "patterns": [
-        [ "pos:x", "pos:y", "pos:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ],
-        [ "?int:power", "?int:delay", "?bool:causes fire", "?bool:breaks blocks" ]
+        [ "?pos:x", "?pos:y", "?pos:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ]
       ]
     },
     "feature": {
       "description": "Enable Feature",
+      "details": "Enables a feature to be used for this project, generating any of the necessary files.",
       "patterns": [
         [ "id:feature" ]
       ]
     },
     "function": {
       "description": "Define/Call Function",
+      "details": "If followed by a block, it is treated as a function definition. Parameters must have types, optionally having default values. Functions should be called through 'function_name(parameters)'.",
       "patterns": [
-        [ "*:arg" ]
+        [ "*:args" ]
       ]
     },
     "return": {
       "description": "Set Return Value",
+      "details": "Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.",
       "patterns": [
         [ "value:any" ],
         [ "*:any" ]
@@ -442,12 +542,14 @@
     },
     "struct": {
       "description": "Define Struct",
+      "details": "Define a structure with a set of fields and optionally default values in the proceeding block. See documentation.",
       "patterns": [
         [ "id:name" ]
       ]
     },
     "for": {
       "description": "For Each Entity",
+      "details": "Runs the following statement or block once over every entity that is currently selected.",
       "patterns": [
         [ "selector:entities" ]
       ]
