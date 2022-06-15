@@ -370,7 +370,7 @@ namespace mc_compiled.MCC.Compiler
         public TokenNumberLiteral NextNumberIdentifier(char first, bool rangeSecondArg = false)
         {
             sb.Append(first);
-            IntMultiplier multiplier = IntMultiplier.t;
+            IntMultiplier multiplier = IntMultiplier.none;
 
             char c;
             while (HasNext)

@@ -347,47 +347,56 @@ namespace mc_compiled.MCC.Compiler
         /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
-        public void PushSelectorExecute(Selector now)
+        /// <returns>The previous value of the prepend buffer.</returns>
+        public string PushSelectorExecute(Selector now)
         {
             if (now.NeedsAlign)
             {
+                string prev = prependBuffer.ToString();
                 AppendCommandPrepend(Command.Execute(now.ToString(), now.offsetX, now.offsetY, now.offsetZ, ""));
                 PushSelector(true);
-                return;
+                return prev;
             }
 
             PushSelector(false);
+            return "";
         }
         /// <summary>
         /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
-        public void PushSelectorExecute(Selector now, Coord offsetX, Coord offsetY, Coord offsetZ)
+        /// <returns>The previous value of the prepend buffer.</returns>
+        public string PushSelectorExecute(Selector now, Coord offsetX, Coord offsetY, Coord offsetZ)
         {
             if (now.NeedsAlign)
             {
+                string prev = prependBuffer.ToString();
                 AppendCommandPrepend(Command.Execute(now.ToString(), offsetX, offsetY, offsetZ, ""));
                 PushSelector(true);
-                return;
+                return prev;
             }
 
             PushSelector(false);
+            return "";
         }
         /// <summary>
         /// Pushes a new selector representing '@s' to the stack and prepends the
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
-        public void PushSelectorExecute()
+        /// <returns>The previous value of the prepend buffer.</returns>
+        public string PushSelectorExecute()
         {
             Selector active = ActiveSelector;
             if (active.NeedsAlign)
             {
+                string prev = prependBuffer.ToString();
                 AppendCommandPrepend(Command.Execute(active.ToString(), active.offsetX, active.offsetY, active.offsetZ, ""));
                 PushSelector(true);
-                return;
+                return prev;
             }
 
             PushSelector(false);
+            return "";
         }
         /// <summary>
         /// Pushes a new selector representing '@s' to the stack and prepends the
@@ -395,17 +404,20 @@ namespace mc_compiled.MCC.Compiler
         /// 
         /// This variant offsets the position of the execution relative to each entity.
         /// </summary>
-        public void PushSelectorExecute(Coord offsetX, Coord offsetY, Coord offsetZ)
+        /// <returns>The previous value of the prepend buffer.</returns>
+        public string PushSelectorExecute(Coord offsetX, Coord offsetY, Coord offsetZ)
         {
             Selector active = ActiveSelector;
             if (active.NeedsAlign)
             {
+                string prev = prependBuffer.ToString();
                 AppendCommandPrepend(Command.Execute(active.ToString(), offsetX, offsetY, offsetZ, ""));
                 PushSelector(true);
-                return;
+                return prev;
             }
 
             PushSelector(false);
+            return "";
         }
         /// <summary>
         /// Pop a selector off the stack and return to the previous.
@@ -929,7 +941,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     dynamic value = values[i];
                     if (value is int)
-                        literals[i] = new TokenIntegerLiteral(value, IntMultiplier.t, line);
+                        literals[i] = new TokenIntegerLiteral(value, IntMultiplier.none, line);
                     if (value is float)
                         literals[i] = new TokenDecimalLiteral(value, line);
                     if (value is bool)

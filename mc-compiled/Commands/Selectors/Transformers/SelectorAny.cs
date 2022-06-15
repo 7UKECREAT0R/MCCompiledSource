@@ -29,7 +29,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 Command.ScoreboardSet($"@e[tag={counter}]", temp, 1)));
             commands.Add(Command.TagRemove(activeSelector, counter));
 
-            rootSelector.scores.checks.Add(new ScoresEntry(temp, new Range(1, inverted)));
+            rootSelector.scores.checks.Add(new ScoresEntry(temp, new Range(inverted ? 0 : 1, false)));
         }
     }
 }

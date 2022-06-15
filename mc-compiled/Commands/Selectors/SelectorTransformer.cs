@@ -32,6 +32,7 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="executor">The executor running this transformation.</param>
         /// <param name="tokens">The fed-in tokens which specify how the transformation should occur.</param>
         /// <param name="commands">The list of commands to add to.</param>
+        /// 
         void Transform(ref Selector rootSelector, ref Selector alignedSelector,
             bool inverted, Executor executor, Statement tokens, List<string> commands);
     }

@@ -52,9 +52,9 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="input"></param>
         /// <param name="executor"></param>
         /// <param name="tokens"></param>
-        /// <param name="forceInvert"></param>
+        /// <param name="elseStatement"></param>
         /// <returns></returns>
-        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool forceInvert)
+        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool elseStatement)
         {
             executor.scoreboard.PushTempState();
 
@@ -63,14 +63,14 @@ namespace mc_compiled.Commands.Selectors
                 if (tokens.NextIs<TokenAnd>())
                     tokens.Next();
 
-                bool invert = forceInvert;
+                bool invert = elseStatement;
                 bool isScore = tokens.NextIs<TokenIdentifierValue>();
                 TokenIdentifier currentToken = tokens.Next<TokenIdentifier>();
                 string word = currentToken.word.ToUpper();
 
                 if(word.Equals("NOT"))
                 {
-                    invert = !forceInvert;
+                    invert = !elseStatement;
                     isScore = tokens.NextIs<TokenIdentifierValue>();
                     currentToken = tokens.Next<TokenIdentifier>();
                     word = currentToken.word.ToUpper();
@@ -93,6 +93,8 @@ namespace mc_compiled.Commands.Selectors
                     transformer.Transform(ref rootSelector, ref alignedSelector, invert, executor, tokens, commands);
                     continue;
                 }
+
+                throw new StatementException(tokens, $"Unknown selector transformer: {word}");
 
             } while (tokens.NextIs<TokenAnd>());
 

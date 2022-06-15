@@ -68,6 +68,18 @@ namespace mc_compiled.Commands
             string src = typeof(T).Name;
             return enumName.Equals(src);
         }
+        /// <summary>
+        /// Throws a StatementException if this enum value is not of a certain type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        public void RequireType<T>(MCC.Compiler.Statement thrower) where T: System.Enum
+        {
+            if (!IsType<T>())
+            {
+                string reqEnumName = typeof(T).Name;
+                throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {enumName}.");
+            }
+        }
     }
 
     [System.AttributeUsage(AttributeTargets.Enum, Inherited = false, AllowMultiple = false)]

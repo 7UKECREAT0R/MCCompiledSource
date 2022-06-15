@@ -340,7 +340,7 @@ namespace mc_compiled.MCC.Compiler
     }
     public enum IntMultiplier : int
     {
-        t = 1,
+        none = 1,
         s = 20,
         m = 1200,
         h = 72000
@@ -357,6 +357,24 @@ namespace mc_compiled.MCC.Compiler
         /// The multiplier that was applied to this integer.
         /// </summary>
         public readonly IntMultiplier multiplier;
+        
+        /// <summary>
+        /// Get the value of this number in a certain scale.
+        /// </summary>
+        /// <param name="scale"></param>
+        /// <returns></returns>
+        public int Scaled(IntMultiplier scale)
+        {
+            // no multiplier given, they probably read the documentation
+            if (multiplier == IntMultiplier.none)
+                return number;
+
+            // scale matches multiplier
+            if (scale == multiplier)
+                return number;
+
+            return number / (int)scale;
+        }
 
         public override string AsString() => number.ToString();
         public TokenIntegerLiteral(int number, IntMultiplier multiplier, int lineNumber) :
@@ -379,7 +397,7 @@ namespace mc_compiled.MCC.Compiler
             if(other is TokenIntegerLiteral)
             {
                 int i = (other as TokenIntegerLiteral).number;
-                return new TokenIntegerLiteral(number + i, IntMultiplier.t, lineNumber);
+                return new TokenIntegerLiteral(number + i, IntMultiplier.none, lineNumber);
             } else if(other is TokenDecimalLiteral)
             {
                 float value = (other as TokenDecimalLiteral).number;
@@ -394,7 +412,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral)
             {
                 int i = (other as TokenIntegerLiteral).number;
-                return new TokenIntegerLiteral(number - i, IntMultiplier.t, lineNumber);
+                return new TokenIntegerLiteral(number - i, IntMultiplier.none, lineNumber);
             }
             else if (other is TokenDecimalLiteral)
             {
@@ -410,7 +428,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral)
             {
                 int i = (other as TokenIntegerLiteral).number;
-                return new TokenIntegerLiteral(number * i, IntMultiplier.t, lineNumber);
+                return new TokenIntegerLiteral(number * i, IntMultiplier.none, lineNumber);
             }
             else if (other is TokenDecimalLiteral)
             {
@@ -426,7 +444,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral)
             {
                 int i = (other as TokenIntegerLiteral).number;
-                return new TokenIntegerLiteral(number / i, IntMultiplier.t, lineNumber);
+                return new TokenIntegerLiteral(number / i, IntMultiplier.none, lineNumber);
             }
             else if (other is TokenDecimalLiteral)
             {
@@ -442,7 +460,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral)
             {
                 int i = (other as TokenIntegerLiteral).number;
-                return new TokenIntegerLiteral(number % i, IntMultiplier.t, lineNumber);
+                return new TokenIntegerLiteral(number % i, IntMultiplier.none, lineNumber);
             }
             else if (other is TokenDecimalLiteral)
             {

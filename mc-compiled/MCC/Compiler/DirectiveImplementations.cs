@@ -1084,7 +1084,12 @@ namespace mc_compiled.MCC.Compiler
             executor.SetLastCompare(tokensUsed);
 
             if (commands.Count > 0)
+            {
+                string buffer = executor.PushSelectorExecute();
                 executor.AddCommandsClean(commands, "selectorsetup");
+                executor.PopSelector();
+                executor.SetCommandPrepend(buffer); // return to previous value
+            }
 
             string commandPrefix;
             if (rootSelector.NeedsAlign)
@@ -1211,8 +1216,7 @@ namespace mc_compiled.MCC.Compiler
                         break;
                     case "ENCHANT":
                         ParsedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>().value;
-                        if (!parsedEnchantment.IsType<Enchantment>())
-                            throw new StatementException(tokens, $"Must specify Enchantment; Given {parsedEnchantment.enumName}.");
+                        parsedEnchantment.RequireType<Enchantment>(tokens);
                         Enchantment enchantment = (Enchantment)parsedEnchantment.value;
                         int level = tokens.Next<TokenIntegerLiteral>();
                         enchants.Add(new Tuple<Enchantment, int>(enchantment, level));
@@ -1484,8 +1488,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIdentifierEnum>())
             {
                 ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>().value;
-                if(!enumValue.IsType<OldHandling>())
-                    throw new StatementException(tokens, $"Must specify OldObjectHandling; Given {enumValue.enumName}.");
+                enumValue.RequireType<OldHandling>(tokens);
                 handling = (OldHandling)enumValue.value;
             }
 
@@ -1509,8 +1512,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIdentifierEnum>())
             {
                 ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>().value;
-                if (!enumValue.IsType<OldHandling>())
-                    throw new StatementException(tokens, $"Must specify OldObjectHandling; Given {enumValue.enumName}.");
+                enumValue.RequireType<OldHandling>(tokens);
                 handling = (OldHandling)enumValue.value;
             }
 
@@ -2147,7 +2149,47 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void effect(Executor executor, Statement tokens, bool hideParticles)
         {
+            string selector = executor.ActiveSelectorStr;
 
+            if(!tokens.NextIs<TokenIdentifierEnum>())
+            {
+                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+
+                if(word.Equals("CLEAR"))
+                {
+                    executor.AddCommand(Command.EffectClear(selector));
+                    return;
+                }
+
+                if(word.StartsWith("C"))
+                    throw new StatementException(tokens, "Invalid option for effect command. (did you mean 'clear'?)");
+                else
+                    throw new StatementException(tokens, "Invalid option for effect command.");
+            }
+
+            string command;
+            TokenIdentifierEnum effectToken = tokens.Next<TokenIdentifierEnum>();
+            ParsedEnumValue parsedEffect = effectToken.value;
+            parsedEffect.RequireType<PotionEffect>(tokens);
+            PotionEffect effect = (PotionEffect)parsedEffect.value;
+
+            if (tokens.NextIs<TokenIntegerLiteral>())
+            {
+                int seconds = tokens.Next<TokenIntegerLiteral>().Scaled(IntMultiplier.s);
+
+                if (tokens.NextIs<TokenIntegerLiteral>())
+                {
+                    int amplifier = tokens.Next<TokenIntegerLiteral>();
+                    command = Command.Effect(selector, effect, seconds, amplifier);
+                }
+                else
+                    command = Command.Effect(selector, effect, seconds);
+            }
+            else
+                command = Command.Effect(selector, effect);
+
+            executor.AddCommand(command);
+            return;
         }
         public static void effect(Executor executor, Statement tokens) => effect(executor, tokens, false);
         public static void effecth(Executor executor, Statement tokens) => effect(executor, tokens, true);
