@@ -2,6 +2,7 @@
 using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.SyntaxHighlighting;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
 using mc_compiled.NBT;
@@ -153,6 +154,41 @@ namespace mc_compiled
             Directives.LoadFromLanguage(debug);
 
             string fileUpper = files[0].ToUpper();
+
+            if (fileUpper.Equals("--SYNTAX"))
+            {
+                string _target = (args.Length == 1) ? null : args[1];
+
+                SyntaxTarget target = null;
+                if (_target != null)
+                {
+                    Console.WriteLine("Looking up target {0}...", _target);
+                    target = Syntax.syntaxTargets[_target];
+                }
+
+                if(target == null)
+                {
+                    Console.WriteLine("Syntax Targets");
+                    foreach (var t in Syntax.syntaxTargets)
+                        Console.WriteLine("\t{0}: {1}", t.Key, t.Value.Describe());
+                    return;
+                }
+
+                string outputFile = target.GetFile();
+
+                using (FileStream outputStream = File.OpenWrite(outputFile))
+                using (TextWriter writer = new StreamWriter(outputStream))
+                {
+                    ConsoleColor color = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Exporting syntax file for target '{0}'...", _target);
+                    target.Write(writer);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Completed. Output file: {0}", outputFile);
+                    Console.ForegroundColor = color;
+                }
+                return;
+            }
             if (fileUpper.Equals("--JSONBUILDER"))
             {
                 new Definitions(debug);

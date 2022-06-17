@@ -260,6 +260,19 @@ namespace mc_compiled.MCC.Compiler
         public static List<Directive> REGISTRY = new List<Directive>();
         static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
 
+        public static IEnumerable<string> Keywords
+        {
+            get => REGISTRY.Select(directive => directive.identifier);
+        }
+        public static IEnumerable<string> PreprocessorKeywords
+        {
+            get => Keywords.Where(str => str[0] == '$');
+        }
+        public static IEnumerable<string> RegularKeywords
+        {
+            get => Keywords.Where(str => str[0] != '$');
+        }
+
         /// <summary>
         /// Query for a directive that matches this token contents. Case insensitive.
         /// </summary>
