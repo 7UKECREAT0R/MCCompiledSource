@@ -23,12 +23,13 @@ namespace mc_compiled.MCC.Compiler
 
 
         private static short nextIndex = 0;
-        public Directive(DirectiveImpl call, string identifier, string description, params TypePattern[] patterns)
+        public Directive(DirectiveImpl call, string identifier, string description, string documentation, params TypePattern[] patterns)
         {
             index = nextIndex++;
             this.call = call;
             this.identifier = identifier;
             this.description = description;
+            this.documentation = documentation;
             this.patterns = patterns;
 
             // cache if this directive overlaps an enum
@@ -65,6 +66,7 @@ namespace mc_compiled.MCC.Compiler
         public readonly short index;
         public readonly string identifier;
         public readonly string description;
+        public readonly string documentation;
         public readonly DirectiveImpl call;
         public readonly TypePattern[] patterns;
         public DirectiveAttribute attributes;
@@ -260,17 +262,13 @@ namespace mc_compiled.MCC.Compiler
         public static List<Directive> REGISTRY = new List<Directive>();
         static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
 
-        public static IEnumerable<string> Keywords
+        public static IEnumerable<Directive> PreprocessorDirectives
         {
-            get => REGISTRY.Select(directive => directive.identifier);
+            get => REGISTRY.Where(directive => directive.identifier[0] == '$');
         }
-        public static IEnumerable<string> PreprocessorKeywords
+        public static IEnumerable<Directive> RegularDirectives
         {
-            get => Keywords.Where(str => str[0] == '$');
-        }
-        public static IEnumerable<string> RegularKeywords
-        {
-            get => Keywords.Where(str => str[0] != '$');
+            get => REGISTRY.Where(directive => directive.identifier[0] != '$');
         }
 
         /// <summary>
@@ -359,6 +357,10 @@ namespace mc_compiled.MCC.Compiler
 
                 string description = body["description"].Value<string>();
 
+                string documentation = null;
+                if(body.ContainsKey("details"))
+                    documentation = body["details"].Value<string>();
+
                 string _function = identifier;
                 if (body.ContainsKey("function"))
                     _function = body["function"].Value<string>();
@@ -426,7 +428,7 @@ namespace mc_compiled.MCC.Compiler
                     (typeof(Directive.DirectiveImpl), info);
 
                 // construct directive
-                Directive directive = new Directive(function, identifier, description, patterns.ToArray());
+                Directive directive = new Directive(function, identifier, description, documentation, patterns.ToArray());
 
                 // attributes, if any
                 if(body.ContainsKey("attributes"))

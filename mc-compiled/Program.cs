@@ -36,6 +36,8 @@ namespace mc_compiled
             Console.Write("\tGenerate a behavior pack manifest with valid GUIDs.\n\n");
             Console.Write("mc-compiled.exe --search [options...]\n");
             Console.Write("\tSearch for MCC files in all subdirectories.\n\n");
+            Console.Write("mc-compiled.exe --syntax [exporter...]\n");
+            Console.Write("\tExport language information into a file. Not specifying an exporter will list them off.\n\n");
             Console.Write("mc-compiled.exe <file> [options...]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
             Console.Write("\tOptions:\n");
@@ -159,6 +161,32 @@ namespace mc_compiled
             {
                 string _target = (args.Length == 1) ? null : args[1];
 
+                if (_target == "*")
+                {
+                    ConsoleColor color = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Exporting all output targets...");
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                    foreach (var st in Syntax.syntaxTargets)
+                    {
+                        string stOutput = st.Value.GetFile();
+                        Console.WriteLine("\tExporting syntax file for target '{0}'... ({1})", st.Key, stOutput);
+
+                        using (FileStream outputStream = File.OpenWrite(stOutput))
+                        using (TextWriter writer = new StreamWriter(outputStream))
+                        {
+                            ConsoleColor oldColor = Console.ForegroundColor;
+                            st.Value.Write(writer);
+                        }
+                    }
+
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Completed exporting for {0} output targets.", Syntax.syntaxTargets.Count);
+                    Console.ForegroundColor = color;
+                    return;
+                }
+
                 SyntaxTarget target = null;
                 if (_target != null)
                 {
@@ -169,6 +197,7 @@ namespace mc_compiled
                 if(target == null)
                 {
                     Console.WriteLine("Syntax Targets");
+                    Console.WriteLine("\t*: All available output targets individually.");
                     foreach (var t in Syntax.syntaxTargets)
                         Console.WriteLine("\t{0}: {1}", t.Key, t.Value.Describe());
                     return;

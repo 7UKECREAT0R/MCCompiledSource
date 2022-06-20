@@ -66,13 +66,18 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 SelectorUtils.InvertSelector(ref alignedSelector,
                     commands, executor, (sel) =>
                     {
-                        sel.player.levelMin = levelMin;
-                        sel.player.levelMax = levelMax;
+                        if(levelMin.HasValue)
+                            sel.player.levelMin = levelMin;
+                        if(levelMax.HasValue)
+                            sel.player.levelMax = levelMax;
                     });
-            } else
+            }
+            else
             {
-                alignedSelector.player.levelMin = levelMin;
-                alignedSelector.player.levelMax = levelMax;
+                if (levelMin.HasValue)
+                    alignedSelector.player.levelMin = levelMin;
+                if (levelMax.HasValue)
+                    alignedSelector.player.levelMax = levelMax;
             }
         }
     }

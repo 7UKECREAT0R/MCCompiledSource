@@ -21,7 +21,9 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 
         internal static readonly Dictionary<string, SyntaxTarget> syntaxTargets = new Dictionary<string, SyntaxTarget>()
         {
-            { "udl2", new UDL2() }
+            { "udl2", new UDL2() },
+            { "monarch", new Monarch() },
+            { "raw", new RawSyntax() }
         };
 
         public const string bracketOpen = "[";
@@ -42,44 +44,124 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Highlight stringColor = new Highlight(221, 179, 255, HighlightStyle.NONE);
         public static readonly Highlight selectorColor = new Highlight(192, 192, 192, HighlightStyle.NONE);
 
+        static Keyword[] KeywordsFromDirectives(IEnumerable<Compiler.Directive> directives) =>
+            directives.Select(directive => new Keyword(directive.identifier, directive.documentation)).ToArray();
+
         public static readonly Keywords operators = new Keywords()
         {
-            keywords = new[] { "<", ">", "{", "}", "=", "(", ")", "+", "-", "*", "/", "%", "!" },
+            KeywordsUndocumented = new[] { "<", ">", "{", "}", "=", "(", ")", "+", "-", "*", "/", "%", "!" },
             style = new Highlight(224, 193, 255, HighlightStyle.NONE)
         };
         public static readonly Keywords selectors = new Keywords()
         {
-            keywords = new[] { "@e", "@a", "@s", "@p" },
+            keywords = new[] {
+                new Keyword("@e", "References all entities in the world."),
+                new Keyword("@a", "References all players in the world."),
+                new Keyword("@s", "References the executing entity/player."),
+                new Keyword("@p", "References the nearest player.")
+            },
             style = new Highlight(255, 79, 79, HighlightStyle.BOLD)
         };
         public static readonly Keywords preprocessor = new Keywords()
         {
-            keywords = MCC.Compiler.Directives.PreprocessorKeywords.ToArray(),
+            keywords = KeywordsFromDirectives(MCC.Compiler.Directives.PreprocessorDirectives),
             style = new Highlight(11, 164, 221, HighlightStyle.NONE)
         };
         public static readonly Keywords commands = new Keywords()
         {
-            keywords = MCC.Compiler.Directives.RegularKeywords.ToArray(),
+            keywords = KeywordsFromDirectives(MCC.Compiler.Directives.RegularDirectives),
             style = new Highlight(238, 91, 175, HighlightStyle.NONE)
         };
         public static readonly Keywords literals = new Keywords()
         {
-            keywords = new[] { "true", "false", "&", "~", "^" },
+            keywords = new Keyword[]
+            {
+                new Keyword("true", "A boolean value representing true/yes."),
+                new Keyword("false", "A boolean value representing false/no."),
+                new Keyword("&", "Adds on another comparison."),
+                new Keyword("~", "Relative to executor's position."),
+                new Keyword("^", "Relative to executor's direction.")
+            },
             style = new Highlight(224, 193, 255, HighlightStyle.NONE)
         };
         public static readonly Keywords types = new Keywords()
         {
-            keywords = new[] { "int", "decimal", "bool", "time", "struct", "function", "$macro" },
+            keywords = new Keyword[]
+            {
+                new Keyword("int", "An integer, representing any whole value between -2147483648 to 2147483647."),
+                new Keyword("decimal", "A decimal number with a pre-specified level of precision."),
+                new Keyword("bool", "A true or false value. Displayed as whatever is set in the '_true' and '_false' preprocessor variables respectively."),
+                new Keyword("time", "A value representing a number of ticks. Displayed as MM:SS."),
+                new Keyword("struct", "A user-defined structure of multiple variables."),
+                new Keyword("function", "A run-time function containing arguments which can be called later."),
+                new Keyword("$macro", "A compile-time macro containing arguments which can be 'pasted' later."),
+            },
             style = new Highlight(255, 128, 128, HighlightStyle.NONE)
         };
         public static readonly Keywords comparisons = new Keywords()
         {
-            keywords = new[] { "block", "type", "family", "mode", "near", "inside", "not", "level", "name", "rotation x", "rotation y", "any", "count", "item", "holding", "offset", "null", "class", "position", "position x", "position y", "position z" },
+            keywords = new[] {
+                new Keyword("block", "Check for a block being present in the world."),
+                new Keyword("type", "Check for a specific entity type."),
+                new Keyword("family", "Check for a specific entity family."),
+                new Keyword("mode", "Check for the player(s) in a specific gamemode."),
+                new Keyword("near", "Check for entities being near a certain position. Relative coordinates are relative to the executing entity."),
+                new Keyword("inside", "Check for entities inside a rectangular prism. Relative coordinates are relative to the executing entity."),
+                new Keyword("not", "Invert the following condition."),
+                new Keyword("level", "Compare player(s) XP level."),
+                new Keyword("name", "Check for entities with a specific name."),
+                new Keyword("rotation x", "Compare entity X rotation."), 
+                new Keyword("rotation y", "Compare entity Y rotation."),
+                new Keyword("any", "Check if any entity is matched by a selector."),
+                new Keyword("count", "Compare the number of entities that match a selector."),
+                new Keyword("item", "Check for players holding or containing a specific item/number of items in their inventory."),
+                new Keyword("holding", "Check for player(s) holding a specific item/nummber of items."),
+                new Keyword("offset", "Offset the execution of the next condition."),
+                new Keyword("null", "Check for entities which are nulls, optionally with a specific name."),
+                new Keyword("class", "Check for entities which are nulls and are under a specific class."),
+                new Keyword("position", "Check for entities at a specific x, y, z, position. Relative coordinates are relative to the executing entity."),
+                new Keyword("position x", "Compare entity X position. Relative coordinates are relative to the executing entity."),
+                new Keyword("position y", "Compare entity Y position. Relative coordinates are relative to the executing entity."),
+                new Keyword("position z", "Compare entity Z position. Relative coordinates are relative to the executing entity.")
+            },
             style = new Highlight(255, 95, 66, HighlightStyle.NONE)
         };
         public static readonly Keywords options = new Keywords()
         {
-            keywords = new[] { "nulls", "gametest", "exploders", "uninstall", "identify", "up", "down", "left", "right", "forward", "backward", "survival", "creative", "adventure", "times", "subtitle", "destroy", "replace", "hollow", "outline", "keep", "lockinventory", "lockslot", "canplaceon:", "candestroy:", "enchant:", "name:", "lore:", "author:", "title:", "page:", "dye:" },
+            keywords = new[] {
+                new Keyword("nulls", "Feature: Create null entity behavior/resource files and allow them to be spawned in the world."),
+                new Keyword("gametest", "Feature: Gametest Integration"),
+                new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
+                new Keyword("uninstall", "Feature: Create an uninstall function to undo all effects of this project."),
+                new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
+                new Keyword("up", "Used with the 'move' command. Goes up relative to where the entity is looking."),
+                new Keyword("down", "Used with the 'move' command. Goes down relative to where the entity is looking."),
+                new Keyword("left", "Used with the 'move' command. Goes left relative to where the entity is looking."),
+                new Keyword("right", "Used with the 'move' command. Goes right relative to where the entity is looking."),
+                new Keyword("forward", "Used with the 'move' command. Goes forward relative to where the entity is looking."),
+                new Keyword("backward", "Used with the 'move' command. Goes backward relative to where the entity is looking."),
+                new Keyword("survival", "Survival mode. (0)"),
+                new Keyword("creative", "Creative mode. (1)"),
+                new Keyword("adventure", "Adventure mode. (2)"),
+                new Keyword("times", "Specifies the fade-in/stay/fade-out times this text will show for."),
+                new Keyword("subtitle", "Sets the subtitle for the next title shown."),
+                new Keyword("destroy", "Destroy any existing blocks as if broken by a player."),
+                new Keyword("replace", "Replace any existing blocks. Default option."),
+                new Keyword("hollow", "Hollow the area, only filling the outer edges with the block. To keep inside contents, use 'outline'."),
+                new Keyword("outline", "Outline the area, only filling the outer edges with the block. To remove inside contents, use 'hollow'."),
+                new Keyword("keep", "Keep any existing blocks, and only fill where air is present."),
+                new Keyword("lockinventory", "Lock the item in the player's inventory."),
+                new Keyword("lockslot", "Lock the item in the slot which it is placed in."),
+                new Keyword("canplaceon:", "Specifies a block the item can be placed on."),
+                new Keyword("candestroy:", "Specifies a block the item can destroy."),
+                new Keyword("enchant:", "Give a leveled enchantment to this item. No limits."),
+                new Keyword("name:", "Give the item a display name."),
+                new Keyword("lore:", "Give the item a line of lore. Multiple of these can be used to add more lines."),
+                new Keyword("author:", "If this item is a 'written_book', set the name of the author."),
+                new Keyword("title:", "If this item is a 'written_book', set its title."),
+                new Keyword("page:", "If this item is a 'written_book', add a page to it.  Multiple of these can be used to add more pages."),
+                new Keyword("dye:", "If this item is a piece of leather armor, set its color to an RGB value.")
+            },
             style = new Highlight(215, 174, 255, HighlightStyle.NONE)
         };
 
@@ -109,7 +191,30 @@ namespace mc_compiled.MCC.SyntaxHighlighting
     internal struct Keywords
     {
         internal Highlight style;
-        internal string[] keywords;
+        internal Keyword[] keywords;
+
+        internal string[] KeywordsUndocumented
+        {
+            set
+            {
+                keywords = value.Select(v => new Keyword()
+                {
+                    documentation = null,
+                    name = v
+                }).ToArray();
+            }
+        }
+    }
+    internal struct Keyword
+    {
+        internal string name;
+        internal string documentation;
+
+        internal Keyword(string name, string docs)
+        {
+            this.name = name;
+            this.documentation = docs;
+        }
     }
 
     [Flags]

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace mc_compiled.MCC.SyntaxHighlighting
 {
     /// <summary>
-    /// UDL2.0 (notepad++) language exporter.
+    /// UDL2.1 (notepad++) language exporter.
     /// </summary>
     internal class UDL2 : SyntaxTarget
     {
@@ -71,14 +71,14 @@ namespace mc_compiled.MCC.SyntaxHighlighting
             List<string> items = new List<string>();
 
             int index = 0;
-            foreach (string keyword in keywords.keywords)
+            foreach (Keyword keyword in keywords.keywords)
             {
                 string keywordNormal;
 
-                if (keyword.Contains(' '))
-                    keywordNormal = $"'{keyword}'";
+                if (keyword.name.Contains(' '))
+                    keywordNormal = $"'{keyword.name}'";
                 else
-                    keywordNormal = keyword;
+                    keywordNormal = keyword.name;
 
                 if (numbered)
                     items.Add(index++ + keywordNormal);
@@ -165,6 +165,6 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public string Describe() =>
             "UDL 2.1 Exporter for Notepad++";
         public string GetFile() =>
-            "mcc.xml";
+            "mcc-udl2.xml";
     }
 }
