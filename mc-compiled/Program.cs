@@ -173,7 +173,7 @@ namespace mc_compiled
                         string stOutput = st.Value.GetFile();
                         Console.WriteLine("\tExporting syntax file for target '{0}'... ({1})", st.Key, stOutput);
 
-                        using (FileStream outputStream = File.OpenWrite(stOutput))
+                        using (FileStream outputStream = File.Open(stOutput, FileMode.Create))
                         using (TextWriter writer = new StreamWriter(outputStream))
                         {
                             ConsoleColor oldColor = Console.ForegroundColor;
@@ -205,7 +205,7 @@ namespace mc_compiled
 
                 string outputFile = target.GetFile();
 
-                using (FileStream outputStream = File.OpenWrite(outputFile))
+                using (FileStream outputStream = File.Open(outputFile, FileMode.Create))
                 using (TextWriter writer = new StreamWriter(outputStream))
                 {
                     ConsoleColor color = Console.ForegroundColor;

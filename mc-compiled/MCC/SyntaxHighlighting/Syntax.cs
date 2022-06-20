@@ -92,9 +92,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("decimal", "A decimal number with a pre-specified level of precision."),
                 new Keyword("bool", "A true or false value. Displayed as whatever is set in the '_true' and '_false' preprocessor variables respectively."),
                 new Keyword("time", "A value representing a number of ticks. Displayed as MM:SS."),
-                new Keyword("struct", "A user-defined structure of multiple variables."),
-                new Keyword("function", "A run-time function containing arguments which can be called later."),
-                new Keyword("$macro", "A compile-time macro containing arguments which can be 'pasted' later."),
+                new Keyword("struct", "A user-defined structure of multiple variables.")
             },
             style = new Highlight(255, 128, 128, HighlightStyle.NONE)
         };
