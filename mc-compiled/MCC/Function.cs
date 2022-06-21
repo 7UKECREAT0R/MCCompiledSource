@@ -13,8 +13,8 @@ namespace mc_compiled.MCC
     /// </summary>
     public class Function
     {
-        readonly List<ScoreboardValue> inputs;
-        readonly List<Token> inputDefaults;
+        internal readonly List<ScoreboardValue> inputs;
+        internal readonly List<Token> inputDefaults;
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
 

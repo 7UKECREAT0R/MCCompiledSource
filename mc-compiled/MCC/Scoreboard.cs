@@ -138,8 +138,8 @@ namespace mc_compiled.MCC
         }
 
         public static implicit operator string(ScoreboardValue value) => value.baseName;
-        
 
+        public abstract string GetTypeKeyword();
         /// <summary>
         /// Get the commands to define this value.
         /// </summary>
@@ -280,6 +280,7 @@ namespace mc_compiled.MCC
     {
         public ScoreboardValueInteger(string name, ScoreboardManager manager, Statement forExceptions) : base(name, manager, forExceptions) { }
 
+        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_INT;
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] { Command.ScoreboardCreateObjective(prefix + Name, AliasName) };
@@ -597,6 +598,7 @@ namespace mc_compiled.MCC
         public const string SB_CONST = "_mcc_t_const";
         public ScoreboardValueTime(string Name, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions) { }
 
+        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_TIME;
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
         {
             string minutes = SB_MINUTES + index;
@@ -661,6 +663,7 @@ namespace mc_compiled.MCC
             this.precision = precision;
         }
 
+        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_DECIMAL;
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] {
@@ -1092,6 +1095,7 @@ namespace mc_compiled.MCC
     {
         public ScoreboardValueBoolean(string Name, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions) { }
 
+        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_BOOL;
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] { Command.ScoreboardCreateObjective(prefix + Name) };
@@ -1203,6 +1207,7 @@ namespace mc_compiled.MCC
             return structure.GetFieldFromAccessor(accessor);
         }
 
+        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_STRUCT;
         public override string[] CommandsDefine(string prefix = "")
         {
             return structure.GetFields(Name).SelectMany(f => f.CommandsDefine(prefix)).ToArray();

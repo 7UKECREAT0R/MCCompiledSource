@@ -74,8 +74,8 @@ namespace mc_compiled.MCC
 
         public readonly Executor executor;
         public readonly List<string> definedTempVars;
-        readonly Dictionary<string, StructDefinition> structs;
-        readonly List<ScoreboardValue> values;
+        internal readonly Dictionary<string, StructDefinition> structs;
+        internal readonly List<ScoreboardValue> values;
 
         public ScoreboardManager(Executor executor)
         {

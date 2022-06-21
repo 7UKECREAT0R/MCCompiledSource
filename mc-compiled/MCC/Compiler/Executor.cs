@@ -66,13 +66,13 @@ namespace mc_compiled.MCC.Compiler
         int readIndex = 0;
         int unreachableCode = -1;
 
-        readonly Dictionary<int, object> loadedFiles;
-        readonly List<int> definedStdFiles;
-        readonly List<Macro> macros;
-        readonly List<Function> functions;
-        readonly bool[] lastPreprocessorCompare;
-        readonly Token[][] lastActualCompare;
-        readonly Dictionary<string, dynamic[]> ppv;
+        internal readonly Dictionary<int, object> loadedFiles;
+        internal readonly List<int> definedStdFiles;
+        internal readonly List<Macro> macros;
+        internal readonly List<Function> functions;
+        internal readonly bool[] lastPreprocessorCompare;
+        internal readonly Token[][] lastActualCompare;
+        internal readonly Dictionary<string, dynamic[]> ppv;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector> selections;
@@ -907,6 +907,13 @@ namespace mc_compiled.MCC.Compiler
         public void SetPPV(string name, object[] value) =>
             ppv[name] = value;
         /// <summary>
+        /// Get the names of all registered preprocessor variables.
+        /// </summary>
+        public string[] PPVNames
+        {
+            get => ppv.Select(p => p.Key).ToArray();
+        }
+        /// <summary>
         /// Resolve all preprocessor variables in a string.
         /// </summary>
         /// <param name="str"></param>
@@ -997,6 +1004,20 @@ namespace mc_compiled.MCC.Compiler
         public static void ResetGeneratedFiles()
         {
             branchFileIndexes.Clear();
+        }
+
+        /// <summary>
+        /// Do a cleanup of the massive amount of resources this thing takes up as soon as possible.
+        /// </summary>
+        public void Cleanup()
+        {
+            currentFiles.Clear();
+            loadedFiles.Clear();
+            ppv.Clear();
+            scoreboard.definedTempVars.Clear();
+            scoreboard.values.Clear();
+            scoreboard.structs.Clear();
+            GC.Collect();
         }
     }
 }

@@ -2,6 +2,7 @@
 using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Server;
 using mc_compiled.MCC.SyntaxHighlighting;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
@@ -216,6 +217,43 @@ namespace mc_compiled
                     Console.WriteLine("Completed. Output file: {0}", outputFile);
                     Console.ForegroundColor = color;
                 }
+                return;
+            }
+            if(fileUpper.Equals("--SERVER"))
+            {
+                new Definitions(debug);
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
+                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project";
+                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
+                DECORATE = false;
+                NO_PAUSE = true;
+                MCCServer server = new MCCServer(orp, obp);
+                return;
+            }
+            if (fileUpper.Equals("--PROTOCOL"))
+            {
+                RegistryConfiguration config = new RegistryConfiguration();
+                if (!config.hasBeenRegistered)
+                    Console.ReadLine();
+                return;
+            }
+            if (fileUpper.Equals("--FROMPROTOCOL"))
+            {
+                // check for existing MCCompiled processes.
+                Process[] mccs = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
+                if(mccs.Length > 1)
+                    return;
+
+                // okay... step up to the job.
+                new Definitions(debug);
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
+                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project";
+                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
+                DECORATE = false;
+                NO_PAUSE = true;
+                MCCServer server = new MCCServer(orp, obp);
                 return;
             }
             if (fileUpper.Equals("--JSONBUILDER"))
@@ -500,6 +538,7 @@ namespace mc_compiled
                     File.Delete(del);
             }
         }
+
         /// <summary>
         /// Compile a file with MCCompiled using the existing options.
         /// </summary>
@@ -510,17 +549,31 @@ namespace mc_compiled
         /// <returns>If the compilation succeeded.</returns>
         internal static bool RunMCCompiled(string file, InputPPV[] ppvs, string outputBP, string outputRP, bool silentErrors = false)
         {
+            string content = File.ReadAllText(file);
+            return RunMCCompiledCode(content, file, ppvs, outputBP, outputRP, silentErrors);
+        }
+        /// <summary>
+        /// Compile a file with MCCompiled using the existing options.
+        /// </summary>
+        /// <param name="code">The code to compile.</param>
+        /// <param name="file">The file the contents were gotten from.</param>
+        /// <param name="outputBP">The root location that the BP content will be written to.</param>
+        /// <param name="outputRP">The root location that the RP content will be written to.</param>
+        /// <param name="silentErrors">Whether to silently throw away errors.</param>
+        /// <returns>If the compilation succeeded.</returns>
+        internal static bool RunMCCompiledCode(string code, string file, InputPPV[] ppvs, string outputBP, string outputRP, bool silentErrors = false)
+        {
             string project = Path.GetFileNameWithoutExtension(file);
+
             outputBP = outputBP.Replace("?project", project);
             outputRP = outputRP.Replace("?project", project);
-
             bool hasBehaviorManifest = File.Exists(Path.Combine(outputBP, "manifest.json"));
             bool hasResourceManifest = File.Exists(Path.Combine(outputRP, "manifest.json"));
 
             try
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
-                Token[] tokens = Tokenizer.TokenizeFile(file);
+                Token[] tokens = new Tokenizer(code).Tokenize();
 
                 if (DEBUG)
                 {
@@ -591,7 +644,7 @@ namespace mc_compiled
                 Console.WriteLine("An error has occurred during compilation:\n" +
                     $"\t{Path.GetFileName(file)}:{line} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
                 Console.ForegroundColor = oldColor;
-                if(!NO_PAUSE)
+                if (!NO_PAUSE)
                     Console.ReadLine();
                 return false;
             }

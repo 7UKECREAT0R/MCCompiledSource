@@ -99,6 +99,8 @@
     <Compile Include="MCC\Compiler\TypePattern.cs" />
     <Compile Include="MCC\FixedPoint.cs" />
     <Compile Include="MCC\Scoreboard.cs" />
+    <Compile Include="MCC\Server\MCCServer.cs" />
+    <Compile Include="MCC\Server\RegistryConfiguration.cs" />
     <Compile Include="MCC\StructDefinition.cs" />
     <Compile Include="MCC\Scheduling\TickScheduler.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Monarch.cs" />
