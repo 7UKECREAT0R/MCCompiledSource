@@ -196,7 +196,10 @@ namespace mc_compiled.MCC.Compiler
         protected override TypePattern[] GetValidPatterns()
         {
             return new[] {
-                new TypePattern(typeof(TokenIdentifierValue), typeof(IAssignment))
+                new TypePattern(
+                    new NamedType(typeof(TokenIdentifierValue)),
+                    new NamedType(typeof(IAssignment))
+                )
             };
         }
         protected override void Run(Executor executor)
@@ -266,7 +269,10 @@ namespace mc_compiled.MCC.Compiler
         protected override TypePattern[] GetValidPatterns()
         {
             return new[] {
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenOpenParenthesis))
+                new TypePattern(
+                    new NamedType(typeof(TokenIdentifier)),
+                    new NamedType(typeof(TokenOpenParenthesis))
+                )
             };
         }
         protected override void Run(Executor executor)

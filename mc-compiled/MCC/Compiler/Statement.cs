@@ -166,9 +166,18 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void Run0(Executor executor)
         {
-            if(patterns != null && patterns.Length > 0)
-                if (!patterns.Any(pattern => pattern.Check(tokens)))
-                    throw new StatementException(this, "Invalid call pattern. Make sure you included all arguments of the right type.");
+            if (patterns != null && patterns.Length > 0)
+            {
+                IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens));
+
+                if(results.All(result => !result.match))
+                {
+                    // get the closest matched pattern
+                    MatchResult closest = results.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
+                    var missingArgs = closest.missing.Select(m => m.ToString());
+                    throw new StatementException(this, "Missing required argument(s): " + string.Join(", ", missingArgs));
+                }
+            }
 
             currentToken = 0;
             Run(executor);
@@ -603,7 +612,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 if (patterns.Length < 1)
                     return true;
-                return patterns.All(tp => tp.Check(tokens));
+                return patterns.Any(tp => tp.Check(tokens).match);
             }
         }
     }

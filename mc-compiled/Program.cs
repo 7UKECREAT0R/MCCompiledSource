@@ -499,12 +499,11 @@ namespace mc_compiled
             }
 
             PrepareToCompile();
-            bool silent = REGOLITH;
 
             if(REGOLITH)
             {
                 foreach (string file in files)
-                    if (RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, silent))
+                    if (RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, false))
                         File.Delete(file); // delete if compilation succeeded, otherwise might be another format
             } else
             {
@@ -512,7 +511,7 @@ namespace mc_compiled
                 {
                     CleanDirectory(obp, file);
                     CleanDirectory(orp, file);
-                    RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, silent);
+                    RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, false);
                 }
             }
         }
@@ -620,7 +619,7 @@ namespace mc_compiled
                 string message = exc.Message;
                 ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Problem encountered during tokenization of file:\n" +
+                Console.Error.WriteLine("Problem encountered during tokenization of file:\n" +
                     $"\t{Path.GetFileName(file)}:{line} -- {message}\n\nTokenization cannot be continued.");
                 Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)
@@ -641,7 +640,7 @@ namespace mc_compiled
 
                 ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("An error has occurred during compilation:\n" +
+                Console.Error.WriteLine("An error has occurred during compilation:\n" +
                     $"\t{Path.GetFileName(file)}:{line} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
                 Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)

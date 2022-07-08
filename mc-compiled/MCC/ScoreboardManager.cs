@@ -17,11 +17,30 @@ namespace mc_compiled.MCC
         /// </summary>
         public enum ValueType
         {
+            /// <summary>
+            /// An integral value.
+            /// </summary>
             INT,
+            /// <summary>
+            /// A decimal value with a set precision.
+            /// </summary>
             DECIMAL,
+            /// <summary>
+            /// A boolean (true/false) value.
+            /// </summary>
             BOOL,
+            /// <summary>
+            /// A time value, represented in ticks.
+            /// </summary>
             TIME,
-            STRUCT
+            /// <summary>
+            /// A user-defined structure.
+            /// </summary>
+            STRUCT,
+            /// <summary>
+            /// A preprocessor variable.
+            /// </summary>
+            PPV
         }
         /// <summary>
         /// A shallow variable definition used in structs, defines, functions, etc...
@@ -256,6 +275,9 @@ namespace mc_compiled.MCC
                         break;
                     case "TIME":
                         type = ValueType.TIME;
+                        break;
+                    case "PPV":
+                        type = ValueType.PPV;
                         break;
                     default:
                         name = identifier.Convert(executor, TokenIdentifier.CONVERT_STRING) as TokenStringLiteral;

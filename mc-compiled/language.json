@@ -26,8 +26,7 @@
     }
   },
   "mappings": {
-    ".": "Token",
-    "*": "TokenLiteral",
+    "any": "TokenLiteral",
     "id": "TokenIdentifier",
     "object": "IObjectable",
     "compare": "TokenCompare",
@@ -37,7 +36,7 @@
     "bool": "TokenBooleanLiteral",
     "selector": "TokenSelectorLiteral",
     "value": "TokenIdentifierValue",
-    "pos": "TokenCoordinateLiteral",
+    "coord": "TokenCoordinateLiteral",
     "enum": "TokenIdentifierEnum",
     "dots": "TokenRangeDots",
     "range": "TokenRangeLiteral"
@@ -319,7 +318,7 @@
       "description": "Teleport Selected Entity",
       "details": "Teleports the currently selected entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
       "patterns": [
-        [ "pos:x", "pos:y", "pos:z" ],
+        [ "coord:x", "coord:y", "coord:z" ],
         [ "selector:other" ],
         [ "string:other" ]
       ]
@@ -328,8 +327,8 @@
       "description": "Teleport Entity to Selected",
       "details": "Teleports an entity to the selected entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
       "patterns": [
-        [ "selector:entity", "?pos:offset x", "?pos:offset y", "?pos:offset z" ],
-        [ "string:entity", "?pos:offset x", "?pos:offset y", "?pos:offset z" ]
+        [ "selector:entity", "?coord:offset x", "?coord:offset y", "?coord:offset z" ],
+        [ "string:entity", "?coord:offset x", "?coord:offset y", "?coord:offset z" ]
       ]
     },
     "move": {
@@ -343,7 +342,7 @@
       "description": "Face Selected Towards...",
       "details": "Faces the selected entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
       "patterns": [
-        [ "pos:x", "pos:y", "pos:z" ],
+        [ "coord:x", "coord:y", "coord:z" ],
         [ "selector:other" ],
         [ "string:other" ]
       ]
@@ -367,30 +366,30 @@
       "description": "Place Block",
       "details": "Places a block at a specific position, optionally using a replace mode.",
       "patterns": [
-        [ "id:replace mode", "string:block", "pos:x", "pos:y", "pos:z", "?int:data" ],
-        [ "string:block", "pos:x", "pos:y", "pos:z", "?int:data" ]
+        [ "id:replace mode", "string:block", "coord:x", "coord:y", "coord:z", "?int:data" ],
+        [ "string:block", "coord:x", "coord:y", "coord:z", "?int:data" ]
       ]
     },
     "fill": {
       "description": "Fill Region",
       "details": "Fills blocks in a specific region, optionally using a replace mode.",
       "patterns": [
-        [ "id:fill mode", "string:block", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2" ],
-        [ "string:block", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2" ]
+        [ "id:fill mode", "string:block", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2" ],
+        [ "string:block", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2" ]
       ]
     },
     "scatter": {
       "description": "Scatter Blocks in Region",
       "details": "Randomly scatters blocks throughout a region with a certain percentage.",
       "patterns": [
-        [ "string:block", "int:percent", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2", "?string:seed" ]
+        [ "string:block", "int:percent", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "?string:seed" ]
       ]
     },
     "replace": {
       "description": "Replace in Region",
       "details": "Replaces all source blocks with a result block in a specific region.",
       "patterns": [
-        [ "string:source block", "?int:data", "pos:x1", "pos:y1", "pos:z1", "pos:x2", "pos:y2", "pos:z2", "string:result block", "?int:data" ]
+        [ "string:source block", "?int:data", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "string:result block", "?int:data" ]
       ]
     },
     "kill": {
@@ -466,7 +465,7 @@
         [ "int:amount", "?enum:damage cause" ],
         [ "int:amount", "?enum:damage cause", "selector:blame" ],
         [ "int:amount", "?enum:damage cause", "string:blame" ],
-        [ "int:amount", "?enum:damage cause", "pos:from x", "pos:from y", "pos: from z" ]
+        [ "int:amount", "?enum:damage cause", "coord:from x", "coord:from y", "coord: from z" ]
       ]
     },
     "effect": {
@@ -490,7 +489,7 @@
       "details": "Create a null entity, remove the selected ones, or manage the classes on the selected ones.",
       "features": 1,
       "patterns": [
-        [ "id:create", "string:name", "?string:class", "?pos:x", "?pos:y", "?pos:x" ],
+        [ "id:create", "string:name", "?string:class", "?coord:x", "?coord:y", "?coord:x" ],
         [ "id:remove", "?string:name", "?string:class" ],
         [ "id:class", "id:remove" ],
         [ "id:class", "string:class" ]
@@ -515,29 +514,29 @@
       "details": "Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings.",
       "features": 4,
       "patterns": [
-        [ "?pos:x", "?pos:y", "?pos:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ]
+        [ "?coord:x", "?coord:y", "?coord:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ]
       ]
     },
     "feature": {
       "description": "Enable Feature",
       "details": "Enables a feature to be used for this project, generating any of the necessary files.",
       "patterns": [
-        [ "id:feature" ]
+        [ "id:feature name" ]
       ]
     },
     "function": {
       "description": "Define/Call Function",
       "details": "If followed by a block, it is treated as a function definition. Parameters must have types, optionally having default values. Functions should be called through 'function_name(parameters)'.",
       "patterns": [
-        [ "*:args" ]
+        [ "any:args" ]
       ]
     },
     "return": {
       "description": "Set Return Value",
       "details": "Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.",
       "patterns": [
-        [ "value:any" ],
-        [ "*:any" ]
+        [ "value:variable" ],
+        [ "any:return value" ]
       ]
     },
     "struct": {

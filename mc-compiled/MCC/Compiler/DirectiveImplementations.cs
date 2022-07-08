@@ -26,7 +26,6 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Action<Executor> PUSH_ALIGN = (e) => { e.PushSelector(true); };
         public static readonly Action<Executor> POP = (e) => { e.PopSelector(); };
 
-
         public static void _var(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
@@ -1007,6 +1006,11 @@ namespace mc_compiled.MCC.Compiler
         {
             ScoreboardManager.ValueDefinition def = executor
                 .scoreboard.GetNextValueDefinition(tokens);
+
+            // defining PPV value the wrong way
+            if (def.type == ScoreboardManager.ValueType.PPV)
+                throw new StatementException(tokens, "Type 'PPV' is only supported as a function parameter. Try using $var instead.");
+
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
             executor.scoreboard.Add(value);
             List<string> commands = new List<string>();
@@ -2324,6 +2328,10 @@ namespace mc_compiled.MCC.Compiler
                 Statement statement = executor.Next();
                 ScoreboardManager.ValueDefinition def = executor
                     .scoreboard.GetNextValueDefinition(statement);
+
+                if (def.type == ScoreboardManager.ValueType.PPV)
+                    throw new StatementException(tokens, "Type 'PPV' is only supported as a function parameter.");
+
                 ScoreboardValue value = def.Create(executor.scoreboard, statement);
                 string key = definition.GetNextKey();
                 value.Name = key;

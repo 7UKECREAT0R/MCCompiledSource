@@ -337,15 +337,16 @@ namespace mc_compiled.MCC.Compiler
         public static void ReadJSON(JObject root)
         {
             // read type mappings
-            Dictionary<string, Type> mappings = new Dictionary<string, Type>();
+            Dictionary<string, NamedType> mappings = new Dictionary<string, NamedType>();
             var properties = (root["mappings"] as JObject).Properties();
             foreach (var field in (root["mappings"] as JObject).Properties())
             {
                 string key = field.Name;
                 Type value = Type.GetType("mc_compiled.MCC.Compiler." + field.Value.ToString(), true, false);
-                mappings[key] = value;
+                mappings[key] = new NamedType(value, key);
             }
 
+            // DirectiveImplementations type for looking up methods
             Type impls = typeof(DirectiveImplementations);
 
             // parse directives
@@ -403,7 +404,7 @@ namespace mc_compiled.MCC.Compiler
                                 _type = _type.Substring(1);
 
                             // look through mappings for type
-                            if(!mappings.TryGetValue(_type, out Type type))
+                            if(!mappings.TryGetValue(_type, out NamedType type))
                                 throw new Exception($"Invalid type mapping '{_type}'.");
 
                             if (optional)
