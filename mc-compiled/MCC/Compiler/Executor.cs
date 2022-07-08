@@ -545,6 +545,9 @@ namespace mc_compiled.MCC.Compiler
         {
             Statement current = statements[readIndex - 1];
 
+            if (!HasNext)
+                throw new StatementException(current, "Unexpected end-of-file while expecting statement/block.");
+
             if(NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = Next<StatementOpenBlock>();

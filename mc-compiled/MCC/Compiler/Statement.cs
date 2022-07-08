@@ -212,7 +212,7 @@ namespace mc_compiled.MCC.Compiler
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
                 else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
                     allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? new Token[] { unresolved });
-                else if(unresolved is TokenIdentifier)
+                else if (unresolved is TokenIdentifier)
                 {
                     TokenIdentifier identifier = unresolved as TokenIdentifier;
                     string word = identifier.word;
@@ -226,7 +226,13 @@ namespace mc_compiled.MCC.Compiler
                         allResolved.Add(new TokenIdentifierFunction(function, line));
                     else
                         allResolved.Add(unresolved);
-                } else
+                }
+                else if (unresolved is TokenOpenParenthesis)
+                {
+                    (unresolved as TokenOpenParenthesis).hasBeenSquashed = false;
+                    allResolved.Add(unresolved);
+                }
+                else
                     allResolved.Add(unresolved);
             }
 

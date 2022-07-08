@@ -35,7 +35,7 @@ namespace mc_compiled.MCC.Server
 
                 ConsoleColor old = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Set up MCCompiled ${Compiler.Executor.MCC_VERSION} language server for use. Please remember to run this command again if the location of this executable changes.");
+                Console.WriteLine($"Set up MCCompiled {Compiler.Executor.MCC_VERSION} language server for use. Please remember to run this command again if the location of this executable changes.");
                 Console.ForegroundColor = old;
                 hasBeenRegistered = true;
             } catch(Exception e)

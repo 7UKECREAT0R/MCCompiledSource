@@ -19,7 +19,7 @@ namespace mc_compiled.MCC.Server
         public readonly string COMPILE_ADDRESS = $"http://localhost:{PORT}/compile/";
         public readonly string[] VALID_ACTIONS =
         {
-            "lint", "compile", "version", "close"
+            "lint", "compile", "version", "close", "heartbeat"
         };
 
         public readonly HttpListener server;
@@ -101,8 +101,6 @@ namespace mc_compiled.MCC.Server
                     string method = request.HttpMethod;
                     string host = request.UserHostName;
 
-                    Console.WriteLine("{0}, requesting action: {1}, arg: {2}", method, action, arg);
-
                     string resultString = await RunAction(action, arg, request, response);
                     result = Encoding.UTF8.GetBytes(resultString);
                 }
@@ -124,6 +122,13 @@ namespace mc_compiled.MCC.Server
                 return "{ \"response\": \"Invalid action.\" }";
             }
 
+            if(action.Equals("heartbeat"))
+            {
+                response.StatusCode = 200;
+                response.ContentType = "application/json";
+                return "{ \"response\": \"OK\" }";
+            }
+
             if (action.Equals("lint"))
             {
                 // compile and gather information without emitting files
@@ -142,7 +147,6 @@ namespace mc_compiled.MCC.Server
                 byte[] buffer = new byte[length];
                 await request.InputStream.ReadAsync(buffer, 0, length);
                 string code = Encoding.UTF8.GetString(buffer);
-
 
                 try
                 {
@@ -179,6 +183,8 @@ namespace mc_compiled.MCC.Server
                     return ErrorStructure.Wrap(exc).ToJSON();
                 } catch(Exception exc)
                 {
+                    if (System.Diagnostics.Debugger.IsAttached)
+                        throw;
                     if (Program.DEBUG)
                         Console.WriteLine("\tFatal Error:\n\n" + exc.ToString());
                     Console.WriteLine(exc.ToString());
@@ -268,10 +274,14 @@ namespace mc_compiled.MCC.Server
             this.line = line;
             this.message = message;
         }
-        public static ErrorStructure Wrap(TokenizerException exception) =>
-            new ErrorStructure(During.tokenizer, exception.line, exception.Message);
-        public static ErrorStructure Wrap(StatementException exception) =>
-            new ErrorStructure(During.execution, exception.statement.Line, exception.Message);
+        public static ErrorStructure Wrap(TokenizerException exception)
+        {
+            return new ErrorStructure(During.tokenizer, exception.line, exception.Message);
+        }
+        public static ErrorStructure Wrap(StatementException exception)
+        {
+            return new ErrorStructure(During.execution, exception.statement.Line, exception.Message);
+        }
 
         public string ToJSON() =>
             $@"{{ ""type"": ""error"", ""during"": ""{during}"", ""line"": {line}, ""message"": ""{message}"" }}";
@@ -290,6 +300,7 @@ namespace mc_compiled.MCC.Server
             lint.variables.AddRange(executor.scoreboard.values.Select(sb => VariableStructure.Wrap(sb)));
             lint.variables.AddRange(executor.scoreboard.definedTempVars.Select(str => VariableStructure.Int(str)));
             lint.functions.AddRange(executor.functions.Select(func => FunctionStructure.Wrap(func)));
+
             return lint;
         }
 

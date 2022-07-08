@@ -289,7 +289,7 @@ namespace mc_compiled.MCC.Compiler
             // coordinate literals
             if(firstChar == '~')
             {
-                if (char.IsDigit(secondChar) || secondChar == '-')
+                if (char.IsDigit(secondChar) || (secondChar == '-' & char.IsDigit(Peek(1))))
                 {
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
@@ -300,7 +300,7 @@ namespace mc_compiled.MCC.Compiler
             }
             if (firstChar == '^')
             {
-                if (char.IsDigit(secondChar) || secondChar == '-')
+                if (char.IsDigit(secondChar) || (secondChar == '-' & char.IsDigit(Peek(1))))
                 {
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
@@ -335,12 +335,15 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string word = sb.ToString();
-            string wordCI = word.ToUpper();
 
-            switch (wordCI)
+            switch (word)
             {
+                case "true":
+                case "True":
                 case "TRUE":
                     return new TokenBooleanLiteral(true, CURRENT_LINE);
+                case "false":
+                case "False":
                 case "FALSE":
                     return new TokenBooleanLiteral(false, CURRENT_LINE);
                 default:
