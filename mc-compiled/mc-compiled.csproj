@@ -79,6 +79,7 @@
     <Compile Include="MCC\Compiler\CommandFile.cs" />
     <Compile Include="MCC\Compiler\DirectiveImplementations.cs" />
     <Compile Include="MCC\Compiler\Directives.cs" />
+    <Compile Include="MCC\Compiler\FunctionParameter.cs" />
     <Compile Include="MCC\CustomEntities\CustomEntityManager.cs" />
     <Compile Include="MCC\CustomEntities\ExploderManager.cs" />
     <Compile Include="MCC\EntityManager.cs" />

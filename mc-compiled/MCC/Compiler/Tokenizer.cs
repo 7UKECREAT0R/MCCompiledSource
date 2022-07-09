@@ -160,6 +160,7 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenCloseBlock(CURRENT_LINE);
                 case '&':
                     return new TokenAnd(CURRENT_LINE);
+                case ',':
                 default:
                     break;
             }

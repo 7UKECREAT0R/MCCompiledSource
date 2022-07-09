@@ -28,7 +28,7 @@
   "mappings": {
     "any": "TokenLiteral",
     "id": "TokenIdentifier",
-    "object": "IObjectable",
+    "object": "IPreprocessor",
     "compare": "TokenCompare",
     "int": "TokenIntegerLiteral",
     "number": "TokenNumberLiteral",

@@ -906,9 +906,9 @@ namespace mc_compiled.MCC.Compiler
         /// Set or create a preprocessor variable.
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="value"></param>
-        public void SetPPV(string name, object[] value) =>
-            ppv[name] = value;
+        /// <param name="values"></param>
+        public void SetPPV(string name, object[] values) =>
+            ppv[name] = values;
         /// <summary>
         /// Get the names of all registered preprocessor variables.
         /// </summary>

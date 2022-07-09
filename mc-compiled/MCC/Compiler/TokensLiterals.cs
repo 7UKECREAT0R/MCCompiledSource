@@ -51,7 +51,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a generic number literal.
     /// </summary>
-    public abstract class TokenNumberLiteral : TokenLiteral, IObjectable
+    public abstract class TokenNumberLiteral : TokenLiteral, IPreprocessor
     {
         public TokenNumberLiteral(int lineNumber) : base(lineNumber) { }
 
@@ -66,9 +66,9 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public abstract float GetNumber();
 
-        public abstract object GetObject();
+        public abstract object GetValue();
     }
-    public sealed class TokenStringLiteral : TokenLiteral, IObjectable, IImplicitToken
+    public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken
     {
         public readonly string text;
 
@@ -78,16 +78,16 @@ namespace mc_compiled.MCC.Compiler
             this.text = text;
         }
         public override string ToString() => text;
-        public object GetObject() =>  text;
+        public object GetValue() =>  text;
 
         public static implicit operator string(TokenStringLiteral literal) => literal.text;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
-            if (!(other is IObjectable))
+            if (!(other is IPreprocessor))
                 throw new TokenException(this, "Invalid literal operation.");
 
-            string append = (other as IObjectable).GetObject().ToString();
+            string append = (other as IPreprocessor).GetValue().ToString();
             return new TokenStringLiteral(text + append, lineNumber);
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
@@ -211,7 +211,7 @@ namespace mc_compiled.MCC.Compiler
             return null;
         }
     }
-    public sealed class TokenBooleanLiteral : TokenNumberLiteral, IObjectable
+    public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor
     {
         public readonly bool boolean;
         public override string AsString() => boolean.ToString();
@@ -220,7 +220,7 @@ namespace mc_compiled.MCC.Compiler
             this.boolean = boolean;
         }
         public override string ToString() => boolean.ToString();
-        public override object GetObject() => boolean;
+        public override object GetValue() => boolean;
         public override float GetNumber()
         {
             return boolean ? 1 : 0;
@@ -266,7 +266,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 return coordinate.valuei;
         }
-        public override object GetObject() => coordinate;
+        public override object GetValue() => coordinate;
 
         public static implicit operator Coord(TokenCoordinateLiteral literal) => literal.coordinate;
         public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valuei;
@@ -384,7 +384,7 @@ namespace mc_compiled.MCC.Compiler
             this.multiplier = multiplier;
         }
         public override string ToString() => number.ToString();
-        public override object GetObject() => number;
+        public override object GetValue() => number;
         public override float GetNumber()
         {
             return number;
@@ -472,7 +472,7 @@ namespace mc_compiled.MCC.Compiler
             throw new TokenException(this, "Invalid literal operation.");
         }
     }
-    public sealed class TokenRangeLiteral : TokenLiteral, IObjectable
+    public sealed class TokenRangeLiteral : TokenLiteral, IPreprocessor
     {
         public Range range;
         public override string AsString() => range.ToString();
@@ -583,7 +583,7 @@ namespace mc_compiled.MCC.Compiler
             throw new TokenException(this, "Invalid literal operation.");
         }
 
-        public object GetObject()
+        public object GetValue()
         {
             if (range.single && !range.invert)
                 return range.min.Value;
@@ -601,7 +601,7 @@ namespace mc_compiled.MCC.Compiler
             this.number = number;
         }
         public override string ToString() => number.ToString();
-        public override object GetObject() => number;
+        public override object GetValue() => number;
         public override float GetNumber()
         {
             return number;
@@ -661,7 +661,7 @@ namespace mc_compiled.MCC.Compiler
         }
     }
 
-    public sealed class TokenSelectorLiteral : TokenLiteral, IObjectable
+    public sealed class TokenSelectorLiteral : TokenLiteral, IPreprocessor
     {
         public readonly bool simple;
         public readonly Selector selector;
@@ -706,6 +706,6 @@ namespace mc_compiled.MCC.Compiler
             throw new NotImplementedException();
         }
 
-        public object GetObject() => selector;
+        public object GetValue() => selector;
     }
 }

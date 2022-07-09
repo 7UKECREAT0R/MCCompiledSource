@@ -30,8 +30,8 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             List<dynamic> values = new List<dynamic>();
-            while (tokens.NextIs<IObjectable>())
-                values.Add(tokens.Next<IObjectable>().GetObject());
+            while (tokens.NextIs<IPreprocessor>())
+                values.Add(tokens.Next<IPreprocessor>().GetValue());
 
             executor.SetPPV(varName, values.ToArray());
         }
@@ -76,7 +76,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _add(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IObjectable otherToken = tokens.Next<IObjectable>();
+            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
 
             dynamic[] others;
             if (otherToken is TokenIdentifier)
@@ -88,9 +88,9 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IObjectable).GetObject());
-                while (tokens.NextIs<IObjectable>())
-                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                inputs.Add((otherToken as IPreprocessor).GetValue());
+                while (tokens.NextIs<IPreprocessor>())
+                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
                 others = inputs.ToArray();
             }
 
@@ -127,7 +127,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _sub(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IObjectable otherToken = tokens.Next<IObjectable>();
+            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
 
             dynamic[] others;
             if (otherToken is TokenIdentifier)
@@ -139,9 +139,9 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IObjectable).GetObject());
-                while (tokens.NextIs<IObjectable>())
-                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                inputs.Add((otherToken as IPreprocessor).GetValue());
+                while (tokens.NextIs<IPreprocessor>())
+                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
                 others = inputs.ToArray();
             }
 
@@ -178,7 +178,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _mul(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IObjectable otherToken = tokens.Next<IObjectable>();
+            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
 
             dynamic[] others;
             if (otherToken is TokenIdentifier)
@@ -190,9 +190,9 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IObjectable).GetObject());
-                while (tokens.NextIs<IObjectable>())
-                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                inputs.Add((otherToken as IPreprocessor).GetValue());
+                while (tokens.NextIs<IPreprocessor>())
+                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
                 others = inputs.ToArray();
             }
 
@@ -229,7 +229,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _div(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IObjectable otherToken = tokens.Next<IObjectable>();
+            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
 
             dynamic[] others;
             if (otherToken is TokenIdentifier)
@@ -241,9 +241,9 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IObjectable).GetObject());
-                while (tokens.NextIs<IObjectable>())
-                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                inputs.Add((otherToken as IPreprocessor).GetValue());
+                while (tokens.NextIs<IPreprocessor>())
+                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
                 others = inputs.ToArray();
             }
 
@@ -280,7 +280,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _mod(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IObjectable otherToken = tokens.Next<IObjectable>();
+            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
 
             dynamic[] others;
             if (otherToken is TokenIdentifier)
@@ -292,9 +292,9 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IObjectable).GetObject());
-                while (tokens.NextIs<IObjectable>())
-                    inputs.Add(tokens.Next<IObjectable>().GetObject());
+                inputs.Add((otherToken as IPreprocessor).GetValue());
+                while (tokens.NextIs<IPreprocessor>())
+                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
                 others = inputs.ToArray();
             }
 
@@ -331,7 +331,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _pow(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IObjectable otherToken = tokens.Next<IObjectable>();
+            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
 
             dynamic[] others;
             if (otherToken is TokenIdentifier)
@@ -343,9 +343,9 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 List<dynamic> inputLiterals = new List<dynamic>();
-                inputLiterals.Add((otherToken as IObjectable).GetObject());
-                while (tokens.NextIs<IObjectable>())
-                    inputLiterals.Add(tokens.Next<IObjectable>().GetObject());
+                inputLiterals.Add((otherToken as IPreprocessor).GetValue());
+                while (tokens.NextIs<IPreprocessor>())
+                    inputLiterals.Add(tokens.Next<IPreprocessor>().GetValue());
                 others = inputLiterals.ToArray();
             }
 
@@ -407,8 +407,8 @@ namespace mc_compiled.MCC.Compiler
         {
             string varName = tokens.Next<TokenIdentifier>().word;
             TokenCompare compare = tokens.Next<TokenCompare>();
-            IObjectable otherToken = tokens.Next<IObjectable>();
-            dynamic[] others = new dynamic[] { otherToken.GetObject() };
+            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
+            dynamic[] others = new dynamic[] { otherToken.GetValue() };
 
             if (otherToken is TokenIdentifier)
                 if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
@@ -595,10 +595,10 @@ namespace mc_compiled.MCC.Compiler
                     continue;
                 }
 
-                if (!tokens.NextIs<IObjectable>())
+                if (!tokens.NextIs<IPreprocessor>())
                     throw new StatementException(tokens, "Invalid argument type for '" + argNames[i] + "' in macro call.");
 
-                args[i] = new dynamic[] { tokens.Next<IObjectable>().GetObject() };
+                args[i] = new dynamic[] { tokens.Next<IPreprocessor>().GetValue() };
             }
 
             // save variables which collide with this macro's args.
@@ -2228,13 +2228,11 @@ namespace mc_compiled.MCC.Compiler
             else
                 selector = new Selector(Selector.Core.s);
 
-            // ... attributes will go here! ...
+            // ... future attributes stuff will go here! ...
 
             // normal definition
             string functionName = tokens.Next<TokenIdentifier>().word;
-            List<ScoreboardValue> args = new List<ScoreboardValue>();
-            List<Token> defaults = new List<Token>(); // default values
-            bool mustHaveDefault = false;
+            List<FunctionParameter> args = new List<FunctionParameter>();
 
             if (tokens.NextIs<TokenOpenParenthesis>())
                 tokens.Next();
@@ -2243,28 +2241,22 @@ namespace mc_compiled.MCC.Compiler
             while (tokens.HasNext && tokens.NextIs<TokenIdentifier>())
             {
                 var def = executor.scoreboard.GetNextValueDefinition(tokens);
-                ScoreboardValue value = def.Create(executor.scoreboard, tokens);
-                executor.scoreboard.Add(value);
-                args.Add(value);
 
-                if (def.defaultValue == null)
-                {
-                    if (mustHaveDefault)
-                        throw new StatementException(tokens, "All parameters following a parameter with a default must also have defaults.");
-                    defaults.Add(null);
-                }
+                if(def.type == ScoreboardManager.ValueType.PPV)
+                    args.Add(FunctionParameter.CreatePPV(def.name, def.defaultValue));
                 else
                 {
-                    mustHaveDefault = true;
-                    defaults.Add(def.defaultValue);
+                    ScoreboardValue value = def.Create(executor.scoreboard, tokens);
+                    executor.scoreboard.Add(value);
+                    args.Add(FunctionParameter.CreateScoreboard(value, def.defaultValue));
                 }
             }
 
             // constructor
-            Function function = new Function(functionName, selector, false)
-                .AddParameters(args, defaults);
+            Function function = new Function(functionName, selector, false) ;
+            function.AddParameters(args);
 
-            // define it with the compiler
+            // register it with the compiler
             executor.RegisterFunction(function);
 
             if (executor.NextIs<StatementOpenBlock>())

@@ -336,13 +336,15 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="root"></param>
         public static void ReadJSON(JObject root)
         {
+            const string IDENTIFIER_PREFIX = "mc_compiled.MCC.Compiler.";
+
             // read type mappings
             Dictionary<string, NamedType> mappings = new Dictionary<string, NamedType>();
             var properties = (root["mappings"] as JObject).Properties();
             foreach (var field in (root["mappings"] as JObject).Properties())
             {
                 string key = field.Name;
-                Type value = Type.GetType("mc_compiled.MCC.Compiler." + field.Value.ToString(), true, false);
+                Type value = Type.GetType(IDENTIFIER_PREFIX + field.Value.ToString(), true, false);
                 mappings[key] = new NamedType(value, key);
             }
 

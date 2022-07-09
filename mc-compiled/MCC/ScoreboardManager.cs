@@ -108,7 +108,7 @@ namespace mc_compiled.MCC
         }
         public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
         {
-            string key = value.Name + "__str";
+            string key = value.Name + "_str";
             if (definedTempVars.Contains(key))
                 return;
 

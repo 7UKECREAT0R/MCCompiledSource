@@ -13,8 +13,7 @@ namespace mc_compiled.MCC
     /// </summary>
     public class Function
     {
-        internal readonly List<ScoreboardValue> inputs;
-        internal readonly List<Token> inputDefaults;
+        internal readonly List<FunctionParameter> parameters;
         readonly bool isCompilerGenerated;
         readonly CommandFile file;
 
@@ -28,19 +27,16 @@ namespace mc_compiled.MCC
             this.defaultSelector = defaultSelector;
             file = new CommandFile(name, null, this);
             isCompilerGenerated = fromCompiler;
-            inputs = new List<ScoreboardValue>();
-            inputDefaults = new List<Token>();
+            parameters = new List<FunctionParameter>();
         }
-        public Function AddParameter(ScoreboardValue parameter, TokenLiteral @default = null)
+        public Function AddParameter(FunctionParameter parameter)
         {
-            inputs.Add(parameter);
-            inputDefaults.Add(@default);
+            parameters.Add(parameter);
             return this;
         }
-        public Function AddParameters(IEnumerable<ScoreboardValue> parameters, IEnumerable<Token> defaults)
+        public Function AddParameters(IEnumerable<FunctionParameter> parameters)
         {
-            inputs.AddRange(parameters);
-            inputDefaults.AddRange(defaults);
+            this.parameters.AddRange(parameters);
             return this;
         }
         /// <summary>
@@ -116,53 +112,74 @@ namespace mc_compiled.MCC
         }
         public int ParameterCount
         {
-            get => inputs.Count;
+            get => parameters.Count;
         }
-        public string[] CallFunction(string selector, Statement caller, ScoreboardManager sb, params Token[] inputs)
+        public List<string> CallFunction(string selector, Statement caller, ScoreboardManager sb, params Token[] inputs)
         {
             List<string> commands = new List<string>();
 
             sb.PushTempState();
 
-            int count = this.inputs.Count;
+            int count = this.parameters.Count;
             int inputsLength = inputs.Length;
-            for(int i = 0; i < count; i++)
+            int parameterIndex = 0;
+            for(int inputIndex = 0; inputIndex < count; inputIndex++)
             {
-                ScoreboardValue output = this.inputs[i];
+                FunctionParameter parameter = this.parameters[parameterIndex++];
                 Token input;
-                if (i >= inputsLength)
+                if (inputIndex >= inputsLength)
                 {
-                    input = inputDefaults[i];
-                    if (input == null)
-                        throw new StatementException(caller, $"Missing parameter '{output.AliasName}' in function call.");
+                    if (parameter.HasDefault)
+                        throw new StatementException(caller, $"Missing parameter '{parameter}' in function call.");
+                    else
+                        input = parameter.defaultValue;
+                    inputIndex--;
+
                 } else
-                    input = inputs[i];
+                    input = inputs[inputIndex];
 
-                string outputAccessor = output.Name; // accessor is base name in integer case
-
-                commands.AddRange(output.CommandsDefine());
-
-                if (input is TokenLiteral)
+                // Scoreboard parameter implementation
+                if (parameter.IsScoreboard)
                 {
-                    TokenLiteral literal = input as TokenLiteral;
-                    commands.AddRange(output.CommandsSetLiteral(outputAccessor, selector, literal));
+                    string outputAccessor = parameter.scoreboard.Name;
+                    commands.AddRange(parameter.scoreboard.CommandsDefine());
+
+                    if (input is TokenLiteral)
+                    {
+                        TokenLiteral literal = input as TokenLiteral;
+                        commands.AddRange(parameter.scoreboard.CommandsSetLiteral(outputAccessor, selector, literal));
+                    }
+                    else if (input is TokenIdentifierValue)
+                    {
+                        ScoreboardValue src = (input as TokenIdentifierValue).value;
+                        string thisAccessor = (input as TokenIdentifierValue).word;
+                        commands.AddRange(parameter.scoreboard.CommandsSet(selector, src, thisAccessor, outputAccessor));
+                    }
+                    else
+                        throw new StatementException(caller, $"Unexpected parameter type for input {parameter.scoreboard.AliasName}. Got: {input.GetType().Name}");
                 }
-                else if (input is TokenIdentifierValue)
+                // PPV parameter implementation
+                else if(parameter.IsPPV)
                 {
-                    ScoreboardValue src = (input as TokenIdentifierValue).value;
-                    string thisAccessor = (input as TokenIdentifierValue).word;
-                    commands.AddRange(output.CommandsSet(selector, src, thisAccessor, outputAccessor));
+                    if (!(input is IPreprocessor))
+                        throw new StatementException(caller, $"Input {input} for PPV \"{parameter.ppvName}\" cannot be held in a preprocessor variable.");
+
+                    object single = (input as IPreprocessor).GetValue();
+
+                    string ppv = parameter.ppvName;
+                    sb.executor.SetPPV(ppv, new[] { single });
                 }
+                // rest of implementations go here
                 else
-                    throw new StatementException(caller, $"Unexpected parameter type for input {output.AliasName}. Got: {input.GetType().Name}");
+                    throw new StatementException(caller, $"Unimplemented parameter type: {parameter.type}");
             }
 
             sb.PopTempState();
             commands.Add(Command.Function(this.file));
-            return commands.ToArray();
+            return commands;
         }
 
-        // forward calls to the file it references
+        // these methods forward calls to the file this function references
         public void AddCommand(string command) =>
             file.Add(command);
         public void AddCommandTop(string command) =>
@@ -185,7 +202,7 @@ namespace mc_compiled.MCC
 
         public override string ToString()
         {
-            return $"{name}({string.Join(" ", inputs)})";
+            return $"{name}({string.Join(" ", parameters)})";
         }
     }
 }
