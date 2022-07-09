@@ -198,10 +198,13 @@ namespace mc_compiled.MCC.Compiler
 
         public override string ToString()
         {
-            if(this.types.Length > 1)
-                return '[' + string.Join("/", this.types.Select(t => t.name)) + ": " + this.argName + ']';
+            char bOpen = optional ? '[' : '<';
+            char bClose = optional ? ']' : '>';
 
-            return '[' + this.types[0].name + ": " + this.argName + ']';
+            if (this.types.Length > 1)
+                return bOpen + string.Join("/", this.types.Select(t => t.name)) + ": " + this.argName + bClose;
+
+            return bOpen + this.types[0].name + ": " + this.argName + bClose;
         }
     }
 }

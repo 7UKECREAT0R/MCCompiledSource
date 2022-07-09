@@ -58,7 +58,9 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("@e", "References all entities in the world."),
                 new Keyword("@a", "References all players in the world."),
                 new Keyword("@s", "References the executing entity/player."),
-                new Keyword("@p", "References the nearest player.")
+                new Keyword("@p", "References the nearest player."),
+                new Keyword("@i", "References the initiator, if this was run from NPC dialogue."),
+                new Keyword("@initiator", "References the initiator, if this was run from NPC dialogue.")
             },
             style = new Highlight(255, 79, 79, HighlightStyle.BOLD)
         };

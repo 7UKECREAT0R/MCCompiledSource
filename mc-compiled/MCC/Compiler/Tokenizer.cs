@@ -35,6 +35,7 @@ namespace mc_compiled.MCC.Compiler
             }
         }
         static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
+        static readonly char[] LETTERS = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
         static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:.".ToCharArray();
         static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
         public static bool IsWhiteSpace(char c) => c == ' ' | c == '\t';
@@ -187,9 +188,17 @@ namespace mc_compiled.MCC.Compiler
                         NextChar();
                         core = Selector.Core.e;
                         break;
+                    case 'I':
+                        NextChar();
+                        while (HasNext && LETTERS.Contains(Peek()))
+                            NextChar();
+                        core = Selector.Core.initiator;
+                        break;
                     default:
-                        throw new TokenizerException("Invalid selector. '" +
-                            secondChar + "'. Valid options: @p, @s, @a, or @e");
+                        if(HasNext)
+                            throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @i/@initiator");
+                        else
+                            throw new TokenizerException("Invalid selector '(EOF)'. Valid options: @p, @s, @a, @e, or @i/@initiator");
                 }
                 if (HasNext && Peek() == '[')
                     return NextSelectorLiteral(core);

@@ -175,7 +175,7 @@ namespace mc_compiled.MCC.Compiler
                     // get the closest matched pattern
                     MatchResult closest = results.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
                     var missingArgs = closest.missing.Select(m => m.ToString());
-                    throw new StatementException(this, "Missing required argument(s): " + string.Join(", ", missingArgs));
+                    throw new StatementException(this, "Missing argument(s): " + string.Join(", ", missingArgs));
                 }
             }
 

@@ -13,10 +13,11 @@ namespace mc_compiled.Commands
     {
         public enum Core
         {
-            p,  // Nearest player
-            s,  // Self
-            a,  // All players
-            e   // All entities
+            p,          // Nearest player
+            s,          // Self
+            a,          // All players
+            e,          // All entities
+            initiator   // Initiator of Dialogue Button
         }
         public static Core ParseCore(string core)
         {
@@ -32,6 +33,9 @@ namespace mc_compiled.Commands
                 case "A":
                     return Core.a;
                 case "E":
+                    return Core.e;
+                case "INITIATOR":
+                case "I":
                     return Core.e;
                 default:
                     throw new FormatException($"Cannot parse selector \"{originalCore}\"");
@@ -49,6 +53,8 @@ namespace mc_compiled.Commands
                     return Core.a;
                 case 'E':
                     return Core.e;
+                case 'I':
+                    return Core.e;
                 default:
                     throw new FormatException($"Cannot parse selector \"{core}\"");
             }
@@ -61,7 +67,7 @@ namespace mc_compiled.Commands
             get {
                 if (count.count == 1)
                     return false;
-                return core != Core.s && core != Core.p;
+                return core != Core.s && core != Core.p && core != Core.initiator;
             }
         }
         /// <summary>
@@ -69,7 +75,7 @@ namespace mc_compiled.Commands
         /// </summary>
         public bool NeedsAlign
         {
-            get => core != Core.s;
+            get => core != Core.s && core != Core.initiator;
         }
 
         public Selector()
