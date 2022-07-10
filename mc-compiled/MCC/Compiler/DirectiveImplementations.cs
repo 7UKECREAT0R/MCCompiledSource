@@ -472,8 +472,7 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
-                //block.executeAs = null; Legacy
-                //block.shouldRun = run; Legacy
+
                 if (run)
                 {
                     block.openAction = PUSH_COPY;

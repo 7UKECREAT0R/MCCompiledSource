@@ -162,6 +162,7 @@ namespace mc_compiled.MCC.Compiler
                 case '&':
                     return new TokenAnd(CURRENT_LINE);
                 case ',':
+                case '\r':
                 default:
                     break;
             }
@@ -438,18 +439,26 @@ namespace mc_compiled.MCC.Compiler
             while (HasNext)
             {
                 char c = NextChar();
+                char n = HasNext ? Peek() : '\0';
 
                 if (c == '\\')
                 {
                     escaped = !escaped;
-                    if (!escaped)
-                        sb.Append('\\');
-                    continue;
+
+                    if (escaped && n == '"')
+                    {
+                        sb.Append(NextChar());
+                        continue; // dont include the backslash
+                    }
                 }
-                else if (c == '"' && !escaped)
-                    break;
-                else if (escaped)
+                else
+                {
                     escaped = false;
+
+                    if (c == '"')
+                        break;
+                }
+
 
                 sb.Append(c);
             }
@@ -548,9 +557,13 @@ namespace mc_compiled.MCC.Compiler
     public class TokenizerException : Exception
     {
         public int line;
+        public TokenizerException(string message, int line) : base(message)
+        {
+            this.line = line;
+        }
         public TokenizerException(string message) : base(message)
         {
-            line = Tokenizer.CURRENT_LINE;
+            this.line = Tokenizer.CURRENT_LINE;
         }
     }
 }

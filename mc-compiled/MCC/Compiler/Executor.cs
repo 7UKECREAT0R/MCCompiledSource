@@ -17,9 +17,10 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Executor
     {
-        public const string FSTRING_REGEX = "({([a-zA-Z0-9-:._]+)})|({(@[psea](\\[.+\\])?)})";
+        public const string FSTRING_REGEX = "({(@([pseai]|initiator)(\\[.+\\])?)})|({([a-zA-Z0-9-:._]+)})";
         public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
+        public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
         public const float MCC_VERSION = 1.05f;              // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx"; // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler"; // folder that generated functions go into
@@ -65,6 +66,7 @@ namespace mc_compiled.MCC.Compiler
         Statement[] statements;
         int readIndex = 0;
         int unreachableCode = -1;
+        bool linting;
 
         internal readonly Dictionary<int, object> loadedFiles;
         internal readonly List<int> definedStdFiles;
@@ -78,7 +80,49 @@ namespace mc_compiled.MCC.Compiler
         readonly Stack<Selector> selections;
         readonly Stack<StructDefinition> definingStructs;
         public readonly ScoreboardManager scoreboard;
-        
+
+        internal Executor(Statement[] statements, Program.InputPPV[] inputPPVs,
+            string projectName, string bpBase, string rpBase)
+        {
+            this.statements = statements;
+            this.project = new ProjectManager(projectName, bpBase, rpBase);
+            this.entities = new EntityManager(this);
+
+            definedStdFiles = new List<int>();
+            ppv = new Dictionary<string, dynamic[]>();
+            macros = new List<Macro>();
+            functions = new List<Function>();
+            selections = new Stack<Selector>();
+
+            if (inputPPVs != null && inputPPVs.Length > 0)
+                foreach (Program.InputPPV ppv in inputPPVs)
+                    SetPPV(ppv.name, new object[] { ppv.value });
+
+            // support up to 100 levels of scope before blowing up
+            lastPreprocessorCompare = new bool[100];
+            lastActualCompare = new Token[100][];
+
+            loadedFiles = new Dictionary<int, object>();
+            definingStructs = new Stack<StructDefinition>();
+            currentFiles = new Stack<CommandFile>();
+            prependBuffer = new StringBuilder();
+            scoreboard = new ScoreboardManager(this);
+
+            PushSelector(true);
+            SetCompilerPPVs();
+            currentFiles.Push(new CommandFile(projectName));
+        }
+        /// <summary>
+        /// Returns this executor after setting it to lint mode, lowering memory usage
+        /// </summary>
+        /// <returns></returns>
+        internal Executor Linter()
+        {
+            this.linting = true;
+            this.project.Linter();
+            return this;
+        }
+
         /// <summary>
         /// Resolve an FString into rawtext terms. Also adds all setup commands for variables.
         /// </summary>
@@ -529,6 +573,9 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Statement[] Peek(int amount)
         {
+            if (amount == 0)
+                return new Statement[0];
+
             Statement[] ret = new Statement[amount];
 
             int write = 0;
@@ -538,7 +585,7 @@ namespace mc_compiled.MCC.Compiler
             return ret;
         }
         /// <summary>
-        /// Gets the next statement, or set of statements if it is a block.
+        /// Reads the next statement, or set of statements if it is a block. Similar to Next() in that it updates the readIndex.
         /// </summary>
         /// <returns></returns>
         public Statement[] NextExecutionSet()
@@ -552,14 +599,18 @@ namespace mc_compiled.MCC.Compiler
             {
                 StatementOpenBlock block = Next<StatementOpenBlock>();
                 int statements = block.statementsInside;
-                if (statements < 1)
-                    throw new StatementException(current, "No valid statements inside block.");
                 Statement[] code = Peek(statements);
                 readIndex += statements;
                 readIndex++; // block closer
                 return code;
             }
-            return new[] { Next() };
+
+            Statement next = Next();
+
+            if (!(next is IExecutionSetPart))
+                throw new StatementException(current, "Following statement '" + next.Source + "' cannot be explicitly run.");
+
+            return new[] { next };
         }
 
         /// <summary>
@@ -573,37 +624,6 @@ namespace mc_compiled.MCC.Compiler
             return ret;
         }
 
-        internal Executor(Statement[] statements, Program.InputPPV[] inputPPVs,
-            string projectName, string bpBase, string rpBase)
-        {
-            this.statements = statements;
-            this.project = new ProjectManager(projectName, bpBase, rpBase);
-            this.entities = new EntityManager(this);
-
-            definedStdFiles = new List<int>();
-            ppv = new Dictionary<string, dynamic[]>();
-            macros = new List<Macro>();
-            functions = new List<Function>();
-            selections = new Stack<Selector>();
-
-            if (inputPPVs != null && inputPPVs.Length > 0)
-                foreach (Program.InputPPV ppv in inputPPVs)
-                    SetPPV(ppv.name, new object[] { ppv.value });
-
-            // support up to 100 levels of scope before blowing up
-            lastPreprocessorCompare = new bool[100];
-            lastActualCompare = new Token[100][];
-
-            loadedFiles = new Dictionary<int, object>();
-            definingStructs = new Stack<StructDefinition>();
-            currentFiles = new Stack<CommandFile>();
-            prependBuffer = new StringBuilder();
-            scoreboard = new ScoreboardManager(this);
-
-            PushSelector(true);
-            SetCompilerPPVs();
-            currentFiles.Push(new CommandFile(projectName));
-        }
         /// <summary>
         /// Setup the default preprocessor variables.
         /// </summary>
@@ -768,8 +788,15 @@ namespace mc_compiled.MCC.Compiler
         /// Add a command to the current file, with prepend buffer.
         /// </summary>
         /// <param name="command"></param>
-        public void AddCommand(string command) =>
+        public void AddCommand(string command)
+        {
+            if (linting)
+            {
+                PopPrepend();
+                return;
+            }
             CurrentFile.Add(PopPrepend() + command);
+        }
         /// <summary>
         /// Add a set of commands into a new branching file unless inline is set.
         /// </summary>
@@ -778,6 +805,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="commands"></param>
         public void AddCommands(IEnumerable<string> commands, string friendlyName, bool inline = false)
         {
+            if (linting)
+                return;
             int count = commands.Count();
             if (count < 1)
                 return;
@@ -807,6 +836,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="command"></param>
         public void AddCommandClean(string command)
         {
+            if (linting)
+                return;
             string prepend = prependBuffer.ToString();
             CurrentFile.Add(prepend + command);
         }
@@ -819,6 +850,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="commands"></param>
         public void AddCommandsClean(IEnumerable<string> commands, string friendlyName, bool inline = false)
         {
+            if (linting)
+                return;
             string buffer = prependBuffer.ToString();
 
             if (inline)
@@ -858,14 +891,20 @@ namespace mc_compiled.MCC.Compiler
         /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="command"></param>
-        public void AddCommandHead(string command) =>
+        public void AddCommandHead(string command)
+        {
+            if (linting)
+                return;
             HeadFile.AddTop(command);
+        }
         /// <summary>
         /// Adds a set of commands to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="commands"></param>
         public void AddCommandsHead(IEnumerable<string> commands)
         {
+            if (linting)
+                return;
             if (commands.Count() < 1)
                 return;
             HeadFile.AddTop(commands);
@@ -916,28 +955,54 @@ namespace mc_compiled.MCC.Compiler
         {
             get => ppv.Select(p => p.Key).ToArray();
         }
+
         /// <summary>
-        /// Resolve all preprocessor variables in a string.
+        /// Resolve all unescaped preprocessor variables in a string.
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
         public string ResolveString(string str)
         {
-            foreach (var kv in ppv)
+            StringBuilder sb = new StringBuilder(str);
+            MatchCollection matches = PPV_FMT.Matches(str);
+            int count = matches.Count;
+
+            if (count == 0)
+                return str;
+
+            for (int i = count - 1; i >= 0; i--)
             {
-                string name = '$' + kv.Key;
-                string value;
+                Match match = matches[i];
+                string text = match.Value;
+                int lastIndex = text.LastIndexOf('\\');
+                int backslashes = lastIndex + 1;
 
-                // Only join if necessary.
-                if (kv.Value.Length > 1)
-                    value = string.Join(" ", kv.Value);
+                int offset = lastIndex < 0 ? 0 : lastIndex;
+                int insertIndex = match.Index + offset;
+
+                // If there are an odd number of preceeding backslashes, this is escaped.
+                if (backslashes % 2 == 1)
+                {
+                    sb.Remove(match.Index + lastIndex, 1);
+                    continue;
+                }
+
+                string ppvName = text.Substring(lastIndex + 1);
+                if (!TryGetPPV(ppvName, out dynamic[] values))
+                    continue; // no ppv named that
+
+
+                string insertText;
+                if (values.Length > 1)
+                    insertText = string.Join(" ", values);
                 else
-                    value = kv.Value[0].ToString();
+                    insertText = values[0].ToString();
 
-                str = str.Replace(name, value);
+                sb.Remove(insertIndex, match.Length - offset);
+                sb.Insert(insertIndex, insertText);
             }
 
-            return str;
+            return sb.ToString();
         }
         public TokenLiteral[] ResolvePPV(TokenUnresolvedPPV unresolved)
         {

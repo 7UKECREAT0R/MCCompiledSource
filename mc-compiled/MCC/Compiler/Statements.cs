@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {
-    public sealed class StatementDirective : Statement
+    public sealed class StatementDirective : Statement, IExecutionSetPart
     {
         public readonly Directive directive;
 
@@ -87,7 +87,10 @@ namespace mc_compiled.MCC.Compiler
         public Action<Executor> CloseAction
         {
             get => closer?.closeAction;
-            set { if (closer != null) closer.closeAction = value; }
+            set {
+                if (closer != null)
+                    closer.closeAction = value;
+            }
         }
 
         public StatementOpenBlock(int statementsInside, CommandFile file) : base(null)
@@ -107,27 +110,6 @@ namespace mc_compiled.MCC.Compiler
         {
             if (openAction != null)
                 openAction(executor);
-
-            //
-            // Legacy code used before porting over to Action<Executor> model.
-            //
-
-            /*if (executeAs == null)
-                executor.PushSelector(false); // push a level up
-            else
-                executor.PushSelector(executeAs);
-
-            if (shouldRun)
-            {
-                closer.popFile = file != null;
-                if (closer.popFile)
-                    executor.PushFile(file);
-            } else
-            {
-                closer.popFile = false;
-                for (int i = 0; i < statementsInside; i++)
-                    executor.Next();
-            }*/
         }
     }
     /// <summary>
@@ -169,11 +151,6 @@ namespace mc_compiled.MCC.Compiler
         {
             if (closeAction != null)
                 closeAction(executor);
-
-            /*if (popFile)
-                executor.PopFile();
-
-            executor.PopSelector();*/
         }
     }
     /// <summary>
@@ -184,7 +161,7 @@ namespace mc_compiled.MCC.Compiler
     ///     d = b + f<br />
     ///     a = x<br />
     /// </summary>
-    public sealed class StatementOperation : Statement
+    public sealed class StatementOperation : Statement, IExecutionSetPart
     {
         public StatementOperation(Token[] tokens) : base(tokens) {}
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
@@ -257,7 +234,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Statement that calls a function without using its return value.
     /// </summary>
-    public sealed class StatementFunctionCall : Statement
+    public sealed class StatementFunctionCall : Statement, IExecutionSetPart
     {
         public StatementFunctionCall(Token[] tokens) : base(tokens) { }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
@@ -336,4 +313,9 @@ namespace mc_compiled.MCC.Compiler
         protected override TypePattern[] GetValidPatterns() { return new TypePattern[0]; } // always valid
         protected override void Run(Executor executor) { } // no operation
     }
+
+    /// <summary>
+    /// Identifies a statement which *can* be part of an execution set.
+    /// </summary>
+    public interface IExecutionSetPart { }
 }

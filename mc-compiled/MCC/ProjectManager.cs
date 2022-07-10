@@ -36,6 +36,7 @@ namespace mc_compiled.MCC
         readonly OutputRegistry registry;
         readonly List<IAddonFile> files;
         private Feature features;
+        private bool linting;
 
         /// <summary>
         /// Create a new ProjectManager with default description.
@@ -50,12 +51,27 @@ namespace mc_compiled.MCC
             files = new List<IAddonFile>();
             features = 0;
         }
+        /// <summary>
+        /// Returns this project manager after setting it to lint mode, lowering memory usage
+        /// </summary>
+        /// <returns></returns>
+        internal ProjectManager Linter()
+        {
+            this.linting = true;
+            return this;
+        }
         internal void AddFile(IAddonFile file) =>
             files.Add(file);
         internal void AddFiles(IAddonFile[] files) =>
             this.files.AddRange(files);
         internal void WriteAllFiles()
         {
+            if (linting)
+            {
+                files.Clear();
+                return;
+            }
+
             // manifests
             bool needsBehaviorManifest = !File.Exists(Path.Combine(registry.bpBase, "manifest.json"));
             bool needsResourceManifest = !File.Exists(Path.Combine(registry.rpBase, "manifest.json"));
@@ -76,6 +92,9 @@ namespace mc_compiled.MCC
         }
         internal void WriteSingleFile(IAddonFile file)
         {
+            if (linting)
+                return;
+
             OutputLocation baseLocation = file.GetOutputLocation();
             string folder = registry[baseLocation];
             string extend = file.GetExtendedDirectory();

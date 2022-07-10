@@ -153,7 +153,7 @@ namespace mc_compiled.MCC.Server
                     Token[] tokens = new Tokenizer(code).Tokenize();
                     Statement[] statements = Assembler.AssembleTokens(tokens);
                     Executor executor = new Executor(statements, new Program.InputPPV[0], argument, obp, orp);
-                    executor.Execute();
+                    executor.Linter().Execute();
 
                     // gather information.
                     LintStructure lint = LintStructure.Harvest(executor);

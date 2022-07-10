@@ -14,10 +14,12 @@ namespace mc_compiled.MCC.Compiler
         public static Statement[] AssembleTokens(Token[] tokens)
         {
             List<Statement> statements = new List<Statement>();
-            List<List<Token>> lines = new List<List<Token>>();
             List<Token> buffer = new List<Token>();
-
             Stack<StatementOpenBlock> blocks = new Stack<StatementOpenBlock>();
+
+            // used for exceptions
+            int highestLevelOpenerCount = 0;
+            StatementOpenBlock highestLevelOpener = null;
 
             // assemble all lines via TryAssembleLine()
             int i = -1;
@@ -35,15 +37,30 @@ namespace mc_compiled.MCC.Compiler
                     if (current is TokenOpenBlock)
                     {
                         StatementOpenBlock block = new StatementOpenBlock(statements.Count + 1, null);
+                        block.SetSource(current.lineNumber, "{");
+
                         statements.Add(block);
                         blocks.Push(block);
+
+                        // Track highest level opening bracket 
+                        int count = blocks.Count;
+                        if(count >= highestLevelOpenerCount)
+                        {
+                            highestLevelOpenerCount = count;
+                            highestLevelOpener = block;
+                        }
                         continue;
                     }
                     else if (current is TokenCloseBlock)
                     {
                         StatementCloseBlock closer = new StatementCloseBlock();
+                        closer.SetSource(current.lineNumber, "}");
+
                         if (blocks.Count == 0)
-                            continue; // ignore... i guess?
+                        {
+                            throw new TokenizerException("Unused closing bracket.", current.lineNumber);
+                        }
+
                         StatementOpenBlock opener = blocks.Pop();
                         opener.statementsInside = statements.Count - opener.statementsInside;
 
@@ -58,6 +75,10 @@ namespace mc_compiled.MCC.Compiler
                 } else
                     buffer.Add(current);
             }
+
+            if(blocks.Count > 0)
+                throw new TokenizerException("No closing bracket for opening bracket.", highestLevelOpener.Line);
+
             if (buffer.Count > 0)
             {
                 TryAssembleLine(new List<Token>(buffer), ref statements);
