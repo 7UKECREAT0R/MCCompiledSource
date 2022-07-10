@@ -86,6 +86,8 @@
     <Compile Include="MCC\Compiler\Executor.cs" />
     <Compile Include="MCC\Compiler\Statements.cs" />
     <Compile Include="MCC\CustomEntities\NullManager.cs" />
+    <Compile Include="MCC\Feature.cs" />
+    <Compile Include="MCC\FeatureManager.cs" />
     <Compile Include="MCC\ProjectManager.cs" />
     <Compile Include="MCC\Function.cs" />
     <Compile Include="MCC\Macro.cs" />

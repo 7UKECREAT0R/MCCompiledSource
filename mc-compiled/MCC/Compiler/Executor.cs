@@ -66,8 +66,8 @@ namespace mc_compiled.MCC.Compiler
         Statement[] statements;
         int readIndex = 0;
         int unreachableCode = -1;
-        bool linting;
 
+        internal bool linting;
         internal readonly Dictionary<int, object> loadedFiles;
         internal readonly List<int> definedStdFiles;
         internal readonly List<Macro> macros;
@@ -888,6 +888,13 @@ namespace mc_compiled.MCC.Compiler
         public void AddExtraFiles(IAddonFile[] files) =>
             project.AddFiles(files);
         /// <summary>
+        /// Returns if this executor has a file containing a specific string.
+        /// </summary>
+        /// <param name="text">The text to check for.</param>
+        /// <returns></returns>
+        public bool HasExtraFileContaining(string text) =>
+            this.project.HasFileContaining(text);
+        /// <summary>
         /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="command"></param>
@@ -963,6 +970,9 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public string ResolveString(string str)
         {
+            if (ppv.Count < 1)
+                return str;
+
             StringBuilder sb = new StringBuilder(str);
             MatchCollection matches = PPV_FMT.Matches(str);
             int count = matches.Count;

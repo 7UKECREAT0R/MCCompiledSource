@@ -83,8 +83,6 @@ namespace mc_compiled.MCC.CustomEntities
             if (definedPresets.Contains(entry))
                 return EventExplode(entry);
 
-            EnsureEntity();
-
             string groupName = GroupExplode(entry);
             string eventName = EventExplode(entry);
 
@@ -115,8 +113,6 @@ namespace mc_compiled.MCC.CustomEntities
         /// <returns></returns>
         public string CreateExplosion(Coord x, Coord y, Coord z, int power = 3, int delay = 0, bool fire = false, bool breaksBlocks = true)
         {
-            EnsureEntity();
-
             // Register the preset if needed and get the event name to trigger it.
             string eventName = GetPreset(power, delay, fire, breaksBlocks);
 

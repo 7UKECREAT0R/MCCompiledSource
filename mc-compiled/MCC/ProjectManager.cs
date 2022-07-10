@@ -64,6 +64,10 @@ namespace mc_compiled.MCC
             files.Add(file);
         internal void AddFiles(IAddonFile[] files) =>
             this.files.AddRange(files);
+        internal bool HasFileContaining(string text)
+        {
+            return files.Any(file => file.GetOutputFile().Contains(text));
+        }
         internal void WriteAllFiles()
         {
             if (linting)
@@ -182,57 +186,5 @@ namespace mc_compiled.MCC
         }
         internal string this[OutputLocation location] =>
             registry[location];
-    }
-    internal static class FeatureManager
-    {
-        /// <summary>
-        /// All features available for enabling.
-        /// </summary>
-        internal static Feature[] FEATURE_LIST = (Feature[])Enum.GetValues(typeof(Feature));
-
-        /// <summary>
-        /// Dictionary of features and their actions to perform on an executor when enabled.
-        /// </summary>
-        internal static Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
-        {
-            {
-                Feature.NULLS, (executor) => {
-                    executor.entities.nulls.EnsureEntity();
-                    executor.SetPPV("null", new object[] { executor.entities.nulls.nullType });
-                    Executor.Good("null entities enabled");
-                }
-            },
-            {
-                Feature.GAMETEST, (executor) => {
-                    Executor.Warn("gametest integration doesn't currently do anything.");
-                }
-            },
-            {
-                Feature.EXPLODERS, (executor) => {
-                    executor.entities.exploders.EnsureEntity();
-                    Executor.Good("exploder entities enabled");
-                }
-            }
-        };
-
-        /// <summary>
-        /// Called when a feature is enabled so that its enable action can run.
-        /// </summary>
-        /// <param name="caller"></param>
-        /// <param name="feature"></param>
-        internal static void OnFeatureEnabled(Executor caller, Feature feature)
-        {
-            if(ENABLE_ACTIONS.TryGetValue(feature, out Action<Executor> run))
-                run(caller);
-        }
-    }
-    [Flags]
-    internal enum Feature : uint
-    {
-        NO_FEATURES = 0,     // No features enabled.
-
-        NULLS = 1 << 0,     // Null Entities
-        GAMETEST = 1 << 1,  // GameTest Framework
-        EXPLODERS = 1 << 2, // Exploder Entities
     }
 }

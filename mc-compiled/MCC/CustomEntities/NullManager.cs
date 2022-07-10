@@ -103,7 +103,6 @@ namespace mc_compiled.MCC.CustomEntities
         /// <returns>The commands to create this null entity.</returns>
         public string Create(string name, string @class, Coord x, Coord y, Coord z)
         {
-            EnsureEntity();
             List<string> commands = new List<string>();
             existingNulls.Add(name);
 
@@ -123,8 +122,6 @@ namespace mc_compiled.MCC.CustomEntities
         /// <returns></returns>
         public string Destroy(string name, string clazz = null)
         {
-            EnsureEntity();
-
             if(clazz == null)
                 return Command.Event(GetStringSelector(name), DESTROY_EVENT_NAME);
             else

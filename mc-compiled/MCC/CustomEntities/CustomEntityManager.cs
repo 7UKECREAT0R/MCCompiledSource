@@ -21,7 +21,7 @@ namespace mc_compiled.MCC.CustomEntities
         {
             this.parent = parent;
         }
-        internal void EnsureEntity()
+        internal void AddEntityToProject()
         {
             if (createdEntityFiles)
                 return;
