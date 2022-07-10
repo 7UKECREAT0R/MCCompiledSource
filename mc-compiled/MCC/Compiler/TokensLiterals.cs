@@ -204,7 +204,7 @@ namespace mc_compiled.MCC.Compiler
                 return new TokenSelectorLiteral(new Selector()
                 {
                     core = Selector.Core.e,
-                    entity = new Commands.Selectors.Entity(name, false, type, null)
+                    entity = new Commands.Selectors.Entity(name, type, new List<string>())
                 }, lineNumber);
             }
 

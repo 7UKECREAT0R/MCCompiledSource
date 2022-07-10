@@ -23,8 +23,12 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
             if(tokens.NextIs<TokenStringLiteral>())
             {
-                alignedSelector.entity.name = tokens.Next<TokenStringLiteral>();
-                alignedSelector.entity.nameNot = inverted;
+                string name = tokens.Next<TokenStringLiteral>();
+
+                if (inverted)
+                    name = Command.UTIL.ToggleInversion(name);
+
+                alignedSelector.entity.name = name;
             }
         }
     }

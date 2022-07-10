@@ -16,14 +16,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
         {
             string type = tokens.Next<TokenStringLiteral>();
 
-            if(type.StartsWith("!"))
-            {
-                inverted = !inverted;
-                type = type.Substring(1);
-            }
-
             if (inverted)
-                type = '!' + type;
+                type = Command.UTIL.ToggleInversion(type);
 
             alignedSelector.entity.type = type;
         }

@@ -12,10 +12,10 @@ namespace mc_compiled.Commands.Selectors
     public struct Entity
     {
         public string name;     // The name of this entity/player.
-        public bool nameNot;    // if name is inverted
-
         public string type;     // The type of this entity.
-        public string family;   // The family this entity is in.
+
+        public List<string> families;   // The family(s) this entity is in.
+
         public int?
             rotXMin,
             rotXMax;
@@ -23,13 +23,23 @@ namespace mc_compiled.Commands.Selectors
             rotYMin,
             rotYMax;
 
-        public Entity(string name, bool nameNot, string type, string family,
+        public Entity(string name, string type, string[] families,
             int? rotXMin = null, int? rotXMax = null, int? rotYMin = null, int? rotYMax = null)
         {
             this.name = name;
-            this.nameNot = nameNot;
             this.type = type;
-            this.family = family;
+            this.families = new List<string>(families);
+            this.rotXMin = rotXMin;
+            this.rotXMax = rotXMax;
+            this.rotYMin = rotYMin;
+            this.rotYMax = rotYMax;
+        }
+        public Entity(string name, string type, List<string> families,
+            int? rotXMin = null, int? rotXMax = null, int? rotYMin = null, int? rotYMax = null)
+        {
+            this.name = name;
+            this.type = type;
+            this.families = families;
             this.rotXMin = rotXMin;
             this.rotXMax = rotXMax;
             this.rotYMin = rotYMin;
@@ -38,9 +48,9 @@ namespace mc_compiled.Commands.Selectors
         public static Entity Parse(string[] chunks)
         {
             string name = null;
-            bool nameNot = false;
             string type = null;
-            string family = null;
+
+            List<string> families = new List<string>();
 
             int?
                 rotXMin = null,
@@ -65,7 +75,7 @@ namespace mc_compiled.Commands.Selectors
                         type = b.Trim('\"');
                         break;
                     case "FAMILY":
-                        family = b.Trim('\"');
+                        families.Add(b.Trim('\"'));
                         break;
                     case "RX":
                         rotXMax = int.Parse(b);
@@ -82,7 +92,7 @@ namespace mc_compiled.Commands.Selectors
                 }
             }
 
-            return new Entity(name, nameNot, type, family,
+            return new Entity(name, type, families,
                 rotXMin, rotXMax, rotYMin, rotYMax);
         }
 
@@ -91,11 +101,12 @@ namespace mc_compiled.Commands.Selectors
             List<string> parts = new List<string>();
 
             if (name != null)
-                parts.Add(nameNot ? $"name=!\"{name}\"" : $"name=\"{name}\"");
+                parts.Add("name=\"" + name + "\"");
             if (type != null)
                 parts.Add("type=" + type);
-            if (family != null)
-                parts.Add("family=" + family);
+            if (families != null)
+                foreach (string family in families)
+                    parts.Add("family=" + family);
             if (rotXMin.HasValue)
                 parts.Add("rxm=" + rotXMin.Value);
             if (rotXMax.HasValue)
@@ -108,12 +119,12 @@ namespace mc_compiled.Commands.Selectors
         }
         public static Entity operator +(Entity a, Entity other)
         {
+            a.families.AddRange(other.families);
+
             if (a.name == null)
                 a.name = other.name;
             if (a.type == null)
                 a.type = other.type;
-            if (a.family == null)
-                a.family = other.family;
             if (a.rotXMin == null)
                 a.rotXMin = other.rotXMin;
             if (a.rotXMax == null)

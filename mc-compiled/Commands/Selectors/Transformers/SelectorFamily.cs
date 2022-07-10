@@ -14,18 +14,15 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
         public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
-            string family = tokens.Next<TokenStringLiteral>();
-
-            if (family.StartsWith("!"))
+            while(tokens.NextIs<TokenStringLiteral>())
             {
-                inverted = !inverted;
-                family = family.Substring(1);
+                string family = tokens.Next<TokenStringLiteral>();
+
+                if (inverted)
+                    family = Command.UTIL.ToggleInversion(family);
+
+                alignedSelector.entity.families.Add(family);
             }
-
-            if (inverted)
-                family = '!' + family;
-
-            alignedSelector.entity.family = family;
         }
     }
 }

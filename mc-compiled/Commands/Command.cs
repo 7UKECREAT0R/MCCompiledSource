@@ -84,6 +84,40 @@ namespace mc_compiled.Commands
                 else
                     return "minecraft:" + identifier;
             }
+
+            /// <summary>
+            /// Makes a string inverted/not depending on a boolean. "!thing" or "thing"
+            /// </summary>
+            /// <param name="str"></param>
+            /// <param name="invert"></param>
+            /// <returns></returns>
+            public string MakeInvertedString(string str, bool invert)
+            {
+                bool isInverted = str.StartsWith("!");
+
+                if (isInverted == invert)
+                    return str;
+
+                if (isInverted)
+                    return str.Substring(1);
+                else
+                    return '!' + str;
+            }
+            /// <summary>
+            /// Makes a string inverted/not depending on a boolean. "!thing" or "thing"
+            /// </summary>
+            /// <param name="str"></param>
+            /// <param name="invert"></param>
+            /// <returns></returns>
+            public string ToggleInversion(string str)
+            {
+                bool isInverted = str.StartsWith("!");
+
+                if (isInverted)
+                    return str.Substring(1);
+                else
+                    return '!' + str;
+            }
         }
         
         public static void ResetState()

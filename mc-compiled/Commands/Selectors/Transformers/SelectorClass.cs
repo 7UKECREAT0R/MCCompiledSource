@@ -22,7 +22,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
             if (inverted)
                 family = '!' + family;
 
-            alignedSelector.entity.family = family;
+            alignedSelector.entity.families.Add(family);
             return;
         }
     }

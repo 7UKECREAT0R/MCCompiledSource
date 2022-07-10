@@ -14,15 +14,12 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
         public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
-            string tag = tokens.Next<TokenStringLiteral>();
-
-            if (tag.StartsWith("!"))
+            while(tokens.NextIs<TokenStringLiteral>())
             {
-                inverted = !inverted;
-                tag = tag.Substring(1);
+                string tag = tokens.Next<TokenStringLiteral>();
+                tag = Command.UTIL.MakeInvertedString(tag, false);
+                alignedSelector.tags.Add(new Tag(tag, inverted));
             }
-
-            alignedSelector.tags.Add(new Tag(tag, inverted));
         }
     }
 }
