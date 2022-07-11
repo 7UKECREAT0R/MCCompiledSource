@@ -54,27 +54,26 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="tokens"></param>
         /// <param name="elseStatement"></param>
         /// <returns></returns>
-        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool elseStatement)
+        public static void TransformSelector(ref LegacySelector rootSelector, ref LegacySelector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool elseStatement)
         {
             executor.scoreboard.PushTempState();
 
             do
             {
-                if (tokens.NextIs<TokenAnd>())
+                if (tokens.NextIs<TokenContinue>())
                     tokens.Next();
 
                 bool invert = elseStatement;
                 bool isScore = tokens.NextIs<TokenIdentifierValue>();
-                TokenIdentifier currentToken = tokens.Next<TokenIdentifier>();
-                string word = currentToken.word.ToUpper();
 
-                if(word.Equals("NOT"))
+                if (tokens.NextIs<TokenNot>())
                 {
                     invert = !elseStatement;
                     isScore = tokens.NextIs<TokenIdentifierValue>();
-                    currentToken = tokens.Next<TokenIdentifier>();
-                    word = currentToken.word.ToUpper();
                 }
+
+                TokenIdentifier currentToken = tokens.Next<TokenIdentifier>();
+                string word = currentToken.word.ToUpper();
 
                 // Scoreboard operation.
                 if (isScore)

@@ -67,7 +67,7 @@ namespace mc_compiled.MCC.CustomEntities
             return files.AddonFiles;
         }
         public override bool HasEntity(string name) => false;
-        public override bool Search(string name, out Selector selector)
+        public override bool Search(string name, out LegacySelector selector)
         {
             selector = null;
             return false;

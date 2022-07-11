@@ -13,9 +13,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "COUNT";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref LegacySelector rootSelector, ref LegacySelector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
-            Selector testFor = tokens.Next<TokenSelectorLiteral>();
+            LegacySelector testFor = tokens.Next<TokenSelectorLiteral>();
             TokenCompare comparison = tokens.Next<TokenCompare>();
             int number = tokens.Next<TokenIntegerLiteral>();
             Range range;

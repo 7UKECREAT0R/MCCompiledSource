@@ -138,10 +138,24 @@ namespace mc_compiled.MCC.Compiler
         public TokenRangeInvert(int lineNumber) : base(lineNumber) { }
     }
 
-    public sealed class TokenAnd : TokenOperator
+    public abstract class TokenContinue : TokenOperator
     {
-        public override string AsString() => "&";
+        public TokenContinue(int lineNumber) : base(lineNumber) { }
+    }
+    public sealed class TokenAnd : TokenContinue
+    {
+        public override string AsString() => "and";
         public TokenAnd(int lineNumber) : base(lineNumber) { }
+    }
+    public sealed class TokenOr : TokenContinue
+    {
+        public override string AsString() => "or";
+        public TokenOr(int lineNumber) : base(lineNumber) { }
+    }
+    public sealed class TokenNot : TokenOperator
+    {
+        public override string AsString() => "not";
+        public TokenNot(int lineNumber) : base(lineNumber) { }
     }
     public sealed class TokenAssignment : TokenOperator, IAssignment
     {

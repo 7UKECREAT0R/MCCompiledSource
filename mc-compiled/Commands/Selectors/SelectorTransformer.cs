@@ -33,7 +33,7 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="tokens">The fed-in tokens which specify how the transformation should occur.</param>
         /// <param name="commands">The list of commands to add to.</param>
         /// 
-        void Transform(ref Selector rootSelector, ref Selector alignedSelector,
+        void Transform(ref LegacySelector rootSelector, ref LegacySelector alignedSelector,
             bool inverted, Executor executor, Statement tokens, List<string> commands);
     }
 
@@ -49,10 +49,10 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="commands">The list of commands to append to.</param>
         /// <param name="executor">The parent executor running this.</param>
         /// <param name="transformer">The way to transform this selector after it's copied.</param>
-        public static void InvertSelector(ref Selector selector, List<string> commands, Executor executor, Action<Selector> transformer)
+        public static void InvertSelector(ref LegacySelector selector, List<string> commands, Executor executor, Action<LegacySelector> transformer)
         {
             MCC.ScoreboardValue inverter = executor.scoreboard.RequestTemp();
-            Selector _entity = new Selector(executor.ActiveSelector);
+            LegacySelector _entity = new LegacySelector(executor.ActiveSelector);
             transformer(_entity);
 
             string previousEntity = executor.ActiveSelectorStr;

@@ -159,8 +159,6 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenOpenBlock(CURRENT_LINE);
                 case '}':
                     return new TokenCloseBlock(CURRENT_LINE);
-                case '&':
-                    return new TokenAnd(CURRENT_LINE);
                 case ',':
                 case '\r':
                 default:
@@ -169,31 +167,31 @@ namespace mc_compiled.MCC.Compiler
 
             if(firstChar == '@')
             {
-                Selector.Core core;
+                LegacySelector.Core core;
 
                 switch (char.ToUpper(secondChar))
                 {
                     case 'P':
                         NextChar();
-                        core = Selector.Core.p;
+                        core = LegacySelector.Core.p;
                         break;
                     case 'S':
                         NextChar();
-                        core = Selector.Core.s;
+                        core = LegacySelector.Core.s;
                         break;
                     case 'A':
                         NextChar();
-                        core = Selector.Core.a;
+                        core = LegacySelector.Core.a;
                         break;
                     case 'E':
                         NextChar();
-                        core = Selector.Core.e;
+                        core = LegacySelector.Core.e;
                         break;
                     case 'I':
                         NextChar();
                         while (HasNext && LETTERS.Contains(Peek()))
                             NextChar();
-                        core = Selector.Core.initiator;
+                        core = LegacySelector.Core.initiator;
                         break;
                     default:
                         if(HasNext)
@@ -357,6 +355,19 @@ namespace mc_compiled.MCC.Compiler
                 case "False":
                 case "FALSE":
                     return new TokenBooleanLiteral(false, CURRENT_LINE);
+                case "and":
+                case "And":
+                case "AND":
+                    return new TokenAnd(CURRENT_LINE);
+                case "or":
+                case "Or":
+                case "OR":
+                    return new TokenOr(CURRENT_LINE);
+                case "not":
+                case "Not":
+                case "NOT":
+                    return new TokenNot(CURRENT_LINE);
+
                 default:
                     break;
             }
@@ -465,7 +476,7 @@ namespace mc_compiled.MCC.Compiler
 
             return new TokenStringLiteral(sb.ToString(), CURRENT_LINE);
         }
-        public TokenSelectorLiteral NextSelectorLiteral(Selector.Core core)
+        public TokenSelectorLiteral NextSelectorLiteral(LegacySelector.Core core)
         {
             if (Peek() == '[')
                 NextChar();
@@ -503,7 +514,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string str = sb.ToString();
-            Selector selector = Selector.Parse(core, str);
+            LegacySelector selector = LegacySelector.Parse(core, str);
             return new TokenSelectorLiteral(selector, CURRENT_LINE);
         }
         public TokenArithmatic ArithmaticIdentifier(char a, bool assignment)

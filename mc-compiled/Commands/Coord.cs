@@ -149,6 +149,13 @@ namespace mc_compiled.Commands
             return a; // default
         }
 
+        public static Coord operator -(Coord a)
+        {
+            a.valuei *= -1;
+            a.valuef *= -1f;
+            return a;
+        }
+
         public static Coord operator +(Coord a, Coord b)
         {
             if (a.isFloat || b.isFloat)

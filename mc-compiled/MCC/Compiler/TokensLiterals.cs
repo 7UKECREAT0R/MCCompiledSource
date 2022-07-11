@@ -163,27 +163,27 @@ namespace mc_compiled.MCC.Compiler
                 int len = text.Length;
 
                 if (len == 0)
-                    return new TokenSelectorLiteral(Selector.Core.s, lineNumber);
+                    return new TokenSelectorLiteral(LegacySelector.Core.s, lineNumber);
 
                 if(len > 1 && text[0] == '@')
                 {
                     char _core = text[1];
-                    Selector.Core core = Selector.ParseCore(_core);
+                    LegacySelector.Core core = LegacySelector.ParseCore(_core);
 
                     if (len > 2)
                     {
-                        Selector parsed = Selector.Parse(core, text.Substring(2));
+                        LegacySelector parsed = LegacySelector.Parse(core, text.Substring(2));
                         return new TokenSelectorLiteral(parsed, lineNumber);
                     }
 
-                    Selector single = new Selector() { core = core };
+                    LegacySelector single = new LegacySelector() { core = core };
                     return new TokenSelectorLiteral(single, lineNumber);
                 }
 
                 string name = text;
 
                 // try finding by managed entity name
-                if (executor.entities.Search(name, out Selector find))
+                if (executor.entities.Search(name, out LegacySelector find))
                     return new TokenSelectorLiteral(find, lineNumber);
 
                 // use name:type format
@@ -201,9 +201,9 @@ namespace mc_compiled.MCC.Compiler
                 if (string.IsNullOrEmpty(type))
                     type = null;
 
-                return new TokenSelectorLiteral(new Selector()
+                return new TokenSelectorLiteral(new LegacySelector()
                 {
-                    core = Selector.Core.e,
+                    core = LegacySelector.Core.e,
                     entity = new Commands.Selectors.Entity(name, type, new List<string>())
                 }, lineNumber);
             }
@@ -664,26 +664,26 @@ namespace mc_compiled.MCC.Compiler
     public sealed class TokenSelectorLiteral : TokenLiteral, IPreprocessor
     {
         public readonly bool simple;
-        public readonly Selector selector;
+        public readonly LegacySelector selector;
 
         public override string AsString() => selector.ToString();
-        public TokenSelectorLiteral(Selector selector, int lineNumber) : base(lineNumber)
+        public TokenSelectorLiteral(LegacySelector selector, int lineNumber) : base(lineNumber)
         {
             simple = false;
             this.selector = selector;
         }
-        public TokenSelectorLiteral(Selector.Core core, int lineNumber) : base(lineNumber)
+        public TokenSelectorLiteral(LegacySelector.Core core, int lineNumber) : base(lineNumber)
         {
             simple = true;
-            this.selector = new Selector()
+            this.selector = new LegacySelector()
             {
                 core = core
             };
         }
         public override string ToString() => selector.ToString();
 
-        public static implicit operator Selector(TokenSelectorLiteral t) => t.selector;
-        public static implicit operator Selector.Core(TokenSelectorLiteral t) => t.selector.core;
+        public static implicit operator LegacySelector(TokenSelectorLiteral t) => t.selector;
+        public static implicit operator LegacySelector.Core(TokenSelectorLiteral t) => t.selector.core;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {

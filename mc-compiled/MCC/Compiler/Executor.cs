@@ -77,7 +77,7 @@ namespace mc_compiled.MCC.Compiler
         internal readonly Dictionary<string, dynamic[]> ppv;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
-        readonly Stack<Selector> selections;
+        readonly Stack<LegacySelector> selections;
         readonly Stack<StructDefinition> definingStructs;
         public readonly ScoreboardManager scoreboard;
 
@@ -92,7 +92,7 @@ namespace mc_compiled.MCC.Compiler
             ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
             functions = new List<Function>();
-            selections = new Stack<Selector>();
+            selections = new Stack<LegacySelector>();
 
             if (inputPPVs != null && inputPPVs.Length > 0)
                 foreach (Program.InputPPV ppv in inputPPVs)
@@ -196,12 +196,12 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="copy">The existing terms to copy from.</param>
         /// <returns></returns>
         public string[] ResolveRawText(List<JSONRawTerm> terms, string command, bool root = true,
-            Selector currentSelector = null, List<string> commands = null, RawTextJsonBuilder copy = null)
+            LegacySelector currentSelector = null, List<string> commands = null, RawTextJsonBuilder copy = null)
         {
             RawTextJsonBuilder jb = new RawTextJsonBuilder(copy);
 
             if (currentSelector == null)
-                currentSelector = new Selector(Selector.Core.s);
+                currentSelector = new LegacySelector(LegacySelector.Core.s);
             if(commands == null)
                 commands = new List<string>();
 
@@ -212,8 +212,8 @@ namespace mc_compiled.MCC.Compiler
                 {
                     // calculate both variants
                     JSONVariant variant = term as JSONVariant;
-                    Selector checkA = variant.ConstructSelectorA(currentSelector);
-                    Selector checkB = variant.ConstructSelectorB(currentSelector);
+                    LegacySelector checkA = variant.ConstructSelectorA(currentSelector);
+                    LegacySelector checkB = variant.ConstructSelectorB(currentSelector);
                     List<JSONRawTerm> restA = terms.Skip(i + 1).ToList();
                     List<JSONRawTerm> restB = terms.Skip(i + 1).ToList();
                     restA.InsertRange(0, variant.a);
@@ -345,7 +345,7 @@ namespace mc_compiled.MCC.Compiler
         /// Get peeks the stack.
         /// Set pushes then pops a new selector to the stack.
         /// </summary>
-        public Selector ActiveSelector
+        public LegacySelector ActiveSelector
         {
             get => selections.Peek();
             set
@@ -375,7 +375,7 @@ namespace mc_compiled.MCC.Compiler
         public void PushSelector(bool doesAlign)
         {
             if (doesAlign)
-                selections.Push(new Selector(Selector.Core.s));
+                selections.Push(new LegacySelector(LegacySelector.Core.s));
             else
                 selections.Push(ActiveSelector);
         }
@@ -383,7 +383,7 @@ namespace mc_compiled.MCC.Compiler
         /// Push a selector to the stack.
         /// </summary>
         /// <param name="now"></param>
-        public void PushSelector(Selector now)
+        public void PushSelector(LegacySelector now)
         {
             selections.Push(now);
         }
@@ -392,7 +392,7 @@ namespace mc_compiled.MCC.Compiler
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
         /// <returns>The previous value of the prepend buffer.</returns>
-        public string PushSelectorExecute(Selector now)
+        public string PushSelectorExecute(LegacySelector now)
         {
             if (now.NeedsAlign)
             {
@@ -410,7 +410,7 @@ namespace mc_compiled.MCC.Compiler
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
         /// <returns>The previous value of the prepend buffer.</returns>
-        public string PushSelectorExecute(Selector now, Coord offsetX, Coord offsetY, Coord offsetZ)
+        public string PushSelectorExecute(LegacySelector now, Coord offsetX, Coord offsetY, Coord offsetZ)
         {
             if (now.NeedsAlign)
             {
@@ -430,7 +430,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>The previous value of the prepend buffer.</returns>
         public string PushSelectorExecute()
         {
-            Selector active = ActiveSelector;
+            LegacySelector active = ActiveSelector;
             if (active.NeedsAlign)
             {
                 string prev = prependBuffer.ToString();
@@ -451,7 +451,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>The previous value of the prepend buffer.</returns>
         public string PushSelectorExecute(Coord offsetX, Coord offsetY, Coord offsetZ)
         {
-            Selector active = ActiveSelector;
+            LegacySelector active = ActiveSelector;
             if (active.NeedsAlign)
             {
                 string prev = prependBuffer.ToString();
@@ -1035,7 +1035,7 @@ namespace mc_compiled.MCC.Compiler
                         literals[i] = new TokenStringLiteral(value, line);
                     if (value is Coord)
                         literals[i] = new TokenCoordinateLiteral(value, line);
-                    if (value is Selector)
+                    if (value is LegacySelector)
                         literals[i] = new TokenSelectorLiteral(value, line);
                 }
                 return literals;

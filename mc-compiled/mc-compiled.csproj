@@ -47,8 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Selectors\Mutation\SelectorMutation.cs" />
+    <Compile Include="Commands\Selectors\Mutation\SelectorMutatorAND.cs" />
+    <Compile Include="Commands\Selectors\Mutation\SelectorMutatorOR.cs" />
+    <Compile Include="Commands\Selectors\Mutation\SelectorMutatorSingle.cs" />
     <Compile Include="Commands\Selectors\SelectorCodeTransformer.cs" />
-    <Compile Include="Commands\Selectors\HasItems.cs" />
     <Compile Include="Commands\Selectors\SelectorTransformer.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorBlock.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorAny.cs" />
@@ -132,17 +135,10 @@
     <Compile Include="Modding\Resources\EntityResource.cs" />
     <Compile Include="Modding\StructureFile.cs" />
     <Compile Include="Commands\BlockCheck.cs" />
-    <Compile Include="Commands\Selectors\Area.cs" />
     <Compile Include="Commands\Coord.cs" />
-    <Compile Include="Commands\Selectors\Count.cs" />
-    <Compile Include="Commands\Selectors\Entity.cs" />
-    <Compile Include="Commands\Selectors\Player.cs" />
-    <Compile Include="Commands\Selectors\Tag.cs" />
     <Compile Include="Commands\Native\Block.cs" />
     <Compile Include="Commands\Native\ItemStack.cs" />
     <Compile Include="Commands\Range.cs" />
-    <Compile Include="Commands\Selectors\Scores.cs" />
-    <Compile Include="Commands\Selector.cs" />
     <Compile Include="Json\RawTextJsonBuilder.cs" />
     <Compile Include="Json\RawTextJsonTerms.cs" />
     <Compile Include="MCC\Compiler\Tokenizer.cs" />
