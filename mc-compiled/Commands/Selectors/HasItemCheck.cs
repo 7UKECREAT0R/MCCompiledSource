@@ -18,6 +18,7 @@ namespace mc_compiled.Commands.Selectors
         public ItemSlot? location;
         public Range? slot;
 
+        private HasItemCheck() { }
         public HasItemCheck(string item, int? data, Range? quantity, ItemSlot? location, Range? slot)
         {
             this.item = item;
@@ -45,6 +46,56 @@ namespace mc_compiled.Commands.Selectors
 
             sb.Append('}');
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Parse a HasItemCheck. Expected format: <code>{item=gold_ingot,quantity=5..,location=slot.hotbar,slot:0..3}</code>
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static HasItemCheck Parse(string str)
+        {
+            str = str.Trim('{', '}');
+            string[] parts = str.Split(',');
+
+            HasItemCheck check = new HasItemCheck();
+
+            foreach (string part in parts)
+            {
+                int equals = str.IndexOf('=');
+
+                if (equals == -1)
+                    throw new MCC.Compiler.TokenizerException("Expected equals sign in hasitem property: " + part);
+
+                string section = str.Substring(0, equals).ToUpper();
+                string value = str.Substring(equals + 1);
+
+                switch(section)
+                {
+                    case "ITEM":
+                        check.item = value;
+                        break;
+                    case "DATA":
+                        if (int.TryParse(value, out int _data))
+                            check.data = _data;
+                        break;
+                    case "QUANTITY":
+                        check.quantity = Range.Parse(value);
+                        break;
+                    case "LOCATION":
+                        if(CommandEnumParser.TryParse(value, out ParsedEnumValue locationEnum))
+                        {
+                            if (locationEnum.IsType<ItemSlot>())
+                                check.location = (ItemSlot)locationEnum.value;
+                        }
+                        break;
+                    case "SLOT":
+                        check.slot = Range.Parse(value);
+                        break;
+                }
+            }
+
+            return check;
         }
     }
 }

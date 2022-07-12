@@ -14,6 +14,8 @@ namespace mc_compiled.Commands.Selectors
     {
         public readonly SelectorCore core;
 
+        public readonly SelectorField[] allFields;
+
         // Position
         public readonly SelectorField<Coord> x;
         public readonly SelectorField<Coord> y;
@@ -48,15 +50,23 @@ namespace mc_compiled.Commands.Selectors
         /// <summary>
         /// Limit to the maximum number of entities this selector can target, sorted from closest to furthest.
         /// </summary>
-        public int limit;
+        public int? limit;
         /// <summary>
         /// The block to check for, if any.
         /// </summary>
-        public BlockCheck? blockCheck;
+        public BlockCheck blockCheck;
+
+        public Coord offsetX, offsetY, offsetZ;
 
         public Selector(SelectorCore core)
         {
             this.core = core;
+            this.blockCheck = BlockCheck.DISABLED;
+            this.limit = null;
+
+            this.offsetX = Coord.here;
+            this.offsetY = Coord.here;
+            this.offsetZ = Coord.here;
 
             this.x = new SelectorField<Coord>("x", this);
             this.y = new SelectorField<Coord>("y", this);
@@ -120,6 +130,41 @@ namespace mc_compiled.Commands.Selectors
                 return new[] { ((int)field.Value).ToString() };
             });
         }
+
+        /// <summary>
+        /// Returns if this selector selects multiple entities, or just one.
+        /// </summary>
+        public bool SelectsMultipleEntities
+        {
+            get
+            {
+                if (limit.HasValue && limit.Value == 1)
+                    return false;
+                return core.SelectsMultiple();
+            }
+        }
+        /// <summary>
+        /// Returns if this selector needs to be aligned before being used properly.
+        /// </summary>
+        public bool NeedsAlignment
+        {
+            get => core.IsMisaligned();
+        }
+
+        /// <summary>
+        /// Parse a selector from a core and a string.
+        /// </summary>
+        /// <param name="core"></param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static Selector Parse(SelectorCore core, string str)
+        {
+
+        }
+        static List<string> GetParts(string str)
+        {
+
+        }
     }
 
     public static class SelectorCoreUtils
@@ -180,6 +225,52 @@ namespace mc_compiled.Commands.Selectors
         /// <returns></returns>
         public static Selector CreateFrom(this SelectorCore core) =>
             new Selector(core);
+        /// <summary>
+        /// Returns if this core selects multiple entities, or just one.
+        /// </summary>
+        /// <param name="core"></param>
+        /// <returns></returns>
+        public static bool SelectsMultiple(this SelectorCore core)
+        {
+            switch (core)
+            {
+                case SelectorCore.self:
+                    return false;
+                case SelectorCore.nearest_player:
+                    return false;
+                case SelectorCore.all_players:
+                    return true; 
+                case SelectorCore.all_entities:
+                    return true;
+                case SelectorCore.initiator:
+                    return false;
+                default:
+                    return false;
+            }
+        }
+        /// <summary>
+        /// Returns if this core needs to be aligned using /execute before being used.
+        /// </summary>
+        /// <param name="core"></param>
+        /// <returns></returns>
+        public static bool IsMisaligned(this SelectorCore core)
+        {
+            switch (core)
+            {
+                case SelectorCore.self:
+                    return false;
+                case SelectorCore.nearest_player:
+                    return true;
+                case SelectorCore.all_players:
+                    return true;
+                case SelectorCore.all_entities:
+                    return true;
+                case SelectorCore.initiator:
+                    return false;
+                default:
+                    return false;
+            }
+        }
     }
     public enum SelectorCore
     {
