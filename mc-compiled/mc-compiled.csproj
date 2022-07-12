@@ -47,11 +47,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Selectors\HasItemCheck.cs" />
+    <Compile Include="Commands\Selectors\HasScoreCheck.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutation.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorAND.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorOR.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorSingle.cs" />
+    <Compile Include="Commands\Selectors\Selector.cs" />
     <Compile Include="Commands\Selectors\SelectorCodeTransformer.cs" />
+    <Compile Include="Commands\Selectors\SelectorField.cs" />
     <Compile Include="Commands\Selectors\SelectorTransformer.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorBlock.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorAny.cs" />
@@ -134,7 +138,7 @@
     <Compile Include="Modding\Resources\EntityGeometry.cs" />
     <Compile Include="Modding\Resources\EntityResource.cs" />
     <Compile Include="Modding\StructureFile.cs" />
-    <Compile Include="Commands\BlockCheck.cs" />
+    <Compile Include="Commands\Selectors\BlockCheck.cs" />
     <Compile Include="Commands\Coord.cs" />
     <Compile Include="Commands\Native\Block.cs" />
     <Compile Include="Commands\Native\ItemStack.cs" />

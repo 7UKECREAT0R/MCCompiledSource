@@ -78,6 +78,10 @@ namespace mc_compiled.Commands
             }
         }
 
+        /// <summary>
+        /// Returns this Range in the traditional minecraft-required format.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             if (single)

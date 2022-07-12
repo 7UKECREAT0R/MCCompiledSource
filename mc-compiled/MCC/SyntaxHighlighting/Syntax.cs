@@ -80,7 +80,9 @@ namespace mc_compiled.MCC.SyntaxHighlighting
             {
                 new Keyword("true", "A boolean value representing true/yes."),
                 new Keyword("false", "A boolean value representing false/no."),
-                new Keyword("&", "Adds on another comparison."),
+                new Keyword("not", "Invert the following comparison."),
+                new Keyword("and", "Includes on another comparison. Logical AND"),
+                new Keyword("or", "Includes another optional comparison. Logical OR"),
                 new Keyword("~", "Relative to executor's position."),
                 new Keyword("^", "Relative to executor's direction.")
             },
@@ -108,7 +110,6 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("mode", "Check for the player(s) in a specific gamemode."),
                 new Keyword("near", "Check for entities being near a certain position. Relative coordinates are relative to the executing entity."),
                 new Keyword("inside", "Check for entities inside a rectangular prism. Relative coordinates are relative to the executing entity."),
-                new Keyword("not", "Invert the following condition."),
                 new Keyword("level", "Compare player(s) XP level."),
                 new Keyword("name", "Check for entities with a specific name."),
                 new Keyword("rotation x", "Compare entity X rotation."), 

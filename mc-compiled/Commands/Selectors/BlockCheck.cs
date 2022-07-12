@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mc_compiled.Commands
+namespace mc_compiled.Commands.Selectors
 {
     public struct BlockCheck
     {
@@ -25,7 +25,7 @@ namespace mc_compiled.Commands
             this.y = Coord.Parse(y).GetValueOrDefault();
             this.z = Coord.Parse(z).GetValueOrDefault();
             this.block = block;
-             if (data == null || data.Equals("0") || string.IsNullOrEmpty(data))
+            if (data == null || data.Equals("0") || string.IsNullOrEmpty(data))
                 this.data = null;
             else
                 this.data = int.Parse(data);
