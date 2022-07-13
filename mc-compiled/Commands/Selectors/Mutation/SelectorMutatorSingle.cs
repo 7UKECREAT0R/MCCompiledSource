@@ -11,14 +11,14 @@ namespace mc_compiled.Commands.Selectors.Mutation
     /// </summary>
     public class SelectorMutatorSingle : SelectorMutation
     {
-        public readonly LegacySelector selector;
+        public readonly Selector selector;
 
-        public SelectorMutatorSingle(LegacySelector selector)
+        public SelectorMutatorSingle(Selector selector)
         {
             this.selector = selector;
         }
 
-        public LegacySelector[] GetMutations()
+        public Selector[] GetMutations()
         {
             return new[] { selector };
         }

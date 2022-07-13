@@ -7,277 +7,254 @@ using System.Threading.Tasks;
 namespace mc_compiled.Commands.Selectors
 {
     /// <summary>
-    /// A target selector.
-    /// https://minecraft.fandom.com/wiki/Target_selectors
+    /// Represents a target selector.
     /// </summary>
-    public partial class Selector
+    public class Selector
     {
-        public readonly SelectorCore core;
-
-        public readonly SelectorField[] allFields;
-
-        // Position
-        public readonly SelectorField<Coord> x;
-        public readonly SelectorField<Coord> y;
-        public readonly SelectorField<Coord> z;
-        public readonly SelectorField<float> radiusMin;
-        public readonly SelectorField<float> radiusMax;
-        public readonly SelectorField<int> volumeX;
-        public readonly SelectorField<int> volumeY;
-        public readonly SelectorField<int> volumeZ;
-
-        // Values
-        public readonly SelectorField<List<HasScoreCheck>> scores;
-        public readonly SelectorField<List<string>> tags;
-
-        // Entity Species
-        public readonly SelectorField<string> name;
-        public readonly SelectorField<string> type;
-        public readonly SelectorField<List<string>> families;
-
-        // Entity Data
-        public readonly SelectorField<int> rotationXMin;
-        public readonly SelectorField<int> rotationXMax;
-        public readonly SelectorField<int> rotationYMin;
-        public readonly SelectorField<int> rotationYMax;
-        public readonly SelectorField<List<HasItemCheck>> hasitem;
-
-        // Player Data
-        public readonly SelectorField<int> levelMin;
-        public readonly SelectorField<int> levelMax;
-        public readonly SelectorField<GameMode> gamemode;
-
+        public enum Core
+        {
+            p,          // Nearest player
+            s,          // Self
+            a,          // All players
+            e,          // All entities
+            initiator   // Initiator of Dialogue Button
+        }
+        public static Core ParseCore(string core)
+        {
+            string originalCore = core;
+            if (core.StartsWith("@"))
+                core = core.Substring(1);
+            switch (core.ToUpper())
+            {
+                case "P":
+                    return Core.p;
+                case "S":
+                    return Core.s;
+                case "A":
+                    return Core.a;
+                case "E":
+                    return Core.e;
+                case "INITIATOR":
+                case "I":
+                    return Core.e;
+                default:
+                    throw new FormatException($"Cannot parse selector \"{originalCore}\"");
+            }
+        }
+        public static Core ParseCore(char core)
+        {
+            switch (char.ToUpper(core))
+            {
+                case 'P':
+                    return Core.p;
+                case 'S':
+                    return Core.s;
+                case 'A':
+                    return Core.a;
+                case 'E':
+                    return Core.e;
+                case 'I':
+                    return Core.e;
+                default:
+                    throw new FormatException($"Cannot parse selector \"{core}\"");
+            }
+        }
         /// <summary>
-        /// Limit to the maximum number of entities this selector can target, sorted from closest to furthest.
+        /// Returns if this selector targets multiple entities.
         /// </summary>
-        public int? limit;
+        public bool SelectsMultiple
+        {
+            get {
+                if (count.count == 1)
+                    return false;
+                return core != Core.s && core != Core.p && core != Core.initiator;
+            }
+        }
         /// <summary>
-        /// The block to check for, if any.
+        /// Returns if this selector needs to be aligned before executing locally on this entity.
         /// </summary>
-        public BlockCheck blockCheck;
+        public bool NeedsAlign
+        {
+            get => core != Core.s && core != Core.initiator;
+        }
 
-        public Coord offsetX, offsetY, offsetZ;
-
-        public Selector(SelectorCore core)
+        public Selector()
+        {
+            scores = new Selectors.Scores
+            {
+                checks = new List<Selectors.ScoresEntry>()
+            };
+            hasItem = new Selectors.HasItems
+            {
+                entries = new List<Selectors.HasItemEntry>()
+            };
+            count = new Selectors.Count
+            {
+                count = Selectors.Count.NONE
+            };
+            area = new Selectors.Area();
+            entity = new Selectors.Entity();
+            player = new Selectors.Player();
+            tags = new List<Selectors.Tag>();
+            blockCheck = BlockCheck.DISABLED;
+        }
+        public Selector(Core core)
         {
             this.core = core;
-            this.blockCheck = BlockCheck.DISABLED;
-            this.limit = null;
-
-            this.offsetX = Coord.here;
-            this.offsetY = Coord.here;
-            this.offsetZ = Coord.here;
-
-            this.x = new SelectorField<Coord>("x", this);
-            this.y = new SelectorField<Coord>("y", this);
-            this.z = new SelectorField<Coord>("z", this);
-            this.radiusMin = new SelectorField<float>("rm", this);
-            this.radiusMax = new SelectorField<float>("r", this);
-            this.volumeX = new SelectorField<int>("dx", this);
-            this.volumeY = new SelectorField<int>("dy", this);
-            this.volumeZ = new SelectorField<int>("dz", this);
-
-            this.scores = new SelectorField<List<HasScoreCheck>>("scores", this).WithResultProvider(field =>
+            scores = new Selectors.Scores
             {
-                if (field.Value.Count == 0)
-                    return new string[0];
-
-                string inner = string.Join(",", field.Value);
-                return new[] { "scores={" + inner + '}' };
-            });
-
-            this.tags = new SelectorField<List<string>>("tag", this).WithResultProvider(field =>
+                checks = new List<Selectors.ScoresEntry>()
+            };
+            hasItem = new Selectors.HasItems
             {
-                if (field.Value.Count == 0)
-                    return new string[0];
-
-                return field.Value.Select(tag => "tag=\"" + tag + '\"').ToArray();
-            });
-            this.scores.SetValue(new List<HasScoreCheck>());
-            this.tags.SetValue(new List<string>());
-
-            this.name = new SelectorField<string>("name", this);
-            this.type = new SelectorField<string>("type", this);
-            this.families = new SelectorField<List<string>>("family", this).WithResultProvider(field =>
+                entries = new List<Selectors.HasItemEntry>()
+            };
+            count = new Selectors.Count
             {
-                if (field.Value.Count == 0)
-                    return new string[0];
+                count = Selectors.Count.NONE
+            };
+            area = new Selectors.Area();
+            entity = new Selectors.Entity();
+            player = new Selectors.Player();
+            tags = new List<Selectors.Tag>();
+            blockCheck = BlockCheck.DISABLED;
+        }
+        public Selector(Selector copy)
+        {
+            core = copy.core;
+            area = copy.area;
+            scores = new Selectors.Scores(new List<Selectors.ScoresEntry>(copy.scores.checks));
+            hasItem = new Selectors.HasItems(new List<Selectors.HasItemEntry>(copy.hasItem.entries));
+            count = copy.count;
+            entity = copy.entity;
+            player = copy.player;
+            tags = new List<Selectors.Tag>(copy.tags);
+            blockCheck = copy.blockCheck;
+        }
+        public static Selector Parse(Core core, string str)
+        {
+            str = str.TrimStart('[').TrimEnd(']');
+            string[] chunks = str.Split(',')
+                .Select(c => c.Trim()).ToArray();
 
-                return field.Value.Select(family => "family=" + family).ToArray();
-            });
-            this.families.SetValue(new List<string>());
-
-            this.rotationXMin = new SelectorField<int>("rxm", this);
-            this.rotationXMax = new SelectorField<int>("rx", this);
-            this.rotationYMin = new SelectorField<int>("rym", this);
-            this.rotationYMax = new SelectorField<int>("ry", this);
-            this.hasitem = new SelectorField<List<HasItemCheck>>("hasitem", this).WithResultProvider(field =>
+            Selector selector = new Selector()
             {
-                if (field.Value.Count == 0)
-                    return new string[0];
-                if (field.Value.Count == 1)
-                    return new[] { "hasitem={" + field.Value[0].ToString() + '}' };
+                core = core,
+                area = Selectors.Area.Parse(chunks),
+                scores = Selectors.Scores.Parse(str),
+                hasItem = Selectors.HasItems.Parse(str),
+                count = Selectors.Count.Parse(chunks),
+                entity = Selectors.Entity.Parse(chunks),
+                player = Selectors.Player.Parse(chunks)
+            };
 
-                string inner = '{' + string.Join("},{", field.Value) + '}';
-                return new[] { "hasitem=[" + inner + ']' };
-            });
-            this.hasitem.SetValue(new List<HasItemCheck>());
-
-            this.levelMin = new SelectorField<int>("lm", this);
-            this.levelMax = new SelectorField<int>("l", this);
-            this.gamemode = new SelectorField<GameMode>("m", this).WithResultProvider(field =>
+            foreach (string chunk in chunks)
             {
-                return new[] { ((int)field.Value).ToString() };
-            });
+                int index = chunk.IndexOf('=');
+                if (index == -1)
+                    continue;
+                string a = chunk.Substring(0, index).Trim().ToUpper();
+
+                if (a.Equals("TAG"))
+                {
+                    string b = chunk.Substring(index + 1).Trim();
+                    selector.tags.Add(Selectors.Tag.Parse(b));
+                }
+            }
+
+            return selector;
         }
 
+        public Core core;
+        public Coord offsetX = Coord.here;
+        public Coord offsetY = Coord.here;
+        public Coord offsetZ = Coord.here;
+
+        public Selectors.Area area;         // The area where targets should be selected.
+        public Selectors.Scores scores;     // The scores that should be evaluated.
+        public Selectors.HasItems hasItem;  // The items which should be checked.
+        public Selectors.Count count;       // The limit of entities that can be selected.
+        public Selectors.Entity entity;     // The entity/player's status (name, rotation, etc.)
+        public Selectors.Player player;     // The player's specific stats (level, gamemode, etc.)
+        public List<Selectors.Tag> tags;    // The tags this entity/player has. Can have multiple.
+        public BlockCheck blockCheck;       // The block to check.
+
         /// <summary>
-        /// Returns if this selector selects multiple entities, or just one.
+        /// Returns the fully qualified minecraft command selector that this represents.
         /// </summary>
-        public bool SelectsMultipleEntities
+        /// <returns></returns>
+        public override string ToString()
         {
-            get
+            List<string> parts = new List<string>();
+
+            string sScores = scores.GetSection(),
+                sHasItem = hasItem.GetSection(),
+                sCount = count.GetSection();
+
+            if (sScores != null)
+                parts.Add(sScores);
+            if (sHasItem != null)
+                parts.Add(sHasItem);
+            if (sCount != null)
+                parts.Add(sCount);
+
+            parts.AddRange(area.GetSections());
+            parts.AddRange(entity.GetSections());
+            parts.AddRange(player.GetSections());
+            parts.AddRange(from tag in tags select tag.GetSection());
+
+            if (parts.Count > 0)
+                return '@' + core.ToString() + '[' + string.Join(",", parts) + ']';
+            else return '@' + core.ToString();
+        }
+        public string GetAsPrefix()
+        {
+            if (blockCheck.present)
             {
-                if (limit.HasValue && limit.Value == 1)
-                    return false;
-                return core.SelectsMultiple();
+                if (core == Core.p)
+                {
+                    core = Core.s;
+                    string ret = $"execute @p ~ ~ ~ execute {ToString()} {offsetX} {offsetY} {offsetZ} {blockCheck} ";
+                    core = Core.p;
+                    return ret;
+                }
+                return $"execute {ToString()} {offsetX} {offsetY} {offsetZ} {blockCheck} ";
+            }
+            else
+            {
+                if (core == Core.p)
+                {
+                    core = Core.s;
+                    string ret = $"execute @p ~ ~ ~ execute {ToString()} {offsetX} {offsetY} {offsetZ} ";
+                    core = Core.p;
+                    return ret;
+                }
+                return $"execute {ToString()} {offsetX} {offsetY} {offsetZ} ";
             }
         }
-        /// <summary>
-        /// Returns if this selector needs to be aligned before being used properly.
-        /// </summary>
-        public bool NeedsAlignment
-        {
-            get => core.IsMisaligned();
-        }
 
-        /// <summary>
-        /// Parse a selector from a core and a string.
-        /// </summary>
-        /// <param name="core"></param>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static Selector Parse(SelectorCore core, string str)
+        public static Selector operator +(Selector a, Selector b)
         {
+            Selector clone = (Selector)a.MemberwiseClone();
 
-        }
-        static List<string> GetParts(string str)
-        {
+            clone.offsetX += b.offsetX;
+            clone.offsetY += b.offsetY;
+            clone.offsetZ += b.offsetZ;
+            clone.area += b.area;
+            clone.scores += b.scores;
+            clone.hasItem += b.hasItem;
+            clone.count += b.count;
+            clone.entity += b.entity;
+            clone.player += b.player;
 
-        }
-    }
+            if (!a.blockCheck.present)
+                a.blockCheck = b.blockCheck;
 
-    public static class SelectorCoreUtils
-    {
-        /// <summary>
-        /// Parse a core from a string: @e, @initiator, p, etc...
-        /// </summary>
-        /// <param name="str">A string with/without an @ symbol.</param>
-        /// <returns></returns>
-        public static SelectorCore Parse(string str)
-        {
-            if (str.StartsWith("@"))
-                str = str.Substring(1);
+            clone.tags = new List<Selectors.Tag>(a.tags.Count + b.tags.Count);
+            clone.tags.AddRange(a.tags);
+            clone.tags.AddRange(b.tags);
 
-            switch (str)
-            {
-                case "a":
-                    return SelectorCore.all_players;
-                case "e":
-                    return SelectorCore.all_entities;
-                case "i":
-                case "initiator":
-                    return SelectorCore.initiator;
-                case "p":
-                    return SelectorCore.nearest_player;
-                case "s":
-                default:
-                    return SelectorCore.self;
-            }
+            return clone;
         }
-        /// <summary>
-        /// Convert this core to its appropriate string, including the @ symbol.
-        /// </summary>
-        /// <param name="core"></param>
-        /// <returns></returns>
-        public static string ToString(this SelectorCore core)
-        {
-            switch (core)
-            {
-                case SelectorCore.self:
-                    return "@s";
-                case SelectorCore.nearest_player:
-                    return "@p";
-                case SelectorCore.all_players:
-                    return "@a";
-                case SelectorCore.all_entities:
-                    return "@e";
-                case SelectorCore.initiator:
-                    return "@initiator";
-                default:
-                    return "???";
-            }
-        }
-        /// <summary>
-        /// Create a new selector from this 
-        /// </summary>
-        /// <param name="core"></param>
-        /// <returns></returns>
-        public static Selector CreateFrom(this SelectorCore core) =>
-            new Selector(core);
-        /// <summary>
-        /// Returns if this core selects multiple entities, or just one.
-        /// </summary>
-        /// <param name="core"></param>
-        /// <returns></returns>
-        public static bool SelectsMultiple(this SelectorCore core)
-        {
-            switch (core)
-            {
-                case SelectorCore.self:
-                    return false;
-                case SelectorCore.nearest_player:
-                    return false;
-                case SelectorCore.all_players:
-                    return true; 
-                case SelectorCore.all_entities:
-                    return true;
-                case SelectorCore.initiator:
-                    return false;
-                default:
-                    return false;
-            }
-        }
-        /// <summary>
-        /// Returns if this core needs to be aligned using /execute before being used.
-        /// </summary>
-        /// <param name="core"></param>
-        /// <returns></returns>
-        public static bool IsMisaligned(this SelectorCore core)
-        {
-            switch (core)
-            {
-                case SelectorCore.self:
-                    return false;
-                case SelectorCore.nearest_player:
-                    return true;
-                case SelectorCore.all_players:
-                    return true;
-                case SelectorCore.all_entities:
-                    return true;
-                case SelectorCore.initiator:
-                    return false;
-                default:
-                    return false;
-            }
-        }
-    }
-    public enum SelectorCore
-    {
-        self,           // @s
-        nearest_player, // @p
-        all_players,    // @a
-        all_entities,   // @e
-        initiator       // @i
     }
 }

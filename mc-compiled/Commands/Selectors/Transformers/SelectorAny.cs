@@ -13,9 +13,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "ANY";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref LegacySelector rootSelector, ref LegacySelector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
-            LegacySelector testFor = tokens.Next<TokenSelectorLiteral>();
+            Selector testFor = tokens.Next<TokenSelectorLiteral>();
             testFor.count = new Count(1);
 
             const string counter = "_mcc_counter";

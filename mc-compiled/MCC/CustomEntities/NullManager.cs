@@ -56,9 +56,9 @@ namespace mc_compiled.MCC.CustomEntities
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public LegacySelector GetSelector(string name)
+        public Selector GetSelector(string name)
         {
-            return new LegacySelector(LegacySelector.Core.e)
+            return new Selector(Selector.Core.e)
             {
                 count = new Commands.Selectors.Count(1),
                 entity = new Commands.Selectors.Entity()
@@ -184,7 +184,7 @@ namespace mc_compiled.MCC.CustomEntities
         }
         public override bool HasEntity(string entity) =>
             existingNulls.Contains(entity);
-        public override bool Search(string name, out Commands.LegacySelector selector)
+        public override bool Search(string name, out Commands.Selector selector)
         {
             if (existingNulls.Contains(name))
             {

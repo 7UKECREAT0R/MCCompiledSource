@@ -121,9 +121,9 @@ namespace mc_compiled.Json
         /// Add a check to a selector that's needed to check for the A terms being chosen.
         /// </summary>
         /// <returns></returns>
-        public Commands.LegacySelector ConstructSelectorA(Commands.LegacySelector existing)
+        public Commands.Selector ConstructSelectorA(Commands.Selector existing)
         {
-            Commands.LegacySelector copy = new LegacySelector(existing);
+            Commands.Selector copy = new Selector(existing);
             copy.scores.checks.Add(new ScoresEntry(objective, condition));
             return copy;
         }
@@ -131,9 +131,9 @@ namespace mc_compiled.Json
         /// Add a check to a selector that's needed to check for the B terms being chosen.
         /// </summary>
         /// <returns></returns>
-        public Commands.LegacySelector ConstructSelectorB(Commands.LegacySelector existing)
+        public Commands.Selector ConstructSelectorB(Commands.Selector existing)
         {
-            Commands.LegacySelector copy = new LegacySelector(existing);
+            Commands.Selector copy = new Selector(existing);
             Range inverse = condition;
             inverse.invert = !inverse.invert;
             copy.scores.checks.Add(new ScoresEntry(objective, inverse));

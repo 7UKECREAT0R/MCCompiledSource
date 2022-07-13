@@ -167,31 +167,31 @@ namespace mc_compiled.MCC.Compiler
 
             if(firstChar == '@')
             {
-                LegacySelector.Core core;
+                Selector.Core core;
 
                 switch (char.ToUpper(secondChar))
                 {
                     case 'P':
                         NextChar();
-                        core = LegacySelector.Core.p;
+                        core = Selector.Core.p;
                         break;
                     case 'S':
                         NextChar();
-                        core = LegacySelector.Core.s;
+                        core = Selector.Core.s;
                         break;
                     case 'A':
                         NextChar();
-                        core = LegacySelector.Core.a;
+                        core = Selector.Core.a;
                         break;
                     case 'E':
                         NextChar();
-                        core = LegacySelector.Core.e;
+                        core = Selector.Core.e;
                         break;
                     case 'I':
                         NextChar();
                         while (HasNext && LETTERS.Contains(Peek()))
                             NextChar();
-                        core = LegacySelector.Core.initiator;
+                        core = Selector.Core.initiator;
                         break;
                     default:
                         if(HasNext)
@@ -476,7 +476,7 @@ namespace mc_compiled.MCC.Compiler
 
             return new TokenStringLiteral(sb.ToString(), CURRENT_LINE);
         }
-        public TokenSelectorLiteral NextSelectorLiteral(LegacySelector.Core core)
+        public TokenSelectorLiteral NextSelectorLiteral(Selector.Core core)
         {
             if (Peek() == '[')
                 NextChar();
@@ -514,7 +514,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string str = sb.ToString();
-            LegacySelector selector = LegacySelector.Parse(core, str);
+            Selector selector = Selector.Parse(core, str);
             return new TokenSelectorLiteral(selector, CURRENT_LINE);
         }
         public TokenArithmatic ArithmaticIdentifier(char a, bool assignment)

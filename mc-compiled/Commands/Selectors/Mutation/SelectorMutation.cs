@@ -15,6 +15,6 @@ namespace mc_compiled.Commands.Selectors.Mutation
         /// Get the possible selector mutations.
         /// </summary>
         /// <returns></returns>
-        LegacySelector[] GetMutations();
+        Selector[] GetMutations();
     }
 }

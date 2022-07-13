@@ -1060,9 +1060,9 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end-of-file after if/else statement.");
 
-            LegacySelector originalSelector, rootSelector, alignedSelector;
+            Selector originalSelector, rootSelector, alignedSelector;
             originalSelector = executor.ActiveSelector;
-            rootSelector = new LegacySelector(executor.ActiveSelector);
+            rootSelector = new Selector(executor.ActiveSelector);
 
             // If the existing selected entity needs to be aligned:
             if (rootSelector.NeedsAlign)
@@ -1141,7 +1141,7 @@ namespace mc_compiled.MCC.Compiler
                 //opener.shouldRun = true;
                 opener.openAction = (e) =>
                 {
-                    e.PushSelector(new LegacySelector(LegacySelector.Core.s));
+                    e.PushSelector(new Selector(Selector.Core.s));
                     e.PushFile(nextBranchFile);
                 };
                 opener.CloseAction = (e) =>
@@ -1309,7 +1309,7 @@ namespace mc_compiled.MCC.Compiler
                 };
                 StructureFile file = new StructureFile("item" + item.GetHashCode(), StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
-                LegacySelector active = executor.ActiveSelector;
+                Selector active = executor.ActiveSelector;
 
                 string cmd = Command.StructureLoad(file.name, Coord.here, Coord.here, Coord.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
@@ -1375,7 +1375,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tphere(Executor executor, Statement tokens)
         {
-            LegacySelector selector = tokens.Next<TokenSelectorLiteral>();
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
 
             Coord offsetX = Coord.here;
             Coord offsetY = Coord.here;
@@ -1449,7 +1449,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void facehere(Executor executor, Statement tokens)
         {
-            LegacySelector selector = tokens.Next<TokenSelectorLiteral>();
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
 
             List<string> commands = new List<string>();
             commands.Add(Command.Tag("@s", "_mcc_here"));
@@ -1632,7 +1632,7 @@ namespace mc_compiled.MCC.Compiler
         {
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
-                LegacySelector selector = tokens.Next<TokenSelectorLiteral>();
+                Selector selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.Kill(selector.ToString()));
                 return;
             }
@@ -1652,7 +1652,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
-                LegacySelector selector = tokens.Next<TokenSelectorLiteral>();
+                Selector selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.Execute(selector.ToString(),
                     Coord.here, Coord.here, Coord.here, Command.Function(file)));
                 return;
@@ -1858,7 +1858,7 @@ namespace mc_compiled.MCC.Compiler
         {
             int damage = tokens.Next<TokenIntegerLiteral>();
             DamageCause cause = DamageCause.all;
-            LegacySelector blame = null;
+            Selector blame = null;
 
             if(tokens.NextIs<TokenIdentifierEnum>())
             {
@@ -2049,7 +2049,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void limit(Executor executor, Statement tokens)
         {
-            LegacySelector active = executor.ActiveSelector;
+            Selector active = executor.ActiveSelector;
 
             if (tokens.NextIs<TokenIntegerLiteral>())
                 active.count.count = tokens.Next<TokenIntegerLiteral>().number;
@@ -2220,12 +2220,12 @@ namespace mc_compiled.MCC.Compiler
         public static void function(Executor executor, Statement tokens)
         {
             // attribute definitions
-            LegacySelector selector;
+            Selector selector;
 
             if (tokens.NextIs<TokenSelectorLiteral>())
                 selector = tokens.Next<TokenSelectorLiteral>().selector;
             else
-                selector = new LegacySelector(LegacySelector.Core.s);
+                selector = new Selector(Selector.Core.s);
 
             // ... future attributes stuff will go here! ...
 

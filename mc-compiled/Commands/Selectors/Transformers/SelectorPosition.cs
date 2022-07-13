@@ -13,7 +13,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "POSITION";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref LegacySelector rootSelector, ref LegacySelector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             if(tokens.NextIs<TokenIdentifier>())
             {

@@ -91,6 +91,10 @@ namespace mc_compiled.Commands
             return true;
         }
 
+        /// <summary>
+        /// Get a Minecraft-command supported string for this coordinate.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             string s;
@@ -108,6 +112,11 @@ namespace mc_compiled.Commands
 
             return s;
         }
+        /// <summary>
+        /// Get a Minecraft-command supported string for this coordinate, optionally requesting that the 
+        /// </summary>
+        /// <param name="requestInteger"></param>
+        /// <returns></returns>
         public string ToString(bool requestInteger)
         {
             string s = (requestInteger ? valuei : isFloat ? valuef : valuei).ToString();

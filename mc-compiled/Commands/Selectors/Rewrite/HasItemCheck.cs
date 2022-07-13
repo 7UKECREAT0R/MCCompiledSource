@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mc_compiled.Commands.Selectors
+namespace mc_compiled.Commands.Selectors.Rewrite
 {
     /// <summary>
     /// HasItem field in selector.

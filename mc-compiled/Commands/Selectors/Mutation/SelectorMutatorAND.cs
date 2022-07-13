@@ -9,7 +9,7 @@ namespace mc_compiled.Commands.Selectors.Mutation
     public class SelectorMutatorAND : SelectorMutation
     {
 
-        public LegacySelector[] GetMutations()
+        public Selector[] GetMutations()
         {
             throw new NotImplementedException();
         }

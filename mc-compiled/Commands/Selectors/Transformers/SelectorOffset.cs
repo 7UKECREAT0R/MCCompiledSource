@@ -12,7 +12,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "OFFSET";
         public bool CanBeInverted() => false;
 
-        public void Transform(ref LegacySelector rootSelector, ref LegacySelector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
         {
             rootSelector.offsetX = tokens.Next<TokenCoordinateLiteral>();
             rootSelector.offsetY = tokens.Next<TokenCoordinateLiteral>();

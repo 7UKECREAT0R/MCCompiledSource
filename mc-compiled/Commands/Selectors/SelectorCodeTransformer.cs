@@ -54,7 +54,7 @@ namespace mc_compiled.Commands.Selectors
         /// <param name="tokens"></param>
         /// <param name="elseStatement"></param>
         /// <returns></returns>
-        public static void TransformSelector(ref LegacySelector rootSelector, ref LegacySelector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool elseStatement)
+        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool elseStatement)
         {
             executor.scoreboard.PushTempState();
 

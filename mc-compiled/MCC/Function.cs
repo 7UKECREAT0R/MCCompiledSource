@@ -18,10 +18,10 @@ namespace mc_compiled.MCC
         readonly CommandFile file;
 
         public ScoreboardValue returnValue;
-        public readonly LegacySelector defaultSelector;
+        public readonly Selector defaultSelector;
         public readonly string name;
 
-        public Function(string name, LegacySelector defaultSelector, bool fromCompiler = false)
+        public Function(string name, Selector defaultSelector, bool fromCompiler = false)
         {
             this.name = name;
             this.defaultSelector = defaultSelector;
