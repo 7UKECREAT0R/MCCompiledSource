@@ -51,14 +51,15 @@
     <Compile Include="Commands\Selectors\Count.cs" />
     <Compile Include="Commands\Selectors\Entity.cs" />
     <Compile Include="Commands\Selectors\HasItems.cs" />
+    <Compile Include="Commands\Selectors\Mutation\MutationSet.cs" />
+    <Compile Include="Commands\Selectors\Mutation\SelectorMutation.cs" />
     <Compile Include="Commands\Selectors\Selector.cs" />
     <Compile Include="Commands\Selectors\Player.cs" />
     <Compile Include="Commands\Selectors\Rewrite\HasItemCheck.cs" />
     <Compile Include="Commands\Selectors\Rewrite\HasScoreCheck.cs" />
-    <Compile Include="Commands\Selectors\Mutation\SelectorMutation.cs" />
+    <Compile Include="Commands\Selectors\Mutation\ISelectorMutator.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorAND.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorOR.cs" />
-    <Compile Include="Commands\Selectors\Mutation\SelectorMutatorSingle.cs" />
     <Compile Include="Commands\Selectors\Rewrite\Selector.cs" />
     <Compile Include="Commands\Selectors\Scores.cs" />
     <Compile Include="Commands\Selectors\SelectorCodeTransformer.cs" />
@@ -208,6 +209,9 @@
     <AdditionalFiles Include="notepadplusplus_language.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Commands\Selectors\Mutation\Mutations\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

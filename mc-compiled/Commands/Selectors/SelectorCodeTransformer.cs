@@ -1,4 +1,5 @@
-﻿using mc_compiled.Commands.Selectors.Transformers;
+﻿using mc_compiled.Commands.Selectors.Mutation;
+using mc_compiled.Commands.Selectors.Transformers;
 using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
@@ -49,12 +50,12 @@ namespace mc_compiled.Commands.Selectors
         /// <summary>
         /// Read the next selector transformer(s) out of this set of tokens.
         /// </summary>
-        /// <param name="input"></param>
         /// <param name="executor"></param>
+        /// <param name="commands"></param>
         /// <param name="tokens"></param>
         /// <param name="elseStatement"></param>
         /// <returns></returns>
-        public static void TransformSelector(ref Selector rootSelector, ref Selector alignedSelector, Executor executor, List<String> commands, Statement tokens, bool elseStatement)
+        public static List<MutationSet> TransformSelector(Executor executor, List<String> commands, Statement tokens, bool elseStatement)
         {
             executor.scoreboard.PushTempState();
 

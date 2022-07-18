@@ -138,6 +138,9 @@ namespace mc_compiled.MCC.Compiler
         public TokenRangeInvert(int lineNumber) : base(lineNumber) { }
     }
 
+    /// <summary>
+    /// An AND/OR identifier. Continues a selector transformation.
+    /// </summary>
     public abstract class TokenContinue : TokenOperator
     {
         public TokenContinue(int lineNumber) : base(lineNumber) { }
