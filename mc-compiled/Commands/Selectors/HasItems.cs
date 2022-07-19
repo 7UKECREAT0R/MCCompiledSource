@@ -134,6 +134,14 @@ namespace mc_compiled.Commands.Selectors
             this.slot = slot;
             this.quantity = quantity;
         }
+        /// <summary>
+        /// Returns if this entry is just a bare item check. e.g., hasitem={item=apple} (nothing more)
+        /// </summary>
+        public bool IsBare
+        {
+            get => !location.HasValue && !slot.HasValue && !data.HasValue && !quantity.HasValue;
+        }
+
         public override string ToString()
         {
             List<string> parts = new List<string>();

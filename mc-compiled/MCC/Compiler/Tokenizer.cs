@@ -7,6 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using mc_compiled.Commands.Native;
 using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
 
 namespace mc_compiled.MCC.Compiler
 {

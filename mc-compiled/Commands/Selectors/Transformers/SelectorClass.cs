@@ -19,6 +19,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
             string clazz = tokens.Next<TokenStringLiteral>();
             string family = MCC.CustomEntities.NullManager.FamilyName(clazz);
 
+            // NullManager.FamilyName(...) always returns non-inverted name
             if (inverted)
                 family = '!' + family;
 

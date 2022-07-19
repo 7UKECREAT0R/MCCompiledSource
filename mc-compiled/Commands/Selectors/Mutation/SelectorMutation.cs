@@ -40,7 +40,7 @@ namespace mc_compiled.Commands.Selectors.Mutation
             return copy;
         }
         /// <summary>
-        /// Make a deep clone of this instance.
+        /// Make a clone of this instance, the depth defined per-implementation
         /// </summary>
         /// <returns></returns>
         public abstract SelectorMutation Clone();
@@ -48,10 +48,10 @@ namespace mc_compiled.Commands.Selectors.Mutation
         /// <summary>
         /// Mutate a selector based off this mutation implementation. The selector passed in will be based on the <see cref="Target"/> given from this instance.
         /// </summary>
-        /// <param name="selector"></param>
-        /// <param name="executor"></param>
-        /// <param name="invert"></param>
-        public abstract void Mutate(Executor executor, Selector selector);
+        /// <param name="executor">The executing parent of this operation.</param>
+        /// <param name="commands">The list of commands to be appended.</param>
+        /// <param name="selector">The selector to be modified, as specified by <see cref="Target"/>.</param>
+        public abstract void Mutate(Executor executor, List<string> commands, Selector selector);
 
         public void SetInverted(bool inverted) => this.Invert = inverted;
         public void Condense(List<MutationSet> mutations)

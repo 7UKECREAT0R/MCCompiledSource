@@ -18,7 +18,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
             string entity = executor.ActiveSelectorStr;
 
             // if <boolean> {}
-            if (!tokens.HasNext || !tokens.NextIs<TokenCompare>())
+            if (a.value is ScoreboardValueBoolean && !tokens.NextIs<TokenCompare>())
             {
                 alignedSelector.scores.checks.Add(new ScoresEntry(a.value, new Range(1, inverted)));
             }

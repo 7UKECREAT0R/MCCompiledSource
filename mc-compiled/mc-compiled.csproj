@@ -52,19 +52,25 @@
     <Compile Include="Commands\Selectors\Entity.cs" />
     <Compile Include="Commands\Selectors\HasItems.cs" />
     <Compile Include="Commands\Selectors\Mutation\MutationSet.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationBlock.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationFamily.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationHasItem.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationLevel.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationMode.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationName.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationOffset.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationArea.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationRotationY.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationRotationX.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutation.cs" />
+    <Compile Include="Commands\Selectors\Mutation\Mutations\SelectorMutationComparison.cs" />
     <Compile Include="Commands\Selectors\Selector.cs" />
     <Compile Include="Commands\Selectors\Player.cs" />
-    <Compile Include="Commands\Selectors\Rewrite\HasItemCheck.cs" />
-    <Compile Include="Commands\Selectors\Rewrite\HasScoreCheck.cs" />
     <Compile Include="Commands\Selectors\Mutation\ISelectorMutator.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorAND.cs" />
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorOR.cs" />
-    <Compile Include="Commands\Selectors\Rewrite\Selector.cs" />
     <Compile Include="Commands\Selectors\Scores.cs" />
     <Compile Include="Commands\Selectors\SelectorCodeTransformer.cs" />
-    <Compile Include="Commands\Selectors\Rewrite\SelectorField.cs" />
-    <Compile Include="Commands\Selectors\Rewrite\SelectorFieldObjectPrimitives.cs" />
     <Compile Include="Commands\Selectors\SelectorTransformer.cs" />
     <Compile Include="Commands\Selectors\Tag.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorBlock.cs" />
@@ -87,7 +93,6 @@
     <Compile Include="Commands\Selectors\Transformers\SelectorFamily.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorType.cs" />
     <Compile Include="Commands\Selectors\TransformResult.cs" />
-    <Compile Include="Commands\Selectors\Rewrite\ZoneCheck.cs" />
     <Compile Include="MCC\Compiler\Assembler.cs" />
     <Compile Include="Commands\CommandEnumParser.cs" />
     <Compile Include="Commands\CommandLimits.cs" />
@@ -210,8 +215,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Commands\Selectors\Mutation\Mutations\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

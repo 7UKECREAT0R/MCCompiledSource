@@ -38,7 +38,7 @@ namespace mc_compiled.Commands.Selectors
     }
 
     /// <summary>
-    /// i mostly just use this for inverting only once lol
+    /// Utility methods for selectors and the systems surrounding them.
     /// </summary>
     public static class SelectorUtils
     {

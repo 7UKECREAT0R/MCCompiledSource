@@ -46,7 +46,7 @@ namespace mc_compiled.MCC
         /// <param name="name">The name of the entity to search for.</param>
         /// <param name="selector">The selector for this entity.</param>
         /// <returns>If the entity was found and "selector" was set.</returns>
-        public bool Search(string name, out Commands.Selector selector)
+        public bool Search(string name, out Commands.Selectors.Selector selector)
         {
             foreach (ISelectorProvider provider in allProviders)
             {
@@ -76,6 +76,6 @@ namespace mc_compiled.MCC
         /// <param name="name"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
-        bool Search(string name, out Commands.Selector selector);
+        bool Search(string name, out Commands.Selectors.Selector selector);
     }
 }

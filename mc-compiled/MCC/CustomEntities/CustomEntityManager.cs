@@ -33,6 +33,6 @@ namespace mc_compiled.MCC.CustomEntities
 
         internal abstract IAddonFile[] CreateEntityFiles();
         public abstract bool HasEntity(string name);
-        public abstract bool Search(string name, out Selector selector);
+        public abstract bool Search(string name, out Commands.Selectors.Selector selector);
     }
 }

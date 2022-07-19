@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
@@ -184,7 +185,7 @@ namespace mc_compiled.MCC.CustomEntities
         }
         public override bool HasEntity(string entity) =>
             existingNulls.Contains(entity);
-        public override bool Search(string name, out Commands.Selector selector)
+        public override bool Search(string name, out Commands.Selectors.Selector selector)
         {
             if (existingNulls.Contains(name))
             {

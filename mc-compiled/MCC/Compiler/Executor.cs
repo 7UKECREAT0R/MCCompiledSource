@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.Modding;
 using Newtonsoft.Json.Linq;
@@ -497,6 +498,17 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <returns></returns>
         public Statement Peek() => statements[readIndex];
+        /// <summary>
+        /// Peek at the last statement that was gotten, if any.
+        /// </summary>
+        /// <returns><b>null</b> if no statements have been gotten yet.</returns>
+        public Statement PeekLast()
+        {
+            if (readIndex > 0)
+                return statements[readIndex - 1];
+
+            return null;
+        }
         /// <summary>
         /// Get the next statement to be read and then increment the read index.
         /// </summary>
