@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors.Transformers
 {
-    internal sealed class SelectorHolding : SelectorTransformer
+    internal sealed class SelectorHolding : MutationProvider
     {
         public string GetKeyword() => "HOLDING";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void GetMutations(bool inverted, Executor executor, Statement tokens)
         {
             int? data = null;
             Range? quantity = null;

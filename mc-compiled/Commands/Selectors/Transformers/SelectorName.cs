@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors.Transformers
 {
-    internal sealed class SelectorName : SelectorTransformer
+    internal sealed class SelectorName : MutationProvider
     {
         public string GetKeyword() => "NAME";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void GetMutations(bool inverted, Executor executor, Statement tokens)
         {
             string name = tokens.Next<TokenStringLiteral>();
 

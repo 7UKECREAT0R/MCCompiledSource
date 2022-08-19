@@ -9,6 +9,7 @@ namespace mc_compiled.Commands.Selectors.Mutation
 {
     /// <summary>
     /// Changes a selector in some way.
+    /// Note that mutations are currently unused as the scope of the language has changed.
     /// </summary>
     public abstract class SelectorMutation: ISelectorMutator
     {

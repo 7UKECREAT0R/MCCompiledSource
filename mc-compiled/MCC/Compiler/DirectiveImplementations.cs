@@ -1081,7 +1081,7 @@ namespace mc_compiled.MCC.Compiler
             List<string> commands = new List<string>();
 
             // the big man
-            SelectorCodeTransformer.TransformSelector(ref rootSelector, ref alignedSelector, executor, commands, tokens, @else);
+            SelectorCodeTransformer.ResolveAllMutations(executor, tokens, @else);
 
             executor.PopSelector();
             executor.SetLastCompare(tokensUsed);

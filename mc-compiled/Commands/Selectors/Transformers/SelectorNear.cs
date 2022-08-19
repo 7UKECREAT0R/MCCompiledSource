@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors.Transformers
 {
-    internal sealed class SelectorNear : SelectorTransformer
+    internal sealed class SelectorNear : MutationProvider
     {
         public string GetKeyword() => "NEAR";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void GetMutations(bool inverted, Executor executor, Statement tokens)
         {
             Coord x = tokens.Next<TokenCoordinateLiteral>();
             Coord y = tokens.Next<TokenCoordinateLiteral>();

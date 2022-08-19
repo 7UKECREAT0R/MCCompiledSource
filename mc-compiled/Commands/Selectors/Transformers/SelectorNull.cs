@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors.Transformers
 {
-    internal sealed class SelectorNull : SelectorTransformer
+    internal sealed class SelectorNull : MutationProvider
     {
         public string GetKeyword() => "NULL";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void GetMutations(bool inverted, Executor executor, Statement tokens)
         {
             executor.RequireFeature(tokens, MCC.Feature.NULLS);
 

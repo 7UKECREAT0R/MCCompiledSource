@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors.Transformers
 {
-    internal sealed class SelectorMode : SelectorTransformer
+    internal sealed class SelectorMode : MutationProvider
     {
         public string GetKeyword() => "MODE";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void GetMutations(bool inverted, Executor executor, Statement tokens)
         {
             GameMode gameMode;
 

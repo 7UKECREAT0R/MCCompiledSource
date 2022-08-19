@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors.Transformers
 {
-    internal sealed class SelectorAny : SelectorTransformer
+    internal sealed class SelectorAny : MutationProvider
     {
         public string GetKeyword() => "ANY";
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+        public void GetMutations(bool inverted, Executor executor, Statement tokens)
         {
             Selector testFor = tokens.Next<TokenSelectorLiteral>();
             testFor.count = new Count(1);

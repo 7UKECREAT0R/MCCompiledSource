@@ -26,7 +26,7 @@ namespace mc_compiled.Commands.Selectors
         /// <summary>
         /// Dictionary of implemented selector transformers.
         /// </summary>
-        public static readonly Dictionary<string, SelectorTransformer> TRANSFORMERS = new Dictionary<string, SelectorTransformer>()
+        public static readonly Dictionary<string, MutationProvider> TRANSFORMERS = new Dictionary<string, MutationProvider>()
         {
             { "ANY", new SelectorAny() },
             { "BLOCK", new SelectorBlock() },
@@ -48,16 +48,45 @@ namespace mc_compiled.Commands.Selectors
             { "TYPE", new SelectorType() }
         };
         /// <summary>
-        /// Read the next selector transformer(s) out of this set of tokens.
+        /// Resolve all of the necessary sets of mutations based off of a 
         /// </summary>
         /// <param name="executor"></param>
         /// <param name="commands"></param>
         /// <param name="tokens"></param>
         /// <param name="elseStatement"></param>
         /// <returns></returns>
-        public static List<MutationSet> TransformSelector(Executor executor, List<String> commands, Statement tokens, bool elseStatement)
+        public static List<MutationSet> ResolveAllMutations(Executor executor, List<String> commands, Statement tokens, bool elseStatement)
         {
-            executor.scoreboard.PushTempState();
+            const int GROUP_SINGLE = 0;
+            const int GROUP_AND = 1;
+            const int GROUP_OR = 2;
+
+
+            // buffer to hold groups of conditions
+            Stack<ISelectorMutator> buffer = new Stack<ISelectorMutator>();
+            List<MutationSet> sets = new List<MutationSet>();
+            int group = GROUP_SINGLE;
+
+            bool invertNext = false;
+
+            if (!tokens.HasNext)
+                throw new StatementException(tokens, "Got empty statement while trying to fetch mutations.");
+
+            do
+            {
+                bool invert = elseStatement;
+
+                if(invertNext)
+                {
+                    invert = !invert;
+                    invertNext = false;
+                }
+
+                Token token = tokens.Next();
+
+            }
+
+            /*executor.scoreboard.PushTempState();
 
             do
             {
@@ -80,17 +109,17 @@ namespace mc_compiled.Commands.Selectors
                 if (isScore)
                 {
                     TokenIdentifierValue score = currentToken as TokenIdentifierValue;
-                    SCORE_OPERATION.Transform(ref rootSelector, ref alignedSelector, invert, executor, tokens, commands, score);
+                    SelectorMutation[] mutations = SCORE_OPERATION.GetMutations(invert, executor, tokens, score);
                     continue;
                 }
 
                 // Other kind of operation.
-                if(TRANSFORMERS.TryGetValue(word, out SelectorTransformer transformer))
+                if(TRANSFORMERS.TryGetValue(word, out MutationProvider transformer))
                 {
                     if (invert && !transformer.CanBeInverted())
                         throw new StatementException(tokens, $"Operation {transformer.GetKeyword()} cannot be inverted.");
 
-                    transformer.Transform(ref rootSelector, ref alignedSelector, invert, executor, tokens, commands);
+                    SelectorMutation[] mutations = transformer.GetMutations(invert, executor, tokens);
                     continue;
                 }
 
@@ -100,7 +129,7 @@ namespace mc_compiled.Commands.Selectors
 
             // done with temporary variables
             executor.scoreboard.PopTempState();
-            return;
+            return;*/
         }
 
         /// <summary>
@@ -121,24 +150,24 @@ namespace mc_compiled.Commands.Selectors
             return TRANSFORMERS.ContainsKey(keyword.ToUpper());
         }
         /// <summary>
-        /// Tries to fetch a <see cref="SelectorTransformer"/> from a specific keyword.
+        /// Tries to fetch a <see cref="MutationProvider"/> from a specific keyword.
         /// </summary>
         /// <param name="keyword">The keyword to search for.</param>
         /// <param name="transformer">The transformer to feed tokens into.</param>
         /// <returns></returns>
         public static bool TryGetTransformer(string keyword,
-            out SelectorTransformer transformer)
+            out MutationProvider transformer)
         {
             return TRANSFORMERS.TryGetValue(keyword.ToUpper(), out transformer);
         }
         /// <summary>
-        /// Get a <see cref="SelectorTransformer"/> instance from its keyword.
+        /// Get a <see cref="MutationProvider"/> instance from its keyword.
         /// </summary>
         /// <param name="keyword"></param>
         /// <returns></returns>
-        public static SelectorTransformer GetTransformer(string keyword)
+        public static MutationProvider GetTransformer(string keyword)
         {
-            if (TRANSFORMERS.TryGetValue(keyword.ToUpper(), out SelectorTransformer result))
+            if (TRANSFORMERS.TryGetValue(keyword.ToUpper(), out MutationProvider result))
                 return result;
 
             return null;

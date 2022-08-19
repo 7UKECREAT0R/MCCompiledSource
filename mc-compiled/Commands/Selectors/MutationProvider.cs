@@ -10,7 +10,7 @@ namespace mc_compiled.Commands.Selectors
     /// <summary>
     /// Transforms a selector based off of a set of tokens.
     /// </summary>
-    public interface SelectorTransformer
+    public interface MutationProvider
     {
         /// <summary>
         /// Get the keyword which is used to invoke this transformer.
@@ -24,17 +24,12 @@ namespace mc_compiled.Commands.Selectors
         bool CanBeInverted();
 
         /// <summary>
-        /// Take in a set of tokens to transform the selector given, potentially adding commands or changing the project as well.
+        /// Get the mutation(s) described by this provider based on an input.
         /// </summary>
-        /// <param name="rootSelector">The root selector; still aligned to the active entity.</param>
-        /// <param name="alignedSelector">The selector after being aligned to each individual selected entity.</param>
         /// <param name="inverted">Whether this statement is inverted or not.</param>
         /// <param name="executor">The executor running this transformation.</param>
-        /// <param name="tokens">The fed-in tokens which specify how the transformation should occur.</param>
-        /// <param name="commands">The list of commands to add to.</param>
-        /// 
-        void Transform(ref Selector rootSelector, ref Selector alignedSelector,
-            bool inverted, Executor executor, Statement tokens, List<string> commands);
+        /// <param name="tokens">The fed-in tokens which specify how the mutation should occur.</param>
+        Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens);
     }
 
     /// <summary>

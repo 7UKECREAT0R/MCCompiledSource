@@ -71,7 +71,7 @@
     <Compile Include="Commands\Selectors\Mutation\SelectorMutatorOR.cs" />
     <Compile Include="Commands\Selectors\Scores.cs" />
     <Compile Include="Commands\Selectors\SelectorCodeTransformer.cs" />
-    <Compile Include="Commands\Selectors\SelectorTransformer.cs" />
+    <Compile Include="Commands\Selectors\MutationProvider.cs" />
     <Compile Include="Commands\Selectors\Tag.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorBlock.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorAny.cs" />

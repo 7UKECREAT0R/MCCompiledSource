@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC;
+﻿using mc_compiled.Commands.Selectors.Mutation;
+using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
@@ -8,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors.Transformers
 {
-    internal sealed class SelectorScoreOperation : SelectorTransformer
+    internal sealed class SelectorScoreOperation : MutationProvider
     {
         public string GetKeyword() => null; // hardcoded
         public bool CanBeInverted() => true;
 
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands, TokenIdentifierValue a)
+        public SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens, TokenIdentifierValue a)
         {
             string entity = executor.ActiveSelectorStr;
 
@@ -85,7 +86,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
         }
 
         // this shouldnt ever get called if everything is working okay
-        public void Transform(ref Selector rootSelector, ref Selector alignedSelector, bool inverted, Executor executor, Statement tokens, List<string> commands)
+
+        public SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
             throw new NotImplementedException();
         }
