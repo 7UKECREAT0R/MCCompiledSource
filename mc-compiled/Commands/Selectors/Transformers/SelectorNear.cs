@@ -13,43 +13,44 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "NEAR";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            Coord x = tokens.Next<TokenCoordinateLiteral>();
-            Coord y = tokens.Next<TokenCoordinateLiteral>();
-            Coord z = tokens.Next<TokenCoordinateLiteral>();
+            //Coord x = tokens.Next<TokenCoordinateLiteral>();
+            //Coord y = tokens.Next<TokenCoordinateLiteral>();
+            //Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-            float radius = tokens.Next<TokenNumberLiteral>().GetNumber();
+            //float radius = tokens.Next<TokenNumberLiteral>().GetNumber();
 
-            float? minRadius;
+            //float? minRadius;
 
-            if (tokens.NextIs<TokenNumberLiteral>())
-                minRadius = tokens.Next<TokenNumberLiteral>().GetNumber();
-            else
-                minRadius = null;
+            //if (tokens.NextIs<TokenNumberLiteral>())
+            //    minRadius = tokens.Next<TokenNumberLiteral>().GetNumber();
+            //else
+            //    minRadius = null;
 
-            Area area = new Area(x, y, z, minRadius, radius);
+            //Area area = new Area(x, y, z, minRadius, radius);
 
-            if (inverted && minRadius != null)
-            {
-                SelectorUtils.InvertSelector(ref rootSelector,
-                    commands, executor, (sel) =>
-                    {
-                        sel.area = area;
-                    });
-            }
-            else if (inverted)
-            {
-                byte[] byteArray = BitConverter.GetBytes(area.radiusMax.Value);
-                int integralRepresentation = BitConverter.ToInt32(byteArray, 0);
-                integralRepresentation += 1 << 3; // increment mantissa (probably)
-                byteArray = BitConverter.GetBytes(integralRepresentation);
-                area.radiusMin = BitConverter.ToSingle(byteArray, 0);
-                area.radiusMax = null;
-                rootSelector.area = area;
-            }
-            else
-                rootSelector.area = area;
+            //if (inverted && minRadius != null)
+            //{
+            //    SelectorUtils.InvertSelector(ref rootSelector,
+            //        commands, executor, (sel) =>
+            //        {
+            //            sel.area = area;
+            //        });
+            //}
+            //else if (inverted)
+            //{
+            //    byte[] byteArray = BitConverter.GetBytes(area.radiusMax.Value);
+            //    int integralRepresentation = BitConverter.ToInt32(byteArray, 0);
+            //    integralRepresentation += 1 << 3; // increment mantissa (probably)
+            //    byteArray = BitConverter.GetBytes(integralRepresentation);
+            //    area.radiusMin = BitConverter.ToSingle(byteArray, 0);
+            //    area.radiusMax = null;
+            //    rootSelector.area = area;
+            //}
+            //else
+            //    rootSelector.area = area;
+            return null;
         }
     }
 }

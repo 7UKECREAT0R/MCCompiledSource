@@ -13,7 +13,7 @@ namespace mc_compiled.MCC.Compiler
     public abstract class Statement : ICloneable
     {
         private TypePattern[] patterns;
-        private Executor executor;
+        internal Executor executor;
         public Statement(Token[] tokens, bool waitForPatterns = false)
         {
             this.tokens = tokens;

@@ -322,7 +322,7 @@ namespace mc_compiled.MCC.Compiler
                     if (directive.enumValue.HasValue)
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        string className = directive.enumValue.Value.enumName;
+                        string className = directive.enumValue.Value.enumType.Name;
                         Console.WriteLine($"\t\tOverlaps with {className}.{directive.identifier}:");
                         Console.ForegroundColor = ConsoleColor.White;
                     }

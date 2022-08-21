@@ -1060,99 +1060,8 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end-of-file after if/else statement.");
 
-            Selector originalSelector, rootSelector, alignedSelector;
-            originalSelector = executor.ActiveSelector;
-            rootSelector = new Selector(executor.ActiveSelector);
+            // 1.1 Rework
 
-            // If the existing selected entity needs to be aligned:
-            if (rootSelector.NeedsAlign)
-            {
-                // Align it and use that as the active selector.
-                executor.PushSelector(true);
-                alignedSelector = executor.ActiveSelector;
-            } else
-            {
-                // Otherwise, just use the same instance as the root selector.
-                executor.PushSelector(rootSelector);
-                alignedSelector = rootSelector;
-            }
-
-            Token[] tokensUsed = tokens.GetRemainingTokens();
-            List<string> commands = new List<string>();
-
-            // the big man
-            SelectorCodeTransformer.ResolveAllMutations(executor, tokens, @else);
-
-            executor.PopSelector();
-            executor.SetLastCompare(tokensUsed);
-
-            if (commands.Count > 0)
-            {
-                string buffer = executor.PushSelectorExecute();
-                executor.AddCommandsClean(commands, "selectorsetup");
-                executor.PopSelector();
-                executor.SetCommandPrepend(buffer); // return to previous value
-            }
-
-            string commandPrefix;
-            if (rootSelector.NeedsAlign)
-            {
-                string prefix0 = rootSelector.GetAsPrefix();
-                string prefix1 = alignedSelector.GetAsPrefix();
-                commandPrefix = prefix0 + prefix1;
-            }
-            else
-                // same instance, doesn't matter
-                commandPrefix = rootSelector.GetAsPrefix();
-
-            executor.AppendCommandPrepend(commandPrefix);
-
-            StatementOpenBlock opener = null;
-            if (executor.NextIs<StatementOpenBlock>())
-            {
-                opener = executor.Peek<StatementOpenBlock>();
-
-                // waste of a branching file, so treat as 1 statement.
-                if (opener.statementsInside == 1)
-                {
-                    // skip open block
-                    executor.Next();
-
-                    // make close block only pop selector
-                    StatementCloseBlock closer = executor.Peek<StatementCloseBlock>(1);
-                    closer.closeAction = (e) =>
-                    {
-                        e.PopSelector();
-                    };
-                    executor.PushSelector(true);
-                    return;
-                }
-            }
-
-            if (opener == null)
-            {
-                executor.PushSelector(true);
-                executor.PopSelectorAfterNext();
-            }
-            else
-            {
-                CommandFile nextBranchFile = Executor.GetNextGeneratedFile("branch");
-                //opener.executeAs = new Selector(Selector.Core.s);
-                //opener.shouldRun = true;
-                opener.openAction = (e) =>
-                {
-                    e.PushSelector(new Selector(Selector.Core.s));
-                    e.PushFile(nextBranchFile);
-                };
-                opener.CloseAction = (e) =>
-                {
-                    e.PopSelector();
-                    e.PopFile();
-                };
-
-                executor.AddCommand(Command.Function(nextBranchFile));
-                return;
-            }
         }
         public static void @else(Executor executor, Statement tokens)
         {
@@ -2214,7 +2123,7 @@ namespace mc_compiled.MCC.Compiler
             executor.project.EnableFeature(feature);
             FeatureManager.OnFeatureEnabled(executor, feature);
 
-            if (Program.DEBUG)
+            if (Program.DEBUG && !executor.project.linting)
                 Console.WriteLine("Feature enabled: {0}", feature);
         }
         public static void function(Executor executor, Statement tokens)
@@ -2241,8 +2150,9 @@ namespace mc_compiled.MCC.Compiler
             {
                 var def = executor.scoreboard.GetNextValueDefinition(tokens);
 
-                if(def.type == ScoreboardManager.ValueType.PPV)
-                    args.Add(FunctionParameter.CreatePPV(def.name, def.defaultValue));
+                if (def.type == ScoreboardManager.ValueType.PPV)
+                    //args.Add(FunctionParameter.CreatePPV(def.name, def.defaultValue));
+                    throw new StatementException(tokens, "Preprocessor variable cannot be used as a parameter type. Consider using a function inside a macro.");
                 else
                 {
                     ScoreboardValue value = def.Create(executor.scoreboard, tokens);

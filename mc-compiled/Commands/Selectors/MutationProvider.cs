@@ -85,5 +85,15 @@ namespace mc_compiled.Commands.Selectors
                     return type;
             }
         }
+
+        /// <summary>
+        /// Get this core as a command string. e.g., @s, @a, @initiator
+        /// </summary>
+        /// <param name="core"></param>
+        /// <returns></returns>
+        public static string AsCommandString(this Selector.Core core)
+        {
+            return '@' + core.ToString();
+        }
     }
 }

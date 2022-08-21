@@ -22,9 +22,10 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
         public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
-        public const float MCC_VERSION = 1.05f;              // compilerversion
-        public static string MINECRAFT_VERSION = "x.xx.xxx"; // mcversion
-        public const string MCC_GENERATED_FOLDER = "compiler"; // folder that generated functions go into
+        public const float MCC_VERSION = 1.1f;                  // compilerversion
+        public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
+        public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
+        public const string FAKEPLAYER_NAME = "_";
 
         /// <summary>
         /// Display a success message regardless of debug setting.
@@ -68,6 +69,7 @@ namespace mc_compiled.MCC.Compiler
         int readIndex = 0;
         int unreachableCode = -1;
 
+        internal int depth;
         internal bool linting;
         internal readonly Dictionary<int, object> loadedFiles;
         internal readonly List<int> definedStdFiles;
@@ -81,7 +83,7 @@ namespace mc_compiled.MCC.Compiler
         readonly Stack<Selector> selections;
         readonly Stack<StructDefinition> definingStructs;
         public readonly ScoreboardManager scoreboard;
-
+        
         internal Executor(Statement[] statements, Program.InputPPV[] inputPPVs,
             string projectName, string bpBase, string rpBase)
         {

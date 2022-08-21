@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC;
+﻿using mc_compiled.Commands.Selectors.Mutation;
+using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "BLOCK";
         public bool CanBeInverted() => true;
         
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
+            /*
             Coord x = tokens.Next<TokenCoordinateLiteral>();
             Coord y = tokens.Next<TokenCoordinateLiteral>();
             Coord z = tokens.Next<TokenCoordinateLiteral>();
@@ -36,6 +38,10 @@ namespace mc_compiled.Commands.Selectors.Transformers
             }
             else
                 alignedSelector.blockCheck = blockCheck;
+            */
+
+            return null; // unfinished
+            // it is just that shrimple
         }
     }
 }

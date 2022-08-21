@@ -13,9 +13,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "COUNT";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            Selector testFor = tokens.Next<TokenSelectorLiteral>();
+            /*Selector testFor = tokens.Next<TokenSelectorLiteral>();
             TokenCompare comparison = tokens.Next<TokenCompare>();
             int number = tokens.Next<TokenIntegerLiteral>();
             Range range;
@@ -54,7 +54,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
             commands.Add(Command.Execute(testFor.ToString(), Coord.here, Coord.here, Coord.here,
                 Command.ScoreboardAdd($"@e[tag={counter}]", temp, 1)));
             commands.Add(Command.TagRemove(activeSelector, counter));
-            rootSelector.scores.checks.Add(new ScoresEntry(temp, range));
+            rootSelector.scores.checks.Add(new ScoresEntry(temp, range));*/
+
+            return null;
         }
     }
 }

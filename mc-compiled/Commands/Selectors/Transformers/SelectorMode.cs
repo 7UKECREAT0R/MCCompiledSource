@@ -12,22 +12,23 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "MODE";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            GameMode gameMode;
+            //GameMode gameMode;
 
-            if (tokens.NextIs<TokenIdentifierEnum>())
-            {
-                ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>().value;
-                if (!enumValue.IsType<GameMode>())
-                    throw new StatementException(tokens, $"Must specify GameMode; Given {enumValue.enumName}.");
-                gameMode = (GameMode)enumValue.value;
-            }
-            else
-                gameMode = (GameMode)tokens.Next<TokenIntegerLiteral>().number;
+            //if (tokens.NextIs<TokenIdentifierEnum>())
+            //{
+            //    ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>().value;
+            //    if (!enumValue.IsType<GameMode>())
+            //        throw new StatementException(tokens, $"Must specify GameMode; Given {enumValue.enumName}.");
+            //    gameMode = (GameMode)enumValue.value;
+            //}
+            //else
+            //    gameMode = (GameMode)tokens.Next<TokenIntegerLiteral>().number;
 
-            alignedSelector.player.gamemode = gameMode;
-            alignedSelector.player.gamemodeNot = inverted;
+            //alignedSelector.player.gamemode = gameMode;
+            //alignedSelector.player.gamemodeNot = inverted;
+            return null;
         }
     }
 }

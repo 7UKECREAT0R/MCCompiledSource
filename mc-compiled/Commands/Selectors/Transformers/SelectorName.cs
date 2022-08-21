@@ -12,14 +12,15 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "NAME";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            string name = tokens.Next<TokenStringLiteral>();
+            //string name = tokens.Next<TokenStringLiteral>();
 
-            if (inverted)
-                name = Command.UTIL.ToggleInversion(name);
+            //if (inverted)
+            //    name = Command.UTIL.ToggleInversion(name);
 
-            alignedSelector.entity.name = name;
+            //alignedSelector.entity.name = name;
+            return null;
         }
     }
 }

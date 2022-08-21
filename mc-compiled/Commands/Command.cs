@@ -493,6 +493,24 @@ namespace mc_compiled.Commands
             $"scoreboard players operation {target} \"{a}\" < {target} \"{b}\"";
         public static string ScoreboardOpMax(string target, string a, string b) =>
             $"scoreboard players operation {target} \"{a}\" > {target} \"{b}\"";
+        public static string ScoreboardOpSet(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" = {targetB} \"{b}\"";
+        public static string ScoreboardOpAdd(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" += {targetB} \"{b}\"";
+        public static string ScoreboardOpSub(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" -= {targetB} \"{b}\"";
+        public static string ScoreboardOpMul(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" *= {targetB} \"{b}\"";
+        public static string ScoreboardOpDiv(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" /= {targetB} \"{b}\"";
+        public static string ScoreboardOpMod(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" %= {targetB} \"{b}\"";
+        public static string ScoreboardOpSwap(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" >< {targetB} \"{b}\"";
+        public static string ScoreboardOpMin(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" < {targetB} \"{b}\"";
+        public static string ScoreboardOpMax(string targetA, string a, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" > {targetB} \"{b}\"";
 
         public static string SetBlock(Coord x, Coord y, Coord z, string block) =>
             $"setblock {x} {y} {z} {block}";

@@ -19,6 +19,9 @@ namespace mc_compiled.Commands.Selectors
     /// of tokens to the right transformer. This was previously achieved by hardcoding into the if-statement
     /// implementation, but in light of upcoming changes and code housekeeping, this system will be more
     /// sustainable for the future.
+    /// 
+    /// This class is currently unused due to the changing of the language's scope. It
+    /// will likely not be used, though it will remain here for the sake of open source.
     /// </summary>
     public static class SelectorCodeTransformer
     {
@@ -57,22 +60,26 @@ namespace mc_compiled.Commands.Selectors
         /// <returns></returns>
         public static List<MutationSet> ResolveAllMutations(Executor executor, List<String> commands, Statement tokens, bool elseStatement)
         {
-            const int GROUP_SINGLE = 0;
-            const int GROUP_AND = 1;
-            const int GROUP_OR = 2;
-
+            /*
+             * const int GROUP_SINGLE = 0;
+             * const int GROUP_AND = 1;
+             * const int GROUP_OR = 2;
+            */
 
             // buffer to hold groups of conditions
             Stack<ISelectorMutator> buffer = new Stack<ISelectorMutator>();
             List<MutationSet> sets = new List<MutationSet>();
-            int group = GROUP_SINGLE;
 
-            bool invertNext = false;
+            /*
+             * int group = GROUP_SINGLE;
+             * bool invertNext = false;
+            */
 
             if (!tokens.HasNext)
                 throw new StatementException(tokens, "Got empty statement while trying to fetch mutations.");
 
-            do
+            /*
+             * do
             {
                 bool invert = elseStatement;
 
@@ -83,10 +90,9 @@ namespace mc_compiled.Commands.Selectors
                 }
 
                 Token token = tokens.Next();
-
             }
 
-            /*executor.scoreboard.PushTempState();
+            executor.scoreboard.PushTempState();
 
             do
             {
@@ -129,7 +135,10 @@ namespace mc_compiled.Commands.Selectors
 
             // done with temporary variables
             executor.scoreboard.PopTempState();
-            return;*/
+            return;
+            */
+
+            return null; // unfinished to this day
         }
 
         /// <summary>

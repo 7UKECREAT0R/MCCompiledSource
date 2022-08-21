@@ -16,7 +16,7 @@ namespace mc_compiled.Commands.Selectors.Transformers
 
         public SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens, TokenIdentifierValue a)
         {
-            string entity = executor.ActiveSelectorStr;
+            /*string entity = executor.ActiveSelectorStr;
 
             // if <boolean> {}
             if (a.value is ScoreboardValueBoolean && !tokens.NextIs<TokenCompare>())
@@ -82,7 +82,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
                     executor.PopSelector();
                     throw new StatementException(tokens, "Attempted to compare value with invalid token.");
                 }
-            }
+            }*/
+            return null; // unfinished to this day
         }
 
         // this shouldnt ever get called if everything is working okay

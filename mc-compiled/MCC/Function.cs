@@ -159,8 +159,8 @@ namespace mc_compiled.MCC
                     else
                         throw new StatementException(caller, $"Unexpected parameter type for input {parameter.scoreboard.AliasName}. Got: {input.GetType().Name}");
                 }
-                // PPV parameter implementation
-                else if(parameter.IsPPV)
+                // PPV parameter implementation (unused)
+                /*else if(parameter.IsPPV)
                 {
                     if (!(input is IPreprocessor))
                         throw new StatementException(caller, $"Input {input} for PPV \"{parameter.ppvName}\" cannot be held in a preprocessor variable.");
@@ -169,7 +169,7 @@ namespace mc_compiled.MCC
 
                     string ppv = parameter.ppvName;
                     sb.executor.SetPPV(ppv, new[] { single });
-                }
+                }*/
                 // rest of implementations go here
                 else
                     throw new StatementException(caller, $"Unimplemented parameter type: {parameter.type}");

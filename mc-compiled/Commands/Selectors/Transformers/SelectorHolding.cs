@@ -13,9 +13,10 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "HOLDING";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            int? data = null;
+            /*
+             * int? data = null;
             Range? quantity = null;
 
             if (tokens.NextIs<TokenRangeLiteral>())
@@ -56,6 +57,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
             }
             else
                 alignedSelector.hasItem.entries.Add(entry);
+            */
+            return null;
         }
     }
 }

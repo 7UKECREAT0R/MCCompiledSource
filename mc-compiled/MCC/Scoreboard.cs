@@ -139,6 +139,10 @@ namespace mc_compiled.MCC
 
         public static implicit operator string(ScoreboardValue value) => value.baseName;
 
+        /// <summary>
+        /// Gets the keyword associated with this scoreboard value type.
+        /// </summary>
+        /// <returns></returns>
         public abstract string GetTypeKeyword();
         /// <summary>
         /// Get the commands to define this value.

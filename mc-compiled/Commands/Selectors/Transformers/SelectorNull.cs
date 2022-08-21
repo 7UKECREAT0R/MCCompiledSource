@@ -12,24 +12,25 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "NULL";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            executor.RequireFeature(tokens, MCC.Feature.NULLS);
+            //executor.RequireFeature(tokens, MCC.Feature.NULLS);
 
-            if(inverted)
-                alignedSelector.entity.type = '!' + executor.entities.nulls.nullType;
-            else
-                alignedSelector.entity.type = executor.entities.nulls.nullType;
+            //if(inverted)
+            //    alignedSelector.entity.type = '!' + executor.entities.nulls.nullType;
+            //else
+            //    alignedSelector.entity.type = executor.entities.nulls.nullType;
 
-            if(tokens.NextIs<TokenStringLiteral>())
-            {
-                string name = tokens.Next<TokenStringLiteral>();
+            //if(tokens.NextIs<TokenStringLiteral>())
+            //{
+            //    string name = tokens.Next<TokenStringLiteral>();
 
-                if (inverted)
-                    name = Command.UTIL.ToggleInversion(name);
+            //    if (inverted)
+            //        name = Command.UTIL.ToggleInversion(name);
 
-                alignedSelector.entity.name = name;
-            }
+            //    alignedSelector.entity.name = name;
+            //}
+            return null;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.Commands.Selectors;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -140,7 +141,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.value = value;
         }
-        public override string AsString() => value.enumName + "::" + value.value.ToString();
+        public override string AsString() => value.value.ToString();
     }
     /// <summary>
     /// Represents a reference to a scoreboard value.
@@ -151,6 +152,10 @@ namespace mc_compiled.MCC.Compiler
         /// The value this identifier references.
         /// </summary>
         public readonly ScoreboardValue value;
+        /// <summary>
+        /// The owning entity this identifier references. Defaults to @s.
+        /// </summary>
+        public Selector references;
 
         /// <summary>
         /// Get the full name used to access this value.
@@ -160,6 +165,7 @@ namespace mc_compiled.MCC.Compiler
         public TokenIdentifierValue(string accessor, ScoreboardValue value, int lineNumber) : base(accessor, lineNumber)
         {
             this.value = value;
+            this.references = new Selector(Selector.Core.s);
         }
     }
     /// <summary>

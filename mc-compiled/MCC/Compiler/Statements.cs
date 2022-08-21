@@ -110,6 +110,7 @@ namespace mc_compiled.MCC.Compiler
         {
             if (openAction != null)
                 openAction(executor);
+            executor.depth++;
         }
     }
     /// <summary>
@@ -151,6 +152,11 @@ namespace mc_compiled.MCC.Compiler
         {
             if (closeAction != null)
                 closeAction(executor);
+
+            executor.depth--;
+
+            if (executor.depth < 0)
+                throw new Exception("Bracket depth was less than 0, this is likely a bug.");
         }
     }
     /// <summary>

@@ -12,11 +12,12 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "OFFSET";
         public bool CanBeInverted() => false;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            rootSelector.offsetX = tokens.Next<TokenCoordinateLiteral>();
-            rootSelector.offsetY = tokens.Next<TokenCoordinateLiteral>();
-            rootSelector.offsetZ = tokens.Next<TokenCoordinateLiteral>();
+            //rootSelector.offsetX = tokens.Next<TokenCoordinateLiteral>();
+            //rootSelector.offsetY = tokens.Next<TokenCoordinateLiteral>();
+            //rootSelector.offsetZ = tokens.Next<TokenCoordinateLiteral>();
+            return null;
         }
     }
 }

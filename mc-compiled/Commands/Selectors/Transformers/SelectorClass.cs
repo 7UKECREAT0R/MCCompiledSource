@@ -12,9 +12,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "CLASS";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            executor.RequireFeature(tokens, MCC.Feature.NULLS);
+            /*executor.RequireFeature(tokens, MCC.Feature.NULLS);
 
             string clazz = tokens.Next<TokenStringLiteral>();
             string family = MCC.CustomEntities.NullManager.FamilyName(clazz);
@@ -23,8 +23,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
             if (inverted)
                 family = '!' + family;
 
-            alignedSelector.entity.families.Add(family);
-            return;
+            alignedSelector.entity.families.Add(family);*/
+            return null;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace mc_compiled.MCC
         readonly OutputRegistry registry;
         readonly List<IAddonFile> files;
         private Feature features;
-        private bool linting;
+        internal bool linting;
 
         /// <summary>
         /// Create a new ProjectManager with default description.
@@ -64,6 +64,11 @@ namespace mc_compiled.MCC
             files.Add(file);
         internal void AddFiles(IAddonFile[] files) =>
             this.files.AddRange(files);
+        /// <summary>
+        /// Returns if this project has any file name containing a set of text.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
         internal bool HasFileContaining(string text)
         {
             return files.Any(file => file.GetOutputFile().Contains(text));

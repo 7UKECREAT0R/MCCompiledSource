@@ -12,9 +12,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "FAMILY";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            while(tokens.NextIs<TokenStringLiteral>())
+            /*while(tokens.NextIs<TokenStringLiteral>())
             {
                 string family = tokens.Next<TokenStringLiteral>();
 
@@ -22,7 +22,8 @@ namespace mc_compiled.Commands.Selectors.Transformers
                     family = Command.UTIL.ToggleInversion(family);
 
                 alignedSelector.entity.families.Add(family);
-            }
+            }*/
+            return null;
         }
     }
 }

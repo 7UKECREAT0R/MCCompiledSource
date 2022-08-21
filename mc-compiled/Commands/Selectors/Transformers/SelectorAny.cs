@@ -13,9 +13,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "ANY";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            Selector testFor = tokens.Next<TokenSelectorLiteral>();
+            /*Selector testFor = tokens.Next<TokenSelectorLiteral>();
             testFor.count = new Count(1);
 
             const string counter = "_mcc_counter";
@@ -29,7 +29,9 @@ namespace mc_compiled.Commands.Selectors.Transformers
                 Command.ScoreboardSet($"@e[tag={counter}]", temp, 1)));
             commands.Add(Command.TagRemove(activeSelector, counter));
 
-            rootSelector.scores.checks.Add(new ScoresEntry(temp, new Range(inverted ? 0 : 1, false)));
+            rootSelector.scores.checks.Add(new ScoresEntry(temp, new Range(inverted ? 0 : 1, false)));*/
+
+            return null;
         }
     }
 }

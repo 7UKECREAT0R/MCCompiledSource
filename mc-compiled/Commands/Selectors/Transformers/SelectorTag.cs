@@ -12,14 +12,15 @@ namespace mc_compiled.Commands.Selectors.Transformers
         public string GetKeyword() => "TAG";
         public bool CanBeInverted() => true;
 
-        public void GetMutations(bool inverted, Executor executor, Statement tokens)
+        public Mutation.SelectorMutation[] GetMutations(bool inverted, Executor executor, Statement tokens)
         {
-            while(tokens.NextIs<TokenStringLiteral>())
-            {
-                string tag = tokens.Next<TokenStringLiteral>();
-                tag = Command.UTIL.MakeInvertedString(tag, false);
-                alignedSelector.tags.Add(new Tag(tag, inverted));
-            }
+            //while(tokens.NextIs<TokenStringLiteral>())
+            //{
+            //    string tag = tokens.Next<TokenStringLiteral>();
+            //    tag = Command.UTIL.MakeInvertedString(tag, false);
+            //    alignedSelector.tags.Add(new Tag(tag, inverted));
+            //}
+            return null;
         }
     }
 }

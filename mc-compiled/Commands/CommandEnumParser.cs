@@ -50,12 +50,12 @@ namespace mc_compiled.Commands
     }
     public struct ParsedEnumValue
     {
-        public readonly string enumName;
+        public readonly Type enumType;
         public readonly object value;
 
-        public ParsedEnumValue(string enumName, object value)
+        public ParsedEnumValue(Type enumType, object value)
         {
-            this.enumName = enumName;
+            this.enumType = enumType;
             this.value = value;
         }
         /// <summary>
@@ -66,7 +66,7 @@ namespace mc_compiled.Commands
         public bool IsType<T>() where T: System.Enum
         {
             string src = typeof(T).Name;
-            return enumName.Equals(src);
+            return enumType.Equals(src);
         }
         /// <summary>
         /// Throws a StatementException if this enum value is not of a certain type.
@@ -77,7 +77,7 @@ namespace mc_compiled.Commands
             if (!IsType<T>())
             {
                 string reqEnumName = typeof(T).Name;
-                throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {enumName}.");
+                throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {enumType.Name}.");
             }
         }
     }
@@ -94,13 +94,13 @@ namespace mc_compiled.Commands
             foreach(object value in array)
             {
                 string key = value.ToString();
-                ParsedEnumValue finalValue = new ParsedEnumValue(type.Name, value);
+                ParsedEnumValue finalValue = new ParsedEnumValue(type, value);
                 CommandEnumParser.Put(key, finalValue);
 
                 if(key.Contains("_"))
                 {
                     // Might use a dot.
-                    finalValue = new ParsedEnumValue(type.Name, value);
+                    finalValue = new ParsedEnumValue(type, value);
                     CommandEnumParser.Put(key.Replace('_', '.'), finalValue);
                 }
             }

@@ -47,6 +47,12 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="other"></param>
         /// <returns></returns>
         public abstract TokenLiteral ModWithOther(TokenLiteral other);
+        /// <summary>
+        /// Return a NEW token literal that is the result of modulo'ing these two literals.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public abstract bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other);
     }
 
     /// <summary>
@@ -151,6 +157,36 @@ namespace mc_compiled.MCC.Compiler
         {
             throw new TokenException(this, "Invalid literal operation.");
         }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            int a = text.Length;
+            int b;
+
+            if (other is TokenNumberLiteral)
+                b = (other as TokenNumberLiteral).GetNumberInt();
+            else if (other is TokenStringLiteral)
+                b = (other as TokenStringLiteral).text.Length;
+            else
+                throw new NotImplementedException("TokenStringLiteral being compared to " + other.GetType().Name);
+
+            switch (cType)
+            {
+                case TokenCompare.Type.EQUAL:
+                    return a == b;
+                case TokenCompare.Type.NOT_EQUAL:
+                    return a != b;
+                case TokenCompare.Type.LESS_THAN:
+                    return a < b;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    return a <= b;
+                case TokenCompare.Type.GREATER_THAN:
+                    return a > b;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    return a >= b;
+                default:
+                    throw new Exception("Unknown comparison type: " + cType);
+            }
+        }
 
         public Type[] GetImplicitTypes()
         {
@@ -211,6 +247,7 @@ namespace mc_compiled.MCC.Compiler
 
             return null;
         }
+
     }
     public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor
     {
@@ -248,6 +285,10 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
             throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            throw new NotImplementedException("Cannot compare boolean to another type.");
         }
     }
 
@@ -337,6 +378,36 @@ namespace mc_compiled.MCC.Compiler
             }
 
             throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            float a = coordinate.valuef;
+            float b;
+
+            if (other is TokenNumberLiteral)
+                b = (other as TokenNumberLiteral).GetNumber();
+            else if (other is TokenStringLiteral)
+                b = (other as TokenStringLiteral).text.Length;
+            else
+                throw new NotImplementedException("TokenCoordinateLiteral being compared to " + other.GetType().Name);
+
+            switch (cType)
+            {
+                case TokenCompare.Type.EQUAL:
+                    return a == b;
+                case TokenCompare.Type.NOT_EQUAL:
+                    return a != b;
+                case TokenCompare.Type.LESS_THAN:
+                    return a < b;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    return a <= b;
+                case TokenCompare.Type.GREATER_THAN:
+                    return a > b;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    return a >= b;
+                default:
+                    throw new Exception("Unknown comparison type: " + cType);
+            }
         }
     }
     public enum IntMultiplier : int
@@ -583,6 +654,38 @@ namespace mc_compiled.MCC.Compiler
 
             throw new TokenException(this, "Invalid literal operation.");
         }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            int thisMin = range.min.HasValue ? range.min.Value : int.MinValue;
+            int thisMax = range.max.HasValue ? range.max.Value : int.MaxValue;
+
+            int b;
+
+            if (other is TokenNumberLiteral)
+                b = (other as TokenNumberLiteral).GetNumberInt();
+            else if (other is TokenStringLiteral)
+                b = (other as TokenStringLiteral).text.Length;
+            else
+                throw new NotImplementedException("TokenRangeLiteral being compared to " + other.GetType().Name);
+
+            switch (cType)
+            {
+                case TokenCompare.Type.EQUAL:
+                    return b <= thisMax && b >= thisMin;
+                case TokenCompare.Type.NOT_EQUAL:
+                    return b < thisMin || b > thisMax;
+                case TokenCompare.Type.LESS_THAN:
+                    return b < thisMin;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    return b <= thisMin;
+                case TokenCompare.Type.GREATER_THAN:
+                    return b > thisMax;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    return b >= thisMax;
+                default:
+                    throw new Exception("Unknown comparison type: " + cType);
+            }
+        }
 
         public object GetValue()
         {
@@ -705,6 +808,10 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
             throw new NotImplementedException();
+        }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            throw new NotImplementedException("Cannot compare selector to another type.");
         }
 
         public object GetValue() => selector;

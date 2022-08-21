@@ -42,10 +42,10 @@ namespace mc_compiled.MCC
             {
                 Feature.UNINSTALL, (executor) =>
                 {
-                    if(executor.HasExtraFileContaining("_uninstall"))
+                    if(executor.HasExtraFileContaining("uninstall"))
                         return;
 
-                    CommandFile file = new CommandFile("_uninstall", Executor.MCC_GENERATED_FOLDER);
+                    CommandFile file = new CommandFile("uninstall", Executor.MCC_GENERATED_FOLDER);
                     executor.AddExtraFile(file);
 
                     foreach(string temp in executor.scoreboard.definedTempVars)
