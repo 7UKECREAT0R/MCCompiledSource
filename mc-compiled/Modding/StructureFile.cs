@@ -10,16 +10,18 @@ namespace mc_compiled.Modding
     public struct StructureFile : IAddonFile
     {
         public string name;
+        public string directory;
         public StructureNBT structure;
 
-        public StructureFile(string name, StructureNBT structure)
+        public StructureFile(string name, string directory, StructureNBT structure)
         {
             this.name = name;
+            this.directory = directory;
             this.structure = structure;
         }
 
         public string GetExtendedDirectory() =>
-            null;
+            directory;
         public string GetOutputFile() =>
             $"{name}.mcstructure";
         public byte[] GetOutputData() =>

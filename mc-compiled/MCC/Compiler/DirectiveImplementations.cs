@@ -1234,7 +1234,8 @@ namespace mc_compiled.MCC.Compiler
                     bookData = book,
                     customColor = color
                 };
-                StructureFile file = new StructureFile("item" + item.GetHashCode(), StructureNBT.SingleItem(item));
+                StructureFile file = new StructureFile("item" + item.GetHashCode(),
+                    Executor.MCC_GENERATED_FOLDER, StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
                 Selector active = executor.ActiveSelector;
 
@@ -1508,7 +1509,8 @@ namespace mc_compiled.MCC.Compiler
             };
 
             string fileName = "scatter_" + scatterFile++;
-            StructureFile file = new StructureFile(fileName, structure);
+            StructureFile file = new StructureFile(fileName,
+                Executor.MCC_GENERATED_FOLDER, structure);
             executor.project.WriteSingleFile(file);
 
             blocks = null;
