@@ -61,5 +61,30 @@ namespace mc_compiled.Commands.Selectors
         {
             return $"execute {selector} ~~~ detect {x} {y} {z} {block} {data ?? 0} scoreboard players set @s {objective} 1";
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is BlockCheck check &&
+                   present == check.present &&
+                   EqualityComparer<Coord>.Default.Equals(x, check.x) &&
+                   EqualityComparer<Coord>.Default.Equals(y, check.y) &&
+                   EqualityComparer<Coord>.Default.Equals(z, check.z) &&
+                   block == check.block &&
+                   data == check.data;
+        }
+        public override int GetHashCode()
+        {
+            if (!present)
+                return 851597659;
+
+            int hashCode = 851597659;
+            hashCode = hashCode * -1521134295 + present.GetHashCode();
+            hashCode = hashCode * -1521134295 + x.GetHashCode();
+            hashCode = hashCode * -1521134295 + y.GetHashCode();
+            hashCode = hashCode * -1521134295 + z.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(block);
+            hashCode = hashCode * -1521134295 + data.GetHashCode();
+            return hashCode;
+        }
     }
 }

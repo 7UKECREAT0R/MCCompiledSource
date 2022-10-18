@@ -105,6 +105,25 @@ namespace mc_compiled.Commands.Selectors
 
             return $"execute {selector}[{tags}] ~~~ scoreboard players set @s {objective} 1";
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Player player &&
+                   gamemode == player.gamemode &&
+                   gamemodeNot == player.gamemodeNot &&
+                   levelMin == player.levelMin &&
+                   levelMax == player.levelMax;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = -1365695287;
+            hashCode = hashCode * -1521134295 + gamemode.GetHashCode();
+            hashCode = hashCode * -1521134295 + gamemodeNot.GetHashCode();
+            hashCode = hashCode * -1521134295 + levelMin.GetHashCode();
+            hashCode = hashCode * -1521134295 + levelMax.GetHashCode();
+            return hashCode;
+        }
+
         public static Player operator +(Player a, Player other)
         {
             if (a.gamemode == null)

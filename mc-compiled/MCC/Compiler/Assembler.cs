@@ -106,16 +106,6 @@ namespace mc_compiled.MCC.Compiler
                 StatementDirective add = new StatementDirective(directive, rest.ToArray());
                 add.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
                 statements.Add(add);
-
-                // continue with this line if there are more tokens
-                // and the first directive didnt take any arguments
-                if (directive.patterns != null && directive.patterns.Length > 0)
-                    return;
-                if (rest.Count == 0)
-                    return;
-
-                // recursively assemble the next statement
-                TryAssembleLine(rest, ref statements);
                 return;
             }
 

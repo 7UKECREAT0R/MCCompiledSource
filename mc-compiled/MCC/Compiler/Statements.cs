@@ -111,6 +111,9 @@ namespace mc_compiled.MCC.Compiler
             if (openAction != null)
                 openAction(executor);
             executor.depth++;
+
+            if (executor.depth > Executor.MAXIMUM_DEPTH)
+                throw new Exception($"Surpassed maximum depth ({Executor.MAXIMUM_DEPTH}). Use the compile option: --maxdepth <amount>");
         }
     }
     /// <summary>
@@ -156,7 +159,7 @@ namespace mc_compiled.MCC.Compiler
             executor.depth--;
 
             if (executor.depth < 0)
-                throw new Exception("Bracket depth was less than 0, this is likely a bug.");
+                throw new Exception("Bracket depth was less than 0, this is likely a bug and should be reported.");
         }
     }
     /// <summary>

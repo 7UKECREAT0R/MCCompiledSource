@@ -148,11 +148,12 @@ namespace mc_compiled.MCC.Server
                 await request.InputStream.ReadAsync(buffer, 0, length);
                 string code = Encoding.UTF8.GetString(buffer);
 
+                Executor executor = null;
                 try
                 {
                     Token[] tokens = new Tokenizer(code).Tokenize();
                     Statement[] statements = Assembler.AssembleTokens(tokens);
-                    Executor executor = new Executor(statements, new Program.InputPPV[0], argument, obp, orp);
+                    executor = new Executor(statements, new Program.InputPPV[0], argument, obp, orp);
                     executor.Linter().Execute();
 
                     // gather information.
@@ -188,9 +189,9 @@ namespace mc_compiled.MCC.Server
                     if (Program.DEBUG)
                         Console.WriteLine("\tFatal Error:\n\n" + exc.ToString());
                     Console.WriteLine(exc.ToString());
-                    response.StatusCode = 500;
+                    response.StatusCode = 200;
                     response.ContentType = "application/json";
-                    return "{ \"response\": \"Fatal Error\" }";
+                    return ErrorStructure.Wrap(exc, 0).ToJSON();
                 }
             }
 
@@ -261,7 +262,7 @@ namespace mc_compiled.MCC.Server
     {
         public enum During
         {
-            tokenizer, execution
+            tokenizer, execution, fatal
         }
 
         public readonly During during;
@@ -281,6 +282,10 @@ namespace mc_compiled.MCC.Server
         public static ErrorStructure Wrap(StatementException exception)
         {
             return new ErrorStructure(During.execution, exception.statement.Line, exception.Message);
+        }
+        public static ErrorStructure Wrap(Exception exception, int line)
+        {
+            return new ErrorStructure(During.fatal, line, exception.ToString());
         }
 
         public string ToJSON() =>

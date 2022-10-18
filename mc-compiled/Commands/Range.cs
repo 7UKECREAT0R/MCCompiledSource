@@ -20,6 +20,13 @@ namespace mc_compiled.Commands
         {
             this.min = min;
             this.max = max;
+
+            if(min != null && max != null && min > max)
+            {
+                this.max = min;
+                this.min = max;
+            }
+
             invert = not;
             single = false;
         }

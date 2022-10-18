@@ -58,6 +58,17 @@ namespace mc_compiled.Commands.Selectors
 
             return scores;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Scores scores &&
+                   EqualityComparer<List<ScoresEntry>>.Default.Equals(checks, scores.checks);
+        }
+        public override int GetHashCode()
+        {
+            return -1001038788 + EqualityComparer<List<ScoresEntry>>.Default.GetHashCode(checks);
+        }
+
         public static Scores operator +(Scores a, Scores other)
         {
             Scores clone = (Scores)a.MemberwiseClone();
@@ -76,9 +87,26 @@ namespace mc_compiled.Commands.Selectors
             this.name = name;
             this.value = value;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ScoresEntry entry &&
+                   name == entry.name &&
+                   EqualityComparer<Range>.Default.Equals(value, entry.value);
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = 1477024672;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
+            hashCode = hashCode * -1521134295 + value.GetHashCode();
+            return hashCode;
+        }
+
         public override string ToString()
         {
             return name + "=" + value.ToString();
         }
+
+
     }
 }

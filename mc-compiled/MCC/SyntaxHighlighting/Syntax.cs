@@ -59,8 +59,8 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("@a", "References all players in the world."),
                 new Keyword("@s", "References the executing entity/player."),
                 new Keyword("@p", "References the nearest player."),
-                new Keyword("@i", "References the initiator, if this was run from NPC dialogue."),
-                new Keyword("@initiator", "References the initiator, if this was run from NPC dialogue.")
+                new Keyword("@i", "References the initiator, if this was run from dialogue."),
+                new Keyword("@initiator", "References the initiator, if this was run from dialogue.")
             },
             style = new Highlight(255, 79, 79, HighlightStyle.BOLD)
         };
@@ -81,8 +81,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("true", "A boolean value representing true/yes."),
                 new Keyword("false", "A boolean value representing false/no."),
                 new Keyword("not", "Invert the following comparison."),
-                new Keyword("and", "Includes on another comparison. Logical AND"),
-                new Keyword("or", "Includes another optional comparison. Logical OR"),
+                new Keyword("and", "Includes on another comparison."),
                 new Keyword("~", "Relative to executor's position."),
                 new Keyword("^", "Relative to executor's direction.")
             },
@@ -104,27 +103,10 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Keywords comparisons = new Keywords()
         {
             keywords = new[] {
-                new Keyword("block", "Check for a block being present in the world."),
-                new Keyword("type", "Check for a specific entity type."),
-                new Keyword("family", "Check for a specific entity family."),
-                new Keyword("mode", "Check for the player(s) in a specific gamemode."),
-                new Keyword("near", "Check for entities being near a certain position. Relative coordinates are relative to the executing entity."),
-                new Keyword("inside", "Check for entities inside a rectangular prism. Relative coordinates are relative to the executing entity."),
-                new Keyword("level", "Compare player(s) XP level."),
-                new Keyword("name", "Check for entities with a specific name."),
-                new Keyword("rotation x", "Compare entity X rotation."), 
-                new Keyword("rotation y", "Compare entity Y rotation."),
-                new Keyword("any", "Check if any entity is matched by a selector."),
                 new Keyword("count", "Compare the number of entities that match a selector."),
-                new Keyword("item", "Check for players holding or containing a specific item/number of items in their inventory."),
-                new Keyword("holding", "Check for player(s) holding a specific item/nummber of items."),
-                new Keyword("offset", "Offset the execution of the next condition."),
-                new Keyword("null", "Check for entities which are nulls, optionally with a specific name."),
-                new Keyword("class", "Check for entities which are nulls and are under a specific class."),
-                new Keyword("position", "Check for entities at a specific x, y, z, position. Relative coordinates are relative to the executing entity."),
-                new Keyword("position x", "Compare entity X position. Relative coordinates are relative to the executing entity."),
-                new Keyword("position y", "Compare entity Y position. Relative coordinates are relative to the executing entity."),
-                new Keyword("position z", "Compare entity Z position. Relative coordinates are relative to the executing entity.")
+                new Keyword("any", "Check if any entities match a selector."),
+                new Keyword("block", "Check for a block."),
+                new Keyword("positioned", "Position the next comparison.")
             },
             style = new Highlight(255, 95, 66, HighlightStyle.NONE)
         };

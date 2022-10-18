@@ -131,6 +131,24 @@ namespace mc_compiled.Commands.Selectors
             tags = new List<Selectors.Tag>(copy.tags);
             blockCheck = copy.blockCheck;
         }
+        public static Selector Parse(string str)
+        {
+            Core core;
+
+            int bracket = str.IndexOf('[');
+
+            if(bracket == -1)
+            {
+                core = ParseCore(str);
+                return new Selector(core);
+            }
+
+            string coreSection = str.Substring(0, bracket);
+            string bracketSection = str.Substring(bracket);
+
+            core = ParseCore(coreSection);
+            return Parse(core, bracketSection);
+        }
         public static Selector Parse(Core core, string str)
         {
             str = str.TrimStart('[').TrimEnd(']');
@@ -207,6 +225,7 @@ namespace mc_compiled.Commands.Selectors
                 return '@' + core.ToString() + '[' + string.Join(",", parts) + ']';
             else return '@' + core.ToString();
         }
+
         public string GetAsPrefix()
         {
             if (blockCheck.present)
@@ -231,6 +250,44 @@ namespace mc_compiled.Commands.Selectors
                 }
                 return $"execute {ToString()} {offsetX} {offsetY} {offsetZ} ";
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Selector selector &&
+                   SelectsMultiple == selector.SelectsMultiple &&
+                   NeedsAlign == selector.NeedsAlign &&
+                   core == selector.core &&
+                   EqualityComparer<Coord>.Default.Equals(offsetX, selector.offsetX) &&
+                   EqualityComparer<Coord>.Default.Equals(offsetY, selector.offsetY) &&
+                   EqualityComparer<Coord>.Default.Equals(offsetZ, selector.offsetZ) &&
+                   EqualityComparer<Area>.Default.Equals(area, selector.area) &&
+                   EqualityComparer<Scores>.Default.Equals(scores, selector.scores) &&
+                   EqualityComparer<HasItems>.Default.Equals(hasItem, selector.hasItem) &&
+                   EqualityComparer<Count>.Default.Equals(count, selector.count) &&
+                   EqualityComparer<Entity>.Default.Equals(entity, selector.entity) &&
+                   EqualityComparer<Player>.Default.Equals(player, selector.player) &&
+                   EqualityComparer<List<Tag>>.Default.Equals(tags, selector.tags) &&
+                   EqualityComparer<BlockCheck>.Default.Equals(blockCheck, selector.blockCheck);
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = 1214864800;
+            hashCode = hashCode * -1521134295 + SelectsMultiple.GetHashCode();
+            hashCode = hashCode * -1521134295 + NeedsAlign.GetHashCode();
+            hashCode = hashCode * -1521134295 + core.GetHashCode();
+            hashCode = hashCode * -1521134295 + offsetX.GetHashCode();
+            hashCode = hashCode * -1521134295 + offsetY.GetHashCode();
+            hashCode = hashCode * -1521134295 + offsetZ.GetHashCode();
+            hashCode = hashCode * -1521134295 + area.GetHashCode();
+            hashCode = hashCode * -1521134295 + scores.GetHashCode();
+            hashCode = hashCode * -1521134295 + hasItem.GetHashCode();
+            hashCode = hashCode * -1521134295 + count.GetHashCode();
+            hashCode = hashCode * -1521134295 + entity.GetHashCode();
+            hashCode = hashCode * -1521134295 + player.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<Tag>>.Default.GetHashCode(tags);
+            hashCode = hashCode * -1521134295 + blockCheck.GetHashCode();
+            return hashCode;
         }
 
         public static Selector operator +(Selector a, Selector b)

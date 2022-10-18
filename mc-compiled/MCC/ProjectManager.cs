@@ -1,5 +1,6 @@
 ﻿using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,6 +34,7 @@ namespace mc_compiled.MCC
         internal readonly string name;
         internal string description = "placeholder";
 
+        readonly Executor parentExecutor;
         readonly OutputRegistry registry;
         readonly List<IAddonFile> files;
         private Feature features;
@@ -44,8 +46,9 @@ namespace mc_compiled.MCC
         /// <param name="name">The name of the project.</param>
         /// <param name="bpBase">e.g: development_behavior_packs/project_name/</param>
         /// <param name="rpBase">e.g: development_resource_packs/project_name/</param>
-        internal ProjectManager(string name, string bpBase, string rpBase)
+        internal ProjectManager(string name, string bpBase, string rpBase, Executor parent)
         {
+            this.parentExecutor = parent;
             this.name = name;
             registry = new OutputRegistry(bpBase, rpBase);
             files = new List<IAddonFile>();
@@ -60,6 +63,36 @@ namespace mc_compiled.MCC
             this.linting = true;
             return this;
         }
+
+        /// <summary>
+        /// Creates the uninstall file.
+        /// </summary>
+        internal void CreateUninstallFile()
+        {
+            CommandFile file = new CommandFile("uninstall", Executor.MCC_GENERATED_FOLDER);
+            this.AddFile(file);
+
+            foreach (string temp in parentExecutor.scoreboard.definedTempVars)
+                file.Add(Commands.Command.ScoreboardRemoveObjective(temp));
+
+            foreach (ScoreboardValue sb in parentExecutor.scoreboard.values)
+            {
+                if (sb is ScoreboardValueStruct)
+                {
+                    ScoreboardValueStruct svs = sb as ScoreboardValueStruct;
+                    string[] values = svs.structure.GetFullyQualifiedInternalNames(svs.Name);
+                    foreach (string value in values)
+                        file.Add(Commands.Command.ScoreboardRemoveObjective(value));
+                    continue;
+                }
+
+                file.Add(Commands.Command.ScoreboardRemoveObjective(sb.Name));
+            }
+
+            foreach(string tag in parentExecutor.definedTags)
+                file.Add(Commands.Command.TagRemove("*", tag));
+        }
+
         internal void AddFile(IAddonFile file) =>
             files.Add(file);
         internal void AddFiles(IAddonFile[] files) =>
@@ -81,18 +114,65 @@ namespace mc_compiled.MCC
                 return;
             }
 
-            // manifests
-            bool needsBehaviorManifest = !File.Exists(Path.Combine(registry.bpBase, "manifest.json"));
-            bool needsResourceManifest = !File.Exists(Path.Combine(registry.rpBase, "manifest.json"));
-            needsBehaviorManifest &= files.Any(file => file.GetOutputLocation().IsBehavior());
-            needsResourceManifest &= files.Any(file => !file.GetOutputLocation().IsBehavior());
+            // uninstall feature
+            if(HasFeature(Feature.UNINSTALL))
+                CreateUninstallFile();
 
-            if (needsBehaviorManifest)
-                AddFile(new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), name, "Change Me!")
-                    .WithModule(Manifest.Module.BehaviorData(name)));
-            if (needsResourceManifest)
-                AddFile(new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), name, "Change Me!")
-                    .WithModule(Manifest.Module.ResourceData(name)));
+            // manifests
+            string behaviorManifestLocation = Path.Combine(registry.bpBase, "manifest.json");
+            string resourceManifestLocation = Path.Combine(registry.rpBase, "manifest.json");
+            bool hasBehaviorManifest = File.Exists(behaviorManifestLocation);
+            bool hasResourceManifest = File.Exists(resourceManifestLocation);
+            bool needsBehaviorManifest = !hasBehaviorManifest & files.Any(file => file.GetOutputLocation().IsBehavior());
+            bool needsResourceManifest = !hasResourceManifest & files.Any(file => !file.GetOutputLocation().IsBehavior());
+
+            // creating manifests
+            if (needsBehaviorManifest || needsResourceManifest)
+            {
+                // 1st pass, load existing guids
+                Guid? behaviorGuid = null;
+                Guid? resourceGuid = null;
+
+                if (!hasBehaviorManifest)
+                {
+                    if(needsBehaviorManifest)
+                        behaviorGuid = Guid.NewGuid();
+                }
+                else
+                {
+                    string contents = File.ReadAllText(behaviorManifestLocation);
+                    JObject json = JObject.Parse(contents);
+                    string guid = json["header"]["uuid"].Value<string>();
+                    behaviorGuid = Guid.Parse(guid);
+                }
+
+                if (!hasResourceManifest)
+                {
+                    if(needsResourceManifest)
+                        resourceGuid = Guid.NewGuid();
+                }
+                else
+                {
+                    string contents = File.ReadAllText(resourceManifestLocation);
+                    JObject json = JObject.Parse(contents);
+                    string guid = json["header"]["uuid"].Value<string>();
+                    resourceGuid = Guid.Parse(guid);
+                }
+                
+                // 2nd pass, create manifests if needed.
+                if (needsBehaviorManifest)
+                {
+                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
+                    AddFile(new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), name, projectDescription, dependsOn: resourceGuid)
+                        .WithModule(Manifest.Module.BehaviorData(name)));
+                }
+                if (needsResourceManifest)
+                {
+                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
+                    AddFile(new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), name, projectDescription, dependsOn: behaviorGuid)
+                        .WithModule(Manifest.Module.ResourceData(name)));
+                }
+            }
 
             // actual writing
             foreach (IAddonFile file in files)

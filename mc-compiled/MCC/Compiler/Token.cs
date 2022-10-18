@@ -34,7 +34,7 @@ namespace mc_compiled.MCC.Compiler
         public string DebugString()
         {
             if(this is TokenNewline)
-                return "[TokenNewline]\n";
+                return "[Newline]\n";
 
             string typeName = GetType().Name.Substring(5);
             return '[' + typeName + ' ' + AsString() + ']';

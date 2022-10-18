@@ -40,31 +40,7 @@ namespace mc_compiled.MCC
                 }
             },
             {
-                Feature.UNINSTALL, (executor) =>
-                {
-                    if(executor.HasExtraFileContaining("uninstall"))
-                        return;
-
-                    CommandFile file = new CommandFile("uninstall", Executor.MCC_GENERATED_FOLDER);
-                    executor.AddExtraFile(file);
-
-                    foreach(string temp in executor.scoreboard.definedTempVars)
-                        file.Add(Command.ScoreboardRemoveObjective(temp));
-
-                    foreach(ScoreboardValue sb in executor.scoreboard.values)
-                    {
-                        if(sb is ScoreboardValueStruct)
-                        {
-                            ScoreboardValueStruct svs = sb as ScoreboardValueStruct;
-                            string[] values = svs.structure.GetFullyQualifiedInternalNames(svs.Name);
-                            foreach (string value in values)
-                                file.Add(Command.ScoreboardRemoveObjective(value));
-                            continue;
-                        }
-
-                        file.Add(Command.ScoreboardRemoveObjective(sb.Name));
-                    }
-                }
+                Feature.UNINSTALL, (executor) => { }
             }
         };
 

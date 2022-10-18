@@ -447,30 +447,26 @@ namespace mc_compiled.MCC.Compiler
         public TokenStringLiteral NextStringIdentifier()
         {
             bool escaped = false;
+            sb.Clear();
 
             while (HasNext)
             {
                 char c = NextChar();
-                char n = HasNext ? Peek() : '\0';
 
-                if (c == '\\')
-                {
-                    escaped = !escaped;
-
-                    if (escaped && n == '"')
-                    {
-                        sb.Append(NextChar());
-                        continue; // dont include the backslash
-                    }
-                }
-                else
+                if(escaped)
                 {
                     escaped = false;
-
-                    if (c == '"')
-                        break;
+                    sb.Append(c);
+                    continue;
+                }
+                if(c == '\\')
+                {
+                    escaped = true;
+                    continue;
                 }
 
+                if (c == '"')
+                    break;
 
                 sb.Append(c);
             }
@@ -489,29 +485,32 @@ namespace mc_compiled.MCC.Compiler
             while (HasNext)
             {
                 char c = NextChar();
+                
+                if(escaped)
+                {
+                    escaped = false;
+                    sb.Append(c);
+                    continue;
+                }
+                if (c == '\\')
+                    escaped = true;
+
                 sb.Append(c);
 
-                if (c == '\\')
-                    escaped = !escaped;
-
-                if(!escaped)
+                // bracket handling
+                if (!inQuotes)
                 {
-                    if (!inQuotes)
+                    if (c == '[')
+                        level++;
+                    if (c == ']')
                     {
-                        if (c == '[')
-                            level++;
-                        if (c == ']')
-                        {
-                            level--;
-                            if (level < 0)
-                                break;
-                        }
+                        level--;
+                        if (level < 0)
+                            break;
                     }
-                    else if (c == '"')
-                        inQuotes = !inQuotes;
                 }
-                else if (c != '\\')
-                    escaped = false;
+                else if (c == '"')
+                    inQuotes = !inQuotes;
             }
 
             string str = sb.ToString();

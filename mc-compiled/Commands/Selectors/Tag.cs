@@ -59,5 +59,19 @@ namespace mc_compiled.Commands.Selectors
             else
                 return "tag=" + s;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Tag tag &&
+                   not == tag.not &&
+                   tagName == tag.tagName;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = 1337537810;
+            hashCode = hashCode * -1521134295 + not.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(tagName);
+            return hashCode;
+        }
     }
 }

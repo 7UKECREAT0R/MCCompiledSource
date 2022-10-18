@@ -134,6 +134,32 @@ namespace mc_compiled.Commands.Selectors
             return parts.ToArray();
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is Area area &&
+                   EqualityComparer<Coord?>.Default.Equals(x, area.x) &&
+                   EqualityComparer<Coord?>.Default.Equals(y, area.y) &&
+                   EqualityComparer<Coord?>.Default.Equals(z, area.z) &&
+                   radiusMin == area.radiusMin &&
+                   radiusMax == area.radiusMax &&
+                   volumeX == area.volumeX &&
+                   volumeY == area.volumeY &&
+                   volumeZ == area.volumeZ;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = -114996346;
+            hashCode = hashCode * -1521134295 + x.GetHashCode();
+            hashCode = hashCode * -1521134295 + y.GetHashCode();
+            hashCode = hashCode * -1521134295 + z.GetHashCode();
+            hashCode = hashCode * -1521134295 + radiusMin.GetHashCode();
+            hashCode = hashCode * -1521134295 + radiusMax.GetHashCode();
+            hashCode = hashCode * -1521134295 + volumeX.GetHashCode();
+            hashCode = hashCode * -1521134295 + volumeY.GetHashCode();
+            hashCode = hashCode * -1521134295 + volumeZ.GetHashCode();
+            return hashCode;
+        }
+
         public static Area operator +(Area a, Area other)
         {
             if (a.x == null)
@@ -154,5 +180,7 @@ namespace mc_compiled.Commands.Selectors
                 a.volumeZ = other.volumeZ;
             return a;
         }
+
+
     }
 }

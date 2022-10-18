@@ -42,7 +42,15 @@ namespace mc_compiled.MCC.Server
             {
                 ConsoleColor old = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{e.GetType().Name}: Please launch as administrator to install server features.");
+
+                if(e is UnauthorizedAccessException)
+                    Console.WriteLine($"UnauthorizedAccessException: Please launch as administrator to install server features.");
+                else
+                {
+                    Console.WriteLine($"Unknown Error: {e.GetType().Name}");
+                    Console.WriteLine(e.ToString());
+                }
+
                 Console.ForegroundColor = old;
                 hasBeenRegistered = false;
                 return;

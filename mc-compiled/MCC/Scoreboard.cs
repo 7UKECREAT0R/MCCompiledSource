@@ -1198,6 +1198,7 @@ namespace mc_compiled.MCC
         /// Fully resolve a field:name accessor to its appropriate scoreboard value.
         /// </summary>
         /// <param name="accessor"></param>
+        /// <param name="allowMissingAccessor">Whether to allow the struct name on its own without a field accessor.</param>
         /// <returns></returns>
         public ScoreboardValue FullyResolveAccessor(string accessor, bool allowMissingAccessor = false)
         {

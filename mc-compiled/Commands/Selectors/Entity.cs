@@ -96,6 +96,30 @@ namespace mc_compiled.Commands.Selectors
                 rotXMin, rotXMax, rotYMin, rotYMax);
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is Entity entity &&
+                   name == entity.name &&
+                   type == entity.type &&
+                   EqualityComparer<List<string>>.Default.Equals(families, entity.families) &&
+                   rotXMin == entity.rotXMin &&
+                   rotXMax == entity.rotXMax &&
+                   rotYMin == entity.rotYMin &&
+                   rotYMax == entity.rotYMax;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = 996224562;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(type);
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<string>>.Default.GetHashCode(families);
+            hashCode = hashCode * -1521134295 + rotXMin.GetHashCode();
+            hashCode = hashCode * -1521134295 + rotXMax.GetHashCode();
+            hashCode = hashCode * -1521134295 + rotYMin.GetHashCode();
+            hashCode = hashCode * -1521134295 + rotYMax.GetHashCode();
+            return hashCode;
+        }
+
         public string[] GetSections()
         {
             List<string> parts = new List<string>();

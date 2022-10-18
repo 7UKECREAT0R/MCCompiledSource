@@ -39,6 +39,16 @@ namespace mc_compiled.Commands.Selectors
 
             return new Count(endCount);
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Count count && this.count == count.count;
+        }
+        public override int GetHashCode()
+        {
+            return count;
+        }
+
         public string GetSection()
         {
             if (count == NONE)

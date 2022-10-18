@@ -125,6 +125,10 @@ namespace mc_compiled.MCC.Compiler
             }
             else if(aType == SideType.Variable)
             {
+                TokenCompare.Type comparison = this.comparison;
+                if (inverted)
+                    comparison = SelectorUtils.InvertComparison(comparison);
+
                 TokenIdentifierValue tiv = this.a as TokenIdentifierValue;
                 ScoreboardValue a = tiv.value;
                 TokenNumberLiteral b = (this.b as TokenNumberLiteral);
@@ -136,8 +140,13 @@ namespace mc_compiled.MCC.Compiler
 
             return null;
         }
-        public override Selector GetSelector(Executor executor, Statement forExceptions)
+        public override Selector GetSelector(Executor executor, Statement callingStatement)
         {
+            if (aType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Token {this.a.DebugString()} is not a valid number or variable.");
+            if (bType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Token {this.b.DebugString()} is not a valid number or variable.");
+
             var comparison = this.comparison;
             if (inverted)
                 comparison = SelectorUtils.InvertComparison(comparison);
@@ -207,6 +216,7 @@ namespace mc_compiled.MCC.Compiler
     }
     public class ComparisonSelector : Comparison
     {
+        public const string TAG_PREFIX = "__invert";
         public readonly Selector selector;
 
         public ComparisonSelector(Selector selector, bool invert) : base(invert)
@@ -224,14 +234,17 @@ namespace mc_compiled.MCC.Compiler
             List<string> commands = new List<string>();
 
             string tagTargets = selector.core.AsCommandString();
-            this.tagName = "_run" + executor.depth;
+            this.tagName = DepthEncode(TAG_PREFIX, executor.Depth, selector);
 
             commands.Add(Command.Tag(tagTargets, tagName));
-            commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
+            commands.Add(Command.Execute(selector.ToString(),
+                selector.offsetX, selector.offsetY, selector.offsetZ,
                 Command.TagRemove("@s", tagName)));
+
+            executor.definedTags.Add(tagName);
             return commands;
         }
-        public override Selector GetSelector(Executor change, Statement forExceptions)
+        public override Selector GetSelector(Executor executor, Statement forExceptions)
         {
             if (inverted)
             {
@@ -280,9 +293,10 @@ namespace mc_compiled.MCC.Compiler
             List<string> commands = new List<string>();
             temp = executor.scoreboard.RequestTemp();
             string selectorString = selector.ToString();
-            commands.Add(Command.Execute(selectorString, Coord.here, Coord.here, Coord.here,
+            commands.Add(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 0));
+            commands.Add(Command.Execute(selectorString, selector.offsetX, selector.offsetY, selector.offsetZ,
                 Command.ScoreboardAdd(Executor.FAKEPLAYER_NAME, temp.Name, 1)));
-            commands.Add(Command.ScoreboardOpSet(selectorString, temp.Name, Executor.FAKEPLAYER_NAME, temp.Name));
+            commands.Add(Command.ScoreboardOpSet(executor.ActiveSelectorStr, temp.Name, Executor.FAKEPLAYER_NAME, temp.Name));
 
             // requires subtraction for it to work properly
             if (RequiresSubtraction)
@@ -295,6 +309,9 @@ namespace mc_compiled.MCC.Compiler
         }
         public override Selector GetSelector(Executor executor, Statement callingStatement)
         {
+            if (goalType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Token {goalCount.DebugString()} is not a valid number or variable.");
+
             var comparison = this.comparison;
             if (inverted)
                 comparison = SelectorUtils.InvertComparison(comparison);
@@ -362,6 +379,119 @@ namespace mc_compiled.MCC.Compiler
 
             ScoresEntry entry = new ScoresEntry(temp.Name, range);
             selector.scores.checks.Add(entry);
+            return selector;
+        }
+    }
+    public class ComparisonAny : Comparison
+    {
+        public const string TAG_PREFIX = "__no_matches";
+        public readonly Selector selector;
+
+        public ComparisonAny(Selector selector, bool invert) : base(invert)
+        {
+            this.selector = selector;
+        }
+
+        string tagName;
+        public override IEnumerable<string> GetCommands(Executor executor)
+        {
+            // tag all possible entities
+            Selector active = executor.ActiveSelector;
+            string tagTargets = active.core.AsCommandString();
+            this.tagName = DepthEncode(TAG_PREFIX, executor.Depth, selector);
+
+            selector.count = new Count(1);
+
+            // remove tag on matching entities
+            string[] commands = new[] {
+                Command.Tag(tagTargets, tagName),
+                Command.Execute(selector.ToString(), active.offsetX, active.offsetY, active.offsetZ, Command.TagRemove("*", tagName))
+            };
+
+            executor.definedTags.Add(tagName);
+            return commands;
+        }
+        public override Selector GetSelector(Executor executor, Statement callingStatement)
+        {
+            Selector selector = new Selector(executor.ActiveSelector);
+            selector.tags.Add(new Tag(this.tagName, !inverted));
+            return selector;
+        }
+    }
+    public class ComparisonBlock : Comparison
+    {
+        public const string TAG_PREFIX = "__not_block";
+
+        readonly Coord x;
+        readonly Coord y;
+        readonly Coord z;
+        readonly string block;
+        readonly int? data;
+
+        public ComparisonBlock(Coord x, Coord y, Coord z, string block, int? data, bool invert) : base(invert)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.block = block;
+            this.data = data;
+        }
+
+        string tagName;
+        public override IEnumerable<string> GetCommands(Executor executor)
+        {
+            if (inverted)
+            {
+                Selector active = executor.ActiveSelector;
+                string selector = active.ToString();
+                this.tagName = TAG_PREFIX + executor.depth;
+                int data = this.data ?? -1;
+                executor.definedTags.Add(tagName);
+
+                return new[] {
+                    Command.Tag(selector, tagName),
+                    Command.Execute(selector, active.offsetX, active.offsetY, active.offsetZ,
+                        x, y, z, block, data,
+                        Command.TagRemove("@s", tagName))
+                };
+            }
+
+            return null;
+        }
+        public override Selector GetSelector(Executor executor, Statement callingStatement)
+        {
+            Selector selector = new Selector(executor.ActiveSelector);
+
+            if (inverted)
+                selector.tags.Add(new Tag(this.tagName, false));
+            else
+                selector.blockCheck = new BlockCheck(x, y, z, block, data);
+
+            return selector;
+        }
+    }
+    public class ComparisonPositioned : Comparison
+    {
+        readonly Coord x, y, z;
+
+        public ComparisonPositioned(Coord x, Coord y, Coord z, bool invert) : base(invert)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public override IEnumerable<string> GetCommands(Executor executor)
+        {
+            return null;
+        }
+        public override Selector GetSelector(Executor executor, Statement callingStatement)
+        {
+            Selector selector = new Selector(Selector.Core.s);
+            selector.offsetX = x;
+            selector.offsetY = y;
+            selector.offsetZ = z;
+
             return selector;
         }
     }

@@ -36,6 +36,8 @@ namespace mc_compiled.Commands.Selectors
             return $"execute {selector}[{GetSection()}] ~~~ scoreboard players set @s {objective} 1";
         }
 
+
+
         public static HasItems Parse(string fullSelector)
         {
             if (!MATCHER.IsMatch(fullSelector))
@@ -105,6 +107,17 @@ namespace mc_compiled.Commands.Selectors
 
             return hasitem;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is HasItems items &&
+                   EqualityComparer<List<HasItemEntry>>.Default.Equals(entries, items.entries);
+        }
+        public override int GetHashCode()
+        {
+            return 1381410795 + EqualityComparer<List<HasItemEntry>>.Default.GetHashCode(entries);
+        }
+
         public static HasItems operator +(HasItems a, HasItems other)
         {
             HasItems clone = (HasItems)a.MemberwiseClone();
@@ -140,6 +153,28 @@ namespace mc_compiled.Commands.Selectors
         public bool IsBare
         {
             get => !location.HasValue && !slot.HasValue && !data.HasValue && !quantity.HasValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is HasItemEntry entry &&
+                   item == entry.item &&
+                   data == entry.data &&
+                   location == entry.location &&
+                   slot == entry.slot &&
+                   EqualityComparer<Range?>.Default.Equals(quantity, entry.quantity) &&
+                   IsBare == entry.IsBare;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = 1388543879;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(item);
+            hashCode = hashCode * -1521134295 + data.GetHashCode();
+            hashCode = hashCode * -1521134295 + location.GetHashCode();
+            hashCode = hashCode * -1521134295 + slot.GetHashCode();
+            hashCode = hashCode * -1521134295 + quantity.GetHashCode();
+            hashCode = hashCode * -1521134295 + IsBare.GetHashCode();
+            return hashCode;
         }
 
         public override string ToString()

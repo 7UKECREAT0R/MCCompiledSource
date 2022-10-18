@@ -538,8 +538,22 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _log(Executor executor, Statement tokens)
         {
-            string str = tokens.Next<TokenStringLiteral>();
-            Console.WriteLine("[LOG] {0}", str);
+            if (executor.linting)
+                return;
+
+            List<string> strings = new List<string>();
+
+            while(tokens.HasNext)
+            {
+                Token next = tokens.Next();
+
+                if (next is IPreprocessor preprocessor)
+                    strings.Add(preprocessor.GetValue().ToString());
+                else
+                    strings.Add(next.DebugString());
+            }
+
+            Console.WriteLine("[LOG] {0}", string.Join(" ", strings));
         }
         public static void _macro(Executor executor, Statement tokens)
         {
@@ -1053,23 +1067,27 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommands(commands, null, true);
         }
-        public static void @if(Executor executor, Statement tokens) =>
-            @if(executor, tokens, false);
-        public static void @if(Executor executor, Statement tokens, bool @else)
+        public static void @if(Executor executor, Statement tokens)
         {
             if (!executor.HasNext)
-                throw new StatementException(tokens, "Unexpected end-of-file after if/else statement.");
+                throw new StatementException(tokens, "Unexpected end of file after if-statement.");
 
-            // 1.1 Rework
+            // 1.1 rework (before new-execute released)
+            ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
+            set.InvertAll(false);
+            set.Run(executor, tokens);
 
+            executor.SetLastCompare(set);
         }
         public static void @else(Executor executor, Statement tokens)
         {
-            Token[] toRun = executor.GetLastCompare();
-            Statement theIf = new StatementDirective(null, toRun);
-            theIf.SetSource(tokens.Line, tokens.Source);
-            theIf.SetExecutor(executor);
-            @if(executor, theIf, true);
+            if (!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end of file after else-statement.");
+
+            // 1.1 rework (before new-execute released)
+            ComparisonSet set = executor.GetLastCompare();
+            set.InvertAll(true);
+            set.Run(executor, tokens);
         }
         public static void give(Executor executor, Statement tokens)
         {
@@ -1360,11 +1378,13 @@ namespace mc_compiled.MCC.Compiler
         {
             Selector selector = tokens.Next<TokenSelectorLiteral>();
 
+            executor.definedTags.Add("__mcc_here");
+
             List<string> commands = new List<string>();
-            commands.Add(Command.Tag("@s", "_mcc_here"));
+            commands.Add(Command.Tag("@s", "__mcc_here"));
             commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
-                Command.TeleportFacing(Coord.here, Coord.here, Coord.here, "@e[tag=\"_mcc_here\",c=1]")));
-            commands.Add(Command.TagRemove("@s", "_mcc_here"));
+                Command.TeleportFacing(Coord.here, Coord.here, Coord.here, "@e[tag=\"__mcc_here\",c=1]")));
+            commands.Add(Command.TagRemove("@s", "__mcc_here"));
 
             executor.PushSelectorExecute();
             executor.AddCommands(commands, "facehere");
@@ -1393,7 +1413,7 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommand(Command.Teleport(Coord.here, Coord.here, Coord.here, ry, rx));
             executor.PopSelector();
         }
-        public static void block(Executor executor, Statement tokens)
+        public static void place(Executor executor, Statement tokens)
         {
             OldHandling handling = OldHandling.replace;
 
@@ -1550,10 +1570,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void remove(Executor executor, Statement tokens)
         {
-            CommandFile file = new CommandFile("silent_remove", "_branching");
+            CommandFile file = new CommandFile("silent_remove", Executor.MCC_GENERATED_FOLDER);
 
             file.Add(new[] {
-                Command.Teleport(Coord.here, new Coord(-9999, false, true, false), Coord.here),
+                Command.Teleport(Coord.here, new Coord(-99999, false, true, false), Coord.here),
                 Command.Kill()
             });
 
@@ -1771,10 +1791,9 @@ namespace mc_compiled.MCC.Compiler
 
             if(tokens.NextIs<TokenIdentifierEnum>())
             {
-                object value = tokens.Next<TokenIdentifierEnum>();
-                if (!(value is DamageCause))
-                    throw new StatementException(tokens, $"Invalid value given for damage cause: {value.ToString()}");
-                cause = (DamageCause)value;
+                TokenIdentifierEnum idEnum = tokens.Next<TokenIdentifierEnum>();
+                idEnum.value.RequireType<DamageCause>(tokens);
+                cause = (DamageCause)idEnum.value.value;
             }
 
             if (tokens.NextIs<TokenSelectorLiteral>())
@@ -1934,6 +1953,7 @@ namespace mc_compiled.MCC.Compiler
             if (word.Equals("ADD"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
+                executor.definedTags.Add(tag);
                 executor.PushSelectorExecute();
                 executor.AddCommand(Command.Tag(selected, tag));
                 executor.PopSelector();
@@ -1946,10 +1966,11 @@ namespace mc_compiled.MCC.Compiler
             } else if (word.Equals("SINGLE"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
+                executor.definedTags.Add(tag);
                 executor.PushSelectorExecute();
                 executor.AddCommands(new[]
                 {
-                    Command.TagRemove($"@e[tag=\"{tag}\"]", tag),
+                    Command.TagRemove("*", tag),
                     Command.Tag(selected, tag)
                 }, "tagsingle");
                 executor.PopSelector();

@@ -158,6 +158,27 @@ namespace mc_compiled.Commands
             return a; // default
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is Coord coord &&
+                   valuef == coord.valuef &&
+                   valuei == coord.valuei &&
+                   isFloat == coord.isFloat &&
+                   isRelative == coord.isRelative &&
+                   isFacingOffset == coord.isFacingOffset;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1648134579;
+            hashCode = hashCode * -1521134295 + valuef.GetHashCode();
+            hashCode = hashCode * -1521134295 + valuei.GetHashCode();
+            hashCode = hashCode * -1521134295 + isFloat.GetHashCode();
+            hashCode = hashCode * -1521134295 + isRelative.GetHashCode();
+            hashCode = hashCode * -1521134295 + isFacingOffset.GetHashCode();
+            return hashCode;
+        }
+
         public static Coord operator -(Coord a)
         {
             a.valuei *= -1;
@@ -255,5 +276,7 @@ namespace mc_compiled.Commands
         {
             return new Coord(a.valuef % b, true, a.isRelative, a.isFacingOffset);
         }
+
+
     }
 }

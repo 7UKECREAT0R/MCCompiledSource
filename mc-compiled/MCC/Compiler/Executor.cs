@@ -18,14 +18,16 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Executor
     {
-        public const string FSTRING_REGEX = "({(@([pseai]|initiator)(\\[.+\\])?)})|({([a-zA-Z0-9-:._]+)})";
-        public static readonly Regex FSTRING_FMT = new Regex(FSTRING_REGEX);
-        public static readonly Regex FSTRING_FMT_SPLIT = new Regex(FSTRING_REGEX, RegexOptions.ExplicitCapture);
+        public const string _FSTRING_SELECTOR = @"@(?:[spaeri]|initiator)(?:\[.+\])?";
+        public const string _FSTRING_VARIABLE = @"[\w\d_\-:]+";
+        public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
+        public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
         public const float MCC_VERSION = 1.1f;                  // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string FAKEPLAYER_NAME = "_";
+        public static int MAXIMUM_DEPTH = 100;
 
         /// <summary>
         /// Display a success message regardless of debug setting.
@@ -75,8 +77,9 @@ namespace mc_compiled.MCC.Compiler
         internal readonly List<int> definedStdFiles;
         internal readonly List<Macro> macros;
         internal readonly List<Function> functions;
+        internal readonly HashSet<string> definedTags;
         internal readonly bool[] lastPreprocessorCompare;
-        internal readonly Token[][] lastActualCompare;
+        internal readonly ComparisonSet[] lastActualCompare;
         internal readonly Dictionary<string, dynamic[]> ppv;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
@@ -84,26 +87,35 @@ namespace mc_compiled.MCC.Compiler
         readonly Stack<StructDefinition> definingStructs;
         public readonly ScoreboardManager scoreboard;
         
+        /// <summary>
+        /// Get the bracket depth of the executor currently.
+        /// </summary>
+        public int Depth
+        {
+            get => depth;
+        }
+
         internal Executor(Statement[] statements, Program.InputPPV[] inputPPVs,
             string projectName, string bpBase, string rpBase)
         {
             this.statements = statements;
-            this.project = new ProjectManager(projectName, bpBase, rpBase);
+            this.project = new ProjectManager(projectName, bpBase, rpBase, this);
             this.entities = new EntityManager(this);
 
             definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
             functions = new List<Function>();
+            definedTags = new HashSet<string>();
             selections = new Stack<Selector>();
 
             if (inputPPVs != null && inputPPVs.Length > 0)
                 foreach (Program.InputPPV ppv in inputPPVs)
                     SetPPV(ppv.name, new object[] { ppv.value });
 
-            // support up to 100 levels of scope before blowing up
-            lastPreprocessorCompare = new bool[100];
-            lastActualCompare = new Token[100][];
+            // support up to MAXIMUM_SCOPE levels of scope before blowing up
+            lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
+            lastActualCompare = new ComparisonSet[MAXIMUM_DEPTH];
 
             loadedFiles = new Dictionary<int, object>();
             definingStructs = new Stack<StructDefinition>();
@@ -133,59 +145,118 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public List<JSONRawTerm> FString(string fstring, out bool advanced)
         {
-            MatchCollection matches = FSTRING_FMT.Matches(fstring);
+            // stupid complex search for closing bracket: '}'
+            int ScanForCloser(string str, int start)
+            {
+                int len = str.Length;
+                int depth = -1;
+                bool skipping = false;
+                bool escape = false;
+
+                for(int i = start; i < len; i++)
+                {
+                    char c = str[i];
+
+                    // skipping due to string
+                    if(skipping)
+                    {
+                        // escaping chars
+                        if (escape)
+                        {
+                            escape = false;
+                            continue;
+                        }
+                        if (c == '\\')
+                        {
+                            escape = true;
+                            continue;
+                        }
+
+                        if (c == '"')
+                            skipping = false;
+                        continue;
+                    }
+
+                    // actual bracket stuff
+                    if (c == '{')
+                    {
+                        depth++;
+                        continue;
+                    }
+                    if(c == '}')
+                    {
+                        depth--;
+                        if (depth < 0)
+                            return i - start;
+                    }
+                }
+
+                return -1;
+            }
 
             advanced = false;
-            if (matches.Count < 1)
-                return new List<JSONRawTerm>() { new JSONText(fstring) };
-
             List<JSONRawTerm> terms = new List<JSONRawTerm>();
-            IEnumerable<string> piecesReversed = FSTRING_FMT_SPLIT.Split(fstring).Reverse();
-            Stack<string> pieces = new Stack<string>(piecesReversed);
+            StringBuilder buffer = new StringBuilder();
 
-            int index = 0;
-            foreach (Match match in matches)
+            void DumpTextBuffer()
             {
-                int mindex = match.Index;
-                if (mindex != 0 && pieces.Count > 0)
-                    terms.Add(new JSONText(pieces.Pop()));
-                else
-                    pieces.Pop();
-
-                string src = match.Value;
-                string varAccessor = match.Groups[2].Value;
-                string selector = match.Groups[4].Value.Trim('{', '}');
-
-                if (!string.IsNullOrEmpty(varAccessor))
+                string bufferContents = buffer.ToString();
+                if (!string.IsNullOrEmpty(bufferContents))
                 {
-                    if (scoreboard.TryGetByAccessor(varAccessor, out ScoreboardValue value, true))
+                    terms.Add(new JSONText(bufferContents));
+                    buffer.Clear();
+                }
+            }
+
+            int scoreIndex = 0;
+            for(int i = 0; i < fstring.Length; i++)
+            {
+                char character = fstring[i];
+
+                if(character == '{')
+                {
+                    // scan for closing bracket and return length
+                    int segmentLength = ScanForCloser(fstring, i);
+                    if (segmentLength == -1)
                     {
-                        advanced = true;
-                        // only allow one of them to increment the actual count
-                        int indexCopy = index;
-                        AddCommandsClean(value.CommandsRawTextSetup(varAccessor, "@s", ref indexCopy), "string" + value.AliasName);
-                        terms.AddRange(value.ToRawText(varAccessor, "@s", ref index));
-                        index++;
+                        // append the rest of the string and cancel.
+                        buffer.Append(fstring.Substring(i));
+                        break;
                     }
-                    else
-                        terms.Add(new JSONText(src));
+
+                    // get segment inside brackets
+                    string segment = fstring.Substring(i + 1, segmentLength - 1);
+
+                    // check for selector match
+                    if (FSTRING_SELECTOR.IsMatch(segment))
+                    {
+                        i += segmentLength;
+                        DumpTextBuffer();
+                        advanced = true;
+                        terms.Add(new JSONSelector(segment));
+                        continue;
+                    }
+                    else if(FSTRING_VARIABLE.IsMatch(segment))
+                    {
+                        if(scoreboard.TryGetByAccessor(segment, out ScoreboardValue value, true))
+                        {
+                            i += segmentLength;
+                            DumpTextBuffer();
+                            advanced = true;
+
+                            int indexCopy = scoreIndex;
+                            AddCommandsClean(value.CommandsRawTextSetup(segment, "@s", ref indexCopy), "string" + value.AliasName);
+                            terms.AddRange(value.ToRawText(segment, "@s", ref scoreIndex));
+                            scoreIndex++;
+                            continue;
+                        }
+                    }
                 }
-                else if (!string.IsNullOrEmpty(selector))
-                {
-                    advanced = true;
-                    terms.Add(new JSONSelector(selector));
-                }
-                else
-                    terms.Add(new JSONText(src));
+
+                buffer.Append(character);
             }
 
-            while (pieces.Count > 0)
-            {
-                string text = pieces.Pop();
-                if(!string.IsNullOrEmpty(text))
-                    terms.Add(new JSONText(text));
-            }
-
+            DumpTextBuffer();
             return terms;
         }
         /// <summary>
@@ -475,17 +546,22 @@ namespace mc_compiled.MCC.Compiler
             selections.Pop();
         }
 
-        
         /// <summary>
-        /// The number of statements which will run before a selector is automatically popped.
+        /// The number of statements which will run before popSelectorsCount number of selectors are automatically popped.
         /// </summary>
         int popSelectorsAfterNext = 0;
+        /// <summary>
+        /// Number of times popSelectorsAfterNext will be reset after popping a selector.
+        /// </summary>
+        int popSelectorsCount = 0;
+
         /// <summary>
         /// Schedules a selector pop after the next statement is run.
         /// </summary>
         public void PopSelectorAfterNext()
         {
             popSelectorsAfterNext = 2;
+            popSelectorsCount++;
         }
 
         /// <summary>
@@ -670,13 +746,19 @@ namespace mc_compiled.MCC.Compiler
                 CheckUnreachable(statement);
 
                 if(Program.DEBUG)
-                    Console.WriteLine("COMPILE LN{0}: {1}", statement.Line, statement.ToString());
+                    Console.WriteLine("EXECUTE LN{0}: {1}", statement.Line, statement.ToString());
 
-                if (popSelectorsAfterNext >= 0)
+                // do the pop-selector stuff.
+                if(popSelectorsCount > 0)
                 {
                     popSelectorsAfterNext--;
-                    if (popSelectorsAfterNext == 0)
-                        PopSelector();
+
+                    if(popSelectorsAfterNext <= 0)
+                    {
+                        // pop all selectors based on count
+                        while (popSelectorsCount-- > 0)
+                            PopSelector();
+                    }
                 }
             }
 
@@ -734,13 +816,13 @@ namespace mc_compiled.MCC.Compiler
         /// Set the last if-statement tokens used at this scope.
         /// </summary>
         /// <param name="selector"></param>
-        public void SetLastCompare(Token[] inputTokens) =>
-            lastActualCompare[ScopeLevel] = inputTokens;
+        public void SetLastCompare(ComparisonSet set) =>
+            lastActualCompare[ScopeLevel] = set;
         /// <summary>
-        /// Get the last if-statement tokens used at this scope.
+        /// Get the last comparison used at this scope.
         /// </summary>
         /// <returns></returns>
-        public Token[] GetLastCompare() =>
+        public ComparisonSet GetLastCompare() =>
             lastActualCompare[ScopeLevel];
 
         /// <summary>
@@ -1106,6 +1188,7 @@ namespace mc_compiled.MCC.Compiler
             currentFiles.Clear();
             loadedFiles.Clear();
             ppv.Clear();
+            definedTags.Clear();
             scoreboard.definedTempVars.Clear();
             scoreboard.values.Clear();
             scoreboard.structs.Clear();
