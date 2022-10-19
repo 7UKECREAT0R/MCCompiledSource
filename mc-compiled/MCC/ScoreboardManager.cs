@@ -150,7 +150,7 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// Request a temp variable be created and initialized at the top of the file.
+        /// Makes a request for an unused temporary int variable. Created as needed.
         /// </summary>
         /// <returns></returns>
         public ScoreboardValueInteger RequestTemp()

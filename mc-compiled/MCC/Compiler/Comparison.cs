@@ -179,6 +179,11 @@ namespace mc_compiled.MCC.Compiler
 
             // add a size-1 buffer, popped after the statements inside are run
             executor.PushSelector(false);
+            Selector activeSelector = executor.ActiveSelector;
+            
+            // align before doing anything else
+            if(activeSelector.NeedsAlign)
+                sb.Append(activeSelector.GetAsPrefix());
 
             foreach (Comparison comparison in this)
             {
@@ -197,12 +202,13 @@ namespace mc_compiled.MCC.Compiler
             }
 
             if (!executor.HasNext)
-                throw new StatementException(callingStatement, "Unexpected end of file when running ComparisonSet.");
+                throw new StatementException(callingStatement, "Unexpected end of file when running comparison.");
 
+            // get the next statement to determine how to run this comparison
             Statement next = executor.Peek();
 
-            foreach (string command in commands)
-                executor.AddCommandClean(command);
+            // add the commands given from all the comparisons
+            executor.AddCommandsClean(commands, "compareSetup");
 
             int popCount = Count;
 

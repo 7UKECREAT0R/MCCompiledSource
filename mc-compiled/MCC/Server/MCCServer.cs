@@ -15,6 +15,7 @@ namespace mc_compiled.MCC.Server
     {
 
         public const int PORT = 11830;
+        public const int VERSION = 3;
         public readonly string ADDRESS = $"http://localhost:{PORT}/";
         public readonly string COMPILE_ADDRESS = $"http://localhost:{PORT}/compile/";
         public readonly string[] VALID_ACTIONS =
@@ -80,6 +81,7 @@ namespace mc_compiled.MCC.Server
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Now listening for HTTP traffic on address '{0}'.", ADDRESS);
+            Console.WriteLine("Server Version {0}, MCCompiled Version {1}", VERSION, Executor.MCC_VERSION);
             Console.ForegroundColor = ConsoleColor.White;
 
             while(running)

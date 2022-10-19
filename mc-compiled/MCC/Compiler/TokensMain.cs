@@ -161,6 +161,10 @@ namespace mc_compiled.MCC.Compiler
         /// Get the full name used to access this value.
         /// </summary>
         public string Accessor { get => word; }
+        /// <summary>
+        /// Shorthand for .references.ToString();
+        /// </summary>
+        public string RefStr { get => references.ToString(); }
 
         public TokenIdentifierValue(string accessor, ScoreboardValue value, int lineNumber) : base(accessor, lineNumber)
         {

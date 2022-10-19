@@ -96,10 +96,11 @@ namespace mc_compiled.MCC
             if (baseName.Length > 16)
                 aliasName = baseName;
         }
-        public object Clone()
+        public virtual object Clone()
         {
             return MemberwiseClone();
         }
+
         /// <summary>
         /// Returns a shallow memberwise clone of some value as a return value.
         /// </summary>
@@ -137,7 +138,7 @@ namespace mc_compiled.MCC
             throw new StatementException(forExceptions, "Cannot return this literal.");
         }
 
-        public static implicit operator string(ScoreboardValue value) => value.baseName;
+        public static implicit operator string(ScoreboardValue value) => value.Name;
 
         /// <summary>
         /// Gets the keyword associated with this scoreboard value type.
@@ -600,7 +601,7 @@ namespace mc_compiled.MCC
         public const string SB_SECONDS = "_mcc_t_secs";
         public const string SB_TEMP = "_mcc_t_temp";
         public const string SB_CONST = "_mcc_t_const";
-        public ScoreboardValueTime(string Name, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions) { }
+        public ScoreboardValueTime(string name, ScoreboardManager manager, Statement forExceptions) : base(name, manager, forExceptions) { }
 
         public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_TIME;
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
@@ -662,11 +663,115 @@ namespace mc_compiled.MCC
         public const string SB_TEMP = "_mcc_d_temp";
         public const string SB_BASE = "_mcc_d_base";
 
-        public ScoreboardValueDecimal(string Name, int precision, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions)
+        /// <summary>
+        /// Basic constructor.
+        /// </summary>
+        /// <param name="name">The name of the value.</param>
+        /// <param name="precision">The precision of the value.</param>
+        /// <param name="manager">The ScoreboardManager managing this new value.</param>
+        /// <param name="forExceptions">The statement that caused an exception, if any.</param>
+        public ScoreboardValueDecimal(string name, int precision, ScoreboardManager manager, Statement forExceptions) : base(name, manager, forExceptions)
         {
             this.precision = precision;
         }
+        /// <summary>
+        /// Balances a decimal value so that its precision is equal to this scoreboard value's precision.
+        /// Outputs a scoreboard value holding a copied value of 'other', but with precision balanced.
+        /// </summary>
+        /// <param name="selector">The selector to use.</param>
+        /// <param name="other">The other value to be balanced.</param>
+        /// <param name="balancedCopy">[IF RETURNED TRUE] The scoreboard value holding the newly balanced copy of 'other'.</param>
+        /// <param name="commands">[IF RETURNED TRUE] The commands needed to balance the copy.</param>
+        /// <returns>If a balance was performed.</returns>
+        public bool BalancePrecisionWith(string selector, ScoreboardValueDecimal other,
+            out ScoreboardValueDecimal balancedCopy, out string[] commands)
+        {
+            if (precision == other.precision)
+            {
+                balancedCopy = null;
+                commands = null;
+                return false;
+            }
 
+            if (precision > other.precision)
+            {
+                int precisionDiff = precision - other.precision;
+                ScoreboardValue temp1 = other.manager.RequestTemp();
+                ScoreboardValue temp2 = other.manager.RequestTemp(other);
+                commands = new string[]
+                {
+                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(selector, temp2, other.Name),
+                    Command.ScoreboardOpMul(selector, temp2, temp1)
+                };
+                other.manager.ReleaseTemp();
+                other.manager.ReleaseTemp();
+                balancedCopy = temp2 as ScoreboardValueDecimal;
+                return true;
+            } else
+            {
+                // precision < other.precision
+                int precisionDiff = other.precision - precision;
+                ScoreboardValue temp1 = other.manager.RequestTemp();
+                ScoreboardValue temp2 = other.manager.RequestTemp(other);
+                commands = new string[]
+                {
+                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(selector, temp2, other.Name),
+                    Command.ScoreboardOpDiv(selector, temp2, temp1)
+                };
+                other.manager.ReleaseTemp();
+                other.manager.ReleaseTemp();
+                balancedCopy = temp2 as ScoreboardValueDecimal;
+                return true;
+            }
+        }
+        /// <summary>
+        /// Basically Command.ScoreboardOpSet but balances 'other' to fit into this scoreboard value's precision properly.
+        /// </summary>
+        /// <param name="selector">The selector to use.</param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public string[] BalancePrecisionInto(string selector, ScoreboardValueDecimal other)
+        {
+            if (precision == other.precision)
+            {
+                return new[] { Command.ScoreboardOpSet(selector, Name, other) };
+            }
+
+            if (precision > other.precision)
+            {
+                int precisionDiff = precision - other.precision;
+                ScoreboardValue temp1 = other.manager.RequestTemp();
+                string[] commands = new string[]
+                {
+                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(selector, Name, other.Name),
+                    Command.ScoreboardOpMul(selector, Name, temp1)
+                };
+                other.manager.ReleaseTemp();
+                return commands;
+            }
+            else
+            {
+                // precision < other.precision
+                int precisionDiff = other.precision - precision;
+                ScoreboardValue temp1 = other.manager.RequestTemp();
+                string[] commands = new string[]
+                {
+                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(selector, Name, other.Name),
+                    Command.ScoreboardOpDiv(selector, Name, temp1)
+                };
+                other.manager.ReleaseTemp();
+                return commands;
+            }
+        }
+
+        public override object Clone()
+        {
+            return MemberwiseClone();
+        }
         public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_DECIMAL;
         public override string[] CommandsDefine(string prefix = "")
         {
@@ -841,38 +946,10 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueDecimal)
+            if (other is ScoreboardValueDecimal @decimal)
             {
-                ScoreboardValueDecimal @decimal = other as ScoreboardValueDecimal;
-
                 // convert bases if necessary
-                if (precision == @decimal.precision)
-                    return new[] { Command.ScoreboardOpSet(selector, Name, other) };
-                else if(precision < @decimal.precision)
-                {
-                    int precisionDiff = @decimal.precision - precision;
-                    ScoreboardValue temp = other.manager.RequestTemp();
-                    string[] commands = new string[]
-                    {
-                        Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff)),
-                        Command.ScoreboardOpSet(selector, Name, other),
-                        Command.ScoreboardOpDiv(selector, Name, temp)
-                    };
-                    other.manager.ReleaseTemp();
-                    return commands;
-                } else
-                {
-                    int precisionDiff = precision - @decimal.precision;
-                    ScoreboardValue temp = other.manager.RequestTemp();
-                    string[] commands = new string[]
-                    {
-                        Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff)),
-                        Command.ScoreboardOpSet(selector, Name, other),
-                        Command.ScoreboardOpMul(selector, Name, temp)
-                    };
-                    other.manager.ReleaseTemp();
-                    return commands;
-                }
+                return BalancePrecisionInto(selector, @decimal);
             }
 
             if (other is ScoreboardValueStruct)
@@ -904,13 +981,17 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueDecimal)
+            if (other is ScoreboardValueDecimal @decimal)
             {
-                string[] commands = new string[]
+                if(BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
-                    Command.ScoreboardOpAdd(selector, Name, other),
-                };
-                return commands;
+                    List<string> commandList = new List<string>(commands.Length + 1);
+                    commandList.AddRange(commands);
+                    commandList.Add(Command.ScoreboardOpAdd(selector, Name, balancedCopy.Name));
+                    return commandList.ToArray();
+                }
+
+                return new[] { Command.ScoreboardOpAdd(selector, Name, other.Name) };
             }
 
             if (other is ScoreboardValueStruct)
@@ -939,13 +1020,17 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueDecimal)
+            if (other is ScoreboardValueDecimal @decimal)
             {
-                string[] commands = new string[]
+                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
-                    Command.ScoreboardOpSub(selector, Name, other),
-                };
-                return commands;
+                    List<string> commandList = new List<string>(commands.Length + 1);
+                    commandList.AddRange(commands);
+                    commandList.Add(Command.ScoreboardOpSub(selector, Name, balancedCopy.Name));
+                    return commandList.ToArray();
+                }
+
+                return new[] { Command.ScoreboardOpSub(selector, Name, other.Name) };
             }
 
             if (other is ScoreboardValueStruct)
@@ -968,15 +1053,26 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueDecimal)
+            if (other is ScoreboardValueDecimal @decimal)
             {
                 ScoreboardValue tempBase = manager.RequestTemp();
 
-                string[] commands = new string[]
+                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
+                {
+                    List<string> commandList = new List<string>(commands.Length + 3);
+                    commandList.AddRange(commands);
+                    commandList.Add(Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)));
+                    commandList.Add(Command.ScoreboardOpMul(selector, Name, balancedCopy.Name));
+                    commandList.Add(Command.ScoreboardOpDiv(selector, Name, tempBase.Name));
+                    manager.ReleaseTemp();
+                    return commandList.ToArray();
+                }
+
+                commands = new string[]
                 {
                     Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, Name, other),
-                    Command.ScoreboardOpDiv(selector, Name, tempBase)
+                    Command.ScoreboardOpMul(selector, Name, other.Name),
+                    Command.ScoreboardOpDiv(selector, Name, tempBase.Name)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -1002,15 +1098,26 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueDecimal)
+            if (other is ScoreboardValueDecimal @decimal)
             {
                 ScoreboardValue tempBase = manager.RequestTemp();
 
-                string[] commands = new string[]
+                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, Name, tempBase),
-                    Command.ScoreboardOpDiv(selector, Name, other)
+                    List<string> commandList = new List<string>(commands.Length + 3);
+                    commandList.AddRange(commands);
+                    commandList.Add(Command.ScoreboardSet(selector, tempBase.Name, (int)Math.Pow(10, precision)));
+                    commandList.Add(Command.ScoreboardOpMul(selector, Name, tempBase.Name));
+                    commandList.Add(Command.ScoreboardOpDiv(selector, Name, balancedCopy.Name));
+                    manager.ReleaseTemp();
+                    return commandList.ToArray();
+                }
+
+                commands = new string[]
+                {
+                    Command.ScoreboardSet(selector, tempBase.Name, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpMul(selector, Name, tempBase.Name),
+                    Command.ScoreboardOpDiv(selector, Name, other.Name)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -1041,13 +1148,17 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueDecimal)
+            if (other is ScoreboardValueDecimal @decimal)
             {
-                string[] commands = new string[]
+                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
-                    Command.ScoreboardOpMod(selector, Name, other),
-                };
-                return commands;
+                    List<string> commandList = new List<string>(commands.Length + 1);
+                    commandList.AddRange(commands);
+                    commandList.Add(Command.ScoreboardOpMod(selector, Name, balancedCopy.Name));
+                    return commandList.ToArray();
+                }
+
+                return new[] { Command.ScoreboardOpMod(selector, Name, other.Name) };
             }
 
             if (other is ScoreboardValueStruct)
@@ -1077,12 +1188,36 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueDecimal)
+            if (other is ScoreboardValueDecimal @decimal)
             {
-                return new[]
+                if(precision == @decimal.precision)
                 {
-                    Command.ScoreboardOpSwap(selector, Name, other)
-                };
+                    return new[] { Command.ScoreboardOpSwap(selector, Name, other) };
+                }
+
+                string[] commands = new string[4];
+                ScoreboardValue temp = manager.RequestTemp();
+
+                commands[0] = Command.ScoreboardOpSwap(selector, Name, other);
+
+                // swap precisions using the difference between them.
+                if (precision > @decimal.precision)
+                {
+                    int precisionDiff = precision - @decimal.precision;
+                    commands[1] = Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff));
+                    commands[2] = Command.ScoreboardOpMul(selector, Name, temp);
+                    commands[3] = Command.ScoreboardOpDiv(selector, other.Name, temp);
+                }
+                else
+                {
+                    // precision < other.precision
+                    int precisionDiff = @decimal.precision - precision;
+                    commands[1] = Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff));
+                    commands[2] = Command.ScoreboardOpDiv(selector, Name, temp);
+                    commands[3] = Command.ScoreboardOpMul(selector, other.Name, temp);
+                }
+
+                return commands;
             }
 
             if (other is ScoreboardValueStruct)
@@ -1212,6 +1347,10 @@ namespace mc_compiled.MCC
             return structure.GetFieldFromAccessor(accessor);
         }
 
+        public override object Clone()
+        {
+            return MemberwiseClone();
+        }
         public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_STRUCT;
         public override string[] CommandsDefine(string prefix = "")
         {

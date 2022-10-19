@@ -119,9 +119,10 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValue b = (this.b as TokenIdentifierValue).value;
                 ScoreboardValue temp = executor.scoreboard.RequestTemp(a); // temps are auto-released at the end
 
-                commands.AddRange(temp.CommandsSet(tiv.references.ToString(), a, null, null));
-                commands.AddRange(temp.CommandsSub("@s", b, null, null));
+                commands.AddRange(temp.CommandsSet(tiv.RefStr, a, null, null));
+                commands.AddRange(temp.CommandsSub(tiv.RefStr, b, null, null));
                 this.temp = temp;
+                return commands;
             }
             else if(aType == SideType.Variable)
             {
@@ -132,7 +133,7 @@ namespace mc_compiled.MCC.Compiler
                 TokenIdentifierValue tiv = this.a as TokenIdentifierValue;
                 ScoreboardValue a = tiv.value;
                 TokenNumberLiteral b = (this.b as TokenNumberLiteral);
-                var entries = a.CompareToLiteral(null, tiv.references.ToString(), comparison, b);
+                var entries = a.CompareToLiteral(null, tiv.RefStr, comparison, b);
 
                 this.scoresEntries = entries.Item1;
                 return entries.Item2;

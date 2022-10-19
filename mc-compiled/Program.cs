@@ -282,7 +282,7 @@ namespace mc_compiled
                     }
                 };
                 StructureNBT nbt = StructureNBT.SingleItem(item);
-                StructureFile itemFile = new StructureFile("stick", nbt);
+                StructureFile itemFile = new StructureFile("stick", "tests", nbt);
                 File.WriteAllBytes("testitem0.mcstructure", itemFile.GetOutputData());
 
                 item = new ItemStack()
@@ -302,7 +302,7 @@ namespace mc_compiled
                     }
                 };
                 nbt = StructureNBT.SingleItem(item);
-                itemFile = new StructureFile("testitem", nbt);
+                itemFile = new StructureFile("testitem", "tests", nbt);
                 File.WriteAllBytes("testitem1.mcstructure", itemFile.GetOutputData());
 
                 item = new ItemStack()
@@ -321,7 +321,7 @@ namespace mc_compiled
                     }
                 };
                 nbt = StructureNBT.SingleItem(item);
-                itemFile = new StructureFile("testitem", nbt);
+                itemFile = new StructureFile("testitem", "tests", nbt);
                 File.WriteAllBytes("testitem2.mcstructure", itemFile.GetOutputData());
 
                 Console.ForegroundColor = ConsoleColor.Green;

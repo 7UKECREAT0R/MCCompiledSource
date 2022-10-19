@@ -26,6 +26,7 @@
     }
   },
   "mappings": {
+    "*": "Token",
     "any": "TokenLiteral",
     "id": "TokenIdentifier",
     "object": "IPreprocessor",
@@ -299,8 +300,7 @@
       "description": "If Statement",
       "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by '&' symbols and inverted by the keyword 'not'. Only runs the proceeding statement/block for entities where the condition returns true.",
       "patterns": [
-        [ "value:any" ],
-        [ "id:any" ]
+        [ "*:any" ]
       ]
     },
     "else": {
@@ -362,7 +362,7 @@
         [ "int:y", "int:x" ]
       ]
     },
-    "block": {
+    "place": {
       "description": "Place Block",
       "details": "Places a block at a specific position, optionally using a replace mode.",
       "patterns": [
