@@ -1014,11 +1014,20 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Set the content that will prepend the next added dirty command.
+        /// Set the content that will prepend the next added command.
         /// </summary>
         /// <param name="content"></param>
-        public void SetCommandPrepend(string content) =>
+        /// <returns>The old buffer's contents.</returns>
+        public string SetCommandPrepend(string content)
+        {
+            string oldContent = prependBuffer.ToString();
             prependBuffer.Clear().Append(content);
+
+            if (string.IsNullOrEmpty(oldContent))
+                return "";
+
+            return oldContent;
+        }
         /// <summary>
         /// Append to the content to the prepend buffer.
         /// </summary>

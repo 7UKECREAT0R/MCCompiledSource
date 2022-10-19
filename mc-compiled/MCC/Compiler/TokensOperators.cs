@@ -7,13 +7,71 @@ using System.Threading.Tasks;
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
-    /// A token that represents some kind of operator like =, +=, +, %, etc...
+    /// A token that represents some kind of operator like =, +=, +, %, [n], etc...
     /// </summary>
     public class TokenOperator : Token
     {
         public override string AsString() => "<? generic>";
         public TokenOperator(int lineNumber) : base(lineNumber) { }
     }
+
+
+    /// <summary>
+    /// An indexer, identified by a token surrounded by [square brackets]. Used to index/scope things like values and PPVs.
+    /// </summary>
+    public class TokenIndexer : Token
+    {
+        public readonly Token baseToken;
+
+        public override string AsString() => $"[{baseToken.AsString()}]";
+        public TokenIndexer(Token baseToken, int lineNumber) : base(lineNumber)
+        {
+            this.baseToken = baseToken;
+        }
+
+        /// <summary>
+        /// Get the token inside this indexer.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Token GetIndexerToken() => baseToken;
+    }
+    /// <summary>
+    /// An indexer giving an integer. Defaulted to this class with the value 0 when [] is given to the tokenizer.
+    /// </summary>
+    public sealed class TokenIndexerInteger : TokenIndexer
+    {
+        public TokenIntegerLiteral token;
+        public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(lineNumber, token)
+        {
+            this.token = token;
+        }
+        public override Token GetIndexerToken() => token;
+    }
+    /// <summary>
+    /// An indexer giving an integer.
+    /// </summary>
+    public sealed class TokenIndexerString : TokenIndexer
+    {
+        public TokenStringLiteral token;
+        public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(lineNumber, token)
+        {
+            this.token = token;
+        }
+        public override Token GetIndexerToken() => token;
+    }
+    /// <summary>
+    /// An indexer giving a selector.
+    /// </summary>
+    public sealed class TokenIndexerSelector : TokenIndexer
+    {
+        public TokenSelectorLiteral token;
+        public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(lineNumber, token)
+        {
+            this.token = token;
+        }
+        public override Token GetIndexerToken() => token;
+    }
+
 
     /// <summary>
     /// Represents a generic bracket, not open or closed.
@@ -59,13 +117,13 @@ namespace mc_compiled.MCC.Compiler
     }
     public abstract class TokenArithmaticFirst : TokenArithmatic
     {
-        public override string AsString() => "<? */%>";
+        public override string AsString() => "<? arithmatic first>";
         public TokenArithmaticFirst(int lineNumber) : base(lineNumber) { }
 
     }
     public abstract class TokenArithmaticSecond : TokenArithmatic
     {
-        public override string AsString() => "<? +->";
+        public override string AsString() => "<? arithmatic second>";
         public TokenArithmaticSecond(int lineNumber) : base(lineNumber) { }
     }
 

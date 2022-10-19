@@ -427,6 +427,7 @@ namespace mc_compiled.MCC.Compiler
                 });
 
                 // create delegate
+                // if this is erroring, a language.json directive is missing its associated method
                 var function = (Directive.DirectiveImpl)Delegate.CreateDelegate
                     (typeof(Directive.DirectiveImpl), info);
 

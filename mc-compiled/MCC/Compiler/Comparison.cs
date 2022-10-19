@@ -17,6 +17,7 @@ namespace mc_compiled.MCC.Compiler
         /// Instantiates an empty ComparisonSet.
         /// </summary>
         public ComparisonSet() : base() { }
+
         /// <summary>
         /// Instantiates a ComparisonSet with an array of items in it to start.
         /// </summary>
@@ -175,7 +176,9 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(callingStatement, "No valid conditions specified.");
 
             List<string> commands = new List<string>();
-            StringBuilder sb = new StringBuilder();
+            StringBuilder setupBuffer = new StringBuilder(); // used with positioned argument
+            StringBuilder primaryBuffer = new StringBuilder();
+
 
             // add a size-1 buffer, popped after the statements inside are run
             executor.PushSelector(false);
@@ -183,7 +186,7 @@ namespace mc_compiled.MCC.Compiler
             
             // align before doing anything else
             if(activeSelector.NeedsAlign)
-                sb.Append(activeSelector.GetAsPrefix());
+                primaryBuffer.Append(activeSelector.GetAsPrefix());
 
             foreach (Comparison comparison in this)
             {
@@ -194,7 +197,12 @@ namespace mc_compiled.MCC.Compiler
                     commands.AddRange(partCommands);
 
                 string part = partSelector.GetAsPrefix();
-                sb.Append(part);
+                
+                // append to setup buffer so it also applies to the setup commands (if needed).
+                if (comparison.ModifiesSetupCommands)
+                    setupBuffer.Append(part);
+
+                primaryBuffer.Append(part);
 
                 // aligned to @s after this
                 executor.PopSelector();
@@ -208,7 +216,18 @@ namespace mc_compiled.MCC.Compiler
             Statement next = executor.Peek();
 
             // add the commands given from all the comparisons
-            executor.AddCommandsClean(commands, "compareSetup");
+            string setup = setupBuffer.ToString();
+            if (string.IsNullOrEmpty(setup))
+            {
+                // no setup prepend needed.
+                executor.AddCommandsClean(commands, "compareSetup");
+            } else
+            {
+                // need to set the setup prepend.
+                string old = executor.SetCommandPrepend(setup);
+                executor.AddCommands(commands, "compareSetup");
+                executor.SetCommandPrepend(old);
+            }
 
             int popCount = Count;
 
@@ -220,7 +239,7 @@ namespace mc_compiled.MCC.Compiler
                 else if (openBlock.statementsInside == 1)
                 {
                     // modify prepend buffer as if 1 statement was there
-                    executor.AppendCommandPrepend(sb.ToString());
+                    executor.AppendCommandPrepend(primaryBuffer.ToString());
                     executor.PopSelectorAfterNext();
                     openBlock.openAction = null;
                     openBlock.CloseAction = null;
@@ -228,7 +247,7 @@ namespace mc_compiled.MCC.Compiler
                 else
                 {
                     CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
-                    string command = sb.ToString() + Command.Function(blockFile);
+                    string command = primaryBuffer.ToString() + Command.Function(blockFile);
                     executor.AddCommand(command);
 
                     openBlock.openAction = (e) =>
@@ -244,7 +263,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                executor.AppendCommandPrepend(sb.ToString());
+                executor.AppendCommandPrepend(primaryBuffer.ToString());
                 executor.PopSelectorAfterNext();
             }
         }
@@ -286,6 +305,13 @@ namespace mc_compiled.MCC.Compiler
         {
             originallyInverted = invert;
             inverted = invert;
+        }
+        /// <summary>
+        /// Returns if this comparison modifies the setup command prepend as well as the primary one.
+        /// </summary>
+        public virtual bool ModifiesSetupCommands
+        {
+            get => false;
         }
 
         /// <summary>

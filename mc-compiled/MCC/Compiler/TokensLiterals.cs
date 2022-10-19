@@ -765,7 +765,10 @@ namespace mc_compiled.MCC.Compiler
         }
     }
 
-    public sealed class TokenSelectorLiteral : TokenLiteral, IPreprocessor
+    /// <summary>
+    /// A selector.
+    /// </summary>
+    public class TokenSelectorLiteral : TokenLiteral, IPreprocessor
     {
         public readonly bool simple;
         public readonly Selector selector;

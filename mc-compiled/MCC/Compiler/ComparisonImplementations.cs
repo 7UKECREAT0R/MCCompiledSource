@@ -481,6 +481,10 @@ namespace mc_compiled.MCC.Compiler
             this.y = y;
             this.z = z;
         }
+        public override bool ModifiesSetupCommands
+        {
+            get => true;
+        }
 
         public override IEnumerable<string> GetCommands(Executor executor)
         {

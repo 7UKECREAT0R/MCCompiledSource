@@ -117,7 +117,7 @@ namespace mc_compiled.MCC.Compiler
             Token identifier;
             bool lastWasNewline = false;
 
-            while ((identifier = NextIdentifier()) != null)
+            while ((identifier = NextToken()) != null)
             {
                 if (identifier is TokenNewline)
                 {
@@ -137,7 +137,7 @@ namespace mc_compiled.MCC.Compiler
         /// Read the next valid identifier.
         /// </summary>
         /// <returns></returns>
-        public Token NextIdentifier()
+        public Token NextToken()
         {
             FlushWhitespace();
             sb.Clear();
@@ -148,7 +148,7 @@ namespace mc_compiled.MCC.Compiler
             char firstChar = NextChar();
             char secondChar = HasNext ? Peek() : '\0';
 
-            switch(firstChar)
+            switch (firstChar)
             {
                 case '\n':
                     return new TokenNewline(CURRENT_LINE++);
@@ -166,6 +166,28 @@ namespace mc_compiled.MCC.Compiler
                     break;
             }
 
+            if (firstChar == '[')
+            {
+                if(secondChar == ']')
+                {
+                    // default to '[0]', or first object.
+                    NextChar();
+                    TokenIntegerLiteral zero = new TokenIntegerLiteral(0, IntMultiplier.none, CURRENT_LINE);
+                    return new TokenIndexerInteger(zero, CURRENT_LINE);
+                }
+
+                // get the inside token
+                Token inside = NextToken();
+
+                // throw if no closing bracket
+                if(!HasNext || Peek() != ']')
+                    throw new TokenizerException("No closing bracket ']' found for indexer.", CURRENT_LINE);
+
+                // consume closing bracket
+                NextChar();
+
+                return new TokenIndexer(inside, CURRENT_LINE);
+            }
             if(firstChar == '@')
             {
                 Selector.Core core;
