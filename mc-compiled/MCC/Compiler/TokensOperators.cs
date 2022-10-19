@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,21 +20,95 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// An indexer, identified by a token surrounded by [square brackets]. Used to index/scope things like values and PPVs.
     /// </summary>
-    public class TokenIndexer : Token
+    public abstract class TokenIndexer : Token
     {
-        public readonly Token baseToken;
-
-        public override string AsString() => $"[{baseToken.AsString()}]";
-        public TokenIndexer(Token baseToken, int lineNumber) : base(lineNumber)
-        {
-            this.baseToken = baseToken;
-        }
+        public override string AsString() => $"[]";
+        public TokenIndexer(int lineNumber) : base(lineNumber) { }
 
         /// <summary>
         /// Get the token inside this indexer.
         /// </summary>
         /// <returns></returns>
-        public virtual Token GetIndexerToken() => baseToken;
+        public abstract Token GetIndexerToken();
+
+        /// <summary>
+        /// Creates an indexer based on the type of token given.
+        /// Throws a exception if there's no valid indexer for the given token.
+        /// </summary>
+        /// <param name="token">The token to wrap in an indexer.</param>
+        /// <param name="forExceptions">Statement that would be considered the one throwing this exception. If null, will throw a tokenizer exception.</param>
+        /// <returns></returns>
+        public static TokenIndexer CreateIndexer(Token token, Statement forExceptions = null)
+        {
+            if(token is TokenLiteral literal)
+                return CreateIndexer(literal, forExceptions);
+
+            if (token is TokenUnresolvedPPV unresolvedPPV)
+                return new TokenIndexerUnresolvedPPV(unresolvedPPV, token.lineNumber);
+
+            // throw exception
+            if(forExceptions == null)
+                throw new TokenizerException($"Cannot index/scope with a token: " + token.DebugString(), token.lineNumber);
+            else
+                throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + token.DebugString());
+        }
+        /// <summary>
+        /// Creates an indexer based on the type of literal given.
+        /// Throws an exception if there's no valid indexer for the given literal.
+        /// </summary>
+        /// <param name="literal">The literal to wrap in an indexer.</param>
+        /// <param name="forExceptions">Statement that would be considered the one throwing this exception. If null, will throw a tokenizer exception.</param>
+        /// <returns></returns>
+        public static TokenIndexer CreateIndexer(TokenLiteral literal, Statement forExceptions = null)
+        {
+            int lineNumber = literal.lineNumber;
+
+            if (literal is TokenIntegerLiteral intLiteral)
+                return new TokenIndexerInteger(intLiteral, lineNumber);
+            else if (literal is TokenStringLiteral stringLiteral)
+                return new TokenIndexerString(stringLiteral, lineNumber);
+            else if (literal is TokenSelectorLiteral selectorLiteral)
+                return new TokenIndexerSelector(selectorLiteral, lineNumber);
+
+            // throw exception
+            if (forExceptions == null)
+                throw new TokenizerException($"Cannot index/scope with a token: " + literal.DebugString(), literal.lineNumber);
+            else
+                throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + literal.DebugString());
+        }
+    }
+    /// <summary>
+    /// An indexer using an unresolved PPV.
+    /// </summary>
+    public sealed class TokenIndexerUnresolvedPPV : TokenIndexer
+    {
+        public TokenUnresolvedPPV token;
+        public TokenIndexerUnresolvedPPV(TokenUnresolvedPPV token, int lineNumber) : base(lineNumber)
+        {
+            this.token = token;
+        }
+        public override Token GetIndexerToken() => token;
+
+        /// <summary>
+        /// Resolve the PPV inside this indexer and remap to the right indexer.
+        /// </summary>
+        /// <returns>The indexer wrapping the newly resolved PPV.</returns>
+        /// <exception cref="StatementException" />
+        public TokenIndexer Resolve(Executor executor, Statement runningStatement)
+        {
+            // resolve the contained PPV.
+            TokenLiteral[] resolvedValues = executor.ResolvePPV(token);
+
+            // ResolvePPV returns null/empty if it can't resolve.
+            if (resolvedValues == null || resolvedValues.Length < 1)
+                throw new StatementException(runningStatement, $"Preprocessor variable '{token.word}' either doesn't exist or didn't have a valid value.");
+
+            // only need the first value, since indexers can only hold one.
+            TokenLiteral _value = resolvedValues[0];
+
+            // return one of the primary allowed indexer types.
+            return TokenIndexer.CreateIndexer(_value, runningStatement);
+        }
     }
     /// <summary>
     /// An indexer giving an integer. Defaulted to this class with the value 0 when [] is given to the tokenizer.
@@ -41,7 +116,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class TokenIndexerInteger : TokenIndexer
     {
         public TokenIntegerLiteral token;
-        public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(lineNumber, token)
+        public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(lineNumber)
         {
             this.token = token;
         }
@@ -53,7 +128,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class TokenIndexerString : TokenIndexer
     {
         public TokenStringLiteral token;
-        public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(lineNumber, token)
+        public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(lineNumber)
         {
             this.token = token;
         }
@@ -65,7 +140,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class TokenIndexerSelector : TokenIndexer
     {
         public TokenSelectorLiteral token;
-        public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(lineNumber, token)
+        public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(lineNumber)
         {
             this.token = token;
         }

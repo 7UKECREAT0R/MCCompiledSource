@@ -170,7 +170,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 if(secondChar == ']')
                 {
-                    // default to '[0]', or first object.
+                    // default to '[0]', or first object
                     NextChar();
                     TokenIntegerLiteral zero = new TokenIntegerLiteral(0, IntMultiplier.none, CURRENT_LINE);
                     return new TokenIndexerInteger(zero, CURRENT_LINE);
@@ -186,7 +186,8 @@ namespace mc_compiled.MCC.Compiler
                 // consume closing bracket
                 NextChar();
 
-                return new TokenIndexer(inside, CURRENT_LINE);
+                // return the right indexer to wrap it
+                return TokenIndexer.CreateIndexer(inside);
             }
             if(firstChar == '@')
             {
