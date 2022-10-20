@@ -1119,6 +1119,11 @@ namespace mc_compiled.MCC.Compiler
 
             return sb.ToString();
         }
+        /// <summary>
+        /// Resolve an unresolved PPV's literals. Returns 
+        /// </summary>
+        /// <param name="unresolved"></param>
+        /// <returns></returns>
         public TokenLiteral[] ResolvePPV(TokenUnresolvedPPV unresolved)
         {
             int line = unresolved.lineNumber;

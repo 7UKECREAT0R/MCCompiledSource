@@ -105,9 +105,22 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a likely preprocessor variable that needs to be resolved.
     /// </summary>
-    public sealed class TokenUnresolvedPPV : TokenIdentifier
+    public sealed class TokenUnresolvedPPV : TokenIdentifier, IIndexable
     {
         public TokenUnresolvedPPV(string word, int lineNumber) : base(word, lineNumber) { }
+
+        /// <summary>
+        /// Index this unresolved PPV, essentially resolving it in a different way.
+        /// 
+        /// </summary>
+        /// <param name="indexer"></param>
+        /// <param name="forExceptions"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Token Index(TokenIndexer indexer, Statement forExceptions)
+        {
+            throw new NotImplementedException();
+        }
     }
     /// <summary>
     /// Represents a reference to what is probably a directive's builder field.
@@ -223,11 +236,25 @@ namespace mc_compiled.MCC.Compiler
         }
     }
 
+
     /// <summary>
     /// Allows this object to return an object that can go into a PPV.
     /// </summary>
     public interface IPreprocessor
     {
         object GetValue();
+    }
+    /// <summary>
+    /// Allows this object to be indexed through a set of values.
+    /// </summary>
+    public interface IIndexable
+    {
+        /// <summary>
+        /// Index this object using an indexer.
+        /// </summary>
+        /// <param name="indexer">The indexer to use when accessing this object.</param>
+        /// <param name="forExceptions">The statement to blame if something blows up.</param>
+        /// <returns></returns>
+        Token Index(TokenIndexer indexer, Statement forExceptions);
     }
 }

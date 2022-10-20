@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -75,7 +76,7 @@ namespace mc_compiled.MCC.Compiler
 
         public abstract object GetValue();
     }
-    public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken
+    public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken, IIndexable
     {
         public readonly string text;
 
@@ -248,6 +249,21 @@ namespace mc_compiled.MCC.Compiler
             return null;
         }
 
+        public Token Index(TokenIndexer indexer, Statement forExceptions)
+        {
+            if (indexer is TokenIndexerInteger integer)
+            {
+                int value = integer.token.number;
+                int length = text.Length;
+                if (length >= value || value < 0)
+                    throw integer.GetIndexOutOfBounds(0, length - 1, forExceptions);
+
+                string newString = text[value].ToString();
+                return new TokenStringLiteral(newString, lineNumber);
+            }
+
+            throw indexer.GetException(this, forExceptions);
+        }
     }
     public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor
     {
@@ -544,7 +560,7 @@ namespace mc_compiled.MCC.Compiler
             throw new TokenException(this, "Invalid literal operation.");
         }
     }
-    public sealed class TokenRangeLiteral : TokenLiteral, IPreprocessor
+    public sealed class TokenRangeLiteral : TokenLiteral, IPreprocessor, IIndexable
     {
         public Range range;
         public override string AsString() => range.ToString();
@@ -693,6 +709,46 @@ namespace mc_compiled.MCC.Compiler
                 return range.min.Value;
 
             return range;
+        }
+        public Token Index(TokenIndexer indexer, Statement forExceptions)
+        {
+            if (indexer is TokenIndexerInteger integer)
+            {
+                int value = integer.token.number;
+                if (value > 1 || value < 0)
+                    throw integer.GetIndexOutOfBounds(0, 2, forExceptions);
+
+                // if its a single number both should return the same value
+                if(range.single)
+                    return new TokenIntegerLiteral(range.min.Value, IntMultiplier.none, lineNumber);
+
+                // fetch min/max for 0/1
+                if (value == 0)
+                    return new TokenIntegerLiteral(range.min ?? 0, IntMultiplier.none, lineNumber);
+                else
+                    return new TokenIntegerLiteral(range.max ?? 0, IntMultiplier.none, lineNumber);
+            }
+            if(indexer is TokenIndexerString indexerString)
+            {
+                string input = indexerString.token.text.ToUpper();
+                switch (input)
+                {
+                    case "MIN":
+                    case "MINIMUM":
+                    case "X":
+                    case "A":
+                        return new TokenIntegerLiteral(range.min ?? 0, IntMultiplier.none, lineNumber);
+                    case "MAX":
+                    case "MAXIMUM":
+                    case "Y":
+                    case "B":
+                        return new TokenIntegerLiteral(range.max ?? 0, IntMultiplier.none, lineNumber);
+                }
+
+                throw new Exception($"Invalid indexer for range: '{input}'");
+            }
+
+            throw indexer.GetException(this, forExceptions);
         }
     }
     public sealed class TokenDecimalLiteral : TokenCoordinateLiteral

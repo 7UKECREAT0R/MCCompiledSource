@@ -206,23 +206,39 @@ namespace mc_compiled.MCC.Compiler
                 return statement;
             }
 
-            bool resolvePPVs = !HasAttribute(DirectiveAttribute.DONT_EXPAND_PPV);
+            bool resolvePPVsGlobal = !HasAttribute(DirectiveAttribute.DONT_EXPAND_PPV);
             int length = statement.tokens.Length;
             List<Token> allUnresolved = new List<Token>(statement.tokens);
             List<Token> allResolved = new List<Token>();
 
             // now resolve tokens forward
-            for(int i = 0; i < allUnresolved.Count; i++)
+            int len = allUnresolved.Count;
+            for(int i = 0; i < len; i++)
             {
                 Token unresolved = allUnresolved[i];
+                Token next = (i + 1 < len) ? allUnresolved[i + 1] : null;
                 int line = unresolved.lineNumber;
 
+                // define resolvePPVs
+                bool resolvePPVs;
+
+                // if the next token is an indexer, dont resolve the ppv since.
+                // the resolve will be done by the indexer.
+                if (next != null && next is TokenIndexer)
+                    resolvePPVs = false;
+                else
+                    resolvePPVs = resolvePPVsGlobal;
+
+                // resolve the token.
                 if (unresolved is TokenStringLiteral)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
                 else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
                     allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? new Token[] { unresolved });
+                else if (resolvePPVs && unresolved is TokenIndexerUnresolvedPPV)
+                    allResolved.Add((unresolved as TokenIndexerUnresolvedPPV).Resolve(executor, statement));
                 else if (unresolved is TokenIdentifier)
                 {
+                    // identifier resolve requires a manual search.
                     TokenIdentifier identifier = unresolved as TokenIdentifier;
                     string word = identifier.word;
                     if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value, true))
@@ -247,7 +263,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.scoreboard.PushTempState(); // popped at call site
             SquashAll(allResolved, executor);
-            SquashSpecial(allResolved); // ranges, etc..
+            SquashSpecial(allResolved); // ranges, indexers, etc.
 
             statement.tokens = allResolved.ToArray();
             statement.patterns = statement.GetValidPatterns();
@@ -319,6 +335,7 @@ namespace mc_compiled.MCC.Compiler
 
                     tokens.RemoveRange(i, replacementLength);
                     tokens.Insert(i, replacement);
+                    continue;
                 }
                 if (token is TokenRangeInvert)
                 {
@@ -329,6 +346,51 @@ namespace mc_compiled.MCC.Compiler
                     int number = after as TokenIntegerLiteral;
                     Range range = new Range(number, true);
                     tokens.Insert(i, new TokenRangeLiteral(range, token.lineNumber));
+                    continue;
+                }
+
+                // apply indexer to IIndexable
+                if(token is TokenIndexer indexer)
+                {
+                    Stack<TokenIndexer> indexerBuffer = new Stack<TokenIndexer>();
+                    indexerBuffer.Push(indexer);
+                    Token current;
+                    int indexerCount = 1;
+
+                    // pull multiple indexers in reverse order
+                    // e.g., someVariable["a"][2]["otherKey"]
+                    while ((current = Previous(1)) is TokenIndexer tokenIndexer)
+                    {
+                        indexerCount++;
+                        i--;
+
+                        indexerBuffer.Push(tokenIndexer);
+                    }
+
+                    // if there's no valid token 
+                    if (current == null)
+                        throw new StatementException(this, $"Indexer '{indexer.AsString()}' is invalid here.");
+
+                    // process token through all indexers
+                    do
+                    {
+                        indexer = indexerBuffer.Pop();
+
+                        if (!(current is IIndexable))
+                            throw new StatementException(this, $"Cannot index token '{current.AsString()}'. (indexer: {indexer.AsString()})");
+
+                        IIndexable indexable = current as IIndexable;
+                        current = indexable.Index(indexer, this);
+                    }
+                    while(indexerBuffer.Count > 0);
+
+                    // replace tokens
+                    tokens.RemoveRange(i, indexerCount);
+                    tokens[i - 1] = current;
+                    
+                    // 'i' is setup so that the next iteration here will run over 'current'.
+                    // just incase it needs to be resolved further past this point.
+                    continue;
                 }
             }
         }

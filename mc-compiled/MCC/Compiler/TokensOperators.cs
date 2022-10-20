@@ -76,6 +76,15 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + literal.DebugString());
         }
+
+        /// <summary>
+        /// Get an exception from this indexer, implying it cannot index the calling object.
+        /// </summary>
+        internal Exception GetException(IIndexable caller, Statement thrower)
+        {
+            string callerName = caller.GetType().Name;
+            return new StatementException(thrower, $"Cannot index '{callerName}' using indexer: {AsString()}");
+        }
     }
     /// <summary>
     /// An indexer using an unresolved PPV.
@@ -121,6 +130,9 @@ namespace mc_compiled.MCC.Compiler
             this.token = token;
         }
         public override Token GetIndexerToken() => token;
+
+        internal Exception GetIndexOutOfBounds(int min, int max, Statement thrower) =>
+            new StatementException(thrower, $"Index {token.number} was out of bounds. Min: {min}, Max: {max}");
     }
     /// <summary>
     /// An indexer giving an integer.
