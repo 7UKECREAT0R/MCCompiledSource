@@ -93,6 +93,7 @@
     <Compile Include="Commands\Selectors\Transformers\SelectorFamily.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorType.cs" />
     <Compile Include="Commands\Selectors\TransformResult.cs" />
+    <Compile Include="MCC\Compiler\PreprocessorUtils.cs" />
     <Compile Include="MCC\Compiler\Assembler.cs" />
     <Compile Include="Commands\CommandEnumParser.cs" />
     <Compile Include="Commands\CommandLimits.cs" />

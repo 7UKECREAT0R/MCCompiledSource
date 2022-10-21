@@ -1,5 +1,7 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
+using mc_compiled.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -448,6 +450,7 @@ namespace mc_compiled.MCC.Compiler
         
         /// <summary>
         /// Get the value of this number in a certain scale.
+        /// If this number has no multiplier given <see cref="IntMultiplier.none"/>, then this method always returns the plain number.
         /// </summary>
         /// <param name="scale"></param>
         /// <returns></returns>
@@ -705,6 +708,7 @@ namespace mc_compiled.MCC.Compiler
 
         public object GetValue()
         {
+            // dereference to an integer
             if (range.single && !range.invert)
                 return range.min.Value;
 
@@ -874,5 +878,97 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public object GetValue() => selector;
+    }
+    /// <summary>
+    /// A literal holding a JSON value. Mostly used for indexing purposes.
+    /// </summary>
+    public class TokenJSONLiteral : TokenLiteral, IPreprocessor, IIndexable
+    {
+        public readonly JToken token;
+
+        public bool IsObject
+        {
+            get => token.Type == JTokenType.Object;
+        }
+        public bool IsArray
+        {
+            get => token.Type == JTokenType.Array;
+        }
+
+        public override string AsString() => token.ToString();
+        public override string ToString() => token.ToString();
+        public TokenJSONLiteral(JToken token, int lineNumber) : base(lineNumber)
+        {
+            this.token = token;
+        }
+        public static implicit operator JToken(TokenJSONLiteral t) => t.token;
+
+        public object GetValue() => token;
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Token Index(TokenIndexer indexer, Statement forExceptions)
+        {
+            if(indexer is TokenIndexerInteger integer)
+            {
+                if (!(token is JArray))
+                    throw new StatementException(forExceptions, "JSON type cannot be indexed using a number: " + token.Type);
+
+                JArray array = (JArray)token;
+                int value = integer.token.number;
+                int len = array.Count;
+
+                if (value >= len || value < 0)
+                    throw integer.GetIndexOutOfBounds(0, len - 1, forExceptions);
+
+                JToken indexedItem = array[value];
+                if(PreprocessorUtils.TryGetLiteral(indexedItem, lineNumber, out TokenLiteral output))
+                    return output;
+                else
+                    throw new StatementException(forExceptions, "Couldn't load JSON value: " + indexedItem.ToString());
+            }
+            if(indexer is TokenIndexerString @string)
+            {
+                if(!(token is JObject))
+                    throw new StatementException(forExceptions, "JSON type cannot be indexed using a string: " + token.Type);
+
+                JObject json = (JObject)token;
+                string word = @string.token.text;
+
+                JToken gottenToken = json[word];
+
+                if (gottenToken == null)
+                    throw new StatementException(forExceptions, $"No JSON property found with the name '{word}'");
+
+                if (PreprocessorUtils.TryGetLiteral(gottenToken, lineNumber, out TokenLiteral output))
+                    return output;
+                else
+                    throw new StatementException(forExceptions, "Couldn't load JSON value: " + gottenToken.ToString());
+            }
+
+            throw indexer.GetException(this, forExceptions);
+        }
     }
 }

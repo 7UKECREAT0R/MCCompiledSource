@@ -106,7 +106,7 @@ namespace mc_compiled.MCC.Compiler
         public TokenIndexer Resolve(Executor executor, Statement runningStatement)
         {
             // resolve the contained PPV.
-            TokenLiteral[] resolvedValues = executor.ResolvePPV(token);
+            TokenLiteral[] resolvedValues = executor.ResolvePPV(token, runningStatement);
 
             // ResolvePPV returns null/empty if it can't resolve.
             if (resolvedValues == null || resolvedValues.Length < 1)

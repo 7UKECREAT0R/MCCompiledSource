@@ -342,17 +342,19 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public JObject LoadJSONFile(string path)
+        public JToken LoadJSONFile(string path)
         {
             int hash = path.GetHashCode();
 
             // cached file, dont read again
-            if(loadedFiles.TryGetValue(hash, out object value))
-                if (value is JObject)
-                    return value as JObject;
+            if (loadedFiles.TryGetValue(hash, out object value))
+            {
+                if (value is JToken)
+                    return value as JToken;
+            }
 
             string contents = File.ReadAllText(path);
-            JObject json = JObject.Parse(contents);
+            JToken json = JToken.Parse(contents);
             loadedFiles[hash] = json;
             return json;
         }
@@ -1120,11 +1122,13 @@ namespace mc_compiled.MCC.Compiler
             return sb.ToString();
         }
         /// <summary>
-        /// Resolve an unresolved PPV's literals. Returns 
+        /// Resolve an unresolved PPV's literals. Returns an array of all the tokens contained inside.
         /// </summary>
-        /// <param name="unresolved"></param>
+        /// <param name="unresolved">The unresolved PPV.</param>
+        /// <param name="thrower">The statement that would be the cause of the error, if any.</param>
         /// <returns></returns>
-        public TokenLiteral[] ResolvePPV(TokenUnresolvedPPV unresolved)
+        /// <exception cref="StatementException"></exception>
+        public TokenLiteral[] ResolvePPV(TokenUnresolvedPPV unresolved, Statement thrower)
         {
             int line = unresolved.lineNumber;
             string word = unresolved.word;
@@ -1132,26 +1136,69 @@ namespace mc_compiled.MCC.Compiler
             if (TryGetPPV(word, out dynamic[] values))
             {
                 TokenLiteral[] literals = new TokenLiteral[values.Length];
-                for(int i = 0; i < values.Length; i++)
+                for (int i = 0; i < values.Length; i++)
                 {
                     dynamic value = values[i];
-                    if (value is int)
-                        literals[i] = new TokenIntegerLiteral(value, IntMultiplier.none, line);
-                    if (value is float)
-                        literals[i] = new TokenDecimalLiteral(value, line);
-                    if (value is bool)
-                        literals[i] = new TokenBooleanLiteral(value, line);
-                    if (value is string)
-                        literals[i] = new TokenStringLiteral(value, line);
-                    if (value is Coord)
-                        literals[i] = new TokenCoordinateLiteral(value, line);
-                    if (value is Selector)
-                        literals[i] = new TokenSelectorLiteral(value, line);
+                    TokenLiteral wrapped = PreprocessorUtils.DynamicToLiteral(value, line);
+
+                    if (wrapped == null)
+                        throw new StatementException(thrower, $"Found unexpected value in PPV '{word}': {value.ToString()}");
+
+                    literals[i] = wrapped;
                 }
                 return literals;
             }
 
-            return null;
+            throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
+        }
+        /// <summary>
+        /// Resolves a PPV using an indexer rather than a general expansion.
+        /// </summary>
+        /// <param name="unresolved">The unresolved PPV to index from.</param>
+        /// <param name="indexer">The indexer to index with.</param>
+        /// <param name="thrower">The statement that would be the cause of the error, if any.</param>
+        /// <returns>The resolved token from the indexer.</returns>
+        /// <exception cref="StatementException"></exception>
+        public Token ResolvePPVIndex(TokenUnresolvedPPV unresolved, TokenIndexer indexer, Statement thrower)
+        {
+            int line = unresolved.lineNumber;
+            string word = unresolved.word;
+
+            if(TryGetPPV(word, out dynamic[] values))
+            {
+                int length = values.Length;
+                if(length > 1)
+                {
+                    // simply pull from the index.
+                    if (indexer is TokenIndexerInteger integer)
+                    {
+                        int index = integer.token.number;
+                        if (index >= length || index < 0)
+                            throw integer.GetIndexOutOfBounds(0, length - 1, thrower);
+
+                        dynamic indexedDynamic = values[index];
+                        TokenLiteral indexedLiteral = PreprocessorUtils.DynamicToLiteral(indexedDynamic, line);
+
+                        if (indexedLiteral == null)
+                            throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + indexedDynamic.ToString());
+
+                        return indexedLiteral;
+                    }
+                    else
+                        throw indexer.GetException(unresolved, thrower);
+                }
+
+                // pull first (single) value.
+                dynamic singleDynamic = values[0];
+                TokenLiteral singleLiteral = PreprocessorUtils.DynamicToLiteral(singleDynamic, line);
+
+                if(singleLiteral == null)
+                    throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + singleDynamic.ToString());
+
+                return singleLiteral;
+            }
+
+            throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
         }
 
         public void PushFile(CommandFile file) =>

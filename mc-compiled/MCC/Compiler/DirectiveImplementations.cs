@@ -604,7 +604,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if (tokens.NextIs<TokenUnresolvedPPV>())
                 {
-                    args[i] = executor.ResolvePPV(tokens.Next<TokenUnresolvedPPV>());
+                    args[i] = executor.ResolvePPV(tokens.Next<TokenUnresolvedPPV>(), tokens);
                     continue;
                 }
 
@@ -819,6 +819,33 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
 
             Statement[] statements = executor.NextExecutionSet();
+            int length = values.Length;
+
+            if(length == 1)
+            {
+                // iterate JSON array if it is one
+                dynamic only = values[0];
+                if (only is TokenJSONLiteral jsonLiteral)
+                {
+                    JToken token = jsonLiteral.token;
+                    if (token is JArray array)
+                    {
+                        int item = -1;
+                        foreach (JToken arrayItem in array)
+                        {
+                            item++;
+                            if (PreprocessorUtils.TryUnwrapToken(arrayItem, out object obj))
+                            {
+                                executor.SetPPV(current, new dynamic[] { obj });
+                                executor.ExecuteSubsection(statements);
+                            }
+                            else
+                                throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{arrayItem.Type}' in a preprocessor variable.");
+                        }
+                        return;
+                    }
+                }
+            }
 
             foreach (dynamic value in values)
             {
@@ -826,133 +853,85 @@ namespace mc_compiled.MCC.Compiler
                 executor.ExecuteSubsection(statements);
             }
         }
-        public static void _get(Executor executor, Statement tokens)
-        {
-            string input = tokens.Next<TokenIdentifier>().word;
-            int index = tokens.Next<TokenIntegerLiteral>();
-            string output = tokens.Next<TokenIdentifier>().word;
-
-            if (!executor.TryGetPPV(input, out dynamic[] values))
-                throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
-            
-            if (index >= values.Length)
-                throw new StatementException(tokens, $"Index {index} is too large for preprocessor variable '{input}'. Max: {values.Length - 1}");
-            if (index < 0)
-                throw new StatementException(tokens, $"Index cannot be less than zero (was {index}).");
-
-            dynamic result = values[index];
-            executor.SetPPV(output, new dynamic[] { result });
-        }
         public static void _len(Executor executor, Statement tokens)
         {
             string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
-                executor.SetPPV(output, new dynamic[] { values.Length });
+            {
+                int length = values.Length;
+
+                if(length == 1)
+                {
+                    // check if it's a JSON array and use that length instead.
+                    dynamic only = values[0];
+                    if(only is TokenJSONLiteral jsonLiteral)
+                    {
+                        JToken token = jsonLiteral.token;
+                        if (token is JArray array)
+                            length = array.Count;
+                    }
+                }
+
+                executor.SetPPV(output, new dynamic[] { length });
+            }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
         public static void _json(Executor executor, Statement tokens)
         {
-            string file = tokens.Next<TokenStringLiteral>();
+            JToken json;
+
+            if(tokens.NextIs<TokenJSONLiteral>())
+                json = tokens.Next<TokenJSONLiteral>().token;
+            else
+            {
+                string file = tokens.Next<TokenStringLiteral>();
+                json = executor.LoadJSONFile(file);
+            }
+
             string output = tokens.Next<TokenIdentifier>().word;
-            string accessor = tokens.Next<TokenStringLiteral>();
 
-            JToken json = executor.LoadJSONFile(file);
-            string[] accessParts = accessor.Split('/', ',');
-
-            foreach (string _access in accessParts)
+            if(tokens.NextIs<TokenStringLiteral>())
             {
-                string access = _access.Trim();
-                if (json.Type == JTokenType.Array)
-                {
-                    JArray array = json as JArray;
-                    if (!int.TryParse(access, out int index))
-                        throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' requires index to access. Given: {access}");
-                    if (index >= array.Count)
-                        throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' only contains {array.Count} items. Given: {index + 1}");
-                    json = array[index];
-                    continue;
-                }
-                else if (json.Type == JTokenType.Object)
-                {
-                    JObject obj = json as JObject;
-                    if (!obj.TryGetValue(access, out json))
-                        throw new StatementException(tokens, $"JSON Error: Cannot find child '{access}' under token {obj.Path}.");
-                    continue;
-                }
-                else
-                    throw new StatementException(tokens, $"JSON Error: Unexpected end of JSON at {json.Path}.");
-            }
+                string accessor = tokens.Next<TokenStringLiteral>();
+                string[] accessParts = PreprocessorUtils.ParseAccessor(accessor);
 
-            try
-            {
-                dynamic[] final;
-                JToken[] parsers;
-                if (json.Type == JTokenType.Array)
+                // crawl the tree
+                foreach (string _access in accessParts)
                 {
-                    final = new dynamic[(json as JArray).Count];
-                    parsers = (json as JArray).ToArray();
-                }
-                else
-                {
-                    final = new dynamic[1];
-                    parsers = new JToken[] { json };
-                }
-
-                for (int i = 0; i < parsers.Length; i++)
-                {
-                    json = parsers[i];
-                    switch (json.Type)
+                    string access = _access.Trim();
+                    if (json.Type == JTokenType.Array)
                     {
-                        case JTokenType.None:
-                        case JTokenType.Object:
-                        case JTokenType.Array:
-                        case JTokenType.Constructor:
-                        case JTokenType.Property:
-                        case JTokenType.Comment:
-                        case JTokenType.Raw:
-                        case JTokenType.Bytes:
-                            throw new StatementException(tokens, $"JSON Error: Invalid token type: {json.Type}");
-                        case JTokenType.Null:
-                        case JTokenType.Undefined:
-                            break;
-                        case JTokenType.Integer:
-                            final[i] = json.Value<int>();
-                            break;
-                        case JTokenType.Float:
-                            final[i] = json.Value<float>();
-                            break;
-                        case JTokenType.String:
-                            final[i] = json.Value<string>();
-                            break;
-                        case JTokenType.Boolean:
-                            final[i] = json.Value<bool>();
-                            break;
-                        case JTokenType.Date:
-                            final[i] = json.Value<DateTime>().ToString();
-                            break;
-                        case JTokenType.Guid:
-                            final[i] = json.Value<Guid>().ToString();
-                            break;
-                        case JTokenType.Uri:
-                            final[i] = json.Value<Uri>().OriginalString;
-                            break;
-                        case JTokenType.TimeSpan:
-                            final[i] = json.Value<TimeSpan>().TotalSeconds * 20; // ticks
-                            break;
-                        default:
-                            break;
+                        JArray array = json as JArray;
+                        if (!int.TryParse(access, out int index))
+                            throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' requires index to access. Given: {access}");
+                        if (index < 0)
+                            throw new StatementException(tokens, $"JSON Error: Index given was less than 0.");
+                        if (index >= array.Count)
+                            throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' only contains {array.Count} items. Given: {index + 1}");
+                        json = array[index];
+                        continue;
                     }
+                    else if (json.Type == JTokenType.Object)
+                    {
+                        JObject obj = json as JObject;
+                        if (!obj.TryGetValue(access, out json))
+                            throw new StatementException(tokens, $"JSON Error: Cannot find child '{access}' under token {obj.Path}.");
+                        continue;
+                    }
+                    else
+                        throw new StatementException(tokens, $"JSON Error: Unexpected end of JSON tree at {json.Path}.");
                 }
+            }
 
-                executor.SetPPV(output, final);
-            }
-            catch (Exception e)
+            if(PreprocessorUtils.TryUnwrapToken(json, out object unwrapped))
             {
-                throw new StatementException(tokens, $"JSON Error: {e.Message}");
-            }
+                executor.SetPPV(output, new[] { unwrapped });
+                return;
+            } else
+                throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{json.Type}' in a preprocessor variable.");
         }
 
         public static void mc(Executor executor, Statement tokens)

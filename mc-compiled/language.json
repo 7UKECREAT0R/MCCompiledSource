@@ -40,7 +40,8 @@
     "coord": "TokenCoordinateLiteral",
     "enum": "TokenIdentifierEnum",
     "dots": "TokenRangeDots",
-    "range": "TokenRangeLiteral"
+    "range": "TokenRangeLiteral",
+    "json": "TokenJSONLiteral"
   },
 
   "directives": {
@@ -247,7 +248,8 @@
       "details": "Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.",
       "function": "_json",
       "patterns": [
-        [ "string:", "id", "string" ]
+        [ "string:file name", "id:result", "?string:path" ],
+        [ "json:existing json", "id:result", "?string:path" ]
       ]
     },
     "mc": {

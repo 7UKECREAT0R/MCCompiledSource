@@ -111,15 +111,20 @@ namespace mc_compiled.MCC.Compiler
 
         /// <summary>
         /// Index this unresolved PPV, essentially resolving it in a different way.
-        /// 
+        /// The squasher internally detects when 1+ indexers proceed an unresolved PPV, ignoring it for this purpose.
         /// </summary>
-        /// <param name="indexer"></param>
-        /// <param name="forExceptions"></param>
+        /// <param name="indexer">The indexer to resolve this PPV.</param>
+        /// <param name="forExceptions">The statement to blame when everything goes wrong. Also holds the executor.</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public Token Index(TokenIndexer indexer, Statement forExceptions)
         {
-            throw new NotImplementedException();
+            Executor executor = forExceptions.executor;
+            Token resolved = executor.ResolvePPVIndex(this, indexer, forExceptions);
+
+            if (resolved == null)
+                throw new StatementException(forExceptions, $"Couldn't index PPV '{word}' using indexer {indexer.AsString()}. This isn't supposed to happen and is likely a bug.");
+
+            return resolved;
         }
     }
     /// <summary>

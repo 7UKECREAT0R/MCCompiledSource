@@ -233,7 +233,7 @@ namespace mc_compiled.MCC.Compiler
                 if (unresolved is TokenStringLiteral)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
                 else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
-                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV) ?? new Token[] { unresolved });
+                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, ) ?? new Token[] { unresolved });
                 else if (resolvePPVs && unresolved is TokenIndexerUnresolvedPPV)
                     allResolved.Add((unresolved as TokenIndexerUnresolvedPPV).Resolve(executor, statement));
                 else if (unresolved is TokenIdentifier)
@@ -363,7 +363,6 @@ namespace mc_compiled.MCC.Compiler
                     {
                         indexerCount++;
                         i--;
-
                         indexerBuffer.Push(tokenIndexer);
                     }
 
