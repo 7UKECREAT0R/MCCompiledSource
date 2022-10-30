@@ -14,6 +14,8 @@ namespace mc_compiled.Modding.Resources
         public int textureWidth;
         public int textureHeight;
 
+        public string CommandReference => throw new NotImplementedException();
+
         public EntityGeometry(string name, string identifier)
         {
             this.name = name;

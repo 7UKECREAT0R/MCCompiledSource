@@ -15,6 +15,11 @@ namespace mc_compiled.Modding.Resources
         public string name;
         public ClientEntityDescription description;
 
+        public string CommandReference
+        {
+            get => description.identifier;
+        }
+
         public JObject ToJSON()
         {
             return new JObject()

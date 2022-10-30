@@ -11,6 +11,11 @@ namespace mc_compiled.Commands.Native
         public readonly string id;
         public readonly int level;
 
+        public string IDAsLookup
+        {
+            get => id.Replace('_', ' ').ToUpper();
+        }
+
         public EnchantmentEntry(string id, int level)
         {
             this.id = id;

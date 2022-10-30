@@ -254,7 +254,7 @@ namespace mc_compiled.Commands
         public static string Function(string name) =>
             $"function {name}";
         public static string Function(CommandFile function) =>
-            $"function {function.QualifiedName}";
+            $"function {function.CommandReference}";
 
         public static string Gamemode(string target, GameMode mode) =>
             $"gamemode {mode} {target}";
@@ -552,14 +552,22 @@ namespace mc_compiled.Commands
         public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
             $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks.ToString().ToLower()}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
-                StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
-            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity}"
-            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity} {seed}";
+                StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, bool waterLogged = false, float integrity = 100, string seed = null)
+        {
+            if (seed == null)
+                return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}";
+
+            return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
+        }
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, StructureAnimationMode animation = StructureAnimationMode.layer_by_layer,
-                float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, float integrity = 100, string seed = null) =>
-            seed == null ? $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity}"
-            : $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {integrity} {seed}";
+                float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, bool waterLogged = false, float integrity = 100, string seed = null)
+        {
+            if (seed == null)
+                return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}";
+
+            return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
+        }
         public static string StructureDelete(string name) =>
             $"structure delete {name}";
 

@@ -17,6 +17,8 @@ namespace mc_compiled.MCC.Scheduling
         List<string> files;
         Compiler.Executor executor;
 
+        public string CommandReference => throw new NotImplementedException();
+
         /// <summary>
         /// Schedules a task, assigns it an ID, and calls ScheduledTask::Setup
         /// </summary>
@@ -40,7 +42,7 @@ namespace mc_compiled.MCC.Scheduling
                 func.Add(cmds);
 
                 executor.AddExtraFile(func);
-                files.Add(func.QualifiedName);
+                files.Add(func.CommandReference);
             }
 
             tasks.Add(task);

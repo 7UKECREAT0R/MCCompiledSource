@@ -25,6 +25,17 @@ namespace mc_compiled.MCC.Compiler
             get => commands.Count;
         }
 
+        public string CommandReference
+        {
+            get
+            {
+                if (folder == null)
+                    return name;
+
+                return folder + '/' + name;
+            }
+        }
+
         public readonly string folder;
         public readonly string name;
         public CommandFile(string name, string folder = null, Function userFunction = null)
@@ -45,20 +56,6 @@ namespace mc_compiled.MCC.Compiler
             hashCode = hashCode * -1521134295 + folder.GetHashCode();
             hashCode = hashCode * -1521134295 + name.GetHashCode();
             return hashCode;
-        }
-
-        /// <summary>
-        /// Get the name used for functions to be able to call this.
-        /// </summary>
-        public string QualifiedName
-        {
-            get
-            {
-                if (folder == null)
-                    return name;
-                else
-                    return folder + '/' + name;
-            }
         }
 
         public void Add(string command) =>

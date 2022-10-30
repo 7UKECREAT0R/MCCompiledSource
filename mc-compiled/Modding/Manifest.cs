@@ -84,7 +84,7 @@ namespace mc_compiled.Modding
             modules = new List<Module>();
 
             if (minEngineVersion == null)
-                this.minEngineVersion = new int[] { 1, 13, 0 };
+                this.minEngineVersion = new int[] { 1, 19, 40 };
             else this.minEngineVersion = minEngineVersion;
         }
         /// <summary>
@@ -125,6 +125,8 @@ namespace mc_compiled.Modding
             modules.Add(module);
             return this;
         }
+
+        public string CommandReference => throw new NotImplementedException();
 
         public byte[] GetOutputData() =>
             Encoding.UTF8.GetBytes(ToString());
@@ -167,6 +169,7 @@ namespace mc_compiled.Modding
         }
 
         public OutputLocation location;
+
         public OutputLocation GetOutputLocation() =>
             location;
     }

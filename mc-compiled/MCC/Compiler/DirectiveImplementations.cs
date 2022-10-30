@@ -1228,7 +1228,7 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddExtraFile(file);
                 Selector active = executor.ActiveSelector;
 
-                string cmd = Command.StructureLoad(file.name, Coord.here, Coord.here, Coord.here,
+                string cmd = Command.StructureLoad(file.CommandReference, Coord.here, Coord.here, Coord.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
 
                 if (active.NeedsAlign)
@@ -1514,14 +1514,14 @@ namespace mc_compiled.MCC.Compiler
             {
                 executor.PushSelectorExecute();
                 executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
-                    StructureRotation._0_degrees, StructureMirror.none, false, true, percent));
+                    StructureRotation._0_degrees, StructureMirror.none, false, true, false, percent));
                 executor.PopSelector();
             }
             else
             {
                 executor.PushSelectorExecute();
                 executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
-                    StructureRotation._0_degrees, StructureMirror.none, false, true, percent, seed));
+                    StructureRotation._0_degrees, StructureMirror.none, false, true, false, percent, seed));
                 executor.PopSelector();
             }
         }

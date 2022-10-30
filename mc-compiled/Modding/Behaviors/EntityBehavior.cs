@@ -22,6 +22,11 @@ namespace mc_compiled.Modding.Behaviors
         public List<EntityComponentGroup> componentGroups;
         public List<EntityEventHandler> events;
 
+        public string CommandReference
+        {
+            get => description.identifier;
+        }
+
         public EntityBehavior(string identifier)
         {
             description = new EntityDescription(identifier);

@@ -13,6 +13,17 @@ namespace mc_compiled.Modding
         public string directory;
         public StructureNBT structure;
 
+        public string CommandReference
+        {
+            get
+            {
+                if (directory == null)
+                    return name;
+
+                return '"' + directory + '/' + name + '"';
+            }
+        }
+
         public StructureFile(string name, string directory, StructureNBT structure)
         {
             this.name = name;

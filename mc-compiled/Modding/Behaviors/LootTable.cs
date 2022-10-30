@@ -19,6 +19,17 @@ namespace mc_compiled.Modding.Behaviors
         public string subdirectory;
         public List<LootPool> pools;
 
+        public string CommandReference
+        {
+            get
+            {
+                if (subdirectory == null)
+                    return name;
+
+                return subdirectory + '/' + name;
+            }
+        }
+
         public LootTable(string name, string subdirectory = null)
         {
             this.name = name;

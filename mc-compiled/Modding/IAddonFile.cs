@@ -12,6 +12,11 @@ namespace mc_compiled.Modding
     public interface IAddonFile
     {
         /// <summary>
+        /// A reference to the output of this addon file in a minecraft command.
+        /// </summary>
+        string CommandReference { get; }
+
+        /// <summary>
         /// Returns non-null if this file wishes to extend from the base OutputLocation.
         /// </summary>
         /// <returns></returns>

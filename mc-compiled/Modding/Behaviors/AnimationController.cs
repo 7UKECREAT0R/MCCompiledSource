@@ -12,6 +12,8 @@ namespace mc_compiled.Modding.Behaviors
         public readonly string name;
         public List<ControllerState> states;
 
+        public string CommandReference => throw new NotImplementedException();
+
         public string Identifier
         {
             get => "controller.animation." + name;
