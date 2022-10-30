@@ -1,10 +1,12 @@
 ﻿using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace mc_compiled.MCC.Server
 {
@@ -23,6 +25,8 @@ namespace mc_compiled.MCC.Server
             "lint", "compile", "version", "close", "heartbeat"
         };
 
+        public string activeProject;
+        public string saveFileURL;
         public readonly HttpListener server;
 
         string orp, obp;
@@ -260,6 +264,75 @@ namespace mc_compiled.MCC.Server
         }
     }
 
+    /// <summary>
+    /// Defines the active project being modified by the server.
+    /// </summary>
+    internal class MCCServerProject
+    {
+        internal string name;
+        internal bool hasFile;              // if we have a file yet
+        internal string fileLocation;       // output file for the project
+        internal string fileDirectory;      // working directory for the project
+
+        internal string File
+        {
+            get => fileLocation;
+            set
+            {
+                hasFile = value != null;
+                fileLocation = value;
+                fileDirectory = Path.GetDirectoryName(value);
+            }
+        }
+        internal MCCServerProject()
+        {
+            this.name = "web_project";
+            this.hasFile = false;
+            this.fileLocation = null;
+            this.fileDirectory = null;
+        }
+
+
+        /// <summary>
+        /// Allows the user to choose a location/filename to write their project to.
+        /// </summary>
+        /// <returns></returns>
+        internal bool RunSaveFileDialog()
+        {
+            using(SaveFileDialog dialog = new SaveFileDialog())
+            {
+                dialog.AddExtension = true;
+                dialog.DefaultExt = "mcc";
+                dialog.CheckPathExists = true;
+                dialog.DereferenceLinks = true;
+                dialog.Title = "Save project...";
+                dialog.FileName = this.name + ".mcc";
+
+                bool selected = dialog.ShowDialog() == DialogResult.OK;
+
+                if(selected)
+                {
+                    // did choose file
+                    this.File = dialog.FileName;
+                    return true;
+                }
+
+                // didn't choose file
+                return false;
+            }
+        }
+        /// <summary>
+        /// Runs a save as if CTRL+S was pressed.
+        /// </summary>
+        internal void RunSave()
+        {
+            if (!hasFile)
+                if (!RunSaveFileDialog())
+                    return; // cancelled
+
+
+        }
+    }
     public class ErrorStructure
     {
         public enum During

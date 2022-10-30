@@ -782,7 +782,6 @@ namespace mc_compiled.MCC.Compiler
             {
                 Statement unresolved = Next();
                 Statement statement = unresolved.ClonePrepare(this);
-                statement.SetExecutor(this);
                 statement.Run0(this);
                 scoreboard.PopTempState();
 
@@ -1195,7 +1194,13 @@ namespace mc_compiled.MCC.Compiler
                 if(singleLiteral == null)
                     throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + singleDynamic.ToString());
 
-                return singleLiteral;
+                // check that it's actually indexable.
+                if(!(singleLiteral is IIndexable singleIndexable))
+                    throw new StatementException(thrower, "Couldn't index token: " + singleLiteral.ToString());
+
+                // index it!
+                Token final = singleIndexable.Index(indexer, thrower);
+                return final;
             }
 
             throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");

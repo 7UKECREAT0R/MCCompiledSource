@@ -122,7 +122,7 @@ namespace mc_compiled.MCC.Compiler
             Token resolved = executor.ResolvePPVIndex(this, indexer, forExceptions);
 
             if (resolved == null)
-                throw new StatementException(forExceptions, $"Couldn't index PPV '{word}' using indexer {indexer.AsString()}. This isn't supposed to happen and is likely a bug.");
+                throw new StatementException(forExceptions, $"Couldn't index PPV '{word}' using indexer {indexer.AsString()}.");
 
             return resolved;
         }

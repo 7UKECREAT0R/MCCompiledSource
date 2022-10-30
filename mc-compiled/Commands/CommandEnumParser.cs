@@ -63,16 +63,16 @@ namespace mc_compiled.Commands
         /// </summary>
         /// <typeparam name="T">The type to check.</typeparam>
         /// <returns></returns>
-        public bool IsType<T>() where T: System.Enum
+        public bool IsType<T>() where T: Enum
         {
             string src = typeof(T).Name;
-            return enumType.Equals(src);
+            return enumType.Name.Equals(src);
         }
         /// <summary>
         /// Throws a StatementException if this enum value is not of a certain type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void RequireType<T>(MCC.Compiler.Statement thrower) where T: System.Enum
+        public void RequireType<T>(MCC.Compiler.Statement thrower) where T: Enum
         {
             if (!IsType<T>())
             {

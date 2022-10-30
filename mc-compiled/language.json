@@ -176,7 +176,7 @@
       "details": "Convert the given preprocessor variable value(s) to a string in 'Title Case'.",
       "function": "_strfriendly",
       "patterns": [
-        [ "id:variable", "id:result" ]
+        [ "id:result", "id:variable" ]
       ]
     },
     "$strupper": {
@@ -184,7 +184,7 @@
       "details": "Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.",
       "function": "_strupper",
       "patterns": [
-        [ "id:variable", "id:result" ]
+        [ "id:result", "id:variable" ]
       ]
     },
     "$strlower": {
@@ -192,7 +192,7 @@
       "details": "Convert the given preprocessor variable value(s) to a string in 'lowercase'.",
       "function": "_strlower",
       "patterns": [
-        [ "id:variable", "id:result" ]
+        [ "id:result", "id:variable" ]
       ]
     },
     "$sum": {
@@ -200,7 +200,7 @@
       "details": "Adds all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "function": "_sum",
       "patterns": [
-        [ "id:variable", "id:result" ]
+        [ "id:result", "id:variable" ]
       ]
     },
     "$median": {
@@ -208,7 +208,7 @@
       "details": "Gets the middle value/average of the two middle values and stores it in a result variable.",
       "function": "_median",
       "patterns": [
-        [ "id:variable", "id:result" ]
+        [ "id:result", "id:variable" ]
       ]
     },
     "$mean": {
@@ -216,31 +216,25 @@
       "details": "Averages all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "function": "_mean",
       "patterns": [
-        [ "id:variable", "id:result" ]
+        [ "id:result", "id:variable" ]
       ]
     },
     "$iterate": {
       "description": "Iterate Preprocessor Array",
-      "details": "Runs the following statement/block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given.",
+      "details": "Runs the following statement/block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.",
       "function": "_iterate",
       "patterns": [
         [ "id:variable", "id:current" ]
       ]
     },
-    "$get": {
-      "description": "Preprocessor Get at Index",
-      "details": "Get the value at a specific 0-based index inside a preprocessor variable and store it in a result variable.",
-      "function": "_get",
-      "patterns": [
-        [ "id:variable", "int:index", "id:result" ]
-      ]
-    },
     "$len": {
-      "description": "Preprocessor Array Length",
-      "details": "Get the number of values inside a preprocessor variable and store it in a result variable.",
+      "description": "Preprocessor Length",
+      "details": "If a preprocessor variable ID is given, the number of elements it holds is gotten. If a JSON array is given, the number of elements is gotten. If a string is given, the number of characters is gotten.",
       "function": "_len",
       "patterns": [
-        [ "id:variable", "id:result" ]
+        [ "id:result", "id:variable" ],
+        [ "id:result", "json:array" ],
+        [ "id:result", "string:text" ]
       ]
     },
     "$json": {

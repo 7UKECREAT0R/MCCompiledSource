@@ -121,7 +121,7 @@ namespace mc_compiled.MCC.Compiler
             } else
                 return token as T;
         }
-        public bool NextIs<T>()
+        public bool NextIs<T>(bool allowImplicit = true)
         {
             if (!HasNext)
                 return false;
@@ -131,14 +131,17 @@ namespace mc_compiled.MCC.Compiler
             if (token is T)
                 return true;
 
-            if(token is IImplicitToken)
+            if (allowImplicit)
             {
-                IImplicitToken implicitToken = token as IImplicitToken;
-                Type[] otherTypes = implicitToken.GetImplicitTypes();
+                if (token is IImplicitToken)
+                {
+                    IImplicitToken implicitToken = token as IImplicitToken;
+                    Type[] otherTypes = implicitToken.GetImplicitTypes();
 
-                for (int i = 0; i < otherTypes.Length; i++)
-                    if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                        return true;
+                    for (int i = 0; i < otherTypes.Length; i++)
+                        if (typeof(T).IsAssignableFrom(otherTypes[i]))
+                            return true;
+                }
             }
 
             return false;
@@ -198,7 +201,11 @@ namespace mc_compiled.MCC.Compiler
             }
 
             Statement statement = MemberwiseClone() as Statement;
-            
+
+            // set executors
+            this.executor = executor;
+            statement.SetExecutor(executor);
+
             // e.g. close/open block
             if (statement.tokens == null)
             {
@@ -233,7 +240,7 @@ namespace mc_compiled.MCC.Compiler
                 if (unresolved is TokenStringLiteral)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
                 else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
-                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, ) ?? new Token[] { unresolved });
+                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, statement) ?? new Token[] { unresolved });
                 else if (resolvePPVs && unresolved is TokenIndexerUnresolvedPPV)
                     allResolved.Add((unresolved as TokenIndexerUnresolvedPPV).Resolve(executor, statement));
                 else if (unresolved is TokenIdentifier)

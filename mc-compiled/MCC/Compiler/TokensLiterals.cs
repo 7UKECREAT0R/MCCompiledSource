@@ -257,7 +257,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 int value = integer.token.number;
                 int length = text.Length;
-                if (length >= value || value < 0)
+                if (value >= length || value < 0)
                     throw integer.GetIndexOutOfBounds(0, length - 1, forExceptions);
 
                 string newString = text[value].ToString();

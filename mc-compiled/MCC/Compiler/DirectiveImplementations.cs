@@ -666,8 +666,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _strfriendly(Executor executor, Statement tokens)
         {
-            string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
+            string input = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -693,8 +693,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _strupper(Executor executor, Statement tokens)
         {
-            string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
+            string input = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -711,8 +711,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _strlower(Executor executor, Statement tokens)
         {
-            string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
+            string input = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -729,8 +729,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _sum(Executor executor, Statement tokens)
         {
-            string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
+            string input = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -751,8 +751,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _median(Executor executor, Statement tokens)
         {
-            string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
+            string input = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -788,8 +788,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _mean(Executor executor, Statement tokens)
         {
-            string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
+            string input = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -855,25 +855,35 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _len(Executor executor, Statement tokens)
         {
-            string input = tokens.Next<TokenIdentifier>().word;
             string output = tokens.Next<TokenIdentifier>().word;
+
+            if(tokens.NextIs<TokenStringLiteral>(false))
+            {
+                // String
+                string inputString = tokens.Next<TokenStringLiteral>().text;
+                executor.SetPPV(output, new dynamic[] { inputString.Length });
+                return;
+            }
+            else if(tokens.NextIs<TokenJSONLiteral>())
+            {
+                // JSON Array
+                JToken inputJSON = tokens.Next<TokenJSONLiteral>();
+
+                if (inputJSON is JArray array)
+                {
+                    executor.SetPPV(output, new dynamic[] { array.Count });
+                    return;
+                }
+                else
+                    throw new StatementException(tokens, "Attempted to get the length of a non-array JSON token.");
+            }
+
+            // Preprocessor Variable
+            string input = tokens.Next<TokenIdentifier>().word;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
                 int length = values.Length;
-
-                if(length == 1)
-                {
-                    // check if it's a JSON array and use that length instead.
-                    dynamic only = values[0];
-                    if(only is TokenJSONLiteral jsonLiteral)
-                    {
-                        JToken token = jsonLiteral.token;
-                        if (token is JArray array)
-                            length = array.Count;
-                    }
-                }
-
                 executor.SetPPV(output, new dynamic[] { length });
             }
             else
