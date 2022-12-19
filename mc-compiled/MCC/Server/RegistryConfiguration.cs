@@ -13,7 +13,8 @@ namespace mc_compiled.MCC.Server
     /// </summary>
     internal class RegistryConfiguration
     {
-        const string SUBKEY = "mccompiled";
+        internal const string SUBKEY = "mccompiled";
+        internal const string PROGRAM_ARG = "--fromProtocol";
 
         public readonly bool hasBeenRegistered;
 
@@ -31,7 +32,7 @@ namespace mc_compiled.MCC.Server
                 subkey = subkey.CreateSubKey("shell");
                 subkey = subkey.CreateSubKey("open");
                 subkey = subkey.CreateSubKey("command");
-                subkey.SetValue("", Assembly.GetExecutingAssembly().Location + " --fromProtocol");
+                subkey.SetValue("", Assembly.GetExecutingAssembly().Location + ' ' + PROGRAM_ARG);
 
                 ConsoleColor old = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Green;

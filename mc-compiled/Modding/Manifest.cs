@@ -9,6 +9,7 @@ namespace mc_compiled.Modding
 {
     public class Manifest : IAddonFile
     {
+        public static readonly int[] DEFAULT_ENGINE_VERSION = new[] { 1, 19, 40 };
         public struct Module
         {
             public string description;
@@ -71,21 +72,18 @@ namespace mc_compiled.Modding
         public int[] version;
         public int[] minEngineVersion;
 
-        public Manifest(OutputLocation type, Guid uuid, string name = "Example Pack", string description = "Test Behavior Pack",
+        public Manifest(OutputLocation type, Guid uuid, string name = "MCCompiled Pack", string description = "Example Description",
             int[] minEngineVersion = null, int formatVersion = 2, Guid? dependsOn = null)
         {
-            location = type;
+            this.location = type;
             this.formatVersion = formatVersion;
             this.name = name;
             this.uuid = uuid;
             this.description = description;
             this.dependsOn = dependsOn;
-            version = new int[] { 1, 0, 0 };
-            modules = new List<Module>();
-
-            if (minEngineVersion == null)
-                this.minEngineVersion = new int[] { 1, 19, 40 };
-            else this.minEngineVersion = minEngineVersion;
+            this.version = new int[] { 1, 0, 0 };
+            this.modules = new List<Module>();
+            this.minEngineVersion = minEngineVersion ?? DEFAULT_ENGINE_VERSION;
         }
         /// <summary>
         /// Parse an existing manifest.

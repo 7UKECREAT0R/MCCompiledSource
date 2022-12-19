@@ -141,7 +141,7 @@ namespace mc_compiled.MCC
         public static implicit operator string(ScoreboardValue value) => value.Name;
 
         /// <summary>
-        /// Gets the keyword associated with this scoreboard value type.
+        /// Gets the keyword associated with this scoreboard value type. Used by the language server to communicate variable types.
         /// </summary>
         /// <returns></returns>
         public abstract string GetTypeKeyword();

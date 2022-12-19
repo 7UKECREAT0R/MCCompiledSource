@@ -1,12 +1,16 @@
 ﻿using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static mc_compiled.Commands.Selectors.Selector;
+using static System.Windows.Forms.LinkLabel;
 
 namespace mc_compiled.MCC.Server
 {
@@ -17,12 +21,24 @@ namespace mc_compiled.MCC.Server
     {
 
         public const int PORT = 11830;
-        public const int VERSION = 3;
+        public const int VERSION = 4;
+        public const string RESPONSE_OK = "{ \"response\": \"OK\" }";
         public readonly string ADDRESS = $"http://localhost:{PORT}/";
         public readonly string COMPILE_ADDRESS = $"http://localhost:{PORT}/compile/";
+
+        /// <summary>
+        /// A list of all valid actions that can be sent in from the server.
+        /// </summary>
         public readonly string[] VALID_ACTIONS =
         {
-            "lint", "compile", "version", "close", "heartbeat"
+            // regular operation
+            "lint", "compile", "version", "close", "heartbeat",
+            
+            // developer
+            "debug",
+
+            // i/o
+            "save", "load"
         };
 
         public string activeProject;
@@ -48,7 +64,7 @@ namespace mc_compiled.MCC.Server
             return;
         }
 
-        static string GetAction(string url)
+        internal static string GetAction(string url)
         {
             int index = url.IndexOf('/', 8);
 
@@ -65,7 +81,7 @@ namespace mc_compiled.MCC.Server
             else
                 return chunk.Substring(0, index);
         }
-        static string GetArgument(string url)
+        internal static string GetArgument(string url)
         {
             int index = url.LastIndexOf('/');
 
@@ -76,7 +92,66 @@ namespace mc_compiled.MCC.Server
 
             return url.Substring(index + 1);
         }
+        /// <summary>
+        /// Creates a JSON response to the client, encoded in Base64.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        internal static string CreateResponse(string text)
+        {
+            string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
+            JObject json = new JObject();
+            json["response"] = base64;
 
+            return json.ToString();
+        }
+        /// <summary>
+        /// Creates a JSON response to the client, encoded in Base64.
+        /// Includes an auxilliary key and value.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="auxKey">The auxilliary JSON key.</param>
+        /// <param name="auxValue">The auxilliary JSON value.</param>
+        /// <returns></returns>
+        internal static string CreateResponse(string text, string auxKey, JToken auxValue)
+        {
+            string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
+            JObject json = new JObject();
+            json[auxKey] = auxValue;
+            json["response"] = base64;
+
+            return json.ToString();
+        }
+        /// <summary>
+        /// Creates a JSON response to the client, with exception information encoded in Base64.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        internal static string CreateResponse(Exception exception)
+        {
+            string msg = $"{exception.GetType().Name}: {exception.Message}";
+            string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(msg));
+            JObject json = new JObject();
+            json["response"] = base64;
+
+            return json.ToString();
+        }
+        /// <summary>
+        /// Creates a JSON response to the client, with exception information encoded in Base64.
+        /// Includes an auxilliary key and value.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        internal static string CreateResponse(Exception exception, string auxKey, JToken auxValue)
+        {
+            string msg = $"{exception.GetType().Name}: {exception.Message}";
+            string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(msg));
+            JObject json = new JObject();
+            json[auxKey] = auxValue;
+            json["response"] = base64;
+
+            return json.ToString();
+        }
 
         /// <summary>
         /// Begin listening 
@@ -125,24 +200,39 @@ namespace mc_compiled.MCC.Server
             {
                 response.StatusCode = 400;
                 response.ContentType = "application/json";
-                return "{ \"response\": \"Invalid action.\" }";
+                return CreateResponse($"Invalid action: '{action}'");
             }
 
             if(action.Equals("heartbeat"))
             {
                 response.StatusCode = 200;
                 response.ContentType = "application/json";
-                return "{ \"response\": \"OK\" }";
+                return RESPONSE_OK;
+            }
+
+            if(action.Equals("debug"))
+            {
+                response.StatusCode = 200;
+                response.ContentType= "application/json";
+
+                Program.DEBUG = true;
+
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Debug Enabled");
+                Console.ForegroundColor = ConsoleColor.White;
+
+                return CreateResponse("Enabled debug.");
             }
 
             if (action.Equals("lint"))
             {
                 // compile and gather information without emitting files
-                if (request.ContentLength64 > (long)int.MaxValue)
+                long longLength = request.ContentLength64;
+                if (longLength > (long)int.MaxValue)
                 {
                     response.StatusCode = 413;
                     response.ContentType = "application/json";
-                    return "{ \"response\": \"Code is too long.\" }";
+                    return CreateResponse($"Code is too long. Length: {longLength}");
                 }
 
                 int length = (int)request.ContentLength64;
@@ -203,11 +293,12 @@ namespace mc_compiled.MCC.Server
 
             if (action.Equals("compile"))
             {
-                if (request.ContentLength64 > (long)int.MaxValue)
+                long longLength = request.ContentLength64;
+                if (longLength > (long)int.MaxValue)
                 {
                     response.StatusCode = 413;
                     response.ContentType = "application/json";
-                    return "{ \"response\": \"Code is too long.\" }";
+                    return CreateResponse($"Code is too long. Length: {longLength}");
                 }
 
                 int length = (int)request.ContentLength64;
@@ -224,7 +315,7 @@ namespace mc_compiled.MCC.Server
 
                 response.StatusCode = success ? 200 : 500;
                 response.ContentType = "application/json";
-                return success ? "{}" : "{ \"response\": \"Encountered error.\" }";
+                return success ? "{}" : CreateResponse("Encountered error.");
             }
 
             if (action.Equals("version"))
@@ -245,7 +336,7 @@ namespace mc_compiled.MCC.Server
                 response.StatusCode = 200;
                 running = false;
                 response.ContentType = "application/json";
-                return "{ \"response\": \"Closing MCCompiled server.\" }";
+                return CreateResponse("Closing MCCompiled server.");
             }
 
             return null;
@@ -274,6 +365,14 @@ namespace mc_compiled.MCC.Server
         internal string fileLocation;       // output file for the project
         internal string fileDirectory;      // working directory for the project
 
+        /// <summary>
+        /// Get:<br />
+        ///     Returns {path}{name}.{ext} or null if none has been set yet.<br />
+        /// <br />
+        /// Set:<br />
+        ///     Sets file {path}{name}.{ext} and sets fileLocation,<br />
+        ///     fileDirectory, and sets application-wide active directory
+        /// </summary>
         internal string File
         {
             get => fileLocation;
@@ -282,11 +381,12 @@ namespace mc_compiled.MCC.Server
                 hasFile = value != null;
                 fileLocation = value;
                 fileDirectory = Path.GetDirectoryName(value);
+                Directory.SetCurrentDirectory(fileDirectory);
             }
         }
         internal MCCServerProject()
         {
-            this.name = "web_project";
+            this.name = "mcc_project";
             this.hasFile = false;
             this.fileLocation = null;
             this.fileDirectory = null;
@@ -301,9 +401,9 @@ namespace mc_compiled.MCC.Server
         {
             using(SaveFileDialog dialog = new SaveFileDialog())
             {
+                dialog.Filter = "MCC Source File (.mcc)|*.mcc";
                 dialog.AddExtension = true;
                 dialog.DefaultExt = "mcc";
-                dialog.CheckPathExists = true;
                 dialog.DereferenceLinks = true;
                 dialog.Title = "Save project...";
                 dialog.FileName = this.name + ".mcc";
@@ -322,22 +422,101 @@ namespace mc_compiled.MCC.Server
             }
         }
         /// <summary>
+        /// Allows the user to choose a location/filename to write their project to.
+        /// </summary>
+        /// <returns></returns>
+        internal bool RunLoadFileDialog()
+        {
+            using (OpenFileDialog dialog = new OpenFileDialog())
+            {
+                dialog.Filter = "MCC Source File (.mcc)|*.mcc";
+                dialog.CheckPathExists = true;
+                dialog.CheckFileExists = true;
+                dialog.DereferenceLinks = true;
+                dialog.Title = "Load project...";
+                dialog.FileName = this.name + ".mcc";
+
+                bool selected = dialog.ShowDialog() == DialogResult.OK;
+
+                if (selected)
+                {
+                    // did choose file
+                    this.File = dialog.FileName;
+                    return true;
+                }
+
+                // didn't choose file
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Runs a save as if CTRL+S was pressed.
         /// </summary>
-        internal void RunSave()
+        /// <returns>
+        /// A JSON string containing the Base64 encoded file, with a 'success' boolean field indicating
+        /// whether the save succeeded. If success == false, the Base64 string will contain the exception info.
+        /// </returns>
+        internal string RunSave(string code)
         {
             if (!hasFile)
                 if (!RunSaveFileDialog())
-                    return; // cancelled
+                    return MCCServer.CreateResponse("Cancelled file dialog.");
 
+            if (!hasFile)
+                throw new Exception("Couldn't load file...");
 
+            try
+            {
+                System.IO.File.WriteAllText(this.File, code);
+            } catch(Exception exc)
+            {
+                if (Debugger.IsAttached)
+                    throw; // passthrough
+
+                return MCCServer.CreateResponse(exc, "success", false);
+            }
+
+            return MCCServer.CreateResponse("File saved.", "success", true);
+        }
+        /// <summary>
+        /// Runs a load action as if a file was loaded. Unlike save, always shows a file dialog.
+        /// </summary>
+        /// <returns>
+        /// A JSON string containing the Base64 encoded file, with a 'success' boolean field indicating
+        /// whether the load succeeded. If success == false, the Base64 string will contain the exception info.
+        /// </returns>
+        internal string RunLoad()
+        {
+            if (!RunSaveFileDialog())
+                return MCCServer.CreateResponse("Cancelled file dialog.");
+
+            string file = this.File;
+            string ext = Path.GetExtension(file);
+            string code;
+
+            if(!ext.ToUpper().Equals(".MCC"))
+                return MCCServer.CreateResponse("File must have .MCC extension in order to load.", "success", false);
+
+            try
+            {
+                code = System.IO.File.ReadAllText(file);
+                return MCCServer.CreateResponse(code, "success", true);
+            }
+            catch (Exception exc)
+            {
+                if (Debugger.IsAttached)
+                    throw; // passthrough
+
+                return MCCServer.CreateResponse(exc, "success", false);
+            }
         }
     }
     public class ErrorStructure
     {
         public enum During
         {
-            tokenizer, execution, fatal
+            tokenizer, execution, unknown
         }
 
         public readonly During during;
@@ -360,7 +539,7 @@ namespace mc_compiled.MCC.Server
         }
         public static ErrorStructure Wrap(Exception exception, int line)
         {
-            return new ErrorStructure(During.fatal, line, exception.ToString());
+            return new ErrorStructure(During.unknown, line, exception.ToString());
         }
 
         public string ToJSON() =>
@@ -538,8 +717,8 @@ namespace mc_compiled.MCC.Server
         public static VariableStructure Bool(string name) =>
             new VariableStructure(name, TYPE_BOOL, 0, null);
         public static VariableStructure Time(string name) =>
-            new VariableStructure(name, TYPE_BOOL, 0, null);
+            new VariableStructure(name, TYPE_TIME, 0, null);
         public static VariableStructure Struct(string name, string structName) =>
-            new VariableStructure(name, TYPE_DECIMAL, 0, structName);
+            new VariableStructure(name, TYPE_STRUCT, 0, structName);
     }
 }
