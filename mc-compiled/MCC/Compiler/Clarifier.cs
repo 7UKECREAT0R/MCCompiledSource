@@ -1,0 +1,74 @@
+﻿using mc_compiled.Commands.Selectors;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace mc_compiled.MCC.Compiler
+{
+    /// <summary>
+    /// Serves as a clarification as to who is being referenced for a Value.
+    /// 
+    /// Example for all cows:
+    ///     @e[type=cow]
+    /// Example for a fakeplayer 'neanderthal'
+    ///     neanderthal
+    /// 
+    /// </summary>
+    public class Clarifier
+    {
+        public const string DEFAULT_CLARIFIER = "@s";
+
+        private readonly bool global;
+        private string currentString;
+
+        /// <summary>
+        /// Creates a new Clarifier with the default string attached to the global state.
+        /// </summary>
+        /// <param name="global"></param>
+        public Clarifier(bool global)
+        {
+            this.global = global;
+            this.Reset();
+        }
+
+        /// <summary>
+        /// The string representing the current clarifier.<br />
+        /// <br />
+        /// To set, use <see cref="SetSelector(Selector)"/> or <see cref="SetString(string)"/>
+        /// </summary>
+        public string CurrentString
+        {
+            get => currentString;
+        }
+        /// <summary>
+        /// Reset this clarifier to its default value, changing depending on if it's <see cref="global"/> or not.
+        /// </summary>
+        public void Reset()
+        {
+            if (global)
+                currentString = Executor.FAKEPLAYER_NAME;
+            else
+                currentString = DEFAULT_CLARIFIER;
+        }
+
+        /// <summary>
+        /// Sets the clarifier to a specific selector.
+        /// </summary>
+        /// <param name="selector"></param>
+        public void SetSelector(Selector selector)
+        {
+            string str = selector.ToString();
+            this.currentString = str;
+        }
+        /// <summary>
+        /// Sets the clarifier to a specific string.
+        /// </summary>
+        /// <param name="selector"></param>
+        public void SetString(string str)
+        {
+            this.currentString = str;
+        }
+    }
+}

@@ -342,7 +342,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public JToken LoadJSONFile(string path)
+        public JToken LoadJSONFile(string path, Statement callingStatement)
         {
             int hash = path.GetHashCode();
 
@@ -352,6 +352,12 @@ namespace mc_compiled.MCC.Compiler
                 if (value is JToken)
                     return value as JToken;
             }
+
+            if(string.IsNullOrWhiteSpace(path))
+                throw new StatementException(callingStatement, "Empty JSON file path.");
+
+            if(!File.Exists(path))
+                throw new StatementException(callingStatement, "File \'" + path + "\' could not be found. Make sure you are in the right working directory.");
 
             string contents = File.ReadAllText(path);
             JToken json = JToken.Parse(contents);

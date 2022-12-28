@@ -32,6 +32,26 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -94,6 +114,7 @@
     <Compile Include="Commands\Selectors\Transformers\SelectorFamily.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorType.cs" />
     <Compile Include="Commands\Selectors\TransformResult.cs" />
+    <Compile Include="MCC\Compiler\Clarifier.cs" />
     <Compile Include="MCC\Compiler\PreprocessorUtils.cs" />
     <Compile Include="MCC\Compiler\Assembler.cs" />
     <Compile Include="Commands\CommandEnumParser.cs" />
@@ -129,8 +150,14 @@
     <Compile Include="MCC\Compiler\TypePattern.cs" />
     <Compile Include="MCC\FixedPoint.cs" />
     <Compile Include="MCC\Scoreboard.cs" />
+    <Compile Include="MCC\Server\HttpHelper.cs" />
+    <Compile Include="MCC\Server\LintStructures.cs" />
     <Compile Include="MCC\Server\MCCServer.cs" />
+    <Compile Include="MCC\Server\MCCServerProject.cs" />
     <Compile Include="MCC\Server\RegistryConfiguration.cs" />
+    <Compile Include="MCC\Server\ServerAsyncPackage.cs" />
+    <Compile Include="MCC\Server\SocketMessage.cs" />
+    <Compile Include="MCC\Server\WebSocketFrame.cs" />
     <Compile Include="MCC\StructDefinition.cs" />
     <Compile Include="MCC\Scheduling\TickScheduler.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Monarch.cs" />

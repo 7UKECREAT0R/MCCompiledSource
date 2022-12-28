@@ -21,6 +21,13 @@ namespace mc_compiled.MCC.Compiler
         public TokenLiteral(int lineNumber) : base(lineNumber) { }
 
         /// <summary>
+        /// Return this literal's Scoreboard value type. Used when defining a variable with type inference.
+        /// </summary>
+        /// <param name="callingStatement">The statement to blame when everything explodes.</param>
+        /// <returns></returns>
+        public abstract ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement);
+
+        /// <summary>
         /// Return a NEW token literal that is the result of adding these two literals.
         /// </summary>
         /// <param name="other"></param>
@@ -75,8 +82,10 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <returns></returns>
         public abstract float GetNumber();
-
         public abstract object GetValue();
+
+        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+            ScoreboardManager.ValueType.INT;
     }
     public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken, IIndexable
     {
@@ -91,6 +100,9 @@ namespace mc_compiled.MCC.Compiler
         public object GetValue() =>  text;
 
         public static implicit operator string(TokenStringLiteral literal) => literal.text;
+
+        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+            throw new StatementException(callingStatement, "A string value cannot be placed in a runtime variable.");
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
@@ -283,6 +295,8 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
+
+        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) => ScoreboardManager.ValueType.BOOL;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
@@ -573,6 +587,9 @@ namespace mc_compiled.MCC.Compiler
             this.range = range;
         }
 
+        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+    throw new StatementException(callingStatement, "A range value cannot be placed in a runtime variable.");
+
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
             if(other is TokenRangeLiteral)
@@ -773,6 +790,9 @@ namespace mc_compiled.MCC.Compiler
 
         public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
 
+        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+            ScoreboardManager.ValueType.DECIMAL;
+
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
             if(other is TokenNumberLiteral)
@@ -852,6 +872,9 @@ namespace mc_compiled.MCC.Compiler
         public static implicit operator Selector(TokenSelectorLiteral t) => t.selector;
         public static implicit operator Selector.Core(TokenSelectorLiteral t) => t.selector.core;
 
+        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+    throw new StatementException(callingStatement, "A selector value cannot be placed in a runtime variable.");
+
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
             throw new NotImplementedException();
@@ -902,6 +925,9 @@ namespace mc_compiled.MCC.Compiler
             this.token = token;
         }
         public static implicit operator JToken(TokenJSONLiteral t) => t.token;
+
+        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+            throw new StatementException(callingStatement, "A JSON value cannot be placed in a runtime variable.");
 
         public object GetValue() => token;
         public override TokenLiteral AddWithOther(TokenLiteral other)

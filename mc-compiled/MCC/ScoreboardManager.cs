@@ -18,6 +18,11 @@ namespace mc_compiled.MCC
         public enum ValueType
         {
             /// <summary>
+            /// Infer type from right-hand side of definition.
+            /// </summary>
+            INFER,
+
+            /// <summary>
             /// An integral value.
             /// </summary>
             INT,
@@ -67,20 +72,20 @@ namespace mc_compiled.MCC
             /// Create a scoreboard value based off of this definition.
             /// </summary>
             /// <returns></returns>
-            internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
+            internal ScoreboardValue Create(ScoreboardManager sb, bool global, Statement tokens)
             {
                 switch (type)
                 {
                     case ScoreboardManager.ValueType.INT:
-                        return new ScoreboardValueInteger(name, sb, tokens);
+                        return new ScoreboardValueInteger(name, global, sb, tokens);
                     case ScoreboardManager.ValueType.DECIMAL:
-                        return new ScoreboardValueDecimal(name, decimalPrecision, sb, tokens);
+                        return new ScoreboardValueDecimal(name, decimalPrecision, global, sb, tokens);
                     case ScoreboardManager.ValueType.BOOL:
-                        return new ScoreboardValueBoolean(name, sb, tokens);
+                        return new ScoreboardValueBoolean(name, global, sb, tokens);
                     case ScoreboardManager.ValueType.TIME:
-                        return new ScoreboardValueTime(name, sb, tokens);
+                        return new ScoreboardValueTime(name, global, sb, tokens);
                     case ScoreboardManager.ValueType.STRUCT:
-                        return new ScoreboardValueStruct(name, @struct, sb, tokens);
+                        return new ScoreboardValueStruct(name, global, @struct, sb, tokens);
                     default:
                         throw new StatementException(tokens, "something terrible happened when trying to use value definition");
                 }
@@ -92,7 +97,7 @@ namespace mc_compiled.MCC
         private Stack<int> tempStack;
 
         public readonly Executor executor;
-        public readonly List<string> definedTempVars;
+        public readonly HashSet<ScoreboardValue> definedTempVars;
         internal readonly Dictionary<string, StructDefinition> structs;
         internal readonly List<ScoreboardValue> values;
 
@@ -101,19 +106,18 @@ namespace mc_compiled.MCC
             tempIndex = 0;
             tempStack = new Stack<int>();
 
-            definedTempVars = new List<string>();
+            definedTempVars = new HashSet<ScoreboardValue>();
             structs = new Dictionary<string, StructDefinition>();
             values = new List<ScoreboardValue>();
             this.executor = executor;
         }
         public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
         {
-            string key = value.Name + "_str";
-            if (definedTempVars.Contains(key))
+            if (definedTempVars.Contains(value))
                 return;
 
             executor.AddCommandsHead(commands.SelectMany(sb => sb.CommandsDefine()));
-            definedTempVars.Add(key);
+            definedTempVars.Add(value);
         }
 
         /// <summary>
@@ -156,14 +160,14 @@ namespace mc_compiled.MCC
         public ScoreboardValueInteger RequestTemp()
         {
             string name = TEMP_PREFIX + tempIndex;
-            var created = new ScoreboardValueInteger(name, this, null);
-            name += created.GetMaxNameLength().ToString(); // use maxNameLength like an ID
-            if (!definedTempVars.Contains(name))
+            var created = new ScoreboardValueInteger(name, false, this, null);
+            
+            if (definedTempVars.Add(created))
             {
-                definedTempVars.Add(name);
                 executor.AddCommandsHead(created.CommandsInit());
                 executor.AddCommandsHead(created.CommandsDefine());
             }
+
             tempIndex++;
             return created;
         }
@@ -177,36 +181,29 @@ namespace mc_compiled.MCC
             created.Name = TEMP_PREFIX + tempIndex;
             string name = created.Name + clone.GetMaxNameLength(); // make an 'id' out of this
 
-            foreach (string accessor in created.GetAccessibleNames())
+            if (definedTempVars.Add(created))
             {
-                if (!definedTempVars.Contains(name))
-                {
-                    definedTempVars.Add(name);
-                    executor.AddCommandsHead(created.CommandsInit());
-                    executor.AddCommandsHead(created.CommandsDefine());
-                }
+                executor.AddCommandsHead(created.CommandsInit());
+                executor.AddCommandsHead(created.CommandsDefine());
             }
+
             tempIndex++;
             return created;
         }
         /// <summary>
         /// Request a temp value that is able to hold this literal.
         /// </summary>
-        /// <param name="literal"></param>
+        /// <param name="literal">The literal that will be able to be stored into a </param>
         /// <returns></returns>
-        public ScoreboardValue RequestTemp(TokenLiteral literal, Statement forExceptions)
+        public ScoreboardValue RequestTemp(TokenLiteral literal, bool global, Statement forExceptions)
         {
-            ScoreboardValue created = CreateFromLiteral(TEMP_PREFIX + tempIndex, literal, forExceptions);
-            string name = created.Name + created.GetMaxNameLength(); // make an 'id' out of this
+            string name = TEMP_PREFIX + tempIndex;
+            ScoreboardValue created = CreateFromLiteral(name, global, literal, forExceptions);
 
-            foreach (string accessor in created.GetAccessibleNames())
+            if (definedTempVars.Add(created))
             {
-                if (!definedTempVars.Contains(name))
-                {
-                    definedTempVars.Add(name);
-                    executor.AddCommandsHead(created.CommandsInit());
-                    executor.AddCommandsHead(created.CommandsDefine());
-                }
+                executor.AddCommandsHead(created.CommandsInit());
+                executor.AddCommandsHead(created.CommandsDefine());
             }
 
             tempIndex++;
@@ -226,17 +223,17 @@ namespace mc_compiled.MCC
         /// <param name="literal"></param>
         /// <param name="forExceptions"></param>
         /// <returns></returns>
-        public ScoreboardValue CreateFromLiteral(string name, TokenLiteral literal, Statement forExceptions)
+        public ScoreboardValue CreateFromLiteral(string name, bool global, TokenLiteral literal, Statement forExceptions)
         {
             if (literal is TokenIntegerLiteral)
-                return new ScoreboardValueInteger(name, this, forExceptions);
+                return new ScoreboardValueInteger(name, global, this, forExceptions);
             else if (literal is TokenBooleanLiteral)
-                return new ScoreboardValueBoolean(name, this, forExceptions);
+                return new ScoreboardValueBoolean(name, global, this, forExceptions);
             else if (literal is TokenDecimalLiteral)
             {
                 float number = (literal as TokenDecimalLiteral).number;
                 int precision = number.GetPrecision();
-                return new ScoreboardValueDecimal(name, precision, this, forExceptions);
+                return new ScoreboardValueDecimal(name, precision, global, this, forExceptions);
             }
             else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
                     $"create a scoreboard value for invalid literal type {literal.GetType()}.");
@@ -255,7 +252,7 @@ namespace mc_compiled.MCC
                 return new ValueDefinition(@string, ValueType.STRUCT, @struct: _struct.@struct);
             }
 
-            ValueType type = ValueType.INT;
+            ValueType type = ValueType.INFER;
             string name = null;
 
             if (tokens.NextIs<TokenIdentifier>())
@@ -321,6 +318,7 @@ namespace mc_compiled.MCC
                 tokens.Next();
                 defaultValue = tokens.Next();
             }
+
             return new ValueDefinition(name, type, default, null, defaultValue);
         }
 

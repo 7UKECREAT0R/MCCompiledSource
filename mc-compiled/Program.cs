@@ -228,7 +228,10 @@ namespace mc_compiled
                 orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
                 DECORATE = false;
                 NO_PAUSE = true;
-                MCCServer server = new MCCServer(orp, obp);
+                using (MCCServer server = new MCCServer(orp, obp, debug))
+                {
+                    server.StartServer();
+                }
                 return;
             }
             if (fileUpper.Equals("--PROTOCOL"))
@@ -253,7 +256,10 @@ namespace mc_compiled
                 orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
                 DECORATE = false;
                 NO_PAUSE = true;
-                MCCServer server = new MCCServer(orp, obp);
+                using (MCCServer server = new MCCServer(orp, obp, debug))
+                {
+                    server.StartServer();
+                }
                 return;
             }
             if (fileUpper.Equals("--JSONBUILDER"))

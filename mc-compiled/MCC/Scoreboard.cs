@@ -83,9 +83,11 @@ namespace mc_compiled.MCC
             baseName = ScoreboardHash(aliasName);
         }
 
+        public readonly Clarifier clarifier;
+        public readonly ScoreboardManager.ValueType valueType;
         internal readonly ScoreboardManager manager;
 
-        public ScoreboardValue(string baseName, ScoreboardManager manager, Statement forExceptions)
+        public ScoreboardValue(string baseName, bool global, ScoreboardManager.ValueType valueType, ScoreboardManager manager, Statement forExceptions)
         {
             int len = baseName.Length;
 
@@ -95,6 +97,9 @@ namespace mc_compiled.MCC
             // hash was given to baseName
             if (baseName.Length > 16)
                 aliasName = baseName;
+
+            this.clarifier = new Clarifier(global);
+            this.valueType = valueType;
         }
         public virtual object Clone()
         {
@@ -125,14 +130,14 @@ namespace mc_compiled.MCC
                 throw new StatementException(forExceptions, "Cannot return a selector.");
 
             if (literal is TokenIntegerLiteral)
-                return new ScoreboardValueInteger(RETURN_NAME, sb, forExceptions);
+                return new ScoreboardValueInteger(RETURN_NAME, false, sb, forExceptions);
             else if (literal is TokenBooleanLiteral)
-                return new ScoreboardValueBoolean(RETURN_NAME, sb, forExceptions);
+                return new ScoreboardValueBoolean(RETURN_NAME, false, sb, forExceptions);
             else if (literal is TokenDecimalLiteral)
             {
                 float number = (literal as TokenDecimalLiteral).number;
                 int precision = number.GetPrecision();
-                return new ScoreboardValueDecimal(RETURN_NAME, precision, sb, forExceptions);
+                return new ScoreboardValueDecimal(RETURN_NAME, precision, false, sb, forExceptions);
             }
 
             throw new StatementException(forExceptions, "Cannot return this literal.");
@@ -279,13 +284,25 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <returns></returns>
         public abstract string[] GetAccessibleNames();
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = Name.GetHashCode();
+                hashCode += GetMaxNameLength();
+
+                return hashCode;
+            }
+        }
     }
 
     public class ScoreboardValueInteger : ScoreboardValue
     {
-        public ScoreboardValueInteger(string name, ScoreboardManager manager, Statement forExceptions) : base(name, manager, forExceptions) { }
+        public ScoreboardValueInteger(string name, bool global, ScoreboardManager manager, Statement forExceptions,
+            ScoreboardManager.ValueType valueType = ScoreboardManager.ValueType.INT) : base(name, global, valueType, manager, forExceptions) { }
 
-        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_INT;
+        public override string GetTypeKeyword() => "int";
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] { Command.ScoreboardCreateObjective(prefix + Name, AliasName) };
@@ -601,9 +618,10 @@ namespace mc_compiled.MCC
         public const string SB_SECONDS = "_mcc_t_secs";
         public const string SB_TEMP = "_mcc_t_temp";
         public const string SB_CONST = "_mcc_t_const";
-        public ScoreboardValueTime(string name, ScoreboardManager manager, Statement forExceptions) : base(name, manager, forExceptions) { }
+        public ScoreboardValueTime(string name, bool global, ScoreboardManager manager, Statement forExceptions) :
+            base(name, global, manager, forExceptions, ScoreboardManager.ValueType.TIME) { }
 
-        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_TIME;
+        public override string GetTypeKeyword() => "time";
         public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
         {
             string minutes = SB_MINUTES + index;
@@ -612,10 +630,10 @@ namespace mc_compiled.MCC
             string constant = SB_CONST + index;
 
             manager.AddToStringScoreboards(this,
-                new ScoreboardValueInteger(minutes, manager, null),
-                new ScoreboardValueInteger(seconds, manager, null),
-                new ScoreboardValueInteger(temporary, manager, null),
-                new ScoreboardValueInteger(constant, manager, null));
+                new ScoreboardValueInteger(minutes, false, manager, null),
+                new ScoreboardValueInteger(seconds, false, manager, null),
+                new ScoreboardValueInteger(temporary, false, manager, null),
+                new ScoreboardValueInteger(constant, false, manager, null));
 
             return new string[]
             {
@@ -670,7 +688,8 @@ namespace mc_compiled.MCC
         /// <param name="precision">The precision of the value.</param>
         /// <param name="manager">The ScoreboardManager managing this new value.</param>
         /// <param name="forExceptions">The statement that caused an exception, if any.</param>
-        public ScoreboardValueDecimal(string name, int precision, ScoreboardManager manager, Statement forExceptions) : base(name, manager, forExceptions)
+        public ScoreboardValueDecimal(string name, int precision, bool global, ScoreboardManager manager, Statement forExceptions) :
+            base(name, global, ScoreboardManager.ValueType.DECIMAL, manager, forExceptions)
         {
             this.precision = precision;
         }
@@ -772,7 +791,7 @@ namespace mc_compiled.MCC
         {
             return MemberwiseClone();
         }
-        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_DECIMAL;
+        public override string GetTypeKeyword() => "decimal " + precision;
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] {
@@ -856,10 +875,10 @@ namespace mc_compiled.MCC
             string tempBase = SB_BASE + index;
 
             manager.AddToStringScoreboards(this,
-                new ScoreboardValueInteger(whole, manager, null),
-                new ScoreboardValueInteger(part, manager, null),
-                new ScoreboardValueInteger(temporary, manager, null),
-                new ScoreboardValueInteger(tempBase, manager, null));
+                new ScoreboardValueInteger(whole, false, manager, null),
+                new ScoreboardValueInteger(part, false, manager, null),
+                new ScoreboardValueInteger(temporary, false, manager, null),
+                new ScoreboardValueInteger(tempBase, false, manager, null));
 
             return new string[]
             {
@@ -1232,9 +1251,10 @@ namespace mc_compiled.MCC
     }
     public sealed class ScoreboardValueBoolean : ScoreboardValueInteger
     {
-        public ScoreboardValueBoolean(string Name, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions) { }
+        public ScoreboardValueBoolean(string name, bool global, ScoreboardManager manager, Statement forExceptions) :
+            base(name, global, manager, forExceptions, ScoreboardManager.ValueType.BOOL) { }
 
-        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_BOOL;
+        public override string GetTypeKeyword() => "bool";
         public override string[] CommandsDefine(string prefix = "")
         {
             return new[] { Command.ScoreboardCreateObjective(prefix + Name) };
@@ -1316,7 +1336,8 @@ namespace mc_compiled.MCC
     {
         public readonly StructDefinition structure;
 
-        public ScoreboardValueStruct(string Name, StructDefinition structure, ScoreboardManager manager, Statement forExceptions) : base(Name, manager, forExceptions)
+        public ScoreboardValueStruct(string name, bool global, StructDefinition structure, ScoreboardManager manager, Statement forExceptions) :
+            base(name, global, ScoreboardManager.ValueType.STRUCT, manager, forExceptions)
         {
             this.structure = structure;
         }
@@ -1351,7 +1372,7 @@ namespace mc_compiled.MCC
         {
             return MemberwiseClone();
         }
-        public override string GetTypeKeyword() => MCC.Server.VariableStructure.TYPE_STRUCT;
+        public override string GetTypeKeyword() => structure.name;
         public override string[] CommandsDefine(string prefix = "")
         {
             return structure.GetFields(Name).SelectMany(f => f.CommandsDefine(prefix)).ToArray();

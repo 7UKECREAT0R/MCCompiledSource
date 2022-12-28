@@ -898,7 +898,7 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 string file = tokens.Next<TokenStringLiteral>();
-                json = executor.LoadJSONFile(file);
+                json = executor.LoadJSONFile(file, tokens);
             }
 
             string output = tokens.Next<TokenIdentifier>().word;
@@ -1008,10 +1008,35 @@ namespace mc_compiled.MCC.Compiler
         {
             ScoreboardManager.ValueDefinition def = executor
                 .scoreboard.GetNextValueDefinition(tokens);
+            bool inferType = def.type == ScoreboardManager.ValueType.INFER;
 
             // defining PPV value the wrong way
             if (def.type == ScoreboardManager.ValueType.PPV)
-                throw new StatementException(tokens, "Type 'PPV' is only supported as a function parameter. Try using $var instead.");
+                throw new StatementException(tokens, "Type 'PPV' is only supported as a function parameter. Use $var instead.");
+
+            // unable to infer type
+            if (inferType && (def.defaultValue == null))
+                throw new StatementException(tokens, "Cannot infer variable type without a default value.");
+
+            if(inferType)
+            {
+                if (def.defaultValue is TokenLiteral literal)
+                {
+                    def.type = literal.GetScoreboardValueType(tokens);
+                    if (literal is TokenDecimalLiteral @decimal)
+                        def.decimalPrecision = @decimal.number.GetPrecision();
+                }
+                else if (def.defaultValue is TokenIdentifierValue identifier)
+                {
+                    def.type = identifier.value.valueType;
+                    if (identifier.value is ScoreboardValueDecimal @decimal)
+                        def.decimalPrecision = @decimal.precision;
+                    if (identifier.value is ScoreboardValueStruct @struct)
+                        def.@struct = @struct.structure;
+                }
+                else
+                    throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
+            }
 
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
             executor.scoreboard.Add(value);
@@ -1022,15 +1047,17 @@ namespace mc_compiled.MCC.Compiler
             {
                 executor.PushSelectorExecute();
                 string sel = executor.ActiveSelectorStr;
-                if (def.defaultValue is TokenLiteral)
-                    commands.AddRange(value.CommandsSetLiteral(value.Name, sel, def.defaultValue as TokenLiteral));
-                else if (def.defaultValue is TokenIdentifierValue)
+                if (def.defaultValue is TokenLiteral literal)
                 {
-                    TokenIdentifierValue identifier = def.defaultValue as TokenIdentifierValue;
+                    commands.AddRange(value.CommandsSetLiteral(value.Name, sel, literal));
+                }
+                else if (def.defaultValue is TokenIdentifierValue identifier)
+                {
                     commands.AddRange(value.CommandsSet(sel, identifier.value, value.Name, identifier.Accessor));
                 }
                 else
                     throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
+
                 executor.PopSelector();
             }
 
