@@ -122,17 +122,17 @@ namespace mc_compiled.Modding.Behaviors
 
         /// <summary>
         /// https://wiki.bedrock.dev/entities/dummy-entities.html
-        /// Create a null entity that serves to act as points, raycasters, etc...
+        /// Create a dummy entity that serves to act as points, raycasters, etc...
         /// </summary>
         /// <returns></returns>
-        internal static NullFiles CreateNull(string entityID)
+        internal static DummyFiles CreateDummy(string entityID)
         {
             string geometryID = "geometry." + entityID.Replace(':', '.');
-            EntityGeometry geometry = new EntityGeometry("null", geometryID);
-            EntityEventHandler cleanEvent = new EntityEventHandler(NullManager.CLEAN_EVENT_NAME,
+            EntityGeometry geometry = new EntityGeometry("dummy", geometryID);
+            EntityEventHandler cleanEvent = new EntityEventHandler(DummyManager.CLEAN_EVENT_NAME,
                 EventSubject.self, new EventActionRemoveGroup(new string[] { }));
 
-            return new NullFiles() {
+            return new DummyFiles() {
                 cleanEvent = cleanEvent,
                 behavior = new EntityBehavior()
                 {
@@ -182,18 +182,18 @@ namespace mc_compiled.Modding.Behaviors
                     }),
                     componentGroups = new List<EntityComponentGroup>(new EntityComponentGroup[]
                     {
-                        new EntityComponentGroup(NullManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn())
+                        new EntityComponentGroup(DummyManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn())
                     }),
                     events = new List<EntityEventHandler>(new EntityEventHandler[]
                     {
-                        new EntityEventHandler(NullManager.DESTROY_EVENT_NAME, action:
-                            new EventActionAddGroup(NullManager.DESTROY_COMPONENT_GROUP)),
+                        new EntityEventHandler(DummyManager.DESTROY_EVENT_NAME, action:
+                            new EventActionAddGroup(DummyManager.DESTROY_COMPONENT_GROUP)),
                         cleanEvent
                     })
                 },
                 resources = new EntityResource()
                 {
-                    name = "null",
+                    name = "dummy",
                     description = new ClientEntityDescription()
                     {
                         identifier = entityID,

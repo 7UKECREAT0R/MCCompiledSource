@@ -1,6 +1,7 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
+using mc_compiled.MCC.Functions;
 using mc_compiled.Modding;
 using Newtonsoft.Json.Linq;
 using System;
@@ -76,7 +77,7 @@ namespace mc_compiled.MCC.Compiler
         internal readonly Dictionary<int, object> loadedFiles;
         internal readonly List<int> definedStdFiles;
         internal readonly List<Macro> macros;
-        internal readonly List<Function> functions;
+        internal readonly List<UserFunction> functions;
         internal readonly HashSet<string> definedTags;
         internal readonly bool[] lastPreprocessorCompare;
         internal readonly ComparisonSet[] lastActualCompare;
@@ -105,7 +106,7 @@ namespace mc_compiled.MCC.Compiler
             definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
-            functions = new List<Function>();
+            functions = new List<UserFunction>();
             definedTags = new HashSet<string>();
             selections = new Stack<Selector>();
 
@@ -778,34 +779,35 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void ExecuteSubsection(Statement[] section)
         {
-            scoreboard.PushTempState();
-            Statement[] restore0 = statements;
-            int restore1 = readIndex;
-
-            statements = section;
-            readIndex = 0;
-            while (HasNext)
+            using (scoreboard.PushTempState())
             {
-                Statement unresolved = Next();
-                Statement statement = unresolved.ClonePrepare(this);
-                statement.Run0(this);
-                scoreboard.PopTempState();
+                Statement[] restore0 = statements;
+                int restore1 = readIndex;
 
-                // check for unreachable code due to halt directive
-                CheckUnreachable(statement);
-
-                if (popSelectorsAfterNext >= 0)
+                statements = section;
+                readIndex = 0;
+                while (HasNext)
                 {
-                    popSelectorsAfterNext--;
-                    if (popSelectorsAfterNext == 0)
-                        PopSelector();
-                }
-            }
+                    Statement unresolved = Next();
+                    Statement statement = unresolved.ClonePrepare(this);
+                    statement.Run0(this);
+                    scoreboard.PopTempState();
 
-            // now its done, so restore state
-            scoreboard.PopTempState();
-            statements = restore0;
-            readIndex = restore1;
+                    // check for unreachable code due to halt directive
+                    CheckUnreachable(statement);
+
+                    if (popSelectorsAfterNext >= 0)
+                    {
+                        popSelectorsAfterNext--;
+                        if (popSelectorsAfterNext == 0)
+                            PopSelector();
+                    }
+                }
+
+                // now its done, so restore state
+                statements = restore0;
+                readIndex = restore1;
+            }
         }
 
         /// <summary>
@@ -842,7 +844,7 @@ namespace mc_compiled.MCC.Compiler
         /// Add a function to be looked up later. Its commands can be written to by simply PushFile()ing to this executor.
         /// </summary>
         /// <param name="function"></param>
-        public void RegisterFunction(Function function) =>
+        public void RegisterFunction(UserFunction function) =>
             functions.Add(function);
         public Macro? LookupMacro(string name)
         {
@@ -851,9 +853,9 @@ namespace mc_compiled.MCC.Compiler
                     return macro;
             return null;
         }
-        public Function LookupFunction(string name)
+        public UserFunction LookupFunction(string name)
         {
-            foreach (Function function in functions)
+            foreach (UserFunction function in functions)
                 if (function.Matches(name))
                     return function;
             return null;
@@ -863,7 +865,7 @@ namespace mc_compiled.MCC.Compiler
             macro = LookupMacro(name);
             return macro.HasValue;
         }
-        public bool TryLookupFunction(string name, out Function function)
+        public bool TryLookupFunction(string name, out UserFunction function)
         {
             function = LookupFunction(name);
             return function != null;

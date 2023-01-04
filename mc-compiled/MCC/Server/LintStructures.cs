@@ -1,4 +1,5 @@
 ﻿using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Functions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -117,7 +118,7 @@ namespace mc_compiled.MCC.Server
             this.returnType = returnType;
             this.args = new List<VariableStructure>(args);
         }
-        public static FunctionStructure Wrap(Function function, LintStructure parent)
+        public static FunctionStructure Wrap(UserFunction function, LintStructure parent)
         {
             // i know this is barely readable shut up
             string returnType = function.returnValue == null ?  null : function.returnValue.GetTypeKeyword();
@@ -129,9 +130,9 @@ namespace mc_compiled.MCC.Server
             {
                 FunctionParameter parameter = function.parameters[i];
 
-                if (parameter.IsScoreboard)
+                if (parameter.IsValue)
                     variables.Add(VariableStructure.Wrap(parameter.scoreboard));
-                else if (parameter.IsPPV)
+                else if (parameter.IsLiteral)
                     parent.ppvs.Add(parameter.ppvName);
             }
 

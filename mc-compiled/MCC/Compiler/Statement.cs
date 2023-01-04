@@ -1,4 +1,6 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Functions.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +12,11 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// A fully qualified statement which can be run.
     /// </summary>
-    public abstract class Statement : ICloneable
+    public abstract class Statement : TokenFeeder, ICloneable
     {
         private TypePattern[] patterns;
-        internal Executor executor;
-        public Statement(Token[] tokens, bool waitForPatterns = false)
+        public Statement(Token[] tokens, bool waitForPatterns = false) : base(tokens)
         {
-            this.tokens = tokens;
             if (!waitForPatterns)
                 patterns = GetValidPatterns();
             DecorateInSource = true;
@@ -38,14 +38,6 @@ namespace mc_compiled.MCC.Compiler
             Line = line;
             Source = code;
         }
-        /// <summary>
-        /// Set the executor of this statement.
-        /// </summary>
-        /// <param name="executor"></param>
-        public void SetExecutor(Executor executor)
-        {
-            this.executor = executor;
-        }
 
         public int Line
         {
@@ -60,104 +52,6 @@ namespace mc_compiled.MCC.Compiler
             get; private set;
         }
 
-        protected Token[] tokens;
-        protected int currentToken;
-
-        public bool HasNext
-        {
-            get => currentToken < tokens.Length;
-        }
-        public Token Next()
-        {
-            if (currentToken >= tokens.Length)
-                throw new StatementException(this, $"Token expected at end of line.");
-            return tokens[currentToken++];
-        }
-        public Token Peek()
-        {
-            if (currentToken >= tokens.Length)
-                throw new StatementException(this, $"Token expected at end of line.");
-            return tokens[currentToken];
-        }
-        public T Next<T>() where T : class
-        {
-            if (currentToken >= tokens.Length)
-                throw new StatementException(this, $"Token expected at end of line, type {typeof(T).Name}");
-
-            Token token = tokens[currentToken++];
-            if (!(token is T))
-            {
-                if (token is IImplicitToken)
-                {
-                    IImplicitToken implicitToken = token as IImplicitToken;
-                    Type[] otherTypes = implicitToken.GetImplicitTypes();
-
-                    for(int i = 0; i < otherTypes.Length; i++)
-                        if(typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(executor, i) as T;    
-                }
-                throw new StatementException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
-            }
-            else
-                return token as T;
-        }
-        public T Peek<T>() where T : class
-        {
-            if (currentToken >= tokens.Length)
-                throw new StatementException(this, $"Token expected at end of line, type {typeof(T).Name}");
-            Token token = tokens[currentToken];
-            if(!(token is T))
-            {
-                if (token is IImplicitToken)
-                {
-                    IImplicitToken implicitToken = token as IImplicitToken;
-                    Type[] otherTypes = implicitToken.GetImplicitTypes();
-
-                    for (int i = 0; i < otherTypes.Length; i++)
-                        if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(executor, i) as T;
-                }
-                throw new StatementException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
-            } else
-                return token as T;
-        }
-        public bool NextIs<T>(bool allowImplicit = true)
-        {
-            if (!HasNext)
-                return false;
-
-            Token token = tokens[currentToken];
-
-            if (token is T)
-                return true;
-
-            if (allowImplicit)
-            {
-                if (token is IImplicitToken)
-                {
-                    IImplicitToken implicitToken = token as IImplicitToken;
-                    Type[] otherTypes = implicitToken.GetImplicitTypes();
-
-                    for (int i = 0; i < otherTypes.Length; i++)
-                        if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Return the remaining tokens in this statement.
-        /// </summary>
-        /// <returns></returns>
-        public Token[] GetRemainingTokens()
-        {
-            Token[] ret = new Token[tokens.Length - currentToken];
-            for (int i = currentToken; i < tokens.Length; i++)
-                ret[i] = tokens[i];
-            return ret;
-        }
         protected abstract TypePattern[] GetValidPatterns();
         /// <summary>
         /// Run this statement/continue where it left off.
@@ -209,6 +103,8 @@ namespace mc_compiled.MCC.Compiler
             // e.g. close/open block
             if (statement.tokens == null)
             {
+                // i hate the jank here but just trust this gets popped later
+                // ignores contract
                 executor.scoreboard.PushTempState();
                 return statement;
             }
@@ -254,7 +150,7 @@ namespace mc_compiled.MCC.Compiler
                         allResolved.Add(new TokenIdentifierStruct(word, @struct, line));
                     else if (executor.TryLookupMacro(word, out Macro? macro))
                         allResolved.Add(new TokenIdentifierMacro(macro.Value, line));
-                    else if (executor.TryLookupFunction(word, out Function function))
+                    else if (executor.TryLookupFunction(word, out RuntimeFunction function))
                         allResolved.Add(new TokenIdentifierFunction(function, line));
                     else
                         allResolved.Add(unresolved);
@@ -268,7 +164,7 @@ namespace mc_compiled.MCC.Compiler
                     allResolved.Add(unresolved);
             }
 
-            executor.scoreboard.PushTempState(); // popped at call site
+            executor.scoreboard.PushTempState(); // popped at call site, ignore contract
             SquashAll(allResolved, executor);
             SquashSpecial(allResolved); // ranges, indexers, etc.
 
@@ -475,6 +371,7 @@ namespace mc_compiled.MCC.Compiler
                 Token _left = tokens[i - 1];
                 Token _right = tokens[i + 1];
 
+                bool squashToGlobal = false;
                 bool leftIsLiteral = _left is TokenLiteral;
                 bool rightIsLiteral = _right is TokenLiteral;
                 bool leftIsValue = _left is TokenIdentifierValue;
@@ -482,6 +379,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if (leftIsLiteral & rightIsLiteral)
                 {
+                    squashToGlobal = false;
                     TokenLiteral left = _left as TokenLiteral;
                     TokenLiteral right = _right as TokenLiteral;
 
@@ -514,6 +412,7 @@ namespace mc_compiled.MCC.Compiler
                     string rightAccessor = right.Accessor;
                     ScoreboardValue a = left.value;
                     ScoreboardValue b = right.value;
+                    squashToGlobal = a.clarifier.IsGlobal || b.clarifier.IsGlobal;
 
                     ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
                     string accessorTemp = temp.Name;
@@ -548,26 +447,31 @@ namespace mc_compiled.MCC.Compiler
                             break;
                     }
                 }
-                else if (leftIsValue | rightIsValue && leftIsLiteral | rightIsLiteral)
+                else if (leftIsValue | rightIsValue
+                    && leftIsLiteral | rightIsLiteral)
                 {
                     string aAccessor, bAccessor;
                     ScoreboardValue a, b;
                     if (leftIsLiteral)
                     {
-                        a = executor.scoreboard.RequestTemp(_left as TokenLiteral, this);
+                        b = (_right as TokenIdentifierValue).value;
+                        squashToGlobal = b.clarifier.IsGlobal;
+
+                        a = executor.scoreboard.RequestTemp(_left as TokenLiteral, squashToGlobal, this);
                         aAccessor = a.Name;
                         commands.AddRange(a.CommandsSetLiteral(a.Name, selector, _left as TokenLiteral));
-                        b = (_right as TokenIdentifierValue).value;
                         bAccessor = (_right as TokenIdentifierValue).Accessor;
                     }
                     else
                     {
-                        b = executor.scoreboard.RequestTemp(_right as TokenLiteral, this);
+                        TokenIdentifierValue left = _left as TokenIdentifierValue;
+                        squashToGlobal = left.value.clarifier.IsGlobal;
+
+                        b = executor.scoreboard.RequestTemp(_right as TokenLiteral, squashToGlobal, this);
                         bAccessor = b.Name;
                         commands.AddRange(b.CommandsSetLiteral(b.Name, selector, _right as TokenLiteral));
 
                         // left is a value, so it needs to be put into a temp variable so that the source is not modified
-                        TokenIdentifierValue left = _left as TokenIdentifierValue;
                         a = executor.scoreboard.RequestTemp(left.value);
                         commands.AddRange(a.CommandsSet(selector, left.value, a.Name, left.Accessor));
                         aAccessor = a.Name;
@@ -630,7 +534,7 @@ namespace mc_compiled.MCC.Compiler
 
                 int x = i + 2;
                 TokenIdentifierFunction func = selected as TokenIdentifierFunction;
-                Function function = func.function;
+                RuntimeFunction function = func.function;
 
                 // if its not parameterless() then fetch until level <= 0
                 List<Token> tokensInside = new List<Token>();
@@ -688,12 +592,23 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Indicates something has blown up while executing a statement.
     /// </summary>
-    public class StatementException : Exception
+    public class StatementException : FeederException
     {
         public readonly Statement statement;
-        public StatementException(Statement statement, string message) : base(message)
+        public StatementException(Statement statement, string message) : base(statement, message)
         {
             this.statement = statement;
+        }
+    }
+    /// <summary>
+    /// Indicates something has blown up while feeding tokens.
+    /// </summary>
+    public class FeederException : Exception
+    {
+        public readonly TokenFeeder feeder;
+        public FeederException(TokenFeeder feeder, string message) : base(message)
+        {
+            this.feeder = feeder;
         }
     }
 }

@@ -16,55 +16,165 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class TokenLiteral : Token
     {
+        public abstract TokenLiteral Clone();
         public override string AsString() => "<? literal>";
         public abstract override string ToString();
         public TokenLiteral(int lineNumber) : base(lineNumber) { }
 
         /// <summary>
         /// Return this literal's Scoreboard value type. Used when defining a variable with type inference.
+        /// Returns <see cref="ScoreboardManager.ValueType.INVALID"/> if the literal cannot be stored in a scoreboard objective.
         /// </summary>
-        /// <param name="callingStatement">The statement to blame when everything explodes.</param>
         /// <returns></returns>
-        public abstract ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement);
+        public abstract ScoreboardManager.ValueType GetScoreboardValueType();
 
         /// <summary>
-        /// Return a NEW token literal that is the result of adding these two literals.
+        /// Return a NEW token literal that is the result of adding these two literals in the order THIS + OTHER.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
         public abstract TokenLiteral AddWithOther(TokenLiteral other);
         /// <summary>
-        /// Return a NEW token literal that is the result of subtracting these two literals.
+        /// Return a NEW token literal that is the result of subtracting these two literal in the order THIS - OTHER.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
         public abstract TokenLiteral SubWithOther(TokenLiteral other);
         /// <summary>
-        /// Return a NEW token literal that is the result of multiplying these two literals.
+        /// Return a NEW token literal that is the result of multiplying these two literals in the order THIS * OTHER.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
         public abstract TokenLiteral MulWithOther(TokenLiteral other);
         /// <summary>
-        /// Return a NEW token literal that is the result of dividing these two literals.
+        /// Return a NEW token literal that is the result of dividing these two literals in the order THIS / OTHER.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
         public abstract TokenLiteral DivWithOther(TokenLiteral other);
         /// <summary>
-        /// Return a NEW token literal that is the result of modulo'ing these two literals.
+        /// Return a NEW token literal that is the result of modulo'ing these two literals in the order THIS % OTHER.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
         public abstract TokenLiteral ModWithOther(TokenLiteral other);
         /// <summary>
-        /// Return a NEW token literal that is the result of modulo'ing these two literals.
+        /// Return a NEW token literal that is the result of comparing these two literals using a comparison operator in the order THIS, OTHER.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
         public abstract bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other);
     }
 
+    /// <summary>
+    /// Represents a value which has no determined value, but is defined as 0 under every type.
+    /// </summary>
+    public class TokenNullLiteral : TokenLiteral, IPreprocessor
+    {
+        public override string AsString() => "null";
+        public override string ToString() => "null";
+        public TokenNullLiteral(int lineNumber) : base(lineNumber) { }
+        public override TokenLiteral Clone() => new TokenNullLiteral(lineNumber);
+        public object GetValue()
+        {
+            return (int)0;
+        }
+
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
+            ScoreboardManager.ValueType.INFER;
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            if(other is TokenDecimalLiteral decimalLiteral)
+                return new TokenDecimalLiteral(decimalLiteral.number, lineNumber);
+
+            if (other is TokenBooleanLiteral boolLiteral)
+                return new TokenBooleanLiteral(boolLiteral.boolean, lineNumber);
+
+            if (other is TokenIntegerLiteral intLiteral)
+                return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            if (other is TokenDecimalLiteral decimalLiteral)
+                return new TokenDecimalLiteral(decimalLiteral.number, lineNumber);
+
+            if (other is TokenBooleanLiteral boolLiteral)
+                return new TokenBooleanLiteral(boolLiteral.boolean, lineNumber);
+
+            if (other is TokenIntegerLiteral intLiteral)
+                return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            if (other is TokenDecimalLiteral decimalLiteral)
+                return new TokenDecimalLiteral(decimalLiteral.number, lineNumber);
+
+            if (other is TokenBooleanLiteral boolLiteral)
+                return new TokenBooleanLiteral(boolLiteral.boolean, lineNumber);
+
+            if (other is TokenIntegerLiteral intLiteral)
+                return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            if (other is TokenDecimalLiteral decimalLiteral)
+                return new TokenDecimalLiteral(decimalLiteral.number, lineNumber);
+
+            if (other is TokenBooleanLiteral boolLiteral)
+                return new TokenBooleanLiteral(boolLiteral.boolean, lineNumber);
+
+            if (other is TokenIntegerLiteral intLiteral)
+                return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            if (other is TokenDecimalLiteral decimalLiteral)
+                return new TokenDecimalLiteral(decimalLiteral.number, lineNumber);
+
+            if (other is TokenBooleanLiteral boolLiteral)
+                return new TokenBooleanLiteral(boolLiteral.boolean, lineNumber);
+
+            if (other is TokenIntegerLiteral intLiteral)
+                return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            if (other is TokenNumberLiteral numberLiteral)
+            {
+                float number = numberLiteral.GetNumber();
+                switch (cType)
+                {
+                    case TokenCompare.Type.EQUAL:
+                        return 0.0f == number;
+                    case TokenCompare.Type.NOT_EQUAL:
+                        return 0.0f != number;
+                    case TokenCompare.Type.LESS_THAN:
+                        return 0.0f < number;
+                    case TokenCompare.Type.LESS_OR_EQUAL:
+                        return 0.0f <= number;
+                    case TokenCompare.Type.GREATER_THAN:
+                        return 0.0f > number;
+                    case TokenCompare.Type.GREATER_OR_EQUAL:
+                        return 0.0f >= number;
+                    default:
+                        break;
+                }
+            }
+
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+    }
     /// <summary>
     /// Represents a generic number literal.
     /// </summary>
@@ -84,7 +194,7 @@ namespace mc_compiled.MCC.Compiler
         public abstract float GetNumber();
         public abstract object GetValue();
 
-        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
             ScoreboardManager.ValueType.INT;
     }
     public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken, IIndexable
@@ -96,13 +206,14 @@ namespace mc_compiled.MCC.Compiler
         {
             this.text = text;
         }
+        public override TokenLiteral Clone() => new TokenStringLiteral(text, lineNumber);
         public override string ToString() => text;
         public object GetValue() =>  text;
 
         public static implicit operator string(TokenStringLiteral literal) => literal.text;
 
-        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
-            throw new StatementException(callingStatement, "A string value cannot be placed in a runtime variable.");
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
+            ScoreboardManager.ValueType.INVALID;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
@@ -287,16 +398,18 @@ namespace mc_compiled.MCC.Compiler
         {
             this.boolean = boolean;
         }
+        public override TokenLiteral Clone() => new TokenBooleanLiteral(boolean, lineNumber);
         public override string ToString() => boolean.ToString();
         public override object GetValue() => boolean;
         public override float GetNumber()
         {
-            return boolean ? 1 : 0;
+            return boolean ? 1f : 0f;
         }
 
         public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
 
-        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) => ScoreboardManager.ValueType.BOOL;
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
+            ScoreboardManager.ValueType.BOOL;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
@@ -333,6 +446,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.coordinate = coordinate;
         }
+        public override TokenLiteral Clone() => new TokenCoordinateLiteral(new Coord(coordinate), lineNumber);
         public override float GetNumber()
         {
             if (coordinate.isFloat)
@@ -488,6 +602,7 @@ namespace mc_compiled.MCC.Compiler
             this.number = number;
             this.multiplier = multiplier;
         }
+        public override TokenLiteral Clone() => new TokenIntegerLiteral(number, multiplier, lineNumber);
         public override string ToString() => number.ToString();
         public override object GetValue() => number;
         public override float GetNumber()
@@ -586,9 +701,10 @@ namespace mc_compiled.MCC.Compiler
         {
             this.range = range;
         }
+        public override TokenLiteral Clone() => new TokenRangeLiteral(new Range(range), lineNumber);
 
-        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
-    throw new StatementException(callingStatement, "A range value cannot be placed in a runtime variable.");
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
+            ScoreboardManager.ValueType.INVALID;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
@@ -781,6 +897,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.number = number;
         }
+        public override TokenLiteral Clone() => new TokenDecimalLiteral(number, lineNumber);
         public override string ToString() => number.ToString();
         public override object GetValue() => number;
         public override float GetNumber()
@@ -790,7 +907,7 @@ namespace mc_compiled.MCC.Compiler
 
         public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
 
-        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
             ScoreboardManager.ValueType.DECIMAL;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -867,13 +984,14 @@ namespace mc_compiled.MCC.Compiler
                 core = core
             };
         }
+        public override TokenLiteral Clone() => new TokenSelectorLiteral(new Selector(selector), lineNumber);
         public override string ToString() => selector.ToString();
 
         public static implicit operator Selector(TokenSelectorLiteral t) => t.selector;
         public static implicit operator Selector.Core(TokenSelectorLiteral t) => t.selector.core;
 
-        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
-    throw new StatementException(callingStatement, "A selector value cannot be placed in a runtime variable.");
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
+            ScoreboardManager.ValueType.INVALID;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
@@ -924,10 +1042,11 @@ namespace mc_compiled.MCC.Compiler
         {
             this.token = token;
         }
+        public override TokenLiteral Clone() => new TokenJSONLiteral(token, lineNumber);
         public static implicit operator JToken(TokenJSONLiteral t) => t.token;
 
-        public override ScoreboardManager.ValueType GetScoreboardValueType(Statement callingStatement) =>
-            throw new StatementException(callingStatement, "A JSON value cannot be placed in a runtime variable.");
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
+            ScoreboardManager.ValueType.INVALID;
 
         public object GetValue() => token;
         public override TokenLiteral AddWithOther(TokenLiteral other)

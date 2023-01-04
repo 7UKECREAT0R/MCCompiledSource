@@ -14,17 +14,17 @@ namespace mc_compiled.MCC
     public class EntityManager
     {
         internal readonly List<ISelectorProvider> allProviders;
-        internal readonly NullManager nulls;
+        internal readonly DummyManager dummies;
         internal readonly ExploderManager exploders;
 
         public EntityManager(Executor executor)
         {
-            nulls = new NullManager(executor);
+            dummies = new DummyManager(executor);
             exploders = new ExploderManager(executor);
 
             allProviders = new List<ISelectorProvider>()
             {
-                nulls,
+                dummies,
                 exploders
             };
         }

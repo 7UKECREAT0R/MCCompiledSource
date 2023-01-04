@@ -1,4 +1,5 @@
 {
+  "version": 1.1,
   "preprocessor_variables": [
     "compilerversion",
     "minecraftversion",
@@ -6,23 +7,29 @@
     "_false"
   ],
   "features": {
-    "NULLS": {
-      "description": "Null Entities",
-      "details": "Allows the creation of null entity behavior/resource files, as well as placing them in the world. Performance impact not measured.",
-      "min-version": 1.02,
+    "DUMMY": {
+      "description": "Dummy Entities",
+      "details": "Allows the creation of dummy entity behavior/resource files, as well as placing them in the world.",
+      "min-version": 1.1,
       "value": 1
     },
     "GAMETEST": {
-      "description": "GameTest Framework Integration",
-      "details": "to be decided",
-      "min-version": 999,
+      "description": "Gametest Integration",
+      "details": "todo",
+      "min-version": 9999,
       "value": 2
     },
-    "EXPLODERS": {
+    "EXPLODE": {
       "description": "Exploding Entities",
-      "details": "Allows the creation of exploder entity behavior/resource files. Allows the use of the explode command by generating presets for the entity. Performance impact not measured.",
-      "min-version": 1.04,
+      "details": "Allows the creation of exploder entity behavior/resource files. Allows the use of the explode command by generating presets for the entity.",
+      "min-version": 1.1,
       "value": 4
+    },
+    "UNINSTALL": {
+      "description": "Uninstall Function",
+      "details": "Creates a function that will 'uninstall' the addon from the world; removes tags, scoreboard objectives, dummy entities, etc.",
+      "min-version": 1.1,
+      "value": 8
     }
   },
   "mappings": {
@@ -255,7 +262,7 @@
     },
     "select": {
       "description": "Select Entity",
-      "details": "Selects an entity based off of a selector, \"name:type\", or name of any managed entity (e.g., a null). If a block follows this statement, only the code in that block will use the selection specified here before returning to the previous selector.",
+      "details": "Selects an entity based off of a selector, \"name:type\", or name of any managed entity (e.g., a dummy entity). If a block follows this statement, only the code in that block will use the selection specified here before returning to the previous selector.",
       "patterns": [
         [ "selector:entity" ],
         [ "string:name" ]
@@ -312,7 +319,7 @@
     },
     "tp": {
       "description": "Teleport Selected Entity",
-      "details": "Teleports the currently selected entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
+      "details": "Teleports the currently selected entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
         [ "coord:x", "coord:y", "coord:z" ],
         [ "selector:other" ],
@@ -321,7 +328,7 @@
     },
     "tphere": {
       "description": "Teleport Entity to Selected",
-      "details": "Teleports an entity to the selected entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
+      "details": "Teleports an entity to the selected entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
         [ "selector:entity", "?coord:offset x", "?coord:offset y", "?coord:offset z" ],
         [ "string:entity", "?coord:offset x", "?coord:offset y", "?coord:offset z" ]
@@ -336,7 +343,7 @@
     },
     "face": {
       "description": "Face Selected Towards...",
-      "details": "Faces the selected entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
+      "details": "Faces the selected entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
         [ "coord:x", "coord:y", "coord:z" ],
         [ "selector:other" ],
@@ -345,7 +352,7 @@
     },
     "facehere": {
       "description": "Face Entity Towards Selected",
-      "details": "Faces an entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls) towards the selected entity.",
+      "details": "Faces an entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities) towards the selected entity.",
       "patterns": [
         [ "selector:source" ],
         [ "string:source" ]
@@ -456,7 +463,7 @@
     },
     "damage": {
       "description": "Damage Selected Entity",
-      "details": "Damages the selected entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., nulls).",
+      "details": "Damages the selected entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
         [ "int:amount", "?enum:damage cause" ],
         [ "int:amount", "?enum:damage cause", "selector:blame" ],
@@ -480,9 +487,9 @@
         [ "enum:effect", "?int:seconds", "?int:amplifier" ]
       ]
     },
-    "null": {
-      "description": "Create/Remove Null Entity",
-      "details": "Create a null entity, remove the selected ones, or manage the classes on the selected ones.",
+    "dummy": {
+      "description": "Create/Remove Dummy Entity",
+      "details": "Create a dummy entity, remove the selected ones, or manage the classes on the selected ones.",
       "features": 1,
       "patterns": [
         [ "id:create", "string:name", "?string:class", "?coord:x", "?coord:y", "?coord:x" ],

@@ -379,6 +379,10 @@ namespace mc_compiled.MCC.Compiler
                 case "False":
                 case "FALSE":
                     return new TokenBooleanLiteral(false, CURRENT_LINE);
+                case "null":
+                case "Null":
+                case "NULL":
+                    return new TokenNullLiteral(CURRENT_LINE);
                 case "and":
                 case "And":
                 case "AND":

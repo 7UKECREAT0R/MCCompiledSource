@@ -12,22 +12,22 @@ using System.Threading.Tasks;
 namespace mc_compiled.MCC.CustomEntities
 {
     /// <summary>
-    /// Manages null entities in a project.
+    /// Manages dummy entities in a project.
     /// </summary>
-    internal class NullManager : CustomEntityManager
+    internal class DummyManager : CustomEntityManager
     {
         public const string DESTROY_COMPONENT_GROUP = "instant_despawn";
 
         public const string DESTROY_EVENT_NAME = "destroy";
         public const string CLEAN_EVENT_NAME = "clean";
 
-        internal HashSet<string> existingNulls;
+        internal HashSet<string> existingDummies;
         internal HashSet<string> existingClasses;
-        public readonly string nullType;
-        NullFiles nullFiles;
+        public readonly string dummyType;
+        DummyFiles dummyFiles;
 
         /// <summary>
-        /// Get the name of the family for a specific null-class name.
+        /// Get the name of the family for a specific dummy-class name.
         /// </summary>
         /// <param name="clazz"></param>
         /// <returns></returns>
@@ -36,7 +36,7 @@ namespace mc_compiled.MCC.CustomEntities
             return "class_" + Tokenizer.StripForPack(clazz);
         }
         /// <summary>
-        /// Get the name of the family for a specific null-class name.
+        /// Get the name of the family for a specific dummy-class name.
         /// </summary>
         /// <param name="clazz"></param>
         /// <returns></returns>
@@ -45,15 +45,15 @@ namespace mc_compiled.MCC.CustomEntities
             return "with_" + Tokenizer.StripForPack(clazz);
         }
 
-        internal NullManager(Executor parent) : base(parent)
+        internal DummyManager(Executor parent) : base(parent)
         {
             createdEntityFiles = false;
-            existingNulls = new HashSet<string>();
+            existingDummies = new HashSet<string>();
             existingClasses = new HashSet<string>();
-            nullType = parent.project.Namespace("null");
+            dummyType = parent.project.Namespace("dummy");
         }
         /// <summary>
-        /// Create a selector for a null entity.
+        /// Create a selector for a dummy entity.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -64,36 +64,36 @@ namespace mc_compiled.MCC.CustomEntities
                 count = new Commands.Selectors.Count(1),
                 entity = new Commands.Selectors.Entity()
                 {
-                    type = nullType,
+                    type = dummyType,
                     name = name
                 }
             };
         }
         /// <summary>
-        /// Create a string-ed selector for a null entity.
+        /// Create a string-ed selector for a dummy entity.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public string GetStringSelector(string name) =>
-            $"@e[type={nullType},name={name}]";
+            $"@e[type={dummyType},name={name}]";
         /// <summary>
-        /// Create a string-ed selector for a null entity with a class.
+        /// Create a string-ed selector for a dummy entity with a class.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public string GetStringSelector(string name, string clazz) =>
             $"@e[name={name},family={FamilyName(clazz)}]";
         /// <summary>
-        /// Get a selector to select all null entities.
+        /// Get a selector to select all dummy entities.
         /// </summary>
         /// <returns></returns>
         public string GetAllStringSelector() =>
-            $"@e[type={nullType}]";
+            $"@e[type={dummyType}]";
         public string GetAllClassSelector(string clazz) =>
             $"@e[family={FamilyName(clazz)}]";
         
         /// <summary>
-        /// Create a new null entity.
+        /// Create a new dummy entity.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="x"></param>
@@ -101,24 +101,24 @@ namespace mc_compiled.MCC.CustomEntities
         /// <param name="z"></param>
         /// <param name="yRot"></param>
         /// <param name="xRot"></param>
-        /// <returns>The commands to create this null entity.</returns>
+        /// <returns>The commands to create this dummy entity.</returns>
         public string Create(string name, string @class, Coord x, Coord y, Coord z)
         {
             List<string> commands = new List<string>();
-            existingNulls.Add(name);
+            existingDummies.Add(name);
 
             if(@class != null)
             {
                 string eventName = DefineClass(@class);
-                return Command.Summon(nullType, x, y, z, name, eventName);
+                return Command.Summon(dummyType, x, y, z, name, eventName);
             }
 
-            return Command.Summon(nullType, x, y, z, name);
+            return Command.Summon(dummyType, x, y, z, name);
         }
         /// <summary>
-        /// Destroy a null entity.
+        /// Destroy a dummy entity.
         /// </summary>
-        /// <param name="name">The name of the null entity to destroy.</param>
+        /// <param name="name">The name of the dummy entity to destroy.</param>
         /// <param name="clazz">If specified, will only remove if in this class.</param>
         /// <returns></returns>
         public string Destroy(string name, string clazz = null)
@@ -156,21 +156,21 @@ namespace mc_compiled.MCC.CustomEntities
                 EntityEventHandler trigger = new EntityEventHandler(eventName,
                     action: new EventActionAddGroup(groupName));
 
-                if (nullFiles.cleanEvent.action is EventActionRemoveGroup)
+                if (dummyFiles.cleanEvent.action is EventActionRemoveGroup)
                 {
-                    EventActionRemoveGroup removeGroup = nullFiles.cleanEvent.action as EventActionRemoveGroup;
+                    EventActionRemoveGroup removeGroup = dummyFiles.cleanEvent.action as EventActionRemoveGroup;
                     removeGroup.groups.Add(groupName);
                 }
 
-                nullFiles.behavior.componentGroups.Add(group);
-                nullFiles.behavior.events.Add(trigger);
+                dummyFiles.behavior.componentGroups.Add(group);
+                dummyFiles.behavior.events.Add(trigger);
                 existingClasses.Add(@class);
 
                 if (Program.DEBUG)
                 {
                     ConsoleColor old = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("Creating null class: " + @class);
+                    Console.WriteLine("Creating dummy class: " + @class);
                     Console.ForegroundColor = old;
                 }
             }
@@ -180,14 +180,14 @@ namespace mc_compiled.MCC.CustomEntities
 
         internal override IAddonFile[] CreateEntityFiles()
         {
-            nullFiles = EntityBehavior.CreateNull(nullType);
-            return nullFiles.AddonFiles;
+            dummyFiles = EntityBehavior.CreateDummy(dummyType);
+            return dummyFiles.AddonFiles;
         }
         public override bool HasEntity(string entity) =>
-            existingNulls.Contains(entity);
+            existingDummies.Contains(entity);
         public override bool Search(string name, out Commands.Selectors.Selector selector)
         {
-            if (existingNulls.Contains(name))
+            if (existingDummies.Contains(name))
             {
                 selector = GetSelector(name);
                 return true;
@@ -197,7 +197,7 @@ namespace mc_compiled.MCC.CustomEntities
             return false;
         }
     }
-    public struct NullFiles
+    public struct DummyFiles
     {
         public Modding.Behaviors.EntityEventHandler cleanEvent;
         public Modding.Behaviors.EntityBehavior behavior;

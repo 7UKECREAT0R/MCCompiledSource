@@ -3,6 +3,7 @@ using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.CustomEntities;
+using mc_compiled.MCC.Functions;
 using mc_compiled.Modding;
 using mc_compiled.NBT;
 using Newtonsoft.Json.Linq;
@@ -1821,24 +1822,24 @@ namespace mc_compiled.MCC.Compiler
             }
             else if(tokens.NextIs<TokenCoordinateLiteral>())
             {
-                // spawn null
+                // spawn dummy entity
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                executor.RequireFeature(tokens, Feature.NULLS);
+                executor.RequireFeature(tokens, Feature.DUMMY);
                 const string damagerEntity = "_dmg_from";
                 string[] commands = new string[]
                 {
-                    // create null entity at location
-                    executor.entities.nulls.Create(damagerEntity, null, x, y, z),
+                    // create dummy entity at location
+                    executor.entities.dummies.Create(damagerEntity, null, x, y, z),
 
-                    // hit entity from null entity
+                    // hit entity from dummy entity
                     Command.Damage(executor.ActiveSelectorStr, damage, cause,
-                        executor.entities.nulls.GetStringSelector(damagerEntity)),
+                        executor.entities.dummies.GetStringSelector(damagerEntity)),
 
-                    // send kill event to null entity
-                    executor.entities.nulls.Destroy(damagerEntity)
+                    // send kill event to dummy entity
+                    executor.entities.dummies.Destroy(damagerEntity)
                 };
 
                 executor.AddCommands(commands, "damagefrom");
@@ -1857,9 +1858,9 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(command);
         }
-        public static void @null(Executor executor, Statement tokens)
+        public static void dummy(Executor executor, Statement tokens)
         {
-            executor.RequireFeature(tokens, Feature.NULLS);
+            executor.RequireFeature(tokens, Feature.DUMMY);
 
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 
@@ -1882,7 +1883,7 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenCoordinateLiteral>())
                     z = tokens.Next<TokenCoordinateLiteral>();
 
-                string command = executor.entities.nulls.Create(name, clazz, x, y, z);
+                string command = executor.entities.dummies.Create(name, clazz, x, y, z);
                 executor.PushSelectorExecute();
                 executor.AddCommand(command);
                 executor.PopSelector();
@@ -1910,8 +1911,8 @@ namespace mc_compiled.MCC.Compiler
                 executor.PushSelectorExecute();
 
                 executor.AddCommands(new string[] {
-                    executor.entities.nulls.Destroy(name),
-                    executor.entities.nulls.Create(name, clazz, x, y, z)
+                    executor.entities.dummies.Destroy(name),
+                    executor.entities.dummies.Create(name, clazz, x, y, z)
                 }, "singletonnull");
 
                 executor.PopSelector();
@@ -1929,12 +1930,12 @@ namespace mc_compiled.MCC.Compiler
                         clazz = tokens.Next<TokenStringLiteral>();
                     else clazz = null;
 
-                    executor.AddCommand(executor.entities.nulls.Destroy(name, clazz));
+                    executor.AddCommand(executor.entities.dummies.Destroy(name, clazz));
                     return;
                 }
 
                 string target = executor.ActiveSelectorStr;
-                executor.AddCommand(Command.Event(target, NullManager.DESTROY_EVENT_NAME));
+                executor.AddCommand(Command.Event(target, DummyManager.DESTROY_EVENT_NAME));
                 return;
             }
             else if (word.Equals("CLASS"))
@@ -1945,17 +1946,17 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenDirective>() && tokens.Next<TokenDirective>()
                         .directive.identifier.ToUpper().Equals("REMOVE"))
                 {
-                    executor.AddCommand(Command.Event(selector, NullManager.CLEAN_EVENT_NAME));
+                    executor.AddCommand(Command.Event(selector, DummyManager.CLEAN_EVENT_NAME));
                     return;
                 }
 
                 string token = tokens.Next<TokenStringLiteral>();
 
                 // null class <name>
-                string eventName = executor.entities.nulls.DefineClass(token);
+                string eventName = executor.entities.dummies.DefineClass(token);
 
                 executor.AddCommands(new string[] {
-                    Command.Event(selector, NullManager.CLEAN_EVENT_NAME),
+                    Command.Event(selector, DummyManager.CLEAN_EVENT_NAME),
                     Command.Event(selector, eventName)
                 }, null, true);
                 return;
@@ -2008,7 +2009,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void explode(Executor executor, Statement tokens)
         {
-            executor.RequireFeature(tokens, Feature.EXPLODERS);
+            executor.RequireFeature(tokens, Feature.EXPLODE);
 
             Coord x, y, z;
 
@@ -2201,7 +2202,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // constructor
-            Function function = new Function(functionName, selector, false) ;
+            UserFunction function = new UserFunction(functionName, selector, false);
             function.AddParameters(args);
 
             // register it with the compiler
@@ -2231,7 +2232,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void @return(Executor executor, Statement tokens)
         {
-            Function activeFunction = executor.CurrentFile.userFunction;
+            UserFunction activeFunction = executor.CurrentFile.userFunction;
 
             if (activeFunction == null)
                 throw new StatementException(tokens, "Cannot return a value outside of a function.");

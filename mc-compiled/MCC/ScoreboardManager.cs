@@ -21,6 +21,10 @@ namespace mc_compiled.MCC
             /// Infer type from right-hand side of definition.
             /// </summary>
             INFER,
+            /// <summary>
+            /// Invalid value type.
+            /// </summary>
+            INVALID,
 
             /// <summary>
             /// An integral value.
@@ -325,8 +329,11 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Save the current temp level to be recalled later using PopTempState().
         /// </summary>
-        public void PushTempState() =>
+        public TempStateContract PushTempState()
+        {
             tempStack.Push(tempIndex);
+            return new TempStateContract(this);
+        }
         /// <summary>
         /// Restore the temp level to what it was at the last PushTempState() call.
         /// </summary>
@@ -407,6 +414,28 @@ namespace mc_compiled.MCC
             output = null;
             return false;
         }
+    }
 
+    /// <summary>
+    /// A contract given by <see cref="ScoreboardManager.PushTempState"/> used to release the state through disposal.
+    /// This does not have to be disposed if the called does not want to use its features.
+    /// </summary>
+    public class TempStateContract : IDisposable
+    {
+        private bool _isDisposed;
+        private ScoreboardManager parent;
+
+        internal TempStateContract(ScoreboardManager parent)
+        {
+            this.parent = parent;
+        }
+        public void Dispose()
+        {
+            if (_isDisposed)
+                return;
+
+            parent.PopTempState(); // <------ the big kahuna
+            _isDisposed = true;
+        }
     }
 }

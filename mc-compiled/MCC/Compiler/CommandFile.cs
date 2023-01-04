@@ -1,4 +1,6 @@
-﻿using mc_compiled.Modding;
+﻿using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Functions.Types;
+using mc_compiled.Modding;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,7 @@ namespace mc_compiled.MCC.Compiler
     {
         List<string> commands = new List<string>();
 
-        public readonly Function userFunction;
+        public readonly RuntimeFunction userFunction;
         public bool IsUserFunction
         {
             get => userFunction != null;
@@ -36,9 +38,10 @@ namespace mc_compiled.MCC.Compiler
             }
         }
 
-        public readonly string folder;
-        public readonly string name;
-        public CommandFile(string name, string folder = null, Function userFunction = null)
+        public string folder;
+        public string name;
+
+        public CommandFile(string name, string folder = null, RuntimeFunction userFunction = null)
         {
             this.name = name;
             this.folder = folder;

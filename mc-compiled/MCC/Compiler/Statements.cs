@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.MCC.Functions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -224,7 +225,7 @@ namespace mc_compiled.MCC.Compiler
                         commands.AddRange(value.value.CommandsSubLiteral(selector, next, value.Accessor, this));
                     else
                     {
-                        ScoreboardValue temp = executor.scoreboard.RequestTemp(next, this);
+                        ScoreboardValue temp = executor.scoreboard.RequestTemp(next, false, this);
                         commands.AddRange(temp.CommandsSetLiteral(value.Accessor, selector, next));
                         commands.AddRange(value.value.CommandsFromOperation(selector, temp, value.Accessor, temp.Name, op));
                     }
@@ -293,7 +294,7 @@ namespace mc_compiled.MCC.Compiler
 
                 passIn.Add(nextToken);
             }
-            Function function = value.function;
+            UserFunction function = value.function;
 
             executor.PushSelectorExecute();
             executor.AddCommands(function.CallFunction(selector, this,

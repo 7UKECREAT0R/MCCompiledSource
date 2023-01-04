@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Commands.Selectors;
+using mc_compiled.MCC.Functions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -233,9 +234,9 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// The function this identifier references.
         /// </summary>
-        public readonly Function function;
+        public readonly UserFunction function;
 
-        public TokenIdentifierFunction(Function function, int lineNumber) : base(function.name, lineNumber)
+        public TokenIdentifierFunction(UserFunction function, int lineNumber) : base(function.name, lineNumber)
         {
             this.function = function;
         }

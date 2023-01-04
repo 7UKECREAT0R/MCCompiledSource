@@ -19,11 +19,11 @@ namespace mc_compiled.MCC
         public static readonly char[] SUPPORTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 
         /// <summary>
-        /// Convert a string to a scoreboard-supported hash.
+        /// Convert a string to a standardized hash.
         /// </summary>
         /// <param name="input">The string to hash.</param>
         /// <returns>A unique identifier for the string that consists of 8 characters.</returns>
-        public static string ScoreboardHash(string input)
+        public static string StandardizedHash(string input)
         {
             int hash = input.GetHashCode();
             byte[] bytes = BitConverter.GetBytes(hash);
@@ -60,7 +60,7 @@ namespace mc_compiled.MCC
             set
             {
                 if (value.Length > 16)
-                    baseName = ScoreboardHash(value);
+                    baseName = StandardizedHash(value);
                 else
                     baseName = value;
             }
@@ -80,7 +80,7 @@ namespace mc_compiled.MCC
         public void ForceHash()
         {
             aliasName = baseName;
-            baseName = ScoreboardHash(aliasName);
+            baseName = StandardizedHash(aliasName);
         }
 
         public readonly Clarifier clarifier;
@@ -160,6 +160,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <returns></returns>
         public abstract string[] CommandsInit(string prefix = "");
+
         /// <summary>
         /// Get the commands to set this value to any given literal.
         /// </summary>
@@ -168,8 +169,17 @@ namespace mc_compiled.MCC
         /// <param name="token">The literal that is being used as the value.</param>
         /// <returns></returns>
         /// <param name="prefix"></param>
-        
         public abstract string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "");
+
+        /// <summary>
+        /// Compare this scoreboard value to another literal value.
+        /// </summary>
+        /// <param name="accessor"></param>
+        /// <param name="selector"></param>
+        /// <param name="ctype"></param>
+        /// <param name="literal"></param>
+        /// <param name="prefix"></param>
+        /// <returns></returns>
         public abstract Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "");
         /// <summary>
         /// Setup temporary variables before printing this variable as rawtext.
@@ -215,7 +225,6 @@ namespace mc_compiled.MCC
         }
         public abstract string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions);
         public abstract string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions);
-
 
         /// <summary>
         /// this = other
@@ -313,12 +322,14 @@ namespace mc_compiled.MCC
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
+            if (token == null || token is TokenNullLiteral)
+                return new string[] { Command.ScoreboardSet(selector, prefix + Name, 0) };
+
             if (token is TokenStringLiteral)
                 return new string[] { };
 
-            if (token is TokenNumberLiteral)
-                return new string[] { Command.ScoreboardSet(selector, prefix + Name,
-                    (token as TokenNumberLiteral).GetNumberInt())};
+            if (token is TokenNumberLiteral number)
+                return new string[] { Command.ScoreboardSet(selector, prefix + Name, number.GetNumberInt())};
 
             if (token is TokenBooleanLiteral)
                 return new string[] { };
@@ -806,6 +817,9 @@ namespace mc_compiled.MCC
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
+            if (token == null || token is TokenNullLiteral)
+                return new string[] { Command.ScoreboardSet(selector, prefix + Name, 0) };
+
             if (token is TokenStringLiteral)
                 return new string[] { };
 
@@ -1265,6 +1279,9 @@ namespace mc_compiled.MCC
         }
         public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
         {
+            if (token == null || token is TokenNullLiteral)
+                return new string[] { Command.ScoreboardSet(selector, prefix + Name, 0) };
+
             if (token is TokenStringLiteral)
                 return new string[] { };
 

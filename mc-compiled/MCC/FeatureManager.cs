@@ -21,10 +21,10 @@ namespace mc_compiled.MCC
         internal static Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
         {
             {
-                Feature.NULLS, (executor) =>
+                Feature.DUMMY, (executor) =>
                 {
-                    executor.entities.nulls.AddEntityToProject();
-                    executor.SetPPV("null", new object[] { executor.entities.nulls.nullType });
+                    executor.entities.dummies.AddEntityToProject();
+                    executor.SetPPV("null", new object[] { executor.entities.dummies.dummyType });
                 }
             },
             {
@@ -34,7 +34,7 @@ namespace mc_compiled.MCC
                 }
             },
             {
-                Feature.EXPLODERS, (executor) =>
+                Feature.EXPLODE, (executor) =>
                 {
                     executor.entities.exploders.AddEntityToProject();
                 }

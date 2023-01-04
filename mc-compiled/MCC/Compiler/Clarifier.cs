@@ -43,6 +43,13 @@ namespace mc_compiled.MCC.Compiler
             get => currentString;
         }
         /// <summary>
+        /// Returns if the clarifier was defined as global.
+        /// </summary>
+        public bool IsGlobal
+        {
+            get => global;
+        }
+        /// <summary>
         /// Reset this clarifier to its default value, changing depending on if it's <see cref="global"/> or not.
         /// </summary>
         public void Reset()
