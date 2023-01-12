@@ -234,9 +234,9 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// The function this identifier references.
         /// </summary>
-        public readonly UserFunction function;
+        public readonly Function function;
 
-        public TokenIdentifierFunction(UserFunction function, int lineNumber) : base(function.name, lineNumber)
+        public TokenIdentifierFunction(Function function, int lineNumber) : base(function.Keyword, lineNumber)
         {
             this.function = function;
         }

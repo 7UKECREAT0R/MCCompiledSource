@@ -11,19 +11,47 @@ namespace mc_compiled.MCC.Functions
     /// </summary>
     public class FunctionManager
     {
-        private Dictionary<string, Function> functionRegistry = new Dictionary<string, Function>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, List<Function>> functionRegistry;
 
+        /// <summary>
+        /// Create a new FunctionManager with an empty registry.
+        /// </summary>
+        internal FunctionManager()
+        {
+            this.functionRegistry = new Dictionary<string, List<Function>>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Register a function.
+        /// </summary>
+        /// <param name="function"></param>
         public void RegisterFunction(Function function)
         {
             string key = function.Keyword;
             string[] aliases = function.Aliases;
 
-            this.functionRegistry[key] = function;
-            
-            if(aliases != null)
+            RegisterUnderName(key, function);
+
+            if (aliases != null)
                 foreach (string alias in aliases)
-                    this.functionRegistry[key] = function;
+                    RegisterUnderName(alias, function);
         }
+        /// <summary>
+        /// Registers a function under a specific name. Ignores keyword and aliases of the function itself.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="function"></param>
+        private void RegisterUnderName(string name, Function function)
+        {
+            List<Function> functions;
+
+            if (!functionRegistry.TryGetValue(name, out functions))
+                functions = new List<Function>();
+
+            functions.Add(function);
+            functionRegistry[name] = functions;
+        }
+
         /// <summary>
         /// Returns all registered functions that are under a specific type.
         /// To get all functions, use <see cref="FetchAll"/>
@@ -33,8 +61,8 @@ namespace mc_compiled.MCC.Functions
         public IEnumerable<T> FetchAll<T>() where T: Function
         {
             return (
-                from func
-                in functionRegistry.Values
+                from funcList in functionRegistry.Values
+                from func in funcList
                 where func is T
                 select func as T
             );
@@ -45,7 +73,26 @@ namespace mc_compiled.MCC.Functions
         /// <returns></returns>
         public IEnumerable<Function> FetchAll()
         {
-            return functionRegistry.Values;
+            return functionRegistry.Values.SelectMany(item => item);
+        }
+        
+        /// <summary>
+        /// Tries to fetch all functions that matched a keyword. Returned array is sorted by highest importance first.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="functions"></param>
+        /// <returns></returns>
+        public bool TryGetFunctions(string name, out Function[] functions)
+        {
+            if(functionRegistry.TryGetValue(name, out List<Function> results))
+            {
+                results.Sort(FunctionComparator.Instance);
+                functions = results.ToArray();
+                return true;
+            }
+
+            functions = null;
+            return false;
         }
     }
 }

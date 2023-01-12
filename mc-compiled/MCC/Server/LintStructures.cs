@@ -1,5 +1,6 @@
 ﻿using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Functions.Types;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -67,8 +68,7 @@ namespace mc_compiled.MCC.Server
             LintStructure lint = new LintStructure();
             lint.ppvs.AddRange(executor.PPVNames);
             lint.variables.AddRange(executor.scoreboard.values.Select(sb => VariableStructure.Wrap(sb)));
-            // lint.variables.AddRange(executor.scoreboard.definedTempVars.Select(str => new VariableStructure())); IDK WHY THIS WAS HERE
-            lint.functions.AddRange(executor.functions.Select(func => FunctionStructure.Wrap(func, lint)));
+            lint.functions.AddRange(executor.functions.FetchAll().Select(func => FunctionStructure.Wrap(func, lint)));
             return lint;
         }
 
@@ -118,25 +118,26 @@ namespace mc_compiled.MCC.Server
             this.returnType = returnType;
             this.args = new List<VariableStructure>(args);
         }
-        public static FunctionStructure Wrap(UserFunction function, LintStructure parent)
+        public static FunctionStructure Wrap(Function function, LintStructure parent)
         {
-            // i know this is barely readable shut up
-            string returnType = function.returnValue == null ?  null : function.returnValue.GetTypeKeyword();
+            // now readable :)
+            string returnType = function.Returns;
 
             int count = function.ParameterCount;
             List<VariableStructure> variables = new List<VariableStructure>();
+            FunctionParameter[] parameters = function.Parameters;
 
             for (int i = 0; i < count; i++)
             {
-                FunctionParameter parameter = function.parameters[i];
+                FunctionParameter parameter = parameters[i];
 
-                if (parameter.IsValue)
-                    variables.Add(VariableStructure.Wrap(parameter.scoreboard));
-                else if (parameter.IsLiteral)
-                    parent.ppvs.Add(parameter.ppvName);
+                if (parameter is RuntimeFunctionParameter runtimeParameter)
+                {
+                    variables.Add(VariableStructure.Wrap(runtimeParameter.runtimeDestination));
+                }
             }
 
-            return new FunctionStructure(function.name, returnType, variables.ToArray());
+            return new FunctionStructure(function.Keyword, returnType, variables.ToArray());
         }
         public JObject ToJSON()
         {
@@ -162,12 +163,9 @@ namespace mc_compiled.MCC.Server
             VariableStructure structure = new VariableStructure(value.AliasName, value.GetTypeKeyword());
             return structure;
         }
-        public static VariableStructure Wrap(FunctionParameter parameter)
+        public static VariableStructure Wrap(RuntimeFunctionParameter parameter)
         {
-            if (!parameter.IsScoreboard)
-                throw new Exception("Attempted to wrap non-scoreboard FunctionParameter into a VariableStructure during linting.");
-
-            ScoreboardValue value = parameter.scoreboard;
+            ScoreboardValue value = parameter.runtimeDestination;
             VariableStructure structure = new VariableStructure(value.AliasName, value.GetTypeKeyword());
 
             return structure;

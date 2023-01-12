@@ -77,7 +77,7 @@ namespace mc_compiled.MCC.Compiler
         internal readonly Dictionary<int, object> loadedFiles;
         internal readonly List<int> definedStdFiles;
         internal readonly List<Macro> macros;
-        internal readonly List<UserFunction> functions;
+        internal readonly FunctionManager functions;
         internal readonly HashSet<string> definedTags;
         internal readonly bool[] lastPreprocessorCompare;
         internal readonly ComparisonSet[] lastActualCompare;
@@ -106,7 +106,7 @@ namespace mc_compiled.MCC.Compiler
             definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
-            functions = new List<UserFunction>();
+            functions = new FunctionManager();
             definedTags = new HashSet<string>();
             selections = new Stack<Selector>();
 
@@ -840,12 +840,6 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="macro"></param>
         public void RegisterMacro(Macro macro) =>
             macros.Add(macro);
-        /// <summary>
-        /// Add a function to be looked up later. Its commands can be written to by simply PushFile()ing to this executor.
-        /// </summary>
-        /// <param name="function"></param>
-        public void RegisterFunction(UserFunction function) =>
-            functions.Add(function);
         public Macro? LookupMacro(string name)
         {
             foreach (Macro macro in macros)
@@ -853,22 +847,10 @@ namespace mc_compiled.MCC.Compiler
                     return macro;
             return null;
         }
-        public UserFunction LookupFunction(string name)
-        {
-            foreach (UserFunction function in functions)
-                if (function.Matches(name))
-                    return function;
-            return null;
-        }
         public bool TryLookupMacro(string name, out Macro? macro)
         {
             macro = LookupMacro(name);
             return macro.HasValue;
-        }
-        public bool TryLookupFunction(string name, out UserFunction function)
-        {
-            function = LookupFunction(name);
-            return function != null;
         }
 
         /// <summary>

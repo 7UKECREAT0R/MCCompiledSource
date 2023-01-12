@@ -118,6 +118,7 @@
     <Compile Include="MCC\Compiler\TokenFeeder.cs" />
     <Compile Include="MCC\Functions\Attributes\IFunctionAttribute.cs" />
     <Compile Include="MCC\Functions\Function.cs" />
+    <Compile Include="MCC\Functions\FunctionComparator.cs" />
     <Compile Include="MCC\Functions\FunctionManager.cs" />
     <Compile Include="MCC\Compiler\PreprocessorUtils.cs" />
     <Compile Include="MCC\Compiler\Assembler.cs" />
@@ -140,6 +141,9 @@
     <Compile Include="MCC\CustomEntities\DummyManager.cs" />
     <Compile Include="MCC\Feature.cs" />
     <Compile Include="MCC\FeatureManager.cs" />
+    <Compile Include="MCC\Functions\Types\AttributeFunction.cs" />
+    <Compile Include="MCC\Functions\Types\CompiletimeFunction.cs" />
+    <Compile Include="MCC\Functions\Types\CompiletimeFunctionParameter.cs" />
     <Compile Include="MCC\Functions\Types\RuntimeFunction.cs" />
     <Compile Include="MCC\Functions\Types\RuntimeFunctionParameter.cs" />
     <Compile Include="MCC\ProjectManager.cs" />

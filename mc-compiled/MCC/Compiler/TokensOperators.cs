@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using mc_compiled.MCC.Functions.Attributes;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,19 @@ namespace mc_compiled.MCC.Compiler
         public TokenOperator(int lineNumber) : base(lineNumber) { }
     }
 
+    /// <summary>
+    /// A token which holds a completely constructed function attribute. See <see cref="Functions.Attributes.IFunctionAttribute"/>.
+    /// </summary>
+    public sealed class TokenFunctionAttribute : Token
+    {
+        public readonly IFunctionAttribute attribute;
 
+        public override string AsString() => $"[{attribute.GetDebugString()}]";
+        public TokenFunctionAttribute(IFunctionAttribute attribute, int lineNumber) : base(lineNumber)
+        {
+            this.attribute = attribute;
+        }
+    }
     /// <summary>
     /// An indexer, identified by a token surrounded by [square brackets]. Used to index/scope things like values and PPVs.
     /// </summary>

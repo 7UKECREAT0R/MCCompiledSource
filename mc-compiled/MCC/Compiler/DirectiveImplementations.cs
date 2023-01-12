@@ -2185,17 +2185,25 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenOpenParenthesis>())
                 tokens.Next();
 
+            bool hasBegunOptionals = false;
+
             // this is where the directive takes in function parameters
             while (tokens.HasNext && tokens.NextIs<TokenIdentifier>())
             {
+                // fetch a parameter definition
                 var def = executor.scoreboard.GetNextValueDefinition(tokens);
 
+                // don't let users define non-optional parameters if they already specified one.
+                if (def.defaultValue == null && hasBegunOptionals)
+                    throw new StatementException(tokens, "All parameters proceeding an optional parameter must also be optional.");
+                else
+                    hasBegunOptionals = true;
+
                 if (def.type == ScoreboardManager.ValueType.PPV)
-                    //args.Add(FunctionParameter.CreatePPV(def.name, def.defaultValue));
                     throw new StatementException(tokens, "Preprocessor variable cannot be used as a parameter type. Consider using a function inside a macro.");
                 else
                 {
-                    ScoreboardValue value = def.Create(executor.scoreboard, tokens);
+                    ScoreboardValue value = def.Create(executor.scoreboard, false, tokens);
                     executor.scoreboard.Add(value);
                     args.Add(FunctionParameter.CreateScoreboard(value, def.defaultValue));
                 }

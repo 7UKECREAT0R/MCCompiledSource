@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Functions.Types
 {
+    /// <summary>
+    /// A function parameter that points to a runtime value.
+    /// Setting this parameter's value will result in commands being added to set <see cref="runtimeDestination"/>.
+    /// </summary>
     public class RuntimeFunctionParameter : FunctionParameter
     {
         /// <summary>
@@ -25,42 +29,54 @@ namespace mc_compiled.MCC.Functions.Types
             this.objectiveName = value.Name;
         }
 
-        public override bool CheckInput(Token token, Statement callingStatement)
+        public override bool CheckInput(Token token)
         {
             if(token is TokenLiteral literal)
             {
-                // throws if it can't fit in a scoreboard value.
-                literal.GetScoreboardValueType(callingStatement);
-                return true;
+                var type = literal.GetScoreboardValueType();
+                return type != ScoreboardManager.ValueType.INVALID;
             }
 
             if (token is TokenIdentifierValue _value)
-                return true;
+                return true; // always can fit somehow
 
             return false;
         }
 
-        public override void SetParameter(Token token, Executor executor, Statement callingStatement)
+        public override void SetParameter(Token token, List<string> commandBuffer, Executor executor, Statement callingStatement)
         {
             if (token is TokenLiteral literal)
             {
-                // throws if it can't fit in a scoreboard value.
-                literal.GetScoreboardValueType(callingStatement);
-                return true;
+                var type = literal.GetScoreboardValueType();
+                if (type != ScoreboardManager.ValueType.INVALID)
+                {
+                    string accessor = this.runtimeDestination.AliasName;
+                    string selector = this.runtimeDestination.clarifier.CurrentString;
+                    string[] commands = this.runtimeDestination
+                        .CommandsSetLiteral(accessor, selector, literal);
+                    commandBuffer.AddRange(commands);
+                    return;
+                }
             }
-
-            if (token is TokenIdentifierValue _value)
+            else if (token is TokenIdentifierValue _value)
             {
                 ScoreboardValue value = _value.value;
+                string selector = this.runtimeDestination.clarifier.CurrentString;
+                string thisAccessor = this.runtimeDestination.AliasName;
+                string thatAccessor = value.AliasName;
+                string[] commands = this.runtimeDestination
+                    .CommandsSet(selector, value, thisAccessor, thatAccessor);
+                commandBuffer.AddRange(commands);
+                return;
             }
 
-            throw new StatementException
+            throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
         }
 
         public override string ToString()
         {
             string type = this.runtimeDestination.GetTypeKeyword();
-            return '[' + type + ' ' + this.name + ']';
+            return $"[{type} {name}]";
         }
     }
 }

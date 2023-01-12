@@ -299,7 +299,7 @@ namespace mc_compiled.MCC
             unchecked
             {
                 int hashCode = Name.GetHashCode();
-                hashCode += GetMaxNameLength();
+                hashCode += (int)valueType;
 
                 return hashCode;
             }

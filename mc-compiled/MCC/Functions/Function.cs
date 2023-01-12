@@ -19,6 +19,10 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         public abstract string Keyword { get; }
         /// <summary>
+        /// Text describing what this function returns. Allowed to return null.
+        /// </summary>
+        public abstract string Returns { get; }
+        /// <summary>
         /// The additional aliases that can be used to invoke this function.
         /// This property may return null in the case that this function doesn't support aliases.
         /// </summary>
@@ -26,12 +30,16 @@ namespace mc_compiled.MCC.Functions
         /// <summary>
         /// The pattern that must be matched by <see cref="MatchParameters(Token[])"/> in order to call this function.
         /// </summary>
-        protected abstract FunctionParameter[] Parameters { get; }
+        public abstract FunctionParameter[] Parameters { get; }
         /// <summary>
         /// Get the number of parameters in this function.
         /// </summary>
         public abstract int ParameterCount { get; }
 
+        /// <summary>
+        /// The importance of this function. Functions are sorted and checked from highest-importance-first.
+        /// </summary>
+        public abstract int Importance { get; }
         /// <summary>
         /// Returns if this function can be called without any parameters or parenthesis, just the keyword.
         /// </summary>
@@ -41,52 +49,102 @@ namespace mc_compiled.MCC.Functions
         /// Attempts to match this set of inputs against this function's parameter pattern.
         /// Accounts for optional parameters.
         /// </summary>
-        /// <param name="inputs"></param>
+        /// <param name="inputs">The inputs to check this function against.</param>
+        /// <param name="error">If false is returned, this is the error string to give the user. Otherwise, null.</param>
         /// <returns></returns>
-        public bool MatchParameters(Token[] inputs)
+        public virtual bool MatchParameters(Token[] inputs, out string error)
         {
-            int maxLength = inputs.Length;
-            int sourceIndex = 0;
-            int parameterIndex = 0;
+            int inputLength = inputs.Length;
 
             FunctionParameter[] parameters = this.Parameters;
-            int minimumLength = parameters.Count(p => !p.optional);
+            int maximumParameters = parameters.Length;
+            int minimumParameters = parameters.Count(p => !p.optional);
 
-            if(inputs.Length < minimumLength)
-                return false;
-
-            for (; parameterIndex < maxLength; parameterIndex++)
+            if (inputLength == 0 && minimumParameters == 0)
             {
-                Token source = inputs[sourceIndex];
-                FunctionParameter parameter = parameters[parameterIndex];
+                // zero-parameter function, no processing is needed.
+                error = null;
+                return true;
+            }
+            if (inputLength < minimumParameters)
+            {
+                // not enough parameters to satisfy even the minimum.
+                FunctionParameter missingParameter = parameters[inputLength];
+                error = $"Missing parameter \"{missingParameter.name}\"";
+                return false;
+            }
 
-                if(parameter.CheckInput(source))
-                {
-                    sourceIndex++;
-                    if (sourceIndex >= maxLength)
-                        return true; // matched
-                    continue;
-                } else
-                {
-                    if (!parameter.optional)
-                        return false; // failed match
+            if (inputLength > maximumParameters)
+                inputLength = maximumParameters;
 
-                    // continue to next loop since that parameter was optional.
-                    continue;
+            for (int i = 0; i < inputLength; i++)
+            {
+                Token source = inputs[i];
+                FunctionParameter parameter = parameters[i];
+
+                if (!parameter.CheckInput(source))
+                {
+                    // failed match.
+                    error = $"Couldn't accept input \"{source.ToString()}\" for parameter \"{parameter.name}\"";
+                    return false;
                 }
             }
 
-            return false;
+            error = "Complete and utter nuclear explosion.";
+            return false; 
         }
 
         /// <summary>
-        /// Call this function.
+        /// Load the given tokens into this function's parameters.
         /// </summary>
-        /// <param name="inputs">The tokens to pass into the function.</param>
+        /// <param name="inputs">The input parameters that have been checked by <see cref="MatchParameters(Token[])"/></param>
+        /// <param name="commandBuffer">The commands that will be added after this function call is completed in full.</param>
+        /// <param name="executor">The executor.</param>
+        /// <param name="callingStatement">The statement calling this method.</param>
+        public virtual void ProcessParameters(Token[] inputs, List<string> commandBuffer, Executor executor, Statement callingStatement)
+        {
+            ScoreboardManager sb = executor.scoreboard;
+            List<string> commandsToCall = new List<string>();
+            FunctionParameter[] parameters = this.Parameters;
+
+            using (sb.PushTempState())
+            {
+                int parameterCount = parameters.Length;
+                int inputsCount = inputs.Length;
+
+                for (int i = 0; i < parameterCount; i++)
+                {
+                    FunctionParameter parameter = parameters[i];
+                    Token input; // this will either be a given token, or default if it ran out of those.
+
+                    // out of inputs to pull, start using defaults
+                    if (i >= inputsCount)
+                    {   
+                        if (parameter.optional)
+                            input = parameter.defaultValue;
+                        else
+                            throw new StatementException(callingStatement, $"Missing parameter '{parameter}' in function call.");
+                    }
+                    else
+                        input = inputs[i];
+
+                    if(!parameter.CheckInput(input))
+                        throw new StatementException(callingStatement, $"Couldn't accept input \"{input.ToString()}\" for parameter \"{parameter.name}\"");
+
+                    parameter.SetParameter(input, commandBuffer, executor, callingStatement);
+                    continue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Call this function after the inputs have been processed by <see cref="ProcessParameters(Token[])"/>.
+        /// </summary>
+        /// <param name="commandBuffer">The commands that will be added after this function call is completed in full.</param>
         /// <param name="executor">The executing environment.</param>
         /// <param name="statement">The statement that is calling this function.</param>
         /// <returns>The token to replace the function during squashing. Return null to completely remove the token.</returns>
-        public abstract Token CallFunction(Token[] inputs, Executor executor, Statement statement);
+        public abstract Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement);
         
         /// <summary>
         /// Gets the hash of this function's Keyword.
