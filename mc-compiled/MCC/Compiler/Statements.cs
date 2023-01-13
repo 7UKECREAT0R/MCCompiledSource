@@ -10,6 +10,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementDirective : Statement, IExecutionSetPart
     {
         public readonly Directive directive;
+        public override bool Skip => false;
 
         public StatementDirective(Directive directive, Token[] tokens) : base(tokens, true)
         {
@@ -41,6 +42,7 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementComment : Statement
     {
         public readonly string comment;
+        public override bool Skip => true;
 
         public StatementComment(string comment) : base(new Token[0], true)
         {
@@ -77,6 +79,7 @@ namespace mc_compiled.MCC.Compiler
         public StatementCloseBlock closer;
 
         public int statementsInside;
+        public override bool Skip => false;
 
         /// <summary>
         /// The action when this opening block is called.
@@ -122,6 +125,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementCloseBlock : Statement
     {
+        public override bool Skip => false;
         public StatementCloseBlock() : base(null)
         {
             this.closeAction = null;
@@ -173,6 +177,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementOperation : Statement, IExecutionSetPart
     {
+        public override bool Skip => false;
         public StatementOperation(Token[] tokens) : base(tokens) {}
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -246,6 +251,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementFunctionCall : Statement, IExecutionSetPart
     {
+        public override bool Skip => false;
         public StatementFunctionCall(Token[] tokens) : base(tokens) { }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -277,7 +283,7 @@ namespace mc_compiled.MCC.Compiler
             if (NextIs<TokenOpenParenthesis>())
                 Next();
 
-            List<Token> passIn = new List<Token>();
+            List<Token> _passIn = new List<Token>();
             int level = 1;
             while(HasNext)
             {
@@ -292,13 +298,40 @@ namespace mc_compiled.MCC.Compiler
                 if (nextToken is TokenOpenParenthesis)
                     level++;
 
-                passIn.Add(nextToken);
+                _passIn.Add(nextToken);
             }
-            UserFunction function = value.function;
+            Token[] passIn = _passIn.ToArray();
 
+            Function[] functions = value.functions;
             executor.PushSelectorExecute();
-            executor.AddCommands(function.CallFunction(selector, this,
-                executor.scoreboard, passIn.ToArray()), "call" + value.function.name);
+
+            // these are already sorted by importance, so now just find the first match.
+            bool foundValidMatch = false;
+            string lastError = null;
+
+            foreach (Function function in functions)
+            {
+                if (!function.MatchParameters(passIn, out lastError))
+                    continue;
+
+                foundValidMatch = true;
+                List<string> commands = new List<string>();
+
+                // process the parameters and get their commands.
+                function.ProcessParameters(passIn, commands, executor, this);
+
+                // call the function. return value is unused.
+                function.CallFunction(commands, executor, this);
+
+                // finish with the commands.
+                executor.AddCommands(commands, "call" + function.Keyword);
+                commands.Clear();
+                break;
+            }
+
+            if (!foundValidMatch)
+                throw new StatementException(this, lastError);
+
             executor.PopSelector();
             return;
         }
@@ -311,6 +344,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class StatementUnknown : Statement
     {
+        public override bool Skip => true;
         public StatementUnknown(Token[] tokens) : base(tokens) { }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()

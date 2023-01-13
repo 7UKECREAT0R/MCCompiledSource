@@ -116,7 +116,7 @@
     <Compile Include="Commands\Selectors\TransformResult.cs" />
     <Compile Include="MCC\Compiler\Clarifier.cs" />
     <Compile Include="MCC\Compiler\TokenFeeder.cs" />
-    <Compile Include="MCC\Functions\Attributes\IFunctionAttribute.cs" />
+    <Compile Include="MCC\Attributes\IAttribute.cs" />
     <Compile Include="MCC\Functions\Function.cs" />
     <Compile Include="MCC\Functions\FunctionComparator.cs" />
     <Compile Include="MCC\Functions\FunctionManager.cs" />

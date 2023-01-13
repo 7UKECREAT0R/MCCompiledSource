@@ -1,7 +1,10 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -56,6 +59,7 @@ namespace mc_compiled.MCC
         /// </summary>
         internal struct ValueDefinition
         {
+            internal IAttribute[] attributes;
             internal string name;
             internal ValueType type;
             internal int decimalPrecision;
@@ -63,9 +67,10 @@ namespace mc_compiled.MCC
 
             internal Token defaultValue;
 
-            internal ValueDefinition(string name, ValueType type, int decimalPrecision = 0,
+            internal ValueDefinition(IAttribute[] attributes, string name, ValueType type, int decimalPrecision = 0,
                 StructDefinition @struct = null, Token defaultValue = null)
             {
+                this.attributes = attributes;
                 this.name = name;
                 this.type = type;
                 this.decimalPrecision = decimalPrecision;
@@ -76,23 +81,46 @@ namespace mc_compiled.MCC
             /// Create a scoreboard value based off of this definition.
             /// </summary>
             /// <returns></returns>
-            internal ScoreboardValue Create(ScoreboardManager sb, bool global, Statement tokens)
+            internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
             {
                 switch (type)
                 {
                     case ScoreboardManager.ValueType.INT:
-                        return new ScoreboardValueInteger(name, global, sb, tokens);
+                        return new ScoreboardValueInteger(name, false, sb, tokens).WithAttributes(attributes);
                     case ScoreboardManager.ValueType.DECIMAL:
-                        return new ScoreboardValueDecimal(name, decimalPrecision, global, sb, tokens);
+                        return new ScoreboardValueDecimal(name, decimalPrecision, false, sb, tokens).WithAttributes(attributes);
                     case ScoreboardManager.ValueType.BOOL:
-                        return new ScoreboardValueBoolean(name, global, sb, tokens);
+                        return new ScoreboardValueBoolean(name, false, sb, tokens).WithAttributes(attributes);
                     case ScoreboardManager.ValueType.TIME:
-                        return new ScoreboardValueTime(name, global, sb, tokens);
+                        return new ScoreboardValueTime(name, false, sb, tokens).WithAttributes(attributes);
                     case ScoreboardManager.ValueType.STRUCT:
-                        return new ScoreboardValueStruct(name, global, @struct, sb, tokens);
+                        return new ScoreboardValueStruct(name, false, @struct, sb, tokens).WithAttributes(attributes);
                     default:
                         throw new StatementException(tokens, "something terrible happened when trying to use value definition");
                 }
+            }
+            internal void InferType(Statement tokens)
+            {
+                // check if it's a literal.
+                if (this.defaultValue is TokenLiteral literal)
+                {
+                    this.type = literal.GetScoreboardValueType();
+                    if (this.type == ScoreboardManager.ValueType.INVALID)
+                        throw new StatementException(tokens, $"Input \"{literal.AsString()}\" cannot be stored in a value.");
+                    if (literal is TokenDecimalLiteral @decimal)
+                        this.decimalPrecision = @decimal.number.GetPrecision();
+                }
+                // check if it's a runtime value.
+                else if (this.defaultValue is TokenIdentifierValue identifier)
+                {
+                    this.type = identifier.value.valueType;
+                    if (identifier.value is ScoreboardValueDecimal @decimal)
+                        this.decimalPrecision = @decimal.precision;
+                    if (identifier.value is ScoreboardValueStruct @struct)
+                        this.@struct = @struct.structure;
+                }
+                else
+                    throw new StatementException(tokens, $"Cannot assign value of type {this.defaultValue.GetType().Name} into a variable");
             }
         }
 
@@ -221,7 +249,7 @@ namespace mc_compiled.MCC
             tempIndex--;
 
         /// <summary>
-        /// Implicitly a scoreboard value from a literal value.
+        /// Create a scoreboard value from a literal value.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="literal"></param>
@@ -243,17 +271,26 @@ namespace mc_compiled.MCC
                     $"create a scoreboard value for invalid literal type {literal.GetType()}.");
         }
         /// <summary>
-        /// Fetch a value/field definition from this statement. e.g., 'int coins = 3', 'decimal 3 thing', 'customStruct xyz'
+        /// Fetch a value/field definition from this statement. e.g., 'int coins = 3', 'decimal 3 thing', 'customStruct xyz'.
+        /// This method automatically performs type inference if possible.
         /// </summary>
         /// <param name="tokens"></param>
         /// <returns></returns>
         internal ValueDefinition GetNextValueDefinition(Statement tokens)
         {
+            List<IAttribute> attributes = new List<IAttribute>();
+            while(tokens.NextIs<TokenAttribute>())
+            {
+                var _attribute = tokens.Next<TokenAttribute>();
+                attributes.Add(_attribute.attribute);
+            }
+            IAttribute[] attributesArray = attributes.ToArray();
+
             if (tokens.NextIs<TokenIdentifierStruct>())
             {
                 TokenIdentifierStruct _struct = tokens.Next<TokenIdentifierStruct>();
                 TokenStringLiteral @string = tokens.Next<TokenStringLiteral>();
-                return new ValueDefinition(@string, ValueType.STRUCT, @struct: _struct.@struct);
+                return new ValueDefinition(attributesArray, @string, ValueType.STRUCT, @struct: _struct.@struct);
             }
 
             ValueType type = ValueType.INFER;
@@ -286,7 +323,7 @@ namespace mc_compiled.MCC
                 }
             }
 
-            // the default value to set it to
+            // the default value to set it to.
             Token defaultValue = null;
 
             if (type == ValueType.DECIMAL)
@@ -307,7 +344,7 @@ namespace mc_compiled.MCC
                     tokens.Next();
                     defaultValue = tokens.Next();
                 }
-                return new ValueDefinition(name, ValueType.DECIMAL, precision, null, defaultValue);
+                return new ValueDefinition(attributesArray, name, ValueType.DECIMAL, precision, null, defaultValue);
             }
 
             if (name == null)
@@ -323,7 +360,18 @@ namespace mc_compiled.MCC
                 defaultValue = tokens.Next();
             }
 
-            return new ValueDefinition(name, type, default, null, defaultValue);
+            ValueDefinition definition = new ValueDefinition(attributesArray, name, type, default, null, defaultValue);
+
+            // try to infer type based on the default value.
+            if (type == ValueType.INFER)
+            {
+                if (defaultValue == null)
+                    throw new StatementException(tokens, $"Cannot infer value \"{name}\"'s type because there is no default value in declaration.");
+
+                definition.InferType(tokens);
+            }
+
+            return new ValueDefinition();
         }
 
         /// <summary>

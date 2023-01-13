@@ -12,7 +12,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class TokenFeeder
     {
-        protected Executor executor;
+        public Executor executor;
         protected Token[] tokens;
         protected int currentToken;
 

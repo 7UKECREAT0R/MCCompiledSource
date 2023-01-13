@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using mc_compiled.MCC.Functions.Attributes;
+using mc_compiled.MCC.Attributes;
 using System.Security.Cryptography;
 
 namespace mc_compiled.MCC.Functions.Types
@@ -18,31 +18,29 @@ namespace mc_compiled.MCC.Functions.Types
     public class RuntimeFunction : Function
     {
         public readonly CommandFile file;
-        public readonly Selector defaultSelector;
         public ScoreboardValue returnValue;
 
         public readonly bool isCompilerGenerated;
-        readonly List<IFunctionAttribute> attributes;
+        readonly List<IAttribute> attributes;
         readonly List<RuntimeFunctionParameter> parameters;
         
         public string name;                 // name used internally if the normal name won't work.
         public readonly string aliasedName; // user-facing name (keyword)
 
-        public RuntimeFunction(string name, IFunctionAttribute[] attributes, Selector defaultSelector, bool isCompilerGenerated = false)
+        public RuntimeFunction(string name, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
             this.aliasedName = name;
             this.name = name;
-            this.defaultSelector = defaultSelector;
             this.isCompilerGenerated = isCompilerGenerated;
 
             this.file = new CommandFile(name, null, this);
             this.returnValue = null;
 
-            this.attributes = new List<IFunctionAttribute>(attributes);
+            this.attributes = new List<IAttribute>(attributes);
             this.parameters = new List<RuntimeFunctionParameter>();
 
             foreach (var attribute in attributes)
-                attribute.OnCreated(this);
+                attribute.OnAddedFunction(this);
         }
         /// <summary>
         /// Adds a runtime parameter to this function.
@@ -143,8 +141,8 @@ namespace mc_compiled.MCC.Functions.Types
             commandBuffer.Add(Command.Function(file));
 
             // apply attributes
-            foreach (IFunctionAttribute attribute in this.attributes)
-                attribute.OnCalled(this, commandBuffer, executor, statement);
+            foreach (IAttribute attribute in this.attributes)
+                attribute.OnCalledFunction(this, commandBuffer, executor, statement);
 
             // if there's nothing to 'return', send back a null literal.
             if (returnValue == null)

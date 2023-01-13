@@ -2,6 +2,7 @@
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Attributes;
 using mc_compiled.Modding;
 using Newtonsoft.Json.Linq;
 using System;
@@ -87,7 +88,7 @@ namespace mc_compiled.MCC.Compiler
         readonly Stack<Selector> selections;
         readonly Stack<StructDefinition> definingStructs;
         public readonly ScoreboardManager scoreboard;
-        
+
         /// <summary>
         /// Get the bracket depth of the executor currently.
         /// </summary>
@@ -261,7 +262,7 @@ namespace mc_compiled.MCC.Compiler
             return terms;
         }
         /// <summary>
-        /// Append these terms to the end of this command. Will resolve JSONVariant's and construct the command combinations.
+        /// Append these terms to the end of this command. Will resolve <see cref="JSONVariant"/>s and construct the command combinations.
         /// </summary>
         /// <param name="terms">The terms constructed by FString.</param>
         /// <param name="command">The command to append the terms to.</param>
@@ -328,6 +329,11 @@ namespace mc_compiled.MCC.Compiler
             string name = feature.ToString();
             throw new StatementException(source, $"Feature not enabled: {name}. Enable using the command 'feature {name.ToLower()}' at the top of the file.");
         }
+        /// <summary>
+        /// Checks if the execution context is currently in an unreachable area, and throw an exception if true.
+        /// </summary>
+        /// <param name="current">The statement that is currently being run.</param>
+        /// <exception cref="StatementException">If the execution context is currently in an unreachable area.</exception>
         void CheckUnreachable(Statement current)
         {
             if (unreachableCode > 0)
@@ -748,7 +754,7 @@ namespace mc_compiled.MCC.Compiler
                 statement.Run0(this);
                 scoreboard.PopTempState();
 
-                if (statement is StatementComment)
+                if (statement.Skip)
                     continue; // ignore this statement
 
                 // check for unreachable code due to halt directive
@@ -793,6 +799,9 @@ namespace mc_compiled.MCC.Compiler
                     statement.Run0(this);
                     scoreboard.PopTempState();
 
+                    if (statement.Skip)
+                        continue; // ignore this statement
+
                     // check for unreachable code due to halt directive
                     CheckUnreachable(statement);
 
@@ -835,11 +844,16 @@ namespace mc_compiled.MCC.Compiler
             lastActualCompare[ScopeLevel];
 
         /// <summary>
-        /// Add a macro to be looked up later.
+        /// Register a macro to be looked up later.
         /// </summary>
-        /// <param name="macro"></param>
+        /// <param name="macro">The macro to register.</param>
         public void RegisterMacro(Macro macro) =>
             macros.Add(macro);
+        /// <summary>
+        /// Look for a macro present in this project.
+        /// </summary>
+        /// <param name="name">The name used to look up a macro.</param>
+        /// <returns>A nullable <see cref="Macro"/> which contains the found macro, if any.</returns>
         public Macro? LookupMacro(string name)
         {
             foreach (Macro macro in macros)
@@ -847,6 +861,12 @@ namespace mc_compiled.MCC.Compiler
                     return macro;
             return null;
         }
+        /// <summary>
+        /// Tries to look for a macro present in this project under a certain name.
+        /// </summary>
+        /// <param name="name">The name used to look up a macro.</param>
+        /// <param name="macro">The output of this method if it returns true.</param>
+        /// <returns>If a macro was successfully found and set.</returns>
         public bool TryLookupMacro(string name, out Macro? macro)
         {
             macro = LookupMacro(name);

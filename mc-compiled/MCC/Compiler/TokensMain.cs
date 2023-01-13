@@ -227,18 +227,18 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
-    /// Represents a reference to a function.
+    /// Represents a reference to multiple functions that fell under a keyword.
     /// </summary>
     public sealed class TokenIdentifierFunction : TokenIdentifier
     {
         /// <summary>
         /// The function this identifier references.
         /// </summary>
-        public readonly Function function;
+        public readonly Function[] functions;
 
-        public TokenIdentifierFunction(Function function, int lineNumber) : base(function.Keyword, lineNumber)
+        public TokenIdentifierFunction(string keyword, Function[] functions, int lineNumber) : base(keyword, lineNumber)
         {
-            this.function = function;
+            this.functions = functions;
         }
     }
 

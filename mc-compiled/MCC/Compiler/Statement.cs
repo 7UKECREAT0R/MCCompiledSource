@@ -14,6 +14,11 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class Statement : TokenFeeder, ICloneable
     {
+        /// <summary>
+        /// If this statement should be skipped by the executor.
+        /// </summary>
+        public abstract bool Skip { get; }
+
         private TypePattern[] patterns;
         public Statement(Token[] tokens, bool waitForPatterns = false) : base(tokens)
         {
@@ -150,8 +155,8 @@ namespace mc_compiled.MCC.Compiler
                         allResolved.Add(new TokenIdentifierStruct(word, @struct, line));
                     else if (executor.TryLookupMacro(word, out Macro? macro))
                         allResolved.Add(new TokenIdentifierMacro(macro.Value, line));
-                    else if (executor.TryLookupFunction(word, out RuntimeFunction function))
-                        allResolved.Add(new TokenIdentifierFunction(function, line));
+                    else if (executor.functions.TryGetFunctions(word, out Function[] functions))
+                        allResolved.Add(new TokenIdentifierFunction(word, functions, line));
                     else
                         allResolved.Add(unresolved);
                 }
@@ -534,10 +539,10 @@ namespace mc_compiled.MCC.Compiler
 
                 int x = i + 2;
                 TokenIdentifierFunction func = selected as TokenIdentifierFunction;
-                RuntimeFunction function = func.function;
+                Function[] functions = func.functions;
 
                 // if its not parameterless() then fetch until level <= 0
-                List<Token> tokensInside = new List<Token>();
+                List<Token> _tokensInside = new List<Token>();
                 if (!(third is TokenCloseParenthesis))
                 {
                     for(int z = x; z < tokens.Count; z++)
@@ -545,29 +550,44 @@ namespace mc_compiled.MCC.Compiler
                         Token token = tokens[z];
                         if (token is TokenCloseParenthesis)
                             break;
-                        tokensInside.Add(tokens[z]);
+                        _tokensInside.Add(tokens[z]);
                     }
                 }
+                Token[] tokensInside = _tokensInside.ToArray();
 
-                if (tokensInside.Count < function.ParameterCount)
-                    throw new StatementException(this, $"Missing parameters for function {function}");
-                if(function.returnValue == null)
-                    throw new StatementException(this, $"Function does not have a return value.");
+                // these are already sorted by importance, so now just find the first match.
+                bool foundValidMatch = false;
+                string lastError = null;
+                foreach(Function function in functions)
+                {
+                    if (!function.MatchParameters(tokensInside, out lastError))
+                        continue;
 
-                // call function
-                string sel = executor.ActiveSelectorStr;
-                executor.AddCommandsClean(function.CallFunction(sel, this, executor.scoreboard, tokensInside.ToArray()), "call" + function.name);
+                    foundValidMatch = true;
+                    List<string> commands = new List<string>();
 
-                // store return value in temp
-                ScoreboardValue clone = executor.scoreboard.RequestTemp(function.returnValue);
-                executor.AddCommandsClean(clone.CommandsSet(sel, function.returnValue, null, null), "store" + function.name); // ignore accessors
+                    // process the parameters and get their commands.
+                    function.ProcessParameters(tokensInside, commands, executor, this);
 
-                int len = x - i + (1 + tokensInside.Count);
-                tokens.RemoveRange(i, len);
-                tokens.Insert(i, new TokenIdentifierValue(clone.AliasName, clone, selected.lineNumber));
+                    // call the function.
+                    Token replacement = function.CallFunction(commands, executor, this);
 
-                // gets incremented;
-                i = startAt - 1;
+                    // finish with the commands.
+                    executor.AddCommandsClean(commands, "call" + function.Keyword);
+                    commands.Clear();
+
+                    // substitute the returned value from the function.
+                    int len = x - i + (1 + tokensInside.Length);
+                    tokens.RemoveRange(i, len);
+                    tokens.Insert(i, replacement);
+
+                    // gets incremented;
+                    i = startAt - 1;
+                    break;
+                }
+
+                if (!foundValidMatch)
+                    throw new StatementException(this, lastError);
             }
         }
         public object Clone()

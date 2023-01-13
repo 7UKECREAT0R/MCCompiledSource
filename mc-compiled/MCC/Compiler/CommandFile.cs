@@ -17,10 +17,10 @@ namespace mc_compiled.MCC.Compiler
     {
         List<string> commands = new List<string>();
 
-        public readonly RuntimeFunction userFunction;
+        public readonly RuntimeFunction runtimeFunction;
         public bool IsUserFunction
         {
-            get => userFunction != null;
+            get => runtimeFunction != null;
         }
         public int Length
         {
@@ -41,11 +41,11 @@ namespace mc_compiled.MCC.Compiler
         public string folder;
         public string name;
 
-        public CommandFile(string name, string folder = null, RuntimeFunction userFunction = null)
+        public CommandFile(string name, string folder = null, RuntimeFunction runtimeFunction = null)
         {
             this.name = name;
             this.folder = folder;
-            this.userFunction = userFunction;
+            this.runtimeFunction = runtimeFunction;
         }
         public override bool Equals(object obj)
         {

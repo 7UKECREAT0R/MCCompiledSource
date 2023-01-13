@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using mc_compiled.MCC.Functions.Attributes;
 using System.Security.Cryptography;
 
 namespace mc_compiled.MCC.Functions.Types
 {
     /// <summary>
-    /// Represents a function that can be called and fully evaluated at compile-time. Supports attributes.
+    /// Represents a function that can be called and fully evaluated at compile-time.
     /// </summary>
     public class CompiletimeFunction : Function
     {

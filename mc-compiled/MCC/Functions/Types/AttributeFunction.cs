@@ -6,20 +6,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using mc_compiled.MCC.Functions.Attributes;
+using mc_compiled.MCC.Attributes;
 using System.Security.Cryptography;
 
 namespace mc_compiled.MCC.Functions.Types
 {
     /// <summary>
-    /// Represents a function that is compressed to a <see cref="IFunctionAttribute"/>
+    /// Represents a function that is compressed to a <see cref="IAttribute"/>
     /// </summary>
     public class AttributeFunction : Function
     {
         readonly List<CompiletimeFunctionParameter> parameters;
 
         //          ARG1                            ARG2      ARG3       RETURN
-        public Func<CompiletimeFunctionParameter[], Executor, Statement, IFunctionAttribute> callAction;
+        public Func<CompiletimeFunctionParameter[], Executor, Statement, IAttribute> callAction;
 
         public readonly string aliasedName; // user-facing name (keyword)
         public readonly string name;        // name used internally.
@@ -33,7 +33,7 @@ namespace mc_compiled.MCC.Functions.Types
         }
         /// <summary>
         /// Returns this function with a given call action.
-        /// The input delegate takes four parameters and returns a <see cref="IFunctionAttribute"/>.
+        /// The input delegate takes four parameters and returns a <see cref="IAttribute"/>.
         /// </summary>
         /// <remarks>
         /// <see cref="CompiletimeFunctionParameter"/>[] - The parameters passed into this function. <br />
@@ -46,7 +46,7 @@ namespace mc_compiled.MCC.Functions.Types
             CompiletimeFunctionParameter[],
             Executor,
             Statement,
-            IFunctionAttribute> callAction)
+            IAttribute> callAction)
         {
             this.callAction = callAction;
             return this;
@@ -95,8 +95,8 @@ namespace mc_compiled.MCC.Functions.Types
             if (this.callAction == null)
                 throw new StatementException(statement, $"Function \"{name}\" has no call action bound. This is a bug with the compiler.");
 
-            IFunctionAttribute constructed = callAction(parameters.ToArray(), executor, statement);
-            return new TokenFunctionAttribute(constructed, statement.Line);
+            IAttribute constructed = callAction(parameters.ToArray(), executor, statement);
+            return new TokenAttribute(constructed, statement.Line);
         }
     }
 }

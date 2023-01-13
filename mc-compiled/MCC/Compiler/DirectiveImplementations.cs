@@ -4,6 +4,8 @@ using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.CustomEntities;
 using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding;
 using mc_compiled.NBT;
 using Newtonsoft.Json.Linq;
@@ -1009,38 +1011,18 @@ namespace mc_compiled.MCC.Compiler
         {
             ScoreboardManager.ValueDefinition def = executor
                 .scoreboard.GetNextValueDefinition(tokens);
-            bool inferType = def.type == ScoreboardManager.ValueType.INFER;
 
-            // defining PPV value the wrong way
+            // defining value the wrong ways
             if (def.type == ScoreboardManager.ValueType.PPV)
-                throw new StatementException(tokens, "Type 'PPV' is only supported as a function parameter. Use $var instead.");
+                throw new StatementException(tokens, "Type 'PPV' is not supported by this command. Use $var instead.");
 
-            // unable to infer type
-            if (inferType && (def.defaultValue == null))
-                throw new StatementException(tokens, "Cannot infer variable type without a default value.");
-
-            if(inferType)
-            {
-                if (def.defaultValue is TokenLiteral literal)
-                {
-                    def.type = literal.GetScoreboardValueType(tokens);
-                    if (literal is TokenDecimalLiteral @decimal)
-                        def.decimalPrecision = @decimal.number.GetPrecision();
-                }
-                else if (def.defaultValue is TokenIdentifierValue identifier)
-                {
-                    def.type = identifier.value.valueType;
-                    if (identifier.value is ScoreboardValueDecimal @decimal)
-                        def.decimalPrecision = @decimal.precision;
-                    if (identifier.value is ScoreboardValueStruct @struct)
-                        def.@struct = @struct.structure;
-                }
-                else
-                    throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
-            }
-
+            // create the new scoreboard value.
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
+
+            // register it to the executor.
             executor.scoreboard.Add(value);
+
+            // all the rest of this is getting the commands to define the variable.
             List<string> commands = new List<string>();
             commands.AddRange(value.CommandsDefine());
 
@@ -1062,6 +1044,7 @@ namespace mc_compiled.MCC.Compiler
                 executor.PopSelector();
             }
 
+            // add the commands to the executor.
             executor.AddCommands(commands, "define" + value.AliasName);
         }
         public static void init(Executor executor, Statement tokens)
@@ -2168,19 +2151,17 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void function(Executor executor, Statement tokens)
         {
-            // attribute definitions
-            Selector selector;
-
-            if (tokens.NextIs<TokenSelectorLiteral>())
-                selector = tokens.Next<TokenSelectorLiteral>().selector;
-            else
-                selector = new Selector(Selector.Core.s);
-
-            // ... future attributes stuff will go here! ...
+            // pull attributes
+            List<IAttribute> attributes = new List<IAttribute>();
+            while(tokens.NextIs<TokenAttribute>())
+            {
+                TokenAttribute _attribute = tokens.Next<TokenAttribute>();
+                attributes.Add(_attribute.attribute);
+            }
 
             // normal definition
             string functionName = tokens.Next<TokenIdentifier>().word;
-            List<FunctionParameter> args = new List<FunctionParameter>();
+            List<RuntimeFunctionParameter> parameters = new List<RuntimeFunctionParameter>();
 
             if (tokens.NextIs<TokenOpenParenthesis>())
                 tokens.Next();
@@ -2198,39 +2179,34 @@ namespace mc_compiled.MCC.Compiler
                     throw new StatementException(tokens, "All parameters proceeding an optional parameter must also be optional.");
                 else
                     hasBegunOptionals = true;
-
+                
                 if (def.type == ScoreboardManager.ValueType.PPV)
                     throw new StatementException(tokens, "Preprocessor variable cannot be used as a parameter type. Consider using a function inside a macro.");
                 else
                 {
-                    ScoreboardValue value = def.Create(executor.scoreboard, false, tokens);
+                    ScoreboardValue value = def.Create(executor.scoreboard, tokens);
                     executor.scoreboard.Add(value);
-                    args.Add(FunctionParameter.CreateScoreboard(value, def.defaultValue));
+                    parameters.Add(new RuntimeFunctionParameter(value, def.defaultValue));
                 }
             }
 
             // constructor
-            UserFunction function = new UserFunction(functionName, selector, false);
-            function.AddParameters(args);
+            RuntimeFunction function = new RuntimeFunction(functionName, attributes.ToArray(), false);
+            function.AddParameters(parameters);
 
             // register it with the compiler
-            executor.RegisterFunction(function);
+            executor.functions.RegisterFunction(function);
 
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
-                //openBlock.executeAs = function.defaultSelector;
-                //openBlock.shouldRun = true;
-                //openBlock.TargetFile = function.File;
 
                 openBlock.openAction = (e) =>
                 {
-                    e.PushSelector(function.defaultSelector);
-                    e.PushFile(function.File);
+                    e.PushFile(function.file);
                 };
                 openBlock.CloseAction = (e) =>
                 {
-                    e.PopSelector();
                     e.PopFile();
                 };
                 return;
@@ -2240,7 +2216,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void @return(Executor executor, Statement tokens)
         {
-            UserFunction activeFunction = executor.CurrentFile.userFunction;
+            RuntimeFunction activeFunction = executor.CurrentFile.runtimeFunction;
 
             if (activeFunction == null)
                 throw new StatementException(tokens, "Cannot return a value outside of a function.");

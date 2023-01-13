@@ -1,4 +1,4 @@
-﻿using mc_compiled.MCC.Functions.Attributes;
+﻿using mc_compiled.MCC.Attributes;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -18,14 +18,14 @@ namespace mc_compiled.MCC.Compiler
     }
 
     /// <summary>
-    /// A token which holds a completely constructed function attribute. See <see cref="Functions.Attributes.IFunctionAttribute"/>.
+    /// A token which holds a completely constructed attribute. See <see cref="Attributes.IAttribute"/>.
     /// </summary>
-    public sealed class TokenFunctionAttribute : Token
+    public sealed class TokenAttribute : Token
     {
-        public readonly IFunctionAttribute attribute;
+        public readonly IAttribute attribute;
 
         public override string AsString() => $"[{attribute.GetDebugString()}]";
-        public TokenFunctionAttribute(IFunctionAttribute attribute, int lineNumber) : base(lineNumber)
+        public TokenAttribute(IAttribute attribute, int lineNumber) : base(lineNumber)
         {
             this.attribute = attribute;
         }

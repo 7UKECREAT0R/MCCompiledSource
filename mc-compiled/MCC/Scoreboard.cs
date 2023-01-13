@@ -1,6 +1,7 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
+using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
@@ -83,6 +84,7 @@ namespace mc_compiled.MCC
             baseName = StandardizedHash(aliasName);
         }
 
+        public List<IAttribute> attributes;
         public readonly Clarifier clarifier;
         public readonly ScoreboardManager.ValueType valueType;
         internal readonly ScoreboardManager manager;
@@ -98,9 +100,28 @@ namespace mc_compiled.MCC
             if (baseName.Length > 16)
                 aliasName = baseName;
 
+            this.attributes = new List<IAttribute>();
             this.clarifier = new Clarifier(global);
             this.valueType = valueType;
         }
+        /// <summary>
+        /// Add attributes to this scoreboard value.
+        /// </summary>
+        /// <param name="attributes">The attributes to add.</param>
+        /// <returns>This object for chaining.</returns>
+        public ScoreboardValue WithAttributes(IEnumerable<IAttribute> attributes)
+        {
+            this.attributes.AddRange(attributes);
+
+            foreach (IAttribute attribute in attributes)
+                attribute.OnAddedValue(this);
+
+            return this;
+        }
+        /// <summary>
+        /// Perform a fully implemented deep clone of this scoreboard value.
+        /// </summary>
+        /// <returns></returns>
         public virtual object Clone()
         {
             return MemberwiseClone();

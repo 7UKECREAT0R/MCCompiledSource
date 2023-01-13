@@ -20,7 +20,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public const string DEFAULT_CLARIFIER = "@s";
 
-        private readonly bool global;
+        private bool global;
         private string currentString;
 
         /// <summary>
@@ -31,6 +31,17 @@ namespace mc_compiled.MCC.Compiler
         {
             this.global = global;
             this.Reset();
+        }
+        /// <summary>
+        /// Sets this clarifier's global state.
+        /// </summary>
+        /// <param name="global">Whether to have global set or not.</param>
+        /// <returns>This object for chaining.</returns>
+        public Clarifier SetGlobal(bool global)
+        {
+            this.global = global;
+            this.Reset();
+            return this;
         }
 
         /// <summary>
