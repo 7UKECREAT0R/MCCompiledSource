@@ -1,5 +1,4 @@
 ﻿using mc_compiled.MCC.Compiler.Implementations;
-using mc_compiled.MCC.Compiler.Implementations.Functions;
 using mc_compiled.MCC.Functions.Types;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         internal static IFunctionProvider[] DefaultCompilerProviders =
         {
-            new Average()
+
         };
 
         /// <summary>
