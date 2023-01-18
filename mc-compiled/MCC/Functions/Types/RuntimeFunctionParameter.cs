@@ -23,24 +23,65 @@ namespace mc_compiled.MCC.Functions.Types
         /// </summary>
         public readonly string objectiveName;
 
-        public RuntimeFunctionParameter(ScoreboardValue value, Token defaultValue) : base(value.AliasName, defaultValue)
+        public RuntimeFunctionParameter(ScoreboardValue value, Token defaultValue = null) : base(value.AliasName, defaultValue)
         {
             this.runtimeDestination = value;
             this.objectiveName = value.Name;
         }
 
-        public override bool CheckInput(Token token)
+        public override ParameterFit CheckInput(Token token)
         {
             if(token is TokenLiteral literal)
             {
-                var type = literal.GetScoreboardValueType();
-                return type != ScoreboardManager.ValueType.INVALID;
+                var sbType = literal.GetScoreboardValueType();
+                var sbDestType = this.runtimeDestination.valueType;
+
+                if (sbType == ScoreboardManager.ValueType.INVALID)
+                    return ParameterFit.No;
+                if (sbType == sbDestType)
+                {
+                    // return WithSubConversion if the decimal precision doesn't match.
+                    if(this.runtimeDestination is ScoreboardValueDecimal @decimal)
+                    {
+                        int sbPrecision = (literal as TokenDecimalLiteral).number.GetPrecision();
+                        if (@decimal.precision == sbPrecision)
+                            return ParameterFit.Yes;
+
+                        return ParameterFit.WithSubConversion;
+                    }
+
+                    return ParameterFit.Yes;
+                }
+
+                return ParameterFit.WithConversion;
             }
 
             if (token is TokenIdentifierValue _value)
-                return true; // always can fit somehow
+            {
+                var valueType = _value.value.valueType;
+                var valueDestType = this.runtimeDestination.valueType;
 
-            return false;
+                if (valueType == ScoreboardManager.ValueType.INVALID)
+                    return ParameterFit.No;
+                if (valueType == valueDestType)
+                {
+                    // return WithSubConversion if the decimal precision doesn't match. 
+                    if (this.runtimeDestination is ScoreboardValueDecimal @decimal)
+                    {
+                        int sourcePrecision = (_value.value as ScoreboardValueDecimal).precision;
+                        if (@decimal.precision == sourcePrecision)
+                            return ParameterFit.Yes;
+
+                        return ParameterFit.WithSubConversion;
+                    }
+
+                    return ParameterFit.Yes;
+                }
+
+                return ParameterFit.WithConversion;
+            }
+
+            return ParameterFit.No;
         }
 
         public override void SetParameter(Token token, List<string> commandBuffer, Executor executor, Statement callingStatement)

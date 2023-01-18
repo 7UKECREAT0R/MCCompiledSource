@@ -107,7 +107,6 @@ namespace mc_compiled.MCC.Compiler
             definedStdFiles = new List<int>();
             ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
-            functions = new FunctionManager();
             definedTags = new HashSet<string>();
             selections = new Stack<Selector>();
 
@@ -124,6 +123,7 @@ namespace mc_compiled.MCC.Compiler
             currentFiles = new Stack<CommandFile>();
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
+            functions = new FunctionManager(scoreboard);
 
             PushSelector(true);
             SetCompilerPPVs();

@@ -80,15 +80,16 @@ namespace mc_compiled.MCC.Functions.Types
         public override int Importance => 2; // most important.
         public override bool ImplicitCall => this.parameters.Count == 0;
 
-        public override bool MatchParameters(Token[] inputs, out string error)
+        public override bool MatchParameters(Token[] inputs, out string error, out int score)
         {
             if (this.callAction == null)
             {
                 error = $"Function \"{name}\" has no call action bound. This is a bug with the compiler.";
+                score = 0;
                 return false;
             }
 
-            return base.MatchParameters(inputs, out error);
+            return base.MatchParameters(inputs, out error, out score);
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {

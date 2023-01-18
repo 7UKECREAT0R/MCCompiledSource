@@ -24,11 +24,11 @@ namespace mc_compiled.MCC.Functions
         }
 
         /// <summary>
-        /// Checks if the input token would fit into this parameter. This method should not ever throw, only return false.
+        /// Checks how the input token would fit into this parameter. This method should not ever throw.
         /// </summary>
         /// <param name="token">The token to check.</param>
-        /// <returns>If the token will fit into this parameter.</returns>
-        public abstract bool CheckInput(Token token);
+        /// <returns>A <see cref="ParameterFit"/> identifying how the token fits.</returns>
+        public abstract ParameterFit CheckInput(Token token);
         /// <summary>
         /// Performs the actions necessary to set the parameter.
         /// </summary>
@@ -49,7 +49,7 @@ namespace mc_compiled.MCC.Functions
             if (defaultValue == null)
                 throw new StatementException(callingStatement, $"Function parameter \"{name}\" does not have a value to default to.");
 
-            if (CheckInput(defaultValue))
+            if (CheckInput(defaultValue) != ParameterFit.No)
                 SetParameter(defaultValue, commandBuffer, executor, callingStatement);
             else
                 throw new StatementException(callingStatement, $"Default value for function parameter \"{name}\" didn't fit.");
@@ -63,5 +63,24 @@ namespace mc_compiled.MCC.Functions
         {
             return $"[{name}]";
         }
+    }
+    public enum ParameterFit
+    {
+        /// <summary>
+        /// Object cannot fit into the parameter.
+        /// </summary>
+        No,
+        /// <summary>
+        /// Object can fit into the parameter with a conversion.
+        /// </summary>
+        WithConversion,
+        /// <summary>
+        /// Object fits into the parameter natively, but will require a sub-conversion of that type.
+        /// </summary>
+        WithSubConversion,
+        /// <summary>
+        /// Object can fit into the parameter natively.
+        /// </summary>
+        Yes
     }
 }

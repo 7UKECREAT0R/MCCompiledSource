@@ -131,7 +131,7 @@ namespace mc_compiled.MCC
         public readonly Executor executor;
         public readonly HashSet<ScoreboardValue> definedTempVars;
         internal readonly Dictionary<string, StructDefinition> structs;
-        internal readonly List<ScoreboardValue> values;
+        internal readonly HashSet<ScoreboardValue> values;
 
         public ScoreboardManager(Executor executor)
         {
@@ -140,7 +140,7 @@ namespace mc_compiled.MCC
 
             definedTempVars = new HashSet<ScoreboardValue>();
             structs = new Dictionary<string, StructDefinition>();
-            values = new List<ScoreboardValue>();
+            values = new HashSet<ScoreboardValue>();
             this.executor = executor;
         }
         public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
@@ -174,6 +174,21 @@ namespace mc_compiled.MCC
         public bool TryGetStruct(string name, out StructDefinition def) =>
             structs.TryGetValue(name.ToUpper(), out def);
 
+        /// <summary>
+        /// Attempts to throw a <see cref="StatementException"/> if there is a duplicate value with the same name 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="callingStatement"></param>
+        public void TryThrowForDuplicate(ScoreboardValue value, Statement callingStatement)
+        {
+            ScoreboardValue find = values.FirstOrDefault(v => v.Name == value.Name);
+
+            if (find != null)
+            {
+                if (value.valueType != find.valueType)
+                    throw new StatementException(callingStatement, $"Value \"{find.Name}\" already exists with type {find.valueType}.");
+            }
+        }
         /// <summary>
         /// Add a scoreboard value to the cache.
         /// </summary>
@@ -371,7 +386,7 @@ namespace mc_compiled.MCC
                 definition.InferType(tokens);
             }
 
-            return new ValueDefinition();
+            return definition;
         }
 
         /// <summary>

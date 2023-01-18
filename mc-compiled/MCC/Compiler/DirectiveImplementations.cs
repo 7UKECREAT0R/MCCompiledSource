@@ -1020,6 +1020,7 @@ namespace mc_compiled.MCC.Compiler
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
 
             // register it to the executor.
+            executor.scoreboard.TryThrowForDuplicate(value, tokens);
             executor.scoreboard.Add(value);
 
             // all the rest of this is getting the commands to define the variable.
@@ -2182,16 +2183,16 @@ namespace mc_compiled.MCC.Compiler
                 
                 if (def.type == ScoreboardManager.ValueType.PPV)
                     throw new StatementException(tokens, "Preprocessor variable cannot be used as a parameter type. Consider using a function inside a macro.");
-                else
-                {
-                    ScoreboardValue value = def.Create(executor.scoreboard, tokens);
-                    executor.scoreboard.Add(value);
-                    parameters.Add(new RuntimeFunctionParameter(value, def.defaultValue));
-                }
+                
+                ScoreboardValue value = def.Create(executor.scoreboard, tokens);
+                executor.scoreboard.TryThrowForDuplicate(value, tokens);
+                executor.scoreboard.Add(value);
+                parameters.Add(new RuntimeFunctionParameter(value, def.defaultValue));
             }
 
             // constructor
             RuntimeFunction function = new RuntimeFunction(functionName, attributes.ToArray(), false);
+            function.isAddedToExecutor = true;
             function.AddParameters(parameters);
 
             // register it with the compiler

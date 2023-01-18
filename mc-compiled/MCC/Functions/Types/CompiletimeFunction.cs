@@ -78,6 +78,16 @@ namespace mc_compiled.MCC.Functions.Types
             this.parameters.AddRange(parameters);
             return this;
         }
+        /// <summary>
+        /// Adds multiple compile-time parameters to this function.
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns>This object for chaining.</returns>
+        public CompiletimeFunction AddParameters(params CompiletimeFunctionParameter[] parameters)
+        {
+            this.parameters.AddRange(parameters);
+            return this;
+        }
 
         public override string Keyword => aliasedName;
         public override string Returns => returnType;
@@ -87,15 +97,16 @@ namespace mc_compiled.MCC.Functions.Types
         public override int Importance => 1; // more important. tries to run compile-time stuff over runtime stuff.
         public override bool ImplicitCall => false;
 
-        public override bool MatchParameters(Token[] inputs, out string error)
+        public override bool MatchParameters(Token[] inputs, out string error, out int score)
         {
             if (this.callAction == null)
             {
                 error = $"Function \"{name}\" has no call action bound. This is a bug with the compiler.";
+                score = -999;
                 return false;
             }
 
-            return base.MatchParameters(inputs, out error);
+            return base.MatchParameters(inputs, out error, out score);
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {

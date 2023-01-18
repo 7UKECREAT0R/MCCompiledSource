@@ -31,6 +31,30 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
+        /// Set the line of source this feeder relates to. Used in "errors."
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="code"></param>
+        public void SetSource(int line, string code)
+        {
+            Line = line;
+            Source = code;
+        }
+
+        public int Line
+        {
+            get; private set;
+        }
+        public bool DecorateInSource
+        {
+            get; protected set;
+        }
+        public string Source
+        {
+            get; private set;
+        }
+
+        /// <summary>
         /// Returns if this feeder has another available token.
         /// </summary>
         public bool HasNext
@@ -68,7 +92,7 @@ namespace mc_compiled.MCC.Compiler
         public T Next<T>() where T : class
         {
             if (currentToken >= tokens.Length)
-                throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
+                throw new FeederException(this, $"Token expected at end of line, type {nameof(T)}");
 
             Token token = tokens[currentToken++];
             if (!(token is T))
@@ -82,7 +106,7 @@ namespace mc_compiled.MCC.Compiler
                         if (typeof(T).IsAssignableFrom(otherTypes[i]))
                             return implicitToken.Convert(executor, i) as T;
                 }
-                throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
+                throw new FeederException(this, $"Invalid token type. Expected {nameof(T)} but got {token.GetType().Name}");
             }
             else
                 return token as T;
@@ -96,7 +120,7 @@ namespace mc_compiled.MCC.Compiler
         public T Peek<T>() where T : class
         {
             if (currentToken >= tokens.Length)
-                throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
+                throw new FeederException(this, $"Token expected at end of line, type {nameof(T)}");
             Token token = tokens[currentToken];
             if (!(token is T))
             {

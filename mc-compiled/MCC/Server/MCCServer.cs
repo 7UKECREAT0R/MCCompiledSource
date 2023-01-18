@@ -496,6 +496,14 @@ namespace mc_compiled.MCC.Server
                 package.SendFrame(WebSocketFrame.String(json));
                 return;
             }
+            catch (FeederException exc)
+            {
+                if (debug)
+                    Console.WriteLine("\tError. " + exc.Message);
+                string json = ErrorStructure.Wrap(exc).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+                return;
+            }
             catch (Exception exc)
             {
                 if (System.Diagnostics.Debugger.IsAttached)

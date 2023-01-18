@@ -33,30 +33,6 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public abstract bool HasAttribute(DirectiveAttribute attribute);
 
-        /// <summary>
-        /// Set the line of source this statement relates to. Used in "errors."
-        /// </summary>
-        /// <param name="line"></param>
-        /// <param name="code"></param>
-        public void SetSource(int line, string code)
-        {
-            Line = line;
-            Source = code;
-        }
-
-        public int Line
-        {
-            get; private set;
-        }
-        public bool DecorateInSource
-        {
-            get; protected set;
-        }
-        public string Source
-        {
-            get; private set;
-        }
-
         protected abstract TypePattern[] GetValidPatterns();
         /// <summary>
         /// Run this statement/continue where it left off.
@@ -555,39 +531,53 @@ namespace mc_compiled.MCC.Compiler
                 }
                 Token[] tokensInside = _tokensInside.ToArray();
 
-                // these are already sorted by importance, so now just find the first match.
+                // these are already sorted by importance, so now just find the best match.
+                Function bestFunction = null;
+                int bestFunctionScore = int.MinValue;
+
                 bool foundValidMatch = false;
                 string lastError = null;
+
                 foreach(Function function in functions)
                 {
-                    if (!function.MatchParameters(tokensInside, out lastError))
+                    if (!function.MatchParameters(tokensInside,
+                        out lastError, out int score))
+                    {
+                        // the last error is stored, so it will be shown if no valid function is found.
                         continue;
+                    }
 
-                    foundValidMatch = true;
-                    List<string> commands = new List<string>();
-
-                    // process the parameters and get their commands.
-                    function.ProcessParameters(tokensInside, commands, executor, this);
-
-                    // call the function.
-                    Token replacement = function.CallFunction(commands, executor, this);
-
-                    // finish with the commands.
-                    executor.AddCommandsClean(commands, "call" + function.Keyword);
-                    commands.Clear();
-
-                    // substitute the returned value from the function.
-                    int len = x - i + (1 + tokensInside.Length);
-                    tokens.RemoveRange(i, len);
-                    tokens.Insert(i, replacement);
-
-                    // gets incremented;
-                    i = startAt - 1;
-                    break;
+                    if(score > bestFunctionScore)
+                    {
+                        foundValidMatch = true;
+                        bestFunction = function;
+                        bestFunctionScore = score;
+                    }
                 }
 
                 if (!foundValidMatch)
                     throw new StatementException(this, lastError);
+
+                List<string> commands = new List<string>();
+
+                // process the parameters and get their commands.
+                bestFunction.ProcessParameters(tokensInside, commands, executor, this);
+
+                // call the function.
+                Token replacement = bestFunction.CallFunction(commands, executor, this);
+
+                // finish with the commands.
+                executor.AddCommandsClean(commands, "call" + bestFunction.Keyword);
+                commands.Clear();
+
+                // substitute the returned value from the function.
+                int len = x - i + (1 + tokensInside.Length);
+                tokens.RemoveRange(i, len);
+                tokens.Insert(i, replacement);
+
+                // gets incremented;
+                i = startAt - 1;
+                break;
             }
         }
         public object Clone()

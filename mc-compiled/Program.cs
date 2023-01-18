@@ -653,6 +653,27 @@ namespace mc_compiled
                     Console.ReadLine();
                 return false;
             }
+            catch (FeederException exc)
+            {
+                if (DEBUG && Debugger.IsAttached)
+                    throw;
+                if (silentErrors)
+                    return false;
+
+                TokenFeeder thrower = exc.feeder;
+                string message = exc.Message;
+                int _line = thrower.Line;
+                string line = _line == -1 ? "??" : _line.ToString();
+
+                ConsoleColor oldColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine("An error has occurred during compilation:\n" +
+                    $"\t{Path.GetFileName(file)}:{line} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
+                Console.ForegroundColor = oldColor;
+                if (!NO_PAUSE)
+                    Console.ReadLine();
+                return false;
+            }
         }
     }
 }

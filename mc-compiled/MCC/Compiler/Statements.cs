@@ -305,32 +305,44 @@ namespace mc_compiled.MCC.Compiler
             Function[] functions = value.functions;
             executor.PushSelectorExecute();
 
-            // these are already sorted by importance, so now just find the first match.
+            // these are already sorted by importance, so now just find the best match.
+            Function bestFunction = null;
+            int bestFunctionScore = int.MinValue;
+
             bool foundValidMatch = false;
             string lastError = null;
 
             foreach (Function function in functions)
             {
-                if (!function.MatchParameters(passIn, out lastError))
+                if (!function.MatchParameters(passIn,
+                    out lastError, out int score))
+                {
+                    // the last error is stored, so it will be shown if no valid function is found.
                     continue;
+                }
 
-                foundValidMatch = true;
-                List<string> commands = new List<string>();
-
-                // process the parameters and get their commands.
-                function.ProcessParameters(passIn, commands, executor, this);
-
-                // call the function. return value is unused.
-                function.CallFunction(commands, executor, this);
-
-                // finish with the commands.
-                executor.AddCommands(commands, "call" + function.Keyword);
-                commands.Clear();
-                break;
+                if (score > bestFunctionScore)
+                {
+                    foundValidMatch = true;
+                    bestFunction = function;
+                    bestFunctionScore = score;
+                }
             }
 
             if (!foundValidMatch)
                 throw new StatementException(this, lastError);
+
+            List<string> commands = new List<string>();
+
+            // process the parameters and get their commands.
+            bestFunction.ProcessParameters(passIn, commands, executor, this);
+
+            // call the function.
+            Token replacement = bestFunction.CallFunction(commands, executor, this);
+
+            // finish with the commands.
+            executor.AddCommandsClean(commands, "call" + bestFunction.Keyword);
+            commands.Clear();
 
             executor.PopSelector();
             return;

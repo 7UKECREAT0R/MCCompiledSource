@@ -13,6 +13,10 @@ namespace mc_compiled.MCC.Functions.Types
     /// </summary>
     public abstract class CompiletimeFunctionParameter : FunctionParameter
     {
+        /// <summary>
+        /// The current value held in this parameter.
+        /// </summary>
+        public abstract Token CurrentValue { get; protected set; }
         protected CompiletimeFunctionParameter(string name, Token defaultValue) : base(name, defaultValue) { }
     }
 
@@ -26,36 +30,53 @@ namespace mc_compiled.MCC.Functions.Types
         /// <summary>
         /// The current value held in this parameter.
         /// </summary>
-        public T CurrentValue { get; private set; }
+        public override Token CurrentValue { get; protected set; }
 
-        public CompiletimeFunctionParameter(string name, T defaultValue) : base(name, defaultValue)
+        public CompiletimeFunctionParameter(string name, T defaultValue = null) : base(name, defaultValue)
         {
             this.CurrentValue = null;
         }
 
-        public override bool CheckInput(Token token)
+        public override ParameterFit CheckInput(Token token)
         {
             if (token is T)
-                return true;
+                return ParameterFit.Yes;
 
-            return false;
+            if(token is IImplicitToken conversion)
+            {
+                Type sourceType = token.GetType();
+                Type[] types = conversion.GetImplicitTypes();
+
+                if (types.Any(type => sourceType.IsAssignableFrom(type)))
+                    return ParameterFit.WithConversion;
+            }
+
+            return ParameterFit.No;
         }
 
         public override void SetParameter(Token token, List<string> commandBuffer, Executor executor, Statement callingStatement)
         {
             if (!(token is T))
-                throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
+            {
+                if (token is IImplicitToken conversion)
+                {
+                    Type[] types = conversion.GetImplicitTypes();
 
-            T casted = token as T;
-            CurrentValue = casted;
-            return;
-        }
-        /// <summary>
-        /// Same functionality as <see cref="SetParameter(Token, Executor, Statement)"/>, but skips type checking. This method doesn't throw exceptions.
-        /// </summary>
-        /// <param name="token"></param>
-        public void SetParameterUnchecked(Token token)
-        {
+                    for(int i = 0; i < types.Length; i++)
+                    {
+                        Type type = types[i];
+
+                        if (!typeof(T).IsAssignableFrom(type))
+                            continue;
+
+                        T convertedCasted = conversion.Convert(executor, i) as T;
+                        CurrentValue = convertedCasted;
+                    }
+                }
+
+                throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
+            }
+
             T casted = token as T;
             CurrentValue = casted;
             return;

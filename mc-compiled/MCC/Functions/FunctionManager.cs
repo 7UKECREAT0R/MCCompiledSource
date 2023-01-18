@@ -1,4 +1,7 @@
-﻿using System;
+﻿using mc_compiled.MCC.Compiler.Implementations;
+using mc_compiled.MCC.Compiler.Implementations.Functions;
+using mc_compiled.MCC.Functions.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,14 +14,34 @@ namespace mc_compiled.MCC.Functions
     /// </summary>
     public class FunctionManager
     {
-        private Dictionary<string, List<Function>> functionRegistry;
+        private Dictionary<string, List<Function>> functionRegistry;    // functions actively in the project
+
+        /// <summary>
+        /// Contains all compiler-implemented providers that should be added on new instances of a FunctionManager.
+        /// </summary>
+        internal static IFunctionProvider[] DefaultCompilerProviders =
+        {
+            new Average()
+        };
 
         /// <summary>
         /// Create a new FunctionManager with an empty registry.
         /// </summary>
-        internal FunctionManager()
+        internal FunctionManager(ScoreboardManager manager)
         {
             this.functionRegistry = new Dictionary<string, List<Function>>(StringComparer.OrdinalIgnoreCase);
+        }
+        /// <summary>
+        /// Registers the function providers included with the compiler.
+        /// </summary>
+        internal void RegisterDefaultProviders(ScoreboardManager manager)
+        {
+            foreach (IFunctionProvider provider in FunctionManager.DefaultCompilerProviders)
+            {
+                var functions = provider.ProvideFunctions(manager);
+                foreach (Function function in functions)
+                    RegisterFunction(function);
+            }
         }
 
         /// <summary>

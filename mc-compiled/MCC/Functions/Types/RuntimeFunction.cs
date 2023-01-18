@@ -17,6 +17,8 @@ namespace mc_compiled.MCC.Functions.Types
     /// </summary>
     public class RuntimeFunction : Function
     {
+        internal bool isAddedToExecutor; // if the function's files have been added to the executor yet.
+
         public readonly CommandFile file;
         public ScoreboardValue returnValue;
 
@@ -29,12 +31,17 @@ namespace mc_compiled.MCC.Functions.Types
 
         public RuntimeFunction(string name, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
+            this.isAddedToExecutor = false;
+
             this.aliasedName = name;
             this.name = name;
             this.isCompilerGenerated = isCompilerGenerated;
 
             this.file = new CommandFile(name, null, this);
             this.returnValue = null;
+
+            if (attributes == null)
+                attributes = new IAttribute[0];
 
             this.attributes = new List<IAttribute>(attributes);
             this.parameters = new List<RuntimeFunctionParameter>();
@@ -58,6 +65,16 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="parameters"></param>
         /// <returns>This object for chaining.</returns>
         public RuntimeFunction AddParameters(IEnumerable<RuntimeFunctionParameter> parameters)
+        {
+            this.parameters.AddRange(parameters);
+            return this;
+        }
+        /// <summary>
+        /// Adds multiple runtime parameters to this function.
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns>This object for chaining.</returns>
+        public RuntimeFunction AddParameters(params RuntimeFunctionParameter[] parameters)
         {
             this.parameters.AddRange(parameters);
             return this;
@@ -138,6 +155,13 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
+            // add the file to the executor if it hasn't been yet.
+            if(!isAddedToExecutor)
+            {
+                executor.AddExtraFile(file);
+                isAddedToExecutor = true;
+            }
+
             commandBuffer.Add(Command.Function(file));
 
             // apply attributes

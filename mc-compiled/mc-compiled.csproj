@@ -115,6 +115,7 @@
     <Compile Include="Commands\Selectors\Transformers\SelectorType.cs" />
     <Compile Include="Commands\Selectors\TransformResult.cs" />
     <Compile Include="MCC\Compiler\Clarifier.cs" />
+    <Compile Include="MCC\Compiler\Implementations\IFunctionProvider.cs" />
     <Compile Include="MCC\Compiler\TokenFeeder.cs" />
     <Compile Include="MCC\Attributes\IAttribute.cs" />
     <Compile Include="MCC\Functions\Function.cs" />
@@ -144,6 +145,7 @@
     <Compile Include="MCC\Functions\Types\AttributeFunction.cs" />
     <Compile Include="MCC\Functions\Types\CompiletimeFunction.cs" />
     <Compile Include="MCC\Functions\Types\CompiletimeFunctionParameter.cs" />
+    <Compile Include="MCC\Functions\Types\GenerativeFunction.cs" />
     <Compile Include="MCC\Functions\Types\RuntimeFunction.cs" />
     <Compile Include="MCC\Functions\Types\RuntimeFunctionParameter.cs" />
     <Compile Include="MCC\ProjectManager.cs" />
@@ -255,6 +257,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="MCC\Compiler\Implementations\Attributes\" />
+    <Folder Include="MCC\Compiler\Implementations\Functions\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

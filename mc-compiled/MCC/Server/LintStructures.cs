@@ -35,6 +35,10 @@ namespace mc_compiled.MCC.Server
         {
             return new ErrorStructure(During.execution, exception.statement.Line, exception.Message);
         }
+        public static ErrorStructure Wrap(FeederException exception)
+        {
+            return new ErrorStructure(During.tokenizer, exception.feeder.Line, exception.Message);
+        }
         public static ErrorStructure Wrap(Exception exception, int line)
         {
             return new ErrorStructure(During.unknown, line, exception.ToString());

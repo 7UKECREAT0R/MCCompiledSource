@@ -51,8 +51,9 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         /// <param name="inputs">The inputs to check this function against.</param>
         /// <param name="error">If false is returned, this is the error string to give the user. Otherwise, null.</param>
+        /// <param name="score">If true is returned, this is the score the match received. </param>
         /// <returns></returns>
-        public virtual bool MatchParameters(Token[] inputs, out string error)
+        public virtual bool MatchParameters(Token[] inputs, out string error, out int score)
         {
             int inputLength = inputs.Length;
 
@@ -64,6 +65,7 @@ namespace mc_compiled.MCC.Functions
             {
                 // zero-parameter function, no processing is needed.
                 error = null;
+                score = -999;
                 return true;
             }
             if (inputLength < minimumParameters)
@@ -71,27 +73,45 @@ namespace mc_compiled.MCC.Functions
                 // not enough parameters to satisfy even the minimum.
                 FunctionParameter missingParameter = parameters[inputLength];
                 error = $"Missing parameter \"{missingParameter.name}\"";
+                score = -999;
                 return false;
             }
 
             if (inputLength > maximumParameters)
                 inputLength = maximumParameters;
 
+            score = 0;
+
             for (int i = 0; i < inputLength; i++)
             {
                 Token source = inputs[i];
                 FunctionParameter parameter = parameters[i];
 
-                if (!parameter.CheckInput(source))
+                ParameterFit fit = parameter.CheckInput(source);
+
+                switch (fit)
                 {
-                    // failed match.
-                    error = $"Couldn't accept input \"{source.ToString()}\" for parameter \"{parameter.name}\"";
-                    return false;
+                    case ParameterFit.No:
+                        // failed match.
+                        error = $"Couldn't accept input \"{source.ToString()}\" for parameter \"{parameter.name}\"";
+                        score = -999;
+                        return false;
+                    case ParameterFit.WithConversion:
+                        score += 1;
+                        break;
+                    case ParameterFit.WithSubConversion:
+                        score += 2;
+                        break;
+                    case ParameterFit.Yes:
+                        score += 3;
+                        break;
+                    default:
+                        break;
                 }
             }
 
-            error = "Complete and utter nuclear explosion.";
-            return false; 
+            error = null;
+            return true; 
         }
 
         /// <summary>
@@ -128,7 +148,7 @@ namespace mc_compiled.MCC.Functions
                     else
                         input = inputs[i];
 
-                    if(!parameter.CheckInput(input))
+                    if(parameter.CheckInput(input) == ParameterFit.No)
                         throw new StatementException(callingStatement, $"Couldn't accept input \"{input.ToString()}\" for parameter \"{parameter.name}\"");
 
                     parameter.SetParameter(input, commandBuffer, executor, callingStatement);
