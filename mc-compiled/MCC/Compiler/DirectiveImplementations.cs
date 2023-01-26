@@ -2178,7 +2178,7 @@ namespace mc_compiled.MCC.Compiler
                 // don't let users define non-optional parameters if they already specified one.
                 if (def.defaultValue == null && hasBegunOptionals)
                     throw new StatementException(tokens, "All parameters proceeding an optional parameter must also be optional.");
-                else
+                if(def.defaultValue != null)
                     hasBegunOptionals = true;
                 
                 if (def.type == ScoreboardManager.ValueType.PPV)

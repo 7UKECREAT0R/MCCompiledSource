@@ -123,7 +123,9 @@ namespace mc_compiled.MCC.Compiler
             currentFiles = new Stack<CommandFile>();
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
+
             functions = new FunctionManager(scoreboard);
+            functions.RegisterDefaultProviders(scoreboard);
 
             PushSelector(true);
             SetCompilerPPVs();

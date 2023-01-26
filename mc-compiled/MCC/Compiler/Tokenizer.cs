@@ -35,11 +35,12 @@ namespace mc_compiled.MCC.Compiler
                 this.chars = chars.ToCharArray();
             }
         }
+        static readonly char[] TOKENIZER_IGNORE_CHARS = new char[] { ' ', '\t', ',' };
         static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
         static readonly char[] LETTERS = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
         static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:.".ToCharArray();
         static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
-        public static bool IsWhiteSpace(char c) => c == ' ' | c == '\t';
+        public static bool IsIgnored(char c) => TOKENIZER_IGNORE_CHARS.Any(test => test == c);
         public static string StripForPack(string str)
         {
             return new string(str.ToLower().Where(c => BP_RP_IDENTIFIER_CHARS.Contains(c)).ToArray());
@@ -97,9 +98,9 @@ namespace mc_compiled.MCC.Compiler
             return content[index + amount];
         }
         char NextChar() => content[index++];
-        void FlushWhitespace()
+        void FlushIgnoredCharacters()
         {
-            while (HasNext && IsWhiteSpace(Peek()))
+            while (HasNext && IsIgnored(Peek()))
                 NextChar();
         }
 
@@ -139,7 +140,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Token NextToken()
         {
-            FlushWhitespace();
+            FlushIgnoredCharacters();
             sb.Clear();
 
             if (!HasNext)
@@ -160,7 +161,6 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenOpenBlock(CURRENT_LINE);
                 case '}':
                     return new TokenCloseBlock(CURRENT_LINE);
-                case ',':
                 case '\r':
                 default:
                     break;
