@@ -247,8 +247,8 @@ namespace mc_compiled.MCC.Compiler
                             advanced = true;
 
                             int indexCopy = scoreIndex;
-                            AddCommandsClean(value.CommandsRawTextSetup(segment, "@s", ref indexCopy), "string" + value.AliasName);
-                            terms.AddRange(value.ToRawText(segment, "@s", ref scoreIndex));
+                            AddCommandsClean(value.CommandsRawTextSetup("@s", ref indexCopy), "string" + value.AliasName);
+                            terms.AddRange(value.ToRawText("@s", ref scoreIndex));
                             scoreIndex++;
                             continue;
                         }

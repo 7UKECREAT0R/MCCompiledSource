@@ -52,8 +52,8 @@ namespace mc_compiled.Commands.Selectors.Mutation.Mutations
             {
                 TokenIdentifierValue b = this.b as TokenIdentifierValue;
                 ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
-                commands.AddRange(temp.CommandsSet(entity, a, a.AliasName, b.word));
-                commands.AddRange(temp.CommandsSub(entity, b.value, a.AliasName, b.word));
+                commands.AddRange(temp.CommandsSet(entity, a));
+                commands.AddRange(temp.CommandsSub(entity, b.value));
                 Range check;
 
                 switch (compare)
@@ -88,7 +88,7 @@ namespace mc_compiled.Commands.Selectors.Mutation.Mutations
             if (b is TokenNumberLiteral)
             {
                 TokenNumberLiteral number = b as TokenNumberLiteral;
-                var output = a.CompareToLiteral(a.AliasName, entity, compare, number);
+                var output = a.CompareToLiteral(entity, compare, number);
                 selector.scores.checks.AddRange(output.Item1);
                 commands.AddRange(output.Item2);
                 return;

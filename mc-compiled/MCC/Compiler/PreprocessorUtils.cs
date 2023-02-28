@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Ink;
+using mc_compiled.MCC.Attributes;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -134,6 +135,8 @@ namespace mc_compiled.MCC.Compiler
                 return new TokenRangeLiteral(value, line);
             if (value is JToken)
                 return new TokenJSONLiteral(value, line);
+            if (value is IAttribute)
+                return new TokenAttribute(value, line);
 
             return null;
         }

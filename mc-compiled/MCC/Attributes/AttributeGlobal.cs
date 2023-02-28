@@ -10,7 +10,7 @@ namespace mc_compiled.MCC.Attributes
 {
     internal class AttributeGlobal : IAttribute
     {
-        public string GetDebugString() => "[Attribute: global]";
+        public string GetDebugString() => "global";
 
         internal AttributeGlobal() { }
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement)

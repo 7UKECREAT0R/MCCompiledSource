@@ -1,6 +1,7 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
+using mc_compiled.MCC.Attributes;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,8 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class TokenLiteral : Token
     {
+        public const string DEFAULT_ERROR = "Invalid literal operation.";
+
         public abstract TokenLiteral Clone();
         public override string AsString() => "<? literal>";
         public abstract override string ToString();
@@ -94,7 +97,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral intLiteral)
                 return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
 
-            throw new TokenException(this, "Invalid literal operation.");
+            throw new TokenException(this, DEFAULT_ERROR);
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
@@ -107,7 +110,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral intLiteral)
                 return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
 
-            throw new TokenException(this, "Invalid literal operation.");
+            throw new TokenException(this, DEFAULT_ERROR);
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
@@ -120,7 +123,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral intLiteral)
                 return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
 
-            throw new TokenException(this, "Invalid literal operation.");
+            throw new TokenException(this, DEFAULT_ERROR);
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
@@ -133,7 +136,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral intLiteral)
                 return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
 
-            throw new TokenException(this, "Invalid literal operation.");
+            throw new TokenException(this, DEFAULT_ERROR);
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
@@ -146,7 +149,7 @@ namespace mc_compiled.MCC.Compiler
             if (other is TokenIntegerLiteral intLiteral)
                 return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, lineNumber);
 
-            throw new TokenException(this, "Invalid literal operation.");
+            throw new TokenException(this, DEFAULT_ERROR);
         }
         public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
         {
@@ -172,7 +175,63 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            throw new TokenException(this, "Invalid literal operation.");
+            throw new TokenException(this, DEFAULT_ERROR);
+        }
+    }
+    /// <summary>
+    /// A token which holds a completely constructed attribute. See <see cref="Attributes.IAttribute"/>.
+    /// </summary>
+    public sealed class TokenAttribute : TokenLiteral, IPreprocessor
+    {
+        public readonly IAttribute attribute;
+
+        public override string AsString() => $"[Attribute: {attribute.GetDebugString()}]";
+
+        public object GetValue()
+        {
+            return attribute;
+        }
+
+        public override TokenLiteral Clone()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override ScoreboardManager.ValueType GetScoreboardValueType() =>
+            ScoreboardManager.ValueType.INVALID;
+
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, DEFAULT_ERROR);
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, DEFAULT_ERROR);
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, DEFAULT_ERROR);
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, DEFAULT_ERROR);
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, DEFAULT_ERROR);
+        }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            throw new TokenException(this, DEFAULT_ERROR);
+        }
+        public TokenAttribute(IAttribute attribute, int lineNumber) : base(lineNumber)
+        {
+            this.attribute = attribute;
         }
     }
     /// <summary>

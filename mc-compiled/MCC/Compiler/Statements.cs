@@ -210,10 +210,10 @@ namespace mc_compiled.MCC.Compiler
                 {
                     TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
                     executor.AddCommands(value.value.CommandsFromOperation
-                        (selector, next.value, value.Accessor, next.Accessor, op), "math_op");
+                        (selector, next.value, op), "math_op");
                 } else
                     executor.AddCommands(value.value.CommandsSet
-                        (selector, next.value, value.Accessor, next.Accessor), "set_op");
+                        (selector, next.value), "set_op");
             }
             else if (NextIs<TokenLiteral>())
             {
@@ -225,14 +225,14 @@ namespace mc_compiled.MCC.Compiler
                     List<string> commands = new List<string>();
 
                     if (op == TokenArithmatic.Type.ADD)
-                        commands.AddRange(value.value.CommandsAddLiteral(selector, next, value.Accessor, this));
+                        commands.AddRange(value.value.CommandsAddLiteral(selector, next, this));
                     else if (op == TokenArithmatic.Type.SUBTRACT)
-                        commands.AddRange(value.value.CommandsSubLiteral(selector, next, value.Accessor, this));
+                        commands.AddRange(value.value.CommandsSubLiteral(selector, next, this));
                     else
                     {
                         ScoreboardValue temp = executor.scoreboard.RequestTemp(next, false, this);
-                        commands.AddRange(temp.CommandsSetLiteral(value.Accessor, selector, next));
-                        commands.AddRange(value.value.CommandsFromOperation(selector, temp, value.Accessor, temp.Name, op));
+                        commands.AddRange(temp.CommandsSetLiteral(selector, next));
+                        commands.AddRange(value.value.CommandsFromOperation(selector, temp, op));
                     }
 
                     executor.AddCommands(commands, "mathoperation");
@@ -240,7 +240,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral
-                        (value.Accessor, selector, next), "setoperation");
+                        (selector, next), "setoperation");
             }
             else
                 throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");

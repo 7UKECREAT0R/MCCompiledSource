@@ -18,19 +18,6 @@ namespace mc_compiled.MCC.Compiler
     }
 
     /// <summary>
-    /// A token which holds a completely constructed attribute. See <see cref="Attributes.IAttribute"/>.
-    /// </summary>
-    public sealed class TokenAttribute : Token
-    {
-        public readonly IAttribute attribute;
-
-        public override string AsString() => $"[{attribute.GetDebugString()}]";
-        public TokenAttribute(IAttribute attribute, int lineNumber) : base(lineNumber)
-        {
-            this.attribute = attribute;
-        }
-    }
-    /// <summary>
     /// An indexer, identified by a token surrounded by [square brackets]. Used to index/scope things like values and PPVs.
     /// </summary>
     public abstract class TokenIndexer : Token

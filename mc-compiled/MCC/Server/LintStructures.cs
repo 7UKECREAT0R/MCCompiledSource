@@ -72,7 +72,10 @@ namespace mc_compiled.MCC.Server
             LintStructure lint = new LintStructure();
             lint.ppvs.AddRange(executor.PPVNames);
             lint.variables.AddRange(executor.scoreboard.values.Select(sb => VariableStructure.Wrap(sb)));
-            lint.functions.AddRange(executor.functions.FetchAll().Select(func => FunctionStructure.Wrap(func, lint)));
+            lint.functions.AddRange(executor.functions
+                .FetchAll()
+                .Where(func => func is RuntimeFunction)
+                .Select(func => FunctionStructure.Wrap(func, lint)));
             return lint;
         }
 
@@ -164,13 +167,13 @@ namespace mc_compiled.MCC.Server
         }
         public static VariableStructure Wrap(ScoreboardValue value)
         {
-            VariableStructure structure = new VariableStructure(value.AliasName, value.GetTypeKeyword());
+            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword());
             return structure;
         }
         public static VariableStructure Wrap(RuntimeFunctionParameter parameter)
         {
             ScoreboardValue value = parameter.runtimeDestination;
-            VariableStructure structure = new VariableStructure(value.AliasName, value.GetTypeKeyword());
+            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword());
 
             return structure;
         }

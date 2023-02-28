@@ -136,7 +136,7 @@ namespace mc_compiled.MCC.Functions.Types
             if (sb.definedTempVars.Add(clone))
                 executor.AddCommandsHead(clone.CommandsDefine());
 
-            AddCommands(clone.CommandsSet(selector, value, null, null));
+            AddCommands(clone.CommandsSet(selector, value));
             returnValue = clone;
             returnValueType = clone.valueType;
         }
@@ -162,7 +162,7 @@ namespace mc_compiled.MCC.Functions.Types
             if (sb.definedTempVars.Add(variable))
                 executor.AddCommandsHead(variable.CommandsDefine());
 
-            AddCommands(variable.CommandsSetLiteral(variable.Name, selector, value));
+            AddCommands(variable.CommandsSetLiteral(selector, value));
             returnValue = variable;
             returnValueType = variable.valueType;
         }
@@ -188,7 +188,7 @@ namespace mc_compiled.MCC.Functions.Types
 
             // sets a temp to the return value.
             ScoreboardValue returnHolder = executor.scoreboard.RequestTemp(returnValue);
-            commandBuffer.AddRange(returnHolder.CommandsSet(executor.ActiveSelectorStr, returnValue, null, null));
+            commandBuffer.AddRange(returnHolder.CommandsSet(executor.ActiveSelectorStr, returnValue));
             return new TokenIdentifierValue(returnHolder.AliasName, returnHolder, statement.Line);
         }
 

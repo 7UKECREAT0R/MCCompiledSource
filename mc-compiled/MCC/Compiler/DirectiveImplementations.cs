@@ -1033,11 +1033,11 @@ namespace mc_compiled.MCC.Compiler
                 string sel = executor.ActiveSelectorStr;
                 if (def.defaultValue is TokenLiteral literal)
                 {
-                    commands.AddRange(value.CommandsSetLiteral(value.Name, sel, literal));
+                    commands.AddRange(value.CommandsSetLiteral(sel, literal));
                 }
                 else if (def.defaultValue is TokenIdentifierValue identifier)
                 {
-                    commands.AddRange(value.CommandsSet(sel, identifier.value, value.Name, identifier.Accessor));
+                    commands.AddRange(value.CommandsSet(sel, identifier.value));
                 }
                 else
                     throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");

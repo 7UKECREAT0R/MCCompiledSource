@@ -17,7 +17,7 @@ namespace mc_compiled.MCC.Attributes
             this.path = path;
         }
 
-        public string GetDebugString() => "[Attribute: folder]";
+        public string GetDebugString() => "folder";
 
 
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
