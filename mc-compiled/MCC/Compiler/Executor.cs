@@ -86,7 +86,6 @@ namespace mc_compiled.MCC.Compiler
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
         readonly Stack<Selector> selections;
-        readonly Stack<StructDefinition> definingStructs;
         public readonly ScoreboardManager scoreboard;
 
         /// <summary>
@@ -119,7 +118,6 @@ namespace mc_compiled.MCC.Compiler
             lastActualCompare = new ComparisonSet[MAXIMUM_DEPTH];
 
             loadedFiles = new Dictionary<int, object>();
-            definingStructs = new Stack<StructDefinition>();
             currentFiles = new Stack<CommandFile>();
             prependBuffer = new StringBuilder();
             scoreboard = new ScoreboardManager(this);
@@ -1269,7 +1267,6 @@ namespace mc_compiled.MCC.Compiler
             definedTags.Clear();
             scoreboard.definedTempVars.Clear();
             scoreboard.values.Clear();
-            scoreboard.structs.Clear();
             GC.Collect();
         }
     }

@@ -46,10 +46,6 @@ namespace mc_compiled.MCC
             /// </summary>
             TIME,
             /// <summary>
-            /// A user-defined structure.
-            /// </summary>
-            STRUCT,
-            /// <summary>
             /// A preprocessor variable.
             /// </summary>
             PPV
@@ -63,18 +59,15 @@ namespace mc_compiled.MCC
             internal string name;
             internal ValueType type;
             internal int decimalPrecision;
-            internal StructDefinition @struct;
 
             internal Token defaultValue;
 
-            internal ValueDefinition(IAttribute[] attributes, string name, ValueType type, int decimalPrecision = 0,
-                StructDefinition @struct = null, Token defaultValue = null)
+            internal ValueDefinition(IAttribute[] attributes, string name, ValueType type, int decimalPrecision = 0, Token defaultValue = null)
             {
                 this.attributes = attributes;
                 this.name = name;
                 this.type = type;
                 this.decimalPrecision = decimalPrecision;
-                this.@struct = @struct;
                 this.defaultValue = defaultValue;
             }
             /// <summary>
@@ -86,15 +79,13 @@ namespace mc_compiled.MCC
                 switch (type)
                 {
                     case ScoreboardManager.ValueType.INT:
-                        return new ScoreboardValueInteger(name, false, sb, tokens).WithAttributes(attributes);
+                        return new ScoreboardValueInteger(name, false, sb, tokens).WithAttributes(attributes, tokens);
                     case ScoreboardManager.ValueType.DECIMAL:
-                        return new ScoreboardValueDecimal(name, decimalPrecision, false, sb, tokens).WithAttributes(attributes);
+                        return new ScoreboardValueDecimal(name, decimalPrecision, false, sb, tokens).WithAttributes(attributes, tokens);
                     case ScoreboardManager.ValueType.BOOL:
-                        return new ScoreboardValueBoolean(name, false, sb, tokens).WithAttributes(attributes);
+                        return new ScoreboardValueBoolean(name, false, sb, tokens).WithAttributes(attributes, tokens);
                     case ScoreboardManager.ValueType.TIME:
-                        return new ScoreboardValueTime(name, false, sb, tokens).WithAttributes(attributes);
-                    case ScoreboardManager.ValueType.STRUCT:
-                        return new ScoreboardValueStruct(name, false, @struct, sb, tokens).WithAttributes(attributes);
+                        return new ScoreboardValueTime(name, false, sb, tokens).WithAttributes(attributes, tokens);
                     default:
                         throw new StatementException(tokens, "something terrible happened when trying to use value definition");
                 }
@@ -116,8 +107,6 @@ namespace mc_compiled.MCC
                     this.type = identifier.value.valueType;
                     if (identifier.value is ScoreboardValueDecimal @decimal)
                         this.decimalPrecision = @decimal.precision;
-                    if (identifier.value is ScoreboardValueStruct @struct)
-                        this.@struct = @struct.structure;
                 }
                 else
                     throw new StatementException(tokens, $"Cannot assign value of type {this.defaultValue.GetType().Name} into a variable");
@@ -130,7 +119,6 @@ namespace mc_compiled.MCC
 
         public readonly Executor executor;
         public readonly HashSet<ScoreboardValue> definedTempVars;
-        internal readonly Dictionary<string, StructDefinition> structs;
         internal readonly HashSet<ScoreboardValue> values;
 
         public ScoreboardManager(Executor executor)
@@ -139,7 +127,6 @@ namespace mc_compiled.MCC
             tempStack = new Stack<int>();
 
             definedTempVars = new HashSet<ScoreboardValue>();
-            structs = new Dictionary<string, StructDefinition>();
             values = new HashSet<ScoreboardValue>();
             this.executor = executor;
         }
@@ -151,28 +138,6 @@ namespace mc_compiled.MCC
             executor.AddCommandsHead(commands.SelectMany(sb => sb.CommandsDefine()));
             definedTempVars.Add(value);
         }
-
-        /// <summary>
-        /// Define a struct. Overwrites the existing one if it exists.
-        /// </summary>
-        /// <param name="def"></param>
-        public void DefineStruct(StructDefinition def) =>
-            structs[def.name] = def;
-        /// <summary>
-        /// Get a struct by its name.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public StructDefinition GetStruct(string name) =>
-            structs[name.ToUpper()];
-        /// <summary>
-        /// Tries to get a struct by its name.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="def"></param>
-        /// <returns>True if the struct was found.</returns>
-        public bool TryGetStruct(string name, out StructDefinition def) =>
-            structs.TryGetValue(name.ToUpper(), out def);
 
         /// <summary>
         /// Attempts to throw a <see cref="StatementException"/> if there is a duplicate value with the same name 
@@ -301,13 +266,6 @@ namespace mc_compiled.MCC
             }
             IAttribute[] attributesArray = attributes.ToArray();
 
-            if (tokens.NextIs<TokenIdentifierStruct>())
-            {
-                TokenIdentifierStruct _struct = tokens.Next<TokenIdentifierStruct>();
-                TokenStringLiteral @string = tokens.Next<TokenStringLiteral>();
-                return new ValueDefinition(attributesArray, @string, ValueType.STRUCT, @struct: _struct.@struct);
-            }
-
             ValueType type = ValueType.INFER;
             string name = null;
 
@@ -359,7 +317,7 @@ namespace mc_compiled.MCC
                     tokens.Next();
                     defaultValue = tokens.Next();
                 }
-                return new ValueDefinition(attributesArray, name, ValueType.DECIMAL, precision, null, defaultValue);
+                return new ValueDefinition(attributesArray, name, ValueType.DECIMAL, precision, defaultValue);
             }
 
             if (name == null)
@@ -375,7 +333,7 @@ namespace mc_compiled.MCC
                 defaultValue = tokens.Next();
             }
 
-            ValueDefinition definition = new ValueDefinition(attributesArray, name, type, default, null, defaultValue);
+            ValueDefinition definition = new ValueDefinition(attributesArray, name, type, default, defaultValue);
 
             // try to infer type based on the default value.
             if (type == ValueType.INFER)
@@ -420,15 +378,7 @@ namespace mc_compiled.MCC
             {
                 string[] names = value.GetAccessibleNames();
                 if (names.Contains(accessor))
-                {
-                    if (value is ScoreboardValueStruct)
-                    {
-                        ScoreboardValueStruct @struct = value as ScoreboardValueStruct;
-                        ScoreboardValue internalValue = @struct.FullyResolveAccessor(accessor);
-                        return internalValue;
-                    }
                     return value;
-                }
             }
             return null;
         }
@@ -460,18 +410,8 @@ namespace mc_compiled.MCC
                 string[] names = value.GetAccessibleNames();
                 if (names.Contains(accessor))
                 {
-                    if (value is ScoreboardValueStruct)
-                    {
-                        ScoreboardValueStruct @struct = value as ScoreboardValueStruct;
-                        ScoreboardValue internalValue = @struct.FullyResolveAccessor(accessor, allowMissingAccessor);
-                        output = internalValue;
-                        return true;
-                    }
-                    else
-                    {
-                        output = value;
-                        return true;
-                    }
+                    output = value;
+                    return true;
                 }
             }
             output = null;

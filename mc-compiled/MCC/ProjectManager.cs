@@ -1,4 +1,5 @@
 ﻿using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.CustomEntities;
 using mc_compiled.Modding;
 using Newtonsoft.Json.Linq;
 using System;
@@ -72,25 +73,24 @@ namespace mc_compiled.MCC
             CommandFile file = new CommandFile("uninstall", Executor.MCC_GENERATED_FOLDER);
             this.AddFile(file);
 
+            if(HasFeature(Feature.DUMMY))
+            {
+                // remove all dummies from the world.
+                file.Add(Commands.Command.Event($"@e[type={parentExecutor.entities.dummies.dummyType}]", DummyManager.DESTROY_EVENT_NAME));
+            }
+
             foreach (string temp in parentExecutor.scoreboard.definedTempVars)
                 file.Add(Commands.Command.ScoreboardRemoveObjective(temp));
 
             foreach (ScoreboardValue sb in parentExecutor.scoreboard.values)
             {
-                if (sb is ScoreboardValueStruct)
-                {
-                    ScoreboardValueStruct svs = sb as ScoreboardValueStruct;
-                    string[] values = svs.structure.GetFullyQualifiedInternalNames(svs.Name);
-                    foreach (string value in values)
-                        file.Add(Commands.Command.ScoreboardRemoveObjective(value));
-                    continue;
-                }
-
                 file.Add(Commands.Command.ScoreboardRemoveObjective(sb.Name));
             }
 
-            foreach(string tag in parentExecutor.definedTags)
+            foreach (string tag in parentExecutor.definedTags)
+            {
                 file.Add(Commands.Command.TagRemove("*", tag));
+            }
         }
 
         internal void AddFile(IAddonFile file) =>

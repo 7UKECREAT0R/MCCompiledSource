@@ -127,8 +127,6 @@ namespace mc_compiled.MCC.Compiler
                     string word = identifier.word;
                     if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value, true))
                         allResolved.Add(new TokenIdentifierValue(word, value, line));
-                    else if (executor.scoreboard.TryGetStruct(word, out StructDefinition @struct))
-                        allResolved.Add(new TokenIdentifierStruct(word, @struct, line));
                     else if (executor.TryLookupMacro(word, out Macro? macro))
                         allResolved.Add(new TokenIdentifierMacro(macro.Value, line));
                     else if (executor.functions.TryGetFunctions(word, out Function[] functions))
@@ -397,12 +395,6 @@ namespace mc_compiled.MCC.Compiler
 
                     ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
                     string accessorTemp = temp.Name;
-                    if (temp is ScoreboardValueStruct && left.word.Contains(':'))
-                    {
-                        StructDefinition structure = (temp as ScoreboardValueStruct).structure;
-                        string field = left.word.Split(':')[1];
-                        accessorTemp = structure.GetAccessor(accessorTemp, field);
-                    }
 
                     commands.AddRange(temp.CommandsSet(selector, a, accessorTemp, right.word));
                     squashedToken = new TokenIdentifierValue(accessorTemp, temp, selected.lineNumber);
@@ -502,24 +494,36 @@ namespace mc_compiled.MCC.Compiler
             if (this is StatementFunctionCall)
                 startAt = 2;
 
-            for(int i = startAt; i < (tokens.Count() - 2); i++)
+            for(int i = startAt; i < tokens.Count; i++)
             {
                 Token selected = tokens[i];
-                Token second = tokens[i + 1];
-                Token third = tokens[i + 2];
+                Token second = (tokens.Count > (i + 1)) ? tokens[i + 1] : null;
+                Token third = (tokens.Count > (i + 2)) ? tokens[i + 2] : null;
 
                 if (!(selected is TokenIdentifierFunction))
                     continue;
-                if (!(second is TokenOpenParenthesis))
-                    continue; // might just be regular identifier
 
-                int x = i + 2;
                 TokenIdentifierFunction func = selected as TokenIdentifierFunction;
                 Function[] functions = func.functions;
 
-                // if its not parameterless() then fetch until level <= 0
+                // skip if there's no parenthesis and no functions can be implicitly called.
+                bool useImplicit = false;
+                if (!functions.Any(f => f.ImplicitCall))
+                {
+                    if (!(second is TokenOpenParenthesis))
+                        continue; // might just be regular identifier
+                }
+                else
+                {
+                    if (!(second is TokenOpenParenthesis))
+                        useImplicit = true; // call to an implicit function
+                }
+
+                int x = i + (useImplicit ? 0 : 2);
+
+                // if its not parameterless() or implicit, fetch until level <= 0
                 List<Token> _tokensInside = new List<Token>();
-                if (!(third is TokenCloseParenthesis))
+                if (!useImplicit && !(third is TokenCloseParenthesis))
                 {
                     for(int z = x; z < tokens.Count; z++)
                     {
@@ -534,29 +538,40 @@ namespace mc_compiled.MCC.Compiler
                 // these are already sorted by importance, so now just find the best match.
                 Function bestFunction = null;
                 int bestFunctionScore = int.MinValue;
-
-                bool foundValidMatch = false;
                 string lastError = null;
 
-                foreach(Function function in functions)
+                if (useImplicit)
                 {
-                    if (!function.MatchParameters(tokensInside,
-                        out lastError, out int score))
+                    // simply use the first (most important) implicit function available.
+                    bestFunction = functions.First(f => f.ImplicitCall);
+                }
+                else
+                {
+                    bool foundValidMatch = false;
+
+                    foreach (Function function in functions)
                     {
-                        // the last error is stored, so it will be shown if no valid function is found.
-                        continue;
+                        if (!function.MatchParameters(tokensInside,
+                            out lastError, out int score))
+                        {
+                            // the last error is stored, so it will be shown if no valid function is found.
+                            continue;
+                        }
+
+                        if (score > bestFunctionScore)
+                        {
+                            foundValidMatch = true;
+                            bestFunction = function;
+                            bestFunctionScore = score;
+                        }
                     }
 
-                    if(score > bestFunctionScore)
-                    {
-                        foundValidMatch = true;
-                        bestFunction = function;
-                        bestFunctionScore = score;
-                    }
+                    if (!foundValidMatch)
+                        throw new StatementException(this, lastError);
                 }
 
-                if (!foundValidMatch)
-                    throw new StatementException(this, lastError);
+                if (bestFunction == null)
+                    throw new StatementException(this, $"Strange error, report to the devs. No best function was found for identifier: {func.word}. Implicit: {useImplicit}");
 
                 List<string> commands = new List<string>();
 
@@ -570,12 +585,22 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommandsClean(commands, "call" + bestFunction.Keyword);
                 commands.Clear();
 
-                // substitute the returned value from the function.
-                int len = x - i + (1 + tokensInside.Length);
-                tokens.RemoveRange(i, len);
-                tokens.Insert(i, replacement);
+                if (useImplicit)
+                {
+                    tokens.RemoveAt(i);
+                    tokens.Insert(i, replacement);
+                    i--;
+                }
+                else
+                {
+                    // substitute the returned value from the function.
+                    int len = x - i + (1 + tokensInside.Length);
+                    tokens.RemoveRange(i, len);
+                    tokens.Insert(i, replacement);
+                }
 
-                // gets incremented;
+                // i gets incremented next iteration
+                // NOTE: the reason it restarts from the beginning is just for stability. it doesn't have any real purpose
                 i = startAt - 1;
                 break;
             }

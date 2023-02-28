@@ -56,7 +56,7 @@ namespace mc_compiled.MCC.Compiler
         public override int GetHashCode()
         {
             int hashCode = -172474549;
-            hashCode = hashCode * -1521134295 + folder.GetHashCode();
+            hashCode = hashCode * -1521134295 + (folder?.GetHashCode()).GetValueOrDefault(); // folder could be null
             hashCode = hashCode * -1521134295 + name.GetHashCode();
             return hashCode;
         }
@@ -71,8 +71,17 @@ namespace mc_compiled.MCC.Compiler
         public void AddTop(IEnumerable<string> commands) =>
             this.commands.InsertRange(0, commands);
 
-        public string GetExtendedDirectory() =>
-            folder;
+        public string GetExtendedDirectory()
+        {
+            if (folder == null)
+                return null;
+
+            // correct path separators
+            string correctedFolder = folder.Replace('/', Path.PathSeparator);
+
+            // return the corrected directory
+            return correctedFolder;
+        }
         public string GetOutputFile() =>
             $"{name}.mcfunction";
         public byte[] GetOutputData()

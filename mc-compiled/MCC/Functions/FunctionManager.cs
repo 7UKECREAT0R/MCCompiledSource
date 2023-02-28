@@ -1,4 +1,5 @@
 ﻿using mc_compiled.MCC.Compiler.Implementations;
+using mc_compiled.MCC.Compiler.Implementations.Attributes;
 using mc_compiled.MCC.Functions.Types;
 using System;
 using System.Collections.Generic;
@@ -13,14 +14,17 @@ namespace mc_compiled.MCC.Functions
     /// </summary>
     public class FunctionManager
     {
-        private Dictionary<string, List<Function>> functionRegistry;    // functions actively in the project
+        /// <summary>
+        /// All of the functions currently in the project.
+        /// </summary>
+        private Dictionary<string, List<Function>> functionRegistry;
 
         /// <summary>
         /// Contains all compiler-implemented providers that should be added on new instances of a FunctionManager.
         /// </summary>
         internal static IFunctionProvider[] DefaultCompilerProviders =
         {
-
+            AttributeFunctions.PROVIDER
         };
 
         /// <summary>

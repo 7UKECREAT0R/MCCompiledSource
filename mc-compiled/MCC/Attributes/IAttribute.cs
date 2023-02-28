@@ -23,11 +23,12 @@ namespace mc_compiled.MCC.Attributes
         /// Called when this attribute is added to a value.
         /// </summary>
         /// <param name="value"></param>
-        void OnAddedValue(ScoreboardValue value);
+        /// <param name="causingStatement"></param>
+        void OnAddedValue(ScoreboardValue value, Statement causingStatement);
         /// <summary>
         /// Called when this attribute is added to a function.
         /// </summary>
-        void OnAddedFunction(RuntimeFunction function);
+        void OnAddedFunction(RuntimeFunction function, Statement causingStatement);
 
         /// <summary>
         /// Called when the function this attribute is attached to is called.

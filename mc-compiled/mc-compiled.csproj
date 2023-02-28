@@ -114,7 +114,10 @@
     <Compile Include="Commands\Selectors\Transformers\SelectorFamily.cs" />
     <Compile Include="Commands\Selectors\Transformers\SelectorType.cs" />
     <Compile Include="Commands\Selectors\TransformResult.cs" />
+    <Compile Include="MCC\Attributes\AttributeFolder.cs" />
+    <Compile Include="MCC\Attributes\AttributeGlobal.cs" />
     <Compile Include="MCC\Compiler\Clarifier.cs" />
+    <Compile Include="MCC\Compiler\Implementations\Attributes\AttributeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\IFunctionProvider.cs" />
     <Compile Include="MCC\Compiler\TokenFeeder.cs" />
     <Compile Include="MCC\Attributes\IAttribute.cs" />
@@ -169,7 +172,6 @@
     <Compile Include="MCC\Server\ServerAsyncPackage.cs" />
     <Compile Include="MCC\Server\SocketMessage.cs" />
     <Compile Include="MCC\Server\WebSocketFrame.cs" />
-    <Compile Include="MCC\StructDefinition.cs" />
     <Compile Include="MCC\Scheduling\TickScheduler.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Monarch.cs" />
     <Compile Include="MCC\SyntaxHighlighting\RawSyntax.cs" />
@@ -258,7 +260,6 @@
     </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="MCC\Compiler\Implementations\Attributes\" />
     <Folder Include="MCC\Compiler\Implementations\Functions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

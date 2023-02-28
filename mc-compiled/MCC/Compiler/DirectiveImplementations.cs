@@ -1014,7 +1014,7 @@ namespace mc_compiled.MCC.Compiler
 
             // defining value the wrong ways
             if (def.type == ScoreboardManager.ValueType.PPV)
-                throw new StatementException(tokens, "Type 'PPV' is not supported by this command. Use $var instead.");
+                throw new StatementException(tokens, "Type 'PPV' is not supported by this command. Use $var for preprocessor code.");
 
             // create the new scoreboard value.
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
@@ -2194,6 +2194,7 @@ namespace mc_compiled.MCC.Compiler
             RuntimeFunction function = new RuntimeFunction(functionName, attributes.ToArray(), false);
             function.isAddedToExecutor = true;
             function.AddParameters(parameters);
+            function.SignalToAttributes(tokens);
 
             // register it with the compiler
             executor.functions.RegisterFunction(function);
@@ -2234,41 +2235,6 @@ namespace mc_compiled.MCC.Compiler
                 TokenLiteral token = tokens.Next<TokenLiteral>();
                 activeFunction.TryReturnValue(tokens, executor, token, selector);
             }
-        }
-        public static void @struct(Executor executor, Statement tokens)
-        {
-            string structName = tokens.Next<TokenIdentifier>().word;
-            StructDefinition item = new StructDefinition(structName, tokens);
-
-            if (!executor.HasNext || !executor.NextIs<StatementOpenBlock>())
-                throw new StatementException(tokens, "No block after struct definition.");
-
-            StatementOpenBlock blockOpen = executor.Next<StatementOpenBlock>();
-            int count = blockOpen.statementsInside;
-
-            StructDefinition definition = new StructDefinition(structName, tokens);
-
-            // read every statement in the block assuming they are in define format
-            for (int i = 0; i < count; i++)
-            {
-                Statement statement = executor.Next();
-                ScoreboardManager.ValueDefinition def = executor
-                    .scoreboard.GetNextValueDefinition(statement);
-
-                if (def.type == ScoreboardManager.ValueType.PPV)
-                    throw new StatementException(tokens, "Type 'PPV' is only supported as a function parameter.");
-
-                ScoreboardValue value = def.Create(executor.scoreboard, statement);
-                string key = definition.GetNextKey();
-                value.Name = key;
-                definition.fields[def.name] = value;
-            }
-
-            executor.scoreboard.DefineStruct(definition);
-
-            if (!executor.HasNext)
-                throw new StatementException(tokens, "Unexpected end-of-file following struct definition.");
-            executor.Next<StatementCloseBlock>();
         }
         public static void @for(Executor executor, Statement tokens)
         {

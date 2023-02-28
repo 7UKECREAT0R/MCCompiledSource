@@ -20,6 +20,8 @@ namespace mc_compiled.MCC.Functions.Types
         internal bool isAddedToExecutor; // if the function's files have been added to the executor yet.
 
         public readonly CommandFile file;
+
+        public ScoreboardManager.ValueType returnValueType;
         public ScoreboardValue returnValue;
 
         public readonly bool isCompilerGenerated;
@@ -28,6 +30,7 @@ namespace mc_compiled.MCC.Functions.Types
         
         public string name;                 // name used internally if the normal name won't work.
         public readonly string aliasedName; // user-facing name (keyword)
+        bool _hasSignaled = false;
 
         public RuntimeFunction(string name, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
@@ -39,16 +42,30 @@ namespace mc_compiled.MCC.Functions.Types
 
             this.file = new CommandFile(name, null, this);
             this.returnValue = null;
+            this.returnValueType = ScoreboardManager.ValueType.INVALID;
 
             if (attributes == null)
                 attributes = new IAttribute[0];
 
             this.attributes = new List<IAttribute>(attributes);
             this.parameters = new List<RuntimeFunctionParameter>();
+        }
+        /// <summary>
+        /// Signal to this function's attributes that they have been added to a function.
+        /// </summary>
+        /// <param name="callingStatement"></param>
+        /// <exception cref="Exception">If this method has already been called once.</exception>
+        internal void SignalToAttributes(Statement callingStatement)
+        {
+            if (_hasSignaled)
+                throw new Exception($"Attempt to call SignalToAttributes again on function '{name}'");
+
+            _hasSignaled = true;
 
             foreach (var attribute in attributes)
-                attribute.OnAddedFunction(this);
+                attribute.OnAddedFunction(this, callingStatement);
         }
+
         /// <summary>
         /// Adds a runtime parameter to this function.
         /// </summary>
@@ -107,11 +124,9 @@ namespace mc_compiled.MCC.Functions.Types
         {
             if (returnValue != null)
             {
-                Type type = returnValue.GetType();
-
                 // check if types match
-                if (!type.Equals(value.GetType()))
-                    throw new StatementException(caller, $"All return statements in this function must return the same type. Return type: {type.Name}");
+                if (value.valueType != returnValueType)
+                    throw new StatementException(caller, $"All return statements in this function must return the same type. Return type: {returnValueType}");
             }
 
             //   only run this code once for this function, that
@@ -123,6 +138,7 @@ namespace mc_compiled.MCC.Functions.Types
 
             AddCommands(clone.CommandsSet(selector, value, null, null));
             returnValue = clone;
+            returnValueType = clone.valueType;
         }
         /// <summary>
         /// Add commands and setup scoreboard to return a value.
@@ -134,11 +150,8 @@ namespace mc_compiled.MCC.Functions.Types
         {
             if (returnValue != null)
             {
-                Type type = returnValue.GetType();
-
-                // check if types match
-                if (!type.IsAssignableFrom(value.GetType()))
-                    throw new StatementException(caller, $"All return statements in this function must return the same type. Required: {GetType()}");
+                if(value.GetScoreboardValueType() != returnValueType)
+                    throw new StatementException(caller, $"All return statements in this function must return the same type. Required: {returnValueType}");
 
                 return;
             }
@@ -151,6 +164,7 @@ namespace mc_compiled.MCC.Functions.Types
 
             AddCommands(variable.CommandsSetLiteral(variable.Name, selector, value));
             returnValue = variable;
+            returnValueType = variable.valueType;
         }
 
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)

@@ -286,9 +286,7 @@
       "description": "Define Variable",
       "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
       "patterns": [
-        [ "string:name" ],
-        [ "id:type", "string:name" ],
-        [ "id:type", "int:precision", "string:name" ]
+        [ "*:args" ]
       ]
     },
     "init": {
@@ -528,10 +526,10 @@
       ]
     },
     "function": {
-      "description": "Define/Call Function",
-      "details": "If followed by a block, it is treated as a function definition. Parameters must have types, optionally having default values. Functions should be called through 'function_name(parameters)'.",
+      "description": "Define Function",
+      "details": "Must be followed by a block. Parameters must have types, optionally having default values. Functions should look like this: functionName(parameters)",
       "patterns": [
-        [ "any:args" ]
+        [ "*:args" ]
       ]
     },
     "return": {
@@ -542,16 +540,9 @@
         [ "any:return value" ]
       ]
     },
-    "struct": {
-      "description": "Define Struct",
-      "details": "Define a structure with a set of fields and optionally default values in the proceeding block. See documentation.",
-      "patterns": [
-        [ "id:name" ]
-      ]
-    },
     "for": {
       "description": "For Each Entity",
-      "details": "Runs the following statement or block once over every entity that is currently selected.",
+      "details": "Runs the following statement or block once over every entity that matches a selector.",
       "patterns": [
         [ "selector:entities" ]
       ]

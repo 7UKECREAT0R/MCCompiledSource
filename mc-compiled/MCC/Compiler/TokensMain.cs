@@ -192,26 +192,6 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
-    /// Represents a reference to a user-defined struct.
-    /// </summary>
-    public sealed class TokenIdentifierStruct : TokenIdentifier
-    {
-        /// <summary>
-        /// The value this identifier references.
-        /// </summary>
-        public readonly StructDefinition @struct;
-
-        /// <summary>
-        /// Get the full name used to access this value.
-        /// </summary>
-        public string Accessor { get => word; }
-
-        public TokenIdentifierStruct(string word, StructDefinition @struct, int lineNumber) : base(word, lineNumber)
-        {
-            this.@struct = @struct;
-        }
-    }
-    /// <summary>
     /// Represents a reference to a user-defined macro.
     /// </summary>
     public sealed class TokenIdentifierMacro : TokenIdentifier

@@ -102,7 +102,7 @@ namespace mc_compiled.MCC.Server
                 var callback = new AsyncCallback(OnConnectionOpened);
                 socket.BeginAccept(callback, socket);
 
-                // wait for connectionEstablished to be set, meaning a connection has been 
+                // wait for connectionEstablished to be set, meaning we can now wait for the next incoming connection
                 connectionEstablished.WaitOne();
             }
         }

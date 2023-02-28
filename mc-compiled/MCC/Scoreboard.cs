@@ -109,12 +109,12 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="attributes">The attributes to add.</param>
         /// <returns>This object for chaining.</returns>
-        public ScoreboardValue WithAttributes(IEnumerable<IAttribute> attributes)
+        public ScoreboardValue WithAttributes(IEnumerable<IAttribute> attributes, Statement callingStatement)
         {
             this.attributes.AddRange(attributes);
 
             foreach (IAttribute attribute in attributes)
-                attribute.OnAddedValue(this);
+                attribute.OnAddedValue(this, callingStatement);
 
             return this;
         }
@@ -442,13 +442,6 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if(other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsSet(selector, b, thisAccessor, "");
-            }
-
             return new string[0];
         }
         public override string[] CommandsAdd(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -474,13 +467,6 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsAdd(selector, b, thisAccessor, "");
-            }
-
             return new string[0];
         }
         public override string[] CommandsSub(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -504,13 +490,6 @@ namespace mc_compiled.MCC
                 manager.ReleaseTemp();
                 manager.ReleaseTemp();
                 return commands;
-            }
-
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsSub(selector, b, thisAccessor, "");
             }
 
             return new string[0];
@@ -539,13 +518,6 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsMul(selector, b, thisAccessor, "");
-            }
-
             return new string[0];
         }
         public override string[] CommandsDiv(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -569,13 +541,6 @@ namespace mc_compiled.MCC
                 manager.ReleaseTemp();
                 manager.ReleaseTemp();
                 return commands;
-            }
-
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsDiv(selector, b, thisAccessor, "");
             }
 
             return new string[0];
@@ -603,13 +568,6 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsMod(selector, b, thisAccessor, "");
-            }
-
             return new string[0];
         }
         public override string[] CommandsSwap(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -632,13 +590,6 @@ namespace mc_compiled.MCC
 
                 manager.ReleaseTemp();
                 return commands;
-            }
-
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsSwap(selector, b, thisAccessor, "");
             }
 
             return new string[0];
@@ -1006,13 +957,6 @@ namespace mc_compiled.MCC
                 return BalancePrecisionInto(selector, @decimal);
             }
 
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsSet(selector, b, thisAccessor, "");
-            }
-
             return new string[0];
         }
         public override string[] CommandsAdd(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -1047,13 +991,6 @@ namespace mc_compiled.MCC
 
                 return new[] { Command.ScoreboardOpAdd(selector, Name, other.Name) };
             }
-
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsAdd(selector, b, thisAccessor, "");
-            }
             
             return new string[0];
         }
@@ -1085,13 +1022,6 @@ namespace mc_compiled.MCC
                 }
 
                 return new[] { Command.ScoreboardOpSub(selector, Name, other.Name) };
-            }
-
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsSub(selector, b, thisAccessor, "");
             }
 
             return new string[0];
@@ -1132,13 +1062,6 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsMul(selector, b, thisAccessor, "");
-            }
-
             return new string[0];
         }
         public override string[] CommandsDiv(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -1177,13 +1100,6 @@ namespace mc_compiled.MCC
                 return commands;
             }
 
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsDiv(selector, b, thisAccessor, "");
-            }
-
             return new string[0];
         }
         public override string[] CommandsMod(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
@@ -1213,13 +1129,6 @@ namespace mc_compiled.MCC
                 }
 
                 return new[] { Command.ScoreboardOpMod(selector, Name, other.Name) };
-            }
-
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsMod(selector, b, thisAccessor, "");
             }
 
             return new string[0];
@@ -1272,13 +1181,6 @@ namespace mc_compiled.MCC
                 }
 
                 return commands;
-            }
-
-            if (other is ScoreboardValueStruct)
-            {
-                ScoreboardValueStruct cast = other as ScoreboardValueStruct;
-                ScoreboardValue b = cast.FullyResolveAccessor(thatAccessor);
-                return CommandsSwap(selector, b, thisAccessor, "");
             }
 
             return new string[0];
@@ -1369,290 +1271,5 @@ namespace mc_compiled.MCC
             MAX_NAME_LENGTH;
         public override string[] GetAccessibleNames() =>
             new[] { AliasName };
-    }
-    public sealed class ScoreboardValueStruct : ScoreboardValue
-    {
-        public readonly StructDefinition structure;
-
-        public ScoreboardValueStruct(string name, bool global, StructDefinition structure, ScoreboardManager manager, Statement forExceptions) :
-            base(name, global, ScoreboardManager.ValueType.STRUCT, manager, forExceptions)
-        {
-            this.structure = structure;
-        }
-        /// <summary>
-        /// Resolve an accessor of a field to its internal scoreboard value name.
-        /// something:firstField -> something:aa
-        /// something:firstField -> something:ba
-        /// </summary>
-        /// <param name="accessor"></param>
-        /// <returns></returns>
-        public string ResolveAccessor(string accessor) =>
-            structure.GetAccessor(Name, accessor);
-        /// <summary>
-        /// Fully resolve a field:name accessor to its appropriate scoreboard value.
-        /// </summary>
-        /// <param name="accessor"></param>
-        /// <param name="allowMissingAccessor">Whether to allow the struct name on its own without a field accessor.</param>
-        /// <returns></returns>
-        public ScoreboardValue FullyResolveAccessor(string accessor, bool allowMissingAccessor = false)
-        {
-            if (accessor.IndexOf(':') == -1)
-            {
-                if (allowMissingAccessor)
-                    return this;
-                throw new Exception("Struct accessor '" + accessor + "' didn't have a field specified.");
-            }
-
-            return structure.GetFieldFromAccessor(accessor);
-        }
-
-        public override object Clone()
-        {
-            return MemberwiseClone();
-        }
-        public override string GetTypeKeyword() => structure.name;
-        public override string[] CommandsDefine(string prefix = "")
-        {
-            return structure.GetFields(Name).SelectMany(f => f.CommandsDefine(prefix)).ToArray();
-        }
-        public override string[] CommandsInit(string prefix = "")
-        {
-            return structure.GetFields(Name).SelectMany(f => f.CommandsInit(prefix)).ToArray();
-        }
-        public override string[] CommandsSetLiteral(string accessor, string selector, TokenLiteral token, string prefix = "")
-        {
-            ScoreboardValue value = FullyResolveAccessor(accessor);
-            if (value == this)
-                return null;
-            return value.CommandsSetLiteral("", selector, token, prefix);
-        }
-        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string accessor, string selector, TokenCompare.Type ctype, TokenNumberLiteral literal, string prefix = "")
-        {
-            ScoreboardValue value = FullyResolveAccessor(accessor);
-            if(value == this)
-                return null;
-            return value.CompareToLiteral(accessor, selector, ctype, literal, prefix);
-        }
-
-        public override string[] CommandsRawTextSetup(string accessor, string selector, ref int index, string prefix = "")
-        {
-            if (accessor.IndexOf(':') == -1)
-            {
-                ScoreboardValue[] values = structure.GetFields(Name);
-                List<string> commands = new List<string>();
-                int remaining = values.Count();
-                foreach (ScoreboardValue f in values)
-                {
-                    commands.AddRange(f.CommandsRawTextSetup(accessor, selector, ref index, prefix));
-                    remaining--;
-                    if (remaining > 1)
-                        index++;
-                }
-                return commands.ToArray();
-            }
-            ScoreboardValue value = FullyResolveAccessor(accessor);
-            return value.CommandsRawTextSetup("", selector, ref index, prefix);
-        }
-        public override JSONRawTerm[] ToRawText(string accessor, string selector, ref int index, string prefix = "")
-        {
-            if (accessor.IndexOf(':') == -1)
-            {
-                ScoreboardValue[] values = structure.GetFields(Name);
-                List<JSONRawTerm> commands = new List<JSONRawTerm>();
-                int remaining = values.Count();
-                foreach (ScoreboardValue f in values)
-                {
-                    commands.AddRange(f.ToRawText(accessor, selector, ref index, prefix));
-                    remaining--;
-                    if(remaining > 1)
-                        index++;
-                }
-                return commands.ToArray();
-            }
-            ScoreboardValue value = FullyResolveAccessor(accessor);
-            return value.ToRawText("", selector, ref index, prefix);
-        }
-
-        public override int GetMaxNameLength() =>
-            MAX_NAME_LENGTH - 5; // someName:ab:c
-        public override string[] GetAccessibleNames()
-        {
-            string[] qualified = structure.GetFullyQualifiedNames(AliasName).ToArray();
-            string[] ret = new string[qualified.Length + 1];
-            for (int i = 0; i < qualified.Length; i++)
-                ret[i] = qualified[i];
-            ret[qualified.Length] = Name;
-            return ret;
-        }
-
-        public override string[] CommandsAddLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
-        {
-            ScoreboardValue value = FullyResolveAccessor(thisAccessor);
-            if (value == this)
-                return null;
-            return value.CommandsAddLiteral(selector, other, thisAccessor, forExceptions);
-        }
-        public override string[] CommandsSubLiteral(string selector, TokenLiteral other, string thisAccessor, Statement forExceptions)
-        {
-            ScoreboardValue value = FullyResolveAccessor(thisAccessor);
-            if (value == this)
-                return null;
-            return value.CommandsSubLiteral(selector, other, thisAccessor, forExceptions);
-        }
-
-        public override string[] CommandsSet(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
-        {
-            if(other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
-            {
-                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
-                if (structure.Equals(structB.structure))
-                {
-                    List<string> commands = new List<string>();
-                    int count = structure.GetFieldCount();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
-                        commands.AddRange(fieldDst.CommandsSet(selector, fieldSrc, thisAccessor, thatAccessor));
-                    }
-                    return commands.ToArray();
-                }
-            }
-
-            ScoreboardValue b = FullyResolveAccessor(thisAccessor);
-            return b.CommandsSet(selector, other, "", "");
-        }
-        public override string[] CommandsAdd(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
-        {
-            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
-            {
-                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
-                if (structure.Equals(structB.structure))
-                {
-                    List<string> commands = new List<string>();
-                    int count = structure.GetFieldCount();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
-                        commands.AddRange(fieldDst.CommandsAdd(selector, fieldSrc, thisAccessor, thatAccessor));
-                    }
-                    return commands.ToArray();
-                }
-            }
-
-            ScoreboardValue b = FullyResolveAccessor(thisAccessor);
-            return b.CommandsAdd(selector, other, "", "");
-        }
-        public override string[] CommandsSub(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
-        {
-            if (other is ScoreboardValueStruct || (thisAccessor == null && thatAccessor == null))
-            {
-                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
-                if (structure.Equals(structB.structure))
-                {
-                    List<string> commands = new List<string>();
-                    int count = structure.GetFieldCount();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
-                        commands.AddRange(fieldDst.CommandsSub(selector, fieldSrc, thisAccessor, thatAccessor));
-                    }
-                    return commands.ToArray();
-                }
-            }
-
-            ScoreboardValue b = FullyResolveAccessor(thisAccessor);
-            return b.CommandsSub(selector, other, "", "");
-        }
-        public override string[] CommandsMul(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
-        {
-            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
-            {
-                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
-                if (structure.Equals(structB.structure))
-                {
-                    List<string> commands = new List<string>();
-                    int count = structure.GetFieldCount();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
-                        commands.AddRange(fieldDst.CommandsMul(selector, fieldSrc, thisAccessor, thatAccessor));
-                    }
-                    return commands.ToArray();
-                }
-            }
-
-            ScoreboardValue b = FullyResolveAccessor(thisAccessor);
-            return b.CommandsMul(selector, other, "", "");
-        }
-        public override string[] CommandsDiv(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
-        {
-            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
-            {
-                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
-                if (structure.Equals(structB.structure))
-                {
-                    List<string> commands = new List<string>();
-                    int count = structure.GetFieldCount();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
-                        commands.AddRange(fieldDst.CommandsDiv(selector, fieldSrc, thisAccessor, thatAccessor));
-                    }
-                    return commands.ToArray();
-                }
-            }
-
-            ScoreboardValue b = FullyResolveAccessor(thisAccessor);
-            return b.CommandsDiv(selector, other, "", "");
-        }
-        public override string[] CommandsMod(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
-        {
-            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
-            {
-                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
-                if (structure.Equals(structB.structure))
-                {
-                    List<string> commands = new List<string>();
-                    int count = structure.GetFieldCount();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
-                        commands.AddRange(fieldDst.CommandsMod(selector, fieldSrc, thisAccessor, thatAccessor));
-                    }
-                    return commands.ToArray();
-                }
-            }
-
-            ScoreboardValue b = FullyResolveAccessor(thisAccessor);
-            return b.CommandsMod(selector, other, "", "");
-        }
-        public override string[] CommandsSwap(string selector, ScoreboardValue other, string thisAccessor, string thatAccessor)
-        {
-            if (other is ScoreboardValueStruct && thisAccessor == null && thatAccessor == null)
-            {
-                ScoreboardValueStruct structB = other as ScoreboardValueStruct;
-                if (structure.Equals(structB.structure))
-                {
-                    List<string> commands = new List<string>();
-                    int count = structure.GetFieldCount();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScoreboardValue fieldDst = structure.GetFieldByIndex(Name, i);
-                        ScoreboardValue fieldSrc = structB.structure.GetFieldByIndex(Name, i);
-                        commands.AddRange(fieldDst.CommandsSwap(selector, fieldSrc, thisAccessor, thatAccessor));
-                    }
-                    return commands.ToArray();
-                }
-            }
-
-            ScoreboardValue b = FullyResolveAccessor(thisAccessor);
-            return b.CommandsSwap(selector, other, "", "");
-        }
     }
 }

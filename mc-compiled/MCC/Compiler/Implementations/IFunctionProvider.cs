@@ -18,6 +18,6 @@ namespace mc_compiled.MCC.Compiler.Implementations
         /// </summary>
         /// <param name="manager"></param>
         /// <returns></returns>
-        IEnumerable<GenerativeFunction> ProvideFunctions(ScoreboardManager manager);
+        IEnumerable<Function> ProvideFunctions(ScoreboardManager manager);
     }
 }
