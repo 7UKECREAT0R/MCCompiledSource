@@ -210,10 +210,10 @@ namespace mc_compiled.MCC.Compiler
                 {
                     TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
                     executor.AddCommands(value.value.CommandsFromOperation
-                        (selector, next.value, op), "math_op");
+                        (next.value, op), "math_op");
                 } else
                     executor.AddCommands(value.value.CommandsSet
-                        (selector, next.value), "set_op");
+                        (next.value), "set_op");
             }
             else if (NextIs<TokenLiteral>())
             {
@@ -225,14 +225,14 @@ namespace mc_compiled.MCC.Compiler
                     List<string> commands = new List<string>();
 
                     if (op == TokenArithmatic.Type.ADD)
-                        commands.AddRange(value.value.CommandsAddLiteral(selector, next, this));
+                        commands.AddRange(value.value.CommandsAddLiteral(next, this));
                     else if (op == TokenArithmatic.Type.SUBTRACT)
-                        commands.AddRange(value.value.CommandsSubLiteral(selector, next, this));
+                        commands.AddRange(value.value.CommandsSubLiteral(next, this));
                     else
                     {
                         ScoreboardValue temp = executor.scoreboard.RequestTemp(next, false, this);
-                        commands.AddRange(temp.CommandsSetLiteral(selector, next));
-                        commands.AddRange(value.value.CommandsFromOperation(selector, temp, op));
+                        commands.AddRange(temp.CommandsSetLiteral(next));
+                        commands.AddRange(value.value.CommandsFromOperation(temp, op));
                     }
 
                     executor.AddCommands(commands, "mathoperation");
@@ -240,7 +240,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral
-                        (selector, next), "setoperation");
+                        (next), "setoperation");
             }
             else
                 throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");

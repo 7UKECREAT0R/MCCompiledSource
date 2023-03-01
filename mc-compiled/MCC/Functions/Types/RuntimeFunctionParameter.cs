@@ -94,7 +94,7 @@ namespace mc_compiled.MCC.Functions.Types
                     string accessor = this.runtimeDestination.AliasName;
                     string selector = this.runtimeDestination.clarifier.CurrentString;
                     string[] commands = this.runtimeDestination
-                        .CommandsSetLiteral(selector, literal);
+                        .CommandsSetLiteral(literal);
                     commandBuffer.AddRange(commands);
                     return;
                 }
@@ -106,7 +106,7 @@ namespace mc_compiled.MCC.Functions.Types
                 string thisAccessor = this.runtimeDestination.AliasName;
                 string thatAccessor = value.AliasName;
                 string[] commands = this.runtimeDestination
-                    .CommandsSet(selector, value);
+                    .CommandsSet(value);
                 commandBuffer.AddRange(commands);
                 return;
             }

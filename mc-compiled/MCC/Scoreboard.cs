@@ -199,102 +199,99 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Get the commands to set this value to any given literal.
         /// </summary>
-        /// <param name="selector">The selector to set this for.</param>
         /// <param name="token">The literal that is being used as the value.</param>
         /// <returns></returns>
-        public abstract string[] CommandsSetLiteral(string selector, TokenLiteral token);
+        public abstract string[] CommandsSetLiteral(TokenLiteral token);
 
         /// <summary>
         /// Compare this scoreboard value to another literal value.
         /// </summary>
-        /// <param name="selector"></param>
         /// <param name="ctype"></param>
         /// <param name="literal"></param>
+        /// 
         /// <returns></returns>
-        public abstract Tuple<ScoresEntry[], string[]> CompareToLiteral(string selector, TokenCompare.Type ctype, TokenNumberLiteral literal);
+        public abstract Tuple<ScoresEntry[], string[]> CompareToLiteral(TokenCompare.Type ctype, TokenNumberLiteral literal);
         /// <summary>
         /// Setup temporary variables before printing this variable as rawtext.
         /// </summary>
-        /// <param name="selector"></param>
         /// <param name="index">The index to use to identify scoreboard values.</param>
         /// <returns></returns>
-        public abstract string[] CommandsRawTextSetup(string selector, ref int index);
+        public abstract string[] CommandsRawTextSetup(ref int index);
         /// <summary>
         /// Convert this scoreboard value to its expression as rawtext.
         /// Basically the Minecraft equivalent of ToString().
         /// Called immediately after ToRawTextSetup(string).
         /// </summary>
-        /// <param name="selector"></param>
         /// <param name="index">The index to use to identify scoreboard values.</param>
         /// <returns></returns>
-        public abstract JSONRawTerm[] ToRawText(string selector, ref int index);
+        public abstract JSONRawTerm[] ToRawText(ref int index);
 
-        public string[] CommandsFromOperation(string selector, ScoreboardValue other, TokenArithmatic.Type type)
+        public string[] CommandsFromOperation(ScoreboardValue other, TokenArithmatic.Type type)
         {
             switch (type)
             {
                 case TokenArithmatic.Type.ADD:
-                    return CommandsAdd(selector, other);
+                    return CommandsAdd(other);
                 case TokenArithmatic.Type.SUBTRACT:
-                    return CommandsSub(selector, other);
+                    return CommandsSub(other);
                 case TokenArithmatic.Type.MULTIPLY:
-                    return CommandsMul(selector, other);
+                    return CommandsMul(other);
                 case TokenArithmatic.Type.DIVIDE:
-                    return CommandsDiv(selector, other);
+                    return CommandsDiv(other);
                 case TokenArithmatic.Type.MODULO:
-                    return CommandsMod(selector, other);
+                    return CommandsMod(other);
                 case TokenArithmatic.Type.SWAP:
-                    return CommandsSwap(selector, other);
+                    return CommandsSwap(other);
                 default:
                     break;
             }
             return null;
         }
-        public abstract string[] CommandsAddLiteral(string selector, TokenLiteral other, Statement forExceptions);
-        public abstract string[] CommandsSubLiteral(string selector, TokenLiteral other, Statement forExceptions);
+        public abstract string[] CommandsAddLiteral(TokenLiteral other, Statement forExceptions);
+        public abstract string[] CommandsSubLiteral(TokenLiteral other, Statement forExceptions);
 
         /// <summary>
         /// this = other
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public abstract string[] CommandsSet(string selector, ScoreboardValue other);
+        public abstract string[] CommandsSet(ScoreboardValue other);
         /// <summary>
         /// this += other
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public abstract string[] CommandsAdd(string selector, ScoreboardValue other);
+        public abstract string[] CommandsAdd(ScoreboardValue other);
         /// <summary>
         /// this -= other
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public abstract string[] CommandsSub(string selector, ScoreboardValue other);
+        public abstract string[] CommandsSub(ScoreboardValue other);
         /// <summary>
         /// this *= other
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public abstract string[] CommandsMul(string selector, ScoreboardValue other);
+        public abstract string[] CommandsMul(ScoreboardValue other);
         /// <summary>
         /// this /= other
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public abstract string[] CommandsDiv(string selector, ScoreboardValue other);
+        public abstract string[] CommandsDiv(ScoreboardValue other);
         /// <summary>
         /// this %= other
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public abstract string[] CommandsMod(string selector, ScoreboardValue other);
+        public abstract string[] CommandsMod(ScoreboardValue other);
         /// <summary>
         /// Swap this and other.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public abstract string[] CommandsSwap(string selector, ScoreboardValue other);
+        public abstract string[] CommandsSwap(ScoreboardValue other);
 
         /// <summary>
         /// Get the maximum name length for this scoreboard value type.
@@ -333,23 +330,23 @@ namespace mc_compiled.MCC
         {
             return new[] { Command.ScoreboardAdd("@a", Name, 0) };
         }
-        public override string[] CommandsSetLiteral(string selector, TokenLiteral token)
+        public override string[] CommandsSetLiteral(TokenLiteral token)
         {
             if (token == null || token is TokenNullLiteral)
-                return new string[] { Command.ScoreboardSet(selector, Name, 0) };
+                return new string[] { Command.ScoreboardSet(clarifier.CurrentString, Name, 0) };
 
             if (token is TokenStringLiteral)
                 return new string[] { };
 
             if (token is TokenNumberLiteral number)
-                return new string[] { Command.ScoreboardSet(selector, Name, number.GetNumberInt())};
+                return new string[] { Command.ScoreboardSet(clarifier.CurrentString, Name, number.GetNumberInt())};
 
             if (token is TokenBooleanLiteral)
                 return new string[] { };
 
             return new string[] { };
         }
-        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string selector, TokenCompare.Type ctype, TokenNumberLiteral literal)
+        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(TokenCompare.Type ctype, TokenNumberLiteral literal)
         {
             int value = literal.GetNumberInt();
 
@@ -384,13 +381,13 @@ namespace mc_compiled.MCC
                 new ScoresEntry(Name, range)
             }, new string[0]);
         }
-        public override string[] CommandsRawTextSetup(string selector, ref int index)
+        public override string[] CommandsRawTextSetup(ref int index)
         {
             return new string[0];
         }
-        public override JSONRawTerm[] ToRawText(string selector, ref int index)
+        public override JSONRawTerm[] ToRawText(ref int index)
         {
-            return new[] { new JSONScore(selector, Name) };
+            return new[] { new JSONScore(clarifier.CurrentString, Name) };
         }
 
         public override int GetMaxNameLength() =>
@@ -398,25 +395,25 @@ namespace mc_compiled.MCC
         public override string[] GetAccessibleNames() =>
             new[] { AliasName };
 
-        public override string[] CommandsAddLiteral(string selector, TokenLiteral other, Statement forExceptions)
+        public override string[] CommandsAddLiteral(TokenLiteral other, Statement forExceptions)
         {
             if (other is TokenNumberLiteral)
-                return new[] { Command.ScoreboardAdd(selector, Name, (other as TokenNumberLiteral).GetNumberInt()) };
+                return new[] { Command.ScoreboardAdd(clarifier.CurrentString, Name, (other as TokenNumberLiteral).GetNumberInt()) };
             else
                 throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
         }
-        public override string[] CommandsSubLiteral(string selector, TokenLiteral other, Statement forExceptions)
+        public override string[] CommandsSubLiteral(TokenLiteral other, Statement forExceptions)
         {
             if (other is TokenNumberLiteral)
-                return new[] { Command.ScoreboardSubtract(selector, Name, (other as TokenNumberLiteral).GetNumberInt()) };
+                return new[] { Command.ScoreboardSubtract(clarifier.CurrentString, Name, (other as TokenNumberLiteral).GetNumberInt()) };
             else
                 throw new StatementException(forExceptions, "Attempted to subtract invalid literal from value '" + Name + "'");
         }
 
-        public override string[] CommandsSet(string selector, ScoreboardValue other)
+        public override string[] CommandsSet(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpSet(selector, this, other)};
+                return new[] { Command.ScoreboardOpSet(clarifier.CurrentString, this, other.clarifier.CurrentString, other)};
 
             if(other is ScoreboardValueDecimal)
             {
@@ -425,9 +422,9 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, this, other),
-                    Command.ScoreboardOpDiv(selector, this, tempBase)
+                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(clarifier.CurrentString, this, other.clarifier.CurrentString, other),
+                    Command.ScoreboardOpDiv(clarifier.CurrentString, this, tempBase.clarifier.CurrentString, tempBase)
                 };
 
                 manager.ReleaseTemp();
@@ -436,10 +433,10 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsAdd(string selector, ScoreboardValue other)
+        public override string[] CommandsAdd(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpAdd(selector, this, other) };
+                return new[] { Command.ScoreboardOpAdd(clarifier.CurrentString, this, other.clarifier.CurrentString, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -448,10 +445,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, other),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpAdd(selector, this, temp)
+                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp.clarifier.CurrentString, temp, other.clarifier.CurrentString, other),
+                    Command.ScoreboardOpDiv(temp.clarifier.CurrentString, temp, tempBase.clarifier.CurrentString, tempBase),
+                    Command.ScoreboardOpAdd(clarifier.CurrentString, this, temp.clarifier.CurrentString, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -461,10 +458,10 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsSub(string selector, ScoreboardValue other)
+        public override string[] CommandsSub(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpSub(selector, this, other) };
+                return new[] { Command.ScoreboardOpSub(clarifier.CurrentString, this, other.clarifier.CurrentString, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -473,10 +470,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, other),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpSub(selector, this, temp)
+                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp.clarifier.CurrentString, temp, other.clarifier.CurrentString, other),
+                    Command.ScoreboardOpDiv(temp.clarifier.CurrentString, temp, tempBase.clarifier.CurrentString, tempBase),
+                    Command.ScoreboardOpSub(clarifier.CurrentString, this, temp.clarifier.CurrentString, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -486,10 +483,10 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsMul(string selector, ScoreboardValue other)
+        public override string[] CommandsMul(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpMul(selector, this, other) };
+                return new[] { Command.ScoreboardOpMul(clarifier.CurrentString, this, other.clarifier.CurrentString, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -499,10 +496,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, other),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpMul(selector, this, temp)
+                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp.clarifier.CurrentString, temp, other.clarifier.CurrentString, other),
+                    Command.ScoreboardOpDiv(temp.clarifier.CurrentString, temp, tempBase.clarifier.CurrentString, tempBase),
+                    Command.ScoreboardOpMul(clarifier.CurrentString, this, temp.clarifier.CurrentString, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -512,7 +509,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsDiv(string selector, ScoreboardValue other)
+        public override string[] CommandsDiv(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
                 return new[] { Command.ScoreboardOpDiv(selector, this, other) };
@@ -537,7 +534,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsMod(string selector, ScoreboardValue other)
+        public override string[] CommandsMod(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
                 return new[] { Command.ScoreboardOpMod(selector, this, other) };
@@ -562,7 +559,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsSwap(string selector, ScoreboardValue other)
+        public override string[] CommandsSwap(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
                 return new[] { Command.ScoreboardOpSwap(selector, this, other) };
@@ -597,7 +594,7 @@ namespace mc_compiled.MCC
             base(name, global, manager, forExceptions, ScoreboardManager.ValueType.TIME) { }
 
         public override string GetTypeKeyword() => "time";
-        public override string[] CommandsRawTextSetup(string selector, ref int index)
+        public override string[] CommandsRawTextSetup(ref int index)
         {
             string minutes = SB_MINUTES + index;
             string seconds = SB_SECONDS + index;
@@ -623,7 +620,7 @@ namespace mc_compiled.MCC
                 Command.ScoreboardOpSub(selector, seconds, temporary)
             };
         }
-        public override JSONRawTerm[] ToRawText(string selector, ref int index)
+        public override JSONRawTerm[] ToRawText(ref int index)
         {
             string minutes = SB_MINUTES + index;
             string seconds = SB_SECONDS + index;
@@ -779,7 +776,7 @@ namespace mc_compiled.MCC
                 Command.ScoreboardAdd("@a", Name, 0)
             };
         }
-        public override string[] CommandsSetLiteral(string selector, TokenLiteral token)
+        public override string[] CommandsSetLiteral(TokenLiteral token)
         {
             if (token == null || token is TokenNullLiteral)
                 return new string[] { Command.ScoreboardSet(selector, Name, 0) };
@@ -807,7 +804,7 @@ namespace mc_compiled.MCC
 
             return new string[] { };
         }
-        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string selector, TokenCompare.Type ctype, TokenNumberLiteral literal)
+        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(TokenCompare.Type ctype, TokenNumberLiteral literal)
         {
             int exp = (int)Math.Pow(10, precision);
             float _number = literal.GetNumber();
@@ -845,7 +842,7 @@ namespace mc_compiled.MCC
             }, new string[0]);
         }
 
-        public override string[] CommandsRawTextSetup(string selector, ref int index)
+        public override string[] CommandsRawTextSetup(ref int index)
         {
             string whole = SB_WHOLE + index;
             string part = SB_PART + index;
@@ -873,7 +870,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul("@s", part, temporary)))
             };
         }
-        public override JSONRawTerm[] ToRawText(string selector, ref int index)
+        public override JSONRawTerm[] ToRawText(ref int index)
         {
             string whole = SB_WHOLE + index;
             string part = SB_PART + index;
@@ -891,7 +888,7 @@ namespace mc_compiled.MCC
         public override string[] GetAccessibleNames() =>
             new[] { AliasName };
 
-        public override string[] CommandsAddLiteral(string selector, TokenLiteral other, Statement forExceptions)
+        public override string[] CommandsAddLiteral(TokenLiteral other, Statement forExceptions)
         {
             if (other is TokenIntegerLiteral)
             {
@@ -908,7 +905,7 @@ namespace mc_compiled.MCC
             else
                 throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
         }
-        public override string[] CommandsSubLiteral(string selector, TokenLiteral other, Statement forExceptions)
+        public override string[] CommandsSubLiteral(TokenLiteral other, Statement forExceptions)
         {
             if (other is TokenIntegerLiteral)
             {
@@ -926,7 +923,7 @@ namespace mc_compiled.MCC
                 throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
         }
 
-        public override string[] CommandsSet(string selector, ScoreboardValue other)
+        public override string[] CommandsSet(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
             {
@@ -951,7 +948,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsAdd(string selector, ScoreboardValue other)
+        public override string[] CommandsAdd(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
             {
@@ -986,7 +983,7 @@ namespace mc_compiled.MCC
             
             return new string[0];
         }
-        public override string[] CommandsSub(string selector, ScoreboardValue other)
+        public override string[] CommandsSub(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
             {
@@ -1018,7 +1015,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsMul(string selector, ScoreboardValue other)
+        public override string[] CommandsMul(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
             {
@@ -1056,7 +1053,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsDiv(string selector, ScoreboardValue other)
+        public override string[] CommandsDiv(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
             {
@@ -1094,7 +1091,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsMod(string selector, ScoreboardValue other)
+        public override string[] CommandsMod(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
             {
@@ -1125,7 +1122,7 @@ namespace mc_compiled.MCC
 
             return new string[0];
         }
-        public override string[] CommandsSwap(string selector, ScoreboardValue other)
+        public override string[] CommandsSwap(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
             {
@@ -1192,7 +1189,7 @@ namespace mc_compiled.MCC
         {
             return new[] { Command.ScoreboardAdd("@a", Name, 0) }; // init to false
         }
-        public override string[] CommandsSetLiteral(string selector, TokenLiteral token)
+        public override string[] CommandsSetLiteral(TokenLiteral token)
         {
             if (token == null || token is TokenNullLiteral)
                 return new string[] { Command.ScoreboardSet(selector, Name, 0) };
@@ -1210,7 +1207,7 @@ namespace mc_compiled.MCC
 
             return new string[] { };
         }
-        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(string selector, TokenCompare.Type ctype, TokenNumberLiteral literal)
+        public override Tuple<ScoresEntry[], string[]> CompareToLiteral(TokenCompare.Type ctype, TokenNumberLiteral literal)
         {
             if (!(literal is TokenBooleanLiteral))
                 throw new Exception("You can only compare boolean variables to booleans (true or false).");
@@ -1239,11 +1236,11 @@ namespace mc_compiled.MCC
             }, new string[0]);
         }
 
-        public override string[] CommandsRawTextSetup(string selector, ref int index)
+        public override string[] CommandsRawTextSetup(ref int index)
         {
             return new string[0];
         }
-        public override JSONRawTerm[] ToRawText(string selector, ref int index)
+        public override JSONRawTerm[] ToRawText(ref int index)
         {
             // you can change these!
             manager.executor.TryGetPPV("_true", out dynamic[] trueValues);

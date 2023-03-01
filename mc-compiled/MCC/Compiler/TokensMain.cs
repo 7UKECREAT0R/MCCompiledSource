@@ -171,24 +171,19 @@ namespace mc_compiled.MCC.Compiler
         /// The value this identifier references.
         /// </summary>
         public readonly ScoreboardValue value;
-        /// <summary>
-        /// The owning entity this identifier references. Defaults to @s.
-        /// </summary>
-        public Selector references;
 
         /// <summary>
         /// Get the full name used to access this value.
         /// </summary>
         public string Accessor { get => word; }
         /// <summary>
-        /// Shorthand for .references.ToString();
+        /// Shorthand for .value.clarifier.CurrentString();
         /// </summary>
-        public string RefStr { get => references.ToString(); }
+        public string RefStr { get => value.clarifier.CurrentString; }
 
-        public TokenIdentifierValue(string accessor, ScoreboardValue value, int lineNumber) : base(accessor, lineNumber)
+        public TokenIdentifierValue(string word, ScoreboardValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
-            this.references = new Selector(Selector.Core.s);
         }
     }
     /// <summary>

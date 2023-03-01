@@ -119,8 +119,8 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValue b = (this.b as TokenIdentifierValue).value;
                 ScoreboardValue temp = executor.scoreboard.RequestTemp(a); // temps are auto-released at the end
 
-                commands.AddRange(temp.CommandsSet(tiv.RefStr, a));
-                commands.AddRange(temp.CommandsSub(tiv.RefStr, b));
+                commands.AddRange(temp.CommandsSet(a));
+                commands.AddRange(temp.CommandsSub(b));
                 this.temp = temp;
                 return commands;
             }
@@ -133,7 +133,7 @@ namespace mc_compiled.MCC.Compiler
                 TokenIdentifierValue tiv = this.a as TokenIdentifierValue;
                 ScoreboardValue a = tiv.value;
                 TokenNumberLiteral b = (this.b as TokenNumberLiteral);
-                var entries = a.CompareToLiteral(tiv.RefStr, comparison, b);
+                var entries = a.CompareToLiteral(comparison, b);
 
                 this.scoresEntries = entries.Item1;
                 return entries.Item2;
@@ -303,7 +303,7 @@ namespace mc_compiled.MCC.Compiler
             if (RequiresSubtraction)
             {
                 TokenIdentifierValue value = goalCount as TokenIdentifierValue;
-                commands.AddRange(temp.CommandsSub(value.references.ToString(), value.value));
+                commands.AddRange(temp.CommandsSub(value.value));
             }
 
             return commands;

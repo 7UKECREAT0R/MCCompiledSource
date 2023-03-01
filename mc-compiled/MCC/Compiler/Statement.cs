@@ -1,6 +1,7 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -345,8 +346,7 @@ namespace mc_compiled.MCC.Compiler
                 TokenArithmatic.Type op = (selected as TokenArithmatic).GetArithmaticType();
                 List<string> commands = new List<string>();
                 Token squashedToken = null;
-                string selector = executor.ActiveSelectorStr;
-
+                
                 Token _left = tokens[i - 1];
                 Token _right = tokens[i + 1];
 
@@ -387,8 +387,6 @@ namespace mc_compiled.MCC.Compiler
                 {
                     TokenIdentifierValue left = _left as TokenIdentifierValue;
                     TokenIdentifierValue right = _right as TokenIdentifierValue;
-                    string leftAccessor = left.Accessor;
-                    string rightAccessor = right.Accessor;
                     ScoreboardValue a = left.value;
                     ScoreboardValue b = right.value;
                     squashToGlobal = a.clarifier.IsGlobal || b.clarifier.IsGlobal;
@@ -396,25 +394,25 @@ namespace mc_compiled.MCC.Compiler
                     ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
                     string accessorTemp = temp.Name;
 
-                    commands.AddRange(temp.CommandsSet(selector, a));
+                    commands.AddRange(temp.CommandsSet(b));
                     squashedToken = new TokenIdentifierValue(accessorTemp, temp, selected.lineNumber);
 
                     switch (op)
                     {
                         case TokenArithmatic.Type.ADD:
-                            commands.AddRange(temp.CommandsAdd(selector, b));
+                            commands.AddRange(temp.CommandsAdd(b));
                             break;
                         case TokenArithmatic.Type.SUBTRACT:
-                            commands.AddRange(temp.CommandsSub(selector, b));
+                            commands.AddRange(temp.CommandsSub(b));
                             break;
                         case TokenArithmatic.Type.MULTIPLY:
-                            commands.AddRange(temp.CommandsMul(selector, b));
+                            commands.AddRange(temp.CommandsMul(b));
                             break;
                         case TokenArithmatic.Type.DIVIDE:
-                            commands.AddRange(temp.CommandsDiv(selector, b));
+                            commands.AddRange(temp.CommandsDiv(b));
                             break;
                         case TokenArithmatic.Type.MODULO:
-                            commands.AddRange(temp.CommandsMod(selector, b));
+                            commands.AddRange(temp.CommandsMod(b));
                             break;
                         default:
                             break;
@@ -432,7 +430,7 @@ namespace mc_compiled.MCC.Compiler
 
                         a = executor.scoreboard.RequestTemp(_left as TokenLiteral, squashToGlobal, this);
                         aAccessor = a.Name;
-                        commands.AddRange(a.CommandsSetLiteral(selector, _left as TokenLiteral));
+                        commands.AddRange(a.CommandsSetLiteral(_left as TokenLiteral));
                         bAccessor = (_right as TokenIdentifierValue).Accessor;
                     }
                     else
@@ -442,11 +440,11 @@ namespace mc_compiled.MCC.Compiler
 
                         b = executor.scoreboard.RequestTemp(_right as TokenLiteral, squashToGlobal, this);
                         bAccessor = b.Name;
-                        commands.AddRange(b.CommandsSetLiteral(selector, _right as TokenLiteral));
+                        commands.AddRange(b.CommandsSetLiteral(_right as TokenLiteral));
 
                         // left is a value, so it needs to be put into a temp variable so that the source is not modified
                         a = executor.scoreboard.RequestTemp(left.value);
-                        commands.AddRange(a.CommandsSet(selector, left.value));
+                        commands.AddRange(a.CommandsSet(left.value));
                         aAccessor = a.Name;
                     }
 
@@ -455,19 +453,19 @@ namespace mc_compiled.MCC.Compiler
                     switch (op)
                     {
                         case TokenArithmatic.Type.ADD:
-                            commands.AddRange(a.CommandsAdd(selector, b));
+                            commands.AddRange(a.CommandsAdd(b));
                             break;
                         case TokenArithmatic.Type.SUBTRACT:
-                            commands.AddRange(a.CommandsSub(selector, b));
+                            commands.AddRange(a.CommandsSub(b));
                             break;
                         case TokenArithmatic.Type.MULTIPLY:
-                            commands.AddRange(a.CommandsMul(selector, b));
+                            commands.AddRange(a.CommandsMul(b));
                             break;
                         case TokenArithmatic.Type.DIVIDE:
-                            commands.AddRange(a.CommandsDiv(selector, b));
+                            commands.AddRange(a.CommandsDiv(b));
                             break;
                         case TokenArithmatic.Type.MODULO:
-                            commands.AddRange(a.CommandsMod(selector, b));
+                            commands.AddRange(a.CommandsMod(b));
                             break;
                         default:
                             break;

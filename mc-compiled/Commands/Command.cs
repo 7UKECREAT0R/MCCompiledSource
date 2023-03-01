@@ -443,56 +443,19 @@ namespace mc_compiled.Commands
             $"scoreboard objectives setdisplay belowname \"{name}\"";
         public static string ScoreboardList(string target) =>
             $"scoreboard players list {target}";
+
         public static string ScoreboardSet(string target, string objective, int value) =>
             $"scoreboard players set {target} \"{objective}\" {value}";
         public static string ScoreboardAdd(string target, string objective, int amount) =>
             $"scoreboard players add {target} \"{objective}\" {amount}";
         public static string ScoreboardSubtract(string target, string objective, int amount) =>
             $"scoreboard players remove {target} \"{objective}\" {amount}";
-        public static string ScoreboardRandom(string target, string objective, int min, int max) =>
-            $"scoreboard players random {target} \"{objective}\" {min} {max}"; // both inclusive
-        public static string ScoreboardRemove(string target, string objective) =>
+        public static string ScoreboardRandom(string target, string objective, int minInclusive, int maxInclusive) =>
+            $"scoreboard players random {target} \"{objective}\" {minInclusive} {maxInclusive}";
+        public static string ScoreboardReset(string target, string objective) =>
             $"scoreboard players reset {target} \"{objective}\"";
-        public static string ScoreboardOpRaw(string target, string a, ScoreboardOp op, string b) =>
-            $"scoreboard players operation {target} \"{a}\" {op.String()} {target} \"{b}\"";
-        public static string ScoreboardOpRaw(string a, ScoreboardOp op, string b) =>
-            $"scoreboard players operation * \"{a}\" {op.String()} @a \"{b}\"";
-        public static string ScoreboardOpSet(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" = @a \"{b}\"";
-        public static string ScoreboardOpAdd(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" += @a \"{b}\"";
-        public static string ScoreboardOpSub(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" -= @a \"{b}\"";
-        public static string ScoreboardOpMul(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" *= @a \"{b}\"";
-        public static string ScoreboardOpDiv(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" /= @a \"{b}\"";
-        public static string ScoreboardOpMod(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" %= @a \"{b}\"";
-        public static string ScoreboardOpSwap(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" >< @a \"{b}\"";
-        public static string ScoreboardOpMin(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" < @a \"{b}\"";
-        public static string ScoreboardOpMax(string a, string b) =>
-            $"scoreboard players operation * \"{a}\" > @a \"{b}\"";
-        public static string ScoreboardOpSet(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" = {target} \"{b}\"";
-        public static string ScoreboardOpAdd(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" += {target} \"{b}\"";
-        public static string ScoreboardOpSub(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" -= {target} \"{b}\"";
-        public static string ScoreboardOpMul(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" *= {target} \"{b}\"";
-        public static string ScoreboardOpDiv(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" /= {target} \"{b}\"";
-        public static string ScoreboardOpMod(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" %= {target} \"{b}\"";
-        public static string ScoreboardOpSwap(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" >< {target} \"{b}\"";
-        public static string ScoreboardOpMin(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" < {target} \"{b}\"";
-        public static string ScoreboardOpMax(string target, string a, string b) =>
-            $"scoreboard players operation {target} \"{a}\" > {target} \"{b}\"";
+        public static string ScoreboardOpRaw(string targetA, string a, ScoreboardOp op, string targetB, string b) =>
+            $"scoreboard players operation {targetA} \"{a}\" {op.String()} {targetB} \"{b}\"";
         public static string ScoreboardOpSet(string targetA, string a, string targetB, string b) =>
             $"scoreboard players operation {targetA} \"{a}\" = {targetB} \"{b}\"";
         public static string ScoreboardOpAdd(string targetA, string a, string targetB, string b) =>
@@ -511,6 +474,39 @@ namespace mc_compiled.Commands
             $"scoreboard players operation {targetA} \"{a}\" < {targetB} \"{b}\"";
         public static string ScoreboardOpMax(string targetA, string a, string targetB, string b) =>
             $"scoreboard players operation {targetA} \"{a}\" > {targetB} \"{b}\"";
+
+        public static string ScoreboardSet(ScoreboardValue objective, int value) =>
+            $"scoreboard players set {objective.clarifier.CurrentString} \"{objective.Name}\" {value}";
+        public static string ScoreboardAdd(ScoreboardValue objective, int value) =>
+            $"scoreboard players add {objective.clarifier.CurrentString} \"{objective.Name}\" {value}";
+        public static string ScoreboardSubtract(ScoreboardValue objective, int amount) =>
+            $"scoreboard players remove {objective.clarifier.CurrentString} \"{objective.Name}\" {amount}";
+        public static string ScoreboardRandom(ScoreboardValue objective, int minInclusive, int maxInclusive) =>
+            $"scoreboard players random {objective.clarifier.CurrentString} \"{objective.Name}\" {minInclusive} {maxInclusive}";
+        public static string ScoreboardReset(ScoreboardValue objective) =>
+            $"scoreboard players reset {objective.clarifier.CurrentString} \"{objective.Name}\"";
+        public static string ScoreboardReset(string selector, ScoreboardValue objective) =>
+            $"scoreboard players reset {selector} \"{objective.Name}\"";
+        public static string ScoreboardOpRaw(ScoreboardValue a, ScoreboardOp op, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" {op.String()} {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpSet(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" = {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpAdd(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" += {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpSub(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" -= {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpMul(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" *= {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpDiv(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" /= {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpMod(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" %= {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpSwap(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" >< {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpMin(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" < {b.clarifier.CurrentString} \"{b.Name}\"";
+        public static string ScoreboardOpMax(ScoreboardValue a, ScoreboardValue b) =>
+            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" > {b.clarifier.CurrentString} \"{b.Name}\"";
 
         public static string SetBlock(Coord x, Coord y, Coord z, string block) =>
             $"setblock {x} {y} {z} {block}";
