@@ -32,7 +32,7 @@ namespace mc_compiled.MCC.Server
     public class MCCServer : IDisposable
     {
         public const int PORT = 11830;
-        public const int VERSION = 5;
+        public const float VERSION = 5.6f;
         public const int CHUNK_SIZE = 0x100000; // 1MB
         public const int BUFFER_SIZE = 0x10000; // 64K
 
@@ -86,7 +86,7 @@ namespace mc_compiled.MCC.Server
         public void StartServer()
         {
             socket.Bind(ip);
-            socket.Listen(100); // 100 packet backlog
+            socket.Listen(100); // 100 packet queue
 
             Console.WriteLine("Now listening for socket connection on " + ip + ".");
             Console.WriteLine("Language Server Version {0}", VERSION);
@@ -258,10 +258,10 @@ namespace mc_compiled.MCC.Server
                 }
 
                 // unknown text
-                var color = Console.ForegroundColor;
+                var oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("Got unknown text?:\n\t{0}", text);
-                Console.ForegroundColor = color;
+                Console.ForegroundColor = oldColor;
             }
 
             return false;
