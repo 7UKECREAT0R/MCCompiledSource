@@ -54,7 +54,7 @@ namespace mc_compiled.MCC.Server
         /// Allows the user to choose a location/filename to write their project to.
         /// </summary>
         /// <returns>True if they chose a file, false if they cancelled.</returns>
-        internal bool RunSaveFileDialog()
+        internal bool RunSaveFileDialog(string defaultName = "web_project.mcc")
         {
             using (SaveFileDialog dialog = new SaveFileDialog())
             {
@@ -63,7 +63,7 @@ namespace mc_compiled.MCC.Server
                 dialog.DefaultExt = "mcc";
                 dialog.DereferenceLinks = true;
                 dialog.Title = "Save project...";
-                dialog.FileName = "web_project.mcc";
+                dialog.FileName = defaultName;
 
                 bool selected = dialog.ShowDialog() == DialogResult.OK;
 

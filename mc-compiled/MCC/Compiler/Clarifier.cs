@@ -75,8 +75,11 @@ namespace mc_compiled.MCC.Compiler
         /// Sets the clarifier to a specific selector.
         /// </summary>
         /// <param name="selector"></param>
-        public void SetSelector(Selector selector)
+        public void SetSelector(Selector selector, Statement callingStatement)
         {
+            if (global)
+                throw new StatementException(callingStatement, "Attempted to clarify a global value.");
+
             string str = selector.ToString();
             this.currentString = str;
         }
@@ -84,8 +87,11 @@ namespace mc_compiled.MCC.Compiler
         /// Sets the clarifier to a specific string.
         /// </summary>
         /// <param name="selector"></param>
-        public void SetString(string str)
+        public void SetString(string str, Statement callingStatement)
         {
+            if (global)
+                throw new StatementException(callingStatement, "Attempted to clarify a global value.");
+
             this.currentString = str;
         }
     }

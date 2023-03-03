@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.TextFormatting;
 
 namespace mc_compiled.MCC
 {
@@ -328,18 +329,20 @@ namespace mc_compiled.MCC
         }
         public override string[] CommandsInit()
         {
-            return new[] { Command.ScoreboardAdd("@a", Name, 0) };
+            return new[] {
+                Command.ScoreboardAdd("@a", Name, 0) // init to 0
+            };
         }
         public override string[] CommandsSetLiteral(TokenLiteral token)
         {
             if (token == null || token is TokenNullLiteral)
-                return new string[] { Command.ScoreboardSet(clarifier.CurrentString, Name, 0) };
+                return new string[] { Command.ScoreboardSet(this, 0) };
 
             if (token is TokenStringLiteral)
                 return new string[] { };
 
             if (token is TokenNumberLiteral number)
-                return new string[] { Command.ScoreboardSet(clarifier.CurrentString, Name, number.GetNumberInt())};
+                return new string[] { Command.ScoreboardSet(this, number.GetNumberInt())};
 
             if (token is TokenBooleanLiteral)
                 return new string[] { };
@@ -398,14 +401,14 @@ namespace mc_compiled.MCC
         public override string[] CommandsAddLiteral(TokenLiteral other, Statement forExceptions)
         {
             if (other is TokenNumberLiteral)
-                return new[] { Command.ScoreboardAdd(clarifier.CurrentString, Name, (other as TokenNumberLiteral).GetNumberInt()) };
+                return new[] { Command.ScoreboardAdd(this, (other as TokenNumberLiteral).GetNumberInt()) };
             else
                 throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
         }
         public override string[] CommandsSubLiteral(TokenLiteral other, Statement forExceptions)
         {
             if (other is TokenNumberLiteral)
-                return new[] { Command.ScoreboardSubtract(clarifier.CurrentString, Name, (other as TokenNumberLiteral).GetNumberInt()) };
+                return new[] { Command.ScoreboardSubtract(this, (other as TokenNumberLiteral).GetNumberInt()) };
             else
                 throw new StatementException(forExceptions, "Attempted to subtract invalid literal from value '" + Name + "'");
         }
@@ -413,7 +416,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsSet(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpSet(clarifier.CurrentString, this, other.clarifier.CurrentString, other)};
+                return new[] { Command.ScoreboardOpSet(this, other)};
 
             if(other is ScoreboardValueDecimal)
             {
@@ -422,9 +425,9 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(clarifier.CurrentString, this, other.clarifier.CurrentString, other),
-                    Command.ScoreboardOpDiv(clarifier.CurrentString, this, tempBase.clarifier.CurrentString, tempBase)
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(this, other),
+                    Command.ScoreboardOpDiv(this, tempBase)
                 };
 
                 manager.ReleaseTemp();
@@ -436,7 +439,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsAdd(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpAdd(clarifier.CurrentString, this, other.clarifier.CurrentString, other) };
+                return new[] { Command.ScoreboardOpAdd(this, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -445,10 +448,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(temp.clarifier.CurrentString, temp, other.clarifier.CurrentString, other),
-                    Command.ScoreboardOpDiv(temp.clarifier.CurrentString, temp, tempBase.clarifier.CurrentString, tempBase),
-                    Command.ScoreboardOpAdd(clarifier.CurrentString, this, temp.clarifier.CurrentString, temp)
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp, other),
+                    Command.ScoreboardOpDiv(temp, tempBase),
+                    Command.ScoreboardOpAdd(this, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -461,7 +464,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsSub(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpSub(clarifier.CurrentString, this, other.clarifier.CurrentString, other) };
+                return new[] { Command.ScoreboardOpSub(this, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -470,10 +473,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(temp.clarifier.CurrentString, temp, other.clarifier.CurrentString, other),
-                    Command.ScoreboardOpDiv(temp.clarifier.CurrentString, temp, tempBase.clarifier.CurrentString, tempBase),
-                    Command.ScoreboardOpSub(clarifier.CurrentString, this, temp.clarifier.CurrentString, temp)
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp, other),
+                    Command.ScoreboardOpDiv(temp, tempBase),
+                    Command.ScoreboardOpSub(this, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -486,7 +489,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsMul(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpMul(clarifier.CurrentString, this, other.clarifier.CurrentString, other) };
+                return new[] { Command.ScoreboardOpMul(this, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -496,10 +499,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(tempBase.clarifier.CurrentString, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(temp.clarifier.CurrentString, temp, other.clarifier.CurrentString, other),
-                    Command.ScoreboardOpDiv(temp.clarifier.CurrentString, temp, tempBase.clarifier.CurrentString, tempBase),
-                    Command.ScoreboardOpMul(clarifier.CurrentString, this, temp.clarifier.CurrentString, temp)
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp, other),
+                    Command.ScoreboardOpDiv(temp, tempBase),
+                    Command.ScoreboardOpMul(this, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -512,7 +515,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsDiv(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpDiv(selector, this, other) };
+                return new[] { Command.ScoreboardOpDiv(this, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -521,10 +524,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, other),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpDiv(selector, this, temp)
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp, other),
+                    Command.ScoreboardOpDiv(temp, tempBase),
+                    Command.ScoreboardOpDiv(this, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -537,7 +540,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsMod(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpMod(selector, this, other) };
+                return new[] { Command.ScoreboardOpMod(this, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -546,10 +549,10 @@ namespace mc_compiled.MCC
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, temp, other),
-                    Command.ScoreboardOpDiv(selector, temp, tempBase),
-                    Command.ScoreboardOpMod(selector, this, temp)
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(temp, other),
+                    Command.ScoreboardOpDiv(temp, tempBase),
+                    Command.ScoreboardOpMod(this, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -562,7 +565,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsSwap(ScoreboardValue other)
         {
             if (other is ScoreboardValueInteger)
-                return new[] { Command.ScoreboardOpSwap(selector, this, other) };
+                return new[] { Command.ScoreboardOpSwap(this, other) };
 
             if (other is ScoreboardValueDecimal)
             {
@@ -571,10 +574,10 @@ namespace mc_compiled.MCC
 
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSwap(selector, Name, other), // now both values are to the wrong base.
-                    Command.ScoreboardOpDiv(selector, Name, temp),
-                    Command.ScoreboardOpMul(selector, other, temp)
+                    Command.ScoreboardSet(temp, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSwap(this, other), // now both values are to the wrong base.
+                    Command.ScoreboardOpDiv(this, temp),
+                    Command.ScoreboardOpMul(other, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -596,28 +599,30 @@ namespace mc_compiled.MCC
         public override string GetTypeKeyword() => "time";
         public override string[] CommandsRawTextSetup(ref int index)
         {
-            string minutes = SB_MINUTES + index;
-            string seconds = SB_SECONDS + index;
-            string temporary = SB_TEMP + index;
-            string constant = SB_CONST + index;
+            string _minutes = SB_MINUTES + index;
+            string _seconds = SB_SECONDS + index;
+            string _temporary = SB_TEMP + index;
+            string _constant = SB_CONST + index;
+
+            ScoreboardValue minutes = new ScoreboardValueInteger(_minutes, false, manager, null);
+            ScoreboardValue seconds = new ScoreboardValueInteger(_seconds, false, manager, null);
+            ScoreboardValue temporary = new ScoreboardValueInteger(_temporary, false, manager, null);
+            ScoreboardValue constant = new ScoreboardValueInteger(_constant, false, manager, null);
 
             manager.AddToStringScoreboards(this,
-                new ScoreboardValueInteger(minutes, false, manager, null),
-                new ScoreboardValueInteger(seconds, false, manager, null),
-                new ScoreboardValueInteger(temporary, false, manager, null),
-                new ScoreboardValueInteger(constant, false, manager, null));
+                minutes, seconds, temporary, constant);
 
             return new string[]
             {
-                Command.ScoreboardSet("@a", constant, 20),
-                Command.ScoreboardOpSet(selector, temporary, Name),
-                Command.ScoreboardOpDiv(selector, temporary, constant),
-                Command.ScoreboardOpSet(selector, seconds, temporary),
-                Command.ScoreboardSet("@a", constant, 60),
-                Command.ScoreboardOpDiv(selector, temporary, constant),
-                Command.ScoreboardOpSet(selector, minutes, temporary),
-                Command.ScoreboardOpMul(selector, temporary, constant),
-                Command.ScoreboardOpSub(selector, seconds, temporary)
+                Command.ScoreboardSet(constant, 20),
+                Command.ScoreboardOpSet(temporary, this),
+                Command.ScoreboardOpDiv(temporary, constant),
+                Command.ScoreboardOpSet(seconds, temporary),
+                Command.ScoreboardSet(constant, 60),
+                Command.ScoreboardOpDiv(temporary, constant),
+                Command.ScoreboardOpSet(minutes, temporary),
+                Command.ScoreboardOpMul(temporary, constant),
+                Command.ScoreboardOpSub(seconds, temporary)
             };
         }
         public override JSONRawTerm[] ToRawText(ref int index)
@@ -627,15 +632,15 @@ namespace mc_compiled.MCC
 
             return new JSONRawTerm[]
             {
-                new JSONScore(selector, minutes),
+                new JSONScore(clarifier.CurrentString, minutes),
 
                 // append an extra 0 if its a single number.
-                new JSONScore(selector, seconds).CreateVariant(
+                new JSONScore(clarifier.CurrentString, seconds).CreateVariant(
                     new[] { new JSONText(":0") },
                     new Range(0, 9),
                     new[] { new JSONText(":") }),
 
-                new JSONScore(selector, seconds)
+                new JSONScore(clarifier.CurrentString, seconds)
             };
         }
 
@@ -691,9 +696,9 @@ namespace mc_compiled.MCC
                 ScoreboardValue temp2 = other.manager.RequestTemp(other);
                 commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
-                    Command.ScoreboardOpSet(selector, temp2, other.Name),
-                    Command.ScoreboardOpMul(selector, temp2, temp1)
+                    Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(temp2, other),
+                    Command.ScoreboardOpMul(temp2, temp1)
                 };
                 other.manager.ReleaseTemp();
                 other.manager.ReleaseTemp();
@@ -707,9 +712,9 @@ namespace mc_compiled.MCC
                 ScoreboardValue temp2 = other.manager.RequestTemp(other);
                 commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
-                    Command.ScoreboardOpSet(selector, temp2, other.Name),
-                    Command.ScoreboardOpDiv(selector, temp2, temp1)
+                    Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(temp2, other),
+                    Command.ScoreboardOpDiv(temp2, temp1)
                 };
                 other.manager.ReleaseTemp();
                 other.manager.ReleaseTemp();
@@ -727,7 +732,7 @@ namespace mc_compiled.MCC
         {
             if (precision == other.precision)
             {
-                return new[] { Command.ScoreboardOpSet(selector, Name, other) };
+                return new[] { Command.ScoreboardOpSet(this, other) };
             }
 
             if (precision > other.precision)
@@ -736,9 +741,9 @@ namespace mc_compiled.MCC
                 ScoreboardValue temp1 = other.manager.RequestTemp();
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
-                    Command.ScoreboardOpSet(selector, Name, other.Name),
-                    Command.ScoreboardOpMul(selector, Name, temp1)
+                    Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(this, other),
+                    Command.ScoreboardOpMul(this, temp1)
                 };
                 other.manager.ReleaseTemp();
                 return commands;
@@ -750,9 +755,9 @@ namespace mc_compiled.MCC
                 ScoreboardValue temp1 = other.manager.RequestTemp();
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, temp1, (int)Math.Pow(10, precisionDiff)),
-                    Command.ScoreboardOpSet(selector, Name, other.Name),
-                    Command.ScoreboardOpDiv(selector, Name, temp1)
+                    Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
+                    Command.ScoreboardOpSet(this, other),
+                    Command.ScoreboardOpDiv(this, temp1)
                 };
                 other.manager.ReleaseTemp();
                 return commands;
@@ -779,7 +784,7 @@ namespace mc_compiled.MCC
         public override string[] CommandsSetLiteral(TokenLiteral token)
         {
             if (token == null || token is TokenNullLiteral)
-                return new string[] { Command.ScoreboardSet(selector, Name, 0) };
+                return new string[] { Command.ScoreboardSet(this, 0) };
 
             if (token is TokenStringLiteral)
                 return new string[] { };
@@ -788,14 +793,14 @@ namespace mc_compiled.MCC
             {
                 int integer = (token as TokenIntegerLiteral).number;
                 return new string[] {
-                    Command.ScoreboardSet(selector, Name, integer.ToFixedPoint(precision)),
+                    Command.ScoreboardSet(this, integer.ToFixedPoint(precision)),
                 };
             }
             if (token is TokenDecimalLiteral)
             {
                 TokenDecimalLiteral literal = token as TokenDecimalLiteral;
                 return new string[] {
-                    Command.ScoreboardSet(selector, Name, literal.number.ToFixedPoint(precision))
+                    Command.ScoreboardSet(this, literal.number.ToFixedPoint(precision))
                 };
             }
 
@@ -844,30 +849,32 @@ namespace mc_compiled.MCC
 
         public override string[] CommandsRawTextSetup(ref int index)
         {
-            string whole = SB_WHOLE + index;
-            string part = SB_PART + index;
-            string temporary = SB_TEMP + index;
-            string tempBase = SB_BASE + index;
+            string _whole = SB_WHOLE + index;
+            string _part = SB_PART + index;
+            string _temporary = SB_TEMP + index;
+            string _tempBase = SB_BASE + index;
+
+            var whole = new ScoreboardValueInteger(_whole, false, manager, null);
+            var part = new ScoreboardValueInteger(_part, false, manager, null);
+            var temporary = new ScoreboardValueInteger(_temporary, false, manager, null);
+            var tempBase = new ScoreboardValueInteger(_tempBase, false, manager, null);
 
             manager.AddToStringScoreboards(this,
-                new ScoreboardValueInteger(whole, false, manager, null),
-                new ScoreboardValueInteger(part, false, manager, null),
-                new ScoreboardValueInteger(temporary, false, manager, null),
-                new ScoreboardValueInteger(tempBase, false, manager, null));
+                whole, part, temporary, tempBase);
 
             return new string[]
             {
-                Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                Command.ScoreboardOpSet(selector, temporary, Name),
-                Command.ScoreboardOpDiv(selector, temporary, tempBase),
-                Command.ScoreboardOpSet(selector, whole, temporary),
-                Command.ScoreboardOpMul(selector, temporary, tempBase),
-                Command.ScoreboardOpSet(selector, part, Name),
-                Command.ScoreboardOpSub(selector, part, temporary),
-                Command.ScoreboardSet(selector, temporary, -1),
-                Command.Execute(selector, Coord.here, Coord.here, Coord.here,
+                Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                Command.ScoreboardOpSet(temporary, this),
+                Command.ScoreboardOpDiv(temporary, tempBase),
+                Command.ScoreboardOpSet(whole, temporary),
+                Command.ScoreboardOpMul(temporary, tempBase),
+                Command.ScoreboardOpSet(part, this),
+                Command.ScoreboardOpSub(part, temporary),
+                Command.ScoreboardSet(temporary, -1),
+                Command.Execute(clarifier.CurrentString, Coord.here, Coord.here, Coord.here,
                     Command.Execute($"@s[scores={{{part}=..-1}}]",  Coord.here, Coord.here, Coord.here,
-                    Command.ScoreboardOpMul("@s", part, temporary)))
+                        Command.ScoreboardOpMul(part, temporary)))
             };
         }
         public override JSONRawTerm[] ToRawText(ref int index)
@@ -877,9 +884,9 @@ namespace mc_compiled.MCC
 
             return new JSONRawTerm[]
             {
-                new JSONScore(selector, whole),
+                new JSONScore(clarifier.CurrentString, whole),
                 new JSONText("."),
-                new JSONScore(selector, part)
+                new JSONScore(clarifier.CurrentString, part)
             };
         }
 
@@ -894,13 +901,13 @@ namespace mc_compiled.MCC
             {
                 int value = (other as TokenIntegerLiteral);
                 value = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardAdd(selector, Name, value) };
+                return new[] { Command.ScoreboardAdd(this, value) };
             }
             else if(other is TokenDecimalLiteral)
             {
                 float value = (other as TokenDecimalLiteral);
                 int number = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardAdd(selector, Name, number) };
+                return new[] { Command.ScoreboardAdd(this, number) };
             }
             else
                 throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
@@ -911,13 +918,13 @@ namespace mc_compiled.MCC
             {
                 int value = (other as TokenIntegerLiteral);
                 value = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardSubtract(selector, Name, value) };
+                return new[] { Command.ScoreboardSubtract(this, value) };
             }
             else if (other is TokenDecimalLiteral)
             {
                 float value = (other as TokenDecimalLiteral);
                 int number = value.ToFixedPoint(precision);
-                return new[] { Command.ScoreboardSubtract(selector, Name, number) };
+                return new[] { Command.ScoreboardSubtract(this, number) };
             }
             else
                 throw new StatementException(forExceptions, "Attempted to add invalid literal to value '" + Name + "'");
@@ -931,9 +938,9 @@ namespace mc_compiled.MCC
 
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, Name, other),
-                    Command.ScoreboardOpMul(selector, Name, tempBase),
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(this, other),
+                    Command.ScoreboardOpMul(this, tempBase),
                 };
 
                 manager.ReleaseTemp();
@@ -943,7 +950,7 @@ namespace mc_compiled.MCC
             if (other is ScoreboardValueDecimal @decimal)
             {
                 // convert bases if necessary
-                return BalancePrecisionInto(selector, @decimal);
+                return BalancePrecisionInto(clarifier.CurrentString, @decimal);
             }
 
             return new string[0];
@@ -957,10 +964,10 @@ namespace mc_compiled.MCC
 
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSet(selector, tempAccumulator, other),
-                    Command.ScoreboardOpMul(selector, tempAccumulator, tempBase),
-                    Command.ScoreboardOpAdd(selector, Name, tempAccumulator),
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSet(tempAccumulator, other),
+                    Command.ScoreboardOpMul(tempAccumulator, tempBase),
+                    Command.ScoreboardOpAdd(this, tempAccumulator),
                 };
 
                 manager.ReleaseTemp();
@@ -970,15 +977,15 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal @decimal)
             {
-                if(BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
+                if(BalancePrecisionWith(clarifier.CurrentString, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
                     List<string> commandList = new List<string>(commands.Length + 1);
                     commandList.AddRange(commands);
-                    commandList.Add(Command.ScoreboardOpAdd(selector, Name, balancedCopy.Name));
+                    commandList.Add(Command.ScoreboardOpAdd(this, balancedCopy));
                     return commandList.ToArray();
                 }
 
-                return new[] { Command.ScoreboardOpAdd(selector, Name, other.Name) };
+                return new[] { Command.ScoreboardOpAdd(this, other) };
             }
             
             return new string[0];
@@ -991,9 +998,9 @@ namespace mc_compiled.MCC
 
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, tempBase, other),
-                    Command.ScoreboardOpSub(selector, Name, tempBase),
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpMul(tempBase, other),
+                    Command.ScoreboardOpSub(this, tempBase),
                 };
 
                 manager.ReleaseTemp();
@@ -1002,15 +1009,15 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal @decimal)
             {
-                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
+                if (BalancePrecisionWith(clarifier.CurrentString, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
                     List<string> commandList = new List<string>(commands.Length + 1);
                     commandList.AddRange(commands);
-                    commandList.Add(Command.ScoreboardOpSub(selector, Name, balancedCopy.Name));
+                    commandList.Add(Command.ScoreboardOpSub(this, balancedCopy));
                     return commandList.ToArray();
                 }
 
-                return new[] { Command.ScoreboardOpSub(selector, Name, other.Name) };
+                return new[] { Command.ScoreboardOpSub(this, other) };
             }
 
             return new string[0];
@@ -1021,7 +1028,7 @@ namespace mc_compiled.MCC
             {
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpMul(selector, Name, other),
+                    Command.ScoreboardOpMul(this, other),
                 };
                 return commands;
             }
@@ -1030,22 +1037,22 @@ namespace mc_compiled.MCC
             {
                 ScoreboardValue tempBase = manager.RequestTemp();
 
-                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
+                if (BalancePrecisionWith(clarifier.CurrentString, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
                     List<string> commandList = new List<string>(commands.Length + 3);
                     commandList.AddRange(commands);
-                    commandList.Add(Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)));
-                    commandList.Add(Command.ScoreboardOpMul(selector, Name, balancedCopy.Name));
-                    commandList.Add(Command.ScoreboardOpDiv(selector, Name, tempBase.Name));
+                    commandList.Add(Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)));
+                    commandList.Add(Command.ScoreboardOpMul(this, balancedCopy));
+                    commandList.Add(Command.ScoreboardOpDiv(this, tempBase));
                     manager.ReleaseTemp();
                     return commandList.ToArray();
                 }
 
                 commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, Name, other.Name),
-                    Command.ScoreboardOpDiv(selector, Name, tempBase.Name)
+                    Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpMul(this, other),
+                    Command.ScoreboardOpDiv(this, tempBase)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -1059,7 +1066,7 @@ namespace mc_compiled.MCC
             {
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardOpDiv(selector, Name, other),
+                    Command.ScoreboardOpDiv(this, other),
                 };
                 return commands;
             }
@@ -1068,22 +1075,22 @@ namespace mc_compiled.MCC
             {
                 ScoreboardValue tempBase = manager.RequestTemp();
 
-                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
+                if (BalancePrecisionWith(clarifier.CurrentString, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
                     List<string> commandList = new List<string>(commands.Length + 3);
                     commandList.AddRange(commands);
-                    commandList.Add(Command.ScoreboardSet(selector, tempBase.Name, (int)Math.Pow(10, precision)));
-                    commandList.Add(Command.ScoreboardOpMul(selector, Name, tempBase.Name));
-                    commandList.Add(Command.ScoreboardOpDiv(selector, Name, balancedCopy.Name));
+                    commandList.Add(Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)));
+                    commandList.Add(Command.ScoreboardOpMul(this, tempBase));
+                    commandList.Add(Command.ScoreboardOpDiv(this, balancedCopy));
                     manager.ReleaseTemp();
                     return commandList.ToArray();
                 }
 
                 commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase.Name, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, Name, tempBase.Name),
-                    Command.ScoreboardOpDiv(selector, Name, other.Name)
+                    Command.ScoreboardSet(this, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpMul(this, tempBase),
+                    Command.ScoreboardOpDiv(this, other)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -1099,9 +1106,9 @@ namespace mc_compiled.MCC
 
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, tempBase, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpMul(selector, tempBase, other),
-                    Command.ScoreboardOpMod(selector, Name, tempBase)
+                    Command.ScoreboardSet(this, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpMul(this, other),
+                    Command.ScoreboardOpMod(this, tempBase)
                 };
                 manager.ReleaseTemp();
                 return commands;
@@ -1109,15 +1116,15 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal @decimal)
             {
-                if (BalancePrecisionWith(selector, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
+                if (BalancePrecisionWith(clarifier.CurrentString, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
                     List<string> commandList = new List<string>(commands.Length + 1);
                     commandList.AddRange(commands);
-                    commandList.Add(Command.ScoreboardOpMod(selector, Name, balancedCopy.Name));
+                    commandList.Add(Command.ScoreboardOpMod(this, balancedCopy));
                     return commandList.ToArray();
                 }
 
-                return new[] { Command.ScoreboardOpMod(selector, Name, other.Name) };
+                return new[] { Command.ScoreboardOpMod(this, other) };
             }
 
             return new string[0];
@@ -1130,10 +1137,10 @@ namespace mc_compiled.MCC
 
                 string[] commands = new string[]
                 {
-                    Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precision)),
-                    Command.ScoreboardOpSwap(selector, Name, other), // now both values are to the wrong base.
-                    Command.ScoreboardOpMul(selector, Name, temp),
-                    Command.ScoreboardOpDiv(selector, other, temp)
+                    Command.ScoreboardSet(this, (int)Math.Pow(10, precision)),
+                    Command.ScoreboardOpSwap(this, other), // now both values are to the wrong base.
+                    Command.ScoreboardOpMul(this, temp),
+                    Command.ScoreboardOpDiv(this, temp)
                 };
 
                 manager.ReleaseTemp();
@@ -1144,29 +1151,29 @@ namespace mc_compiled.MCC
             {
                 if(precision == @decimal.precision)
                 {
-                    return new[] { Command.ScoreboardOpSwap(selector, Name, other) };
+                    return new[] { Command.ScoreboardOpSwap(this, other) };
                 }
 
                 string[] commands = new string[4];
                 ScoreboardValue temp = manager.RequestTemp();
 
-                commands[0] = Command.ScoreboardOpSwap(selector, Name, other);
+                commands[0] = Command.ScoreboardOpSwap(this, other);
 
                 // swap precisions using the difference between them.
                 if (precision > @decimal.precision)
                 {
                     int precisionDiff = precision - @decimal.precision;
-                    commands[1] = Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff));
-                    commands[2] = Command.ScoreboardOpMul(selector, Name, temp);
-                    commands[3] = Command.ScoreboardOpDiv(selector, other.Name, temp);
+                    commands[1] = Command.ScoreboardSet(temp, (int)Math.Pow(10, precisionDiff));
+                    commands[2] = Command.ScoreboardOpMul(this, temp);
+                    commands[3] = Command.ScoreboardOpDiv(other, temp);
                 }
                 else
                 {
                     // precision < other.precision
                     int precisionDiff = @decimal.precision - precision;
-                    commands[1] = Command.ScoreboardSet(selector, temp, (int)Math.Pow(10, precisionDiff));
-                    commands[2] = Command.ScoreboardOpDiv(selector, Name, temp);
-                    commands[3] = Command.ScoreboardOpMul(selector, other.Name, temp);
+                    commands[1] = Command.ScoreboardSet(temp, (int)Math.Pow(10, precisionDiff));
+                    commands[2] = Command.ScoreboardOpDiv(this, temp);
+                    commands[3] = Command.ScoreboardOpMul(other, temp);
                 }
 
                 return commands;
@@ -1187,22 +1194,24 @@ namespace mc_compiled.MCC
         }
         public override string[] CommandsInit()
         {
-            return new[] { Command.ScoreboardAdd("@a", Name, 0) }; // init to false
+            return new[] {
+                Command.ScoreboardAdd("@a", Name, 0) // init to false
+            };
         }
         public override string[] CommandsSetLiteral(TokenLiteral token)
         {
             if (token == null || token is TokenNullLiteral)
-                return new string[] { Command.ScoreboardSet(selector, Name, 0) };
+                return new string[] { Command.ScoreboardSet(this, 0) };
 
             if (token is TokenStringLiteral)
                 return new string[] { };
 
             if (token is TokenNumberLiteral)
-                return new string[] { Command.ScoreboardSet(selector, Name,
+                return new string[] { Command.ScoreboardSet(this,
                     (token as TokenNumberLiteral).GetNumberInt() % 2)};
 
             if (token is TokenBooleanLiteral)
-                return new string[] { Command.ScoreboardSet(selector, Name,
+                return new string[] { Command.ScoreboardSet(this,
                     (token as TokenBooleanLiteral).boolean ? 1 : 0)};
 
             return new string[] { };
@@ -1248,7 +1257,7 @@ namespace mc_compiled.MCC
 
             return new JSONRawTerm[]
             {
-                new JSONScore(selector, Name).CreateVariant(
+                new JSONScore(clarifier.CurrentString, Name).CreateVariant(
                     new[] { new JSONText(trueValues[0].ToString()) },
                     new Range(1, false),
                     new[] { new JSONText(falseValues[0].ToString()) }

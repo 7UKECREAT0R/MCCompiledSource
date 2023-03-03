@@ -389,12 +389,16 @@ namespace mc_compiled.MCC.Server
 
             // I/O
             // Requires STA thread.
+            const string META_HEADER = "// $meta-start";
+            const string META = "// $meta ";
+
             if (action.Equals("save"))
             {
                 Thread thread = new Thread(() =>
                 {
-                    string encoded = json["code"].Value<string>();
-                    string code = encoded.Base64Decode();
+                    string encodedCode = json["code"].Value<string>();
+                    string code = encodedCode.Base64Decode();
+                    JObject metadata = json["meta"] as JObject;
 
                     if (!project.hasFile)
                     {
@@ -408,7 +412,33 @@ namespace mc_compiled.MCC.Server
 
                     string file = project.File;
                     string fileName = Path.GetFileName(file);
-                    System.IO.File.WriteAllText(file, code);
+
+                    if (System.IO.File.Exists(file))
+                        System.IO.File.Delete(file);
+
+                    using (var stream = System.IO.File.OpenWrite(file))
+                    {
+                        // write metadata, if any
+                        if(metadata != null)
+                        {
+                            // get bytes for the metadata header and footer
+                            byte[] header = Encoding.UTF8.GetBytes(META_HEADER + '\n');
+
+                            // start by writing the header
+                            stream.Write(header, 0, header.Length);
+
+                            // write the data block
+                            string block = metadata.ToString(Newtonsoft.Json.Formatting.None).Base64Encode();
+                            string blockString = META + block + '\n';
+                            byte[] blockBytes = Encoding.UTF8.GetBytes(blockString);
+                            stream.Write(blockBytes, 0, blockBytes.Length);
+                        }
+
+                        byte[] bytes = Encoding.UTF8.GetBytes(code);
+                        stream.Write(bytes, 0, bytes.Length);
+                        stream.Flush();
+                    }
+
                     package.SendFrame(CreateNotificationFrame($"File \"{fileName}\" saved.", "#3cc741"));
                     package.SendFrame(CreateBusyFrame(false));
                 });
@@ -424,7 +454,7 @@ namespace mc_compiled.MCC.Server
                 {
                     if (!project.RunLoadFileDialog())
                     {
-                        package.SendFrame(CreateNotificationFrame("Load cancelled by user.", "#DDDDDD"));
+                        package.SendFrame(CreateNotificationFrame("Load canceled by user.", "#DDDDDD"));
                         package.SendFrame(CreateBusyFrame(false));
                         return;
                     }
@@ -434,12 +464,46 @@ namespace mc_compiled.MCC.Server
                     if (System.IO.File.Exists(file))
                     {
                         string code = System.IO.File.ReadAllText(file);
+                        JObject metadata = new JObject();
+
+                        if(code.StartsWith(META_HEADER))
+                        {
+                            // begin reading metadata.
+                            StringReader reader = new StringReader(code);
+                            _ = reader.ReadLine(); // skip the header
+
+                            string line = reader.ReadLine();
+
+                            // if we've reached the footer, break out of the loop.
+                            if (!line.StartsWith(META))
+                            {
+                                var oldColor = Console.ForegroundColor;
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine($"Malformed metadata (garbage field) in file \"{file}\". Skipping.");
+                                Console.ForegroundColor = oldColor;
+                            } else
+                            {
+                                string dataBlock = line.Substring(META.Length);
+                                metadata = JObject.Parse(dataBlock.Base64Decode());
+
+                                // the code is the rest of the segment without the metadata.
+                                code = reader.ReadToEnd();
+                            }
+
+                            reader.Close();
+                            reader.Dispose();
+                        }
+
                         JObject send = new JObject();
-                        send["action"] = "settextarea";
+                        send["action"] = "postload";
                         send["code"] = code.Base64Encode();
+                        send["meta"] = metadata;
                         package.SendFrame(WebSocketFrame.JSON(send));
 
                         Lint(code, package);
+
+                        if (debug)
+                            Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata.ToString());
                         return;
                     }
                 });
@@ -458,6 +522,7 @@ namespace mc_compiled.MCC.Server
             Executor executor = null;
             try
             {
+                Program.DEBUG = debug;
                 Program.PrepareToCompile();
                 Token[] tokens = new Tokenizer(code).Tokenize();
                 Statement[] statements = Assembler.AssembleTokens(tokens);
@@ -524,6 +589,7 @@ namespace mc_compiled.MCC.Server
         }
         void Compile(string code, string projectName, WebSocketPackage package)
         {
+            Program.DEBUG = debug;
             Program.PrepareToCompile();
             bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", new Program.InputPPV[0], outputBehaviorPack, outputResourcePack);
 

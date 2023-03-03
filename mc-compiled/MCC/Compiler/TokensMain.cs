@@ -165,7 +165,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a reference to a scoreboard value.
     /// </summary>
-    public sealed class TokenIdentifierValue : TokenIdentifier
+    public sealed class TokenIdentifierValue : TokenIdentifier, IIndexable
     {
         /// <summary>
         /// The value this identifier references.
@@ -179,11 +179,31 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Shorthand for .value.clarifier.CurrentString();
         /// </summary>
-        public string RefStr { get => value.clarifier.CurrentString; }
+        public string ClarifierStr { get => value.clarifier.CurrentString; }
 
         public TokenIdentifierValue(string word, ScoreboardValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
+        }
+
+        public Token Index(TokenIndexer indexer, Statement forExceptions)
+        {
+            if(indexer is TokenIndexerString @string)
+            {
+                ScoreboardValue clone = value.Clone() as ScoreboardValue;
+                string fakePlayer = @string.token.text;
+                clone.clarifier.SetString(fakePlayer, forExceptions);
+                return new TokenIdentifierValue(word, clone, lineNumber);
+            }
+
+            if(indexer is TokenIndexerSelector selector)
+            {
+                ScoreboardValue clone = value.Clone() as ScoreboardValue;
+                clone.clarifier.SetSelector(selector.token.selector, forExceptions);
+                return new TokenIdentifierValue(word, clone, lineNumber);
+            }
+
+            throw indexer.GetException(this, forExceptions);
         }
     }
     /// <summary>

@@ -1030,7 +1030,6 @@ namespace mc_compiled.MCC.Compiler
             if (def.defaultValue != null)
             {
                 executor.PushSelectorExecute();
-                string sel = value.clarifier.CurrentString;
                 if (def.defaultValue is TokenLiteral literal)
                 {
                     commands.AddRange(value.CommandsSetLiteral(literal));
