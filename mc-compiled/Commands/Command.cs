@@ -1,4 +1,5 @@
-﻿using mc_compiled.Commands.Native;
+﻿using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Native;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
@@ -6,6 +7,7 @@ using mc_compiled.Modding.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -226,12 +228,7 @@ namespace mc_compiled.Commands
         public static string Event(string target, string eventName) =>
             $"event entity {target} {eventName}";
 
-        public static string Execute(string target, Coord x, Coord y, Coord z, string command) =>
-            $"execute {target} {x} {y} {z} {command}";
-        public static string Execute(string target, Coord x, Coord y, Coord z, Coord detectX, Coord detectY, Coord detectZ, string block, string command) =>
-            $"execute {target} {x} {y} {z} detect {detectX} {detectY} {detectZ} {block} -1 {command}";
-        public static string Execute(string target, Coord x, Coord y, Coord z, Coord detectX, Coord detectY, Coord detectZ, string block, int data, string command) =>
-            $"execute {target} {x} {y} {z} detect {detectX} {detectY} {detectZ} {block} {data} {command}";
+        public static ExecuteBuilder Execute() => new ExecuteBuilder();
 
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block}";
@@ -988,5 +985,24 @@ namespace mc_compiled.Commands
         clear,
         rain,
         thunder
+    }
+    [EnumParsable(typeof(AnchorPosition))]
+    public enum AnchorPosition
+    {
+        eyes,
+        feet
+    }
+    [EnumParsable(typeof(Dimension))]
+    public enum Dimension
+    {
+        nether,
+        overworld,
+        the_end
+    }
+    [EnumParsable(typeof(BlocksScanMode))]
+    public enum BlocksScanMode
+    {
+        all,
+        masked
     }
 }

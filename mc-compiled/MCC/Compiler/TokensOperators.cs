@@ -91,6 +91,8 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIndexerUnresolvedPPV : TokenIndexer
     {
+        public override string AsString() => $"[{token}]";
+
         public TokenUnresolvedPPV token;
         public TokenIndexerUnresolvedPPV(TokenUnresolvedPPV token, int lineNumber) : base(lineNumber)
         {
@@ -124,6 +126,8 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIndexerInteger : TokenIndexer
     {
+        public override string AsString() => $"[{token.number}]";
+
         public TokenIntegerLiteral token;
         public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(lineNumber)
         {
@@ -139,6 +143,8 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIndexerString : TokenIndexer
     {
+        public override string AsString() => $"[\"{token.text}\"]";
+
         public TokenStringLiteral token;
         public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(lineNumber)
         {
@@ -151,6 +157,8 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIndexerSelector : TokenIndexer
     {
+        public override string AsString() => $"[{token.selector.ToString()}]";
+
         public TokenSelectorLiteral token;
         public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(lineNumber)
         {
@@ -227,6 +235,31 @@ namespace mc_compiled.MCC.Compiler
             LESS_OR_EQUAL,
             GREATER_THAN,
             GREATER_OR_EQUAL
+        }
+        /// <summary>
+        /// Returns the minecraft operator for the given TokenCompare.Type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static string GetMinecraftOperator(Type type)
+        {
+            switch (type)
+            {
+                case Type.EQUAL:
+                    return "==";
+                case Type.NOT_EQUAL:
+                    return "DOESNT EXIST MOJANG";
+                case Type.LESS_THAN:
+                    return "<";
+                case Type.LESS_OR_EQUAL:
+                    return "<=";
+                case Type.GREATER_THAN:
+                    return ">";
+                case Type.GREATER_OR_EQUAL:
+                    return ">=";
+                default:
+                    return "??";
+            }
         }
 
         public override string AsString() => "<? compare>";
@@ -408,6 +441,7 @@ namespace mc_compiled.MCC.Compiler
         public TokenLessThan(int lineNumber) : base(lineNumber) { }
 
         public override Type GetCompareType() => Type.LESS_THAN;
+
     }
     public sealed class TokenGreaterThan : TokenCompare
     {

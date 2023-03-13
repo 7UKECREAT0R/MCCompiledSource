@@ -1,4 +1,6 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using System;
 using System.Collections.Generic;
@@ -69,11 +71,10 @@ namespace mc_compiled.MCC.Compiler
                     {
                         // ComparisonValue
                         // if <score> <operator> <value>
-                        TokenCompare comparison = tokens.Next<TokenCompare>();
+                        TokenCompare.Type comparison = tokens.Next<TokenCompare>().GetCompareType();
                         Token b = tokens.Next();
 
-                        ComparisonValue field = new ComparisonValue(identifierValue,
-                            comparison.GetCompareType(), b, invertNext);
+                        ComparisonValue field = new ComparisonValue(identifierValue, comparison, b, invertNext);
 
                         invertNext = false;
                         set.Add(field);
@@ -133,19 +134,6 @@ namespace mc_compiled.MCC.Compiler
                         invertNext = false;
                         set.Add(blockCheck);
                     }
-                    else if (word.Equals("POSITIONED"))
-                    {
-                        // ComparisonPositioned
-                        // if positioned <x> <y> <z>
-                        Coord x = tokens.Next<TokenCoordinateLiteral>();
-                        Coord y = tokens.Next<TokenCoordinateLiteral>();
-                        Coord z = tokens.Next<TokenCoordinateLiteral>();
-
-                        ComparisonPositioned positioned = new ComparisonPositioned(x, y, z, invertNext);
-
-                        invertNext = false;
-                        set.Add(positioned);
-                    }
                 }
 
                 if (!tokens.HasNext)
@@ -176,33 +164,25 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(callingStatement, "No valid conditions specified.");
 
             List<string> commands = new List<string>();
-            StringBuilder setupBuffer = new StringBuilder(); // used with positioned argument
-            StringBuilder primaryBuffer = new StringBuilder();
+            List<Subcommand> chunks = new List<Subcommand>();
 
 
             // add a size-1 buffer, popped after the statements inside are run
             executor.PushSelector(false);
             Selector activeSelector = executor.ActiveSelector;
-            
-            // align before doing anything else
-            if(activeSelector.NeedsAlign)
-                primaryBuffer.Append(activeSelector.GetAsPrefix());
 
+            bool cancel = false;
             foreach (Comparison comparison in this)
             {
-                var partCommands = comparison.GetCommands(executor);
-                var partSelector = comparison.GetSelector(executor, callingStatement);
+                var partCommands = comparison.GetCommands(executor, callingStatement, out bool cancel0);
+                Subcommand[] localChunks = comparison.GetExecuteChunks(executor, callingStatement, out bool cancel1);
+
+                cancel |= cancel0 | cancel1;
 
                 if (partCommands != null)
                     commands.AddRange(partCommands);
-
-                string part = partSelector.GetAsPrefix();
-                
-                // append to setup buffer so it also applies to the setup commands (if needed).
-                if (comparison.ModifiesSetupCommands)
-                    setupBuffer.Append(part);
-
-                primaryBuffer.Append(part);
+                if (localChunks != null && localChunks.Length > 0)
+                    chunks.AddRange(localChunks);
 
                 // aligned to @s after this
                 executor.PopSelector();
@@ -215,55 +195,61 @@ namespace mc_compiled.MCC.Compiler
             // get the next statement to determine how to run this comparison
             Statement next = executor.Peek();
 
-            // add the commands given from all the comparisons
-            string setup = setupBuffer.ToString();
-            if (string.IsNullOrEmpty(setup))
-            {
-                // no setup prepend needed.
-                executor.AddCommandsClean(commands, "compareSetup");
-            } else
-            {
-                // need to set the setup prepend.
-                string old = executor.SetCommandPrepend(setup);
-                executor.AddCommands(commands, "compareSetup");
-                executor.SetCommandPrepend(old);
-            }
-
             int popCount = Count;
 
             if (next is StatementOpenBlock openBlock)
             {
                 // only do the block stuff if necessary.
                 if (openBlock.statementsInside == 0)
-                    return; // do nothing
-                else if (openBlock.statementsInside == 1)
                 {
-                    // modify prepend buffer as if 1 statement was there
-                    executor.AppendCommandPrepend(primaryBuffer.ToString());
-                    executor.PopSelectorAfterNext();
                     openBlock.openAction = null;
                     openBlock.CloseAction = null;
+                    return; // do nothing
+                }
+
+                if (cancel)
+                {
+                    openBlock.openAction = (e) =>
+                    {
+                        openBlock.CloseAction = null;
+                        for (int i = 0; i < openBlock.statementsInside; i++)
+                            e.Next();
+                    };
                 }
                 else
                 {
-                    CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
-                    string command = primaryBuffer.ToString() + Command.Function(blockFile);
-                    executor.AddCommand(command);
+                    string finalExecute = new ExecuteBuilder().WithSubcommands(chunks).Build();
 
-                    openBlock.openAction = (e) =>
+                    if (openBlock.statementsInside == 1)
                     {
-                        e.PushFile(blockFile);
-                    };
-                    openBlock.CloseAction = (e) =>
+                        // modify prepend buffer as if 1 statement was there
+                        executor.AppendCommandPrepend(finalExecute);
+                        executor.PopSelectorAfterNext();
+                        openBlock.openAction = null;
+                        openBlock.CloseAction = null;
+                    }
+                    else
                     {
-                        e.PopFile();
-                        e.PopSelector();
-                    };
+                        CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+                        string command = finalExecute + Command.Function(blockFile);
+                        executor.AddCommand(command);
+
+                        openBlock.openAction = (e) =>
+                        {
+                            e.PushFile(blockFile);
+                        };
+                        openBlock.CloseAction = (e) =>
+                        {
+                            e.PopFile();
+                            e.PopSelector();
+                        };
+                    }
                 }
             }
             else
             {
-                executor.AppendCommandPrepend(primaryBuffer.ToString());
+                string finalExecute = new ExecuteBuilder().WithSubcommands(chunks).Build();
+                executor.AppendCommandPrepend(finalExecute);
                 executor.PopSelectorAfterNext();
             }
         }
@@ -306,13 +292,6 @@ namespace mc_compiled.MCC.Compiler
             originallyInverted = invert;
             inverted = invert;
         }
-        /// <summary>
-        /// Returns if this comparison modifies the setup command prepend as well as the primary one.
-        /// </summary>
-        public virtual bool ModifiesSetupCommands
-        {
-            get => false;
-        }
 
         /// <summary>
         /// If this comparison is inverted.
@@ -326,13 +305,17 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the commands needed, if any, to set up this comparison. May return null if no commands are needed.
         /// </summary>
+        /// <param name="executor">The calling executor.</param>
+        /// <param name="callingStatement">The calling statement.</param>
+        /// <param name="cancel">Output parameter signaling to cancel the entire statement, like if a compile-time comparison fails.</param>
         /// <returns></returns>
-        public abstract IEnumerable<string> GetCommands(Executor executor);
+        public abstract IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel);
         /// <summary>
-        /// Gets the selector for this stage of the if-statement.
+        /// Gets the execute chunk needed to perform this comparison. May return null.
         /// </summary>
-        /// <param name="executor"></param>
-        /// <param name="callingStatement"></param>
-        public abstract Selector GetSelector(Executor executor, Statement callingStatement);
+        /// <param name="executor">The calling executor.</param>
+        /// <param name="callingStatement">The calling statement.</param>
+        /// <param name="cancel">Output parameter signaling to cancel the entire statement, like if a compile-time comparison fails.</param>
+        public abstract Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel);
     }
 }

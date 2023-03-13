@@ -243,7 +243,7 @@ namespace mc_compiled.MCC.Compiler
 
         public int GetNumberInt()
         {
-            return (int)Math.Round(GetNumber());
+            return (int)GetNumber(); // floor
         }
 
         /// <summary>

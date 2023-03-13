@@ -1,10 +1,12 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -18,18 +20,17 @@ namespace mc_compiled.MCC.Compiler
         {
             this.boolean = boolean;
         }
-        public override IEnumerable<string> GetCommands(Executor executor) => null;
-        public override Selector GetSelector(Executor executor, Statement forExceptions)
+        public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel) { cancel = false; return null; }
+        public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel)
         {
+            cancel = false;
+
             string name = boolean.Name;
-            int checkFor = inverted ? 0 : 1;
+            Range range = new Range(1, inverted);
 
-            Range range = new Range(checkFor, false);
-            ScoresEntry entry = new ScoresEntry(name, range);
-
-            Selector selector = new Selector(executor.ActiveSelector);
-            selector.scores.checks.Add(entry);
-            return selector;
+            return new Subcommand[] {
+                new SubcommandIf(ConditionalSubcommandScore.New(boolean, range))
+            };
         }
     }
 
@@ -57,7 +58,7 @@ namespace mc_compiled.MCC.Compiler
 
         SideType aType;
         SideType bType;
-        bool RequiresTemp
+        bool BothValues
         {
             get => aType == SideType.Variable && bType == SideType.Variable;
         }
@@ -95,123 +96,85 @@ namespace mc_compiled.MCC.Compiler
             FindBType();
 
             // swap for code simplicity
-            if(RequiresSwap)
+            if (RequiresSwap)
             {
                 SideType temp = bType;
                 bType = aType;
                 aType = temp;
-                this.a = a;
-                this.b = b;
-                this.comparison = SelectorUtils.InvertComparison(comparison);
+                this.a = b;
+                this.b = a;
+                this.comparison = comparison.InvertDirection();
             }
         }
 
-        ScoreboardValue temp;
-        ScoresEntry[] scoresEntries;
-        public override IEnumerable<string> GetCommands(Executor executor)
+        private Tuple<ScoresEntry[], string[]> entries;
+
+        public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel)
         {
-            if (RequiresTemp)
-            {
-                List<string> commands = new List<string>();
+            cancel = false;
 
-                TokenIdentifierValue tiv = this.a as TokenIdentifierValue;
-                ScoreboardValue a = tiv.value;
-                ScoreboardValue b = (this.b as TokenIdentifierValue).value;
-                ScoreboardValue temp = executor.scoreboard.RequestTemp(a); // temps are auto-released at the end
+            if (aType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Unexpected token on left-hand side of condition: {a.AsString()}");
+            if (bType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {b.AsString()}");
 
-                commands.AddRange(temp.CommandsSet(a));
-                commands.AddRange(temp.CommandsSub(b));
-                this.temp = temp;
-                return commands;
-            }
-            else if(aType == SideType.Variable)
+            if (aType == SideType.Variable && bType == SideType.Constant)
             {
-                TokenCompare.Type comparison = this.comparison;
+                var localComparison = this.comparison;
                 if (inverted)
-                    comparison = SelectorUtils.InvertComparison(comparison);
+                    localComparison = localComparison.InvertComparison();
 
-                TokenIdentifierValue tiv = this.a as TokenIdentifierValue;
-                ScoreboardValue a = tiv.value;
-                TokenNumberLiteral b = (this.b as TokenNumberLiteral);
-                var entries = a.CompareToLiteral(comparison, b);
-
-                this.scoresEntries = entries.Item1;
-                return entries.Item2;
+                ScoreboardValue a = (this.a as TokenIdentifierValue).value;
+                TokenNumberLiteral b = (this.a as TokenNumberLiteral);
+                this.entries = a.CompareToLiteral(localComparison, b);
+                return this.entries.Item2;
             }
 
             return null;
         }
-        public override Selector GetSelector(Executor executor, Statement callingStatement)
+        public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel)
         {
-            if (aType == SideType.Unknown)
-                throw new StatementException(callingStatement, $"Token {this.a.DebugString()} is not a valid number or variable.");
-            if (bType == SideType.Unknown)
-                throw new StatementException(callingStatement, $"Token {this.b.DebugString()} is not a valid number or variable.");
+            var localComparison = this.comparison;
+            if(inverted)
+                localComparison = localComparison.InvertComparison();
 
-            var comparison = this.comparison;
-            if (inverted)
-                comparison = SelectorUtils.InvertComparison(comparison);
-
-            Selector selector = new Selector(executor.ActiveSelector);
-
-            if(RequiresTemp)
+            if (BothValues)
             {
-                Range range;
-                switch (comparison)
-                {
-                    case TokenCompare.Type.EQUAL:
-                        range = new Range(0, false);
-                        break;
-                    case TokenCompare.Type.NOT_EQUAL:
-                        range = new Range(0, true);
-                        break;
-                    case TokenCompare.Type.LESS_THAN:
-                        range = new Range(null, -1);
-                        break;
-                    case TokenCompare.Type.LESS_OR_EQUAL:
-                        range = new Range(null, 0);
-                        break;
-                    case TokenCompare.Type.GREATER_THAN:
-                        range = new Range(1, null);
-                        break;
-                    case TokenCompare.Type.GREATER_OR_EQUAL:
-                        range = new Range(0, null);
-                        break;
-                    default:
-                        range = default;
-                        break;
-                }
-                ScoresEntry entry = new ScoresEntry(temp.Name, range);
-                selector.scores.checks.Add(entry);
-                return selector;
-            }
+                // "value value" comparison
+                ScoreboardValue a = (this.a as TokenIdentifierValue).value;
+                ScoreboardValue b = (this.b as TokenIdentifierValue).value;
 
+                cancel = false;
+                return new Subcommand[] {
+                    new SubcommandIf(ConditionalSubcommandScore.New(a, localComparison, b))
+                };
+            }
+            
             if(aType == SideType.Variable)
             {
-                // bType will be a Constant
-                // scoresEntries will not be null
-                selector.scores.checks.AddRange(scoresEntries);
-                return selector;
-            }
+                // "value constant" comparison
+                List<Subcommand> scores = new List<Subcommand>(this.entries.Item1.Length);
 
-            // Both are constant
-            TokenLiteral a = (this.a as TokenLiteral);
-            TokenLiteral b = (this.b as TokenLiteral);
-            bool result = a.CompareWithOther(comparison, b);
-            
-            // skip next code
-            if(!result)
-            {
-                Statement next = executor.Next();
-                if(next is StatementOpenBlock)
+                foreach (ScoresEntry scoreTest in this.entries.Item1)
                 {
-                    StatementOpenBlock block = next as StatementOpenBlock;
-                    for (int i = 0; i < block.statementsInside; i++)
-                        executor.Next();
-                    executor.Next(); // close block
+                    string scoreName = scoreTest.name;
+
+                    if (!executor.scoreboard.TryGetByAccessor(scoreName, out ScoreboardValue score))
+                        throw new StatementException(callingStatement, $"Unknown scoreboard value: '{scoreName}'. Is it defined above this line?");
+
+                    scores.Add(new SubcommandIf(ConditionalSubcommandScore.New(score, scoreTest.value)));
                 }
+
+                cancel = false;
+                return scores.ToArray();
             }
 
+            // "constant constant" comparison.
+            TokenNumberLiteral numberA = this.a as TokenNumberLiteral;
+            TokenNumberLiteral numberB = this.b as TokenNumberLiteral;
+
+            bool result = numberA.CompareWithOther(localComparison, numberB);
+            cancel = !result;
             return null;
         }
     }
@@ -225,36 +188,19 @@ namespace mc_compiled.MCC.Compiler
             this.selector = selector;
         }
 
-        string tagName;
-        public override IEnumerable<string> GetCommands(Executor executor)
+        public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel)
         {
-            if (!inverted)
-                return null;
-
-            // Special case for inversion.
-            List<string> commands = new List<string>();
-
-            string tagTargets = selector.core.AsCommandString();
-            this.tagName = DepthEncode(TAG_PREFIX, executor.Depth, selector);
-
-            commands.Add(Command.Tag(tagTargets, tagName));
-            commands.Add(Command.Execute(selector.ToString(),
-                selector.offsetX, selector.offsetY, selector.offsetZ,
-                Command.TagRemove("@s", tagName)));
-
-            executor.definedTags.Add(tagName);
-            return commands;
+            cancel = false;
+            return null;
         }
-        public override Selector GetSelector(Executor executor, Statement forExceptions)
+        public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel)
         {
-            if (inverted)
-            {
-                Selector picker = new Selector(selector.core);
-                picker.tags.Add(new Tag(tagName));
-                return picker;
-            }
-            else
-                return new Selector(selector);
+            cancel = false;
+
+            if(inverted)
+                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandEntity.New(this.selector)) };
+
+            return new Subcommand[] { new SubcommandIf(ConditionalSubcommandEntity.New(this.selector)) };
         }
     }
     public class ComparisonCount : Comparison
@@ -288,99 +234,69 @@ namespace mc_compiled.MCC.Compiler
         }
 
         ScoreboardValueInteger temp;
-        public override IEnumerable<string> GetCommands(Executor executor)
+        public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel)
         {
+            if (goalType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {goalCount.AsString()}");
+
             // count number of entities
             List<string> commands = new List<string>();
             temp = executor.scoreboard.RequestTemp();
-            string selectorString = selector.ToString();
             commands.Add(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 0));
-            commands.Add(Command.Execute(selectorString, selector.offsetX, selector.offsetY, selector.offsetZ,
-                Command.ScoreboardAdd(Executor.FAKEPLAYER_NAME, temp.Name, 1)));
-            commands.Add(Command.ScoreboardOpSet(executor.ActiveSelectorStr, temp.Name, Executor.FAKEPLAYER_NAME, temp.Name));
+            commands.Add(Command.Execute()
+                .As(selector)
+                .At(Selector.SELF)
+                .Positioned(selector.offsetX, selector.offsetY, selector.offsetZ)
+                .Run(Command.ScoreboardAdd(Executor.FAKEPLAYER_NAME, temp.Name, 1)));
 
-            // requires subtraction for it to work properly
-            if (RequiresSubtraction)
-            {
-                TokenIdentifierValue value = goalCount as TokenIdentifierValue;
-                commands.AddRange(temp.CommandsSub(value.value));
-            }
-
+            cancel = false;
             return commands;
         }
-        public override Selector GetSelector(Executor executor, Statement callingStatement)
+        public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel)
         {
-            if (goalType == SideType.Unknown)
-                throw new StatementException(callingStatement, $"Token {goalCount.DebugString()} is not a valid number or variable.");
+            cancel = false;
 
-            var comparison = this.comparison;
+            var localComparison = this.comparison;
             if (inverted)
-                comparison = SelectorUtils.InvertComparison(comparison);
+                localComparison = localComparison.InvertComparison();
 
-            Selector selector = new Selector(executor.ActiveSelector);
-
-            Range range;
-            if (RequiresSubtraction)
+            if (goalType == SideType.Variable)
             {
-                switch (comparison)
+                ScoreboardValue b = (this.goalCount as TokenIdentifierValue).value;
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, localComparison, b)) }; // TODO: "temp" is scoped to @s here, not a fakeplayer. please deal with this
+            } else
+            {
+                TokenNumberLiteral _b = this.goalCount as TokenNumberLiteral;
+                int b = _b.GetNumberInt();
+
+                Range range;
+
+                switch (localComparison)
                 {
                     case TokenCompare.Type.EQUAL:
-                        range = new Range(0, false);
+                        range = new Range(b, false);
                         break;
                     case TokenCompare.Type.NOT_EQUAL:
-                        range = new Range(0, true);
+                        range = new Range(b, true);
                         break;
                     case TokenCompare.Type.LESS_THAN:
-                        range = new Range(null, -1);
+                        range = new Range(null, b - 1);
                         break;
                     case TokenCompare.Type.LESS_OR_EQUAL:
-                        range = new Range(null, 0);
+                        range = new Range(null, b);
                         break;
                     case TokenCompare.Type.GREATER_THAN:
-                        range = new Range(1, null);
+                        range = new Range(b + 1, null);
                         break;
                     case TokenCompare.Type.GREATER_OR_EQUAL:
-                        range = new Range(0, null);
+                        range = new Range(b, null);
                         break;
                     default:
-                        range = default;
-                        break;
+                        throw new StatementException(callingStatement, $"Unexpected comparison type: {localComparison}.");
                 }
-            }
-            else
-            {
-                TokenNumberLiteral number = goalCount as TokenNumberLiteral;
-                int value = number.GetNumberInt();
 
-                switch (comparison)
-                {
-                    case TokenCompare.Type.EQUAL:
-                        range = new Range(value, false);
-                        break;
-                    case TokenCompare.Type.NOT_EQUAL:
-                        range = new Range(value, true);
-                        break;
-                    case TokenCompare.Type.LESS_THAN:
-                        range = new Range(null, value - 1);
-                        break;
-                    case TokenCompare.Type.LESS_OR_EQUAL:
-                        range = new Range(null, value);
-                        break;
-                    case TokenCompare.Type.GREATER_THAN:
-                        range = new Range(value + 1, null);
-                        break;
-                    case TokenCompare.Type.GREATER_OR_EQUAL:
-                        range = new Range(value, null);
-                        break;
-                    default:
-                        range = default;
-                        break;
-                }
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) }; // TODO: "temp" is scoped to @s here, not a fakeplayer. please deal with this
             }
-
-            ScoresEntry entry = new ScoresEntry(temp.Name, range);
-            selector.scores.checks.Add(entry);
-            return selector;
         }
     }
     public class ComparisonAny : Comparison
@@ -390,39 +306,41 @@ namespace mc_compiled.MCC.Compiler
 
         public ComparisonAny(Selector selector, bool invert) : base(invert)
         {
-            this.selector = selector;
+            if(selector.count.count == 1)
+                this.selector = selector;
+            else
+            {
+                this.selector = new Selector(selector);
+                this.selector.count.count = 1;
+            }
         }
 
-        string tagName;
-        public override IEnumerable<string> GetCommands(Executor executor)
+        ScoreboardValue temp;
+        public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel)
         {
-            // tag all possible entities
-            Selector active = executor.ActiveSelector;
-            string tagTargets = active.core.AsCommandString();
-            this.tagName = DepthEncode(TAG_PREFIX, executor.Depth, selector);
+            // check if any entity matches
+            List<string> commands = new List<string>();
+            temp = executor.scoreboard.RequestTemp();
+            commands.Add(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 0));
+            commands.Add(Command.Execute()
+                .As(selector)
+                .At(Selector.SELF)
+                .Positioned(selector.offsetX, selector.offsetY, selector.offsetZ)
+                .Run(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 1)));
 
-            selector.count = new Count(1);
-
-            // remove tag on matching entities
-            string[] commands = new[] {
-                Command.Tag(tagTargets, tagName),
-                Command.Execute(selector.ToString(), active.offsetX, active.offsetY, active.offsetZ, Command.TagRemove("*", tagName))
-            };
-
-            executor.definedTags.Add(tagName);
+            cancel = false;
             return commands;
         }
-        public override Selector GetSelector(Executor executor, Statement callingStatement)
+        public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel)
         {
-            Selector selector = new Selector(executor.ActiveSelector);
-            selector.tags.Add(new Tag(this.tagName, !inverted));
-            return selector;
+            Range range = new Range(1, inverted);
+
+            cancel = false;
+            return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) }; // TODO: "temp" is scoped to @s here, not a fakeplayer. please deal with this
         }
     }
     public class ComparisonBlock : Comparison
     {
-        public const string TAG_PREFIX = "__not_block";
-
         readonly Coord x;
         readonly Coord y;
         readonly Coord z;
@@ -438,66 +356,19 @@ namespace mc_compiled.MCC.Compiler
             this.data = data;
         }
 
-        string tagName;
-        public override IEnumerable<string> GetCommands(Executor executor)
+        public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel)
         {
-            if (inverted)
-            {
-                Selector active = executor.ActiveSelector;
-                string selector = active.ToString();
-                this.tagName = TAG_PREFIX + executor.depth;
-                int data = this.data ?? -1;
-                executor.definedTags.Add(tagName);
-
-                return new[] {
-                    Command.Tag(selector, tagName),
-                    Command.Execute(selector, active.offsetX, active.offsetY, active.offsetZ,
-                        x, y, z, block, data,
-                        Command.TagRemove("@s", tagName))
-                };
-            }
-
+            cancel = false;
             return null;
         }
-        public override Selector GetSelector(Executor executor, Statement callingStatement)
+        public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel)
         {
-            Selector selector = new Selector(executor.ActiveSelector);
+            cancel = false;
 
             if (inverted)
-                selector.tags.Add(new Tag(this.tagName, false));
+                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, data)) };
             else
-                selector.blockCheck = new BlockCheck(x, y, z, block, data);
-
-            return selector;
-        }
-    }
-    public class ComparisonPositioned : Comparison
-    {
-        readonly Coord x, y, z;
-
-        public ComparisonPositioned(Coord x, Coord y, Coord z, bool invert) : base(invert)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-        public override bool ModifiesSetupCommands
-        {
-            get => true;
-        }
-
-        public override IEnumerable<string> GetCommands(Executor executor)
-        {
-            return null;
-        }
-        public override Selector GetSelector(Executor executor, Statement callingStatement)
-        {
-            Selector selector = new Selector(Selector.Core.s);
-            selector.offsetX = x;
-            selector.offsetY = y;
-            selector.offsetZ = z;
-
-            return selector;
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, data)) };
         }
     }
 

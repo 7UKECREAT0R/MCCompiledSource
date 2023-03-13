@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.MCC.Compiler;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -59,6 +60,7 @@ namespace mc_compiled.Commands.Selectors
                     throw new FormatException($"Cannot parse selector \"{core}\"");
             }
         }
+
         /// <summary>
         /// Returns if this selector targets multiple entities.
         /// </summary>
@@ -70,13 +72,20 @@ namespace mc_compiled.Commands.Selectors
                 return core != Core.s && core != Core.p && core != Core.initiator;
             }
         }
+
         /// <summary>
         /// Returns if this selector needs to be aligned before executing locally on this entity.
         /// </summary>
-        public bool NeedsAlign
+        public bool NonSelf
         {
             get => core != Core.s && core != Core.initiator;
         }
+
+        public static readonly Selector NEAREST_PLAYER = new Selector(Core.p);
+        public static readonly Selector SELF = new Selector(Core.s);
+        public static readonly Selector ALL_PLAYERS = new Selector(Core.a);
+        public static readonly Selector ALL_ENTITIES = new Selector(Core.e);
+        public static readonly Selector INITIATOR = new Selector(Core.initiator);
 
         public Selector()
         {
@@ -96,7 +105,6 @@ namespace mc_compiled.Commands.Selectors
             entity = new Selectors.Entity();
             player = new Selectors.Player();
             tags = new List<Selectors.Tag>();
-            blockCheck = BlockCheck.DISABLED;
         }
         public Selector(Core core)
         {
@@ -117,7 +125,6 @@ namespace mc_compiled.Commands.Selectors
             entity = new Selectors.Entity();
             player = new Selectors.Player();
             tags = new List<Selectors.Tag>();
-            blockCheck = BlockCheck.DISABLED;
         }
         public Selector(Selector copy)
         {
@@ -129,7 +136,6 @@ namespace mc_compiled.Commands.Selectors
             entity = copy.entity;
             player = copy.player;
             tags = new List<Selectors.Tag>(copy.tags);
-            blockCheck = copy.blockCheck;
         }
         public static Selector Parse(string str)
         {
@@ -195,7 +201,6 @@ namespace mc_compiled.Commands.Selectors
         public Selectors.Entity entity;     // The entity/player's status (name, rotation, etc.)
         public Selectors.Player player;     // The player's specific stats (level, gamemode, etc.)
         public List<Selectors.Tag> tags;    // The tags this entity/player has. Can have multiple.
-        public BlockCheck blockCheck;       // The block to check.
 
         /// <summary>
         /// Returns the fully qualified minecraft command selector that this represents.
@@ -226,37 +231,11 @@ namespace mc_compiled.Commands.Selectors
             else return '@' + core.ToString();
         }
 
-        public string GetAsPrefix()
-        {
-            if (blockCheck.present)
-            {
-                if (core == Core.p)
-                {
-                    core = Core.s;
-                    string ret = $"execute @p ~ ~ ~ execute {ToString()} {offsetX} {offsetY} {offsetZ} {blockCheck} ";
-                    core = Core.p;
-                    return ret;
-                }
-                return $"execute {ToString()} {offsetX} {offsetY} {offsetZ} {blockCheck} ";
-            }
-            else
-            {
-                if (core == Core.p)
-                {
-                    core = Core.s;
-                    string ret = $"execute @p ~ ~ ~ execute {ToString()} {offsetX} {offsetY} {offsetZ} ";
-                    core = Core.p;
-                    return ret;
-                }
-                return $"execute {ToString()} {offsetX} {offsetY} {offsetZ} ";
-            }
-        }
-
         public override bool Equals(object obj)
         {
             return obj is Selector selector &&
                    SelectsMultiple == selector.SelectsMultiple &&
-                   NeedsAlign == selector.NeedsAlign &&
+                   NonSelf == selector.NonSelf &&
                    core == selector.core &&
                    EqualityComparer<Coord>.Default.Equals(offsetX, selector.offsetX) &&
                    EqualityComparer<Coord>.Default.Equals(offsetY, selector.offsetY) &&
@@ -267,14 +246,13 @@ namespace mc_compiled.Commands.Selectors
                    EqualityComparer<Count>.Default.Equals(count, selector.count) &&
                    EqualityComparer<Entity>.Default.Equals(entity, selector.entity) &&
                    EqualityComparer<Player>.Default.Equals(player, selector.player) &&
-                   EqualityComparer<List<Tag>>.Default.Equals(tags, selector.tags) &&
-                   EqualityComparer<BlockCheck>.Default.Equals(blockCheck, selector.blockCheck);
+                   EqualityComparer<List<Tag>>.Default.Equals(tags, selector.tags);
         }
         public override int GetHashCode()
         {
             int hashCode = 1214864800;
             hashCode = hashCode * -1521134295 + SelectsMultiple.GetHashCode();
-            hashCode = hashCode * -1521134295 + NeedsAlign.GetHashCode();
+            hashCode = hashCode * -1521134295 + NonSelf.GetHashCode();
             hashCode = hashCode * -1521134295 + core.GetHashCode();
             hashCode = hashCode * -1521134295 + offsetX.GetHashCode();
             hashCode = hashCode * -1521134295 + offsetY.GetHashCode();
@@ -286,7 +264,6 @@ namespace mc_compiled.Commands.Selectors
             hashCode = hashCode * -1521134295 + entity.GetHashCode();
             hashCode = hashCode * -1521134295 + player.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<List<Tag>>.Default.GetHashCode(tags);
-            hashCode = hashCode * -1521134295 + blockCheck.GetHashCode();
             return hashCode;
         }
 
@@ -303,9 +280,6 @@ namespace mc_compiled.Commands.Selectors
             clone.count += b.count;
             clone.entity += b.entity;
             clone.player += b.player;
-
-            if (!a.blockCheck.present)
-                a.blockCheck = b.blockCheck;
 
             clone.tags = new List<Selectors.Tag>(a.tags.Count + b.tags.Count);
             clone.tags.AddRange(a.tags);

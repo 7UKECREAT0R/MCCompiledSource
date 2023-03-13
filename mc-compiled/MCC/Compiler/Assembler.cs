@@ -120,6 +120,17 @@ namespace mc_compiled.MCC.Compiler
             TokenIdentifier identifier = firstToken as TokenIdentifier;
             Token secondToken = line[1];
 
+            // strip any indexers so 'secondToken' is actually the next meaningful unit of information.
+            // keep in mind that 'secondToken' is not necessarily the next sequential token.
+            if(secondToken is TokenIndexer && line.Count > 2)
+            {
+                int index = 2;
+
+                do secondToken = line[index++];
+                while(secondToken is TokenIndexer && line.Count > index);
+            }
+
+
             if (secondToken is IAssignment)
             {
                 StatementOperation statement = new StatementOperation(line.ToArray());

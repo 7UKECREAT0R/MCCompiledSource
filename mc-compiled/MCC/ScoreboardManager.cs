@@ -362,13 +362,13 @@ namespace mc_compiled.MCC
             tempIndex = tempStack.Pop();
 
         /// <summary>
-        /// Get a scoreboard value by its BASE NAME.
+        /// Get a scoreboard value by its INTERNAL NAME.
         /// </summary>
         /// <returns>Null if not found.</returns>
-        public ScoreboardValue GetByName(string baseName) =>
-            values.FirstOrDefault(v => v.Name.Equals(baseName));
+        public ScoreboardValue GetByName(string internalName) =>
+            values.FirstOrDefault(v => v.Name.Equals(internalName));
         /// <summary>
-        /// Get a scoreboard value by some accessor of it. e.g. name, name:a, name:field
+        /// Get a scoreboard value by any of its USER-EXPOSED NAMES.
         /// </summary>
         /// <param name="accessor"></param>
         /// <returns>Null if not found.</returns>
@@ -383,13 +383,13 @@ namespace mc_compiled.MCC
             return null;
         }
         /// <summary>
-        /// Tries to get a scoreboard value by its BASE NAME.
+        /// Tries to get a scoreboard value by its INTERNAL NAME.
         /// </summary>
         /// <returns>True if found and output is set.</returns>
-        public bool TryGetByName(string baseName, out ScoreboardValue output)
+        public bool TryGetByName(string internalName, out ScoreboardValue output)
         {
             foreach (ScoreboardValue value in values)
-                if (value.Name.Equals(baseName))
+                if (value.Name.Equals(internalName))
                 {
                     output = value;
                     return true;
@@ -399,11 +399,11 @@ namespace mc_compiled.MCC
             return false;
         }
         /// <summary>
-        /// Tries to get a scoreboard value by some accessor of it. e.g. name, name:a, name:field
+        /// Tries to get a scoreboard value by any of its USER-EXPOSED NAMES.
         /// </summary>
         /// <param name="accessor"></param>
         /// <returns>True if found and output is set.</returns>
-        public bool TryGetByAccessor(string accessor, out ScoreboardValue output, bool allowMissingAccessor = false)
+        public bool TryGetByAccessor(string accessor, out ScoreboardValue output)
         {
             foreach (ScoreboardValue value in values)
             {

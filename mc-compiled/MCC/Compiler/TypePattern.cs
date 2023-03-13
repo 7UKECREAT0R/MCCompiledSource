@@ -34,9 +34,40 @@ namespace mc_compiled.MCC.Compiler
             pattern.Add(new MultiType(false, argName, type));
             return this;
         }
+        public TypePattern And(NamedType type)
+        {
+            pattern.Add(new MultiType(false, type.name, type));
+            return this;
+        }
         public TypePattern Optional(NamedType type, string argName)
         {
             pattern.Add(new MultiType(true, argName, type));
+            return this;
+        }
+        public TypePattern Optional(NamedType type)
+        {
+            pattern.Add(new MultiType(true, type.name, type));
+            return this;
+        }
+
+        public TypePattern PrependAnd(NamedType type, string argName)
+        {
+            pattern.Prepend(new MultiType(false, argName, type));
+            return this;
+        }
+        public TypePattern PrependAnd(NamedType type)
+        {
+            pattern.Prepend(new MultiType(false, type.name, type));
+            return this;
+        }
+        public TypePattern PrependOptional(NamedType type, string argName)
+        {
+            pattern.Prepend(new MultiType(true, argName, type));
+            return this;
+        }
+        public TypePattern PrependOptional(NamedType type)
+        {
+            pattern.Prepend(new MultiType(true, type.name, type));
             return this;
         }
 
@@ -138,11 +169,17 @@ namespace mc_compiled.MCC.Compiler
         public readonly Type type;
         public readonly string name;
 
+        /// <summary>
+        /// A type with a pre-cached or otherwise set name.
+        /// </summary>
         public NamedType(Type type, string name)
         {
             this.type = type;
             this.name = name;
         }
+        /// <summary>
+        /// A type with a pre-cached or otherwise set name.
+        /// </summary>
         public NamedType(Type type)
         {
             this.type = type;

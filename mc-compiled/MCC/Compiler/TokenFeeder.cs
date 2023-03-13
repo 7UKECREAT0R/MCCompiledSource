@@ -139,7 +139,7 @@ namespace mc_compiled.MCC.Compiler
                 return token as T;
         }
         /// <summary>
-        /// Returns if the next parameter is able to be casted to a certain type. Implements MCCompiled implicit conversions.
+        /// Returns if the next parameter (if any) is able to be casted to a certain type. Implements MCCompiled implicit conversions.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="allowImplicit"></param>
@@ -154,17 +154,14 @@ namespace mc_compiled.MCC.Compiler
             if (token is T)
                 return true;
 
-            if (allowImplicit)
+            if (allowImplicit && token is IImplicitToken)
             {
-                if (token is IImplicitToken)
-                {
-                    IImplicitToken implicitToken = token as IImplicitToken;
-                    Type[] otherTypes = implicitToken.GetImplicitTypes();
+                IImplicitToken implicitToken = token as IImplicitToken;
+                Type[] otherTypes = implicitToken.GetImplicitTypes();
 
-                    for (int i = 0; i < otherTypes.Length; i++)
-                        if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return true;
-                }
+                for (int i = 0; i < otherTypes.Length; i++)
+                    if (typeof(T).IsAssignableFrom(otherTypes[i]))
+                        return true;
             }
 
             return false;

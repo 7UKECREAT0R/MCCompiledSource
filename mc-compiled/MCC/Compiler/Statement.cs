@@ -126,7 +126,7 @@ namespace mc_compiled.MCC.Compiler
                     // identifier resolve requires a manual search.
                     TokenIdentifier identifier = unresolved as TokenIdentifier;
                     string word = identifier.word;
-                    if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value, true))
+                    if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value))
                         allResolved.Add(new TokenIdentifierValue(word, value, line));
                     else if (executor.TryLookupMacro(word, out Macro? macro))
                         allResolved.Add(new TokenIdentifierMacro(macro.Value, line));

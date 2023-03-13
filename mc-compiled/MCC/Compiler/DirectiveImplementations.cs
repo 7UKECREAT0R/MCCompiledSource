@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mc_compiled.Commands.Execute;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -978,7 +979,7 @@ namespace mc_compiled.MCC.Compiler
             string[] commands;
 
             if (advanced)
-                commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "tellraw @s "));
+                commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("tellraw @s "));
             else
                 commands = executor.ResolveRawText(terms, "tellraw @a ");
 
@@ -1057,7 +1058,7 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenStringLiteral>())
                 {
                     string name = tokens.Next<TokenStringLiteral>();
-                    if (!executor.scoreboard.TryGetByAccessor(name, out value, true))
+                    if (!executor.scoreboard.TryGetByAccessor(name, out value))
                         throw new StatementException(tokens, $"Attempted to initialize undefined variable '{name}'.");
                 }
                 else
@@ -1072,7 +1073,7 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end of file after if-statement.");
 
-            // 1.1 rework (before new-execute released)
+            // 1.1 rework (post new-execute)
             ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
             set.InvertAll(false);
             set.Run(executor, tokens);
@@ -1084,7 +1085,7 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end of file after else-statement.");
 
-            // 1.1 rework (before new-execute released)
+            // 1.1 rework (post new-execute)
             ComparisonSet set = executor.GetLastCompare();
             set.InvertAll(true);
             set.Run(executor, tokens);
@@ -1242,8 +1243,8 @@ namespace mc_compiled.MCC.Compiler
                 string cmd = Command.StructureLoad(file.CommandReference, Coord.here, Coord.here, Coord.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
 
-                if (active.NeedsAlign)
-                    executor.AddCommand(Command.Execute(active.ToString(), Coord.here, Coord.here, Coord.here, cmd));
+                if (active.NonSelf)
+                    executor.AddCommand(Command.Execute().As(active).AtSelf().Run(cmd));
                 else
                     executor.AddCommand(cmd);
                 return;
@@ -1383,8 +1384,7 @@ namespace mc_compiled.MCC.Compiler
 
             List<string> commands = new List<string>();
             commands.Add(Command.Tag("@s", "__mcc_here"));
-            commands.Add(Command.Execute(selector.ToString(), Coord.here, Coord.here, Coord.here,
-                Command.TeleportFacing(Coord.here, Coord.here, Coord.here, "@e[tag=\"__mcc_here\",c=1]")));
+            commands.Add(Command.Execute().As(selector).AtSelf().Run(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, "@e[tag=\"__mcc_here\",c=1]")));
             commands.Add(Command.TagRemove("@s", "__mcc_here"));
 
             executor.PushSelectorExecute();
@@ -1584,8 +1584,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 Selector selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.Execute(selector.ToString(),
-                    Coord.here, Coord.here, Coord.here, Command.Function(file)));
+                executor.AddCommand(Command.Execute().As(selector).AtSelf().Run(Command.Function(file)));
                 return;
             }
 
@@ -1613,7 +1612,7 @@ namespace mc_compiled.MCC.Compiler
                     string[] commands;
 
                     if (advanced)
-                        commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "titleraw @s subtitle "));
+                        commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("titleraw @s subtitle "));
                     else
                         commands = executor.ResolveRawText(terms, "titleraw @a subtitle ");
 
@@ -1631,7 +1630,7 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "title @s title "));
+                    commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("title @s title "));
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a title ");
 
@@ -1719,7 +1718,7 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = executor.ResolveRawText(terms, Command.Execute("@a", Coord.here, Coord.here, Coord.here, "titleraw @s actionbar "));
+                    commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("titleraw @s actionbar "));
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a actionbar ");
 

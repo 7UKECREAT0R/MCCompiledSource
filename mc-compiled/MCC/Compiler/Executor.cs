@@ -240,7 +240,7 @@ namespace mc_compiled.MCC.Compiler
                     }
                     else if(FSTRING_VARIABLE.IsMatch(segment))
                     {
-                        if(scoreboard.TryGetByAccessor(segment, out ScoreboardValue value, true))
+                        if(scoreboard.TryGetByAccessor(segment, out ScoreboardValue value))
                         {
                             i += segmentLength;
                             DumpTextBuffer();
@@ -304,8 +304,7 @@ namespace mc_compiled.MCC.Compiler
 
             bool hasVariant = terms.Any(t => t is JSONVariant);
             if (!root && !hasVariant)
-                commands.Add(Command.Execute(currentSelector.ToString(),
-                    Coord.here, Coord.here, Coord.here, command + jb.BuildString()));
+                commands.Add(Command.Execute().As(currentSelector).AtSelf().Run(command + jb.BuildString()));
             else if(root && !hasVariant)
                 commands.Add(command + jb.BuildString());
 
@@ -481,30 +480,12 @@ namespace mc_compiled.MCC.Compiler
         /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
         /// </summary>
         /// <returns>The previous value of the prepend buffer.</returns>
-        public string PushSelectorExecute(Selector now)
-        {
-            if (now.NeedsAlign)
-            {
-                string prev = prependBuffer.ToString();
-                AppendCommandPrepend(Command.Execute(now.ToString(), now.offsetX, now.offsetY, now.offsetZ, ""));
-                PushSelector(true);
-                return prev;
-            }
-
-            PushSelector(false);
-            return "";
-        }
-        /// <summary>
-        /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
-        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
-        /// </summary>
-        /// <returns>The previous value of the prepend buffer.</returns>
         public string PushSelectorExecute(Selector now, Coord offsetX, Coord offsetY, Coord offsetZ)
         {
-            if (now.NeedsAlign)
+            if (now.NonSelf)
             {
                 string prev = prependBuffer.ToString();
-                AppendCommandPrepend(Command.Execute(now.ToString(), offsetX, offsetY, offsetZ, ""));
+                //AppendCommandPrepend(Command.Execute(now.ToString(), offsetX, offsetY, offsetZ, ""));
                 PushSelector(true);
                 return prev;
             }
@@ -520,10 +501,10 @@ namespace mc_compiled.MCC.Compiler
         public string PushSelectorExecute()
         {
             Selector active = ActiveSelector;
-            if (active.NeedsAlign)
+            if (active.NonSelf)
             {
                 string prev = prependBuffer.ToString();
-                AppendCommandPrepend(Command.Execute(active.ToString(), active.offsetX, active.offsetY, active.offsetZ, ""));
+                //AppendCommandPrepend(Command.Execute(active.ToString(), active.offsetX, active.offsetY, active.offsetZ, ""));
                 PushSelector(true);
                 return prev;
             }
@@ -541,10 +522,10 @@ namespace mc_compiled.MCC.Compiler
         public string PushSelectorExecute(Coord offsetX, Coord offsetY, Coord offsetZ)
         {
             Selector active = ActiveSelector;
-            if (active.NeedsAlign)
+            if (active.NonSelf)
             {
                 string prev = prependBuffer.ToString();
-                AppendCommandPrepend(Command.Execute(active.ToString(), offsetX, offsetY, offsetZ, ""));
+                //AppendCommandPrepend(Command.Execute(active.ToString(), offsetX, offsetY, offsetZ, ""));
                 PushSelector(true);
                 return prev;
             }

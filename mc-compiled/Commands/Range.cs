@@ -12,6 +12,8 @@ namespace mc_compiled.Commands
     /// </summary>
     public struct Range
     {
+        public static readonly Range zero = new Range(0, false);
+
         public bool invert, single;
         public int? min;
         public int? max;
@@ -425,9 +427,15 @@ namespace mc_compiled.Commands
 
             return base.Equals(obj);
         }
+
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            int hashCode = 1030738394;
+            hashCode = hashCode * -1521134295 + invert.GetHashCode();
+            hashCode = hashCode * -1521134295 + single.GetHashCode();
+            hashCode = hashCode * -1521134295 + min.GetHashCode();
+            hashCode = hashCode * -1521134295 + max.GetHashCode();
+            return hashCode;
         }
     }
 }

@@ -86,7 +86,7 @@ namespace mc_compiled.MCC
         }
 
         public List<IAttribute> attributes;
-        public readonly Clarifier clarifier;
+        public Clarifier clarifier { get; protected set; }
         public readonly ScoreboardManager.ValueType valueType;
         internal readonly ScoreboardManager manager;
 
@@ -121,11 +121,16 @@ namespace mc_compiled.MCC
         }
         /// <summary>
         /// Perform a fully implemented deep clone of this scoreboard value.
+        /// Does not clone 
         /// </summary>
         /// <returns></returns>
         public virtual object Clone()
         {
-            return MemberwiseClone();
+            ScoreboardValue clone = MemberwiseClone() as ScoreboardValue;
+            clone.clarifier = this.clarifier.Clone();
+            clone.attributes = new List<IAttribute>(this.attributes);
+
+            return clone;
         }
 
         /// <summary>
@@ -209,7 +214,6 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="ctype"></param>
         /// <param name="literal"></param>
-        /// 
         /// <returns></returns>
         public abstract Tuple<ScoresEntry[], string[]> CompareToLiteral(TokenCompare.Type ctype, TokenNumberLiteral literal);
         /// <summary>
@@ -766,7 +770,11 @@ namespace mc_compiled.MCC
 
         public override object Clone()
         {
-            return MemberwiseClone();
+            ScoreboardValueDecimal clone = MemberwiseClone() as ScoreboardValueDecimal;
+            clone.clarifier = this.clarifier.Clone();
+            clone.attributes = new List<IAttribute>(this.attributes);
+
+            return clone;
         }
         public override string GetTypeKeyword() => "decimal " + precision;
         public override string[] CommandsDefine()
@@ -872,9 +880,7 @@ namespace mc_compiled.MCC
                 Command.ScoreboardOpSet(part, this),
                 Command.ScoreboardOpSub(part, temporary),
                 Command.ScoreboardSet(temporary, -1),
-                Command.Execute(clarifier.CurrentString, Coord.here, Coord.here, Coord.here,
-                    Command.Execute($"@s[scores={{{part}=..-1}}]",  Coord.here, Coord.here, Coord.here,
-                        Command.ScoreboardOpMul(part, temporary)))
+                Command.Execute().IfScore(part, new Range(null, -1)).Run(Command.ScoreboardOpMul(part, temporary))
             };
         }
         public override JSONRawTerm[] ToRawText(ref int index)

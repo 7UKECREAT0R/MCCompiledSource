@@ -32,6 +32,20 @@ namespace mc_compiled.MCC.Compiler
             this.global = global;
             this.Reset();
         }
+        private Clarifier(bool global, string currentString)
+        {
+            this.global = global;
+            this.currentString = currentString;
+        }
+        /// <summary>
+        /// Return a deep clone of this clarifier.
+        /// </summary>
+        /// <returns></returns>
+        public Clarifier Clone()
+        {
+            return new Clarifier(this.global, this.currentString);
+        }
+
         /// <summary>
         /// Sets this clarifier's global state.
         /// </summary>
