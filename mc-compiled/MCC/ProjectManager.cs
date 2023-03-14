@@ -79,7 +79,7 @@ namespace mc_compiled.MCC
                 file.Add(Commands.Command.Event($"@e[type={parentExecutor.entities.dummies.dummyType}]", DummyManager.DESTROY_EVENT_NAME));
             }
 
-            foreach (string temp in parentExecutor.scoreboard.definedTempVars)
+            foreach (string temp in parentExecutor.scoreboard.temps.DefinedTemps)
                 file.Add(Commands.Command.ScoreboardRemoveObjective(temp));
 
             foreach (ScoreboardValue sb in parentExecutor.scoreboard.values)

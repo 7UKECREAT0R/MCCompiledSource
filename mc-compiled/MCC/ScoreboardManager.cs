@@ -128,30 +128,36 @@ namespace mc_compiled.MCC
             }
         }
 
-        private const string TEMP_PREFIX = "_tmp";
-        private int tempIndex;
-        private Stack<int> tempStack;
-
         public readonly Executor executor;
-        public readonly HashSet<ScoreboardValue> definedTempVars;
+        public readonly TempManager temps;
         internal readonly HashSet<ScoreboardValue> values;
 
+        /// <summary>
+        /// Create a new ScoreboardManager tied to the given <see cref="Executor"/>. Changes will reflect in the <see cref="Executor"/> in various ways.
+        /// </summary>
+        /// <param name="executor"></param>
         public ScoreboardManager(Executor executor)
         {
-            tempIndex = 0;
-            tempStack = new Stack<int>();
-
-            definedTempVars = new HashSet<ScoreboardValue>();
+            temps = new TempManager(this, executor);
             values = new HashSet<ScoreboardValue>();
             this.executor = executor;
         }
+
+        /// <summary>
+        /// I wrote this a while ago, and to be honest, I have no
+        /// idea what it does or is supposed to do, except that it works.
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="commands">The commands</param>
         public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
         {
-            if (definedTempVars.Contains(value))
+            string name = value.Name;
+
+            if (temps.DefinedTemps.Contains(name))
                 return;
 
-            executor.AddCommandsHead(commands.SelectMany(sb => sb.CommandsDefine()));
-            definedTempVars.Add(value);
+            executor.AddCommandsInit(commands.SelectMany(sb => sb.CommandsDefine()));
+            temps.DefinedTemps.Add(name);
         }
 
         /// <summary>
@@ -179,69 +185,6 @@ namespace mc_compiled.MCC
                 return;
             values.Add(value);
         }
-
-        /// <summary>
-        /// Makes a request for an unused temporary int variable. Created as needed.
-        /// </summary>
-        /// <returns></returns>
-        public ScoreboardValueInteger RequestTemp()
-        {
-            string name = TEMP_PREFIX + tempIndex;
-            var created = new ScoreboardValueInteger(name, false, this);
-            
-            if (definedTempVars.Add(created))
-            {
-                executor.AddCommandsHead(created.CommandsInit());
-                executor.AddCommandsHead(created.CommandsDefine());
-            }
-
-            tempIndex++;
-            return created;
-        }
-        /// <summary>
-        /// Request a temp variable be created, cloning the properties of another scoreboard value.
-        /// </summary>
-        /// <returns></returns>
-        public ScoreboardValue RequestTemp(ScoreboardValue clone)
-        {
-            ScoreboardValue created = clone.Clone() as ScoreboardValue;
-            created.Name = TEMP_PREFIX + tempIndex;
-            string name = created.Name + clone.GetMaxNameLength(); // make an 'id' out of this
-
-            if (definedTempVars.Add(created))
-            {
-                executor.AddCommandsHead(created.CommandsInit());
-                executor.AddCommandsHead(created.CommandsDefine());
-            }
-
-            tempIndex++;
-            return created;
-        }
-        /// <summary>
-        /// Request a temp value that is able to hold this literal.
-        /// </summary>
-        /// <param name="literal">The literal that will be able to be stored into a </param>
-        /// <returns></returns>
-        public ScoreboardValue RequestTemp(TokenLiteral literal, bool global, Statement forExceptions)
-        {
-            string name = TEMP_PREFIX + tempIndex;
-            ScoreboardValue created = CreateFromLiteral(name, global, literal, forExceptions);
-
-            if (definedTempVars.Add(created))
-            {
-                executor.AddCommandsHead(created.CommandsInit());
-                executor.AddCommandsHead(created.CommandsDefine());
-            }
-
-            tempIndex++;
-            return created;
-        }
-        /// <summary>
-        /// Release the temp variable that was most recently created.
-        /// Should be called always when done using variable from RequestTemp().
-        /// </summary>
-        public void ReleaseTemp() =>
-            tempIndex--;
 
         /// <summary>
         /// Create a scoreboard value from a literal value.
@@ -363,20 +306,6 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// Save the current temp level to be recalled later using PopTempState().
-        /// </summary>
-        public TempStateContract PushTempState()
-        {
-            tempStack.Push(tempIndex);
-            return new TempStateContract(this);
-        }
-        /// <summary>
-        /// Restore the temp level to what it was at the last PushTempState() call.
-        /// </summary>
-        public void PopTempState() =>
-            tempIndex = tempStack.Pop();
-
-        /// <summary>
         /// Get a scoreboard value by its INTERNAL NAME.
         /// </summary>
         /// <returns>Null if not found.</returns>
@@ -434,26 +363,5 @@ namespace mc_compiled.MCC
         }
     }
 
-    /// <summary>
-    /// A contract given by <see cref="ScoreboardManager.PushTempState"/> used to release the state through disposal.
-    /// This does not have to be disposed if the called does not want to use its features.
-    /// </summary>
-    public class TempStateContract : IDisposable
-    {
-        private bool _isDisposed;
-        private ScoreboardManager parent;
 
-        internal TempStateContract(ScoreboardManager parent)
-        {
-            this.parent = parent;
-        }
-        public void Dispose()
-        {
-            if (_isDisposed)
-                return;
-
-            parent.PopTempState(); // <------ the big kahuna
-            _isDisposed = true;
-        }
-    }
 }

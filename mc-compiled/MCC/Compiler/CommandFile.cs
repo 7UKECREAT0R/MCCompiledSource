@@ -22,6 +22,10 @@ namespace mc_compiled.MCC.Compiler
         {
             get => runtimeFunction != null;
         }
+        public bool IsRootFile
+        {
+            get; private set;
+        }
         public int Length
         {
             get => commands.Count;
@@ -41,12 +45,28 @@ namespace mc_compiled.MCC.Compiler
         public string folder;
         public string name;
 
+        /// <summary>
+        /// Create a new command file with an optional runtime function linked to it.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="folder"></param>
+        /// <param name="runtimeFunction"></param>
         public CommandFile(string name, string folder = null, RuntimeFunction runtimeFunction = null)
         {
             this.name = name;
             this.folder = folder;
             this.runtimeFunction = runtimeFunction;
         }
+        /// <summary>
+        /// Returns this CommandFile with IsRootFile set to true. Never use this on anything but the head file.
+        /// </summary>
+        /// <returns></returns>
+        internal CommandFile AsRoot()
+        {
+            this.IsRootFile = true;
+            return this;
+        }
+
         public override bool Equals(object obj)
         {
             return obj is CommandFile file &&

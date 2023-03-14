@@ -127,7 +127,9 @@ namespace mc_compiled.MCC.Compiler
 
             PushSelector(true);
             SetCompilerPPVs();
-            currentFiles.Push(new CommandFile(projectName));
+
+            HeadFile = new CommandFile(projectName).AsRoot();
+            currentFiles.Push(HeadFile);
         }
         /// <summary>
         /// Returns this executor after setting it to lint mode, lowering memory usage
@@ -733,7 +735,7 @@ namespace mc_compiled.MCC.Compiler
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.SetExecutor(this);
                 statement.Run0(this);
-                scoreboard.PopTempState();
+                scoreboard.temps.PopTempState();
 
                 if (statement.Skip)
                     continue; // ignore this statement
@@ -766,7 +768,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void ExecuteSubsection(Statement[] section)
         {
-            using (scoreboard.PushTempState())
+            using (scoreboard.temps.PushTempState())
             {
                 Statement[] restore0 = statements;
                 int restore1 = readIndex;
@@ -778,7 +780,7 @@ namespace mc_compiled.MCC.Compiler
                     Statement unresolved = Next();
                     Statement statement = unresolved.ClonePrepare(this);
                     statement.Run0(this);
-                    scoreboard.PopTempState();
+                    scoreboard.temps.PopTempState();
 
                     if (statement.Skip)
                         continue; // ignore this statement
@@ -861,7 +863,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the main .mcfunction file for this project.
         /// </summary>
-        public CommandFile HeadFile { get => currentFiles.Last(); }
+        public CommandFile HeadFile { get; private set; }
 
         /// <summary>
         /// Get the current scope level.
@@ -982,27 +984,29 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public bool HasExtraFileContaining(string text) =>
             this.project.HasFileContaining(text);
+
+        private List<string> initCommands = new List<string>();
         /// <summary>
-        /// Add a command to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
+        /// Add a command to the 'init' file. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="command"></param>
-        public void AddCommandHead(string command)
+        public void AddCommandInit(string command)
         {
             if (linting)
                 return;
-            HeadFile.AddTop(command);
+            initCommands.Add(command);
         }
         /// <summary>
-        /// Adds a set of commands to the top of the 'head' file, being the main project function. Does not affect the prepend buffer.
+        /// Adds a set of commands to the 'init' file. Does not affect the prepend buffer.
         /// </summary>
         /// <param name="commands"></param>
-        public void AddCommandsHead(IEnumerable<string> commands)
+        public void AddCommandsInit(IEnumerable<string> commands)
         {
             if (linting)
                 return;
             if (commands.Count() < 1)
                 return;
-            HeadFile.AddTop(commands);
+            initCommands.AddRange(commands);
         }
 
         /// <summary>
@@ -1205,13 +1209,22 @@ namespace mc_compiled.MCC.Compiler
 
             CommandFile file = currentFiles.Pop();
 
-            // root file is empty so it causes MC compile errors
+            // file is empty so it causes MC compile errors
             // solution: print project info!
             if(currentFiles.Count == 0 && file.Length == 0)
             {
                 RawTextJsonBuilder jb = new RawTextJsonBuilder();
                 jb.AddTerm(new JSONText(project.name + " for Minecraft " + MINECRAFT_VERSION));
                 file.Add(Command.Tellraw("@s", jb.BuildString()));
+            }
+
+            if(file.IsRootFile && initCommands.Any())
+            {
+                // add initialization commands now.
+                file.AddTop(initCommands);
+
+                if (Program.DECORATE)
+                    file.AddTop("# Initialize the project.");
             }
 
             project.AddFile(file);
@@ -1246,8 +1259,8 @@ namespace mc_compiled.MCC.Compiler
             loadedFiles.Clear();
             ppv.Clear();
             definedTags.Clear();
-            scoreboard.definedTempVars.Clear();
             scoreboard.values.Clear();
+            scoreboard.temps.Clear();
             GC.Collect();
         }
     }

@@ -87,7 +87,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 // i hate the jank here but just trust this gets popped later
                 // ignores contract
-                executor.scoreboard.PushTempState();
+                executor.scoreboard.temps.PushTempState();
                 return statement;
             }
 
@@ -144,7 +144,7 @@ namespace mc_compiled.MCC.Compiler
                     allResolved.Add(unresolved);
             }
 
-            executor.scoreboard.PushTempState(); // popped at call site, ignore contract
+            executor.scoreboard.temps.PushTempState(); // popped at call site, ignore contract
             SquashAll(allResolved, executor);
             SquashSpecial(allResolved); // ranges, indexers, etc.
 
@@ -391,7 +391,7 @@ namespace mc_compiled.MCC.Compiler
                     ScoreboardValue b = right.value;
                     squashToGlobal = a.clarifier.IsGlobal || b.clarifier.IsGlobal;
 
-                    ScoreboardValue temp = executor.scoreboard.RequestTemp(a);
+                    ScoreboardValue temp = executor.scoreboard.temps.RequestCopy(a, squashToGlobal);
                     string accessorTemp = temp.Name;
 
                     commands.AddRange(temp.CommandsSet(b));
@@ -428,7 +428,7 @@ namespace mc_compiled.MCC.Compiler
                         b = (_right as TokenIdentifierValue).value;
                         squashToGlobal = b.clarifier.IsGlobal;
 
-                        a = executor.scoreboard.RequestTemp(_left as TokenLiteral, squashToGlobal, this);
+                        a = executor.scoreboard.temps.Request(_left as TokenLiteral, this, squashToGlobal);
                         aAccessor = a.Name;
                         commands.AddRange(a.CommandsSetLiteral(_left as TokenLiteral));
                         bAccessor = (_right as TokenIdentifierValue).Accessor;
@@ -438,12 +438,12 @@ namespace mc_compiled.MCC.Compiler
                         TokenIdentifierValue left = _left as TokenIdentifierValue;
                         squashToGlobal = left.value.clarifier.IsGlobal;
 
-                        b = executor.scoreboard.RequestTemp(_right as TokenLiteral, squashToGlobal, this);
+                        b = executor.scoreboard.temps.Request(_right as TokenLiteral, this, squashToGlobal);
                         bAccessor = b.Name;
                         commands.AddRange(b.CommandsSetLiteral(_right as TokenLiteral));
 
                         // left is a value, so it needs to be put into a temp variable so that the source is not modified
-                        a = executor.scoreboard.RequestTemp(left.value);
+                        a = executor.scoreboard.temps.RequestCopy(left.value, squashToGlobal);
                         commands.AddRange(a.CommandsSet(left.value));
                         aAccessor = a.Name;
                     }

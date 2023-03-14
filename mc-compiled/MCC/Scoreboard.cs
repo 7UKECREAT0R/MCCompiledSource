@@ -455,7 +455,7 @@ namespace mc_compiled.MCC
             if(other is ScoreboardValueDecimal)
             {
                 // floor the decimal value
-                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValueInteger tempBase = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
@@ -464,7 +464,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpDiv(this, tempBase)
                 };
 
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -477,8 +477,8 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
-                ScoreboardValue temp = manager.RequestTemp();
+                ScoreboardValueInteger tempBase = manager.temps.RequestGlobal();
+                ScoreboardValueInteger temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
@@ -488,8 +488,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpAdd(this, temp)
                 };
 
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -502,8 +502,9 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
-                ScoreboardValue temp = manager.RequestTemp();
+                bool global = clarifier.IsGlobal;
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
+                ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
@@ -513,8 +514,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpSub(this, temp)
                 };
 
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
+                manager.temps.Release(global);
+                manager.temps.Release(global);
                 return commands;
             }
 
@@ -528,8 +529,9 @@ namespace mc_compiled.MCC
             if (other is ScoreboardValueDecimal)
             {
                 // set this to the whole part of the decimal value (floor)
-                ScoreboardValue tempBase = manager.RequestTemp();
-                ScoreboardValue temp = manager.RequestTemp();
+                bool global = clarifier.IsGlobal;
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
+                ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
@@ -539,8 +541,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul(this, temp)
                 };
 
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
+                manager.temps.Release(global);
+                manager.temps.Release(global);
                 return commands;
             }
 
@@ -553,8 +555,9 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
-                ScoreboardValue temp = manager.RequestTemp();
+                bool global = clarifier.IsGlobal;
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
+                ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
@@ -564,8 +567,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpDiv(this, temp)
                 };
 
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
+                manager.temps.Release(global);
+                manager.temps.Release(global);
                 return commands;
             }
 
@@ -578,8 +581,9 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
-                ScoreboardValue temp = manager.RequestTemp();
+                bool global = clarifier.IsGlobal;
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
+                ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[] {
@@ -589,8 +593,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMod(this, temp)
                 };
 
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
+                manager.temps.Release(global);
+                manager.temps.Release(global);
                 return commands;
             }
 
@@ -603,7 +607,7 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                ScoreboardValue temp = manager.RequestTemp();
+                ScoreboardValueInteger temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
 
                 string[] commands = new string[]
@@ -614,7 +618,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul(other, temp)
                 };
 
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -708,6 +712,8 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Balances a decimal value so that its precision is equal to this scoreboard value's precision.
         /// Outputs a scoreboard value holding a copied value of 'other', but with precision balanced.
+        /// 
+        /// Remember to <see cref="TempManager.Release(bool)"/> the output value, if any.
         /// </summary>
         /// <param name="selector">The selector to use.</param>
         /// <param name="other">The other value to be balanced.</param>
@@ -726,33 +732,33 @@ namespace mc_compiled.MCC
 
             if (precision > other.precision)
             {
+                bool global = clarifier.IsGlobal;
                 int precisionDiff = precision - other.precision;
-                ScoreboardValue temp1 = other.manager.RequestTemp();
-                ScoreboardValue temp2 = other.manager.RequestTemp(other);
+                ScoreboardValue temp2 = other.manager.temps.RequestCopy(other, global);
+                ScoreboardValue temp1 = other.manager.temps.RequestGlobal();
                 commands = new string[]
                 {
                     Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
                     Command.ScoreboardOpSet(temp2, other),
                     Command.ScoreboardOpMul(temp2, temp1)
                 };
-                other.manager.ReleaseTemp();
-                other.manager.ReleaseTemp();
+                other.manager.temps.ReleaseGlobal();
                 balancedCopy = temp2 as ScoreboardValueDecimal;
                 return true;
             } else
             {
                 // precision < other.precision
+                bool global = clarifier.IsGlobal;
                 int precisionDiff = other.precision - precision;
-                ScoreboardValue temp1 = other.manager.RequestTemp();
-                ScoreboardValue temp2 = other.manager.RequestTemp(other);
+                ScoreboardValue temp2 = other.manager.temps.RequestCopy(other, global);
+                ScoreboardValue temp1 = other.manager.temps.RequestGlobal();
                 commands = new string[]
                 {
                     Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
                     Command.ScoreboardOpSet(temp2, other),
                     Command.ScoreboardOpDiv(temp2, temp1)
                 };
-                other.manager.ReleaseTemp();
-                other.manager.ReleaseTemp();
+                other.manager.temps.ReleaseGlobal();
                 balancedCopy = temp2 as ScoreboardValueDecimal;
                 return true;
             }
@@ -763,7 +769,7 @@ namespace mc_compiled.MCC
         /// <param name="selector">The selector to use.</param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public string[] BalancePrecisionInto(string selector, ScoreboardValueDecimal other)
+        public string[] BalancePrecisionInto(ScoreboardValueDecimal other)
         {
             if (precision == other.precision)
             {
@@ -773,28 +779,29 @@ namespace mc_compiled.MCC
             if (precision > other.precision)
             {
                 int precisionDiff = precision - other.precision;
-                ScoreboardValue temp1 = other.manager.RequestTemp();
+                ScoreboardValue temp1 = other.manager.temps.RequestGlobal();
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
                     Command.ScoreboardOpSet(this, other),
                     Command.ScoreboardOpMul(this, temp1)
                 };
-                other.manager.ReleaseTemp();
+                other.manager.temps.ReleaseGlobal();
                 return commands;
             }
             else
             {
                 // precision < other.precision
+                bool global = clarifier.IsGlobal;
                 int precisionDiff = other.precision - precision;
-                ScoreboardValue temp1 = other.manager.RequestTemp();
+                ScoreboardValue temp1 = other.manager.temps.RequestGlobal();
                 string[] commands = new string[]
                 {
                     Command.ScoreboardSet(temp1, (int)Math.Pow(10, precisionDiff)),
                     Command.ScoreboardOpSet(this, other),
                     Command.ScoreboardOpDiv(this, temp1)
                 };
-                other.manager.ReleaseTemp();
+                other.manager.temps.ReleaseGlobal();
                 return commands;
             }
         }
@@ -971,7 +978,7 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
 
                 string[] commands = new string[]
                 {
@@ -980,14 +987,14 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul(this, tempBase),
                 };
 
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
             if (other is ScoreboardValueDecimal @decimal)
             {
                 // convert bases if necessary
-                return BalancePrecisionInto(clarifier.CurrentString, @decimal);
+                return BalancePrecisionInto(@decimal);
             }
 
             return new string[0];
@@ -996,8 +1003,8 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValue tempAccumulator = manager.RequestTemp();
-                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue tempAccumulator = manager.temps.RequestGlobal();
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
 
                 string[] commands = new string[]
                 {
@@ -1007,8 +1014,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpAdd(this, tempAccumulator),
                 };
 
-                manager.ReleaseTemp();
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -1019,6 +1026,7 @@ namespace mc_compiled.MCC
                     List<string> commandList = new List<string>(commands.Length + 1);
                     commandList.AddRange(commands);
                     commandList.Add(Command.ScoreboardOpAdd(this, balancedCopy));
+                    manager.temps.Release(balancedCopy.valueType, balancedCopy.clarifier.IsGlobal);
                     return commandList.ToArray();
                 }
 
@@ -1031,7 +1039,7 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
 
                 string[] commands = new string[]
                 {
@@ -1040,7 +1048,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpSub(this, tempBase),
                 };
 
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -1051,6 +1059,7 @@ namespace mc_compiled.MCC
                     List<string> commandList = new List<string>(commands.Length + 1);
                     commandList.AddRange(commands);
                     commandList.Add(Command.ScoreboardOpSub(this, balancedCopy));
+                    manager.temps.Release(balancedCopy.valueType, balancedCopy.clarifier.IsGlobal);
                     return commandList.ToArray();
                 }
 
@@ -1072,7 +1081,7 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal @decimal)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
 
                 if (BalancePrecisionWith(clarifier.CurrentString, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
@@ -1081,7 +1090,8 @@ namespace mc_compiled.MCC
                     commandList.Add(Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)));
                     commandList.Add(Command.ScoreboardOpMul(this, balancedCopy));
                     commandList.Add(Command.ScoreboardOpDiv(this, tempBase));
-                    manager.ReleaseTemp();
+                    manager.temps.ReleaseGlobal();
+                    manager.temps.Release(balancedCopy.valueType, balancedCopy.clarifier.IsGlobal);
                     return commandList.ToArray();
                 }
 
@@ -1091,7 +1101,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul(this, other),
                     Command.ScoreboardOpDiv(this, tempBase)
                 };
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -1110,7 +1120,7 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal @decimal)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
 
                 if (BalancePrecisionWith(clarifier.CurrentString, @decimal, out ScoreboardValueDecimal balancedCopy, out string[] commands))
                 {
@@ -1119,7 +1129,8 @@ namespace mc_compiled.MCC
                     commandList.Add(Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)));
                     commandList.Add(Command.ScoreboardOpMul(this, tempBase));
                     commandList.Add(Command.ScoreboardOpDiv(this, balancedCopy));
-                    manager.ReleaseTemp();
+                    manager.temps.Release(balancedCopy.valueType, balancedCopy.clarifier.IsGlobal);
+                    manager.temps.ReleaseGlobal();
                     return commandList.ToArray();
                 }
 
@@ -1129,7 +1140,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul(this, tempBase),
                     Command.ScoreboardOpDiv(this, other)
                 };
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -1139,7 +1150,7 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValue tempBase = manager.RequestTemp();
+                ScoreboardValue tempBase = manager.temps.RequestGlobal();
 
                 string[] commands = new string[]
                 {
@@ -1147,7 +1158,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul(this, other),
                     Command.ScoreboardOpMod(this, tempBase)
                 };
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -1158,6 +1169,7 @@ namespace mc_compiled.MCC
                     List<string> commandList = new List<string>(commands.Length + 1);
                     commandList.AddRange(commands);
                     commandList.Add(Command.ScoreboardOpMod(this, balancedCopy));
+                    manager.temps.Release(balancedCopy.valueType, balancedCopy.clarifier.IsGlobal);
                     return commandList.ToArray();
                 }
 
@@ -1170,7 +1182,7 @@ namespace mc_compiled.MCC
         {
             if (other is ScoreboardValueInteger)
             {
-                ScoreboardValue temp = manager.RequestTemp();
+                ScoreboardValue temp = manager.temps.RequestGlobal();
 
                 string[] commands = new string[]
                 {
@@ -1180,7 +1192,7 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpDiv(this, temp)
                 };
 
-                manager.ReleaseTemp();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -1192,7 +1204,7 @@ namespace mc_compiled.MCC
                 }
 
                 string[] commands = new string[4];
-                ScoreboardValue temp = manager.RequestTemp();
+                ScoreboardValue temp = manager.temps.RequestGlobal();
 
                 commands[0] = Command.ScoreboardOpSwap(this, other);
 
@@ -1213,6 +1225,7 @@ namespace mc_compiled.MCC
                     commands[3] = Command.ScoreboardOpMul(other, temp);
                 }
 
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 

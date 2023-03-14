@@ -89,6 +89,41 @@ namespace mc_compiled.Json
         }
     }
     /// <summary>
+    /// Represents a translation key with optional objects inserted.
+    /// </summary>
+    public class JSONTranslate : JSONRawTerm
+    {
+        string translationKey;
+        List<RawTextJsonBuilder> with;
+
+        public JSONTranslate(string translationKey)
+        {
+            this.translationKey = EscapeString(translationKey);
+            this.with = new List<RawTextJsonBuilder>();
+        }
+        public JSONTranslate With(params RawTextJsonBuilder[] jsonTerms)
+        {
+            this.with.AddRange(jsonTerms);
+            return this;
+        }
+
+        public override string GetString()
+        {
+            if(with.Any())
+            {
+                string[] subtexts = with.Select(x => x.BuildString()).ToArray();
+                string withComponent = string.Join(",", subtexts);
+                return $@"{{""translate"": ""{translationKey}"",""with"": [{withComponent}]}}";
+            }
+
+            return $@"{{""translate"": ""{translationKey}""}}";
+        }
+        public override string PreviewString()
+        {
+            return '[' + translationKey + ']';
+        }
+    }
+    /// <summary>
     /// A term which can convert to two possible outcomes depending on the evaluation of a range.
     /// Use JSONScore::CreateVariant to create one properly.
     /// </summary>

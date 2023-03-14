@@ -55,7 +55,7 @@ namespace mc_compiled.Json
             {
                 Console.Clear();
                 Console.WriteLine(
-@"┌─ MCC ── JSON RawText Builder ───────>
+@"┌─ JSON RawText Builder ──────────┐
 │ {0}
 ├─────────────────────────────────┐
 │ [A] Add Item                    │
@@ -90,6 +90,7 @@ namespace mc_compiled.Json
 │ TEXT <text>                     │ Regular text.         │
 │ SCORE <objective> <selector>    │ A scoreboard value.   │
 │ SELECTOR <selector>             │ The name of a target. │
+│ TRANSLATE <key>                 │ A translation key.    │
 └─────────────────────────────────┴───────────────────────┘");
                     Console.Write("> ");
                     string text = Console.ReadLine();
@@ -115,6 +116,11 @@ namespace mc_compiled.Json
                     else if (comp.StartsWith("SELECTOR"))
                     {
                         terms.Add(new JSONSelector(text.Substring(9)));
+                        continue;
+                    }
+                    else if (comp.StartsWith("TRANSLATE"))
+                    {
+                        terms.Add(new JSONTranslate(text.Substring(10)));
                         continue;
                     }
                 }

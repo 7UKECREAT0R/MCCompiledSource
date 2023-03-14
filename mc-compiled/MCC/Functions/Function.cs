@@ -127,7 +127,7 @@ namespace mc_compiled.MCC.Functions
             List<string> commandsToCall = new List<string>();
             FunctionParameter[] parameters = this.Parameters;
 
-            using (sb.PushTempState())
+            using (sb.temps.PushTempState())
             {
                 int parameterCount = parameters.Length;
                 int inputsCount = inputs.Length;

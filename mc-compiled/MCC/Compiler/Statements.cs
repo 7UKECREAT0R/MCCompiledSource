@@ -224,19 +224,23 @@ namespace mc_compiled.MCC.Compiler
                     TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
                     List<string> commands = new List<string>();
 
+                    bool global = value.value.clarifier.IsGlobal;
+                    ScoreboardManager.ValueType type = ScoreboardManager.ValueType.INT;
+
                     if (op == TokenArithmatic.Type.ADD)
                         commands.AddRange(value.value.CommandsAddLiteral(next, this));
                     else if (op == TokenArithmatic.Type.SUBTRACT)
                         commands.AddRange(value.value.CommandsSubLiteral(next, this));
                     else
                     {
-                        ScoreboardValue temp = executor.scoreboard.RequestTemp(next, false, this);
+                        ScoreboardValue temp = executor.scoreboard.temps.Request(next, this, global);
+                        type = temp.valueType;
                         commands.AddRange(temp.CommandsSetLiteral(next));
                         commands.AddRange(value.value.CommandsFromOperation(temp, op));
                     }
 
                     executor.AddCommands(commands, "mathoperation");
-                    executor.scoreboard.ReleaseTemp();
+                    executor.scoreboard.temps.Release(type, global);
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral

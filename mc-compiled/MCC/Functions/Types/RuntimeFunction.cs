@@ -133,8 +133,8 @@ namespace mc_compiled.MCC.Functions.Types
             // will sort of 'define' what the return type should be
             ScoreboardManager sb = executor.scoreboard;
             ScoreboardValue clone = ScoreboardValue.AsReturnValue(value);
-            if (sb.definedTempVars.Add(clone))
-                executor.AddCommandsHead(clone.CommandsDefine());
+            if (sb.temps.DefinedTemps.Add(clone))
+                executor.AddCommandsInit(clone.CommandsDefine());
 
             AddCommands(clone.CommandsSet(value));
             returnValue = clone;
@@ -159,8 +159,8 @@ namespace mc_compiled.MCC.Functions.Types
             ScoreboardManager sb = executor.scoreboard;
             ScoreboardValue variable = ScoreboardValue.AsReturnValue(value, sb, caller);
 
-            if (sb.definedTempVars.Add(variable))
-                executor.AddCommandsHead(variable.CommandsDefine());
+            if (sb.temps.DefinedTemps.Add(variable))
+                executor.AddCommandsInit(variable.CommandsDefine());
 
             AddCommands(variable.CommandsSetLiteral(value));
             returnValue = variable;
@@ -187,7 +187,7 @@ namespace mc_compiled.MCC.Functions.Types
                 return new TokenNullLiteral(statement.Line);
 
             // sets a temp to the return value.
-            ScoreboardValue returnHolder = executor.scoreboard.RequestTemp(returnValue);
+            ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(returnValue, false);
             commandBuffer.AddRange(returnHolder.CommandsSet(returnValue));
             return new TokenIdentifierValue(returnHolder.AliasName, returnHolder, statement.Line);
         }

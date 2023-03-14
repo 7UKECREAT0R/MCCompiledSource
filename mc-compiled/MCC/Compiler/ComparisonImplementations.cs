@@ -241,13 +241,13 @@ namespace mc_compiled.MCC.Compiler
 
             // count number of entities
             List<string> commands = new List<string>();
-            temp = executor.scoreboard.RequestTemp();
-            commands.Add(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 0));
+            temp = executor.scoreboard.temps.Request(true);
+            commands.Add(Command.ScoreboardSet(temp, 0));
             commands.Add(Command.Execute()
                 .As(selector)
                 .At(Selector.SELF)
                 .Positioned(selector.offsetX, selector.offsetY, selector.offsetZ)
-                .Run(Command.ScoreboardAdd(Executor.FAKEPLAYER_NAME, temp.Name, 1)));
+                .Run(Command.ScoreboardAdd(temp, 1)));
 
             cancel = false;
             return commands;
@@ -263,7 +263,7 @@ namespace mc_compiled.MCC.Compiler
             if (goalType == SideType.Variable)
             {
                 ScoreboardValue b = (this.goalCount as TokenIdentifierValue).value;
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, localComparison, b)) }; // TODO: "temp" is scoped to @s here, not a fakeplayer. please deal with this
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, localComparison, b)) };
             } else
             {
                 TokenNumberLiteral _b = this.goalCount as TokenNumberLiteral;
@@ -295,7 +295,7 @@ namespace mc_compiled.MCC.Compiler
                         throw new StatementException(callingStatement, $"Unexpected comparison type: {localComparison}.");
                 }
 
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) }; // TODO: "temp" is scoped to @s here, not a fakeplayer. please deal with this
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
             }
         }
     }
@@ -320,7 +320,7 @@ namespace mc_compiled.MCC.Compiler
         {
             // check if any entity matches
             List<string> commands = new List<string>();
-            temp = executor.scoreboard.RequestTemp();
+            temp = executor.scoreboard.temps.Request(true);
             commands.Add(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 0));
             commands.Add(Command.Execute()
                 .As(selector)
