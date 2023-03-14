@@ -146,6 +146,7 @@
     <Compile Include="MCC\SyntaxHighlighting\RawSyntax.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Syntax.cs" />
     <Compile Include="MCC\SyntaxHighlighting\UDL2.cs" />
+    <Compile Include="MCC\TempManager.cs" />
     <Compile Include="Modding\Behaviors\AnimationController.cs" />
     <Compile Include="Modding\Behaviors\EntityBehavior.cs" />
     <Compile Include="Modding\Behaviors\EntityComponent.cs" />

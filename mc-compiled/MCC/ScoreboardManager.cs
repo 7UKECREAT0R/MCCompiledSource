@@ -51,6 +51,33 @@ namespace mc_compiled.MCC
             PPV
         }
         /// <summary>
+        /// Returns a shortcode for the given <see cref="ScoreboardManager.ValueType"/>.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>A 3 character code representing the given ValueType</returns>
+        internal static string GetShortcodeFor(ScoreboardManager.ValueType type)
+        {
+            switch (type)
+            {
+                case ValueType.INFER:
+                case ValueType.INVALID:
+                    return "XXX";
+                case ValueType.INT:
+                    return "INT";
+                case ValueType.DECIMAL:
+                    return "DEC";
+                case ValueType.BOOL:
+                    return "BLN";
+                case ValueType.TIME:
+                    return "TME";
+                case ValueType.PPV:
+                    return "PPV";
+                default:
+                    throw new Exception($"No shortcode implementation for type {type}.");
+            }
+        }
+
+        /// <summary>
         /// A shallow variable definition used in structs, defines, functions, etc...
         /// </summary>
         internal struct ValueDefinition
@@ -76,19 +103,7 @@ namespace mc_compiled.MCC
             /// <returns></returns>
             internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
             {
-                switch (type)
-                {
-                    case ScoreboardManager.ValueType.INT:
-                        return new ScoreboardValueInteger(name, false, sb, tokens).WithAttributes(attributes, tokens);
-                    case ScoreboardManager.ValueType.DECIMAL:
-                        return new ScoreboardValueDecimal(name, decimalPrecision, false, sb, tokens).WithAttributes(attributes, tokens);
-                    case ScoreboardManager.ValueType.BOOL:
-                        return new ScoreboardValueBoolean(name, false, sb, tokens).WithAttributes(attributes, tokens);
-                    case ScoreboardManager.ValueType.TIME:
-                        return new ScoreboardValueTime(name, false, sb, tokens).WithAttributes(attributes, tokens);
-                    default:
-                        throw new StatementException(tokens, "something terrible happened when trying to use value definition");
-                }
+                return ScoreboardValue.CreateByType(type, name, false, sb).WithAttributes(attributes, tokens);
             }
             internal void InferType(Statement tokens)
             {
@@ -113,7 +128,7 @@ namespace mc_compiled.MCC
             }
         }
 
-        private const string TEMP_PREFIX = "_mcc_tmp";
+        private const string TEMP_PREFIX = "_tmp";
         private int tempIndex;
         private Stack<int> tempStack;
 
@@ -172,7 +187,7 @@ namespace mc_compiled.MCC
         public ScoreboardValueInteger RequestTemp()
         {
             string name = TEMP_PREFIX + tempIndex;
-            var created = new ScoreboardValueInteger(name, false, this, null);
+            var created = new ScoreboardValueInteger(name, false, this);
             
             if (definedTempVars.Add(created))
             {
@@ -238,20 +253,20 @@ namespace mc_compiled.MCC
         public ScoreboardValue CreateFromLiteral(string name, bool global, TokenLiteral literal, Statement forExceptions)
         {
             if (literal is TokenIntegerLiteral)
-                return new ScoreboardValueInteger(name, global, this, forExceptions);
+                return new ScoreboardValueInteger(name, global, this);
             else if (literal is TokenBooleanLiteral)
-                return new ScoreboardValueBoolean(name, global, this, forExceptions);
+                return new ScoreboardValueBoolean(name, global, this);
             else if (literal is TokenDecimalLiteral)
             {
                 float number = (literal as TokenDecimalLiteral).number;
                 int precision = number.GetPrecision();
-                return new ScoreboardValueDecimal(name, precision, global, this, forExceptions);
+                return new ScoreboardValueDecimal(name, precision, global, this);
             }
             else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
                     $"create a scoreboard value for invalid literal type {literal.GetType()}.");
         }
         /// <summary>
-        /// Fetch a value/field definition from this statement. e.g., 'int coins = 3', 'decimal 3 thing', 'customStruct xyz'.
+        /// Fetch a value/field definition from this statement. e.g., 'int coins = 3', 'decimal 3 thing', 'bool isPlaying'.
         /// This method automatically performs type inference if possible.
         /// </summary>
         /// <param name="tokens"></param>
@@ -308,7 +323,7 @@ namespace mc_compiled.MCC
                 {
                     ConsoleColor oldColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Executor.Warn("Decimal precisions >3 could begin to break with numbers greater than 1.");
+                    Executor.Warn("Decimal precisions >3 could begin to break. Avoid multiplication/division on larger numbers.");
                     Console.ForegroundColor = oldColor;
                 }
                 name = tokens.Next<TokenStringLiteral>();

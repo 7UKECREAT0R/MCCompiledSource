@@ -3,6 +3,7 @@ using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,7 +91,7 @@ namespace mc_compiled.MCC
         public readonly ScoreboardManager.ValueType valueType;
         internal readonly ScoreboardManager manager;
 
-        public ScoreboardValue(string baseName, bool global, ScoreboardManager.ValueType valueType, ScoreboardManager manager, Statement forExceptions)
+        public ScoreboardValue(string baseName, bool global, ScoreboardManager.ValueType valueType, ScoreboardManager manager)
         {
             int len = baseName.Length;
 
@@ -157,17 +158,46 @@ namespace mc_compiled.MCC
                 throw new StatementException(forExceptions, "Cannot return a selector.");
 
             if (literal is TokenIntegerLiteral)
-                return new ScoreboardValueInteger(RETURN_NAME, false, sb, forExceptions);
+                return new ScoreboardValueInteger(RETURN_NAME, false, sb);
             else if (literal is TokenBooleanLiteral)
-                return new ScoreboardValueBoolean(RETURN_NAME, false, sb, forExceptions);
+                return new ScoreboardValueBoolean(RETURN_NAME, false, sb);
             else if (literal is TokenDecimalLiteral)
             {
                 float number = (literal as TokenDecimalLiteral).number;
                 int precision = number.GetPrecision();
-                return new ScoreboardValueDecimal(RETURN_NAME, precision, false, sb, forExceptions);
+                return new ScoreboardValueDecimal(RETURN_NAME, precision, false, sb);
             }
 
             throw new StatementException(forExceptions, "Cannot return this literal.");
+        }
+
+        /// <summary>
+        /// Creates a proper ScoreboardValue from the given <see cref="ScoreboardManager.ValueType"/>.
+        /// </summary>
+        /// <param name="type">The type of the ScoreboardValue to create.</param>
+        /// <param name="name">The name of the new ScoreboardValue.</param>
+        /// <param name="global">If this ScoreboardValue should be global.</param>
+        /// <param name="sb">The scoreboard manager managing this.</param>
+        /// <param name="forExceptions">Statement for exceptions.</param>
+        /// <param name="decimalPrecision">The precision of the decimal value, if type == <see cref="ScoreboardManager.ValueType.DECIMAL"/></param>
+        /// <returns></returns>
+        /// <exception cref="StatementException"></exception>
+        public static ScoreboardValue CreateByType(ScoreboardManager.ValueType type, string name, bool global,
+            ScoreboardManager sb, int decimalPrecision = ScoreboardValueDecimal.DEFAULT_PRECISION)
+        {
+            switch (type)
+            {
+                case ScoreboardManager.ValueType.INT:
+                    return new ScoreboardValueInteger(name, false, sb);
+                case ScoreboardManager.ValueType.DECIMAL:
+                    return new ScoreboardValueDecimal(name, decimalPrecision, false, sb);
+                case ScoreboardManager.ValueType.BOOL:
+                    return new ScoreboardValueBoolean(name, false, sb);
+                case ScoreboardManager.ValueType.TIME:
+                    return new ScoreboardValueTime(name, false, sb);
+                default:
+                    throw new Exception($"ScoreboardValue.CreateByType: No implementation for ValueType {type}.");
+            }
         }
 
         public static implicit operator string(ScoreboardValue value) => value.Name;
@@ -323,8 +353,8 @@ namespace mc_compiled.MCC
 
     public class ScoreboardValueInteger : ScoreboardValue
     {
-        public ScoreboardValueInteger(string name, bool global, ScoreboardManager manager, Statement forExceptions,
-            ScoreboardManager.ValueType valueType = ScoreboardManager.ValueType.INT) : base(name, global, valueType, manager, forExceptions) { }
+        public ScoreboardValueInteger(string name, bool global, ScoreboardManager manager,
+            ScoreboardManager.ValueType valueType = ScoreboardManager.ValueType.INT) : base(name, global, valueType, manager) { }
 
         public override string GetTypeKeyword() => "int";
         public override string[] CommandsDefine()
@@ -597,8 +627,8 @@ namespace mc_compiled.MCC
         public const string SB_SECONDS = "_mcc_t_secs";
         public const string SB_TEMP = "_mcc_t_temp";
         public const string SB_CONST = "_mcc_t_const";
-        public ScoreboardValueTime(string name, bool global, ScoreboardManager manager, Statement forExceptions) :
-            base(name, global, manager, forExceptions, ScoreboardManager.ValueType.TIME) { }
+        public ScoreboardValueTime(string name, bool global, ScoreboardManager manager) :
+            base(name, global, manager, ScoreboardManager.ValueType.TIME) { }
 
         public override string GetTypeKeyword() => "time";
         public override string[] CommandsRawTextSetup(ref int index)
@@ -608,10 +638,10 @@ namespace mc_compiled.MCC
             string _temporary = SB_TEMP + index;
             string _constant = SB_CONST + index;
 
-            ScoreboardValue minutes = new ScoreboardValueInteger(_minutes, false, manager, null);
-            ScoreboardValue seconds = new ScoreboardValueInteger(_seconds, false, manager, null);
-            ScoreboardValue temporary = new ScoreboardValueInteger(_temporary, false, manager, null);
-            ScoreboardValue constant = new ScoreboardValueInteger(_constant, false, manager, null);
+            ScoreboardValue minutes = new ScoreboardValueInteger(_minutes, false, manager);
+            ScoreboardValue seconds = new ScoreboardValueInteger(_seconds, false, manager);
+            ScoreboardValue temporary = new ScoreboardValueInteger(_temporary, false, manager);
+            ScoreboardValue constant = new ScoreboardValueInteger(_constant, false, manager);
 
             manager.AddToStringScoreboards(this,
                 minutes, seconds, temporary, constant);
@@ -656,6 +686,7 @@ namespace mc_compiled.MCC
     public sealed class ScoreboardValueDecimal : ScoreboardValue
     {
         public readonly int precision;
+        public const int DEFAULT_PRECISION = 2;
 
         public const string SB_WHOLE = "_mcc_d_whole";
         public const string SB_PART = "_mcc_d_part";
@@ -669,8 +700,8 @@ namespace mc_compiled.MCC
         /// <param name="precision">The precision of the value.</param>
         /// <param name="manager">The ScoreboardManager managing this new value.</param>
         /// <param name="forExceptions">The statement that caused an exception, if any.</param>
-        public ScoreboardValueDecimal(string name, int precision, bool global, ScoreboardManager manager, Statement forExceptions) :
-            base(name, global, ScoreboardManager.ValueType.DECIMAL, manager, forExceptions)
+        public ScoreboardValueDecimal(string name, int precision, bool global, ScoreboardManager manager) :
+            base(name, global, ScoreboardManager.ValueType.DECIMAL, manager)
         {
             this.precision = precision;
         }
@@ -862,10 +893,10 @@ namespace mc_compiled.MCC
             string _temporary = SB_TEMP + index;
             string _tempBase = SB_BASE + index;
 
-            var whole = new ScoreboardValueInteger(_whole, false, manager, null);
-            var part = new ScoreboardValueInteger(_part, false, manager, null);
-            var temporary = new ScoreboardValueInteger(_temporary, false, manager, null);
-            var tempBase = new ScoreboardValueInteger(_tempBase, false, manager, null);
+            var whole = new ScoreboardValueInteger(_whole, false, manager);
+            var part = new ScoreboardValueInteger(_part, false, manager);
+            var temporary = new ScoreboardValueInteger(_temporary, false, manager);
+            var tempBase = new ScoreboardValueInteger(_tempBase, false, manager);
 
             manager.AddToStringScoreboards(this,
                 whole, part, temporary, tempBase);
@@ -1190,8 +1221,8 @@ namespace mc_compiled.MCC
     }
     public sealed class ScoreboardValueBoolean : ScoreboardValueInteger
     {
-        public ScoreboardValueBoolean(string name, bool global, ScoreboardManager manager, Statement forExceptions) :
-            base(name, global, manager, forExceptions, ScoreboardManager.ValueType.BOOL) { }
+        public ScoreboardValueBoolean(string name, bool global, ScoreboardManager manager) :
+            base(name, global, manager, ScoreboardManager.ValueType.BOOL) { }
 
         public override string GetTypeKeyword() => "bool";
         public override string[] CommandsDefine()
