@@ -502,7 +502,6 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                bool global = clarifier.IsGlobal;
                 ScoreboardValue tempBase = manager.temps.RequestGlobal();
                 ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
@@ -514,8 +513,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpSub(this, temp)
                 };
 
-                manager.temps.Release(global);
-                manager.temps.Release(global);
+                manager.temps.ReleaseGlobal();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -529,7 +528,6 @@ namespace mc_compiled.MCC
             if (other is ScoreboardValueDecimal)
             {
                 // set this to the whole part of the decimal value (floor)
-                bool global = clarifier.IsGlobal;
                 ScoreboardValue tempBase = manager.temps.RequestGlobal();
                 ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
@@ -541,8 +539,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMul(this, temp)
                 };
 
-                manager.temps.Release(global);
-                manager.temps.Release(global);
+                manager.temps.ReleaseGlobal();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -555,7 +553,6 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                bool global = clarifier.IsGlobal;
                 ScoreboardValue tempBase = manager.temps.RequestGlobal();
                 ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
@@ -567,8 +564,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpDiv(this, temp)
                 };
 
-                manager.temps.Release(global);
-                manager.temps.Release(global);
+                manager.temps.ReleaseGlobal();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -581,7 +578,6 @@ namespace mc_compiled.MCC
 
             if (other is ScoreboardValueDecimal)
             {
-                bool global = clarifier.IsGlobal;
                 ScoreboardValue tempBase = manager.temps.RequestGlobal();
                 ScoreboardValue temp = manager.temps.RequestGlobal();
                 int precision = (other as ScoreboardValueDecimal).precision;
@@ -593,8 +589,8 @@ namespace mc_compiled.MCC
                     Command.ScoreboardOpMod(this, temp)
                 };
 
-                manager.temps.Release(global);
-                manager.temps.Release(global);
+                manager.temps.ReleaseGlobal();
+                manager.temps.ReleaseGlobal();
                 return commands;
             }
 
@@ -792,7 +788,6 @@ namespace mc_compiled.MCC
             else
             {
                 // precision < other.precision
-                bool global = clarifier.IsGlobal;
                 int precisionDiff = other.precision - precision;
                 ScoreboardValue temp1 = other.manager.temps.RequestGlobal();
                 string[] commands = new string[]
@@ -1286,7 +1281,7 @@ namespace mc_compiled.MCC
 
                 // seriously if you use others what the hell are you doing lol?
                 default:
-                    throw new Exception("Boolean variables only support == and != (not sure why you tried that tbh)");
+                    throw new Exception("Boolean variables only support == and !=");
             }
 
             return new Tuple<ScoresEntry[], string[]>(new[]

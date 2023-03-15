@@ -224,7 +224,6 @@ namespace mc_compiled.MCC.Compiler
                     TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
                     List<string> commands = new List<string>();
 
-                    bool global = value.value.clarifier.IsGlobal;
                     ScoreboardManager.ValueType type = ScoreboardManager.ValueType.INT;
 
                     if (op == TokenArithmatic.Type.ADD)
@@ -233,14 +232,14 @@ namespace mc_compiled.MCC.Compiler
                         commands.AddRange(value.value.CommandsSubLiteral(next, this));
                     else
                     {
-                        ScoreboardValue temp = executor.scoreboard.temps.Request(next, this, global);
+                        ScoreboardValue temp = executor.scoreboard.temps.RequestGlobal(next, this);
                         type = temp.valueType;
                         commands.AddRange(temp.CommandsSetLiteral(next));
                         commands.AddRange(value.value.CommandsFromOperation(temp, op));
                     }
 
                     executor.AddCommands(commands, "mathoperation");
-                    executor.scoreboard.temps.Release(type, global);
+                    executor.scoreboard.temps.ReleaseGlobal(type);
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral
