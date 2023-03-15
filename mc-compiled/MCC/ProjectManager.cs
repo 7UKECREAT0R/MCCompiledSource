@@ -73,7 +73,7 @@ namespace mc_compiled.MCC
             CommandFile file = new CommandFile("uninstall", Executor.MCC_GENERATED_FOLDER);
             this.AddFile(file);
 
-            if(HasFeature(Feature.DUMMY))
+            if(HasFeature(Feature.DUMMIES))
             {
                 // remove all dummies from the world.
                 file.Add(Commands.Command.Event($"@e[type={parentExecutor.entities.dummies.dummyType}]", DummyManager.DESTROY_EVENT_NAME));

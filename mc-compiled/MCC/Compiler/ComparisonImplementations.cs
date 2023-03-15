@@ -125,7 +125,7 @@ namespace mc_compiled.MCC.Compiler
                     localComparison = localComparison.InvertComparison();
 
                 ScoreboardValue a = (this.a as TokenIdentifierValue).value;
-                TokenNumberLiteral b = (this.a as TokenNumberLiteral);
+                TokenNumberLiteral b = (this.b as TokenNumberLiteral);
                 this.entries = a.CompareToLiteral(localComparison, b);
                 return this.entries.Item2;
             }
@@ -369,6 +369,43 @@ namespace mc_compiled.MCC.Compiler
                 return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, data)) };
             else
                 return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, data)) };
+        }
+    }
+    public class ComparisonBlocks : Comparison
+    {
+        readonly Coord beginX, beginY, beginZ;
+        readonly Coord endX, endY, endZ;
+        readonly Coord destX, destY, destZ;
+        readonly BlocksScanMode scanMode;
+
+        public ComparisonBlocks(Coord beginX, Coord beginY, Coord beginZ, Coord endX, Coord endY, Coord endZ,
+            Coord destX, Coord destY, Coord destZ, BlocksScanMode scanMode, bool invert) : base(invert)
+        {
+            this.beginX = beginX;
+            this.beginY = beginY;
+            this.beginZ = beginZ;
+            this.endX = endX;
+            this.endY = endY;
+            this.endZ = endZ;
+            this.destX = destX;
+            this.destY = destY;
+            this.destZ = destZ;
+            this.scanMode = scanMode;
+        }
+
+        public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel)
+        {
+            cancel = false;
+            return null;
+        }
+        public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel)
+        {
+            cancel = false;
+
+            if (inverted)
+                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlocks.New(beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode)) };
+            else
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlocks.New(beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode)) };
         }
     }
 

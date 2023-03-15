@@ -110,6 +110,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("count", "Compare the number of entities that match a selector."),
                 new Keyword("any", "Check if any entities match a selector."),
                 new Keyword("block", "Check for a block."),
+                new Keyword("blocks", "Check for an area of blocks matching another."),
                 new Keyword("positioned", "Position the next comparison.")
             },
             style = new Highlight(255, 95, 66, HighlightStyle.NONE)
@@ -117,10 +118,10 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Keywords options = new Keywords()
         {
             keywords = new[] {
-                new Keyword("nulls", "Feature: Create null entity behavior/resource files and allow them to be spawned in the world."),
-                new Keyword("gametest", "Feature: Gametest Integration"),
+                new Keyword("dummies", "Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world."),
+                new Keyword("gametest", "Feature: Gametest Integration (not implemented)"),
                 new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
-                new Keyword("uninstall", "Feature: Create an uninstall function to undo all effects of this project."),
+                new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc. made by this project."),
                 new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
                 new Keyword("up", "Used with the 'move' command. Goes up relative to where the entity is looking."),
                 new Keyword("down", "Used with the 'move' command. Goes down relative to where the entity is looking."),
@@ -131,6 +132,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("survival", "Survival mode. (0)"),
                 new Keyword("creative", "Creative mode. (1)"),
                 new Keyword("adventure", "Adventure mode. (2)"),
+                new Keyword("spectator", "Spectator mode. (spectator)"),
                 new Keyword("times", "Specifies the fade-in/stay/fade-out times this text will show for."),
                 new Keyword("subtitle", "Sets the subtitle for the next title shown."),
                 new Keyword("destroy", "Destroy any existing blocks as if broken by a player."),

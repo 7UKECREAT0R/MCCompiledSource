@@ -5,6 +5,7 @@ using mc_compiled.Commands.Selectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -119,7 +120,7 @@ namespace mc_compiled.MCC.Compiler
                     else if (word.Equals("BLOCK"))
                     {
                         // ComparisonBlock
-                        // if block <x> <y> <z> <block> [data]
+                        // if block <x, y, z> <block> [data]
                         Coord x = tokens.Next<TokenCoordinateLiteral>();
                         Coord y = tokens.Next<TokenCoordinateLiteral>();
                         Coord z = tokens.Next<TokenCoordinateLiteral>();
@@ -130,6 +131,34 @@ namespace mc_compiled.MCC.Compiler
                             data = tokens.Next<TokenIntegerLiteral>();
 
                         ComparisonBlock blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
+
+                        invertNext = false;
+                        set.Add(blockCheck);
+                    }
+                    else if(word.Equals("BLOCKS"))
+                    {
+                        // ComparisonBlocks
+                        // if blocks <start x, y, z> <end x, y, z> <dest x, y, z> <ScanMode>
+                        Coord startX = tokens.Next<TokenCoordinateLiteral>();
+                        Coord startY = tokens.Next<TokenCoordinateLiteral>();
+                        Coord startZ = tokens.Next<TokenCoordinateLiteral>();
+                        Coord endX = tokens.Next<TokenCoordinateLiteral>();
+                        Coord endY = tokens.Next<TokenCoordinateLiteral>();
+                        Coord endZ = tokens.Next<TokenCoordinateLiteral>();
+                        Coord destX = tokens.Next<TokenCoordinateLiteral>();
+                        Coord destY = tokens.Next<TokenCoordinateLiteral>();
+                        Coord destZ = tokens.Next<TokenCoordinateLiteral>();
+
+                        BlocksScanMode scanMode = BlocksScanMode.all;
+                        if(tokens.NextIs<TokenIdentifierEnum>())
+                        {
+                            ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>().value;
+                            parsed.RequireType<BlocksScanMode>(tokens);
+                            scanMode = (BlocksScanMode)parsed.value;
+                        }
+
+                        ComparisonBlocks blockCheck = new ComparisonBlocks(startX, startY, startZ,
+                            endX, endY, endZ, destX, destY, destZ, scanMode, invertNext);
 
                         invertNext = false;
                         set.Add(blockCheck);
@@ -218,7 +247,10 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else
                 {
-                    string finalExecute = new ExecuteBuilder().WithSubcommands(chunks).Build();
+                    string finalExecute = new ExecuteBuilder()
+                        .WithSubcommands(chunks)
+                        .WithSubcommand(new SubcommandRun())
+                        .Build(out _);
 
                     if (openBlock.statementsInside == 1)
                     {
@@ -248,7 +280,10 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                string finalExecute = new ExecuteBuilder().WithSubcommands(chunks).Build();
+                string finalExecute = new ExecuteBuilder()
+                    .WithSubcommands(chunks)
+                    .WithSubcommand(new SubcommandRun())
+                    .Build(out _);
                 executor.AppendCommandPrepend(finalExecute);
                 executor.PopSelectorAfterNext();
             }

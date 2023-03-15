@@ -48,9 +48,11 @@ namespace mc_compiled.Commands.Execute
         /// Build the execute builder into a completed command.
         /// </summary>
         /// <returns></returns>
-        public string Build()
+        /// <param name="terminated">If the chain was terminated properly.</param>
+        public string Build(out bool terminated)
         {
             var parts = subcommands.Select(subcommand => subcommand.ToMinecraft());
+            terminated = subcommands.Last().TerminatesChain;
             return "execute " + string.Join(" ", parts);
         }
 
@@ -209,7 +211,7 @@ namespace mc_compiled.Commands.Execute
         public string Run(string command)
         {
             subcommands.Add(new SubcommandRun(command));
-            return Build();
+            return Build(out _);
         }
 
         /// <summary>

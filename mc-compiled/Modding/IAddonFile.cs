@@ -66,41 +66,23 @@ namespace mc_compiled.Modding
                 case OutputLocation.b_STRUCTURES:
                     return true;
                 case OutputLocation.r_ROOT:
-                    return false;
                 case OutputLocation.r_ANIMATION_CONTROLLERS:
-                    return false;
                 case OutputLocation.r_ANIMATIONS:
-                    return false;
                 case OutputLocation.r_ATTACHABLES:
-                    return false;
                 case OutputLocation.r_ENTITY:
-                    return false;
                 case OutputLocation.r_FOGS:
-                    return false;
                 case OutputLocation.r_MODELS_ENTITY:
-                    return false;
                 case OutputLocation.r_MODELS_BLOCKS:
-                    return false;
                 case OutputLocation.r_PARTICLES:
-                    return false;
                 case OutputLocation.r_ITEMS:
-                    return false;
                 case OutputLocation.r_RENDER_CONTROLLERS:
-                    return false;
                 case OutputLocation.r_SOUNDS:
-                    return false;
                 case OutputLocation.r_TEXTS:
-                    return false;
                 case OutputLocation.r_TEXTURES_ENVIRONMENT:
-                    return false;
                 case OutputLocation.r_TEXTURES_BLOCKS:
-                    return false;
                 case OutputLocation.r_TEXTURES_ENTITY:
-                    return false;
                 case OutputLocation.r_TEXTURES_ITEMS:
-                    return false;
                 case OutputLocation.r_TEXTURES_PARTICLE:
-                    return false;
                 case OutputLocation.r_UI:
                     return false;
                 default:

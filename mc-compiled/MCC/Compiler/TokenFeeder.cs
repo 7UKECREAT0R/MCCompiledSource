@@ -92,7 +92,7 @@ namespace mc_compiled.MCC.Compiler
         public T Next<T>() where T : class
         {
             if (currentToken >= tokens.Length)
-                throw new FeederException(this, $"Token expected at end of line, type {nameof(T)}");
+                throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
 
             Token token = tokens[currentToken++];
             if (!(token is T))
@@ -106,7 +106,7 @@ namespace mc_compiled.MCC.Compiler
                         if (typeof(T).IsAssignableFrom(otherTypes[i]))
                             return implicitToken.Convert(executor, i) as T;
                 }
-                throw new FeederException(this, $"Invalid token type. Expected {nameof(T)} but got {token.GetType().Name}");
+                throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
             }
             else
                 return token as T;
@@ -120,7 +120,7 @@ namespace mc_compiled.MCC.Compiler
         public T Peek<T>() where T : class
         {
             if (currentToken >= tokens.Length)
-                throw new FeederException(this, $"Token expected at end of line, type {nameof(T)}");
+                throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
             Token token = tokens[currentToken];
             if (!(token is T))
             {
@@ -133,7 +133,7 @@ namespace mc_compiled.MCC.Compiler
                         if (typeof(T).IsAssignableFrom(otherTypes[i]))
                             return implicitToken.Convert(executor, i) as T;
                 }
-                throw new FeederException(this, $"Invalid token type. Expected {typeof(T)} but got {token.GetType()}");
+                throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType()}");
             }
             else
                 return token as T;
@@ -168,14 +168,21 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Return the remaining tokens in this feeder. Does not actually modify the reader's location.
+        /// Return the remaining tokens in this feeder, excluding comments. Does not actually modify the reader's location.
         /// </summary>
         /// <returns></returns>
         public Token[] GetRemainingTokens()
         {
             Token[] ret = new Token[tokens.Length - currentToken];
+
             for (int i = currentToken; i < tokens.Length; i++)
-                ret[i] = tokens[i];
+            {
+                Token current = tokens[i];
+                if (current is TokenComment)
+                    continue;
+                ret[i] = current;
+            }
+
             return ret;
         }
     }

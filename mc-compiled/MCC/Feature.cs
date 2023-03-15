@@ -11,7 +11,7 @@ namespace mc_compiled.MCC
     {
         NO_FEATURES = 0,    // No features enabled.
 
-        DUMMY = 1 << 0,     // Dummy Entities
+        DUMMIES = 1 << 0,     // Dummy Entities
         GAMETEST = 1 << 1,  // GameTest Framework
         EXPLODE = 1 << 2,   // Exploder Entities
         UNINSTALL = 1 << 3, // Uninstall Script

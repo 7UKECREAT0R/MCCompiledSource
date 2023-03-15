@@ -735,7 +735,6 @@ namespace mc_compiled.MCC.Compiler
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.SetExecutor(this);
                 statement.Run0(this);
-                scoreboard.temps.PopTempState();
 
                 if (statement.Skip)
                     continue; // ignore this statement
@@ -780,7 +779,6 @@ namespace mc_compiled.MCC.Compiler
                     Statement unresolved = Next();
                     Statement statement = unresolved.ClonePrepare(this);
                     statement.Run0(this);
-                    scoreboard.temps.PopTempState();
 
                     if (statement.Skip)
                         continue; // ignore this statement

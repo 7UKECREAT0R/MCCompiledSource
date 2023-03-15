@@ -591,7 +591,7 @@ namespace mc_compiled.MCC.Server
         {
             Program.DEBUG = debug;
             Program.PrepareToCompile();
-            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", new Program.InputPPV[0], outputBehaviorPack, outputResourcePack);
+            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", new Program.InputPPV[0], outputBehaviorPack, outputResourcePack, projectName);
 
             if (debug)
                 Console.WriteLine("Compilation Success: {0}", success);

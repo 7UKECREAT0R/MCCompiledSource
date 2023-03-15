@@ -21,7 +21,7 @@ namespace mc_compiled.MCC
         internal static Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
         {
             {
-                Feature.DUMMY, (executor) =>
+                Feature.DUMMIES, (executor) =>
                 {
                     executor.entities.dummies.AddEntityToProject();
                     executor.SetPPV("null", new object[] { executor.entities.dummies.dummyType });

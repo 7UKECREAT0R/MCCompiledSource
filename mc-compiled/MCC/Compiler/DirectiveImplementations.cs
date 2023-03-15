@@ -1809,7 +1809,7 @@ namespace mc_compiled.MCC.Compiler
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                executor.RequireFeature(tokens, Feature.DUMMY);
+                executor.RequireFeature(tokens, Feature.DUMMIES);
                 const string damagerEntity = "_dmg_from";
                 string[] commands = new string[]
                 {
@@ -1842,7 +1842,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void dummy(Executor executor, Statement tokens)
         {
-            executor.RequireFeature(tokens, Feature.DUMMY);
+            executor.RequireFeature(tokens, Feature.DUMMIES);
 
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 

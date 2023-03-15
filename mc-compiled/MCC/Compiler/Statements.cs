@@ -236,10 +236,10 @@ namespace mc_compiled.MCC.Compiler
                         type = temp.valueType;
                         commands.AddRange(temp.CommandsSetLiteral(next));
                         commands.AddRange(value.value.CommandsFromOperation(temp, op));
+                        executor.scoreboard.temps.ReleaseGlobal(type);
                     }
 
                     executor.AddCommands(commands, "mathoperation");
-                    executor.scoreboard.temps.ReleaseGlobal(type);
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral

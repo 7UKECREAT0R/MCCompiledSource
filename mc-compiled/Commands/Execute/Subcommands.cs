@@ -376,9 +376,20 @@ namespace mc_compiled.Commands.Execute
     {
         internal string command;
 
+        /// <summary>
+        /// Create a SubcommandRun with a command given.
+        /// </summary>
+        /// <param name="command"></param>
         internal SubcommandRun(string command)
         {
             this.command = command;
+        }
+        /// <summary>
+        /// Create a SubcommandRun that leaves the command field empty.
+        /// </summary>
+        internal SubcommandRun()
+        {
+            this.command = "";
         }
 
         public override TypePattern[] Pattern => new TypePattern[] {
@@ -391,7 +402,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            command = tokens.Next<string>();
+            command = tokens.GetRemainingTokens().ToString();
         }
         public override string ToMinecraft() => $"run {command}";
     }

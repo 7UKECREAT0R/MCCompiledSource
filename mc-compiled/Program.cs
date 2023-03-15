@@ -101,6 +101,7 @@ namespace mc_compiled
             bool daemon = false;
             string obp = "?project\\BP";
             string orp = "?project\\RP";
+            string projectName = null;
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -147,8 +148,11 @@ namespace mc_compiled
                         break;
                     case "--VERSION":
                         Console.WriteLine("MCCompiled Version " + MCC.Compiler.Executor.MCC_VERSION);
-                        Console.WriteLine("Andrew Criswell 2022");
+                        Console.WriteLine("Andrew L. Criswell, 2023");
                         return;
+                    case "--PROJECT":
+                        projectName = args[++i];
+                        break;
                 }
             }
 
@@ -460,7 +464,7 @@ namespace mc_compiled
                         {
                             CleanDirectory(obp, file);
                             CleanDirectory(orp, file);
-                            RunMCCompiled(file, inputPPVs.ToArray(), obp, orp);
+                            RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, projectName);
                         }
                     }
                     else
@@ -469,7 +473,7 @@ namespace mc_compiled
                         PrepareToCompile();
                         CleanDirectory(obp, changedFile);
                         CleanDirectory(orp, changedFile);
-                        RunMCCompiled(changedFile, inputPPVs.ToArray(), obp, orp);
+                        RunMCCompiled(changedFile, inputPPVs.ToArray(), obp, orp, projectName);
                     }
 
                     ConsoleColor oldColor = Console.ForegroundColor;
@@ -509,7 +513,7 @@ namespace mc_compiled
             if(REGOLITH)
             {
                 foreach (string file in files)
-                    if (RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, false))
+                    if (RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, projectName, false))
                         File.Delete(file); // delete if compilation succeeded, otherwise might be another format
             } else
             {
@@ -517,7 +521,7 @@ namespace mc_compiled
                 {
                     CleanDirectory(obp, file);
                     CleanDirectory(orp, file);
-                    RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, false);
+                    RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, projectName, false);
                 }
             }
         }
@@ -529,6 +533,12 @@ namespace mc_compiled
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();
         }
+
+        internal static readonly string[] CLEAN_FILTERS = new[]
+        {
+            "*.mcstructure",
+            "*.mcfunction"
+        };
         internal static void CleanDirectory(string cleanFolder, string file)
         {
             cleanFolder = cleanFolder.Replace("?project", Path.GetFileNameWithoutExtension(file));
@@ -536,8 +546,9 @@ namespace mc_compiled
             if (Directory.Exists(cleanFolder))
             {
                 List<string> files = new List<string>();
-                files.AddRange(Directory.GetFiles(cleanFolder, "*.mcstructure", SearchOption.AllDirectories));
-                files.AddRange(Directory.GetFiles(cleanFolder, "*.mcfunction", SearchOption.AllDirectories));
+
+                foreach(string filter in CLEAN_FILTERS)
+                    files.AddRange(Directory.GetFiles(cleanFolder, filter, SearchOption.AllDirectories));
 
                 foreach (string del in files)
                     File.Delete(del);
@@ -552,10 +563,10 @@ namespace mc_compiled
         /// <param name="outputRP">The root location that the RP content will be written to.</param>
         /// <param name="silentErrors">Whether to silently throw away errors.</param>
         /// <returns>If the compilation succeeded.</returns>
-        internal static bool RunMCCompiled(string file, InputPPV[] ppvs, string outputBP, string outputRP, bool silentErrors = false)
+        internal static bool RunMCCompiled(string file, InputPPV[] ppvs, string outputBP, string outputRP, string projectName = null, bool silentErrors = false)
         {
             string content = File.ReadAllText(file);
-            return RunMCCompiledCode(content, file, ppvs, outputBP, outputRP, silentErrors);
+            return RunMCCompiledCode(content, file, ppvs, outputBP, outputRP, projectName, silentErrors);
         }
         /// <summary>
         /// Compile a file with MCCompiled using the existing options.
@@ -566,12 +577,13 @@ namespace mc_compiled
         /// <param name="outputRP">The root location that the RP content will be written to.</param>
         /// <param name="silentErrors">Whether to silently throw away errors.</param>
         /// <returns>If the compilation succeeded.</returns>
-        internal static bool RunMCCompiledCode(string code, string file, InputPPV[] ppvs, string outputBP, string outputRP, bool silentErrors = false)
+        internal static bool RunMCCompiledCode(string code, string file, InputPPV[] ppvs, string outputBP, string outputRP, string projectName = null, bool silentErrors = false)
         {
-            string project = Path.GetFileNameWithoutExtension(file);
+            if(projectName == null)
+                projectName = Path.GetFileNameWithoutExtension(file);
 
-            outputBP = outputBP.Replace("?project", project);
-            outputRP = outputRP.Replace("?project", project);
+            outputBP = outputBP.Replace("?project", projectName);
+            outputRP = outputRP.Replace("?project", projectName);
             bool hasBehaviorManifest = File.Exists(Path.Combine(outputBP, "manifest.json"));
             bool hasResourceManifest = File.Exists(Path.Combine(outputRP, "manifest.json"));
 
@@ -599,7 +611,7 @@ namespace mc_compiled
                     Console.WriteLine();
                 }
 
-                Executor executor = new Executor(statements, ppvs, project, outputBP, outputRP);
+                Executor executor = new Executor(statements, ppvs, projectName, outputBP, outputRP);
                 executor.Execute();
 
                 Console.WriteLine("Writing files...");
