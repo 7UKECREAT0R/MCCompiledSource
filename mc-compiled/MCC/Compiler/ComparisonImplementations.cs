@@ -145,9 +145,19 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValue b = (this.b as TokenIdentifierValue).value;
 
                 cancel = false;
-                return new Subcommand[] {
-                    new SubcommandIf(ConditionalSubcommandScore.New(a, localComparison, b))
-                };
+
+                if (localComparison == TokenCompare.Type.NOT_EQUAL)
+                {
+                    return new Subcommand[] {
+                        // mojang doesn't support != so invert the root of the comparison
+                        new SubcommandUnless(ConditionalSubcommandScore.New(a, TokenCompare.Type.EQUAL, b))
+                    };
+                } else
+                {
+                    return new Subcommand[] {
+                        new SubcommandIf(ConditionalSubcommandScore.New(a, localComparison, b))
+                    };
+                }
             }
             
             if(aType == SideType.Variable)

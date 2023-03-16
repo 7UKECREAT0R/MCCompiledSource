@@ -246,7 +246,7 @@ namespace mc_compiled.MCC.Compiler
             switch (type)
             {
                 case Type.EQUAL:
-                    return "==";
+                    return "=";
                 case Type.NOT_EQUAL:
                     return "DOESNT EXIST MOJANG";
                 case Type.LESS_THAN:

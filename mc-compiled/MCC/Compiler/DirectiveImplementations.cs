@@ -2127,6 +2127,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void effect(Executor executor, Statement tokens) => effect(executor, tokens, false);
         public static void effecth(Executor executor, Statement tokens) => effect(executor, tokens, true);
+        public static void execute(Executor executor, Statement tokens)
+        {
+
+        }
 
         public static void feature(Executor executor, Statement tokens)
         {
