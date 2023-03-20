@@ -974,7 +974,7 @@ namespace mc_compiled.MCC.Compiler
         public static void globalprint(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
-            List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
 
             string[] commands;
 
@@ -988,7 +988,7 @@ namespace mc_compiled.MCC.Compiler
         public static void print(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
-            List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
             string[] commands;
 
             if (advanced)
@@ -1013,7 +1013,7 @@ namespace mc_compiled.MCC.Compiler
             ScoreboardManager.ValueDefinition def = executor
                 .scoreboard.GetNextValueDefinition(tokens);
 
-            // defining value the wrong ways
+            // defining value all the wrong ways
             if (def.type == ScoreboardManager.ValueType.PPV)
                 throw new StatementException(tokens, "Type 'PPV' is not supported by this command. Use $var for preprocessor code.");
 
@@ -1608,7 +1608,7 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                    List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
                     string[] commands;
 
                     if (advanced)
@@ -1626,7 +1626,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1654,7 +1654,7 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                    List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
                     string[] commands;
 
                     if (advanced)
@@ -1680,7 +1680,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1714,7 +1714,7 @@ namespace mc_compiled.MCC.Compiler
             else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1741,7 +1741,7 @@ namespace mc_compiled.MCC.Compiler
             else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -2187,8 +2187,13 @@ namespace mc_compiled.MCC.Compiler
                     throw new StatementException(tokens, "Preprocessor variable cannot be used as a parameter type. Consider using a function inside a macro.");
                 
                 ScoreboardValue value = def.Create(executor.scoreboard, tokens);
+
+                // abstract away the name of the parameter
+                value.ForceHash(functionName); // nonce string
+
                 executor.scoreboard.TryThrowForDuplicate(value, tokens);
                 executor.scoreboard.Add(value);
+
                 parameters.Add(new RuntimeFunctionParameter(value, def.defaultValue));
             }
 
@@ -2200,6 +2205,15 @@ namespace mc_compiled.MCC.Compiler
 
             // register it with the compiler
             executor.functions.RegisterFunction(function);
+
+            // register the function's parameters
+            var allRuntimeDestinations = function.Parameters
+                .Where(p => p is RuntimeFunctionParameter)
+                .Select(p => (p as RuntimeFunctionParameter).runtimeDestination);
+            executor.scoreboard.AddRange(allRuntimeDestinations);
+            // ...and define them
+            foreach(var runtimeDestination in allRuntimeDestinations)
+                executor.AddCommandsInit(runtimeDestination.CommandsDefine());
 
             if (executor.NextIs<StatementOpenBlock>())
             {

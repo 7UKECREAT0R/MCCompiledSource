@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static mc_compiled.MCC.TempManager;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -41,27 +42,6 @@ namespace mc_compiled.MCC.Compiler
         protected abstract void Run(Executor executor);
 
         /// <summary>
-        /// Run this statement from square one.
-        /// </summary>
-        public void Run0(Executor executor)
-        {
-            if (patterns != null && patterns.Length > 0)
-            {
-                IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens));
-
-                if(results.All(result => !result.match))
-                {
-                    // get the closest matched pattern
-                    MatchResult closest = results.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
-                    var missingArgs = closest.missing.Select(m => m.ToString());
-                    throw new StatementException(this, "Missing argument(s): " + string.Join(", ", missingArgs));
-                }
-            }
-
-            currentToken = 0;
-            Run(executor);
-        }
-        /// <summary>
         /// Clone this statement and resolve its unidentified tokens based off the current executor's state.
         /// After this is finished, squash and process any intermediate math or functional operations.<br />
         /// <br />This function pushes the Scoreboard temp state once.
@@ -69,36 +49,40 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public Statement ClonePrepare(Executor executor)
         {
+            Statement statement = MemberwiseClone() as Statement;
+            statement.PrepareThis(executor);
+
+            return statement;
+        }
+        /// <summary>
+        /// Resolve any unidentified tokens based off the current executor's state on this instance.
+        /// After this is finished, squash and process any intermediate math or functional operations.
+        /// </summary>
+        /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
+        public void PrepareThis(Executor executor)
+        {
             // decorator
             if (Program.DECORATE && DecorateInSource)
             {
-                if(Source != null)
+                if (Source != null)
                     executor.CurrentFile.Add("# " + Source);
             }
 
-            Statement statement = MemberwiseClone() as Statement;
-
             // set executors
-            this.executor = executor;
-            statement.SetExecutor(executor);
+            this.SetExecutor(executor);
 
             // e.g. close/open block
-            if (statement.tokens == null)
-            {
-                // i hate the jank here but just trust this gets popped later
-                // ignores contract
-                executor.scoreboard.temps.PushTempState();
-                return statement;
-            }
+            if (this.tokens == null)
+                return;
 
             bool resolvePPVsGlobal = !HasAttribute(DirectiveAttribute.DONT_EXPAND_PPV);
-            int length = statement.tokens.Length;
-            List<Token> allUnresolved = new List<Token>(statement.tokens);
+            int length = this.tokens.Length;
+            List<Token> allUnresolved = new List<Token>(this.tokens);
             List<Token> allResolved = new List<Token>();
 
             // now resolve tokens forward
             int len = allUnresolved.Count;
-            for(int i = 0; i < len; i++)
+            for (int i = 0; i < len; i++)
             {
                 Token unresolved = allUnresolved[i];
                 Token next = (i + 1 < len) ? allUnresolved[i + 1] : null;
@@ -118,9 +102,9 @@ namespace mc_compiled.MCC.Compiler
                 if (unresolved is TokenStringLiteral)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
                 else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
-                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, statement) ?? new Token[] { unresolved });
+                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, this) ?? new Token[] { unresolved });
                 else if (resolvePPVs && unresolved is TokenIndexerUnresolvedPPV)
-                    allResolved.Add((unresolved as TokenIndexerUnresolvedPPV).Resolve(executor, statement));
+                    allResolved.Add((unresolved as TokenIndexerUnresolvedPPV).Resolve(executor, this));
                 else if (unresolved is TokenIdentifier)
                 {
                     // identifier resolve requires a manual search.
@@ -144,13 +128,34 @@ namespace mc_compiled.MCC.Compiler
                     allResolved.Add(unresolved);
             }
 
-            executor.scoreboard.temps.PushTempState(); // popped at call site, ignore contract
             SquashAll(allResolved, executor);
             SquashSpecial(allResolved); // ranges, indexers, etc.
 
-            statement.tokens = allResolved.ToArray();
-            statement.patterns = statement.GetValidPatterns();
-            return statement;
+            this.tokens = allResolved.ToArray();
+            this.patterns = this.GetValidPatterns();
+            return;
+        }
+
+        /// <summary>
+        /// Run this statement from square one.
+        /// </summary>
+        public void Run0(Executor executor)
+        {
+            if (patterns != null && patterns.Length > 0)
+            {
+                IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens));
+
+                if(results.All(result => !result.match))
+                {
+                    // get the closest matched pattern
+                    MatchResult closest = results.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
+                    var missingArgs = closest.missing.Select(m => m.ToString());
+                    throw new StatementException(this, "Missing argument(s): " + string.Join(", ", missingArgs));
+                }
+            }
+
+            currentToken = 0;
+            Run(executor);
         }
         public void SquashSpecial(List<Token> tokens)
         {
@@ -394,7 +399,7 @@ namespace mc_compiled.MCC.Compiler
                     ScoreboardValue temp = executor.scoreboard.temps.RequestCopy(a, squashToGlobal);
                     string accessorTemp = temp.Name;
 
-                    commands.AddRange(temp.CommandsSet(b));
+                    commands.AddRange(temp.CommandsSet(a));
                     squashedToken = new TokenIdentifierValue(accessorTemp, temp, selected.lineNumber);
 
                     switch (op)
@@ -428,7 +433,7 @@ namespace mc_compiled.MCC.Compiler
                         b = (_right as TokenIdentifierValue).value;
                         squashToGlobal = b.clarifier.IsGlobal;
 
-                        a = executor.scoreboard.temps.Request(_left as TokenLiteral, this, squashToGlobal);
+                        a = executor.scoreboard.temps.Request(_left as TokenLiteral, this, true);
                         aAccessor = a.Name;
                         commands.AddRange(a.CommandsSetLiteral(_left as TokenLiteral));
                         bAccessor = (_right as TokenIdentifierValue).Accessor;
@@ -438,7 +443,7 @@ namespace mc_compiled.MCC.Compiler
                         TokenIdentifierValue left = _left as TokenIdentifierValue;
                         squashToGlobal = left.value.clarifier.IsGlobal;
 
-                        b = executor.scoreboard.temps.Request(_right as TokenLiteral, this, squashToGlobal);
+                        b = executor.scoreboard.temps.Request(_right as TokenLiteral, this, true);
                         bAccessor = b.Name;
                         commands.AddRange(b.CommandsSetLiteral(_right as TokenLiteral));
 
@@ -620,6 +625,22 @@ namespace mc_compiled.MCC.Compiler
                 return patterns.Any(tp => tp.Check(tokens).match);
             }
         }
+    }
+    /// <summary>
+    /// A statement with no syntactic meaning, just holds tokens. Can only be created by the compiler.
+    /// </summary>
+    public sealed class StatementHusk : Statement
+    {
+        public override bool Skip => true;
+        public StatementHusk(Token[] tokens) : base(tokens, true) { }
+        public override string ToString()
+        {
+            return $"[HUSK] {string.Join(" ", from t in tokens select t.DebugString())}";
+        }
+        protected override void Run(Executor executor) =>
+            throw new StatementException(this, "Compiler tried to run a Husk statement. Have a dev look at this.");
+        protected override TypePattern[] GetValidPatterns() => null;
+        public override bool HasAttribute(DirectiveAttribute attribute) => false;
     }
 
     /// <summary>

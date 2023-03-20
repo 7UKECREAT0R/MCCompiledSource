@@ -185,6 +185,15 @@ namespace mc_compiled.MCC
                 return;
             values.Add(value);
         }
+        /// <summary>
+        /// Add a set of scoreboard values to the cache.
+        /// </summary>
+        /// <param name="value"></param>
+        public void AddRange(IEnumerable<ScoreboardValue> values)
+        {
+            foreach (ScoreboardValue value in values)
+                Add(value);
+        }
 
         /// <summary>
         /// Create a scoreboard value from a literal value.

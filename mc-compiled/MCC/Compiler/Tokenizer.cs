@@ -61,13 +61,31 @@ namespace mc_compiled.MCC.Compiler
                 .Cast<Match>().Select(match => match.Value).ToArray();
         }
 
-        public Tokenizer(string content)
+        /// <summary>
+        /// Create a new Tokenizer, optionally running cleanups and the definitions.def parser over it.
+        /// </summary>
+        /// <param name="content">The content to tokenize.</param>
+        /// <param name="stripCarriageReturns">Whether or not to strip carriage return characters from the input.</param>
+        /// <param name="useDefinitions">Whether or not to check and replace definitions.def references in the content.</param>
+        public Tokenizer(string content, bool stripCarriageReturns = true, bool useDefinitions = true)
         {
-            defs = Definitions.GLOBAL_DEFS;
-            content = defs.ReplaceDefinitions(content);
-            this.content = content
-                .Replace("\r", "")
-                .ToCharArray();
+            if (useDefinitions)
+            {
+                this.defs = Definitions.GLOBAL_DEFS;
+                content = this.defs.ReplaceDefinitions(content);
+            }
+
+            if (stripCarriageReturns)
+            {
+                this.content = content
+                    .Replace("\r", "")
+                    .ToCharArray();
+            } else
+            {
+                this.content = content
+                    .ToCharArray();
+            }
+
             sb = new StringBuilder();
         }
 

@@ -18,6 +18,7 @@ namespace mc_compiled.MCC.Functions
         /// All of the functions currently in the project.
         /// </summary>
         private Dictionary<string, List<Function>> functionRegistry;
+        private readonly ScoreboardManager scoreboardManager;
 
         /// <summary>
         /// Contains all compiler-implemented providers that should be added on new instances of a FunctionManager.
@@ -33,6 +34,7 @@ namespace mc_compiled.MCC.Functions
         internal FunctionManager(ScoreboardManager manager)
         {
             this.functionRegistry = new Dictionary<string, List<Function>>(StringComparer.OrdinalIgnoreCase);
+            this.scoreboardManager = manager;
         }
         /// <summary>
         /// Registers the function providers included with the compiler.

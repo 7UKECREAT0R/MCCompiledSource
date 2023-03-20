@@ -80,10 +80,11 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Require this variable's internal name to be hashed and hidden behind an alias.
         /// </summary>
-        public void ForceHash()
+        /// <param name="nonce">A nonce string to append to the previous name when hashing.</param>
+        public void ForceHash(string nonce = "")
         {
             aliasName = baseName;
-            baseName = StandardizedHash(aliasName);
+            baseName = StandardizedHash(aliasName + nonce);
         }
 
         public List<IAttribute> attributes;

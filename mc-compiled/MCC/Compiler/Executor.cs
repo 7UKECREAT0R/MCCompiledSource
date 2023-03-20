@@ -147,7 +147,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="fstring"></param>
         /// <returns></returns>
-        public List<JSONRawTerm> FString(string fstring, out bool advanced)
+        public List<JSONRawTerm> FString(string fstring, int lineNumber, out bool advanced)
         {
             // stupid complex search for closing bracket: '}'
             int ScanForCloser(string str, int start)
@@ -157,7 +157,7 @@ namespace mc_compiled.MCC.Compiler
                 bool skipping = false;
                 bool escape = false;
 
-                for(int i = start; i < len; i++)
+                for(int i = start + 1; i < len; i++)
                 {
                     char c = str[i];
 
@@ -202,6 +202,7 @@ namespace mc_compiled.MCC.Compiler
             List<JSONRawTerm> terms = new List<JSONRawTerm>();
             StringBuilder buffer = new StringBuilder();
 
+            // dumps the contents of the text buffer into a string and adds it to the terms as text.
             void DumpTextBuffer()
             {
                 string bufferContents = buffer.ToString();
@@ -231,30 +232,59 @@ namespace mc_compiled.MCC.Compiler
                     // get segment inside brackets
                     string segment = fstring.Substring(i + 1, segmentLength - 1);
 
-                    // check for selector match
-                    if (FSTRING_SELECTOR.IsMatch(segment))
+                    // skip this if the segment is empty.
+                    if(string.IsNullOrWhiteSpace(segment))
                     {
                         i += segmentLength;
+                        buffer.Append('{');
+                        buffer.Append(segment);
+                        buffer.Append('}');
                         DumpTextBuffer();
-                        advanced = true;
-                        terms.Add(new JSONSelector(segment));
                         continue;
                     }
-                    else if(FSTRING_VARIABLE.IsMatch(segment))
-                    {
-                        if(scoreboard.TryGetByAccessor(segment, out ScoreboardValue value))
-                        {
-                            i += segmentLength;
-                            DumpTextBuffer();
-                            advanced = true;
 
+                    // tokenize and assemble the inputs (without character stripping or definitions.def)
+                    Tokenizer tokenizer = new Tokenizer(segment, false, false);
+                    Token[] tokens = tokenizer.Tokenize();
+                    Statement subStatement = new StatementHusk(tokens);
+                    subStatement.SetSource(lineNumber, "Inline FString Operation");
+
+                    // squash & resolve the tokens as best it can
+                    subStatement.PrepareThis(this);
+
+                    // dump text buffer before we get started.
+                    i += segmentLength;
+                    DumpTextBuffer();
+
+                    // get the rawtext terms
+                    Token[] remaining = subStatement.GetRemainingTokens();
+                    foreach (Token token in remaining)
+                    {
+                        // try to find the best rawtext representation
+                        if(token is TokenSelectorLiteral selectorLiteral)
+                        {
+                            advanced = true;
+                            Selector selector = selectorLiteral.selector;
+                            terms.Add(new JSONSelector(selector.ToString()));
+                            continue;
+                        } else if(token is TokenIdentifierValue identifierValue)
+                        {
+                            advanced = true;
+                            ScoreboardValue value = identifierValue.value;
                             int indexCopy = scoreIndex;
-                            AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.AliasName);
-                            terms.AddRange(value.ToRawText(ref scoreIndex));
+                            AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.Name);
+                            terms.AddRange(value.ToRawText(ref indexCopy));
                             scoreIndex++;
                             continue;
                         }
+
+                        // default representation
+                        string stringRepresentation = token.ToString();
+                        terms.Add(new JSONText(stringRepresentation));
+                        continue;
                     }
+
+                    continue;
                 }
 
                 buffer.Append(character);
@@ -759,7 +789,7 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            while (currentFiles.Count > 0)
+            while (currentFiles.Any())
                 PopFile();
         }
         /// <summary>
@@ -785,6 +815,9 @@ namespace mc_compiled.MCC.Compiler
 
                     // check for unreachable code due to halt directive
                     CheckUnreachable(statement);
+
+                    if (Program.DEBUG)
+                        Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Line, statement.ToString());
 
                     if (popSelectorsAfterNext >= 0)
                     {

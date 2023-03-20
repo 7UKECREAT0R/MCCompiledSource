@@ -31,7 +31,8 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (buffer.Count > 0)
                     {
-                        TryAssembleLine(new List<Token>(buffer), ref statements);
+                        Statement assembledStatement = TryAssembleLine(buffer.ToArray());
+                        statements.Add(assembledStatement);
                         buffer.Clear();
                     }
                     if (current is TokenOpenBlock)
@@ -81,13 +82,14 @@ namespace mc_compiled.MCC.Compiler
 
             if (buffer.Count > 0)
             {
-                TryAssembleLine(new List<Token>(buffer), ref statements);
+                Statement assembledStatement = TryAssembleLine(buffer.ToArray());
+                statements.Add(assembledStatement);
                 buffer.Clear();
             }
 
             return statements.ToArray();
         }
-        public static void TryAssembleLine(List<Token> line, ref List<Statement> statements)
+        public static Statement TryAssembleLine(Token[] line, bool includeSource = true)
         {
             Token firstToken = line[0];
 
@@ -95,26 +97,26 @@ namespace mc_compiled.MCC.Compiler
             {
                 TokenComment comment = firstToken as TokenComment;
                 Statement add = new StatementComment(comment.contents);
-                add.SetSource(firstToken.lineNumber, "#" + comment.contents);
-                statements.Add(add);
-                return;
+                if(includeSource)
+                    add.SetSource(firstToken.lineNumber, "#" + comment.contents);
+                return add;
             }
             if (firstToken is TokenDirective)
             {
-                List<Token> rest = line.Skip(1).ToList();
+                Token[] rest = line.Skip(1).ToArray();
                 Directive directive = (firstToken as TokenDirective).directive;
-                StatementDirective add = new StatementDirective(directive, rest.ToArray());
-                add.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
-                statements.Add(add);
-                return;
+                StatementDirective add = new StatementDirective(directive, rest);
+                if(includeSource)
+                    add.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                return add;
             }
 
-            if (line.Count <= 1 || !(firstToken is TokenIdentifier))
+            if (line.Length <= 1 || !(firstToken is TokenIdentifier))
             {
-                StatementUnknown unknown = new StatementUnknown(line.ToArray());
-                unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
-                statements.Add(unknown);
-                return;
+                StatementUnknown unknown = new StatementUnknown(line);
+                if(includeSource)
+                    unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                return unknown;
             }
 
             TokenIdentifier identifier = firstToken as TokenIdentifier;
@@ -122,33 +124,35 @@ namespace mc_compiled.MCC.Compiler
 
             // strip any indexers so 'secondToken' is actually the next meaningful unit of information.
             // keep in mind that 'secondToken' is not necessarily the next sequential token.
-            if(secondToken is TokenIndexer && line.Count > 2)
+            if(secondToken is TokenIndexer && line.Length > 2)
             {
                 int index = 2;
 
                 do secondToken = line[index++];
-                while(secondToken is TokenIndexer && line.Count > index);
+                while(secondToken is TokenIndexer && line.Length > index);
             }
 
 
             if (secondToken is IAssignment)
             {
-                StatementOperation statement = new StatementOperation(line.ToArray());
-                statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
-                statements.Add(statement);
+                StatementOperation statement = new StatementOperation(line);
+                if(includeSource)
+                    statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                return statement;
             }
             else if (secondToken is TokenOpenParenthesis)
             {
-                StatementFunctionCall statement = new StatementFunctionCall(line.ToArray());
-                statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
-                statements.Add(statement);
+                StatementFunctionCall statement = new StatementFunctionCall(line);
+                if (includeSource)
+                    statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                return statement;
             }
             else
             {
-                StatementUnknown unknown = new StatementUnknown(line.ToArray());
-                unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
-                statements.Add(unknown);
-                return;
+                StatementUnknown unknown = new StatementUnknown(line);
+                if (includeSource)
+                    unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                return unknown;
             }
         }
     }

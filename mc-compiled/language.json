@@ -270,15 +270,16 @@
     },
     "globalprint": {
       "description": "Print to All Players",
-      "details": "Prints a chat message to all players in the game. Variables/selectors can be inserted using {curly braces}.",
+      "details": "Prints a chat message to all players in the game. Supports format strings.",
       "patterns": [
         [ "string:text" ]
       ]
     },
     "print": {
-      "description": "Print to Selected Entity",
-      "details": "Prints a chat message to the selected player(s). Variables/selectors can be inserted using {curly braces}.",
+      "description": "Print to Player",
+      "details": "Prints a chat message to the executing player, or to the given one if specified. Supports format strings.",
       "patterns": [
+        [ "selector:entity", "string:text" ],
         [ "string:text" ]
       ]
     },
@@ -293,8 +294,7 @@
       "description": "Initialize Variable",
       "details": "Ensures the selected entities have a value for the given variable, defaulting to 0 if not. This ensures the selected entities function as intended all the time.",
       "patterns": [
-        [ "value:variable" ],
-        [ "string:variable name" ]
+        [ "selector:entity", "value:value" ]
       ]
     },
     "if": {
@@ -309,58 +309,42 @@
       "details": "Inverts the comparison given by the previous if-statement at this scope level."
     },
     "give": {
-      "description": "Give Item to Selected",
-      "details": "Gives an item to the selected entities. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.",
+      "description": "Give Item",
+      "details": "Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.",
       "patterns": [
-        [ "string:item", "?int:amount", "?int:data" ]
+        [ "selector:entity", "string:item", "?int:amount", "?int:data" ]
       ]
     },
     "tp": {
-      "description": "Teleport Selected Entity",
-      "details": "Teleports the currently selected entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
+      "description": "Teleport Entity",
+      "details": "Teleports the given entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
-        [ "coord:x", "coord:y", "coord:z" ],
-        [ "selector:other" ],
-        [ "string:other" ]
-      ]
-    },
-    "tphere": {
-      "description": "Teleport Entity to Selected",
-      "details": "Teleports an entity to the selected entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
-      "patterns": [
-        [ "selector:entity", "?coord:offset x", "?coord:offset y", "?coord:offset z" ],
-        [ "string:entity", "?coord:offset x", "?coord:offset y", "?coord:offset z" ]
+        [ "selector:source", "coord:x", "coord:y", "coord:z" ],
+        [ "selector:source", "selector:other" ],
+        [ "selector:source", "string:other" ]
       ]
     },
     "move": {
-      "description": "Move Selected Entity",
-      "details": "Moves the selected entities in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.",
+      "description": "Move Entity",
+      "details": "Moves the specified entity in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.",
       "patterns": [
-        [ "id:direction", "number:amount" ]
+        [ "selector:source", "id:direction", "number:amount" ]
       ]
     },
     "face": {
-      "description": "Face Selected Towards...",
-      "details": "Faces the selected entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
+      "description": "Face Towards...",
+      "details": "Faces the given entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
-        [ "coord:x", "coord:y", "coord:z" ],
-        [ "selector:other" ],
-        [ "string:other" ]
-      ]
-    },
-    "facehere": {
-      "description": "Face Entity Towards Selected",
-      "details": "Faces an entity based off of a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities) towards the selected entity.",
-      "patterns": [
-        [ "selector:source" ],
-        [ "string:source" ]
+        [ "selector:source", "coord:x", "coord:y", "coord:z" ],
+        [ "selector:source", "selector:other" ],
+        [ "selector:source", "string:other" ]
       ]
     },
     "rotate": {
-      "description": "Rotate Selected Entity",
-      "details": "Rotates the selected entities a certain number of degrees horizontally and vertically from their current rotation.",
+      "description": "Rotate Entity",
+      "details": "Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.",
       "patterns": [
-        [ "int:y", "int:x" ]
+        [ "selector:source", "int:y", "int:x" ]
       ]
     },
     "place": {
@@ -394,29 +378,29 @@
       ]
     },
     "kill": {
-      "description": "Kill Selected Entity",
-      "details": "Kills the selected entities, causing the death animation, sounds, and particles to appear.",
+      "description": "Kill Entity",
+      "details": "Kills the given entities, causing the death animation, sounds, and particles to appear.",
       "patterns": [
-        [ "?selector:other" ]
+        [ "selector:target" ]
       ]
     },
     "remove": {
-      "description": "Remove Selected Entity",
-      "details": "Teleports the selected entities deep into the void, causing a silent death.",
+      "description": "Remove Entity",
+      "details": "Teleports the given entities deep into the void, causing a silent death.",
       "patterns": [
-        [ "?selector:other" ]
+        [ "selector:target" ]
       ]
     },
     "clear": {
       "description": "Clear Entity",
-      "details": "Clears the inventories of all selected entities, optionally searching for a specific item and limiting the number of items to remove.",
+      "details": "Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.",
       "patterns": [
-        [ "?selector:other", "?string:item", "?int:data", "?int:max count" ]
+        [ "selector:target", "?string:item", "?int:data", "?int:max count" ]
       ]
     },
     "globaltitle": {
       "description": "Show Title to All Players",
-      "details": "Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Variables/selectors can be inserted using {curly braces}",
+      "details": "Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format strings.",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "id:subtitle", "string:text" ],
@@ -424,9 +408,12 @@
       ]
     },
     "title": {
-      "description": "Show Title to Selected Entity",
-      "details": "Displays a title on the screen of the selected players. Can also be used to set the timings of the title. Variables/selectors can be inserted using {curly braces}",
+      "description": "Show Title",
+      "details": "Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format strings.",
       "patterns": [
+        [ "selector:target", "id:times", "int:fade in", "int:stay", "int:fade out" ],
+        [ "selector:target", "id:subtitle", "string:text" ],
+        [ "selector:target", "string:text" ],
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "id:subtitle", "string:text" ],
         [ "string:text" ]
@@ -434,55 +421,47 @@
     },
     "globalactionbar": {
       "description": "Show Actionbar to All Players",
-      "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Variables/selectors can be inserted using {curly braces}",
+      "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format strings.",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "string:text" ]
       ]
     },
     "actionbar": {
-      "description": "Show Actionbar to Selected Entity",
-      "details": "Displays an actionbar on the screen of the selected players. Can also be used to set the timings of the actionbar. Variables/selectors can be inserted using {curly braces}",
+      "description": "Show Actionbar",
+      "details": "Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format strings.",
       "patterns": [
-        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
+        [ "selector:target", "string:text" ],
         [ "string:text" ]
       ]
     },
     "say": {
-      "description": "Say as Selected Entity",
-      "details": "Send a plain-text message as the selected entities. Plain selectors can be used, but not variables.",
+      "description": "Say",
+      "details": "Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.",
       "patterns": [
         [ "string:message" ]
       ]
     },
     "halt": {
       "description": "Halt Execution",
-      "details": "Ends the execution of the code entirely by running out the function command limit."
+      "details": "Ends the execution of the code entirely by hitting the function command limit."
     },
     "damage": {
-      "description": "Damage Selected Entity",
-      "details": "Damages the selected entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
+      "description": "Damage Entity",
+      "details": "Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
-        [ "int:amount", "?enum:damage cause" ],
-        [ "int:amount", "?enum:damage cause", "selector:blame" ],
-        [ "int:amount", "?enum:damage cause", "string:blame" ],
-        [ "int:amount", "?enum:damage cause", "coord:from x", "coord:from y", "coord: from z" ]
+        [ "selector:target", "int:amount", "?enum:damage cause" ],
+        [ "selector:target", "int:amount", "?enum:damage cause", "selector:blame" ],
+        [ "selector:target", "int:amount", "?enum:damage cause", "string:blame" ],
+        [ "selector:target", "int:amount", "?enum:damage cause", "coord:from x", "coord:from y", "coord: from z" ]
       ]
     },
     "effect": {
-      "description": "Give Effect to Selected Entity",
-      "details": "Gives the selected entities a potion effect with visible particles. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect clear'.",
+      "description": "Give Effect to Entity",
+      "details": "Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect <selector> clear'.",
       "patterns": [
-        [ "id:clear" ],
-        [ "enum:effect", "?int:seconds", "?int:amplifier" ]
-      ]
-    },
-    "effecth": {
-      "description": "Give Hidden Effect to Selected Entity",
-      "details": "Gives the selected entities a potion effect with no particles. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect clear'.",
-      "patterns": [
-        [ "id:clear" ],
-        [ "enum:effect", "?int:seconds", "?int:amplifier" ]
+        [ "selector:target", "id:clear" ],
+        [ "selector:target", "enum:effect", "?int:seconds", "?int:amplifier", "?bool:hide" ]
       ]
     },
     "dummy": {
@@ -497,22 +476,15 @@
       ]
     },
     "tag": {
-      "description": "Tag Selected Entity",
-      "details": "Adds, removes, or singles out a tag on the selected entities.",
+      "description": "Tag Entity",
+      "details": "Adds, removes, or singles out a tag on the given entities.",
       "patterns": [
-        [ "id:mode", "string:name" ]
-      ]
-    },
-    "limit": {
-      "description": "Limit Number of Selected Entities",
-      "details": "Limits the number of entities that the following commands can target at once.",
-      "patterns": [
-        [ "?int:count" ]
+        [ "selector:target", "id:mode", "string:name" ]
       ]
     },
     "explode": {
       "description": "Create Explosion",
-      "details": "Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings.",
+      "details": "Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires 'exploders' feature to be enabled.",
       "features": 4,
       "patterns": [
         [ "?coord:x", "?coord:y", "?coord:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ]
@@ -538,13 +510,6 @@
       "patterns": [
         [ "value:variable" ],
         [ "any:return value" ]
-      ]
-    },
-    "for": {
-      "description": "For Each Entity",
-      "details": "Runs the following statement or block once over every entity that matches a selector.",
-      "patterns": [
-        [ "selector:entities" ]
       ]
     }
   }
