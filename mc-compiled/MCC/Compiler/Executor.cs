@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using mc_compiled.Commands.Execute;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -24,6 +25,7 @@ namespace mc_compiled.MCC.Compiler
         public const string _FSTRING_VARIABLE = @"[\w\d_\-:]+";
         public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
+        //public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+(\\[\"?.+\"?\\])*");
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
         public const float MCC_VERSION = 1.1f;                  // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
@@ -61,7 +63,7 @@ namespace mc_compiled.MCC.Compiler
 
             old = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("<L{0}> {1}", source.Line, warning);
+            Console.WriteLine("<L{0}> {1}", source.Lines, warning);
             Console.ForegroundColor = old;
         }
 
@@ -85,7 +87,6 @@ namespace mc_compiled.MCC.Compiler
         internal readonly Dictionary<string, dynamic[]> ppv;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
-        readonly Stack<Selector> selections;
         public readonly ScoreboardManager scoreboard;
 
         /// <summary>
@@ -107,7 +108,6 @@ namespace mc_compiled.MCC.Compiler
             ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
             definedTags = new HashSet<string>();
-            selections = new Stack<Selector>();
 
             if (inputPPVs != null && inputPPVs.Length > 0)
                 foreach (Program.InputPPV ppv in inputPPVs)
@@ -125,7 +125,6 @@ namespace mc_compiled.MCC.Compiler
             functions = new FunctionManager(scoreboard);
             functions.RegisterDefaultProviders(scoreboard);
 
-            PushSelector(true);
             SetCompilerPPVs();
 
             HeadFile = new CommandFile(projectName).AsRoot();
@@ -143,11 +142,30 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
+        /// Pushes to the prepend buffer the proper execute command needed to align to the given selector.
+        /// Sets the selector given by the reference parameter to @s.
+        /// </summary>
+        /// <param name="selector"></param>
+        public void PushAlignSelector(ref Selector selector)
+        {
+            if(selector.NonSelf)
+            {
+                ExecuteBuilder builder = new ExecuteBuilder()
+                    .WithSubcommand(new SubcommandAs(selector))
+                    .WithSubcommand(new SubcommandAt(Selector.SELF))
+                    .WithSubcommand(new SubcommandRun());
+
+                AppendCommandPrepend(builder.Build(out _));
+                selector = Selector.SELF;
+            }
+        }
+
+        /// <summary>
         /// Resolve an FString into rawtext terms. Also adds all setup commands for variables.
         /// </summary>
         /// <param name="fstring"></param>
         /// <returns></returns>
-        public List<JSONRawTerm> FString(string fstring, int lineNumber, out bool advanced)
+        public List<JSONRawTerm> FString(string fstring, int[] lineNumbers, out bool advanced)
         {
             // stupid complex search for closing bracket: '}'
             int ScanForCloser(string str, int start)
@@ -205,7 +223,7 @@ namespace mc_compiled.MCC.Compiler
             // dumps the contents of the text buffer into a string and adds it to the terms as text.
             void DumpTextBuffer()
             {
-                string bufferContents = buffer.ToString();
+                string bufferContents = ResolveString(buffer.ToString());
                 if (!string.IsNullOrEmpty(bufferContents))
                 {
                     terms.Add(new JSONText(bufferContents));
@@ -247,7 +265,7 @@ namespace mc_compiled.MCC.Compiler
                     Tokenizer tokenizer = new Tokenizer(segment, false, false);
                     Token[] tokens = tokenizer.Tokenize();
                     Statement subStatement = new StatementHusk(tokens);
-                    subStatement.SetSource(lineNumber, "Inline FString Operation");
+                    subStatement.SetSource(lineNumbers, "Inline FString Operation");
 
                     // squash & resolve the tokens as best it can
                     subStatement.PrepareThis(this);
@@ -279,7 +297,7 @@ namespace mc_compiled.MCC.Compiler
                         }
 
                         // default representation
-                        string stringRepresentation = token.ToString();
+                        string stringRepresentation = ResolveString(token.ToString());
                         terms.Add(new JSONText(stringRepresentation));
                         continue;
                     }
@@ -458,138 +476,6 @@ namespace mc_compiled.MCC.Compiler
         public bool HasSTDFile(CommandFile file)
         {
             return definedStdFiles.Contains(file.GetHashCode());
-        }
-
-        /// <summary>
-        /// Get or set the active selector.
-        /// Get peeks the stack.
-        /// Set pushes then pops a new selector to the stack.
-        /// </summary>
-        public Selector ActiveSelector
-        {
-            get => selections.Peek();
-            set
-            {
-                selections.Pop();
-                selections.Push(value);
-            }
-        }
-        /// <summary>
-        /// The currently active selector represented as a string.
-        /// </summary>
-        public string ActiveSelectorStr
-        {
-            get => selections.Peek().ToString();
-        }
-        /// <summary>
-        /// The currently active selector core represented as a string.
-        /// </summary>
-        public string ActiveSelectorCore
-        {
-            get => '@' + selections.Peek().core.ToString();
-        }
-        /// <summary>
-        /// Push a copy of the current selector to the stack. If doesAlign is set, then the selector is reset to '@s'.
-        /// </summary>
-        /// <param name="doesAlign"></param>
-        public void PushSelector(bool doesAlign)
-        {
-            if (doesAlign)
-                selections.Push(new Selector(Selector.Core.s));
-            else
-                selections.Push(ActiveSelector);
-        }
-        /// <summary>
-        /// Push a selector to the stack.
-        /// </summary>
-        /// <param name="now"></param>
-        public void PushSelector(Selector now)
-        {
-            selections.Push(now);
-        }
-        /// <summary>
-        /// Alias for PushSelector(true). Pushes a new selector representing '@s' to the stack and prepends the
-        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
-        /// </summary>
-        /// <returns>The previous value of the prepend buffer.</returns>
-        public string PushSelectorExecute(Selector now, Coord offsetX, Coord offsetY, Coord offsetZ)
-        {
-            if (now.NonSelf)
-            {
-                string prev = prependBuffer.ToString();
-                //AppendCommandPrepend(Command.Execute(now.ToString(), offsetX, offsetY, offsetZ, ""));
-                PushSelector(true);
-                return prev;
-            }
-
-            PushSelector(false);
-            return "";
-        }
-        /// <summary>
-        /// Pushes a new selector representing '@s' to the stack and prepends the
-        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
-        /// </summary>
-        /// <returns>The previous value of the prepend buffer.</returns>
-        public string PushSelectorExecute()
-        {
-            Selector active = ActiveSelector;
-            if (active.NonSelf)
-            {
-                string prev = prependBuffer.ToString();
-                //AppendCommandPrepend(Command.Execute(active.ToString(), active.offsetX, active.offsetY, active.offsetZ, ""));
-                PushSelector(true);
-                return prev;
-            }
-
-            PushSelector(false);
-            return "";
-        }
-        /// <summary>
-        /// Pushes a new selector representing '@s' to the stack and prepends the
-        /// necessary execute command so that the command run through it will be aligned to the selected entity(s).
-        /// 
-        /// This variant offsets the position of the execution relative to each entity.
-        /// </summary>
-        /// <returns>The previous value of the prepend buffer.</returns>
-        public string PushSelectorExecute(Coord offsetX, Coord offsetY, Coord offsetZ)
-        {
-            Selector active = ActiveSelector;
-            if (active.NonSelf)
-            {
-                string prev = prependBuffer.ToString();
-                //AppendCommandPrepend(Command.Execute(active.ToString(), offsetX, offsetY, offsetZ, ""));
-                PushSelector(true);
-                return prev;
-            }
-
-            PushSelector(false);
-            return "";
-        }
-        /// <summary>
-        /// Pop a selector off the stack and return to the previous.
-        /// </summary>
-        public void PopSelector()
-        {
-            unreachableCode = -1;
-            selections.Pop();
-        }
-
-        /// <summary>
-        /// The number of statements which will run before popSelectorsCount number of selectors are automatically popped.
-        /// </summary>
-        int popSelectorsAfterNext = 0;
-        /// <summary>
-        /// Number of times popSelectorsAfterNext will be reset after popping a selector.
-        /// </summary>
-        int popSelectorsCount = 0;
-
-        /// <summary>
-        /// Schedules a selector pop after the next statement is run.
-        /// </summary>
-        public void PopSelectorAfterNext()
-        {
-            popSelectorsAfterNext = 2;
-            popSelectorsCount++;
         }
 
         /// <summary>
@@ -773,20 +659,7 @@ namespace mc_compiled.MCC.Compiler
                 CheckUnreachable(statement);
 
                 if(Program.DEBUG)
-                    Console.WriteLine("EXECUTE LN{0}: {1}", statement.Line, statement.ToString());
-
-                // do the pop-selector stuff.
-                if(popSelectorsCount > 0)
-                {
-                    popSelectorsAfterNext--;
-
-                    if(popSelectorsAfterNext <= 0)
-                    {
-                        // pop all selectors based on count
-                        while (popSelectorsCount-- > 0)
-                            PopSelector();
-                    }
-                }
+                    Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement.ToString());
             }
 
             while (currentFiles.Any())
@@ -817,14 +690,7 @@ namespace mc_compiled.MCC.Compiler
                     CheckUnreachable(statement);
 
                     if (Program.DEBUG)
-                        Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Line, statement.ToString());
-
-                    if (popSelectorsAfterNext >= 0)
-                    {
-                        popSelectorsAfterNext--;
-                        if (popSelectorsAfterNext == 0)
-                            PopSelector();
-                    }
+                        Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement.ToString());
                 }
 
                 // now its done, so restore state
@@ -1132,7 +998,6 @@ namespace mc_compiled.MCC.Compiler
                 string ppvName = text.Substring(lastIndex + 1);
                 if (!TryGetPPV(ppvName, out dynamic[] values))
                     continue; // no ppv named that
-
 
                 string insertText;
                 if (values.Length > 1)

@@ -375,7 +375,7 @@ namespace mc_compiled.MCC.Compiler
 
         public Type[] GetImplicitTypes()
         {
-            return new[] { typeof(TokenSelectorLiteral) };
+            return new[] { typeof(TokenSelectorLiteral), typeof(TokenIdentifier) };
         }
         public Token Convert(Executor executor, int index)
         {
@@ -428,6 +428,10 @@ namespace mc_compiled.MCC.Compiler
                     core = Selector.Core.e,
                     entity = new Commands.Selectors.Entity(name, type, new List<string>())
                 }, lineNumber);
+            }
+            else if(index == 1)
+            {
+                return new TokenIdentifier(text, lineNumber);
             }
 
             return null;

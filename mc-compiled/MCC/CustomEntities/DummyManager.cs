@@ -17,39 +17,22 @@ namespace mc_compiled.MCC.CustomEntities
     internal class DummyManager : CustomEntityManager
     {
         public const string DESTROY_COMPONENT_GROUP = "instant_despawn";
-
         public const string DESTROY_EVENT_NAME = "destroy";
-        public const string CLEAN_EVENT_NAME = "clean";
+
+        public const string TAGGABLE_COMPONENT_GROUP = "taggable";
+        public const string TAGGABLE_EVENT_ADD_NAME = "as_taggable";
+        public const string TAGGABLE_EVENT_REMOVE_NAME = "remove_taggable";
+        public const string TAGGABLE_FAMILY_NAME = "__dummy_taggable";
+
 
         internal HashSet<string> existingDummies;
-        internal HashSet<string> existingClasses;
         public readonly string dummyType;
         DummyFiles dummyFiles;
-
-        /// <summary>
-        /// Get the name of the family for a specific dummy-class name.
-        /// </summary>
-        /// <param name="clazz"></param>
-        /// <returns></returns>
-        public static string FamilyName(string clazz)
-        {
-            return "class_" + Tokenizer.StripForPack(clazz);
-        }
-        /// <summary>
-        /// Get the name of the family for a specific dummy-class name.
-        /// </summary>
-        /// <param name="clazz"></param>
-        /// <returns></returns>
-        public static string EventName(string clazz)
-        {
-            return "with_" + Tokenizer.StripForPack(clazz);
-        }
 
         internal DummyManager(Executor parent) : base(parent)
         {
             createdEntityFiles = false;
             existingDummies = new HashSet<string>();
-            existingClasses = new HashSet<string>();
             dummyType = parent.project.Namespace("dummy");
         }
         /// <summary>
@@ -57,40 +40,61 @@ namespace mc_compiled.MCC.CustomEntities
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public Selector GetSelector(string name)
+        public Selector GetSelector(string name, bool setForTagging)
         {
-            return new Selector(Selector.Core.e)
+            if (setForTagging)
             {
-                count = new Commands.Selectors.Count(1),
-                entity = new Commands.Selectors.Entity()
+                return new Selector(Selector.Core.e)
                 {
-                    type = dummyType,
-                    name = name
-                }
-            };
+                    count = new Commands.Selectors.Count(1),
+                    entity = new Commands.Selectors.Entity()
+                    {
+                        type = dummyType,
+                        name = name,
+                        families = new List<string>() { TAGGABLE_FAMILY_NAME }
+                    },
+                };
+            } else
+            {
+                return new Selector(Selector.Core.e)
+                {
+                    count = new Commands.Selectors.Count(1),
+                    entity = new Commands.Selectors.Entity()
+                    {
+                        type = dummyType,
+                        name = name
+                    }
+                };
+            }
         }
         /// <summary>
         /// Create a string-ed selector for a dummy entity.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public string GetStringSelector(string name) =>
-            $"@e[type={dummyType},name={name}]";
-        /// <summary>
-        /// Create a string-ed selector for a dummy entity with a class.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public string GetStringSelector(string name, string clazz) =>
-            $"@e[name={name},family={FamilyName(clazz)}]";
+        public string GetStringSelector(string name, bool setForTagging, string tag = null)
+        {
+            if (setForTagging)
+            {
+                if (tag == null)
+                    return $"@e[type={dummyType},name={name},family={DummyManager.TAGGABLE_FAMILY_NAME}]";
+                else
+                    return $"@e[type={dummyType},name={name},family={DummyManager.TAGGABLE_FAMILY_NAME},tag={tag}]";
+            }
+            else
+            {
+                if(tag == null)
+                    return $"@e[type={dummyType},name={name}]";
+                else
+                    return $"@e[type={dummyType},name={name},tag={tag}]";
+            }
+        }
         /// <summary>
         /// Get a selector to select all dummy entities.
         /// </summary>
         /// <returns></returns>
         public string GetAllStringSelector() =>
             $"@e[type={dummyType}]";
-        public string GetAllClassSelector(string clazz) =>
-            $"@e[family={FamilyName(clazz)}]";
         
         /// <summary>
         /// Create a new dummy entity.
@@ -102,14 +106,14 @@ namespace mc_compiled.MCC.CustomEntities
         /// <param name="yRot"></param>
         /// <param name="xRot"></param>
         /// <returns>The commands to create this dummy entity.</returns>
-        public string Create(string name, string @class, Coord x, Coord y, Coord z)
+        public string Create(string name, bool forTagging, Coord x, Coord y, Coord z)
         {
             List<string> commands = new List<string>();
             existingDummies.Add(name);
 
-            if(@class != null)
+            if(forTagging)
             {
-                string eventName = DefineClass(@class);
+                string eventName = TAGGABLE_EVENT_ADD_NAME;
                 return Command.Summon(dummyType, x, y, z, name, eventName);
             }
 
@@ -121,61 +125,9 @@ namespace mc_compiled.MCC.CustomEntities
         /// <param name="name">The name of the dummy entity to destroy.</param>
         /// <param name="clazz">If specified, will only remove if in this class.</param>
         /// <returns></returns>
-        public string Destroy(string name, string clazz = null)
+        public string Destroy(string name, bool setForTagging, string tag = null)
         {
-            if(clazz == null)
-                return Command.Event(GetStringSelector(name), DESTROY_EVENT_NAME);
-            else
-                return Command.Event(GetStringSelector(name, clazz), DESTROY_EVENT_NAME);
-        }
-
-        /// <summary>
-        /// Defines and sets up behaviors to handle this class, if not already. If class is defined, no action will happen.
-        /// </summary>
-        /// <param name="class">The name of the class to define.</param>
-        /// <returns>The name of the event to call.</returns>
-        public string DefineClass(string @class)
-        {
-            // Use a spawn event to control the family 
-            @class = Tokenizer.StripForPack(@class);
-            string eventName = "with_" + @class;
-
-            if (!existingClasses.Contains(@class))
-            {
-                string className = "class_" + @class;
-                string groupName = "group_" + @class;
-
-                // Create the family component to add.
-                ComponentFamily family = new ComponentFamily()
-                {
-                    families = new[] { className }
-                };
-
-                // Create the component groups 
-                EntityComponentGroup group = new EntityComponentGroup(groupName, family);
-                EntityEventHandler trigger = new EntityEventHandler(eventName,
-                    action: new EventActionAddGroup(groupName));
-
-                if (dummyFiles.cleanEvent.action is EventActionRemoveGroup)
-                {
-                    EventActionRemoveGroup removeGroup = dummyFiles.cleanEvent.action as EventActionRemoveGroup;
-                    removeGroup.groups.Add(groupName);
-                }
-
-                dummyFiles.behavior.componentGroups.Add(group);
-                dummyFiles.behavior.events.Add(trigger);
-                existingClasses.Add(@class);
-
-                if (Program.DEBUG)
-                {
-                    ConsoleColor old = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("Creating dummy class: " + @class);
-                    Console.ForegroundColor = old;
-                }
-            }
-
-            return eventName;
+            return Command.Event(GetStringSelector(name, setForTagging, tag), DESTROY_EVENT_NAME);
         }
 
         internal override IAddonFile[] CreateEntityFiles()
@@ -189,7 +141,7 @@ namespace mc_compiled.MCC.CustomEntities
         {
             if (existingDummies.Contains(name))
             {
-                selector = GetSelector(name);
+                selector = GetSelector(name, false);
                 return true;
             }
 
@@ -199,7 +151,6 @@ namespace mc_compiled.MCC.CustomEntities
     }
     public struct DummyFiles
     {
-        public Modding.Behaviors.EntityEventHandler cleanEvent;
         public Modding.Behaviors.EntityBehavior behavior;
         public Modding.Resources.EntityResource resources;
         public Modding.Resources.EntityGeometry geometry;

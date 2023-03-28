@@ -578,7 +578,7 @@ namespace mc_compiled.MCC.Server
                     Console.WriteLine("\tFatal Error:\n\n" + exc.ToString());
                     Console.WriteLine(exc.ToString());
                 }
-                string json = ErrorStructure.Wrap(exc, 0).ToJSON();
+                string json = ErrorStructure.Wrap(exc, new[] { 0 }).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
                 return;
             } finally

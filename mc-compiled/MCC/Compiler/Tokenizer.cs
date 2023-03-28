@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using mc_compiled.Commands.Native;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -199,7 +200,7 @@ namespace mc_compiled.MCC.Compiler
 
                 // throw if no closing bracket
                 if(!HasNext || Peek() != ']')
-                    throw new TokenizerException("No closing bracket ']' found for indexer.", CURRENT_LINE);
+                    throw new TokenizerException("No closing bracket ']' found for indexer.", new[] { CURRENT_LINE });
 
                 // consume closing bracket
                 NextChar();
@@ -239,7 +240,7 @@ namespace mc_compiled.MCC.Compiler
                         if(HasNext)
                             throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @i/@initiator");
                         else
-                            throw new TokenizerException("Invalid selector '(EOF)'. Valid options: @p, @s, @a, @e, or @i/@initiator");
+                            throw new TokenizerException("Invalid selector '(end-of-file)'. Valid options: @p, @s, @a, @e, or @i/@initiator");
                 }
                 if (HasNext && Peek() == '[')
                     return NextSelectorLiteral(core);
@@ -362,15 +363,15 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // check for string literal
-            if (firstChar == '"')
+            if (firstChar == '"' || firstChar == '\'')
             {
                 // empty string
-                if(secondChar == '"')
+                if(secondChar == firstChar)
                 {
                     NextChar();
                     return new TokenStringLiteral("", CURRENT_LINE);
                 }
-                return NextStringIdentifier();
+                return NextStringIdentifier(firstChar);
             }
 
             // not any hardcoded known symbols.
@@ -489,7 +490,7 @@ namespace mc_compiled.MCC.Compiler
                     throw new TokenizerException("Couldn't parse literal: " + str);
             }
         }
-        public TokenStringLiteral NextStringIdentifier()
+        public TokenStringLiteral NextStringIdentifier(char closer)
         {
             bool escaped = false;
             sb.Clear();
@@ -510,7 +511,7 @@ namespace mc_compiled.MCC.Compiler
                     continue;
                 }
 
-                if (c == '"')
+                if (c == closer)
                     break;
 
                 sb.Append(c);
@@ -612,14 +613,14 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class TokenizerException : Exception
     {
-        public int line;
-        public TokenizerException(string message, int line) : base(message)
+        public int[] lines;
+        public TokenizerException(string message, int[] lines) : base(message)
         {
-            this.line = line;
+            this.lines = lines;
         }
         public TokenizerException(string message) : base(message)
         {
-            this.line = Tokenizer.CURRENT_LINE;
+            this.lines = new[] { Tokenizer.CURRENT_LINE };
         }
     }
 }

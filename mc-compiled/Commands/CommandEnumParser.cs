@@ -69,9 +69,10 @@ namespace mc_compiled.Commands
             return enumType.Name.Equals(src);
         }
         /// <summary>
-        /// Throws a StatementException if this enum value is not of a certain type.
+        /// Requires this enum value to be of a certain type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <exception cref="MCC.Compiler.StatementException">If the given enum is not of a certain type.</exception>
         public void RequireType<T>(MCC.Compiler.Statement thrower) where T: Enum
         {
             if (!IsType<T>())

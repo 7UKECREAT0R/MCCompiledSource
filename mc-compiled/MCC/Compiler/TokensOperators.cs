@@ -48,7 +48,7 @@ namespace mc_compiled.MCC.Compiler
 
             // throw exception
             if(forExceptions == null)
-                throw new TokenizerException($"Cannot index/scope with a token: " + token.DebugString(), token.lineNumber);
+                throw new TokenizerException($"Cannot index/scope with a token: " + token.DebugString(), new[] { token.lineNumber });
             else
                 throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + token.DebugString());
         }
@@ -72,7 +72,7 @@ namespace mc_compiled.MCC.Compiler
 
             // throw exception
             if (forExceptions == null)
-                throw new TokenizerException($"Cannot index/scope with a token: " + literal.DebugString(), literal.lineNumber);
+                throw new TokenizerException($"Cannot index/scope with a token: " + literal.DebugString(), new[] { literal.lineNumber } );
             else
                 throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + literal.DebugString());
         }

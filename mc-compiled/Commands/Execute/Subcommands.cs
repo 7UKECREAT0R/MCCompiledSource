@@ -71,6 +71,7 @@ namespace mc_compiled.Commands.Execute
 
         internal Axes axes { get; private set; }
 
+        internal SubcommandAlign() { }
         internal SubcommandAlign(Axes axes)
         {
             this.axes = axes;
@@ -97,6 +98,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal AnchorPosition anchor;
 
+        internal SubcommandAnchored() { }
         internal SubcommandAnchored(AnchorPosition anchor)
         {
             this.anchor = anchor;
@@ -126,6 +128,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal Selector entity;
 
+        internal SubcommandAs() { }
         internal SubcommandAs(Selector entity)
         {
             this.entity = entity;
@@ -151,6 +154,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal Selector entity;
 
+        internal SubcommandAt() { }
         internal SubcommandAt(Selector entity)
         {
             this.entity = entity;
@@ -181,6 +185,7 @@ namespace mc_compiled.Commands.Execute
 
         internal Coord x, y, z;
 
+        internal SubcommandFacing() { }
         internal SubcommandFacing(bool isEntity, Selector entity, AnchorPosition anchor, Coord x, Coord y, Coord z)
         {
             this.isEntity = isEntity;
@@ -242,6 +247,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal Dimension dimension;
 
+        internal SubcommandIn() { }
         internal SubcommandIn(Dimension dimension)
         {
             this.dimension = dimension;
@@ -273,6 +279,7 @@ namespace mc_compiled.Commands.Execute
         internal Selector entity;
         internal Coord x, y, z;
 
+        internal SubcommandPositioned() { }
         internal SubcommandPositioned(bool asEntity, Selector entity, Coord x, Coord y, Coord z)
         {
             this.asEntity = asEntity;
@@ -327,6 +334,7 @@ namespace mc_compiled.Commands.Execute
         internal Selector entity;
         internal Coord yaw, pitch;
 
+        internal SubcommandRotated() { }
         internal SubcommandRotated(bool asEntity, Selector entity, Coord yaw, Coord pitch)
         {
             this.asEntity = asEntity;
@@ -402,7 +410,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            command = tokens.GetRemainingTokens().ToString();
+            command = string.Join(" ", tokens.GetRemainingTokens().Select(tok => tok.ToString()));
         }
         public override string ToMinecraft() => $"run {command}";
     }
@@ -411,6 +419,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal ConditionalSubcommand condition;
 
+        internal SubcommandIf() { }
         internal SubcommandIf(ConditionalSubcommand condition)
         {
             this.condition = condition;
@@ -436,7 +445,7 @@ namespace mc_compiled.Commands.Execute
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 
             // load condition
-            this.condition = ConditionalSubcommand.GetSubcommandForKeyword(word, tokens);
+            this.condition = ConditionalSubcommand.GetConditionalSubcommandForKeyword(word, tokens);
 
             // load the statement's parameters based on the following input
             this.condition.FromTokens(tokens);
@@ -447,6 +456,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal ConditionalSubcommand condition;
 
+        internal SubcommandUnless() { }
         internal SubcommandUnless(ConditionalSubcommand condition)
         {
             this.condition = condition;
@@ -472,7 +482,7 @@ namespace mc_compiled.Commands.Execute
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 
             // load condition
-            this.condition = ConditionalSubcommand.GetSubcommandForKeyword(word, tokens);
+            this.condition = ConditionalSubcommand.GetConditionalSubcommandForKeyword(word, tokens);
 
             // load the statement's parameters based on the following input
             this.condition.FromTokens(tokens);

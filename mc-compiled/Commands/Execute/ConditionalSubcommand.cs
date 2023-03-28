@@ -29,7 +29,7 @@ namespace mc_compiled.Commands.Execute
         /// <param name="keyword">The case-insensitive keyword to use.param>
         /// <param name="forExceptions">The calling statement, only used for exceptions.</param>
         /// <returns></returns>
-        public static ConditionalSubcommand GetSubcommandForKeyword(string keyword, Statement forExceptions)
+        public static ConditionalSubcommand GetConditionalSubcommandForKeyword(string keyword, Statement forExceptions)
         {
             switch (keyword.ToUpper())
             {

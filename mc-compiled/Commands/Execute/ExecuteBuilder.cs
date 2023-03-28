@@ -213,6 +213,16 @@ namespace mc_compiled.Commands.Execute
             subcommands.Add(new SubcommandRun(command));
             return Build(out _);
         }
+        /// <summary>
+        /// Place a 'run' clause with no command. Good for prepping for placing your own command.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public string Run()
+        {
+            subcommands.Add(new SubcommandRun());
+            return Build(out _);
+        }
 
         /// <summary>
         /// Executes only if a block is located at the given coordinates.

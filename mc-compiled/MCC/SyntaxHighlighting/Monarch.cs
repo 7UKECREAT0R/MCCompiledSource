@@ -68,6 +68,7 @@ $@"    tokenizer: {{
 			
 			[ /[<>{{}}=()+\-*/%!]+/, 'operators' ],
             [ /""(?:[^""\\]|\\.)*""/, 'strings' ],
+            [ /'(?:[^'\\]|\\.)*'/, 'strings' ],
             [ /\[.+\]/, 'selectors.properties' ],
             [ /!?(?:\.\.)?\d+(?:\.\.)?\.?\d*[hms]?/, 'numbers' ]
         ],
@@ -95,7 +96,7 @@ $@"    tokenizer: {{
             KeywordField(writer, "mcc_options", Syntax.options.keywords);
         }
 
-        public string Describe() => "Monarch exporter for all Monarch-based editors.";
+        public string Describe() => "Monarch exporter for monaco-based editors.";
         public string GetFile() => "mcc-monarch.js";
     }
 }

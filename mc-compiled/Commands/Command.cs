@@ -169,6 +169,8 @@ namespace mc_compiled.Commands
         public static string CameraShake(string target, float intensity, float seconds, CameraShakeType shakeType) =>
             $"camerashake add {target} {intensity} {seconds} {shakeType}";
 
+        public static string Clear() =>
+            $"clear";
         public static string Clear(string target) =>
             $"clear {target}";
         public static string Clear(string target, string item) =>

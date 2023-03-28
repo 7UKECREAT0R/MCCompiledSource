@@ -196,7 +196,6 @@ namespace mc_compiled.MCC.Compiler
         }
         protected override void Run(Executor executor)
         {
-            string selector = executor.ActiveSelectorStr;
             TokenIdentifierValue value = Next<TokenIdentifierValue>();
             IAssignment assignment = Next<IAssignment>();
 
@@ -273,8 +272,6 @@ namespace mc_compiled.MCC.Compiler
         }
         protected override void Run(Executor executor)
         {
-            string selector = executor.ActiveSelectorStr;
-
             if (!NextIs<TokenIdentifierFunction>())
             {
                 TokenIdentifier id = Next<TokenIdentifier>();
@@ -303,10 +300,9 @@ namespace mc_compiled.MCC.Compiler
 
                 _passIn.Add(nextToken);
             }
-            Token[] passIn = _passIn.ToArray();
 
+            Token[] passIn = _passIn.ToArray();
             Function[] functions = value.functions;
-            executor.PushSelectorExecute();
 
             // these are already sorted by importance, so now just find the best match.
             Function bestFunction = null;
@@ -347,7 +343,6 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommandsClean(commands, "call" + bestFunction.Keyword);
             commands.Clear();
 
-            executor.PopSelector();
             return;
         }
     }

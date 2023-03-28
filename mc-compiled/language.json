@@ -58,7 +58,8 @@
       "function": "_var",
       "patterns": [
         [ "id:variable", "object:values" ]
-      ]
+      ],
+      "attributes": [ "DONT_FLATTEN_ARRAYS" ]
     },
     "$inc": {
       "description": "Increment Preprocessor Variable",
@@ -147,10 +148,11 @@
     },
     "$repeat": {
       "description": "Preprocessor Repeat",
-      "details": "Repeats the following statement/block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.",
+      "details": "Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.",
       "function": "_repeat",
       "patterns": [
-        [ "int:amount", "?id:indicator" ]
+        [ "int:amount", "?id:indicator" ],
+        [ "range:amount", "?id:indicator" ]
       ]
     },
     "$log": {
@@ -158,12 +160,12 @@
       "details": "Sends a message to stdout with a line terminator at the end.",
       "function": "_log",
       "patterns": [
-        [ "string:message" ]
+        [ "*:message" ]
       ]
     },
     "$macro": {
       "description": "Define/Call Macro",
-      "details": "If a block follows this call, it is treated as a definition. Arguments are passed in as preprocessor variables. If no block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.",
+      "details": "If a code-block follows this call, it is treated as a definition. Arguments are passed in as preprocessor variables. If no code-block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.",
       "function": "_macro",
       "patterns": [
         [ "id:name" ]
@@ -183,7 +185,7 @@
       "details": "Convert the given preprocessor variable value(s) to a string in 'Title Case'.",
       "function": "_strfriendly",
       "patterns": [
-        [ "id:result", "id:variable" ]
+        [ "id:result", "?id:variable" ]
       ]
     },
     "$strupper": {
@@ -191,7 +193,7 @@
       "details": "Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.",
       "function": "_strupper",
       "patterns": [
-        [ "id:result", "id:variable" ]
+        [ "id:result", "?id:variable" ]
       ]
     },
     "$strlower": {
@@ -199,7 +201,7 @@
       "details": "Convert the given preprocessor variable value(s) to a string in 'lowercase'.",
       "function": "_strlower",
       "patterns": [
-        [ "id:result", "id:variable" ]
+        [ "id:result", "?id:variable" ]
       ]
     },
     "$sum": {
@@ -207,7 +209,7 @@
       "details": "Adds all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "function": "_sum",
       "patterns": [
-        [ "id:result", "id:variable" ]
+        [ "id:result", "?id:variable" ]
       ]
     },
     "$median": {
@@ -215,7 +217,7 @@
       "details": "Gets the middle value/average of the two middle values and stores it in a result variable.",
       "function": "_median",
       "patterns": [
-        [ "id:result", "id:variable" ]
+        [ "id:result", "?id:variable" ]
       ]
     },
     "$mean": {
@@ -223,16 +225,33 @@
       "details": "Averages all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "function": "_mean",
       "patterns": [
-        [ "id:result", "id:variable" ]
+        [ "id:result", "?id:variable" ]
+      ]
+    },
+    "$sort": {
+      "description": "Preprocessor Array Sort",
+      "details": "Sorts the order of the values in the given preprocessor variable either 'ascending' or 'descending'. Values must be comparable.",
+      "function": "_sort",
+      "patterns": [
+        [ "id:ascending or descending", "id:variable" ]
+      ]
+    },
+    "$reverse": {
+      "description": "Preprocessor Reverse",
+      "details": "Reverses the order of the values in the given preprocessor variable.",
+      "function": "_reverse",
+      "patterns": [
+        [ "id:variable" ]
       ]
     },
     "$iterate": {
       "description": "Iterate Preprocessor Array",
-      "details": "Runs the following statement/block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.",
+      "details": "Runs the following statement/code-block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.",
       "function": "_iterate",
       "patterns": [
         [ "id:variable", "id:current" ]
-      ]
+      ],
+      "attributes": [ "DONT_FLATTEN_ARRAYS" ]
     },
     "$len": {
       "description": "Preprocessor Length",
@@ -242,7 +261,8 @@
         [ "id:result", "id:variable" ],
         [ "id:result", "json:array" ],
         [ "id:result", "string:text" ]
-      ]
+      ],
+      "attributes": [ "DONT_FLATTEN_ARRAYS" ]
     },
     "$json": {
       "description": "Preprocessor Load JSON Value",
@@ -255,17 +275,10 @@
     },
     "mc": {
       "description": "Minecraft Command",
+      "aliases": [ "command" ],
       "details": "Places a plain command in the output file, used for when the language lacks a certain feature.",
       "patterns": [
         [ "string:command" ]
-      ]
-    },
-    "select": {
-      "description": "Select Entity",
-      "details": "Selects an entity based off of a selector, \"name:type\", or name of any managed entity (e.g., a dummy entity). If a block follows this statement, only the code in that block will use the selection specified here before returning to the previous selector.",
-      "patterns": [
-        [ "selector:entity" ],
-        [ "string:name" ]
       ]
     },
     "globalprint": {
@@ -273,7 +286,8 @@
       "details": "Prints a chat message to all players in the game. Supports format strings.",
       "patterns": [
         [ "string:text" ]
-      ]
+      ],
+      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
     },
     "print": {
       "description": "Print to Player",
@@ -281,10 +295,12 @@
       "patterns": [
         [ "selector:entity", "string:text" ],
         [ "string:text" ]
-      ]
+      ],
+      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
     },
     "define": {
       "description": "Define Variable",
+      "aliases": [ "def" ],
       "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
       "patterns": [
         [ "*:args" ]
@@ -292,14 +308,15 @@
     },
     "init": {
       "description": "Initialize Variable",
-      "details": "Ensures the selected entities have a value for the given variable, defaulting to 0 if not. This ensures the selected entities function as intended all the time.",
+      "aliases": [ "initialize" ],
+      "details": "Ensures the given entities have a value for the given variable, defaulting to 0 if not. This ensures the given entities function as intended all the time.",
       "patterns": [
         [ "selector:entity", "value:value" ]
       ]
     },
     "if": {
       "description": "If Statement",
-      "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by '&' symbols and inverted by the keyword 'not'. Only runs the proceeding statement/block for entities where the condition returns true.",
+      "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by '&' symbols and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.",
       "patterns": [
         [ "*:any" ]
       ]
@@ -317,6 +334,7 @@
     },
     "tp": {
       "description": "Teleport Entity",
+      "aliases": [ "teleport" ],
       "details": "Teleports the given entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
         [ "selector:source", "coord:x", "coord:y", "coord:z" ],
@@ -328,11 +346,12 @@
       "description": "Move Entity",
       "details": "Moves the specified entity in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.",
       "patterns": [
-        [ "selector:source", "id:direction", "number:amount" ]
+        [ "selector:source", "id:direction", "number:amount", "?bool:check for blocks" ]
       ]
     },
     "face": {
       "description": "Face Towards...",
+      "aliases": [ "lookat" ],
       "details": "Faces the given entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "patterns": [
         [ "selector:source", "coord:x", "coord:y", "coord:z" ],
@@ -347,9 +366,9 @@
         [ "selector:source", "int:y", "int:x" ]
       ]
     },
-    "place": {
-      "description": "Place Block",
-      "details": "Places a block at a specific position, optionally using a replace mode.",
+    "setblock": {
+      "description": "Set Block",
+      "details": "Sets the block at a specific position, optionally using a replace mode.",
       "patterns": [
         [ "id:replace mode", "string:block", "coord:x", "coord:y", "coord:z", "?int:data" ],
         [ "string:block", "coord:x", "coord:y", "coord:z", "?int:data" ]
@@ -381,21 +400,21 @@
       "description": "Kill Entity",
       "details": "Kills the given entities, causing the death animation, sounds, and particles to appear.",
       "patterns": [
-        [ "selector:target" ]
+        [ "?selector:target" ]
       ]
     },
     "remove": {
       "description": "Remove Entity",
       "details": "Teleports the given entities deep into the void, causing a silent death.",
       "patterns": [
-        [ "selector:target" ]
+        [ "?selector:target" ]
       ]
     },
     "clear": {
       "description": "Clear Entity",
       "details": "Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.",
       "patterns": [
-        [ "selector:target", "?string:item", "?int:data", "?int:max count" ]
+        [ "?selector:target", "?string:item", "?int:data", "?int:max count" ]
       ]
     },
     "globaltitle": {
@@ -405,7 +424,8 @@
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "id:subtitle", "string:text" ],
         [ "string:text" ]
-      ]
+      ],
+      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
     },
     "title": {
       "description": "Show Title",
@@ -417,7 +437,8 @@
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "id:subtitle", "string:text" ],
         [ "string:text" ]
-      ]
+      ],
+      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
     },
     "globalactionbar": {
       "description": "Show Actionbar to All Players",
@@ -425,7 +446,8 @@
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "string:text" ]
-      ]
+      ],
+      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
     },
     "actionbar": {
       "description": "Show Actionbar",
@@ -433,7 +455,8 @@
       "patterns": [
         [ "selector:target", "string:text" ],
         [ "string:text" ]
-      ]
+      ],
+      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
     },
     "say": {
       "description": "Say",
@@ -470,7 +493,7 @@
       "features": 1,
       "patterns": [
         [ "id:create", "string:name", "?string:class", "?coord:x", "?coord:y", "?coord:x" ],
-        [ "id:remove", "?string:name", "?string:class" ],
+        [ "id:remove", "string:name", "?string:class" ],
         [ "id:class", "id:remove" ],
         [ "id:class", "string:class" ]
       ]
@@ -499,7 +522,8 @@
     },
     "function": {
       "description": "Define Function",
-      "details": "Must be followed by a block. Parameters must have types, optionally having default values. Functions should look like this: functionName(parameters)",
+      "aliases": [ "fn", "func" ],
+      "details": "Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: functionName(parameters)",
       "patterns": [
         [ "*:args" ]
       ]
@@ -510,6 +534,20 @@
       "patterns": [
         [ "value:variable" ],
         [ "any:return value" ]
+      ]
+    },
+    "for": {
+      "description": "For Each Entity",
+      "details": "Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to 'execute as <selector> at @s run <code>'",
+      "patterns": [
+        [ "selector:entities" ]
+      ]
+    },
+    "execute": {
+      "description": "Execute",
+      "details": "Begins a vanilla minecraft 1.19.70+ execute chain, but does not implement 'run' subcommand. Can be followed by a statement or code-block.",
+      "patterns": [
+        [ "id:subcommand", "*:subcommand arguments" ]
       ]
     }
   }

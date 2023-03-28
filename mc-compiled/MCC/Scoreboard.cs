@@ -230,8 +230,9 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Get the commands to initialize this value for all players.
         /// </summary>
+        /// <param name="targets">The target(s) to initialize this value for.</param>
         /// <returns></returns>
-        public abstract string[] CommandsInit();
+        public abstract string[] CommandsInit(string targets);
 
         /// <summary>
         /// Get the commands to set this value to any given literal.
@@ -362,10 +363,10 @@ namespace mc_compiled.MCC
         {
             return new[] { Command.ScoreboardCreateObjective(Name, AliasName) };
         }
-        public override string[] CommandsInit()
+        public override string[] CommandsInit(string targets)
         {
             return new[] {
-                Command.ScoreboardAdd("@a", Name, 0) // init to 0
+                Command.ScoreboardAdd(targets, Name, 0) // init to 0
             };
         }
         public override string[] CommandsSetLiteral(TokenLiteral token)
@@ -817,10 +818,10 @@ namespace mc_compiled.MCC
                 Command.ScoreboardCreateObjective(Name)
             };
         }
-        public override string[] CommandsInit()
+        public override string[] CommandsInit(string targets)
         {
             return new[] {
-                Command.ScoreboardAdd("@a", Name, 0)
+                Command.ScoreboardAdd(targets, Name, 0)
             };
         }
         public override string[] CommandsSetLiteral(TokenLiteral token)
@@ -1238,10 +1239,10 @@ namespace mc_compiled.MCC
         {
             return new[] { Command.ScoreboardCreateObjective(Name) };
         }
-        public override string[] CommandsInit()
+        public override string[] CommandsInit(string targets)
         {
             return new[] {
-                Command.ScoreboardAdd("@a", Name, 0) // init to false
+                Command.ScoreboardAdd(targets, Name, 0) // init to false
             };
         }
         public override string[] CommandsSetLiteral(TokenLiteral token)

@@ -45,7 +45,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Highlight selectorColor = new Highlight(192, 192, 192, HighlightStyle.NONE);
 
         static Keyword[] KeywordsFromDirectives(IEnumerable<Compiler.Directive> directives) =>
-            directives.Select(directive => new Keyword(directive.identifier, directive.documentation)).ToArray();
+            directives.SelectMany(directive => directive.DictKeys.Select(key => new Keyword(key, directive.documentation))).ToArray();
 
         public static readonly Keywords operators = new Keywords()
         {
@@ -118,28 +118,41 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Keywords options = new Keywords()
         {
             keywords = new[] {
+                // features
                 new Keyword("dummies", "Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world."),
                 new Keyword("gametest", "Feature: Gametest Integration (not implemented)"),
                 new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
                 new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc. made by this project."),
                 new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
+                
+                // directions
                 new Keyword("up", "Used with the 'move' command. Goes up relative to where the entity is looking."),
                 new Keyword("down", "Used with the 'move' command. Goes down relative to where the entity is looking."),
                 new Keyword("left", "Used with the 'move' command. Goes left relative to where the entity is looking."),
                 new Keyword("right", "Used with the 'move' command. Goes right relative to where the entity is looking."),
                 new Keyword("forward", "Used with the 'move' command. Goes forward relative to where the entity is looking."),
                 new Keyword("backward", "Used with the 'move' command. Goes backward relative to where the entity is looking."),
+
+                // sort orders
+                new Keyword("ascending", "Used with the '$sort' command. Sorts with the lowest value first."),
+                new Keyword("descending", "Used with the '$sort' command. Sorts with the highest value first."),
+
+                // gamemodes
                 new Keyword("survival", "Survival mode. (0)"),
                 new Keyword("creative", "Creative mode. (1)"),
                 new Keyword("adventure", "Adventure mode. (2)"),
                 new Keyword("spectator", "Spectator mode. (spectator)"),
+
+                // various command options
                 new Keyword("times", "Specifies the fade-in/stay/fade-out times this text will show for."),
                 new Keyword("subtitle", "Sets the subtitle for the next title shown."),
                 new Keyword("destroy", "Destroy any existing blocks as if broken by a player."),
                 new Keyword("replace", "Replace any existing blocks. Default option."),
                 new Keyword("hollow", "Hollow the area, only filling the outer edges with the block. To keep inside contents, use 'outline'."),
                 new Keyword("outline", "Outline the area, only filling the outer edges with the block. To remove inside contents, use 'hollow'."),
-                new Keyword("keep", "Keep any existing blocks, and only fill where air is present."),
+                new Keyword("keep", "Keep any existing blocks/items, and only fill where air is present."),
+
+                // item options
                 new Keyword("lockinventory", "Lock the item in the player's inventory."),
                 new Keyword("lockslot", "Lock the item in the slot which it is placed in."),
                 new Keyword("canplaceon:", "Specifies a block the item can be placed on."),
@@ -150,7 +163,20 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("author:", "If this item is a 'written_book', set the name of the author."),
                 new Keyword("title:", "If this item is a 'written_book', set its title."),
                 new Keyword("page:", "If this item is a 'written_book', add a page to it.  Multiple of these can be used to add more pages."),
-                new Keyword("dye:", "If this item is a piece of leather armor, set its color to an RGB value.")
+                new Keyword("dye:", "If this item is a piece of leather armor, set its color to an RGB value."),
+
+                // execute subcommands
+                new Keyword("align", "Execute subcommand: Runs aligned to the given axes."),
+                new Keyword("anchored", "Execute subcommand: Runs anchored to the executing entities eyes or feet."),
+                new Keyword("as", "Execute subcommand: Runs as the given entity(s)."),
+                new Keyword("at", "Execute subcommand: Runs at the given location or entity."),
+                new Keyword("facing", "Execute subcommand: Runs facing a certain position."),
+                new Keyword("facing entity", "Execute subcommand: Runs facing a certain entity."),
+                new Keyword("in", "Execute subcommand: Runs in a given dimension."),
+                new Keyword("positioned", "Execute subcommand: Runs at a given position."),
+                new Keyword("positioned as", "Execute subcommand: Runs at the position of the given entity."),
+                new Keyword("rotated", "Execute subcommand: Runs at the given rotation."),
+                new Keyword("rotated as", "Execute subcommand: Runs at the rotation of the given entity."),
             },
             style = new Highlight(215, 174, 255, HighlightStyle.NONE)
         };

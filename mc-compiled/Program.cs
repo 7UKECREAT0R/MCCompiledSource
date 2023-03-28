@@ -632,13 +632,13 @@ namespace mc_compiled
                 if (silentErrors)
                     return false;
 
-                int _line = exc.line;
-                string line = _line == -1 ? "??" : _line.ToString();
+                int[] _lines = exc.lines;
+                string lines = string.Join(", ", _lines.Select(line => line < 0 ? "??" : line.ToString()));
                 string message = exc.Message;
                 ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("Problem encountered during tokenization of file:\n" +
-                    $"\t{Path.GetFileName(file)}:{line} -- {message}\n\nTokenization cannot be continued.");
+                    $"\t{Path.GetFileName(file)}:{lines} -- {message}\n\nTokenization cannot be continued.");
                 Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)
                     Console.ReadLine();
@@ -653,13 +653,13 @@ namespace mc_compiled
 
                 Statement thrower = exc.statement;
                 string message = exc.Message;
-                int _line = thrower.Line;
-                string line = _line == -1 ? "??" : _line.ToString();
+                int[] _lines = thrower.Lines;
+                string lines = string.Join(", ", _lines.Select(line => line < 0 ? "??" : line.ToString()));
 
                 ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("An error has occurred during compilation:\n" +
-                    $"\t{Path.GetFileName(file)}:{line} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
+                    $"\t{Path.GetFileName(file)}:{lines} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
                 Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)
                     Console.ReadLine();
@@ -674,13 +674,13 @@ namespace mc_compiled
 
                 TokenFeeder thrower = exc.feeder;
                 string message = exc.Message;
-                int _line = thrower.Line;
-                string line = _line == -1 ? "??" : _line.ToString();
+                int[] _lines = thrower.Lines;
+                string lines = string.Join(", ", _lines.Select(line => line < 0 ? "??" : line.ToString()));
 
                 ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("An error has occurred during compilation:\n" +
-                    $"\t{Path.GetFileName(file)}:{line} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
+                    $"\t{Path.GetFileName(file)}:{lines} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
                 Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)
                     Console.ReadLine();

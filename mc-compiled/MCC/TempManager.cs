@@ -99,7 +99,7 @@ namespace mc_compiled.MCC
             if (DefinedTemps.Add(created.Name))
             {
                 executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit());
+                executor.AddCommandsInit(created.CommandsInit(toCopy.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -160,7 +160,7 @@ namespace mc_compiled.MCC
             if(DefinedTemps.Add(name))
             {
                 executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit());
+                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -185,7 +185,7 @@ namespace mc_compiled.MCC
             if (DefinedTemps.Add(name))
             {
                 executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit());
+                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -218,7 +218,7 @@ namespace mc_compiled.MCC
             if (DefinedTemps.Add(name))
             {
                 executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit());
+                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -243,7 +243,7 @@ namespace mc_compiled.MCC
             if (DefinedTemps.Add(name))
             {
                 executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit());
+                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.

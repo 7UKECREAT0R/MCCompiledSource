@@ -18,40 +18,43 @@ namespace mc_compiled.MCC.Server
         }
 
         public readonly During during;
-        public readonly int line;
+        public readonly int[] lines;
         public readonly string message;
 
-        public ErrorStructure(During during, int line, string message)
+        public ErrorStructure(During during, int[] lines, string message)
         {
             this.during = during;
-            this.line = line;
+            this.lines = lines;
             this.message = message;
         }
         public static ErrorStructure Wrap(TokenizerException exception)
         {
-            return new ErrorStructure(During.tokenizer, exception.line, exception.Message);
+            return new ErrorStructure(During.tokenizer, exception.lines, exception.Message);
         }
         public static ErrorStructure Wrap(StatementException exception)
         {
-            return new ErrorStructure(During.execution, exception.statement.Line, exception.Message);
+            return new ErrorStructure(During.execution, exception.statement.Lines, exception.Message);
         }
         public static ErrorStructure Wrap(FeederException exception)
         {
-            return new ErrorStructure(During.tokenizer, exception.feeder.Line, exception.Message);
+            return new ErrorStructure(During.tokenizer, exception.feeder.Lines, exception.Message);
         }
-        public static ErrorStructure Wrap(Exception exception, int line)
+        public static ErrorStructure Wrap(Exception exception, int[] lines)
         {
-            return new ErrorStructure(During.unknown, line, exception.ToString());
+            return new ErrorStructure(During.unknown, lines, exception.ToString());
         }
 
         public string ToJSON()
         {
-            JObject error = new JObject();
-            error["line"] = line;
-            error["error"] = message.Base64Encode();
-
             JArray errors = new JArray();
-            errors.Add(error);
+
+            foreach (int line in lines)
+            {
+                JObject error = new JObject();
+                error["line"] = line;
+                error["error"] = message.Base64Encode();
+                errors.Add(error);
+            }
 
             JObject json = new JObject();
             json["action"] = "seterrors";

@@ -23,11 +23,12 @@ namespace mc_compiled.MCC.Compiler
 
 
         private static short nextIndex = 0;
-        public Directive(DirectiveImpl call, string identifier, string description, string documentation, params TypePattern[] patterns)
+        public Directive(DirectiveImpl call, string identifier, string[] aliases, string description, string documentation, params TypePattern[] patterns)
         {
             index = nextIndex++;
             this.call = call;
             this.identifier = identifier;
+            this.aliases = aliases;
             this.description = description;
             this.documentation = documentation;
             this.patterns = patterns;
@@ -51,11 +52,32 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the key that should be used in a dictionary.
         /// </summary>
-        public string DictValue
+        public string[] DictKeys
         {
             get
             {
-                return identifier.ToUpper();
+                if (aliases != null && aliases.Length > 0)
+                {
+                    List<string> values = new List<string>() { identifier };
+                    values.AddRange(aliases);
+                    return values.ToArray();
+                }
+
+                return new string[] { identifier };
+            }
+        }
+        public string DirectiveOverview
+        {
+            get
+            {
+                if (aliases != null && aliases.Length > 0)
+                {
+                    List<string> values = new List<string>() { identifier };
+                    values.AddRange(aliases);
+                    return string.Join("/", values);
+                }
+
+                return identifier;
             }
         }
 
@@ -65,6 +87,7 @@ namespace mc_compiled.MCC.Compiler
 
         public readonly short index;
         public readonly string identifier;
+        public readonly string[] aliases;
         public readonly string description;
         public readonly string documentation;
         public readonly DirectiveImpl call;
@@ -73,7 +96,7 @@ namespace mc_compiled.MCC.Compiler
 
         public override int GetHashCode() => identifier.GetHashCode();
         public override string ToString() =>
-            $"{identifier} - patterns: {patterns.Length} - desc: {description}";
+            $"{DirectiveOverview} - patterns: {patterns.Length} - desc: {description}";
     }
     /// <summary>
     /// Attributes used to modify how directive statements behave.
@@ -81,7 +104,10 @@ namespace mc_compiled.MCC.Compiler
     [Flags]
     public enum DirectiveAttribute : int
     {
-        DONT_EXPAND_PPV = 1 << 0    // Won't expand any explicit PPV identifiers. Used in $macro to allow passing in parameters.
+        DONT_EXPAND_PPV = 1 << 0,       // Won't expand any explicit PPV identifiers. Used in $macro to allow passing in parameters.
+        DONT_FLATTEN_ARRAYS = 1 << 1,   // Won't attempt to flatten JSON arrays to their root values.
+        DONT_RESOLVE_STRINGS = 1 << 2,  // Won't resolve PPV entries in string parameters.
+        USES_FSTRING = 1 << 3,          // Reserved.
     }
     public static class Directives
     {
@@ -289,7 +315,9 @@ namespace mc_compiled.MCC.Compiler
         public static void RegisterDirective(Directive directive)
         {
             REGISTRY.Add(directive);
-            directiveLookup[directive.DictValue] = directive;
+
+            foreach(string dictKey in directive.DictKeys)
+                directiveLookup[dictKey.ToUpper()] = directive;
         }
 
         const string FILE = "language.json";
@@ -357,6 +385,10 @@ namespace mc_compiled.MCC.Compiler
             {
                 string identifier = directiveJSON.Key;
                 JObject body = directiveJSON.Value as JObject;
+
+                string[] aliases = null;
+                if(body.ContainsKey("aliases"))
+                    aliases = (body["aliases"] as JArray).Select(t => t.ToString()).ToArray();
 
                 string description = body["description"].Value<string>();
 
@@ -432,7 +464,8 @@ namespace mc_compiled.MCC.Compiler
                     (typeof(Directive.DirectiveImpl), info);
 
                 // construct directive
-                Directive directive = new Directive(function, identifier, description, documentation, patterns.ToArray());
+                Directive directive = new Directive(function, identifier,
+                    aliases, description, documentation, patterns.ToArray());
 
                 // attributes, if any
                 if(body.ContainsKey("attributes"))

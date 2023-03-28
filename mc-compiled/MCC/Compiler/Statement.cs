@@ -76,6 +76,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
 
             bool resolvePPVsGlobal = !HasAttribute(DirectiveAttribute.DONT_EXPAND_PPV);
+            bool resolveStrings = !HasAttribute(DirectiveAttribute.DONT_RESOLVE_STRINGS);
             int length = this.tokens.Length;
             List<Token> allUnresolved = new List<Token>(this.tokens);
             List<Token> allResolved = new List<Token>();
@@ -99,7 +100,7 @@ namespace mc_compiled.MCC.Compiler
                     resolvePPVs = resolvePPVsGlobal;
 
                 // resolve the token.
-                if (unresolved is TokenStringLiteral)
+                if (resolveStrings && unresolved is TokenStringLiteral)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
                 else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
                     allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, this) ?? new Token[] { unresolved });
@@ -128,8 +129,9 @@ namespace mc_compiled.MCC.Compiler
                     allResolved.Add(unresolved);
             }
 
+            SquashIndexers(allResolved);
             SquashAll(allResolved, executor);
-            SquashSpecial(allResolved); // ranges, indexers, etc.
+            SquashSpecial(allResolved); // ranges and JArray flattening
 
             this.tokens = allResolved.ToArray();
             this.patterns = this.GetValidPatterns();
@@ -237,8 +239,45 @@ namespace mc_compiled.MCC.Compiler
                     continue;
                 }
 
+                // flatten JArrays, as long as !DONT_FLATTEN_ARRAYS
+                if(!HasAttribute(DirectiveAttribute.DONT_FLATTEN_ARRAYS) && token is TokenJSONLiteral _json)
+                {
+                    JToken json = _json.token;
+                    if(json is JArray jsonArray)
+                    {
+                        List<TokenLiteral> replace = new List<TokenLiteral>(jsonArray.Count);
+                        int line = this.Lines[0];
+
+                        foreach(JToken jsonToken in jsonArray)
+                        {
+                            if(PreprocessorUtils.TryGetLiteral(jsonToken, line, out TokenLiteral unwrapped))
+                                replace.Add(unwrapped);
+                        }
+
+                        tokens.RemoveAt(i);
+                        tokens.InsertRange(i, replace);
+                        i += replace.Count;
+                        continue;
+                    }
+                }
+            }
+        }
+        public void SquashIndexers(List<Token> tokens)
+        {
+            // going over it backwards for merging any particular tokens
+            for (int i = tokens.Count - 1; i >= 0; i--)
+            {
+                Token Previous(int amount)
+                {
+                    if (i - amount < 0)
+                        return null;
+                    return tokens[i - amount];
+                };
+
+                Token token = tokens[i];
+
                 // apply indexer to IIndexable
-                if(token is TokenIndexer indexer)
+                if (token is TokenIndexer indexer)
                 {
                     Stack<TokenIndexer> indexerBuffer = new Stack<TokenIndexer>();
                     indexerBuffer.Push(indexer);
@@ -269,12 +308,12 @@ namespace mc_compiled.MCC.Compiler
                         IIndexable indexable = current as IIndexable;
                         current = indexable.Index(indexer, this);
                     }
-                    while(indexerBuffer.Count > 0);
+                    while (indexerBuffer.Count > 0);
 
                     // replace tokens
                     tokens.RemoveRange(i, indexerCount);
                     tokens[i - 1] = current;
-                    
+
                     // 'i' is setup so that the next iteration here will run over 'current'.
                     // just incase it needs to be resolved further past this point.
                     continue;

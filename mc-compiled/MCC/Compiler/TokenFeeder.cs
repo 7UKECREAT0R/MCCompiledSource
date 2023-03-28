@@ -35,13 +35,13 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="line"></param>
         /// <param name="code"></param>
-        public void SetSource(int line, string code)
+        public void SetSource(int[] lines, string code)
         {
-            Line = line;
+            Lines = lines;
             Source = code;
         }
 
-        public int Line
+        public int[] Lines
         {
             get; private set;
         }
@@ -173,14 +173,18 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Token[] GetRemainingTokens()
         {
+            if (tokens.Length <= currentToken)
+                return new Token[0];
+
             Token[] ret = new Token[tokens.Length - currentToken];
+            int ri = 0;
 
             for (int i = currentToken; i < tokens.Length; i++)
             {
                 Token current = tokens[i];
                 if (current is TokenComment)
                     continue;
-                ret[i] = current;
+                ret[ri++] = current;
             }
 
             return ret;

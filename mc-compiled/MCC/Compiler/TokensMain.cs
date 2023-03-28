@@ -108,7 +108,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenUnresolvedPPV : TokenIdentifier, IIndexable
     {
-        public override string AsString() => $"${word}";
+        public override string AsString() => $"{word}";
 
         public TokenUnresolvedPPV(string word, int lineNumber) : base(word, lineNumber) { }
 

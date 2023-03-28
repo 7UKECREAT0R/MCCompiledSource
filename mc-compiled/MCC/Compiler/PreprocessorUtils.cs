@@ -78,7 +78,6 @@ namespace mc_compiled.MCC.Compiler
                 case JTokenType.Object:
                     obj = token;
                     return true;
-
                 case JTokenType.Integer:
                     obj = token.Value<int>();
                     return true;
@@ -103,13 +102,11 @@ namespace mc_compiled.MCC.Compiler
                 case JTokenType.TimeSpan:
                     obj = (int)Math.Round(token.Value<TimeSpan>().TotalSeconds * 20d); // convert to ticks
                     return true;
-
                 default:
                     obj = null;
                     return false;
             }
         }
-
 
         /// <summary>
         /// Wraps a dynamic value in its associated literal.

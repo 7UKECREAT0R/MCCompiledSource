@@ -120,7 +120,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="caller"></param>
         /// <param name="value"></param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(Statement caller, ScoreboardValue value, Executor executor, string selector)
+        public void TryReturnValue(Statement caller, ScoreboardValue value, Executor executor)
         {
             if (returnValue != null)
             {
@@ -146,7 +146,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="caller"></param>
         /// <param name="value"></param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(Statement caller, Executor executor, TokenLiteral value, string selector)
+        public void TryReturnValue(Statement caller, Executor executor, TokenLiteral value)
         {
             if (returnValue != null)
             {
@@ -183,13 +183,13 @@ namespace mc_compiled.MCC.Functions.Types
                 attribute.OnCalledFunction(this, commandBuffer, executor, statement);
 
             // if there's nothing to 'return', send back a null literal.
-            if (returnValue == null)
-                return new TokenNullLiteral(statement.Line);
+            if (returnValue == null) 
+                return new TokenNullLiteral(statement.Lines[0]);
 
             // sets a temp to the return value.
             ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(returnValue, false);
             commandBuffer.AddRange(returnHolder.CommandsSet(returnValue));
-            return new TokenIdentifierValue(returnHolder.AliasName, returnHolder, statement.Line);
+            return new TokenIdentifierValue(returnHolder.AliasName, returnHolder, statement.Lines[0]);
         }
 
         public void AddCommand(string command) =>

@@ -15,6 +15,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mc_compiled.Commands.Execute;
+using System.Security.Claims;
+using mc_compiled.MCC.SyntaxHighlighting;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
+using System.Windows.Forms;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -25,10 +29,6 @@ namespace mc_compiled.MCC.Compiler
             scatterFile = 0;
         }
         public static int scatterFile = 0;
-
-        public static readonly Action<Executor> PUSH_COPY = (e) => { e.PushSelector(false); };
-        public static readonly Action<Executor> PUSH_ALIGN = (e) => { e.PushSelector(true); };
-        public static readonly Action<Executor> POP = (e) => { e.PopSelector(); };
 
         public static void _var(Executor executor, Statement tokens)
         {
@@ -479,16 +479,16 @@ namespace mc_compiled.MCC.Compiler
 
                 if (run)
                 {
-                    block.openAction = PUSH_COPY;
-                    block.CloseAction = POP;
+                    block.openAction = null;
+                    block.CloseAction = null;
                 } else
                 {
                     block.openAction = (e) =>
                     {
-                        block.CloseAction = null;
                         for (int i = 0; i < block.statementsInside; i++)
                             e.Next();
                     };
+                    block.CloseAction = null;
                 }
                 return;
             }
@@ -502,12 +502,10 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
-                //block.executeAs = null; Legacy
-                //block.shouldRun = run; Legacy
                 if (run)
                 {
-                    block.openAction = PUSH_COPY;
-                    block.CloseAction = POP;
+                    block.openAction = null;
+                    block.CloseAction = null;
                 }
                 else
                 {
@@ -525,7 +523,25 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _repeat(Executor executor, Statement tokens)
         {
-            int amount = tokens.Next<TokenIntegerLiteral>();
+            bool useRange;
+            Range range = default;
+            int amount = default;
+
+            if (tokens.NextIs<TokenIntegerLiteral>())
+            {
+                useRange = false;
+                amount = tokens.Next<TokenIntegerLiteral>().number;
+            }
+            else
+            {
+                range = tokens.Next<TokenRangeLiteral>().range;
+                useRange = !range.single;
+                amount = range.min.GetValueOrDefault();
+
+                if (range.IsUnbounded)
+                    throw new StatementException(tokens, "Range parameter must have a start and end when used in $repeat.");
+            }
+
             string tracker = null;
 
             if (tokens.HasNext && tokens.NextIs<TokenIdentifier>())
@@ -533,11 +549,24 @@ namespace mc_compiled.MCC.Compiler
 
             Statement[] statements = executor.NextExecutionSet();
 
-            for (int i = 0; i < amount; i++)
+            if(useRange)
             {
-                if (tracker != null)
-                    executor.SetPPV(tracker, new dynamic[] { i });
-                executor.ExecuteSubsection(statements);
+                int min = range.min.Value;
+                int max = range.max.Value;
+                for (int i = min; i <= max; i++)
+                {
+                    if (tracker != null)
+                        executor.SetPPV(tracker, new dynamic[] { i });
+                    executor.ExecuteSubsection(statements);
+                }
+            } else
+            {
+                for (int i = 0; i < amount; i++)
+                {
+                    if (tracker != null)
+                        executor.SetPPV(tracker, new dynamic[] { i });
+                    executor.ExecuteSubsection(statements);
+                }
             }
         }
         public static void _log(Executor executor, Statement tokens)
@@ -630,7 +659,17 @@ namespace mc_compiled.MCC.Compiler
                 executor.SetPPV(argNames[i], args[i]);
 
             // call macro
-            executor.ExecuteSubsection(lookedUp.statements);
+            try
+            {
+                executor.ExecuteSubsection(lookedUp.statements);
+            } catch(StatementException e)
+            {
+                // set it so that the error is placed at the location of the call and the macro.
+                int[] exceptionLines = e.statement.Lines.Concat(tokens.Lines).ToArray();
+                string exceptionSource = tokens.Source + ": " + e.statement.Source;
+                e.statement.SetSource(exceptionLines, exceptionSource);
+                throw;
+            }
 
             // restore variables
             foreach (var kv in collidedValues)
@@ -671,7 +710,12 @@ namespace mc_compiled.MCC.Compiler
         public static void _strfriendly(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-            string input = tokens.Next<TokenIdentifier>().word;
+
+            string input;
+            if (tokens.NextIs<TokenIdentifier>())
+                input = tokens.Next<TokenIdentifier>().word;
+            else
+                input = output;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -698,7 +742,12 @@ namespace mc_compiled.MCC.Compiler
         public static void _strupper(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-            string input = tokens.Next<TokenIdentifier>().word;
+
+            string input;
+            if (tokens.NextIs<TokenIdentifier>())
+                input = tokens.Next<TokenIdentifier>().word;
+            else
+                input = output;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -716,7 +765,12 @@ namespace mc_compiled.MCC.Compiler
         public static void _strlower(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-            string input = tokens.Next<TokenIdentifier>().word;
+
+            string input;
+            if (tokens.NextIs<TokenIdentifier>())
+                input = tokens.Next<TokenIdentifier>().word;
+            else
+                input = output;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -734,7 +788,12 @@ namespace mc_compiled.MCC.Compiler
         public static void _sum(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-            string input = tokens.Next<TokenIdentifier>().word;
+
+            string input;
+            if (tokens.NextIs<TokenIdentifier>())
+                input = tokens.Next<TokenIdentifier>().word;
+            else
+                input = output;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -756,7 +815,12 @@ namespace mc_compiled.MCC.Compiler
         public static void _median(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-            string input = tokens.Next<TokenIdentifier>().word;
+
+            string input;
+            if (tokens.NextIs<TokenIdentifier>())
+                input = tokens.Next<TokenIdentifier>().word;
+            else
+                input = output;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -793,7 +857,12 @@ namespace mc_compiled.MCC.Compiler
         public static void _mean(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-            string input = tokens.Next<TokenIdentifier>().word;
+
+            string input;
+            if (tokens.NextIs<TokenIdentifier>())
+                input = tokens.Next<TokenIdentifier>().word;
+            else
+                input = output;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -814,6 +883,64 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        public static void _sort(Executor executor, Statement tokens)
+        {
+            string sortDirection = tokens.Next<TokenIdentifier>().word.ToUpper();
+            string variable = tokens.Next<TokenIdentifier>().word;
+
+            if (executor.TryGetPPV(variable, out dynamic[] values))
+            {
+                try
+                {
+                    List<dynamic> listValues = values.ToList();
+                    listValues.Sort();
+
+                    if (sortDirection.StartsWith("DE"))
+                        listValues.Reverse();
+
+                    executor.SetPPV(variable, listValues.ToArray());
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't sort these values.");
+                }
+            }
+            else
+                throw new StatementException(tokens, "Preprocessor variable '" + variable + "' does not exist.");
+        }
+        public static void _reverse(Executor executor, Statement tokens)
+        {
+            string variable = tokens.Next<TokenIdentifier>().word;
+
+            if (executor.TryGetPPV(variable, out dynamic[] values))
+            {
+
+                if (values.Length < 2)
+                    return;
+
+                try
+                {
+                    // reverse the order.
+                    int end = values.Length - 1;
+                    int max = values.Length / 2;
+                    for(int i = 0; i < max; i++)
+                    {
+                        int e = end - i;
+                        dynamic temp = values[i];
+                        values[i] = values[e];
+                        values[e] = temp;
+                    }
+
+                    executor.SetPPV(variable, values);
+                }
+                catch (Exception)
+                {
+                    throw new StatementException(tokens, "Couldn't sort these values.");
+                }
+            }
+            else
+                throw new StatementException(tokens, "Preprocessor variable '" + variable + "' does not exist.");
+        }
         public static void _iterate(Executor executor, Statement tokens)
         {
             string input = tokens.Next<TokenIdentifier>().word;
@@ -823,38 +950,44 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
 
             Statement[] statements = executor.NextExecutionSet();
-            int length = values.Length;
 
-            if(length == 1)
+            void IterateArray(JArray array)
             {
-                // iterate JSON array if it is one
-                dynamic only = values[0];
-                if (only is TokenJSONLiteral jsonLiteral)
+                int item = -1;
+                foreach (JToken arrayItem in array)
                 {
-                    JToken token = jsonLiteral.token;
-                    if (token is JArray array)
+                    item++;
+                    if (PreprocessorUtils.TryUnwrapToken(arrayItem, out object obj))
                     {
-                        int item = -1;
-                        foreach (JToken arrayItem in array)
-                        {
-                            item++;
-                            if (PreprocessorUtils.TryUnwrapToken(arrayItem, out object obj))
-                            {
-                                executor.SetPPV(current, new dynamic[] { obj });
-                                executor.ExecuteSubsection(statements);
-                            }
-                            else
-                                throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{arrayItem.Type}' in a preprocessor variable.");
-                        }
-                        return;
+                        if (obj == null)
+                            throw new StatementException(tokens, $"Couldn't unwrap JSON token to be placed in a preprocessor variable: {arrayItem.ToString()}");
+
+                        executor.SetPPV(current, new dynamic[] { obj });
+                        executor.ExecuteSubsection(statements);
                     }
+                    else
+                        throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{arrayItem.Type}' in a preprocessor variable.");
                 }
+                return;
             }
 
             foreach (dynamic value in values)
             {
-                executor.SetPPV(current, new dynamic[] { value });
-                executor.ExecuteSubsection(statements);
+                if (value is TokenJSONLiteral jsonLiteral)
+                {
+                    JToken token = jsonLiteral.token;
+                    if (token is JArray array)
+                        IterateArray(array);
+                }
+                else if(value is JArray array)
+                {
+                    IterateArray(array);
+                }
+                else
+                {
+                    executor.SetPPV(current, new dynamic[] { value });
+                    executor.ExecuteSubsection(statements);
+                }
             }
         }
         public static void _len(Executor executor, Statement tokens)
@@ -953,28 +1086,10 @@ namespace mc_compiled.MCC.Compiler
             string command = tokens.Next<TokenStringLiteral>();
             executor.AddCommand(command);
         }
-        public static void select(Executor executor, Statement tokens)
-        {
-            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-
-            if(executor.HasNext && executor.NextIs<StatementOpenBlock>())
-            {
-                StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
-                block.openAction = (e) =>
-                {
-                    e.PushSelector(selector);
-                };
-                block.CloseAction = (e) =>
-                {
-                    e.PopSelector();
-                };
-            } else
-                executor.ActiveSelector = selector;
-        }
         public static void globalprint(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
-            List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
 
             string[] commands;
 
@@ -987,22 +1102,25 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void print(Executor executor, Statement tokens)
         {
+            Selector player;
+
+            if (tokens.NextIs<TokenSelectorLiteral>(false))
+                player = tokens.Next<TokenSelectorLiteral>();
+            else
+                player = Selector.SELF;
+
             string str = tokens.Next<TokenStringLiteral>();
-            List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
             string[] commands;
 
             if (advanced)
             {
-                executor.PushSelectorExecute();
-                string selector = executor.ActiveSelectorStr;
-                string baseCommand = "tellraw " + selector + ' ';
+                string baseCommand = "tellraw " + player.ToString() + ' ';
                 commands = executor.ResolveRawText(terms, baseCommand);
-                executor.PopSelector();
             }
             else
             {
-                string selector = executor.ActiveSelectorStr;
-                string baseCommand = "tellraw " + selector + ' ';
+                string baseCommand = "tellraw " + player.ToString() + ' ';
                 commands = executor.ResolveRawText(terms, baseCommand);
             }
 
@@ -1030,7 +1148,6 @@ namespace mc_compiled.MCC.Compiler
 
             if (def.defaultValue != null)
             {
-                executor.PushSelectorExecute();
                 if (def.defaultValue is TokenLiteral literal)
                 {
                     commands.AddRange(value.CommandsSetLiteral(literal));
@@ -1041,8 +1158,6 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else
                     throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
-
-                executor.PopSelector();
             }
 
             // add the commands to the executor.
@@ -1050,20 +1165,18 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void init(Executor executor, Statement tokens)
         {
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
+
             ScoreboardValue value;
             List<string> commands = new List<string>();
 
             while (tokens.HasNext)
             {
-                if (tokens.NextIs<TokenStringLiteral>())
-                {
-                    string name = tokens.Next<TokenStringLiteral>();
-                    if (!executor.scoreboard.TryGetByAccessor(name, out value))
-                        throw new StatementException(tokens, $"Attempted to initialize undefined variable '{name}'.");
-                }
-                else
-                    value = tokens.Next<TokenIdentifierValue>().value;
-                commands.AddRange(value.CommandsInit());
+                if (tokens.NextIs<TokenComment>())
+                    break;
+
+                value = tokens.Next<TokenIdentifierValue>().value;
+                commands.AddRange(value.CommandsInit(selector.ToString()));
             }
 
             executor.AddCommands(commands, null, true);
@@ -1092,6 +1205,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void give(Executor executor, Statement tokens)
         {
+            Selector player = tokens.Next<TokenSelectorLiteral>();
+
             string itemName = tokens.Next<TokenStringLiteral>();
             string itemNameComp = itemName.ToUpper();
             bool needsStructure = false;
@@ -1238,13 +1353,12 @@ namespace mc_compiled.MCC.Compiler
                 StructureFile file = new StructureFile("item" + item.GetHashCode(),
                     Executor.MCC_GENERATED_FOLDER, StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
-                Selector active = executor.ActiveSelector;
 
                 string cmd = Command.StructureLoad(file.CommandReference, Coord.here, Coord.here, Coord.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
 
-                if (active.NonSelf)
-                    executor.AddCommand(Command.Execute().As(active).AtSelf().Run(cmd));
+                if (player.NonSelf)
+                    executor.AddCommand(Command.Execute().As(player).AtSelf().Run(cmd));
                 else
                     executor.AddCommand(cmd);
                 return;
@@ -1271,7 +1385,7 @@ namespace mc_compiled.MCC.Compiler
                 json.Add($"\"minecraft:can_destroy\":{{\"blocks\":[{blocks}]}}");
             }
 
-            string command = Command.Give(executor.ActiveSelectorStr, itemName, count, data);
+            string command = Command.Give(player.ToString(), itemName, count, data);
             if (json.Count > 0)
                 command += $" {{{string.Join(",", json)}}}";
 
@@ -1279,11 +1393,12 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tp(Executor executor, Statement tokens)
         {
-            executor.PushSelectorExecute();
+            Selector entity = tokens.Next<TokenSelectorLiteral>();
+
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.Teleport(selector.selector.ToString()));
+                executor.AddCommand(Command.Teleport(entity.ToString(), selector.selector.ToString()));
             }
             else
             {
@@ -1295,42 +1410,28 @@ namespace mc_compiled.MCC.Compiler
                 {
                     Coord ry = tokens.Next<TokenCoordinateLiteral>();
                     Coord rx = tokens.Next<TokenCoordinateLiteral>();
-                    executor.AddCommand(Command.Teleport(executor.ActiveSelectorStr, x, y, z, ry, rx));
+                    executor.AddCommand(Command.Teleport(entity.ToString(), x, y, z, ry, rx));
                 }
                 else
-                    executor.AddCommand(Command.Teleport(executor.ActiveSelectorStr, x, y, z));
+                    executor.AddCommand(Command.Teleport(entity.ToString(), x, y, z));
             }
-            executor.PopSelector();
-        }
-        public static void tphere(Executor executor, Statement tokens)
-        {
-            Selector selector = tokens.Next<TokenSelectorLiteral>();
-
-            Coord offsetX = Coord.here;
-            Coord offsetY = Coord.here;
-            Coord offsetZ = Coord.here;
-
-            if (tokens.HasNext && tokens.NextIs<TokenCoordinateLiteral>())
-            {
-                offsetX = tokens.Next<TokenCoordinateLiteral>();
-                offsetY = tokens.Next<TokenCoordinateLiteral>();
-                offsetZ = tokens.Next<TokenCoordinateLiteral>();
-            }
-
-            executor.PushSelectorExecute();
-            executor.AddCommand(Command.Teleport(selector.ToString(), offsetX, offsetY, offsetZ));
-            executor.PopSelector();
         }
         public static void move(Executor executor, Statement tokens)
         {
-            string direction = tokens.Next<TokenIdentifier>().word.ToUpper();
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
+
+            string direction = tokens.Next<TokenIdentifier>().word;
             float amount = tokens.Next<TokenNumberLiteral>().GetNumber();
+
+            bool checkForBlocks = false;
+            if (tokens.NextIs<TokenBooleanLiteral>())
+                checkForBlocks = tokens.Next<TokenBooleanLiteral>();
 
             Coord x = Coord.herefacing;
             Coord y = Coord.herefacing;
             Coord z = Coord.herefacing;
 
-            switch (direction)
+            switch (direction.ToUpper())
             {
                 case "LEFT":
                     x = new Coord(amount, true, false, true);
@@ -1354,17 +1455,16 @@ namespace mc_compiled.MCC.Compiler
                     break;
             }
 
-            executor.PushSelectorExecute();
-            executor.AddCommand(Command.Teleport(x, y, z));
-            executor.PopSelector();
+            executor.AddCommand(Command.Teleport(selector.ToString(), x, y, z, checkForBlocks));
         }
         public static void face(Executor executor, Statement tokens)
         {
-            executor.PushSelectorExecute();
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
+
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
-                TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, selector.ToString()));
+                TokenSelectorLiteral other = tokens.Next<TokenSelectorLiteral>();
+                executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coord.here, Coord.here, Coord.here, other.ToString()));
             }
             else
             {
@@ -1372,27 +1472,13 @@ namespace mc_compiled.MCC.Compiler
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                executor.AddCommand(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, x, y, z));
+                executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coord.here, Coord.here, Coord.here, x, y, z));
             }
-            executor.PopSelector();
-        }
-        public static void facehere(Executor executor, Statement tokens)
-        {
-            Selector selector = tokens.Next<TokenSelectorLiteral>();
-
-            executor.definedTags.Add("__mcc_here");
-
-            List<string> commands = new List<string>();
-            commands.Add(Command.Tag("@s", "__mcc_here"));
-            commands.Add(Command.Execute().As(selector).AtSelf().Run(Command.TeleportFacing(Coord.here, Coord.here, Coord.here, "@e[tag=\"__mcc_here\",c=1]")));
-            commands.Add(Command.TagRemove("@s", "__mcc_here"));
-
-            executor.PushSelectorExecute();
-            executor.AddCommands(commands, "facehere");
-            executor.PopSelector();
         }
         public static void rotate(Executor executor, Statement tokens)
         {
+            Selector selector = tokens.Next<TokenSelectorLiteral>();
+
             TokenNumberLiteral number = tokens.Next<TokenNumberLiteral>();
             Coord ry, rx = Coord.here;
 
@@ -1410,11 +1496,9 @@ namespace mc_compiled.MCC.Compiler
                     rx = new Coord(number.GetNumberInt(), false, true, false);
             }
 
-            executor.PushSelectorExecute();
-            executor.AddCommand(Command.Teleport(Coord.here, Coord.here, Coord.here, ry, rx));
-            executor.PopSelector();
+            executor.AddCommand(Command.Teleport(selector.ToString(), Coord.here, Coord.here, Coord.here, ry, rx));
         }
-        public static void place(Executor executor, Statement tokens)
+        public static void setblock(Executor executor, Statement tokens)
         {
             OldHandling handling = OldHandling.replace;
 
@@ -1434,9 +1518,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
                 data = tokens.Next<TokenIntegerLiteral>();
 
-            executor.PushSelectorExecute();
             executor.AddCommand(Command.SetBlock(x, y, z, block, data, handling));
-            executor.PopSelector();
         }
         public static void fill(Executor executor, Statement tokens)
         {
@@ -1461,9 +1543,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
                 data = tokens.Next<TokenIntegerLiteral>();
 
-            executor.PushSelectorExecute();
             executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, block, data, handling));
-            executor.PopSelector();
         }
         public static void scatter(Executor executor, Statement tokens)
         {
@@ -1523,17 +1603,13 @@ namespace mc_compiled.MCC.Compiler
 
             if (seed == null)
             {
-                executor.PushSelectorExecute();
                 executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
                     StructureRotation._0_degrees, StructureMirror.none, false, true, false, percent));
-                executor.PopSelector();
             }
             else
             {
-                executor.PushSelectorExecute();
                 executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
                     StructureRotation._0_degrees, StructureMirror.none, false, true, false, percent, seed));
-                executor.PopSelector();
             }
         }
         public static void replace(Executor executor, Statement tokens)
@@ -1555,20 +1631,16 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
                 dstData = tokens.Next<TokenIntegerLiteral>();
 
-            executor.PushSelectorExecute();
             executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, src, srcData, dst, dstData));
-            executor.PopSelector();
         }
         public static void kill(Executor executor, Statement tokens)
         {
-            if (tokens.NextIs<TokenSelectorLiteral>())
-            {
-                Selector selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.Kill(selector.ToString()));
-                return;
-            }
+            Selector selector = Selector.SELF;
 
-            executor.AddCommand(Command.Kill(executor.ActiveSelectorStr));
+            if (tokens.NextIs<TokenSelectorLiteral>())
+                selector = tokens.Next<TokenSelectorLiteral>();
+
+            executor.AddCommand(Command.Kill(selector.ToString()));
         }
         public static void remove(Executor executor, Statement tokens)
         {
@@ -1581,16 +1653,13 @@ namespace mc_compiled.MCC.Compiler
 
             executor.DefineSTDFile(file);
 
-            if (tokens.NextIs<TokenSelectorLiteral>())
-            {
-                Selector selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.Execute().As(selector).AtSelf().Run(Command.Function(file)));
-                return;
-            }
+            Selector selector = Selector.SELF;
 
-            executor.PushSelectorExecute();
+            if (tokens.NextIs<TokenSelectorLiteral>())
+                selector = tokens.Next<TokenSelectorLiteral>();
+
+            executor.PushAlignSelector(ref selector);
             executor.AddCommand(Command.Function(file));
-            executor.PopSelector();
         }
         public static void globaltitle(Executor executor, Statement tokens)
         {
@@ -1608,7 +1677,7 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+                    List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
                     string[] commands;
 
                     if (advanced)
@@ -1626,7 +1695,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1640,6 +1709,13 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void title(Executor executor, Statement tokens)
         {
+            Selector player;
+
+            if (tokens.NextIs<TokenSelectorLiteral>(false))
+                player = tokens.Next<TokenSelectorLiteral>();
+            else
+                player = Selector.SELF;
+
             if (tokens.NextIs<TokenIdentifier>())
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
@@ -1648,25 +1724,23 @@ namespace mc_compiled.MCC.Compiler
                     int fadeIn = tokens.Next<TokenIntegerLiteral>();
                     int stay = tokens.Next<TokenIntegerLiteral>();
                     int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                    executor.AddCommand(Command.TitleTimes(executor.ActiveSelectorStr, fadeIn, stay, fadeOut));
+                    executor.AddCommand(Command.TitleTimes(player.ToString(), fadeIn, stay, fadeOut));
                     return;
                 }
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+                    List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
                     string[] commands;
 
                     if (advanced)
                     {
-                        executor.PushSelectorExecute();
-                        string selector = executor.ActiveSelectorStr;
+                        string selector = player.ToString();
                         commands = executor.ResolveRawText(terms, $"titleraw {selector} subtitle ");
-                        executor.PopSelector();
                     }
                     else
                     {
-                        string selector = executor.ActiveSelectorStr;
+                        string selector = player.ToString();
                         commands = executor.ResolveRawText(terms, $"titleraw {selector} subtitle ");
                     }
 
@@ -1680,19 +1754,17 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
                 string[] commands;
 
                 if (advanced)
                 {
-                    executor.PushSelectorExecute();
-                    string selector = executor.ActiveSelectorStr;
+                    string selector = player.ToString();
                     commands = executor.ResolveRawText(terms, $"titleraw {selector} title ");
-                    executor.PopSelector();
                 }
                 else
                 {
-                    string selector = executor.ActiveSelectorStr;
+                    string selector = player.ToString();
                     commands = executor.ResolveRawText(terms, $"titleraw {selector} title ");
                 }
 
@@ -1714,7 +1786,7 @@ namespace mc_compiled.MCC.Compiler
             else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1729,46 +1801,39 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void actionbar(Executor executor, Statement tokens)
         {
-            if (tokens.NextIs<TokenIdentifier>())
-            {
-                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-                int fadeIn = tokens.Next<TokenIntegerLiteral>();
-                int stay = tokens.Next<TokenIntegerLiteral>();
-                int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                executor.AddCommand(Command.TitleTimes(executor.ActiveSelectorStr, fadeIn, stay, fadeOut));
-                return;
-            }
-            else if (tokens.NextIs<TokenStringLiteral>())
+            Selector player;
+
+            if (tokens.NextIs<TokenSelectorLiteral>(false))
+                player = tokens.Next<TokenSelectorLiteral>();
+            else
+                player = Selector.SELF;
+
+            if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Line, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
                 string[] commands;
 
                 if (advanced)
                 {
-                    executor.PushSelectorExecute();
-                    string selector = executor.ActiveSelectorStr;
+                    string selector = player.ToString();
                     commands = executor.ResolveRawText(terms, $"titleraw {selector} actionbar ");
-                    executor.PopSelector();
                 }
                 else
                 {
-                    string selector = executor.ActiveSelectorStr;
+                    string selector = player.ToString();
                     commands = executor.ResolveRawText(terms, $"titleraw {selector} actionbar ");
                 }
 
                 executor.AddCommands(commands, "actionbar");
                 return;
             }
-            else throw new StatementException(tokens, "Invalid information given to actionbar.");
+            else throw new StatementException(tokens, "Invalid information given to actionbar command.");
         }
         public static void say(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
-
-            executor.PushSelectorExecute();
             executor.AddCommand(Command.Say(str));
-            executor.PopSelector();
         }
         public static void halt(Executor executor, Statement tokens)
         {
@@ -1786,6 +1851,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void damage(Executor executor, Statement tokens)
         {
+            Selector target = tokens.Next<TokenSelectorLiteral>();
+
             int damage = tokens.Next<TokenIntegerLiteral>();
             DamageCause cause = DamageCause.all;
             Selector blame = null;
@@ -1814,14 +1881,14 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands = new string[]
                 {
                     // create dummy entity at location
-                    executor.entities.dummies.Create(damagerEntity, null, x, y, z),
+                    executor.entities.dummies.Create(damagerEntity, false, x, y, z),
 
                     // hit entity from dummy entity
-                    Command.Damage(executor.ActiveSelectorStr, damage, cause,
-                        executor.entities.dummies.GetStringSelector(damagerEntity)),
+                    Command.Damage(target.ToString(), damage, cause,
+                        executor.entities.dummies.GetStringSelector(damagerEntity, false)),
 
                     // send kill event to dummy entity
-                    executor.entities.dummies.Destroy(damagerEntity)
+                    executor.entities.dummies.Destroy(damagerEntity, false)
                 };
 
                 executor.AddCommands(commands, "damagefrom");
@@ -1830,12 +1897,12 @@ namespace mc_compiled.MCC.Compiler
 
             string command;
             if (blame == null)
-                command = Command.Damage(executor.ActiveSelectorStr, damage, cause);
+                command = Command.Damage(target.ToString(), damage, cause);
             else
             {
                 if (blame.SelectsMultiple)
                     blame.count = new Count(1);
-                command = Command.Damage(executor.ActiveSelectorStr, damage, cause, blame.ToString());
+                command = Command.Damage(target.ToString(), damage, cause, blame.ToString());
             }
 
             executor.AddCommand(command);
@@ -1845,15 +1912,14 @@ namespace mc_compiled.MCC.Compiler
             executor.RequireFeature(tokens, Feature.DUMMIES);
 
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            string name = tokens.Next<TokenStringLiteral>();
+
+            string tag = null;
+            if (tokens.NextIs<TokenStringLiteral>())
+                tag = tokens.Next<TokenStringLiteral>();
 
             if (word.Equals("CREATE"))
             {
-                string name = tokens.Next<TokenStringLiteral>();
-
-                string clazz = null;
-                if (tokens.NextIs<TokenStringLiteral>())
-                    clazz = tokens.Next<TokenStringLiteral>();
-
                 Coord x = Coord.here;
                 Coord y = Coord.here;
                 Coord z = Coord.here;
@@ -1865,20 +1931,26 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenCoordinateLiteral>())
                     z = tokens.Next<TokenCoordinateLiteral>();
 
-                string command = executor.entities.dummies.Create(name, clazz, x, y, z);
-                executor.PushSelectorExecute();
-                executor.AddCommand(command);
-                executor.PopSelector();
+                if (tag == null)
+                {
+                    string command = executor.entities.dummies.Create(name, false, x, y, z);
+                    executor.AddCommand(command);
+                }
+                else
+                {
+                    string selector = executor.entities.dummies.GetStringSelector(name, true);
+                    string[] commands = new string[]
+                    {
+                        executor.entities.dummies.Create(name, true, x, y, z),
+                        Command.Tag(selector, tag),
+                        Command.Event(selector, DummyManager.TAGGABLE_EVENT_REMOVE_NAME)
+                    };
+                    executor.AddCommands(commands, "createDummy");
+                }
                 return;
             }
             else if (word.Equals("SINGLE"))
             {
-                string name = tokens.Next<TokenStringLiteral>();
-
-                string clazz = null;
-                if (tokens.NextIs<TokenStringLiteral>())
-                    clazz = tokens.Next<TokenStringLiteral>();
-
                 Coord x = Coord.here;
                 Coord y = Coord.here;
                 Coord z = Coord.here;
@@ -1890,104 +1962,60 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenCoordinateLiteral>())
                     z = tokens.Next<TokenCoordinateLiteral>();
 
-                executor.PushSelectorExecute();
-
-                executor.AddCommands(new string[] {
-                    executor.entities.dummies.Destroy(name),
-                    executor.entities.dummies.Create(name, clazz, x, y, z)
-                }, "singletonnull");
-
-                executor.PopSelector();
+                if (tag == null)
+                {
+                    executor.AddCommands(new string[]
+                    {
+                        executor.entities.dummies.Destroy(name, false),
+                        executor.entities.dummies.Create(name, false, x, y, z)
+                    }, "singletonDummy");
+                }
+                else
+                {
+                    string selector = executor.entities.dummies.GetStringSelector(name, true);
+                    executor.AddCommands(new string[]
+                    {
+                        executor.entities.dummies.Destroy(name, false, tag),
+                        executor.entities.dummies.Create(name, true, x, y, z),
+                        Command.Tag(selector, tag),
+                        Command.Event(selector, DummyManager.TAGGABLE_EVENT_REMOVE_NAME)
+                    }, "singletonDummy");
+                }
                 return;
             }
             else if (word.Equals("REMOVE"))
             {
-                if(tokens.NextIs<TokenStringLiteral>())
-                {
-                    string name = tokens.Next<TokenStringLiteral>();
-
-                    // removal by name
-                    string clazz;
-                    if (tokens.NextIs<TokenStringLiteral>())
-                        clazz = tokens.Next<TokenStringLiteral>();
-                    else clazz = null;
-
-                    executor.AddCommand(executor.entities.dummies.Destroy(name, clazz));
-                    return;
-                }
-
-                string target = executor.ActiveSelectorStr;
-                executor.AddCommand(Command.Event(target, DummyManager.DESTROY_EVENT_NAME));
-                return;
-            }
-            else if (word.Equals("CLASS"))
-            {
-                string selector = executor.ActiveSelectorStr;
-
-                // null class remove
-                if (tokens.NextIs<TokenDirective>() && tokens.Next<TokenDirective>()
-                        .directive.identifier.ToUpper().Equals("REMOVE"))
-                {
-                    executor.AddCommand(Command.Event(selector, DummyManager.CLEAN_EVENT_NAME));
-                    return;
-                }
-
-                string token = tokens.Next<TokenStringLiteral>();
-
-                // null class <name>
-                string eventName = executor.entities.dummies.DefineClass(token);
-
-                executor.AddCommands(new string[] {
-                    Command.Event(selector, DummyManager.CLEAN_EVENT_NAME),
-                    Command.Event(selector, eventName)
-                }, null, true);
+                executor.AddCommand(executor.entities.dummies.Destroy(name, false, tag));
                 return;
             }
             else
-                throw new StatementException(tokens, $"Invalid mode for null command: {word}. Valid options are CREATE, SINGLE, REMOVE, or CLASS");
+                throw new StatementException(tokens, $"Invalid mode for dummy command: {word}. Valid options are CREATE, SINGLE, or REMOVE");
         }
         public static void tag(Executor executor, Statement tokens)
         {
+            string selected = tokens.Next<TokenSelectorLiteral>().selector.ToString();
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-            string selected = executor.ActiveSelectorStr;
 
             if (word.Equals("ADD"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
                 executor.definedTags.Add(tag);
-                executor.PushSelectorExecute();
                 executor.AddCommand(Command.Tag(selected, tag));
-                executor.PopSelector();
             } else if (word.Equals("REMOVE"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
-                executor.PushSelectorExecute();
                 executor.AddCommand(Command.TagRemove(selected, tag));
-                executor.PopSelector();
             } else if (word.Equals("SINGLE"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
                 executor.definedTags.Add(tag);
-                executor.PushSelectorExecute();
                 executor.AddCommands(new[]
                 {
                     Command.TagRemove("*", tag),
                     Command.Tag(selected, tag)
                 }, "tagsingle");
-                executor.PopSelector();
             } else
                 throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE, SINGLE");
-        }
-        public static void limit(Executor executor, Statement tokens)
-        {
-            Selector active = executor.ActiveSelector;
-
-            if (tokens.NextIs<TokenIntegerLiteral>())
-                active.count.count = tokens.Next<TokenIntegerLiteral>().number;
-            else
-                active.count.count = Count.NONE;
-
-            executor.ActiveSelector = active;
         }
         public static void explode(Executor executor, Statement tokens)
         {
@@ -2044,9 +2072,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string command = executor.entities.exploders.CreateExplosion(x, y, z, power, delay, fire, breaks);
-            executor.PushSelectorExecute();
             executor.AddCommand(command);
-            executor.PopSelector();
         }
         public static void clear(Executor executor, Statement tokens)
         {
@@ -2056,34 +2082,38 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenSelectorLiteral>())
                 selector = tokens.Next<TokenSelectorLiteral>().selector.ToString();
             else
-                selector = executor.ActiveSelectorStr;
+                selector = null;
 
-            if (tokens.NextIs<TokenStringLiteral>())
+            if (selector != null)
             {
-                string item = tokens.Next<TokenStringLiteral>();
-
-                if (tokens.NextIs<TokenIntegerLiteral>())
+                if (tokens.NextIs<TokenStringLiteral>())
                 {
-                    int data = tokens.Next<TokenIntegerLiteral>();
+                    string item = tokens.Next<TokenStringLiteral>();
+
                     if (tokens.NextIs<TokenIntegerLiteral>())
                     {
-                        int maxCount = tokens.Next<TokenIntegerLiteral>();
-                        command = Command.Clear(selector, item, data, maxCount);
+                        int data = tokens.Next<TokenIntegerLiteral>();
+                        if (tokens.NextIs<TokenIntegerLiteral>())
+                        {
+                            int maxCount = tokens.Next<TokenIntegerLiteral>();
+                            command = Command.Clear(selector, item, data, maxCount);
+                        }
+                        else
+                            command = Command.Clear(selector, item, data);
                     }
                     else
-                        command = Command.Clear(selector, item, data);
+                        command = Command.Clear(selector, item);
                 }
                 else
-                    command = Command.Clear(selector, item);
-            }
-            else
-                command = Command.Clear(selector);
+                    command = Command.Clear(selector);
+            } else
+                command = Command.Clear();
 
             executor.AddCommand(command);
         }
-        public static void effect(Executor executor, Statement tokens, bool hideParticles)
+        public static void effect(Executor executor, Statement tokens)
         {
-            string selector = executor.ActiveSelectorStr;
+            string selector = tokens.Next<TokenSelectorLiteral>().selector.ToString();
 
             if(!tokens.NextIs<TokenIdentifierEnum>())
             {
@@ -2114,7 +2144,14 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenIntegerLiteral>())
                 {
                     int amplifier = tokens.Next<TokenIntegerLiteral>();
-                    command = Command.Effect(selector, effect, seconds, amplifier);
+
+                    if(tokens.NextIs<TokenBooleanLiteral>())
+                    {
+                        bool hideParticles = tokens.Next<TokenBooleanLiteral>();
+                        command = Command.Effect(selector, effect, seconds, amplifier, hideParticles);
+                    }
+                    else
+                        command = Command.Effect(selector, effect, seconds, amplifier);
                 }
                 else
                     command = Command.Effect(selector, effect, seconds);
@@ -2125,11 +2162,91 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommand(command);
             return;
         }
-        public static void effect(Executor executor, Statement tokens) => effect(executor, tokens, false);
-        public static void effecth(Executor executor, Statement tokens) => effect(executor, tokens, true);
         public static void execute(Executor executor, Statement tokens)
         {
+            ExecuteBuilder builder = new ExecuteBuilder();
 
+            do
+            {
+                string _subcommand = tokens.Next<TokenIdentifier>().word.ToUpper();
+                Subcommand subcommand = Subcommand.GetSubcommandForKeyword(_subcommand, tokens);
+
+                if (subcommand.TerminatesChain)
+                    throw new StatementException(tokens, $"Subcommand '{_subcommand}' is not allowed here as it terminates the chain.");
+
+                // match subcommand pattern now, if any
+                TypePattern[] patterns = subcommand.Pattern;
+                if (patterns != null && patterns.Length > 0)
+                {
+                    IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens.GetRemainingTokens()));
+
+                    if (results.All(result => !result.match))
+                    {
+                        // get the closest matched pattern
+                        MatchResult closest = results.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
+                        var missingArgs = closest.missing.Select(m => m.ToString());
+                        throw new StatementException(tokens, "Subcommand - Missing argument(s): " + string.Join(", ", missingArgs));
+                    }
+                }
+
+                // parse from tokens
+                subcommand.FromTokens(tokens);
+
+                // add to builder
+                builder.WithSubcommand(subcommand);
+            } while(tokens.NextIs<TokenIdentifier>());
+
+            // --- find statement or code-block nabbed from Comparison::Run ---
+
+            if (!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end of file when running comparison.");
+
+            Statement next = executor.Peek();
+
+            if (next is StatementOpenBlock openBlock)
+            {
+                // only do the block stuff if necessary.
+                if (openBlock.statementsInside == 0)
+                {
+                    openBlock.openAction = null;
+                    openBlock.CloseAction = null;
+                    return; // do nothing
+                }
+
+                string finalExecute = builder
+                    .WithSubcommand(new SubcommandRun())
+                    .Build(out _);
+
+                if (openBlock.statementsInside == 1)
+                {
+                    // modify prepend buffer as if 1 statement was there
+                    executor.AppendCommandPrepend(finalExecute);
+                    openBlock.openAction = null;
+                    openBlock.CloseAction = null;
+                }
+                else
+                {
+                    CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+                    string command = finalExecute + Command.Function(blockFile);
+                    executor.AddCommand(command);
+
+                    openBlock.openAction = (e) =>
+                    {
+                        e.PushFile(blockFile);
+                    };
+                    openBlock.CloseAction = (e) =>
+                    {
+                        e.PopFile();
+                    };
+                }
+            }
+            else
+            {
+                string finalExecute = builder
+                    .WithSubcommand(new SubcommandRun())
+                    .Build(out _);
+                executor.AppendCommandPrepend(finalExecute);
+            }
         }
 
         public static void feature(Executor executor, Statement tokens)
@@ -2239,17 +2356,15 @@ namespace mc_compiled.MCC.Compiler
             if (activeFunction == null)
                 throw new StatementException(tokens, "Cannot return a value outside of a function.");
 
-            string selector = executor.ActiveSelectorStr;
-
             if (tokens.NextIs<TokenIdentifierValue>())
             {
                 TokenIdentifierValue token = tokens.Next<TokenIdentifierValue>();
-                activeFunction.TryReturnValue(tokens, token.value, executor, selector);
+                activeFunction.TryReturnValue(tokens, token.value, executor);
             }
             else
             {
                 TokenLiteral token = tokens.Next<TokenLiteral>();
-                activeFunction.TryReturnValue(tokens, executor, token, selector);
+                activeFunction.TryReturnValue(tokens, executor, token);
             }
         }
         public static void @for(Executor executor, Statement tokens)
@@ -2282,8 +2397,13 @@ namespace mc_compiled.MCC.Compiler
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
                 CommandFile file = Executor.GetNextGeneratedFile("for");
 
-                executor.PushSelectorExecute(selector, x, y, z);
-                executor.AddCommand(Command.Function(file));
+                string command = Command.Execute()
+                    .As(selector)
+                    .AtSelf()
+                    .Positioned(x, y, z)
+                    .Run(Command.Function(file));
+
+                executor.AddCommand(command);
 
                 block.openAction = (e) =>
                 {
@@ -2292,13 +2412,16 @@ namespace mc_compiled.MCC.Compiler
                 block.CloseAction = (e) =>
                 {
                     e.PopFile();
-                    e.PopSelector();
                 };
             }
             else
             {
-                executor.PushSelectorExecute(selector, x, y, z);
-                executor.PopSelectorAfterNext();
+                string commandPrefix = Command.Execute()
+                    .As(selector)
+                    .AtSelf()
+                    .Positioned(x, y, z)
+                    .Run();
+                executor.AppendCommandPrepend(commandPrefix);
             }
         }
     }

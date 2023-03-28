@@ -18,6 +18,11 @@ namespace mc_compiled.Commands
         public int? min;
         public int? max;
 
+        public bool IsUnbounded
+        {
+            get => invert || !min.HasValue || !max.HasValue;
+        }
+
         public Range(int? min, int? max, bool not = false)
         {
             this.min = min;

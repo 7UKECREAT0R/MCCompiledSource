@@ -129,11 +129,8 @@ namespace mc_compiled.Modding.Behaviors
         {
             string geometryID = "geometry." + entityID.Replace(':', '.');
             EntityGeometry geometry = new EntityGeometry("dummy", geometryID);
-            EntityEventHandler cleanEvent = new EntityEventHandler(DummyManager.CLEAN_EVENT_NAME,
-                EventSubject.self, new EventActionRemoveGroup(new string[] { }));
 
             return new DummyFiles() {
-                cleanEvent = cleanEvent,
                 behavior = new EntityBehavior()
                 {
                     description = new EntityDescription(entityID),
@@ -182,13 +179,21 @@ namespace mc_compiled.Modding.Behaviors
                     }),
                     componentGroups = new List<EntityComponentGroup>(new EntityComponentGroup[]
                     {
-                        new EntityComponentGroup(DummyManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn())
+                        new EntityComponentGroup(DummyManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn()),
+                        new EntityComponentGroup(DummyManager.TAGGABLE_COMPONENT_GROUP, new ComponentFamily()
+                        {
+                            families = new[] { DummyManager.TAGGABLE_FAMILY_NAME }
+                        })
                     }),
                     events = new List<EntityEventHandler>(new EntityEventHandler[]
                     {
                         new EntityEventHandler(DummyManager.DESTROY_EVENT_NAME, action:
                             new EventActionAddGroup(DummyManager.DESTROY_COMPONENT_GROUP)),
-                        cleanEvent
+                        new EntityEventHandler(DummyManager.TAGGABLE_EVENT_ADD_NAME, action:
+                            new EventActionAddGroup(DummyManager.TAGGABLE_COMPONENT_GROUP)),
+                        new EntityEventHandler(DummyManager.TAGGABLE_EVENT_REMOVE_NAME, action:
+                            new EventActionRemoveGroup(DummyManager.TAGGABLE_COMPONENT_GROUP)),
+
                     })
                 },
                 resources = new EntityResource()

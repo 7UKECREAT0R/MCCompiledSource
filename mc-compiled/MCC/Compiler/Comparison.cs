@@ -195,11 +195,6 @@ namespace mc_compiled.MCC.Compiler
             List<string> commands = new List<string>();
             List<Subcommand> chunks = new List<Subcommand>();
 
-
-            // add a size-1 buffer, popped after the statements inside are run
-            executor.PushSelector(false);
-            Selector activeSelector = executor.ActiveSelector;
-
             bool cancel = false;
             foreach (Comparison comparison in this)
             {
@@ -212,10 +207,6 @@ namespace mc_compiled.MCC.Compiler
                     commands.AddRange(partCommands);
                 if (localChunks != null && localChunks.Length > 0)
                     chunks.AddRange(localChunks);
-
-                // aligned to @s after this
-                executor.PopSelector();
-                executor.PushSelector(true);
             }
 
             if (!executor.HasNext)
@@ -223,8 +214,6 @@ namespace mc_compiled.MCC.Compiler
 
             // get the next statement to determine how to run this comparison
             Statement next = executor.Peek();
-
-            int popCount = Count;
 
             if (next is StatementOpenBlock openBlock)
             {
@@ -256,7 +245,6 @@ namespace mc_compiled.MCC.Compiler
                     {
                         // modify prepend buffer as if 1 statement was there
                         executor.AppendCommandPrepend(finalExecute);
-                        executor.PopSelectorAfterNext();
                         openBlock.openAction = null;
                         openBlock.CloseAction = null;
                     }
@@ -273,7 +261,6 @@ namespace mc_compiled.MCC.Compiler
                         openBlock.CloseAction = (e) =>
                         {
                             e.PopFile();
-                            e.PopSelector();
                         };
                     }
                 }
@@ -285,7 +272,6 @@ namespace mc_compiled.MCC.Compiler
                     .WithSubcommand(new SubcommandRun())
                     .Build(out _);
                 executor.AppendCommandPrepend(finalExecute);
-                executor.PopSelectorAfterNext();
             }
         }
         /// <summary>

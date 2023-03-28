@@ -38,7 +38,7 @@ namespace mc_compiled.MCC.Compiler
                     if (current is TokenOpenBlock)
                     {
                         StatementOpenBlock block = new StatementOpenBlock(statements.Count + 1, null);
-                        block.SetSource(current.lineNumber, "{");
+                        block.SetSource(new[] { current.lineNumber }, "{");
 
                         statements.Add(block);
                         blocks.Push(block);
@@ -55,11 +55,11 @@ namespace mc_compiled.MCC.Compiler
                     else if (current is TokenCloseBlock)
                     {
                         StatementCloseBlock closer = new StatementCloseBlock();
-                        closer.SetSource(current.lineNumber, "}");
+                        closer.SetSource(new[] { current.lineNumber }, "}");
 
                         if (blocks.Count == 0)
                         {
-                            throw new TokenizerException("Unused closing bracket.", current.lineNumber);
+                            throw new TokenizerException("Unused closing bracket.", new[] { current.lineNumber });
                         }
 
                         StatementOpenBlock opener = blocks.Pop();
@@ -78,7 +78,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             if(blocks.Count > 0)
-                throw new TokenizerException("No closing bracket for opening bracket.", highestLevelOpener.Line);
+                throw new TokenizerException("No closing bracket for opening bracket.", highestLevelOpener.Lines);
 
             if (buffer.Count > 0)
             {
@@ -98,7 +98,7 @@ namespace mc_compiled.MCC.Compiler
                 TokenComment comment = firstToken as TokenComment;
                 Statement add = new StatementComment(comment.contents);
                 if(includeSource)
-                    add.SetSource(firstToken.lineNumber, "#" + comment.contents);
+                    add.SetSource(new[] { firstToken.lineNumber }, "#" + comment.contents);
                 return add;
             }
             if (firstToken is TokenDirective)
@@ -107,7 +107,7 @@ namespace mc_compiled.MCC.Compiler
                 Directive directive = (firstToken as TokenDirective).directive;
                 StatementDirective add = new StatementDirective(directive, rest);
                 if(includeSource)
-                    add.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                    add.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return add;
             }
 
@@ -115,7 +115,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 StatementUnknown unknown = new StatementUnknown(line);
                 if(includeSource)
-                    unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                    unknown.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return unknown;
             }
 
@@ -137,21 +137,21 @@ namespace mc_compiled.MCC.Compiler
             {
                 StatementOperation statement = new StatementOperation(line);
                 if(includeSource)
-                    statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                    statement.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return statement;
             }
             else if (secondToken is TokenOpenParenthesis)
             {
                 StatementFunctionCall statement = new StatementFunctionCall(line);
                 if (includeSource)
-                    statement.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                    statement.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return statement;
             }
             else
             {
                 StatementUnknown unknown = new StatementUnknown(line);
                 if (includeSource)
-                    unknown.SetSource(firstToken.lineNumber, string.Join(" ", from t in line select t.AsString()));
+                    unknown.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return unknown;
             }
         }

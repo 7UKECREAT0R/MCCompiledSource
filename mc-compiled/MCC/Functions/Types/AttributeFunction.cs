@@ -97,7 +97,7 @@ namespace mc_compiled.MCC.Functions.Types
                 throw new StatementException(statement, $"Function \"{internalName}\" has no call action bound. This is a bug with the compiler.");
 
             IAttribute constructed = callAction(parameters.ToArray(), executor, statement);
-            return new TokenAttribute(constructed, statement.Line);
+            return new TokenAttribute(constructed, statement.Lines[0]);
         }
     }
 }
