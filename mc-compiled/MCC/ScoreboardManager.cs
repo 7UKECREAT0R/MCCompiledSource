@@ -89,7 +89,8 @@ namespace mc_compiled.MCC
 
             internal Token defaultValue;
 
-            internal ValueDefinition(IAttribute[] attributes, string name, ValueType type, int decimalPrecision = 0, Token defaultValue = null)
+            internal ValueDefinition(IAttribute[] attributes, string name, ValueType type,
+                int decimalPrecision = ScoreboardValueDecimal.DEFAULT_PRECISION, Token defaultValue = null)
             {
                 this.attributes = attributes;
                 this.name = name;
@@ -103,7 +104,7 @@ namespace mc_compiled.MCC
             /// <returns></returns>
             internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
             {
-                return ScoreboardValue.CreateByType(type, name, false, sb).WithAttributes(attributes, tokens);
+                return ScoreboardValue.CreateByType(type, name, false, sb, decimalPrecision).WithAttributes(attributes, tokens);
             }
             internal void InferType(Statement tokens)
             {
@@ -300,7 +301,7 @@ namespace mc_compiled.MCC
                 defaultValue = tokens.Next();
             }
 
-            ValueDefinition definition = new ValueDefinition(attributesArray, name, type, default, defaultValue);
+            ValueDefinition definition = new ValueDefinition(attributesArray, name, type, defaultValue: defaultValue);
 
             // try to infer type based on the default value.
             if (type == ValueType.INFER)

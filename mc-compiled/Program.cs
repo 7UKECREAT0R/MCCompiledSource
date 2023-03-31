@@ -241,8 +241,19 @@ namespace mc_compiled
             if (fileUpper.Equals("--PROTOCOL"))
             {
                 RegistryConfiguration config = new RegistryConfiguration();
-                if (!config.hasBeenRegistered)
-                    Console.ReadLine();
+                config.Install();
+                return;
+            }
+            if (fileUpper.Equals("--PROTOCOL_REMOVE"))
+            {
+                RegistryConfiguration config = new RegistryConfiguration();
+                config.Uninstall();
+                return;
+            }
+            if (fileUpper.Equals("--INFO"))
+            {
+                Console.WriteLine("V{0}", Executor.MCC_VERSION);
+                Console.WriteLine("L{0}", System.Reflection.Assembly.GetExecutingAssembly().Location);
                 return;
             }
             if (fileUpper.Equals("--FROMPROTOCOL"))

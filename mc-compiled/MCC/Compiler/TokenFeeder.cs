@@ -182,7 +182,7 @@ namespace mc_compiled.MCC.Compiler
             for (int i = currentToken; i < tokens.Length; i++)
             {
                 Token current = tokens[i];
-                if (current is TokenComment)
+                if (current is IInformationless)
                     continue;
                 ret[ri++] = current;
             }

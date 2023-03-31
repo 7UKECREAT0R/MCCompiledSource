@@ -27,7 +27,7 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
         //public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+(\\[\"?.+\"?\\])*");
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
-        public const float MCC_VERSION = 1.1f;                  // compilerversion
+        public const double MCC_VERSION = 1.11;                 // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string FAKEPLAYER_NAME = "_";
@@ -322,12 +322,12 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="copy">The existing terms to copy from.</param>
         /// <returns></returns>
         public string[] ResolveRawText(List<JSONRawTerm> terms, string command, bool root = true,
-            Selector currentSelector = null, List<string> commands = null, RawTextJsonBuilder copy = null)
+            ExecuteBuilder builder = null, List<string> commands = null, RawTextJsonBuilder copy = null)
         {
             RawTextJsonBuilder jb = new RawTextJsonBuilder(copy);
 
-            if (currentSelector == null)
-                currentSelector = new Selector(Selector.Core.s);
+            if (builder == null)
+                builder = Command.Execute();
             if(commands == null)
                 commands = new List<string>();
 
@@ -338,14 +338,14 @@ namespace mc_compiled.MCC.Compiler
                 {
                     // calculate both variants
                     JSONVariant variant = term as JSONVariant;
-                    Selector checkA = variant.ConstructSelectorA(currentSelector);
-                    Selector checkB = variant.ConstructSelectorB(currentSelector);
+                    ExecuteBuilder branchA = builder.Clone().WithSubcommand(variant.ConstructSubcommandA());
+                    ExecuteBuilder branchB = builder.Clone().WithSubcommand(variant.ConstructSubcommandB());
                     List<JSONRawTerm> restA = terms.Skip(i + 1).ToList();
                     List<JSONRawTerm> restB = terms.Skip(i + 1).ToList();
                     restA.InsertRange(0, variant.a);
                     restB.InsertRange(0, variant.b);
-                    ResolveRawText(restA, command, false, checkA, commands, jb);
-                    ResolveRawText(restB, command, false, checkB, commands, jb);
+                    ResolveRawText(restA, command, false, branchA, commands, jb);
+                    ResolveRawText(restB, command, false, branchB, commands, jb);
                     break;
                 }
                 else
@@ -354,7 +354,7 @@ namespace mc_compiled.MCC.Compiler
 
             bool hasVariant = terms.Any(t => t is JSONVariant);
             if (!root && !hasVariant)
-                commands.Add(Command.Execute().As(currentSelector).AtSelf().Run(command + jb.BuildString()));
+                commands.Add(builder.Run(command + jb.BuildString()));
             else if(root && !hasVariant)
                 commands.Add(command + jb.BuildString());
 

@@ -276,6 +276,10 @@ namespace mc_compiled.MCC.Compiler
     /// Used to indicate when a token should terminate the Assembler's token collector and start a new line.
     /// </summary>
     public interface ITerminating { }
+    /// <summary>
+    /// Used to indicate when a token holds no useful information for the compiler e.g., a comment.
+    /// </summary>
+    public interface IInformationless { }
 
     public sealed class TokenOpenParenthesis : TokenOpenBracket
     {

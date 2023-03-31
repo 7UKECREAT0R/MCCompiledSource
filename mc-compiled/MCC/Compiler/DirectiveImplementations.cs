@@ -1172,8 +1172,8 @@ namespace mc_compiled.MCC.Compiler
 
             while (tokens.HasNext)
             {
-                if (tokens.NextIs<TokenComment>())
-                    break;
+                if (tokens.NextIs<IInformationless>())
+                    continue;
 
                 value = tokens.Next<TokenIdentifierValue>().value;
                 commands.AddRange(value.CommandsInit(selector.ToString()));
@@ -2162,6 +2162,71 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommand(command);
             return;
         }
+        public static void playsound(Executor executor, Statement tokens)
+        {
+            string soundId = tokens.Next<TokenStringLiteral>();
+
+            if (!tokens.HasNext)
+            {
+                executor.AddCommand(Command.PlaySound(soundId));
+                return;
+            }
+
+            Selector filter = tokens.Next<TokenSelectorLiteral>();
+
+            if(!tokens.NextIs<TokenCoordinateLiteral>())
+            {
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString()));
+                return;
+            }
+
+            Coord x = tokens.Next<TokenCoordinateLiteral>();
+            Coord y = tokens.Next<TokenCoordinateLiteral>();
+            Coord z = tokens.Next<TokenCoordinateLiteral>();
+
+            if(!tokens.NextIs<TokenNumberLiteral>())
+            {
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z));
+                return;
+            }
+
+            float volume = tokens.Next<TokenNumberLiteral>().GetNumber();
+
+            if (!tokens.NextIs<TokenNumberLiteral>())
+            {
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, volume));
+                return;
+            }
+
+            float pitch = tokens.Next<TokenNumberLiteral>().GetNumber();
+
+            if (!tokens.NextIs<TokenNumberLiteral>())
+            {
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, volume, pitch));
+                return;
+            }
+
+            float minVolume = tokens.Next<TokenNumberLiteral>().GetNumber();
+            executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, volume, pitch, minVolume));
+            return;
+        }
+        public static void particle(Executor executor, Statement tokens)
+        {
+            string particleId = tokens.Next<TokenStringLiteral>();
+
+            if(tokens.NextIs<TokenCoordinateLiteral>())
+            {
+                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                executor.AddCommand(Command.Particle(particleId, x, y, z));
+                return;
+            }
+
+            executor.AddCommand(Command.Particle(particleId,
+                Coord.here, Coord.here, Coord.here));
+        }
+
         public static void execute(Executor executor, Statement tokens)
         {
             ExecuteBuilder builder = new ExecuteBuilder();
@@ -2248,7 +2313,6 @@ namespace mc_compiled.MCC.Compiler
                 executor.AppendCommandPrepend(finalExecute);
             }
         }
-
         public static void feature(Executor executor, Statement tokens)
         {
             string featureStr = tokens.Next<TokenIdentifier>().word.ToUpper();

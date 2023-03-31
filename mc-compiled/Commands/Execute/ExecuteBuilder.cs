@@ -17,6 +17,15 @@ namespace mc_compiled.Commands.Execute
         private readonly List<Subcommand> subcommands;
         
         /// <summary>
+        /// Create a deep copy of this ExecuteBuilder.
+        /// </summary>
+        /// <returns></returns>
+        public ExecuteBuilder Clone()
+        {
+            return new ExecuteBuilder().WithSubcommands(subcommands);
+        }
+
+        /// <summary>
         /// Adds the given subcommand to this ExecuteBuilder and returns this instance.
         /// </summary>
         /// <param name="subcommand">The subcommand to add.</param>

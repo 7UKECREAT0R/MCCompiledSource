@@ -52,7 +52,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a comment that was made using two slashes.
     /// </summary>
-    public sealed class TokenComment : Token
+    public sealed class TokenComment : Token, IInformationless
     {
         public readonly string contents;
 

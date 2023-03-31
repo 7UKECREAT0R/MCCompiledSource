@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mc_compiled.MCC.Compiler;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,8 +45,25 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Highlight stringColor = new Highlight(221, 179, 255, HighlightStyle.NONE);
         public static readonly Highlight selectorColor = new Highlight(192, 192, 192, HighlightStyle.NONE);
 
-        static Keyword[] KeywordsFromDirectives(IEnumerable<Compiler.Directive> directives) =>
-            directives.SelectMany(directive => directive.DictKeys.Select(key => new Keyword(key, directive.documentation))).ToArray();
+        static Keyword[] KeywordsFromDirectives(IEnumerable<Compiler.Directive> directives)
+        {
+            List<Keyword> keywords = new List<Keyword>();
+
+            foreach(Directive directive in directives)
+            {
+                string id = directive.identifier;
+                string docs = directive.documentation;
+                keywords.Add(new Keyword(id, docs));
+
+                if(directive.aliases != null && directive.aliases.Length > 0)
+                {
+                    docs = $"Alias of '{id}'. " + docs;
+                    keywords.AddRange(directive.aliases.Select(a => new Keyword(a, docs)));
+                }
+            }
+
+            return keywords.ToArray();
+        }
 
         public static readonly Keywords operators = new Keywords()
         {

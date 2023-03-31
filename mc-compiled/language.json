@@ -275,7 +275,7 @@
     },
     "mc": {
       "description": "Minecraft Command",
-      "aliases": [ "command" ],
+      "aliases": [ "command", "cmd" ],
       "details": "Places a plain command in the output file, used for when the language lacks a certain feature.",
       "patterns": [
         [ "string:command" ]
@@ -300,7 +300,6 @@
     },
     "define": {
       "description": "Define Variable",
-      "aliases": [ "def" ],
       "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
       "patterns": [
         [ "*:args" ]
@@ -487,6 +486,20 @@
         [ "selector:target", "enum:effect", "?int:seconds", "?int:amplifier", "?bool:hide" ]
       ]
     },
+    "playsound": {
+      "description": "Play Sound",
+      "details": "Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.",
+      "patterns": [
+        [ "string:sound", "?selector:filter", "?coord:x", "?coord:y", "?coord:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
+      ]
+    },
+    "particle": {
+      "description": "Spawn Particle",
+      "details": "Spawns a particle effect in the world.",
+      "patterns": [
+        [ "string:effect", "?coord:x", "?coord:y", "?coord:z" ]
+      ]
+    },
     "dummy": {
       "description": "Create/Remove Dummy Entity",
       "details": "Create a dummy entity, remove the selected ones, or manage the classes on the selected ones.",
@@ -522,7 +535,7 @@
     },
     "function": {
       "description": "Define Function",
-      "aliases": [ "fn", "func" ],
+      "aliases": [ "fn" ],
       "details": "Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: functionName(parameters)",
       "patterns": [
         [ "*:args" ]

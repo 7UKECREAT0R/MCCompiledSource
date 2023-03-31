@@ -195,22 +195,50 @@ namespace mc_compiled.Commands.Execute
     internal class ConditionalSubcommandScore : ConditionalSubcommand
     {
         internal bool comparesRange;
-        internal ScoreboardValue sourceValue;
+
+        internal string sourceSelector;
+        internal string sourceValue;
 
         // if comparesRange
         internal Range range;
 
         // if !comparesRange
         internal TokenCompare.Type comparisonType;
-        internal ScoreboardValue otherValue;
+        internal string otherSelector;
+        internal string otherValue;
 
         public ConditionalSubcommandScore() { }
         private ConditionalSubcommandScore(bool comparesRange, ScoreboardValue sourceValue, Range range, TokenCompare.Type comparisonType, ScoreboardValue otherValue)
         {
             this.comparesRange = comparesRange;
-            this.sourceValue = sourceValue;
+
+            this.sourceSelector = sourceValue.clarifier.CurrentString;
+            this.sourceValue = sourceValue.Name;
+
             this.range = range;
             this.comparisonType = comparisonType;
+
+            if (otherValue != null)
+            {
+                this.otherSelector = otherValue.clarifier.CurrentString;
+                this.otherValue = otherValue.Name;
+            } else
+            {
+                this.otherSelector = null;
+                this.otherValue = null;
+            }
+        }
+        private ConditionalSubcommandScore(bool comparesRange, string sourceSelector, string sourceValue, Range range, TokenCompare.Type comparisonType, string otherSelector, string otherValue)
+        {
+            this.comparesRange = comparesRange;
+
+            this.sourceSelector = sourceSelector;
+            this.sourceValue = sourceValue;
+
+            this.range = range;
+            this.comparisonType = comparisonType;
+
+            this.otherSelector = otherSelector;
             this.otherValue = otherValue;
         }
 
@@ -234,6 +262,27 @@ namespace mc_compiled.Commands.Execute
         internal static ConditionalSubcommandScore New(ScoreboardValue source, TokenCompare.Type type, ScoreboardValue other)
         {
             return new ConditionalSubcommandScore(false, source, Range.zero, type, other);
+        }
+        /// <summary>
+        /// Create a ConditionalSubcommandScore that compares a scoreboard value with a range.
+        /// </summary>
+        /// <param name="source">The first value.</param>
+        /// <param name="range">The range to compare against.</param>
+        /// <returns></returns>
+        internal static ConditionalSubcommandScore New(string selector, string objective, Range range)
+        {
+            return new ConditionalSubcommandScore(true, selector, objective, range, 0, null, null);
+        }
+        /// <summary>
+        /// Create a ConditionalSubcommandScore that compares a scoreboard value with another scoreboard value.
+        /// </summary>
+        /// <param name="source">The first value.</param>
+        /// <param name="type">The comparison type/operator used.</param>
+        /// <param name="other">The other value.</param>
+        /// <returns></returns>
+        internal static ConditionalSubcommandScore New(string sourceSelector, string sourceObjective, TokenCompare.Type type, string otherSelector, string otherObjective)
+        {
+            return new ConditionalSubcommandScore(false, sourceSelector, sourceObjective, Range.zero, type, otherSelector, otherObjective);
         }
 
         public override TypePattern[] Pattern => new TypePattern[]
@@ -274,13 +323,10 @@ namespace mc_compiled.Commands.Execute
         public override string ToMinecraft()
         {
             if (this.comparesRange)
-                return $"score {sourceValue.clarifier.CurrentString} {sourceValue.Name} matches {range.ToString()}";
+                return $"score {sourceSelector} {sourceValue} matches {range.ToString()}";
 
-            string selectorA = sourceValue.clarifier.CurrentString;
-            string selectorB = otherValue.clarifier.CurrentString;
             string operatorString = TokenCompare.GetMinecraftOperator(comparisonType);
-
-            return $"score {selectorA} {sourceValue.Name} {operatorString} {selectorB} {otherValue.Name}";
+            return $"score {sourceSelector} {sourceValue} {operatorString} {otherSelector} {otherValue}";
         }
     }
 }

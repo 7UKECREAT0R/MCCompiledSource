@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using System;
 using System.Collections.Generic;
@@ -153,26 +154,20 @@ namespace mc_compiled.Json
         }
 
         /// <summary>
-        /// Add a check to a selector that's needed to check for the A terms being chosen.
+        /// Add a check to an execute chain that's needed to check for the A terms being chosen.
         /// </summary>
         /// <returns></returns>
-        public Selector ConstructSelectorA(Selector existing)
+        public Subcommand ConstructSubcommandA()
         {
-            Selector copy = new Selector(existing);
-            copy.scores.checks.Add(new ScoresEntry(objective, condition));
-            return copy;
+            return new SubcommandIf(ConditionalSubcommandScore.New(selector, objective, condition));
         }
         /// <summary>
-        /// Add a check to a selector that's needed to check for the B terms being chosen.
+        /// Add a check to an execute chain that's needed to check for the B terms being chosen.
         /// </summary>
         /// <returns></returns>
-        public Selector ConstructSelectorB(Selector existing)
+        public Subcommand ConstructSubcommandB()
         {
-            Selector copy = new Selector(existing);
-            Range inverse = condition;
-            inverse.invert = !inverse.invert;
-            copy.scores.checks.Add(new ScoresEntry(objective, inverse));
-            return copy;
+            return new SubcommandUnless(ConditionalSubcommandScore.New(selector, objective, condition));
         }
     }
 }
