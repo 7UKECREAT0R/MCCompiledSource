@@ -145,20 +145,24 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// I wrote this a while ago, and to be honest, I have no
-        /// idea what it does or is supposed to do, except that it works.
+        /// Define all of the given non-null scoreboard values if they haven't already. Place in the 'init' file.
         /// </summary>
-        /// <param name="value">The value</param>
-        /// <param name="commands">The commands</param>
-        public void AddToStringScoreboards(ScoreboardValue value, params ScoreboardValue[] commands)
+        /// <param name="values">The values to define.</param>
+        public void DefineMany(params ScoreboardValue[] values)
         {
-            string name = value.Name;
+            foreach(ScoreboardValue value in values)
+            {
+                if (value == null)
+                    continue;
 
-            if (temps.DefinedTemps.Contains(name))
-                return;
+                string name = value.Name;
 
-            executor.AddCommandsInit(commands.SelectMany(sb => sb.CommandsDefine()));
-            temps.DefinedTemps.Add(name);
+                if (temps.DefinedTemps.Contains(name))
+                    continue;
+
+                temps.DefinedTemps.Add(name);
+                executor.AddCommandsInit(value.CommandsDefine());
+            }
         }
 
         /// <summary>

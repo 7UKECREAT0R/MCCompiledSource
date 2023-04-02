@@ -712,7 +712,7 @@ namespace mc_compiled.MCC.Compiler
             string output = tokens.Next<TokenIdentifier>().word;
 
             string input;
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
                 input = tokens.Next<TokenIdentifier>().word;
             else
                 input = output;
@@ -744,7 +744,7 @@ namespace mc_compiled.MCC.Compiler
             string output = tokens.Next<TokenIdentifier>().word;
 
             string input;
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
                 input = tokens.Next<TokenIdentifier>().word;
             else
                 input = output;
@@ -767,7 +767,7 @@ namespace mc_compiled.MCC.Compiler
             string output = tokens.Next<TokenIdentifier>().word;
 
             string input;
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
                 input = tokens.Next<TokenIdentifier>().word;
             else
                 input = output;
@@ -790,7 +790,7 @@ namespace mc_compiled.MCC.Compiler
             string output = tokens.Next<TokenIdentifier>().word;
 
             string input;
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
                 input = tokens.Next<TokenIdentifier>().word;
             else
                 input = output;
@@ -817,7 +817,7 @@ namespace mc_compiled.MCC.Compiler
             string output = tokens.Next<TokenIdentifier>().word;
 
             string input;
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
                 input = tokens.Next<TokenIdentifier>().word;
             else
                 input = output;
@@ -859,7 +859,7 @@ namespace mc_compiled.MCC.Compiler
             string output = tokens.Next<TokenIdentifier>().word;
 
             string input;
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
                 input = tokens.Next<TokenIdentifier>().word;
             else
                 input = output;
@@ -1094,7 +1094,7 @@ namespace mc_compiled.MCC.Compiler
             string[] commands;
 
             if (advanced)
-                commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("tellraw @s "));
+                commands = executor.ResolveRawText(terms, "tellraw @s ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
             else
                 commands = executor.ResolveRawText(terms, "tellraw @a ");
 
@@ -1663,7 +1663,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void globaltitle(Executor executor, Statement tokens)
         {
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
                 if (word.Equals("TIMES"))
@@ -1681,7 +1681,7 @@ namespace mc_compiled.MCC.Compiler
                     string[] commands;
 
                     if (advanced)
-                        commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("titleraw @s subtitle "));
+                        commands = executor.ResolveRawText(terms, "titleraw @s subtitle ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
                     else
                         commands = executor.ResolveRawText(terms, "titleraw @a subtitle ");
 
@@ -1699,7 +1699,7 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("title @s title "));
+                    commands = executor.ResolveRawText(terms, "title @s title ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a title ");
 
@@ -1716,7 +1716,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 player = Selector.SELF;
 
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
                 if (word.Equals("TIMES"))
@@ -1774,7 +1774,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void globalactionbar(Executor executor, Statement tokens)
         {
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
                 int fadeIn = tokens.Next<TokenIntegerLiteral>();
@@ -1790,7 +1790,7 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = executor.ResolveRawText(terms, Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().Run("titleraw @s actionbar "));
+                    commands = executor.ResolveRawText(terms, "titleraw @s actionbar ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a actionbar ");
 
@@ -2259,7 +2259,8 @@ namespace mc_compiled.MCC.Compiler
 
                 // add to builder
                 builder.WithSubcommand(subcommand);
-            } while(tokens.NextIs<TokenIdentifier>());
+
+            } while(tokens.NextIs<TokenIdentifier>(false));
 
             // --- find statement or code-block nabbed from Comparison::Run ---
 
@@ -2353,7 +2354,7 @@ namespace mc_compiled.MCC.Compiler
             bool hasBegunOptionals = false;
 
             // this is where the directive takes in function parameters
-            while (tokens.HasNext && tokens.NextIs<TokenIdentifier>())
+            while (tokens.HasNext && tokens.NextIs<TokenIdentifier>(false))
             {
                 // fetch a parameter definition
                 var def = executor.scoreboard.GetNextValueDefinition(tokens);
@@ -2438,7 +2439,7 @@ namespace mc_compiled.MCC.Compiler
                   y = Coord.here,
                   z = Coord.here;
 
-            if(tokens.NextIs<TokenIdentifier>())
+            if(tokens.NextIs<TokenIdentifier>(false))
             {
                 string identifier = tokens.Next<TokenIdentifier>().word;
 

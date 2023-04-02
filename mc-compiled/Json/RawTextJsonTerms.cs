@@ -1,6 +1,7 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
+using mc_compiled.MCC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,6 +52,11 @@ namespace mc_compiled.Json
             this.selector = EscapeString(selector);
             this.objective = EscapeString(objective);
         }
+        public JSONScore(ScoreboardValue objective)
+        {
+            this.selector = EscapeString(objective.clarifier.CurrentString);
+            this.objective = EscapeString(objective.Name);
+        }
         public override string GetString()
         {
             return $@"{{""score"": {{""name"":""{selector}"", ""objective"": ""{objective}""}}}}";
@@ -59,16 +65,6 @@ namespace mc_compiled.Json
         {
             return "[SCORE " + objective + " OF " + selector + ']';
         }
-
-        /// <summary>
-        /// Create a JSONVariant that will evaluate to two possible outcomes based on comparing this objective.
-        /// </summary>
-        /// <param name="a">The value which will be chosen if the condition evaluates to True.</param>
-        /// <param name="condition">The condition to check on this objective.</param>
-        /// <param name="b">The value which will be chosen if the condition evaluates to False.</param>
-        /// <returns></returns>
-        public JSONVariant CreateVariant(JSONRawTerm[] a, Range condition, JSONRawTerm[] b) =>
-            new JSONVariant(a, selector, objective, condition, b);
     }
     /// <summary>
     /// Represents an entity's name based off of a selector.
@@ -125,49 +121,41 @@ namespace mc_compiled.Json
         }
     }
     /// <summary>
-    /// A term which can convert to two possible outcomes depending on the evaluation of a range.
-    /// Use JSONScore::CreateVariant to create one properly.
+    /// A term which can convert to multiple possible outcomes depending on the evaluation 
     /// </summary>
     public class JSONVariant : JSONRawTerm
     {
-        public readonly string selector;
-        public readonly string objective;
-        public readonly Range condition;
-        public readonly JSONRawTerm[] a, b;
-        
-        public JSONVariant(JSONRawTerm[] a, string selector, string objective, Range condition, JSONRawTerm[] b)
+        public readonly List<ConditionalTerm> terms;
+
+        public JSONVariant(params ConditionalTerm[] terms)
         {
-            this.selector = EscapeString(selector);
-            this.objective = EscapeString(objective);
-            this.condition = condition;
-            this.a = a;
-            this.b = b;
+            this.terms = new List<ConditionalTerm>(terms);
+        }
+        public JSONVariant(IEnumerable<ConditionalTerm> terms)
+        {
+            this.terms = new List<ConditionalTerm>(terms);
         }
         public override string GetString()
         {
             // not supposed to get string'd
-            return $@"{{""text"": ""{{variant: {objective}?}}""}}";
+            return "{variant}";
         }
         public override string PreviewString()
         {
-            return $"{{variant: {objective}?}}";
+            return "{variant}";
         }
+    }
+    public class ConditionalTerm
+    {
+        internal readonly JSONRawTerm term;
+        internal readonly ConditionalSubcommand condition;
+        internal readonly bool invert;
 
-        /// <summary>
-        /// Add a check to an execute chain that's needed to check for the A terms being chosen.
-        /// </summary>
-        /// <returns></returns>
-        public Subcommand ConstructSubcommandA()
+        internal ConditionalTerm(JSONRawTerm term, ConditionalSubcommand condition, bool invert)
         {
-            return new SubcommandIf(ConditionalSubcommandScore.New(selector, objective, condition));
-        }
-        /// <summary>
-        /// Add a check to an execute chain that's needed to check for the B terms being chosen.
-        /// </summary>
-        /// <returns></returns>
-        public Subcommand ConstructSubcommandB()
-        {
-            return new SubcommandUnless(ConditionalSubcommandScore.New(selector, objective, condition));
+            this.term = term;
+            this.condition = condition;
+            this.invert = invert;
         }
     }
 }

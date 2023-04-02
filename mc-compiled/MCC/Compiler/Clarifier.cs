@@ -57,6 +57,12 @@ namespace mc_compiled.MCC.Compiler
             this.Reset();
             return this;
         }
+        public Clarifier CopyFrom(Clarifier other)
+        {
+            this.global = other.global;
+            this.currentString = other.currentString;
+            return this;
+        }
 
         /// <summary>
         /// The string representing the current clarifier.<br />

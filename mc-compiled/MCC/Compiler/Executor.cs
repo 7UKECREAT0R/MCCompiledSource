@@ -334,18 +334,22 @@ namespace mc_compiled.MCC.Compiler
             for(int i = 0; i < terms.Count; i++)
             {
                 JSONRawTerm term = terms[i];
-                if (term is JSONVariant)
+                if (term is JSONVariant variant)
                 {
-                    // calculate both variants
-                    JSONVariant variant = term as JSONVariant;
-                    ExecuteBuilder branchA = builder.Clone().WithSubcommand(variant.ConstructSubcommandA());
-                    ExecuteBuilder branchB = builder.Clone().WithSubcommand(variant.ConstructSubcommandB());
-                    List<JSONRawTerm> restA = terms.Skip(i + 1).ToList();
-                    List<JSONRawTerm> restB = terms.Skip(i + 1).ToList();
-                    restA.InsertRange(0, variant.a);
-                    restB.InsertRange(0, variant.b);
-                    ResolveRawText(restA, command, false, branchA, commands, jb);
-                    ResolveRawText(restB, command, false, branchB, commands, jb);
+                    // calculate all variants
+                    foreach(ConditionalTerm possibleVariant in variant.terms)
+                    {
+                        Subcommand subcommand;
+                        if (possibleVariant.invert)
+                            subcommand = new SubcommandUnless(possibleVariant.condition);
+                        else
+                            subcommand = new SubcommandIf(possibleVariant.condition);
+
+                        ExecuteBuilder branch = builder.Clone().WithSubcommand(subcommand);
+                        List<JSONRawTerm> rest = terms.Skip(i + 1).ToList();
+                        rest.Insert(0, possibleVariant.term);
+                        ResolveRawText(rest, command, false, branch, commands, jb);
+                    }
                     break;
                 }
                 else
@@ -635,6 +639,9 @@ namespace mc_compiled.MCC.Compiler
         {
             ppv["minecraftversion"] = new dynamic[] { MINECRAFT_VERSION };
             ppv["compilerversion"] = new dynamic[] { MCC_VERSION };
+            ppv["_realtime"] = new dynamic[] { DateTime.Now.ToShortTimeString() };
+            ppv["_realdate"] = new dynamic[] { DateTime.Now.ToShortDateString() };
+            ppv["_timeformat"] = new dynamic[] { TimeFormat.Default.ToString() };
             ppv["_true"] = new dynamic[] { "true" };
             ppv["_false"] = new dynamic[] { "false" };
         }

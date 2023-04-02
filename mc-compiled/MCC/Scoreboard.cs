@@ -1,4 +1,5 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Attributes;
@@ -625,59 +626,222 @@ namespace mc_compiled.MCC
     }
     public sealed class ScoreboardValueTime : ScoreboardValueInteger
     {
-        public const string SB_MINUTES = "_mcc_t_mins";
-        public const string SB_SECONDS = "_mcc_t_secs";
+        public const string SB_HOURS = "_mcc_t_hrs";
+        public const string SB_MINUTES = "_mcc_t_min";
+        public const string SB_SECONDS = "_mcc_t_sec";
         public const string SB_TEMP = "_mcc_t_temp";
         public const string SB_CONST = "_mcc_t_const";
         public ScoreboardValueTime(string name, bool global, ScoreboardManager manager) :
             base(name, global, manager, ScoreboardManager.ValueType.TIME) { }
 
+        TimeFormat format;
+
         public override string GetTypeKeyword() => "time";
         public override string[] CommandsRawTextSetup(ref int index)
         {
-            string _minutes = SB_MINUTES + index;
-            string _seconds = SB_SECONDS + index;
+            string timeFormatString = manager.executor.ppv["_timeformat"][0] as string;
+            format = TimeFormat.Parse(timeFormatString);
+
             string _temporary = SB_TEMP + index;
             string _constant = SB_CONST + index;
 
-            ScoreboardValue minutes = new ScoreboardValueInteger(_minutes, false, manager);
-            ScoreboardValue seconds = new ScoreboardValueInteger(_seconds, false, manager);
-            ScoreboardValue temporary = new ScoreboardValueInteger(_temporary, false, manager);
-            ScoreboardValue constant = new ScoreboardValueInteger(_constant, false, manager);
+            ScoreboardValue
+                hours = null,
+                minutes = null,
+                seconds = null;
 
-            manager.AddToStringScoreboards(this,
-                minutes, seconds, temporary, constant);
+            if (format.HasOption(TimeOption.h))
+            {
+                string _hours = SB_HOURS + index;
+                hours = new ScoreboardValueInteger(_hours, false, manager);
+                hours.clarifier.CopyFrom(clarifier);
+            }
+            if (format.HasOption(TimeOption.m))
+            {
+                string _minutes = SB_MINUTES + index;
+                minutes = new ScoreboardValueInteger(_minutes, false, manager);
+                minutes.clarifier.CopyFrom(clarifier);
+            }
+            if (format.HasOption(TimeOption.s))
+            {
+                string _seconds = SB_SECONDS + index;
+                seconds = new ScoreboardValueInteger(_seconds, false, manager);
+                seconds.clarifier.CopyFrom(clarifier);
+            }
 
-            return new string[]
+            ScoreboardValue temporary = new ScoreboardValueInteger(_temporary, true, manager);
+            ScoreboardValue constant = new ScoreboardValueInteger(_constant, true, manager);
+
+            manager.DefineMany(hours, minutes, seconds, temporary, constant);
+
+            List<string> commands = new List<string>()
             {
                 Command.ScoreboardSet(constant, 20),
                 Command.ScoreboardOpSet(temporary, this),
                 Command.ScoreboardOpDiv(temporary, constant),
-                Command.ScoreboardOpSet(seconds, temporary),
-                Command.ScoreboardSet(constant, 60),
-                Command.ScoreboardOpDiv(temporary, constant),
-                Command.ScoreboardOpSet(minutes, temporary),
-                Command.ScoreboardOpMul(temporary, constant),
-                Command.ScoreboardOpSub(seconds, temporary)
+                Command.ScoreboardSet(constant, 60)
             };
+
+            if(seconds != null)
+            {
+                commands.Add(Command.ScoreboardOpSet(seconds, temporary));
+            }
+
+            if (minutes != null)
+            {
+                commands.Add(Command.ScoreboardOpDiv(temporary, constant));
+                commands.Add(Command.ScoreboardOpSet(minutes, temporary));
+
+                if (seconds != null)
+                {
+                    commands.Add(Command.ScoreboardOpMul(temporary, constant));
+                    commands.Add(Command.ScoreboardOpSub(seconds, temporary));
+                    commands.Add(Command.ScoreboardOpDiv(temporary, constant));
+                }
+            }
+
+            if (hours != null)
+            {
+                commands.Add(Command.ScoreboardOpDiv(temporary, constant));
+
+                if (minutes == null)
+                    commands.Add(Command.ScoreboardOpDiv(temporary, constant));
+
+                commands.Add(Command.ScoreboardOpSet(hours, temporary));
+
+                if (minutes != null)
+                {
+                    commands.Add(Command.ScoreboardOpMul(temporary, constant));
+                    commands.Add(Command.ScoreboardOpSub(minutes, temporary));
+                }
+            }
+
+            return commands.ToArray();
         }
         public override JSONRawTerm[] ToRawText(ref int index)
         {
+            string hours = SB_HOURS + index;
             string minutes = SB_MINUTES + index;
             string seconds = SB_SECONDS + index;
 
-            return new JSONRawTerm[]
+            List<JSONRawTerm> terms = new List<JSONRawTerm>();
+
+            bool hasHours = format.HasOption(TimeOption.h),
+               hasMinutes = format.HasOption(TimeOption.m),
+               hasSeconds = format.HasOption(TimeOption.s);
+
+            int IntPow(int integer, int exponent)
             {
-                new JSONScore(clarifier.CurrentString, minutes),
+                if (integer == 0)
+                    return 0;
+                if (exponent < 1)
+                    return integer;
 
-                // append an extra 0 if its a single number.
-                new JSONScore(clarifier.CurrentString, seconds).CreateVariant(
-                    new[] { new JSONText(":0") },
-                    new Range(0, 9),
-                    new[] { new JSONText(":") }),
+                int accumulator = integer;
 
-                new JSONScore(clarifier.CurrentString, seconds)
-            };
+                for(int i = 1; i < exponent; i++)
+                    accumulator *= integer;
+
+                return accumulator;
+            }
+
+            List<ConditionalTerm> buffer = new List<ConditionalTerm>();
+            StringBuilder textBuffer = new StringBuilder();
+
+            if (hasHours)
+            {
+                if(format.minimumHours > 1)
+                {
+                    int bound = IntPow(10, format.minimumHours - 1);
+                    int? previousBound = null;
+
+                    for (int digits = 0; digits < format.minimumHours; digits++)
+                    {
+                        buffer.Add(new ConditionalTerm(new JSONText(textBuffer.ToString()), ConditionalSubcommandScore.New(clarifier.CurrentString, hours, new Range(bound, previousBound)), false));
+
+                        textBuffer.Append('0');
+                        previousBound = bound - 1;
+                        bound /= 10; // remove 1 digit
+
+                        if (bound == 1)
+                            bound = 0;
+                    }
+
+                    terms.Add(new JSONVariant(buffer));
+                }
+
+                terms.Add(new JSONScore(clarifier.CurrentString, hours));
+            }
+
+            if(hasMinutes)
+            {
+                if (format.minimumMinutes > 1)
+                {
+                    buffer.Clear();
+                    textBuffer.Clear();
+                    if (hasHours)
+                        textBuffer.Append(':');
+
+                    int bound = IntPow(10, format.minimumMinutes - 1);
+                    int? previousBound = null;
+
+                    for (int digits = 0; digits < format.minimumMinutes; digits++)
+                    {
+                        buffer.Add(new ConditionalTerm(new JSONText(textBuffer.ToString()), ConditionalSubcommandScore.New(clarifier.CurrentString, minutes, new Range(bound, previousBound)), false));
+
+                        textBuffer.Append('0');
+                        previousBound = bound - 1;
+                        bound /= 10; // remove 1 digit
+
+                        if (bound == 1)
+                            bound = 0;
+                    }
+
+                    terms.Add(new JSONVariant(buffer));
+                }
+                else if (hasHours)
+                {
+                    terms.Add(new JSONText(":"));
+                }
+
+                terms.Add(new JSONScore(clarifier.CurrentString, minutes));
+            }
+
+            if(hasSeconds)
+            {
+                if (format.minimumSeconds > 1)
+                {
+                    buffer.Clear();
+                    textBuffer.Clear();
+                    if (hasMinutes)
+                        textBuffer.Append(':');
+
+                    int bound = IntPow(10, format.minimumSeconds - 1);
+                    int? previousBound = null;
+
+                    for (int digits = 0; digits < format.minimumSeconds; digits++)
+                    {
+                        buffer.Add(new ConditionalTerm(new JSONText(textBuffer.ToString()), ConditionalSubcommandScore.New(clarifier.CurrentString, seconds, new Range(bound, previousBound)), false));
+
+                        textBuffer.Append('0');
+                        previousBound = bound - 1;
+                        bound /= 10; // remove 1 digit
+
+                        if (bound == 1)
+                            bound = 0;
+                    }
+
+                    terms.Add(new JSONVariant(buffer));
+                }
+                else if(hasMinutes)
+                {
+                    terms.Add(new JSONText(":"));
+                }
+
+                terms.Add(new JSONScore(clarifier.CurrentString, seconds));
+            }
+
+            return terms.ToArray();
         }
 
         public override int GetMaxNameLength() =>
@@ -899,11 +1063,13 @@ namespace mc_compiled.MCC
 
             var whole = new ScoreboardValueInteger(_whole, false, manager);
             var part = new ScoreboardValueInteger(_part, false, manager);
-            var temporary = new ScoreboardValueInteger(_temporary, false, manager);
-            var tempBase = new ScoreboardValueInteger(_tempBase, false, manager);
+            var temporary = new ScoreboardValueInteger(_temporary, true, manager);
+            var tempBase = new ScoreboardValueInteger(_tempBase, true, manager);
 
-            manager.AddToStringScoreboards(this,
-                whole, part, temporary, tempBase);
+            whole.clarifier.CopyFrom(clarifier);
+            part.clarifier.CopyFrom(clarifier);
+
+            manager.DefineMany(whole, part, temporary, tempBase);
 
             return new string[]
             {
@@ -1302,12 +1468,14 @@ namespace mc_compiled.MCC
             manager.executor.TryGetPPV("_true", out dynamic[] trueValues);
             manager.executor.TryGetPPV("_false", out dynamic[] falseValues);
 
+            Range check = new Range(1, false);
+
             return new JSONRawTerm[]
             {
-                new JSONScore(clarifier.CurrentString, Name).CreateVariant(
-                    new[] { new JSONText(trueValues[0].ToString()) },
-                    new Range(1, false),
-                    new[] { new JSONText(falseValues[0].ToString()) }
+
+                new JSONVariant(
+                    new ConditionalTerm(new JSONText(trueValues[0]), ConditionalSubcommandScore.New(this, check), false),
+                    new ConditionalTerm(new JSONText(falseValues[0]), ConditionalSubcommandScore.New(this, check), true)
                 )
             };
         }
