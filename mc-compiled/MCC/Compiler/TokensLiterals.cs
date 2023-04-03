@@ -256,11 +256,12 @@ namespace mc_compiled.MCC.Compiler
         public override ScoreboardManager.ValueType GetScoreboardValueType() =>
             ScoreboardManager.ValueType.INT;
     }
-    public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken, IIndexable
+    public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken, IIndexable, IDocumented
     {
         public readonly string text;
 
         public override string AsString() => '"' + text + '"';
+        internal TokenStringLiteral() : base(-1) { }
         public TokenStringLiteral(string text, int lineNumber) : base(lineNumber)
         {
             this.text = text;
@@ -452,11 +453,14 @@ namespace mc_compiled.MCC.Compiler
 
             throw indexer.GetException(this, forExceptions);
         }
+
+        public string GetDocumentation() => "A block of text on a single line, surrounded with either 'single quotes' or \"double quotes.\"";
     }
-    public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor
+    public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor, IDocumented
     {
         public readonly bool boolean;
         public override string AsString() => boolean.ToString();
+        internal TokenBooleanLiteral() : base(-1) { }
         public TokenBooleanLiteral(bool boolean, int lineNumber) : base(lineNumber)
         {
             this.boolean = boolean;
@@ -498,13 +502,16 @@ namespace mc_compiled.MCC.Compiler
         {
             throw new NotImplementedException("Cannot compare boolean to another type.");
         }
+
+        public string GetDocumentation() => "A value that can be either 'true' or 'false.'";
     }
 
-    public class TokenCoordinateLiteral : TokenNumberLiteral
+    public class TokenCoordinateLiteral : TokenNumberLiteral, IDocumented
     {
         public readonly Coord coordinate;
         public override string AsString() => coordinate.ToString();
         public override string ToString() => coordinate.ToString();
+        internal TokenCoordinateLiteral() : base(-1) { }
         public TokenCoordinateLiteral(Coord coordinate, int lineNumber) : base(lineNumber)
         {
             this.coordinate = coordinate;
@@ -618,6 +625,8 @@ namespace mc_compiled.MCC.Compiler
                     throw new Exception("Unknown comparison type: " + cType);
             }
         }
+
+        public string GetDocumentation() => "A Minecraft coordinate value that can optionally be both relative and facing offset, like ~10, 40, or ^5.";
     }
     public enum IntMultiplier : int
     {
@@ -626,7 +635,7 @@ namespace mc_compiled.MCC.Compiler
         m = 1200,
         h = 72000
     }
-    public class TokenIntegerLiteral : TokenCoordinateLiteral
+    public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
     {
         public static IntMultiplier[] ALL_MULTIPLIERS = (IntMultiplier[])Enum.GetValues(typeof(IntMultiplier));
 
@@ -659,6 +668,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public override string AsString() => number.ToString();
+        public TokenIntegerLiteral() : base() { }
         public TokenIntegerLiteral(int number, IntMultiplier multiplier, int lineNumber) :
             base(new Coord(number, false, false, false), lineNumber)
         {
@@ -754,12 +764,15 @@ namespace mc_compiled.MCC.Compiler
 
             throw new TokenException(this, "Invalid literal operation.");
         }
+
+        public new string GetDocumentation() => "Any integral number, like 5, 10, 5291, or -40. Use time suffixes to scale the integer accordingly, like with 4s -> 80.";
     }
-    public sealed class TokenRangeLiteral : TokenLiteral, IPreprocessor, IIndexable
+    public sealed class TokenRangeLiteral : TokenLiteral, IPreprocessor, IIndexable, IDocumented
     {
         public Range range;
         public override string AsString() => range.ToString();
         public override string ToString() => range.ToString();
+        internal TokenRangeLiteral() : base(-1) { }
         public TokenRangeLiteral(Range range, int lineNumber) : base(lineNumber)
         {
             this.range = range;
@@ -950,6 +963,8 @@ namespace mc_compiled.MCC.Compiler
 
             throw indexer.GetException(this, forExceptions);
         }
+
+        public string GetDocumentation() => "A Minecraft number that specifies a range of integers (inclusive). Omitting a number from one side makes the number unbounded. 4.. means four and up. 1..5 means one through five.";
     }
     public sealed class TokenDecimalLiteral : TokenCoordinateLiteral
     {
@@ -1028,12 +1043,13 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// A selector.
     /// </summary>
-    public class TokenSelectorLiteral : TokenLiteral, IPreprocessor
+    public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
     {
         public readonly bool simple;
         public readonly Selector selector;
 
         public override string AsString() => selector.ToString();
+        internal TokenSelectorLiteral() : base(-1) { }
         public TokenSelectorLiteral(Selector selector, int lineNumber) : base(lineNumber)
         {
             simple = false;
@@ -1082,11 +1098,13 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public object GetValue() => selector;
+
+        public string GetDocumentation() => "A Minecraft selector that targets a specific entity or set of entities. Example: `@e[type=cow]`";
     }
     /// <summary>
     /// A literal holding a JSON value. Mostly used for indexing purposes.
     /// </summary>
-    public class TokenJSONLiteral : TokenLiteral, IPreprocessor, IIndexable
+    public class TokenJSONLiteral : TokenLiteral, IPreprocessor, IIndexable, IDocumented
     {
         public readonly JToken token;
 
@@ -1101,6 +1119,7 @@ namespace mc_compiled.MCC.Compiler
 
         public override string AsString() => token.ToString();
         public override string ToString() => token.ToString();
+        internal TokenJSONLiteral() : base(-1) { }
         public TokenJSONLiteral(JToken token, int lineNumber) : base(lineNumber)
         {
             this.token = token;
@@ -1178,5 +1197,7 @@ namespace mc_compiled.MCC.Compiler
 
             throw indexer.GetException(this, forExceptions);
         }
+
+        public string GetDocumentation() => "A JSON object achieved by $dereferencing a preprocessor variable holding one.";
     }
 }

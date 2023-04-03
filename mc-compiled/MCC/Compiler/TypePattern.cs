@@ -29,6 +29,12 @@ namespace mc_compiled.MCC.Compiler
         {
             pattern = new List<MultiType>();
         }
+
+        public int Count
+        {
+            get => pattern.Count;
+        }
+
         public TypePattern And(NamedType type, string argName)
         {
             pattern.Add(new MultiType(false, argName, type));
@@ -128,6 +134,15 @@ namespace mc_compiled.MCC.Compiler
                     return new MatchResult(false, (patternCount - missing) / (float)patternCount, new[] { mtt });
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns this TypePattern converted to a markdown string controlling how it will look on the Wiki Cheatsheet. 
+        /// </summary>
+        /// <returns></returns>
+        public string ToMarkdownDocumentation()
+        {
+            return '`' + string.Join("` `", pattern.Select(multitype => multitype.ToString())) + '`';
         }
     }
     /// <summary>
@@ -233,14 +248,14 @@ namespace mc_compiled.MCC.Compiler
             return false;
         }
 
+        /// <summary>
+        /// Displays this multitype as a parameter string.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             char bOpen = optional ? '[' : '<';
             char bClose = optional ? ']' : '>';
-
-            if (this.types.Length > 1)
-                return bOpen + string.Join("/", this.types.Select(t => t.name)) + ": " + this.argName + bClose;
-
             return bOpen + this.types[0].name + ": " + this.argName + bClose;
         }
     }

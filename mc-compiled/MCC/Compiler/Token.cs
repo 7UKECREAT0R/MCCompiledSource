@@ -70,6 +70,14 @@ namespace mc_compiled.MCC.Compiler
         Token Convert(Executor executor, int index);
     }
     /// <summary>
+    /// Decorates a token so that it can contain user-friendly documentation on how to input it in the language.
+    /// This documentation should be shown only when used in language.json type mapping.
+    /// </summary>
+    public interface IDocumented
+    {
+        string GetDocumentation();
+    }
+    /// <summary>
     /// Indicates that a token had some kind of unknown error.
     /// </summary>
     public class TokenException : Exception

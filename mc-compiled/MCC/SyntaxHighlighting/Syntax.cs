@@ -1,5 +1,6 @@
 ﻿using mc_compiled.MCC.Compiler;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,8 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         {
             { "udl2", new UDL2() },
             { "monarch", new Monarch() },
-            { "raw", new RawSyntax() }
+            { "raw", new RawSyntax() },
+            { "markdown", new Markdown() }
         };
 
         public const string bracketOpen = "[";
@@ -64,6 +66,9 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 
             return keywords.ToArray();
         }
+
+        internal static Dictionary<string, string> categories; // set when processing language.json
+        internal static Dictionary<string, NamedType> mappings; // set when processing language.json
 
         public static readonly Keywords operators = new Keywords()
         {
@@ -140,8 +145,8 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("dummies", "Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world."),
                 new Keyword("gametest", "Feature: Gametest Integration (not implemented)"),
                 new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
-                new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc. made by this project."),
-                new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
+                new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc., made by this project."),
+                //new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
                 
                 // directions
                 new Keyword("up", "Used with the 'move' command. Goes up relative to where the entity is looking."),
@@ -214,7 +219,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         internal readonly string multilineOpen;
         internal readonly string multilineClose;
 
-        public Comments(string lineComment, string multilineOpen, string multilineClose, Highlight style)
+        internal Comments(string lineComment, string multilineOpen, string multilineClose, Highlight style)
         {
             this.lineComment = lineComment;
             this.multilineOpen = multilineOpen;

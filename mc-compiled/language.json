@@ -49,7 +49,6 @@
     "value": "TokenIdentifierValue",
     "coord": "TokenCoordinateLiteral",
     "enum": "TokenIdentifierEnum",
-    "dots": "TokenRangeDots",
     "range": "TokenRangeLiteral",
     "json": "TokenJSONLiteral"
   },
@@ -58,6 +57,7 @@
     "text": "Commands which display text to players through FStrings.",
     "entities": "Commands which manipulate, spawn, and transform entities in various ways.",
     "blocks": "Commands which interact with the Minecraft world's blocks.",
+    "items": "Commands relating to entity/player items and inventories.",
     "cosmetic": "Commands that add visual and auditory appeal to the user's code.",
     "values": "Commands tied directly to values. Values can be used in if-statements, FStrings, and many other places.",
     "logic": "Commands which handle logic and code flow. The butter for all the bread (code).",
@@ -361,10 +361,16 @@
     },
     "if": {
       "description": "If Statement",
-      "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by '&' symbols and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.",
+      "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.",
       "category": "logic",
       "patterns": [
-        [ "*:any" ]
+        [ "value:boolean" ],
+        [ "value:score", "compare:comparison", "value:other" ],
+        [ "selector:check for match" ],
+        [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
+        [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
+        [ "id:any", "selector:filter" ],
+        [ "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ]
       ]
     },
     "else": {
@@ -547,7 +553,7 @@
     },
     "effect": {
       "description": "Give Effect to Entity",
-      "details": "Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect <selector> clear'.",
+      "details": "Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect \\<selector\\> clear'.",
       "category": "entities",
       "patterns": [
         [ "selector:target", "id:clear" ],
@@ -627,7 +633,7 @@
     },
     "for": {
       "description": "For Each Entity",
-      "details": "Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to 'execute as <selector> at @s run <code>'",
+      "details": "Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to 'execute as \\<selector\\> at @s run \\<code\\>'",
       "category": "logic",
       "patterns": [
         [ "selector:entities" ]

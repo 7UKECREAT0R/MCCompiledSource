@@ -13,7 +13,7 @@ namespace mc_compiled.MCC
         /// <summary>
         /// All features available for enabling.
         /// </summary>
-        internal static Feature[] FEATURE_LIST = (Feature[])Enum.GetValues(typeof(Feature));
+        internal static IEnumerable<Feature> FEATURE_LIST = ((Feature[])Enum.GetValues(typeof(Feature))).Where(f => f != 0);
 
         /// <summary>
         /// Dictionary of features and their actions to perform on an executor when enabled.
@@ -34,7 +34,7 @@ namespace mc_compiled.MCC
                 }
             },
             {
-                Feature.EXPLODE, (executor) =>
+                Feature.EXPLODERS, (executor) =>
                 {
                     executor.entities.exploders.AddEntityToProject();
                 }

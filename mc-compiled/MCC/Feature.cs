@@ -13,7 +13,7 @@ namespace mc_compiled.MCC
 
         DUMMIES = 1 << 0,     // Dummy Entities
         GAMETEST = 1 << 1,  // GameTest Framework
-        EXPLODE = 1 << 2,   // Exploder Entities
+        EXPLODERS = 1 << 2,   // Exploder Entities
         UNINSTALL = 1 << 3, // Uninstall Script
     }
 }

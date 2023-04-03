@@ -143,6 +143,7 @@
     <Compile Include="MCC\Server\SocketMessage.cs" />
     <Compile Include="MCC\Server\WebSocketFrame.cs" />
     <Compile Include="MCC\Scheduling\TickScheduler.cs" />
+    <Compile Include="MCC\SyntaxHighlighting\Markdown.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Monarch.cs" />
     <Compile Include="MCC\SyntaxHighlighting\RawSyntax.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Syntax.cs" />

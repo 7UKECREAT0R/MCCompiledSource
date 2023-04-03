@@ -2019,7 +2019,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void explode(Executor executor, Statement tokens)
         {
-            executor.RequireFeature(tokens, Feature.EXPLODE);
+            executor.RequireFeature(tokens, Feature.EXPLODERS);
 
             Coord x, y, z;
 

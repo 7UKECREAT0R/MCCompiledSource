@@ -155,19 +155,22 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents an enum constant defined by the compiler.
     /// </summary>
-    public sealed class TokenIdentifierEnum : TokenIdentifier, IPreprocessor
+    public sealed class TokenIdentifierEnum : TokenIdentifier, IPreprocessor, IDocumented
     {
         public readonly Commands.ParsedEnumValue value;
+        internal TokenIdentifierEnum() : base(null, -1) { }
         public TokenIdentifierEnum(string word, Commands.ParsedEnumValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
         }
         public override string AsString() => value.value.ToString();
+
+        public string GetDocumentation() => "Usually a specific keyword in a subset of possible keywords. This type is entirely context dependent.";
     }
     /// <summary>
     /// Represents a reference to a scoreboard value.
     /// </summary>
-    public sealed class TokenIdentifierValue : TokenIdentifier, IIndexable
+    public sealed class TokenIdentifierValue : TokenIdentifier, IIndexable, IDocumented
     {
         /// <summary>
         /// The value this identifier references.
@@ -183,6 +186,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public string ClarifierStr { get => value.clarifier.CurrentString; }
 
+        internal TokenIdentifierValue() : base(null, -1) { } 
         public TokenIdentifierValue(string word, ScoreboardValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
@@ -207,6 +211,8 @@ namespace mc_compiled.MCC.Compiler
 
             throw indexer.GetException(this, forExceptions);
         }
+
+        public string GetDocumentation() => "The name of a runtime value that was defined using the `define` command.";
     }
     /// <summary>
     /// Represents a reference to a user-defined macro.

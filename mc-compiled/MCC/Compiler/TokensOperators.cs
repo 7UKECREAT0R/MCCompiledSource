@@ -225,7 +225,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a generic comparison operator.
     /// </summary>
-    public abstract class TokenCompare : TokenOperator
+    public abstract class TokenCompare : TokenOperator, IDocumented
     {
         public enum Type
         {
@@ -263,9 +263,13 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public override string AsString() => "<? compare>";
+
+        internal TokenCompare() : base(-1) { }
         public TokenCompare(int lineNumber) : base(lineNumber) { }
 
         public abstract Type GetCompareType();
+
+        public string GetDocumentation() => "Any comparison operator. Allowed values are: <, >, <=, >=, ==, !=";
     }
 
     /// <summary>

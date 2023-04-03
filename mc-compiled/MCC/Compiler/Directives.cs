@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using mc_compiled.MCC.SyntaxHighlighting;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -23,7 +25,7 @@ namespace mc_compiled.MCC.Compiler
 
 
         private static short nextIndex = 0;
-        public Directive(DirectiveImpl call, string identifier, string[] aliases, string description, string documentation, params TypePattern[] patterns)
+        public Directive(DirectiveImpl call, string identifier, string[] aliases, string description, string documentation, string category, params TypePattern[] patterns)
         {
             index = nextIndex++;
             this.call = call;
@@ -31,6 +33,7 @@ namespace mc_compiled.MCC.Compiler
             this.aliases = aliases;
             this.description = description;
             this.documentation = documentation;
+            this.category = category;
             this.patterns = patterns;
 
             // cache if this directive overlaps an enum
@@ -90,6 +93,7 @@ namespace mc_compiled.MCC.Compiler
         public readonly string[] aliases;
         public readonly string description;
         public readonly string documentation;
+        public readonly string category;
         public readonly DirectiveImpl call;
         public readonly TypePattern[] patterns;
         public DirectiveAttribute attributes;
@@ -368,13 +372,25 @@ namespace mc_compiled.MCC.Compiler
 
             // read type mappings
             Dictionary<string, NamedType> mappings = new Dictionary<string, NamedType>();
-            var properties = (root["mappings"] as JObject).Properties();
-            foreach (var field in (root["mappings"] as JObject).Properties())
+            var mappingsJSON = root["mappings"] as JObject;
+            var properties = mappingsJSON.Properties();
+            foreach (var field in mappingsJSON.Properties())
             {
                 string key = field.Name;
                 Type value = Type.GetType(IDENTIFIER_PREFIX + field.Value.ToString(), true, false);
                 mappings[key] = new NamedType(value, key);
             }
+            Syntax.mappings = mappings;
+
+            // read categories
+            Dictionary<string, string> categories = new Dictionary<string, string>();
+            foreach(var property in (root["categories"] as JObject))
+            {
+                string name = property.Key;
+                string description = property.Value.ToString();
+                categories[name] = description;
+            }
+            Syntax.categories = categories;
 
             // DirectiveImplementations type for looking up methods
             Type impls = typeof(DirectiveImplementations);
@@ -391,6 +407,7 @@ namespace mc_compiled.MCC.Compiler
                     aliases = (body["aliases"] as JArray).Select(t => t.ToString()).ToArray();
 
                 string description = body["description"].Value<string>();
+                string category = body["category"].Value<string>();
 
                 string documentation = null;
                 if(body.ContainsKey("details"))
@@ -465,7 +482,7 @@ namespace mc_compiled.MCC.Compiler
 
                 // construct directive
                 Directive directive = new Directive(function, identifier,
-                    aliases, description, documentation, patterns.ToArray());
+                    aliases, description, documentation, category, patterns.ToArray());
 
                 // attributes, if any
                 if(body.ContainsKey("attributes"))
