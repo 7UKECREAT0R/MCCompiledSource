@@ -51,9 +51,6 @@ namespace mc_compiled.MCC
         /// <param name="feature"></param>
         internal static void OnFeatureEnabled(Executor caller, Feature feature)
         {
-            if (caller.linting)
-                return; // dont bother creating any extraneous files
-
             if (ENABLE_ACTIONS.TryGetValue(feature, out Action<Executor> run))
                 run(caller);
         }

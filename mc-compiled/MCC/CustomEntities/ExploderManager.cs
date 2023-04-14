@@ -58,6 +58,7 @@ namespace mc_compiled.MCC.CustomEntities
         internal ExploderManager(Compiler.Executor executor) : base(executor)
         {
             definedPresets = new HashSet<ExploderPreset>();
+            files = new ExploderFiles();
             exploderType = executor.project.Namespace("exploder");
         }
 

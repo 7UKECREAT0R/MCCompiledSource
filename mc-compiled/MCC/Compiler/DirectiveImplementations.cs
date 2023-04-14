@@ -2322,7 +2322,10 @@ namespace mc_compiled.MCC.Compiler
             foreach(Feature possibleFeature in FeatureManager.FEATURE_LIST)
             {
                 if (featureStr.Equals(possibleFeature.ToString().ToUpper()))
+                {
                     feature = possibleFeature;
+                    break;
+                }
             }
 
             if (feature == Feature.NO_FEATURES)
