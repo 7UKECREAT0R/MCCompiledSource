@@ -190,13 +190,13 @@ namespace mc_compiled.MCC
             switch (type)
             {
                 case ScoreboardManager.ValueType.INT:
-                    return new ScoreboardValueInteger(name, false, sb);
+                    return new ScoreboardValueInteger(name, global, sb);
                 case ScoreboardManager.ValueType.DECIMAL:
-                    return new ScoreboardValueDecimal(name, decimalPrecision, false, sb);
+                    return new ScoreboardValueDecimal(name, decimalPrecision, global, sb);
                 case ScoreboardManager.ValueType.BOOL:
-                    return new ScoreboardValueBoolean(name, false, sb);
+                    return new ScoreboardValueBoolean(name, global, sb);
                 case ScoreboardManager.ValueType.TIME:
-                    return new ScoreboardValueTime(name, false, sb);
+                    return new ScoreboardValueTime(name, global, sb);
                 default:
                     throw new Exception($"ScoreboardValue.CreateByType: No implementation for ValueType {type}.");
             }

@@ -3,11 +3,13 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -212,27 +214,110 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.HasNext)
                 throw new StatementException(callingStatement, "Unexpected end of file when running comparison.");
 
+            // get the statement at the end of the execution set, and detect if it's an else-statement.
+            int endOfExecutionSet = FindEndOfExecutionSet(executor);
+            Statement atEndOfExecutionSet = executor.SeekSkip(endOfExecutionSet);
+            bool usesElse = atEndOfExecutionSet != null &&                  // if there is a statement...
+                            atEndOfExecutionSet is StatementDirective &&    // if it's a directive call...
+                            (atEndOfExecutionSet as StatementDirective)     // if it's a inversion statement... (else/elif)
+                                .HasAttribute(DirectiveAttribute.INVERTS_COMPARISON);
+
+            // add commands to a file
+            CommandFile prepFile = null;
+            if (commands.Count > 0 || usesElse)
+            {
+                prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
+                prepFile.Add(commands);
+                executor.AddExtraFile(prepFile);
+                executor.AddCommandClean(Command.Function(prepFile));
+            }
+
+            // apply the comparisons.
+            if (usesElse)
+                ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel);
+            else
+                ApplyComparisonToSolo(chunks, callingStatement, executor, cancel);
+        }
+        private int FindEndOfExecutionSet(Executor executor)
+        {
+            Statement next = executor.Seek();
+
+            if (next is StatementOpenBlock openBlock)
+            {
+                return openBlock.statementsInside + 2;
+            }
+            else
+                return 1;
+        }
+        /// <summary>
+        /// Applies the given comparison subcommands to the executor.
+        /// </summary>
+        /// <param name="chunks">The chunks to add.</param>
+        /// <param name="forExceptions">For exceptions.</param>
+        /// <param name="executor">The executor to modify.</param>
+        /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
+        private void ApplyComparisonToSolo(IEnumerable<Subcommand> chunks, Statement forExceptions, Executor executor, bool cancel)
+        {
             // get the next statement to determine how to run this comparison
-            Statement next = executor.Peek();
+            Statement next = executor.Seek();
 
             if (next is StatementOpenBlock openBlock)
             {
                 // only do the block stuff if necessary.
-                if (openBlock.statementsInside == 0)
+                if (openBlock.statementsInside > 0)
+                {
+                    if (cancel)
+                    {
+                        openBlock.openAction = (e) =>
+                        {
+                            openBlock.CloseAction = null;
+                            for (int i = 0; i < openBlock.statementsInside; i++)
+                                e.Next();
+                        };
+                    }
+                    else
+                    {
+                        string finalExecute = new ExecuteBuilder()
+                            .WithSubcommands(chunks)
+                            .WithSubcommand(new SubcommandRun())
+                            .Build(out _);
+
+                        if (openBlock.statementsInside == 1)
+                        {
+                            // modify prepend buffer as if 1 statement was there
+                            executor.AppendCommandPrepend(finalExecute);
+                            openBlock.openAction = null;
+                            openBlock.CloseAction = null;
+                        }
+                        else
+                        {
+                            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+                            string command = finalExecute + Command.Function(blockFile);
+                            executor.AddCommand(command);
+
+                            openBlock.openAction = (e) =>
+                            {
+                                e.PushFile(blockFile);
+                            };
+                            openBlock.CloseAction = (e) =>
+                            {
+                                e.PopFile();
+                            };
+                        }
+                    }
+                } else
                 {
                     openBlock.openAction = null;
                     openBlock.CloseAction = null;
-                    return; // do nothing
                 }
-
+            }
+            else
+            {
                 if (cancel)
                 {
-                    openBlock.openAction = (e) =>
-                    {
-                        openBlock.CloseAction = null;
-                        for (int i = 0; i < openBlock.statementsInside; i++)
-                            e.Next();
-                    };
+                    while (executor.HasNext && executor.Peek().Skip)
+                        executor.Next();
+                    executor.Next();
                 }
                 else
                 {
@@ -240,40 +325,96 @@ namespace mc_compiled.MCC.Compiler
                         .WithSubcommands(chunks)
                         .WithSubcommand(new SubcommandRun())
                         .Build(out _);
+                    executor.AppendCommandPrepend(finalExecute);
+                }
+            }
+        }
+        /// <summary>
+        /// Applies the given comparison subcommands to the executor, assuming there will be an else statement.
+        /// </summary>
+        /// <param name="chunks">The chunks to add.</param>
+        /// <param name="forExceptions">For exceptions.</param>
+        /// <param name="executor">The executor to modify.</param>
+        /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
+        private void ApplyComparisonToWithElse(IEnumerable<Subcommand> chunks, CommandFile setupFile, Statement forExceptions, Executor executor, bool cancel)
+        {
+            // get the next statement to determine how to run this comparison
+            Statement next = executor.Seek();
 
-                    if (openBlock.statementsInside == 1)
+            PreviousComparisonStructure record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel);
+            ScoreboardValueBoolean resultObjective = record.resultStore;
+
+            setupFile.Add(Command.ScoreboardSet(resultObjective, 0));
+            setupFile.Add(Command.Execute().WithSubcommands(chunks).Run(Command.ScoreboardSet(resultObjective, 1)));
+
+            ConditionalSubcommand used = ConditionalSubcommandScore.New(resultObjective, new Range(1, false));
+            record.conditionalUsed = used;
+            executor.SetLastCompare(record);
+
+            string executePrefix = new ExecuteBuilder()
+                .WithSubcommand(new SubcommandIf(used))
+                .Run();
+
+            if (next is StatementOpenBlock openBlock)
+            {
+                // only do the block stuff if necessary.
+                if (openBlock.statementsInside > 0)
+                {
+                    if (cancel)
                     {
-                        // modify prepend buffer as if 1 statement was there
-                        executor.AppendCommandPrepend(finalExecute);
-                        openBlock.openAction = null;
-                        openBlock.CloseAction = null;
+                        openBlock.openAction = (e) =>
+                        {
+                            openBlock.CloseAction = null;
+                            for (int i = 0; i < openBlock.statementsInside; i++)
+                                e.Next();
+                        };
                     }
                     else
                     {
-                        CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
-                        string command = finalExecute + Command.Function(blockFile);
-                        executor.AddCommand(command);
 
-                        openBlock.openAction = (e) =>
+                        if (openBlock.statementsInside == 1)
                         {
-                            e.PushFile(blockFile);
-                        };
-                        openBlock.CloseAction = (e) =>
+                            // modify prepend buffer as if 1 statement was there
+                            executor.AppendCommandPrepend(executePrefix);
+                            openBlock.openAction = null;
+                            openBlock.CloseAction = null;
+                        }
+                        else
                         {
-                            e.PopFile();
-                        };
+                            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+                            string command = executePrefix + Command.Function(blockFile);
+                            executor.AddCommand(command);
+
+                            openBlock.openAction = (e) =>
+                            {
+                                e.PushFile(blockFile);
+                            };
+                            openBlock.CloseAction = (e) =>
+                            {
+                                e.PopFile();
+                            };
+                        }
                     }
+                }
+                else
+                {
+                    openBlock.openAction = null;
+                    openBlock.CloseAction = null;
                 }
             }
             else
             {
-                string finalExecute = new ExecuteBuilder()
-                    .WithSubcommands(chunks)
-                    .WithSubcommand(new SubcommandRun())
-                    .Build(out _);
-                executor.AppendCommandPrepend(finalExecute);
+                if (cancel)
+                {
+                    while(executor.HasNext && executor.Peek().Skip)
+                        executor.Next();
+                    executor.Next();
+                }
+                else
+                    executor.AppendCommandPrepend(executePrefix);
             }
         }
+
         /// <summary>
         /// Set the inversion on all elements.
         /// </summary>

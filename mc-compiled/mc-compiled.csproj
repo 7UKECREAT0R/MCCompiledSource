@@ -88,6 +88,7 @@
     <Compile Include="MCC\Compiler\Clarifier.cs" />
     <Compile Include="MCC\Compiler\Implementations\Attributes\AttributeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\IFunctionProvider.cs" />
+    <Compile Include="MCC\Compiler\PreviousComparisonStructure.cs" />
     <Compile Include="MCC\Compiler\TimeFormat.cs" />
     <Compile Include="MCC\Compiler\TokenFeeder.cs" />
     <Compile Include="MCC\Attributes\IAttribute.cs" />

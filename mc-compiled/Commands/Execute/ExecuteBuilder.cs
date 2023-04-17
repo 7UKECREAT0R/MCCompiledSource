@@ -223,7 +223,7 @@ namespace mc_compiled.Commands.Execute
             return Build(out _);
         }
         /// <summary>
-        /// Place a 'run' clause with no command. Good for prepping for placing your own command.
+        /// Place a 'run' clause with no command and a whitespace at the end. Good for prepping for placing your own command.
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>

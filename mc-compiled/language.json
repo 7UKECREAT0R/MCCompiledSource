@@ -1,5 +1,5 @@
 {
-  "version": 1.11,
+  "version": 1.12,
   "preprocessor_variables": [
     "compilerversion",
     "minecraftversion",
@@ -376,7 +376,8 @@
     "else": {
       "description": "Else Statement",
       "details": "Inverts the comparison given by the previous if-statement at this scope level.",
-      "category": "logic"
+      "category": "logic",
+      "attributes": [ "INVERTS_COMPARISON" ]
     },
     "give": {
       "description": "Give Item",

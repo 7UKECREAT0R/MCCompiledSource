@@ -375,7 +375,28 @@ namespace mc_compiled.MCC
             output = null;
             return false;
         }
+        /// <summary>
+        /// Tries to get a scoreboard value by EITHER NAME
+        /// </summary>
+        /// <returns>True if found and output is set.</returns>
+        public bool TryGetByAny(string name, out ScoreboardValue output)
+        {
+            foreach (ScoreboardValue value in values)
+            {
+                if (value.Name.Equals(name))
+                {
+                    output = value;
+                    return true;
+                }
+                if (value.AliasName.Equals(name))
+                {
+                    output = value;
+                    return true;
+                }
+            }
+
+            output = null;
+            return false;
+        }
     }
-
-
 }

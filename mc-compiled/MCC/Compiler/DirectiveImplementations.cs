@@ -19,6 +19,7 @@ using System.Security.Claims;
 using mc_compiled.MCC.SyntaxHighlighting;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -590,7 +591,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void _macro(Executor executor, Statement tokens)
         {
-            if (executor.HasNext && executor.NextIs<StatementOpenBlock>())
+            if (executor.NextIs<StatementOpenBlock>())
                 _macrodefine(executor, tokens);
             else
                 _macrocall(executor, tokens);
@@ -1190,18 +1191,104 @@ namespace mc_compiled.MCC.Compiler
             ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
             set.InvertAll(false);
             set.Run(executor, tokens);
-
-            executor.SetLastCompare(set);
         }
         public static void @else(Executor executor, Statement tokens)
         {
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end of file after else-statement.");
 
-            // 1.1 rework (post new-execute)
-            ComparisonSet set = executor.GetLastCompare();
-            set.InvertAll(true);
-            set.Run(executor, tokens);
+            PreviousComparisonStructure set = executor.GetLastCompare();
+
+            if (set == null)
+                throw new StatementException(tokens, "No if-statement was found in front of this else-statement at this scope level.");
+
+            ScoreboardValueBoolean resultBoolean = set.resultStore;
+
+            bool cancel = set.cancel;
+            string prefix = "";
+
+            if (!cancel)
+            {
+                prefix = Command.Execute()
+                    .WithSubcommand(new SubcommandUnless(set.conditionalUsed))
+                    .Run();
+            }
+
+            Statement nextStatement = executor.Seek();
+
+            if (nextStatement is StatementOpenBlock openBlock)
+            {
+                // only do the block stuff if necessary.
+                if (openBlock.statementsInside > 0)
+                {
+                    if (cancel)
+                    {
+                        openBlock.openAction = (e) =>
+                        {
+                            openBlock.CloseAction = null;
+                            for (int i = 0; i < openBlock.statementsInside; i++)
+                                e.Next();
+                        };
+
+                        set.Dispose();
+                    }
+                    else
+                    {
+                        if (openBlock.statementsInside == 1)
+                        {
+                            // modify prepend buffer as if 1 statement was there
+                            executor.AppendCommandPrepend(prefix);
+                            openBlock.openAction = null;
+                            openBlock.CloseAction = (e) =>
+                            {
+                                set.Dispose();
+                            };
+                        }
+                        else
+                        {
+                            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+                            string command = prefix + Command.Function(blockFile);
+                            executor.AddCommand(command);
+
+                            openBlock.openAction = (e) =>
+                            {
+                                e.PushFile(blockFile);
+                            };
+                            openBlock.CloseAction = (e) =>
+                            {
+                                set.Dispose();
+                                e.PopFile();
+                            };
+                        }
+                    }
+                }
+                else
+                {
+                    openBlock.openAction = null;
+                    openBlock.CloseAction = null;
+
+                    executor.DeferAction(e =>
+                    {
+                        set.Dispose();
+                    });
+                }
+            }
+            else
+            {
+                if (cancel)
+                {
+                    while (executor.HasNext && executor.Peek().Skip)
+                        executor.Next();
+                    executor.Next();
+                }
+                else
+                    executor.AppendCommandPrepend(prefix);
+
+                executor.DeferAction(e =>
+                {
+                    set.Dispose();
+                });
+            }
         }
         public static void give(Executor executor, Statement tokens)
         {
@@ -2267,7 +2354,7 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end of file when running comparison.");
 
-            Statement next = executor.Peek();
+            Statement next = executor.Seek();
 
             if (next is StatementOpenBlock openBlock)
             {

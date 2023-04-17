@@ -6,7 +6,7 @@ Constants are case insensitive snippets which aim to simplify and standardize Mi
 -------------------------------------------------------------------------------
 
 This version reference is used in the $minecraftversion preprocessor variable.
-VERSION 1.19.70
+VERSION 1.19.73
 
 -------------------------------------------------------------------------------
 

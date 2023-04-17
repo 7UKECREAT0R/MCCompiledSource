@@ -152,12 +152,11 @@ namespace mc_compiled.MCC.Compiler
                         // mojang doesn't support != so invert the root of the comparison
                         new SubcommandUnless(ConditionalSubcommandScore.New(a, TokenCompare.Type.EQUAL, b))
                     };
-                } else
-                {
-                    return new Subcommand[] {
-                        new SubcommandIf(ConditionalSubcommandScore.New(a, localComparison, b))
-                    };
                 }
+
+                return new Subcommand[] {
+                    new SubcommandIf(ConditionalSubcommandScore.New(a, localComparison, b))
+                };
             }
             
             if(aType == SideType.Variable)
@@ -169,7 +168,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     string scoreName = scoreTest.name;
 
-                    if (!executor.scoreboard.TryGetByAccessor(scoreName, out ScoreboardValue score))
+                    if (!executor.scoreboard.TryGetByName(scoreName, out ScoreboardValue score))
                         throw new StatementException(callingStatement, $"Unknown scoreboard value: '{scoreName}'. Is it defined above this line?");
 
                     scores.Add(new SubcommandIf(ConditionalSubcommandScore.New(score, scoreTest.value)));
@@ -331,12 +330,12 @@ namespace mc_compiled.MCC.Compiler
             // check if any entity matches
             List<string> commands = new List<string>();
             temp = executor.scoreboard.temps.Request(true);
-            commands.Add(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 0));
+            commands.Add(Command.ScoreboardSet(temp, 0));
             commands.Add(Command.Execute()
                 .As(selector)
                 .At(Selector.SELF)
                 .Positioned(selector.offsetX, selector.offsetY, selector.offsetZ)
-                .Run(Command.ScoreboardSet(Executor.FAKEPLAYER_NAME, temp.Name, 1)));
+                .Run(Command.ScoreboardSet(temp, 1)));
 
             cancel = false;
             return commands;
@@ -346,7 +345,7 @@ namespace mc_compiled.MCC.Compiler
             Range range = new Range(1, inverted);
 
             cancel = false;
-            return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) }; // TODO: "temp" is scoped to @s here, not a fakeplayer. please deal with this
+            return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
         }
     }
     public class ComparisonBlock : Comparison

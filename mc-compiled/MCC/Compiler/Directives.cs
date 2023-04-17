@@ -112,6 +112,7 @@ namespace mc_compiled.MCC.Compiler
         DONT_FLATTEN_ARRAYS = 1 << 1,   // Won't attempt to flatten JSON arrays to their root values.
         DONT_RESOLVE_STRINGS = 1 << 2,  // Won't resolve PPV entries in string parameters.
         USES_FSTRING = 1 << 3,          // Reserved.
+        INVERTS_COMPARISON = 1 << 4,    // Inverts a comparison that was previously run on this scope. Used by ELSE and ELIF.
     }
     public static class Directives
     {

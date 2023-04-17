@@ -27,7 +27,7 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
         //public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+(\\[\"?.+\"?\\])*");
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
-        public const double MCC_VERSION = 1.11;                 // compilerversion
+        public const double MCC_VERSION = 1.12;                 // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string FAKEPLAYER_NAME = "_";
@@ -67,6 +67,28 @@ namespace mc_compiled.MCC.Compiler
             Console.ForegroundColor = old;
         }
 
+        int iterationsUntilDeferProcess = 0;
+        /// <summary>
+        /// Defer an action to happen after the next valid statement has run.
+        /// </summary>
+        /// <param name="action"></param>
+        public void DeferAction(Action<Executor> action)
+        {
+            iterationsUntilDeferProcess++;
+            this.deferredActions.Push(action);
+        }
+        /// <summary>
+        /// Process all deferred actions currently in the queue.
+        /// </summary>
+        private void ProcessDeferredActions()
+        {
+            while(this.deferredActions.Any())
+            {
+                var action = this.deferredActions.Pop();
+                action.Invoke(this);
+            }
+        }
+
         internal readonly EntityManager entities;
         internal readonly ProjectManager project;
         public string lastStatementSource;
@@ -77,13 +99,14 @@ namespace mc_compiled.MCC.Compiler
 
         internal int depth;
         internal bool linting;
+        internal readonly Stack<Action<Executor>> deferredActions;
         internal readonly Dictionary<int, object> loadedFiles;
         internal readonly List<int> definedStdFiles;
         internal readonly List<Macro> macros;
         internal readonly FunctionManager functions;
         internal readonly HashSet<string> definedTags;
         internal readonly bool[] lastPreprocessorCompare;
-        internal readonly ComparisonSet[] lastActualCompare;
+        internal readonly PreviousComparisonStructure[] lastCompare;
         internal readonly Dictionary<string, dynamic[]> ppv;
         readonly StringBuilder prependBuffer;
         readonly Stack<CommandFile> currentFiles;
@@ -115,8 +138,9 @@ namespace mc_compiled.MCC.Compiler
 
             // support up to MAXIMUM_SCOPE levels of scope before blowing up
             lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
-            lastActualCompare = new ComparisonSet[MAXIMUM_DEPTH];
+            lastCompare = new PreviousComparisonStructure[MAXIMUM_DEPTH];
 
+            deferredActions = new Stack<Action<Executor>>();
             loadedFiles = new Dictionary<int, object>();
             currentFiles = new Stack<CommandFile>();
             prependBuffer = new StringBuilder();
@@ -489,11 +513,29 @@ namespace mc_compiled.MCC.Compiler
         {
             get => readIndex < statements.Length;
         }
+
         /// <summary>
         /// Peek at the next statement.
         /// </summary>
         /// <returns></returns>
         public Statement Peek() => statements[readIndex];
+        /// <summary>
+        /// Peek at the statement N statements in front of the read index. 0: current, 1: next, etc...
+        /// Does perform bounds checking, and returns null if outside bounds.
+        /// </summary>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public Statement PeekSkip(int amount)
+        {
+            int index = readIndex + amount;
+
+            if (index < 0)
+                return null;
+            else if (index < statements.Length)
+                return statements[index];
+            else
+                return null;
+        }
         /// <summary>
         /// Peek at the last statement that was gotten, if any.
         /// </summary>
@@ -505,6 +547,55 @@ namespace mc_compiled.MCC.Compiler
 
             return null;
         }
+
+        /// <summary>
+        /// Seek for the next statement that has valid executable data. Returns null if outside of bounds.
+        /// </summary>
+        /// <returns></returns>
+        public Statement Seek() => SeekSkip(0);
+        /// <summary>
+        /// Seek forward from the statement N statements in front of the read index until it finds one with valid executable data. 0: current, 1: next, etc...
+        /// Does perform bounds checking, and returns null if outside bounds.
+        /// </summary>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public Statement SeekSkip(int amount)
+        {
+            Statement statement = null;
+
+            int i = readIndex + amount;
+
+            if (i < 0 || i >= statements.Length)
+                return null;
+
+            do
+            {
+                statement = statements[i++];
+            } while ((statement == null || statement.Skip) && i < statements.Length);
+
+            return statement;
+        }
+        /// <summary>
+        /// Seek backwards from the current statement until it finds one with valid executable data. Returns null if outside of bounds.
+        /// </summary>
+        /// <returns><b>null</b> if no statements have been gotten yet.</returns>
+        public Statement SeekLast()
+        {
+            Statement statement = null;
+
+            int i = readIndex - 1;
+
+            if(i < 0)
+                return null; // no statements??
+
+            do
+            {
+                statement = statements[i--];
+            } while ((statement == null || statement.Skip) && i >= 0);
+
+            return statement;
+        }
+
         /// <summary>
         /// Get the next statement to be read and then increment the read index.
         /// </summary>
@@ -661,9 +752,17 @@ namespace mc_compiled.MCC.Compiler
 
                 if (statement.Skip)
                     continue; // ignore this statement
-
+                
                 // check for unreachable code due to halt directive
                 CheckUnreachable(statement);
+
+                // run deferred processes
+                if(iterationsUntilDeferProcess > 0)
+                {
+                    iterationsUntilDeferProcess--;
+                    if (iterationsUntilDeferProcess == 0)
+                        ProcessDeferredActions();
+                }
 
                 if(Program.DEBUG)
                     Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement.ToString());
@@ -718,17 +817,27 @@ namespace mc_compiled.MCC.Compiler
         public bool GetLastIfResult() => lastPreprocessorCompare[ScopeLevel];
 
         /// <summary>
-        /// Set the last if-statement tokens used at this scope.
+        /// Set the last comparison data used at the given/current scope level.
         /// </summary>
         /// <param name="selector"></param>
-        public void SetLastCompare(ComparisonSet set) =>
-            lastActualCompare[ScopeLevel] = set;
+        internal void SetLastCompare(PreviousComparisonStructure set, int? scope = null)
+        {
+            if (scope == null)
+                scope = ScopeLevel;
+
+            lastCompare[scope.Value] = set;
+        }
         /// <summary>
-        /// Get the last comparison used at this scope.
+        /// Get the last comparison data used at the given/current scope level.
         /// </summary>
         /// <returns></returns>
-        public ComparisonSet GetLastCompare() =>
-            lastActualCompare[ScopeLevel];
+        internal PreviousComparisonStructure GetLastCompare(int? scope = null)
+        {
+            if (scope == null)
+                scope = ScopeLevel;
+
+            return lastCompare[scope.Value];
+        }
 
         /// <summary>
         /// Register a macro to be looked up later.
