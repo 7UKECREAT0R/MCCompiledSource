@@ -163,6 +163,7 @@
     <Compile Include="Modding\Behaviors\Lists\EntityFilters.cs" />
     <Compile Include="Modding\Behaviors\Lists\EntityProperties.cs" />
     <Compile Include="Modding\Behaviors\MolangValue.cs" />
+    <Compile Include="Modding\DefaultPackManager.cs" />
     <Compile Include="Modding\FormatVersion.cs" />
     <Compile Include="Modding\IAddonFile.cs" />
     <Compile Include="Modding\Behaviors\LootTable.cs" />
