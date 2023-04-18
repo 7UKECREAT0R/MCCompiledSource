@@ -74,7 +74,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="action"></param>
         public void DeferAction(Action<Executor> action)
         {
-            iterationsUntilDeferProcess++;
+            iterationsUntilDeferProcess += 2;
             this.deferredActions.Push(action);
         }
         /// <summary>
@@ -794,6 +794,14 @@ namespace mc_compiled.MCC.Compiler
 
                     // check for unreachable code due to halt directive
                     CheckUnreachable(statement);
+
+                    // run deferred processes
+                    if (iterationsUntilDeferProcess > 0)
+                    {
+                        iterationsUntilDeferProcess--;
+                        if (iterationsUntilDeferProcess == 0)
+                            ProcessDeferredActions();
+                    }
 
                     if (Program.DEBUG)
                         Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement.ToString());

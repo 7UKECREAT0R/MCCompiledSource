@@ -86,7 +86,8 @@ namespace mc_compiled.Modding.Behaviors
 
         public readonly string name;
         public Transition[] transitions;
-        public string[] onEntry, onExit;
+        public string[] onEntryCommands,
+                        onExitCommands;
 
         public JObject ToJSON()
         {
@@ -94,10 +95,10 @@ namespace mc_compiled.Modding.Behaviors
 
             if (transitions != null)
                 json["transitions"] = new JArray(transitions.Select(t => t.ToJSON()));
-            if (onEntry != null)
-                json["on_entry"] = new JArray(onEntry);
-            if (onEntry != null)
-                json["on_exit"] = new JArray(onExit);
+            if (onEntryCommands != null)
+                json["on_entry"] = new JArray(onEntryCommands);
+            if (onExitCommands != null)
+                json["on_exit"] = new JArray(onExitCommands);
 
             return json;
         }
