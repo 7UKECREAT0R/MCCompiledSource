@@ -93,6 +93,23 @@ namespace mc_compiled.MCC
             }
         }
 
+        /// <summary>
+        /// Removes any files that duplicate/would overwrite this file.
+        /// </summary>
+        /// <param name="file"></param>
+        internal void RemoveDuplicatesOf(IAddonFile file)
+        {
+            string fileName = file.GetOutputFile();
+            OutputLocation fileLocation = file.GetOutputLocation();
+
+            for(int i = files.Count -1; i >= 0; i--)
+            {
+                IAddonFile test = files[i];
+                if(test.GetOutputFile().Equals(file) && test.GetOutputLocation() == fileLocation)
+                    files.RemoveAt(i);
+            }
+        }
+
         internal void AddFile(IAddonFile file) =>
             files.Add(file);
         internal void AddFiles(IAddonFile[] files) =>
@@ -179,17 +196,26 @@ namespace mc_compiled.MCC
                 WriteSingleFile(file);
             files.Clear();
         }
-        internal void WriteSingleFile(IAddonFile file)
+        public string GetOutputFileLocationFull(IAddonFile file, bool includeFileName)
         {
-            if (linting)
-                return;
-
             OutputLocation baseLocation = file.GetOutputLocation();
             string folder = registry[baseLocation];
             string extend = file.GetExtendedDirectory();
 
             if (extend != null)
                 folder = Path.Combine(folder, extend);
+
+            if (includeFileName)
+                folder = Path.Combine(folder, file.GetOutputFile());
+
+            return folder;
+        }
+        internal void WriteSingleFile(IAddonFile file)
+        {
+            if (linting)
+                return;
+
+            string folder = GetOutputFileLocationFull(file, false);
 
             // create folder if it doesn't exist
             Directory.CreateDirectory(folder);
@@ -226,6 +252,9 @@ namespace mc_compiled.MCC
             this.bpBase = bpBase;
             this.rpBase = rpBase;
             registry = new Dictionary<OutputLocation, string>();
+
+            // None
+            registry[OutputLocation.NONE] = "";
 
             // BP Folders
             registry[OutputLocation.b_ROOT] = bpBase;

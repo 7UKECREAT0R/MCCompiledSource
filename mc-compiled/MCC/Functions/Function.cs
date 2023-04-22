@@ -23,6 +23,10 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         public abstract string Returns { get; }
         /// <summary>
+        /// Documentation about the function. Allowed to return null.
+        /// </summary>
+        public abstract string Documentation { get; }
+        /// <summary>
         /// The additional aliases that can be used to invoke this function.
         /// This property may return null in the case that this function doesn't support aliases.
         /// </summary>

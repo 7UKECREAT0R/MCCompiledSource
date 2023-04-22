@@ -615,7 +615,8 @@ namespace mc_compiled.MCC.Compiler
 
             executor.Next<StatementCloseBlock>();
 
-            Macro macro = new Macro(macroName, args.ToArray(), statements);
+            string docs = executor.GetDocumentationString();
+            Macro macro = new Macro(macroName, docs, args.ToArray(), statements);
             executor.RegisterMacro(macro);
         }
         public static void _macrocall(Executor executor, Statement tokens)
@@ -2469,8 +2470,11 @@ namespace mc_compiled.MCC.Compiler
                 parameters.Add(new RuntimeFunctionParameter(value, def.defaultValue));
             }
 
+            // see if last statement was a comment, and use that for documentation
+            string docs = executor.GetDocumentationString();
+
             // constructor
-            RuntimeFunction function = new RuntimeFunction(functionName, attributes.ToArray(), false);
+            RuntimeFunction function = new RuntimeFunction(functionName, docs, attributes.ToArray(), false);
             function.isAddedToExecutor = true;
             function.AddParameters(parameters);
             function.SignalToAttributes(tokens);

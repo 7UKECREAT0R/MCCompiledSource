@@ -16,6 +16,8 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string Returns => throw new NotImplementedException();
 
+        public override string Documentation => throw new NotImplementedException();
+
         public override string[] Aliases => throw new NotImplementedException();
 
         public override FunctionParameter[] Parameters => throw new NotImplementedException();

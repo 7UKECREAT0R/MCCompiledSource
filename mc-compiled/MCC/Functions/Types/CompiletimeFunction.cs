@@ -23,6 +23,7 @@ namespace mc_compiled.MCC.Functions.Types
         public readonly string aliasedName; // user-facing name (keyword)
         public readonly string name;        // name used internally.
         public readonly string returnType;  // the type-keyword of the value this returns, or null.
+        public readonly string documentation;
 
         /// <summary>
         /// Creates a new compile-time function.
@@ -30,11 +31,12 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="aliasedName">The user-facing name of the function.</param>
         /// <param name="name">The internal name of the function.</param>
         /// <param name="returnType">The type-keyword of the value this returns, or null.</param>
-        public CompiletimeFunction(string aliasedName, string name, string returnType)
+        public CompiletimeFunction(string aliasedName, string name, string returnType, string documentation)
         {
             this.aliasedName = aliasedName;
             this.name = name;
             this.returnType = returnType;
+            this.documentation = documentation;
 
             this.parameters = new List<CompiletimeFunctionParameter>();
         }
@@ -91,6 +93,7 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string Keyword => aliasedName;
         public override string Returns => "Compiler-Defined: " + returnType;
+        public override string Documentation => documentation;
         public override FunctionParameter[] Parameters => this.parameters.ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;

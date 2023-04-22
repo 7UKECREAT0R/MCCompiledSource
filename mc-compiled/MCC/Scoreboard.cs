@@ -54,6 +54,7 @@ namespace mc_compiled.MCC
 
         string baseName;
         string aliasName = null;
+        string documentation = null;
 
         /// <summary>
         /// The internal name that represents the scoreboard objective in the compiled result.
@@ -76,6 +77,21 @@ namespace mc_compiled.MCC
         {
             get => aliasName ?? baseName;
             set => aliasName = value;
+        }
+
+        /// <summary>
+        /// The documentation tied to this scoreboard value. Can be null.
+        /// </summary>
+        public string Documentation
+        {
+            get => documentation;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    documentation = null;
+                else
+                    documentation = value;
+            }
         }
 
         /// <summary>

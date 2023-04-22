@@ -31,24 +31,25 @@ namespace mc_compiled
             Console.Write("\tShow the help menu for this application.\n\n");
             Console.Write("\nmc-compiled.exe --version\n");
             Console.Write("\tView this MCCompiled version. Accessed through code with $compilerversion\n\n");
-            Console.Write("mc-compiled.exe --jsonbuilder\n");
-            Console.Write("\tOpen a user-interface to build JSON rawtext.\n\n");
             Console.Write("mc-compiled.exe --manifest <projectName>\n");
             Console.Write("\tGenerate a behavior pack manifest with valid GUIDs.\n\n");
             Console.Write("mc-compiled.exe --search [options...]\n");
-            Console.Write("\tSearch for MCC files in all subdirectories.\n\n");
+            Console.Write("\tSearch for and compile MCC files in all subdirectories.\n\n");
             Console.Write("mc-compiled.exe --syntax [exporter...]\n");
             Console.Write("\tExport language information into a file. Not specifying an exporter will list them off.\n\n");
             Console.Write("mc-compiled.exe <file> [options...]\n");
             Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
             Console.Write("\tOptions:\n");
-            Console.Write("\t  -dm | --daemon\tInitialize to allow background compilation of the same file every time it is modified.\n");
-            Console.Write("\t  -db | --debug\t\tDebug information during compilation. Hits compilation time for large projects.\n");
-            Console.Write("\t  -dc | --decorate\tDecorate the compiled file with original source code (doesn't look great).\n");
-            Console.Write("\t  -np | --nopause\tDoes not wait for user input to close application.\n");
-            Console.Write("\t  [-obp | --outputbp] <directory>\tOutput behaviors to a specific directory. Use ?project to denote file name.\n");
-            Console.Write("\t  [-orp | --outputrp] <directory>\tOutput resources to a specific directory. Use ?project to denote file name.\n");
-            Console.Write("\t  -od | --outputdevelopment\tOutput files to the com.mojang development_x_packs directory.\n");
+            Console.Write("\t  [-dm | --daemon]\tInitialize to allow background compilation of the same file every time it is modified.\n");
+            Console.Write("\t  [-db | --debug]\t\tDebug information during compilation. Hits compilation time for large projects.\n");
+            Console.Write("\t  [-dc | --decorate]\tDecorate the compiled file with original source code (doesn't look great).\n");
+            Console.Write("\t  [-np | --nopause]\tDoes not wait for user input to close application.\n");
+            Console.Write("\t  [-obp | --outputbp] <directory>\tOutput behaviors to a specific directory. Use ?project to denote project name.\n");
+            Console.Write("\t  [-orp | --outputrp] <directory>\tOutput resources to a specific directory. Use ?project to denote project name.\n");
+            Console.Write("\t  [-od | --outputdevelopment]\tOutput files to the com.mojang development_x_packs directory.\n");
+            Console.Write("\t  [-ppv | --variable] <name> <value>\tRun the compilation with the given preprocessor variable already set.");
+            Console.Write("\t  [-p | --project] <name>\tRun the compilation with the given project name.");
+
         }
         internal struct InputPPV
         {
@@ -137,8 +138,8 @@ namespace mc_compiled
                     case "-OD":
                         string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                         string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
-                        obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project";
-                        orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
+                        obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
+                        orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
                         break;
                     case "--VARIABLE":
                     case "-PPV":
@@ -148,9 +149,10 @@ namespace mc_compiled
                         break;
                     case "--VERSION":
                         Console.WriteLine("MCCompiled Version " + MCC.Compiler.Executor.MCC_VERSION);
-                        Console.WriteLine("Andrew L. Criswell, 2023");
+                        Console.WriteLine("Andrew L. Criswell II, 2023");
                         return;
                     case "--PROJECT":
+                    case "-P":
                         projectName = args[++i];
                         break;
                 }

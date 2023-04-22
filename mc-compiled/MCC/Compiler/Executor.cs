@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using mc_compiled.Commands.Execute;
+using System.Runtime.CompilerServices;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -27,7 +28,7 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
         //public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+(\\[\"?.+\"?\\])*");
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
-        public const double MCC_VERSION = 1.12;                 // compilerversion
+        public const double MCC_VERSION = 1.13;                 // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string FAKEPLAYER_NAME = "_";
@@ -449,6 +450,32 @@ namespace mc_compiled.MCC.Compiler
             return json;
         }
         /// <summary>
+        /// Load JSON file with caching for next use, under a different hashcode.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="underName"></param>
+        /// <returns></returns>
+        public JToken LoadJSONFile(string path, int hash, Statement callingStatement)
+        {
+            // cached file, dont read again
+            if (loadedFiles.TryGetValue(hash, out object value))
+            {
+                if (value is JToken)
+                    return value as JToken;
+            }
+
+            if (string.IsNullOrWhiteSpace(path))
+                throw new StatementException(callingStatement, "Empty JSON file path.");
+
+            if (!File.Exists(path))
+                throw new StatementException(callingStatement, "File \'" + path + "\' could not be found. Make sure you are in the right working directory.");
+
+            string contents = File.ReadAllText(path);
+            JToken json = JToken.Parse(contents);
+            loadedFiles[hash] = json;
+            return json;
+        }
+        /// <summary>
         /// Load file with caching for next use.
         /// </summary>
         /// <param name="path"></param>
@@ -514,6 +541,20 @@ namespace mc_compiled.MCC.Compiler
             get => readIndex < statements.Length;
         }
 
+        /// <summary>
+        /// Tries to fetch a documentation string based whether the last statement was a comment or not. Returns "undocumented" if no documentation was supplied.
+        /// </summary>
+        /// <returns></returns>
+        public string GetDocumentationString()
+        {
+            if (readIndex < 1)
+                return "undocumented";
+
+            if(PeekLast() is StatementComment comment)
+                return comment.comment;
+
+            return "undocumented";
+        }
         /// <summary>
         /// Peek at the next statement.
         /// </summary>
@@ -993,11 +1034,29 @@ namespace mc_compiled.MCC.Compiler
         public void AddExtraFile(IAddonFile file) =>
             project.AddFile(file);
         /// <summary>
+        /// Add a file to the list, removing any other file that has a matching name/directory.
+        /// </summary>
+        /// <param name="file"></param>
+        public void OverwriteExtraFile(IAddonFile file)
+        {
+            project.RemoveDuplicatesOf(file);
+            project.AddFile(file);
+        }
+        /// <summary>
         /// Add a set of files on their own to the list.
         /// </summary>
         /// <param name="file"></param>
         public void AddExtraFiles(IAddonFile[] files) =>
             project.AddFiles(files);
+        /// <summary>
+        /// Add a set of files on their own to the list, removing any other files that have a matching name/directory.
+        /// </summary>
+        /// <param name="file"></param>
+        public void OverwriteExtraFiles(IAddonFile[] files)
+        {
+            foreach (IAddonFile file in files)
+                OverwriteExtraFile(file);
+        }
         /// <summary>
         /// Returns if this executor has a file containing a specific string.
         /// </summary>

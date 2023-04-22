@@ -23,11 +23,13 @@ namespace mc_compiled.MCC.Functions.Types
 
         public readonly string visualName;      // user-facing name (keyword)
         public readonly string internalName;    // name used internally.
+        public readonly string documentation;   // documentation for the wiki
 
-        public AttributeFunction(string visualName, string internalName)
+        public AttributeFunction(string visualName, string internalName, string documentation)
         {
             this.visualName = visualName;
             this.internalName = internalName;
+            this.documentation = documentation;
 
             this.parameters = new List<CompiletimeFunctionParameter>();
         }
@@ -74,6 +76,7 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string Keyword => visualName;
         public override string Returns => "Compiler-Defined Attribute";
+        public override string Documentation => documentation;
         public override FunctionParameter[] Parameters => this.parameters.ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;

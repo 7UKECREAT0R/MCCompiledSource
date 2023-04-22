@@ -29,15 +29,17 @@ namespace mc_compiled.MCC.Functions.Types
         readonly List<RuntimeFunctionParameter> parameters;
         
         public string name;                 // name used internally if the normal name won't work.
+        public string documentation;        // docs
         public readonly string aliasedName; // user-facing name (keyword)
         bool _hasSignaled = false;
 
-        public RuntimeFunction(string name, IAttribute[] attributes, bool isCompilerGenerated = false)
+        public RuntimeFunction(string name, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
             this.isAddedToExecutor = false;
 
             this.aliasedName = name;
             this.name = name;
+            this.documentation = documentation;
             this.isCompilerGenerated = isCompilerGenerated;
 
             this.file = new CommandFile(name, null, this);
@@ -108,6 +110,7 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string Keyword => aliasedName;
         public override string Returns => returnValue?.GetTypeKeyword();
+        public override string Documentation => documentation;
         public override FunctionParameter[] Parameters => this.parameters.ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;

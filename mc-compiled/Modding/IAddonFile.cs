@@ -39,6 +39,27 @@ namespace mc_compiled.Modding
         /// <returns>The output location of the file.</returns>
         OutputLocation GetOutputLocation();
     }
+
+    public sealed class RawFile : IAddonFile
+    {
+        public RawFile(string outputFile, string data)
+        {
+            this.outputFile = outputFile;
+            this.data = data;
+        }
+
+        public string outputFile;
+        public string data;
+
+        public string CommandReference => throw new NotImplementedException();
+        public string GetExtendedDirectory() => null;
+
+        public byte[] GetOutputData() => Encoding.UTF8.GetBytes(data);
+        public string GetOutputFile() => outputFile;
+
+        public OutputLocation GetOutputLocation() => OutputLocation.NONE;
+    }
+
     public static class OutputLocationExtensions
     {
         public static bool IsBehavior(this OutputLocation output)
@@ -95,6 +116,8 @@ namespace mc_compiled.Modding
     /// </summary>
     public enum OutputLocation
     {
+        NONE,
+
         b_ROOT,
         b_ANIMATIONS,
         b_ANIMATION_CONTROLLERS,

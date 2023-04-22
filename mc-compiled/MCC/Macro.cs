@@ -13,12 +13,14 @@ namespace mc_compiled.MCC
     public struct Macro
     {
         public readonly string name;
+        public readonly string documentation;
         public readonly string[] argNames;
         public readonly Statement[] statements;
 
-        public Macro(string name, string[] argNames, Statement[] statements)
+        public Macro(string name, string documentation, string[] argNames, Statement[] statements)
         {
             this.name = name;
+            this.documentation = documentation;
             this.argNames = argNames;
             this.statements = statements;
         }

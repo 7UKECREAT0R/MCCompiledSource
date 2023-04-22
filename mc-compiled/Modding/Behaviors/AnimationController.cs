@@ -84,7 +84,7 @@ namespace mc_compiled.Modding.Behaviors
             }
         }
 
-        public readonly string name;
+        public string name;
         public Transition[] transitions;
         public string[] onEntryCommands,
                         onExitCommands;

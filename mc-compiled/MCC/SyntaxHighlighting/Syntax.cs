@@ -1,4 +1,5 @@
 ﻿using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Compiler.Implementations.Attributes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -121,10 +122,12 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("time", "A value representing a number of ticks. Displayed as MM:SS."),
                 new Keyword("struct", "A user-defined structure of multiple variables."),
                 new Keyword("ppv", "A preprocessor variable that will be set on function call. Not currently supported as a variable/struct type."),
+            }
+                .Concat(
+                    AttributeFunctions.ALL_ATTRIBUTES
+                        .Select(f => new Keyword(f.Keyword, f.Documentation))
+                ).ToArray(),
 
-                new Keyword("global", "Attribute that ensures the defined variable will never be tied to an entity, only the global fakeplayer."),
-                new Keyword("folder", "Attribute that places a function in the provided folder path.")
-            },
             style = new Highlight(255, 128, 128, HighlightStyle.NONE)
         };
         public static readonly Keywords comparisons = new Keywords()
