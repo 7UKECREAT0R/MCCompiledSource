@@ -17,7 +17,7 @@ namespace mc_compiled.MCC.Attributes
         public string query;
         public string entity;
 
-        internal AttributeBind(string query, string entity)
+        internal AttributeBind(string query)
         {
             this.query = query;
             this.entity = entity;

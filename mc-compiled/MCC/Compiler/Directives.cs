@@ -325,11 +325,11 @@ namespace mc_compiled.MCC.Compiler
                 directiveLookup[dictKey.ToUpper()] = directive;
         }
 
-        const string FILE = "language.json";
         public static void LoadFromLanguage(bool debug)
         {
             string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string path = Path.Combine(assemblyDir, FILE);
+            string path = Path.Combine(assemblyDir, Executor.LANGUAGE_FILE);
+
             if (!File.Exists(path))
             {
                 ConsoleColor errprevious = Console.ForegroundColor;

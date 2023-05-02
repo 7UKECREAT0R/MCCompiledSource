@@ -64,7 +64,6 @@
     "features": "Commands related to the optionally enable-able features in the language.",
     "other": "The other commands that don't have a good designation."
   },
-
   "directives": {
     "$var": {
       "description": "Set Preprocessor Variable",
@@ -583,8 +582,8 @@
       "category": "features",
       "features": 1,
       "patterns": [
-        [ "id:create", "string:name", "?string:class", "?coord:x", "?coord:y", "?coord:x" ],
-        [ "id:remove", "string:name", "?string:class" ],
+        [ "id:create", "string:name", "?string:tag", "?coord:x", "?coord:y", "?coord:x" ],
+        [ "id:remove", "string:name", "?string:tag" ],
         [ "id:class", "id:remove" ],
         [ "id:class", "string:class" ]
       ]

@@ -1,0 +1,144 @@
+﻿{
+  "last_mc_version": "1.19.80",
+  "bindings": {
+    "query.blocking": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is blocking."
+    },
+    "query.health": {
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns the attached player's health.",
+      "type": "int",
+      "min": 0,
+      "max": 20
+    },
+    "query.is_alive": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is alive."
+    },
+    "query.is_breathing": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is breathing."
+    },
+    "query.is_charged": {
+      "type": "bool",
+      "targets": [
+        "creeper.json"
+      ],
+      "desc": "Runs on creepers. Returns if the attached creeper is charged."
+    },
+    "query.is_chested": {
+      "type": "bool",
+      "targets": [
+        "donkey.json"
+      ],
+      "desc": "Runs on donkeys. Returns if the attached donkey is chested."
+    },
+    "query.is_digging": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is digging."
+    },
+    "query.is_eating": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is eating."
+    },
+    "query.is_emoting": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is emoting."
+    },
+    "query.is_gliding": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is gliding on an elytra."
+    },
+    "query.is_idling": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is idling."
+    },
+    "query.is_in_water": {
+      "type": "bool",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if the entity is in water."
+    },
+    "query.is_in_water_or_rain": {
+      "type": "bool",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if the entity is in water or rain."
+    },
+    "query.is_jumping": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is pressing the jump button."
+    },
+    "query.is_sneaking": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is sneaking."
+    },
+    "query.is_sprinting": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is sprinting."
+    },
+    "query.is_moving": {
+      "type": "bool",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if the entity is moving."
+    },
+    "query.is_on_fire": {
+      "type": "bool",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if the entity is on fire."
+    },
+    "query.is_on_ground": {
+      "type": "bool",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if the entity is on the ground."
+    },
+    "query.is_sheared": {
+      "type": "bool",
+      "targets": [
+        "sheep.json"
+      ],
+      "desc": "Runs on sheep. Returns if the sheep is sheared."
+    },
+    "query.moon_phase": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns the current phase of the moon, 0-7. 0 being full moon."
+    }
+  }
+}

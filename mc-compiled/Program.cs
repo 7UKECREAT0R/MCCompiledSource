@@ -269,8 +269,8 @@ namespace mc_compiled
                 new Definitions(debug);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
-                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project";
-                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
+                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
+                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
                 DECORATE = false;
                 NO_PAUSE = true;
                 using (MCCServer server = new MCCServer(orp, obp, debug))
@@ -286,10 +286,29 @@ namespace mc_compiled
                 builder.ConsoleInterface();
                 return;
             }
+            if(fileUpper.Equals("--EMPTYSTRUCTURE"))
+            {
+                int size = int.Parse(args[1]);
+
+                StructureFile empty = new StructureFile("empty", null, new StructureNBT()
+                {
+                    entities = new EntityListNBT(new EntityNBT[0]),
+                    worldOrigin = new VectorIntNBT(0, 0, 0),
+                    size = new VectorIntNBT(size, size, size),
+                    palette = new PaletteNBT(
+                        new PaletteEntryNBT("air")
+                    ),
+                    indices = new BlockIndicesNBT(new int[size, size, size])
+                });
+
+                File.WriteAllBytes("empty.mcstructure", empty.GetOutputData());
+                Console.WriteLine("Wrote empty structure to empty.mcstructure");
+                return;
+            }
             if (fileUpper.Equals("--TESTITEMS"))
             {
                 new Definitions(debug);
-                ItemStack item = new ItemStack()
+                /*ItemStack item = new ItemStack()
                 {
                     id = "minecraft:stick",
                     count = 1,
@@ -306,9 +325,21 @@ namespace mc_compiled
                 };
                 StructureNBT nbt = StructureNBT.SingleItem(item);
                 StructureFile itemFile = new StructureFile("stick", "tests", nbt);
-                File.WriteAllBytes("testitem0.mcstructure", itemFile.GetOutputData());
+                File.WriteAllBytes("testitem0.mcstructure", itemFile.GetOutputData());*/
 
-                item = new ItemStack()
+                StructureFile empty = new StructureFile("empty", null, new StructureNBT()
+                {
+                    entities = new EntityListNBT(new EntityNBT[0]),
+                    worldOrigin = new VectorIntNBT(0, 0,0),
+                    size = new VectorIntNBT(100, 100, 100),
+                    palette = new PaletteNBT(
+                        new PaletteEntryNBT("air")
+                    ),
+                    indices = new BlockIndicesNBT(new int[100, 100, 100])
+                });
+
+
+                /*item = new ItemStack()
                 {
                     id = "minecraft:written_book",
                     count = 1,
@@ -325,10 +356,10 @@ namespace mc_compiled
                     }
                 };
                 nbt = StructureNBT.SingleItem(item);
-                itemFile = new StructureFile("testitem", "tests", nbt);
-                File.WriteAllBytes("testitem1.mcstructure", itemFile.GetOutputData());
+                itemFile = new StructureFile("testitem", "tests", nbt);*/
+                File.WriteAllBytes("test.mcstructure", empty.GetOutputData());
 
-                item = new ItemStack()
+                /*item = new ItemStack()
                 {
                     id = "minecraft:leather_chestplate",
                     count = 1,
@@ -345,10 +376,10 @@ namespace mc_compiled
                 };
                 nbt = StructureNBT.SingleItem(item);
                 itemFile = new StructureFile("testitem", "tests", nbt);
-                File.WriteAllBytes("testitem2.mcstructure", itemFile.GetOutputData());
+                File.WriteAllBytes("testitem2.mcstructure", itemFile.GetOutputData());*/
 
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Written test items to 'testitemX.mcstructure'");
+                Console.WriteLine("Written test items to 'test.mcstructure'");
                 Console.ForegroundColor = ConsoleColor.White;
                 return;
             }

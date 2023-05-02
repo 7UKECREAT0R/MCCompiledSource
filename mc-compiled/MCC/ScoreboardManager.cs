@@ -227,7 +227,7 @@ namespace mc_compiled.MCC
         /// This method automatically performs type inference if possible.
         /// </summary>
         /// <param name="tokens"></param>
-        /// <returns></returns>
+        /// <returns></returns>=
         internal ValueDefinition GetNextValueDefinition(Statement tokens)
         {
             List<IAttribute> attributes = new List<IAttribute>();

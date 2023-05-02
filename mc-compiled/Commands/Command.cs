@@ -235,13 +235,13 @@ namespace mc_compiled.Commands
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block}";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} {data}";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} []";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, OldHandling fillMode) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} {data} {fillMode}";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} [] {fillMode}";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, string replaceBlock) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} {data} replace {replaceBlock} -1";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} [] replace {replaceBlock} -1";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, string replaceBlock, int replaceData) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} {data} replace {replaceBlock} {replaceData}";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} [] replace {replaceBlock} {replaceData}";
 
         public static string FogPush(string target, string fogId, string userProvidedId) =>
             $"fog {target} push {fogId} {userProvidedId}";

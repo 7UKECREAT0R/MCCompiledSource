@@ -1644,7 +1644,7 @@ namespace mc_compiled.MCC.Compiler
             Coord y2 = tokens.Next<TokenCoordinateLiteral>();
             Coord z2 = tokens.Next<TokenCoordinateLiteral>();
 
-            if (Coord.SizeKnown(x1, y1, z1, x2, y2, z2))
+            if (!Coord.SizeKnown(x1, y1, z1, x2, y2, z2))
                 throw new StatementException(tokens, "Scatter command requires all coordinate arguments to be relative or exact. (the size needs to be known at compile time.)");
 
             string seed = null;
@@ -1656,8 +1656,8 @@ namespace mc_compiled.MCC.Compiler
             int sizeY = Math.Abs(y2.valuei - y1.valuei) + 1;
             int sizeZ = Math.Abs(z2.valuei - z1.valuei) + 1;
 
-            if (sizeX > 64 || sizeY > 256 || sizeZ > 64)
-                throw new StatementException(tokens, "Scatter zone size cannot be larger than 64x256x64.");
+            if (sizeX > 256 || sizeY > 256 || sizeZ > 256)
+                throw new StatementException(tokens, "Scatter zone size cannot be larger than 256x256x256.");
 
             int[,,] blocks = new int[sizeX, sizeY, sizeZ];
             for (int x = 0; x < sizeX; x++)
@@ -1683,7 +1683,6 @@ namespace mc_compiled.MCC.Compiler
 
             blocks = null;
             structure = default;
-            file = default;
 
             Coord minX = Coord.Min(x1, x2);
             Coord minY = Coord.Min(y1, y2);
@@ -1691,12 +1690,12 @@ namespace mc_compiled.MCC.Compiler
 
             if (seed == null)
             {
-                executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
+                executor.AddCommand(Command.StructureLoad(file.CommandReference, minX, minY, minZ,
                     StructureRotation._0_degrees, StructureMirror.none, false, true, false, percent));
             }
             else
             {
-                executor.AddCommand(Command.StructureLoad(fileName, minX, minY, minZ,
+                executor.AddCommand(Command.StructureLoad(file.CommandReference, minX, minY, minZ,
                     StructureRotation._0_degrees, StructureMirror.none, false, true, false, percent, seed));
             }
         }

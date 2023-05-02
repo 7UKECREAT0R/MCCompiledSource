@@ -55,6 +55,9 @@ namespace mc_compiled.MCC.Functions
         /// <param name="function"></param>
         public void RegisterFunction(Function function)
         {
+            if (function == null)
+                throw new NullReferenceException("Attempted to register a function that was null.");
+
             string key = function.Keyword;
             string[] aliases = function.Aliases;
 

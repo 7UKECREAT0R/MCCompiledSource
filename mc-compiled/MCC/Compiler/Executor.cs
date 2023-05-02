@@ -34,6 +34,9 @@ namespace mc_compiled.MCC.Compiler
         public const string FAKEPLAYER_NAME = "_";
         public static int MAXIMUM_DEPTH = 100;
 
+        internal const string LANGUAGE_FILE = "language.json";
+        internal const string BINDINGS_FILE = "bindings.json";
+
         /// <summary>
         /// Display a success message regardless of debug setting.
         /// </summary>

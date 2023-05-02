@@ -15,12 +15,6 @@ namespace mc_compiled.MCC.Compiler.Implementations.Attributes
     public static class AttributeFunctions
     {
         internal static readonly IFunctionProvider PROVIDER = new AttributeProvider();
-        internal static readonly AttributeFunction[] ALL_ATTRIBUTES = new AttributeFunction[]
-        {
-            GLOBAL,
-            FOLDER,
-            BIND
-        };
 
         internal class AttributeProvider : IFunctionProvider
         {
@@ -29,7 +23,6 @@ namespace mc_compiled.MCC.Compiler.Implementations.Attributes
                 return ALL_ATTRIBUTES;
             }
         }
-
 
         /// <summary>
         /// Makes the attached value global.
@@ -57,15 +50,23 @@ namespace mc_compiled.MCC.Compiler.Implementations.Attributes
         /// Binds the attached value to a MoLang query using animation controllers.
         /// </summary>
         public static readonly AttributeFunction BIND = new AttributeFunction("bind", "bind",
-"Binds a value to the given boolean MoLang query. In doing so, an animation controller is created and animated on whatever entity is specified based on: entities/____.json")
+"Binds a value to a pre-defined MoLang query.")
             .AddParameter(new CompiletimeFunctionParameter<TokenStringLiteral>("query"))
-            .AddParameter(new CompiletimeFunctionParameter<TokenStringLiteral>("entity", new TokenStringLiteral("player", -1)))
             .WithCallAction((parameters, executor, statement) =>
             {
                 string query = parameters[0].CurrentValue as TokenStringLiteral;
-                string entity = parameters[1].CurrentValue as TokenStringLiteral;
-
-                return new AttributeBind(query, entity);
+                return new AttributeBind(query);
             });
+
+
+        /// <summary>
+        /// Keep at the bottom of the class because it's having weird order problems.
+        /// </summary>
+        internal static readonly AttributeFunction[] ALL_ATTRIBUTES = new AttributeFunction[]
+        {
+            GLOBAL,
+            FOLDER,
+            BIND
+        };
     }
 }

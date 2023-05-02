@@ -125,6 +125,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
             }
                 .Concat(
                     AttributeFunctions.ALL_ATTRIBUTES
+                        .Where(f => f != null)
                         .Select(f => new Keyword(f.Keyword, f.Documentation))
                 ).ToArray(),
 
