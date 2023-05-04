@@ -4,6 +4,7 @@ using mc_compiled.MCC.Functions.Types;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -68,36 +69,50 @@ namespace mc_compiled.MCC.Server
         internal List<string> ppvs = new List<string>();
         internal List<VariableStructure> variables = new List<VariableStructure>();
         internal List<FunctionStructure> functions = new List<FunctionStructure>();
+        internal List<MacroStructure> macros = new List<MacroStructure>();
 
         public LintStructure() { }
         public static LintStructure Harvest(Executor executor)
         {
             LintStructure lint = new LintStructure();
+
+            // harvest PPVs
             lint.ppvs.AddRange(executor.PPVNames);
+
+            // harvest variables
             lint.variables.AddRange(executor.scoreboard.values.Select(sb => VariableStructure.Wrap(sb)));
+
+            // harvest (runtime) functions
             lint.functions.AddRange(executor.functions
                 .FetchAll()
                 .Where(func => func is RuntimeFunction)
                 .Select(func => FunctionStructure.Wrap(func, lint)));
+
+            // harvest macros
+            lint.macros.AddRange(executor.macros
+                .Select(macro => MacroStructure.Wrap(macro)));
             return lint;
         }
 
         JArray PPVToJSON()
         {
             JArray json = new JArray();
-
             foreach (string ppv in ppvs)
                 json.Add(ppv);
-
             return json;
         }
         JArray FunctionsToJSON()
         {
             JArray array = new JArray();
-
             foreach(FunctionStructure function in functions)
                 array.Add(function.ToJSON());
-
+            return array;
+        }
+        JArray MacrosToJSON()
+        {
+            JArray array = new JArray();
+            foreach(MacroStructure macro in macros)
+                array.Add(macro.ToJSON());
             return array;
         }
         public string ToJSON()
@@ -107,12 +122,13 @@ namespace mc_compiled.MCC.Server
             json["ppvs"] = PPVToJSON();
             json["variables"] = VariableStructure.Join(this.variables);
             json["functions"] = FunctionsToJSON();
+            json["macros"] = MacrosToJSON();
             return json.ToString();
         }
 
         public override string ToString()
         {
-            return $"LintStructure: {ppvs.Count} PPV, {variables.Count} VARS, {functions.Count} FUNCS";
+            return $"LintStructure: {ppvs.Count} PPV, {variables.Count} VARS, {functions.Count} FUNCS, {macros.Count} MACROS";
         }
     }
 
@@ -120,12 +136,14 @@ namespace mc_compiled.MCC.Server
     {
         public readonly string name;
         public readonly string returnType;
+        public readonly string docs;
         public readonly List<VariableStructure> args;
 
-        public FunctionStructure(string name, string returnType, params VariableStructure[] args)
+        public FunctionStructure(string name, string returnType, string docs, params VariableStructure[] args)
         {
             this.name = name;
             this.returnType = returnType;
+            this.docs = docs;
             this.args = new List<VariableStructure>(args);
         }
         public static FunctionStructure Wrap(Function function, LintStructure parent)
@@ -147,13 +165,15 @@ namespace mc_compiled.MCC.Server
                 }
             }
 
-            return new FunctionStructure(function.Keyword, returnType, variables.ToArray());
+            string docs = function.Documentation ?? Executor.UNDOCUMENTED_TEXT;
+            return new FunctionStructure(function.Keyword, returnType, docs, variables.ToArray());
         }
         public JObject ToJSON()
         {
             JObject json = new JObject();
             json["name"] = name;
             json["arguments"] = VariableStructure.Join(this.args);
+            json["docs"] = docs.Base64Encode();
             json["return"] = returnType;
             return json;
         }
@@ -162,21 +182,23 @@ namespace mc_compiled.MCC.Server
     {
         public readonly string name;
         public readonly string type;
+        public readonly string docs;
 
-        public VariableStructure(string name, string type)
+        public VariableStructure(string name, string type, string docs)
         {
             this.name = name;
             this.type = type;
+            this.docs = docs;
         }
         public static VariableStructure Wrap(ScoreboardValue value)
         {
-            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword());
+            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword(), value.Documentation);
             return structure;
         }
         public static VariableStructure Wrap(RuntimeFunctionParameter parameter)
         {
             ScoreboardValue value = parameter.runtimeDestination;
-            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword());
+            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword(), value.Documentation);
 
             return structure;
         }
@@ -185,11 +207,39 @@ namespace mc_compiled.MCC.Server
             JObject json = new JObject();
             json["name"] = name;
             json["type"] = type;
+            json["docs"] = docs.Base64Encode();
             return json;
         }
         public static JArray Join(List<VariableStructure> variables)
         {
             return new JArray(variables.Select(variable => variable.ToJSON()).ToArray());
+        }
+    }
+    public struct MacroStructure
+    {
+        public readonly string name;
+        public readonly string[] arguments;
+        public readonly string docs;
+
+        public MacroStructure(string name, string[] arguments, string docs)
+        {
+            this.name = name;
+            this.arguments = arguments;
+            this.docs = docs;
+        }
+        public static MacroStructure Wrap(Macro macro)
+        {
+            return new MacroStructure(macro.name, macro.argNames,
+                (macro.documentation ?? Executor.UNDOCUMENTED_TEXT).Base64Encode());
+        }
+
+        public JObject ToJSON()
+        {
+            JObject json = new JObject();
+            json["name"] = name;
+            json["arguments"] = new JArray(arguments);
+            json["docs"] = docs.Base64Encode();
+            return json;
         }
     }
 }

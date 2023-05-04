@@ -215,6 +215,12 @@ namespace mc_compiled.MCC.Server
             string responseData = http.ToHTTP(HANDSHAKE_HEADER);
             package.SendStringASCII(responseData);
             package.didHandshake = true;
+
+            // send version info
+            JObject json = new JObject();
+            json["action"] = "version";
+            json["version"] = (int)(Executor.MCC_VERSION * 1000);
+            package.SendFrame(WebSocketFrame.JSON(json));
         }
 
         /// <summary>
@@ -641,7 +647,7 @@ namespace mc_compiled.MCC.Server
         public static string CreateGenericMenu(string title, params string[] lines)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("<h1>Server Info</h1>");
+            sb.Append("<h1>" + title + "</h1>");
             sb.Append("<h2 style=max-width:400px>");
             foreach (string line in lines)
             {

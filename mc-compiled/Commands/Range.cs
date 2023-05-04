@@ -25,13 +25,15 @@ namespace mc_compiled.Commands
 
         public Range(int? min, int? max, bool not = false)
         {
-            this.min = min;
-            this.max = max;
-
-            if(min != null && max != null && min > max)
+            if (min != null && max != null && min > max)
             {
                 this.max = min;
                 this.min = max;
+            }
+            else
+            {
+                this.min = min;
+                this.max = max;
             }
 
             invert = not;

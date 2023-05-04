@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using mc_compiled.Commands.Execute;
 using System.Runtime.CompilerServices;
+using System.CodeDom.Compiler;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -31,6 +32,7 @@ namespace mc_compiled.MCC.Compiler
         public const double MCC_VERSION = 1.13;                 // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
+        public const string UNDOCUMENTED_TEXT = "undocumented";
         public const string FAKEPLAYER_NAME = "_";
         public static int MAXIMUM_DEPTH = 100;
 
@@ -67,7 +69,7 @@ namespace mc_compiled.MCC.Compiler
 
             old = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("<L{0}> {1}", source.Lines, warning);
+            Console.WriteLine("<L{0}> {1}", source.Lines[0], warning);
             Console.ForegroundColor = old;
         }
 
@@ -520,6 +522,57 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
+        /// Attempts to fetch an addon file from the current BP, or downloads it from the default pack if not present. Uses caching.
+        /// </summary>
+        public JToken Fetch(IAddonFile toLocate, Statement callingStatement)
+        {
+            string outputFile = this.project.GetOutputFileLocationFull(toLocate, true);
+
+            int outputFileHash = outputFile.GetHashCode();
+
+            // the JSON root of the file
+            JToken root;
+
+            // find the user-defined entity file, or default to the vanilla pack provided by Microsoft
+            if (this.loadedFiles.TryGetValue(outputFileHash, out object jValue))
+                root = jValue as JToken;
+            else
+            {
+                if (System.IO.File.Exists(outputFile))
+                    root = this.LoadJSONFile(outputFile, callingStatement);
+                else
+                {
+                    string pathString = toLocate.GetOutputLocation().ToString();
+                    DefaultPackManager.PackType packType = DefaultPackManager.PackType.BehaviorPack;
+
+                    if(pathString.StartsWith("r_"))
+                    {
+                        packType = DefaultPackManager.PackType.ResourcePack;
+                        pathString = pathString.Substring(2);
+                    }
+                    if (pathString.StartsWith("b_"))
+                    {
+                        pathString = pathString.Substring(2);
+                    }
+
+                    string[] paths = pathString.Split(new[] { "__" }, StringSplitOptions.None);
+                    string[] filePath = new string[paths.Length + 1];
+                    for (int i = 0; i < paths.Length; i++)
+                    {
+                        string current = paths[i];
+                        filePath[i] = current.ToLower();
+                    }
+                    filePath[paths.Length] = toLocate.GetOutputFile(); // last index
+
+                    string downloadedFile = DefaultPackManager.Get(packType, filePath);
+                    root = this.LoadJSONFile(downloadedFile, outputFileHash, null);
+                }
+            }
+
+            return root;
+        }
+
+        /// <summary>
         /// Define a file that sort-of equates to a "standard library." Will only be added once.
         /// </summary>
         /// <param name="id"></param>
@@ -545,18 +598,18 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Tries to fetch a documentation string based whether the last statement was a comment or not. Returns "undocumented" if no documentation was supplied.
+        /// Tries to fetch a documentation string based whether the last statement was a comment or not. Returns <see cref="Executor.UNDOCUMENTED_TEXT"/> if no documentation was supplied.
         /// </summary>
         /// <returns></returns>
         public string GetDocumentationString()
         {
             if (readIndex < 1)
-                return "undocumented";
+                return UNDOCUMENTED_TEXT;
 
             if(PeekLast() is StatementComment comment)
                 return comment.comment;
 
-            return "undocumented";
+            return UNDOCUMENTED_TEXT;
         }
         /// <summary>
         /// Peek at the next statement.

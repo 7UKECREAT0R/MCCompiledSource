@@ -80,11 +80,17 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// The documentation tied to this scoreboard value. Can be null.
+        /// The documentation tied to this scoreboard value. Can not return null.
         /// </summary>
         public string Documentation
         {
-            get => documentation;
+            get
+            {
+                if (documentation == null)
+                    return Executor.UNDOCUMENTED_TEXT;
+
+                return documentation;
+            }
             set
             {
                 if (string.IsNullOrWhiteSpace(value))

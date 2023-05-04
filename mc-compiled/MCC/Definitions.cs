@@ -42,7 +42,7 @@ namespace mc_compiled.MCC
                 Console.ForegroundColor = errprevious;
                 return;
             }
-            string[] lines = File.ReadAllLines(path, Encoding.GetEncoding("Windows-1252"));
+            string[] lines = File.ReadAllLines(path, Encoding.UTF8);
             string category = null;
             int catEntries = 0;
             string[] categoryAliases = new string[0];

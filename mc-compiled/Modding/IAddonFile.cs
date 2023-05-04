@@ -78,9 +78,9 @@ namespace mc_compiled.Modding
                 case OutputLocation.b_ITEMS:
                 case OutputLocation.b_LOOT_TABLES:
                 case OutputLocation.b_RECIPES:
-                case OutputLocation.b_SCRIPTS_CLIENT:
-                case OutputLocation.b_SCRIPTS_SERVER:
-                case OutputLocation.b_SCRIPTS_GAMETESTS:
+                case OutputLocation.b_SCRIPTS__CLIENT:
+                case OutputLocation.b_SCRIPTS__SERVER:
+                case OutputLocation.b_SCRIPTS__GAMETESTS:
                 case OutputLocation.b_SPAWN_RULES:
                 case OutputLocation.b_TEXTS:
                 case OutputLocation.b_TRADING:
@@ -92,18 +92,18 @@ namespace mc_compiled.Modding
                 case OutputLocation.r_ATTACHABLES:
                 case OutputLocation.r_ENTITY:
                 case OutputLocation.r_FOGS:
-                case OutputLocation.r_MODELS_ENTITY:
-                case OutputLocation.r_MODELS_BLOCKS:
+                case OutputLocation.r_MODELS__ENTITY:
+                case OutputLocation.r_MODELS__BLOCKS:
                 case OutputLocation.r_PARTICLES:
                 case OutputLocation.r_ITEMS:
                 case OutputLocation.r_RENDER_CONTROLLERS:
                 case OutputLocation.r_SOUNDS:
                 case OutputLocation.r_TEXTS:
-                case OutputLocation.r_TEXTURES_ENVIRONMENT:
-                case OutputLocation.r_TEXTURES_BLOCKS:
-                case OutputLocation.r_TEXTURES_ENTITY:
-                case OutputLocation.r_TEXTURES_ITEMS:
-                case OutputLocation.r_TEXTURES_PARTICLE:
+                case OutputLocation.r_TEXTURES__ENVIRONMENT:
+                case OutputLocation.r_TEXTURES__BLOCKS:
+                case OutputLocation.r_TEXTURES__ENTITY:
+                case OutputLocation.r_TEXTURES__ITEMS:
+                case OutputLocation.r_TEXTURES__PARTICLE:
                 case OutputLocation.r_UI:
                     return false;
                 default:
@@ -130,9 +130,9 @@ namespace mc_compiled.Modding
         b_ITEMS,
         b_LOOT_TABLES,
         b_RECIPES,
-        b_SCRIPTS_CLIENT,
-        b_SCRIPTS_SERVER,
-        b_SCRIPTS_GAMETESTS,
+        b_SCRIPTS__CLIENT,
+        b_SCRIPTS__SERVER,
+        b_SCRIPTS__GAMETESTS,
         b_SPAWN_RULES,
         b_TEXTS,
         b_TRADING,
@@ -144,18 +144,18 @@ namespace mc_compiled.Modding
         r_ATTACHABLES,
         r_ENTITY,
         r_FOGS,
-        r_MODELS_ENTITY,
-        r_MODELS_BLOCKS,
+        r_MODELS__ENTITY,
+        r_MODELS__BLOCKS,
         r_PARTICLES,
         r_ITEMS,
         r_RENDER_CONTROLLERS,
         r_SOUNDS,
         r_TEXTS,
-        r_TEXTURES_ENVIRONMENT,
-        r_TEXTURES_BLOCKS,
-        r_TEXTURES_ENTITY, 
-        r_TEXTURES_ITEMS,
-        r_TEXTURES_PARTICLE,
+        r_TEXTURES__ENVIRONMENT,
+        r_TEXTURES__BLOCKS,
+        r_TEXTURES__ENTITY, 
+        r_TEXTURES__ITEMS,
+        r_TEXTURES__PARTICLE,
         r_UI
     }
 }

@@ -99,13 +99,27 @@ namespace mc_compiled.MCC
         /// <param name="file"></param>
         internal void RemoveDuplicatesOf(IAddonFile file)
         {
-            string fileName = file.GetOutputFile();
+            // compress to just the file names, we don't care
+            // about directory included with the file name.
+            string fileA = Path.GetFileName(file.GetOutputFile());
+            string directoryA = file.GetExtendedDirectory();
+
             OutputLocation fileLocation = file.GetOutputLocation();
 
             for(int i = files.Count -1; i >= 0; i--)
             {
                 IAddonFile test = files[i];
-                if(test.GetOutputFile().Equals(file) && test.GetOutputLocation() == fileLocation)
+                string fileB = Path.GetFileName(test.GetOutputFile());
+                string directoryB = test.GetExtendedDirectory();
+
+                bool match = true;
+                match &= fileA.Equals(fileB);
+                match &= (directoryA == null) == (directoryB == null);
+
+                if (match && directoryA != null && directoryB != null)
+                    match &= directoryA.Equals(directoryB);
+
+                if (test.GetOutputFile().Equals(file) && test.GetOutputLocation() == fileLocation)
                     files.RemoveAt(i);
             }
         }
@@ -210,18 +224,27 @@ namespace mc_compiled.MCC
 
             return folder;
         }
+        public string GetOutputFileLocationFull(OutputLocation outputLocation, string file)
+        {
+            string folder = registry[outputLocation];
+            return Path.Combine(folder, file);
+        }
+        public string GetOutputFileLocationFull(OutputLocation outputLocation, string file, string extendedFolder)
+        {
+            string folder = registry[outputLocation];
+            return Path.Combine(folder, extendedFolder, file);
+        }
         internal void WriteSingleFile(IAddonFile file)
         {
             if (linting)
                 return;
 
-            string folder = GetOutputFileLocationFull(file, false);
+            string output = GetOutputFileLocationFull(file, true);
 
             // create folder if it doesn't exist
-            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(Path.GetDirectoryName(output));
 
             // write it
-            string output = Path.Combine(folder, file.GetOutputFile());
             File.WriteAllBytes(output, file.GetOutputData());
         }
 
@@ -269,9 +292,9 @@ namespace mc_compiled.MCC
             registry[OutputLocation.b_ITEMS] = Path.Combine(bpBase, "items");
             registry[OutputLocation.b_LOOT_TABLES] = Path.Combine(bpBase, "loot_tables");
             registry[OutputLocation.b_RECIPES] = Path.Combine(bpBase, "recipes");
-            registry[OutputLocation.b_SCRIPTS_CLIENT] = Path.Combine(bpBase, "scripts", "client");
-            registry[OutputLocation.b_SCRIPTS_SERVER] = Path.Combine(bpBase, "scripts", "server");
-            registry[OutputLocation.b_SCRIPTS_GAMETESTS] = Path.Combine(bpBase, "scripts", "gametests");
+            registry[OutputLocation.b_SCRIPTS__CLIENT] = Path.Combine(bpBase, "scripts", "client");
+            registry[OutputLocation.b_SCRIPTS__SERVER] = Path.Combine(bpBase, "scripts", "server");
+            registry[OutputLocation.b_SCRIPTS__GAMETESTS] = Path.Combine(bpBase, "scripts", "gametests");
             registry[OutputLocation.b_SPAWN_RULES] = Path.Combine(bpBase, "spawn_rules");
             registry[OutputLocation.b_TEXTS] = Path.Combine(bpBase, "texts");
             registry[OutputLocation.b_TRADING] = Path.Combine(bpBase, "trading");
@@ -284,18 +307,18 @@ namespace mc_compiled.MCC
             registry[OutputLocation.r_ATTACHABLES] = Path.Combine(rpBase, "attachables");
             registry[OutputLocation.r_ENTITY] = Path.Combine(rpBase, "entity");
             registry[OutputLocation.r_FOGS] = Path.Combine(rpBase, "fogs");
-            registry[OutputLocation.r_MODELS_ENTITY] = Path.Combine(rpBase, "models", "entity");
-            registry[OutputLocation.r_MODELS_BLOCKS] = Path.Combine(rpBase, "models", "blocks");
+            registry[OutputLocation.r_MODELS__ENTITY] = Path.Combine(rpBase, "models", "entity");
+            registry[OutputLocation.r_MODELS__BLOCKS] = Path.Combine(rpBase, "models", "blocks");
             registry[OutputLocation.r_PARTICLES] = Path.Combine(rpBase, "particles");
             registry[OutputLocation.r_ITEMS] = Path.Combine(rpBase, "items");
             registry[OutputLocation.r_RENDER_CONTROLLERS] = Path.Combine(rpBase, "render_controllers");
             registry[OutputLocation.r_SOUNDS] = Path.Combine(rpBase, "sounds");
             registry[OutputLocation.r_TEXTS] = Path.Combine(rpBase, "texts");
-            registry[OutputLocation.r_TEXTURES_ENVIRONMENT] = Path.Combine(rpBase, "textures", "environment");
-            registry[OutputLocation.r_TEXTURES_BLOCKS] = Path.Combine(rpBase, "textures", "blocks");
-            registry[OutputLocation.r_TEXTURES_ENTITY] = Path.Combine(rpBase, "textures", "entity");
-            registry[OutputLocation.r_TEXTURES_ITEMS] = Path.Combine(rpBase, "textures", "items");
-            registry[OutputLocation.r_TEXTURES_PARTICLE] = Path.Combine(rpBase, "textures", "particle");
+            registry[OutputLocation.r_TEXTURES__ENVIRONMENT] = Path.Combine(rpBase, "textures", "environment");
+            registry[OutputLocation.r_TEXTURES__BLOCKS] = Path.Combine(rpBase, "textures", "blocks");
+            registry[OutputLocation.r_TEXTURES__ENTITY] = Path.Combine(rpBase, "textures", "entity");
+            registry[OutputLocation.r_TEXTURES__ITEMS] = Path.Combine(rpBase, "textures", "items");
+            registry[OutputLocation.r_TEXTURES__PARTICLE] = Path.Combine(rpBase, "textures", "particle");
             registry[OutputLocation.r_UI] = Path.Combine(rpBase, "ui");
         }
         internal string this[OutputLocation location] =>

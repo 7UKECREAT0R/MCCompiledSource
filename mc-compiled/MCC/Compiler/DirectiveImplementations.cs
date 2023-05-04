@@ -1130,6 +1130,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void define(Executor executor, Statement tokens)
         {
+            string docs = executor.GetDocumentationString();
+
             ScoreboardManager.ValueDefinition def = executor
                 .scoreboard.GetNextValueDefinition(tokens);
 
@@ -1139,6 +1141,7 @@ namespace mc_compiled.MCC.Compiler
 
             // create the new scoreboard value.
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
+            value.Documentation = docs;
 
             // register it to the executor.
             executor.scoreboard.TryThrowForDuplicate(value, tokens);
@@ -1656,8 +1659,13 @@ namespace mc_compiled.MCC.Compiler
             int sizeY = Math.Abs(y2.valuei - y1.valuei) + 1;
             int sizeZ = Math.Abs(z2.valuei - z1.valuei) + 1;
 
-            if (sizeX > 256 || sizeY > 256 || sizeZ > 256)
-                throw new StatementException(tokens, "Scatter zone size cannot be larger than 256x256x256.");
+            long totalBlocks = ((long)sizeX) * ((long)sizeY) * ((long)sizeZ);
+
+            if (totalBlocks > 1000000) // one million
+                Executor.Warn("Warning: Scatter zone is " + totalBlocks + " blocks. This could cause extreme performance problems or the command may not even work at all.", tokens);
+
+            if (executor.linting)
+                return; // no need to run all that where it isn't even going to be used...
 
             int[,,] blocks = new int[sizeX, sizeY, sizeZ];
             for (int x = 0; x < sizeX; x++)

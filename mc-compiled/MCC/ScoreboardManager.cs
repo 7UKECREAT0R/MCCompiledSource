@@ -231,12 +231,17 @@ namespace mc_compiled.MCC
         internal ValueDefinition GetNextValueDefinition(Statement tokens)
         {
             List<IAttribute> attributes = new List<IAttribute>();
-            while(tokens.NextIs<TokenAttribute>())
+
+            void FindAttributes()
             {
-                var _attribute = tokens.Next<TokenAttribute>();
-                attributes.Add(_attribute.attribute);
+                while (tokens.NextIs<TokenAttribute>())
+                {
+                    var _attribute = tokens.Next<TokenAttribute>();
+                    attributes.Add(_attribute.attribute);
+                }
             }
-            IAttribute[] attributesArray = attributes.ToArray();
+
+            FindAttributes();
 
             ValueType type = ValueType.INFER;
             string name = null;
@@ -270,12 +275,16 @@ namespace mc_compiled.MCC
 
             // the default value to set it to.
             Token defaultValue = null;
+            int precision = 0;
+
 
             if (type == ValueType.DECIMAL)
             {
                 if (!tokens.NextIs<TokenIntegerLiteral>())
-                    throw new StatementException(tokens, $"No precision specified for decimal value");
-                int precision = tokens.Next<TokenIntegerLiteral>();
+                    throw new StatementException(tokens, $"Decimal value type requires a precision. e.g., 'decimal 2'");
+
+                precision = tokens.Next<TokenIntegerLiteral>();
+
                 if (precision > 3)
                 {
                     ConsoleColor oldColor = Console.ForegroundColor;
@@ -283,14 +292,9 @@ namespace mc_compiled.MCC
                     Executor.Warn("Decimal precisions >3 could begin to break. Avoid multiplication/division on larger numbers.");
                     Console.ForegroundColor = oldColor;
                 }
-                name = tokens.Next<TokenStringLiteral>();
-                if (tokens.NextIs<TokenAssignment>())
-                {
-                    tokens.Next();
-                    defaultValue = tokens.Next();
-                }
-                return new ValueDefinition(attributesArray, name, ValueType.DECIMAL, precision, defaultValue);
             }
+
+            FindAttributes();
 
             if (name == null)
             {
@@ -305,7 +309,8 @@ namespace mc_compiled.MCC
                 defaultValue = tokens.Next();
             }
 
-            ValueDefinition definition = new ValueDefinition(attributesArray, name, type, defaultValue: defaultValue);
+            IAttribute[] attributesArray = attributes.ToArray();
+            ValueDefinition definition = new ValueDefinition(attributesArray, name, type, precision, defaultValue: defaultValue);
 
             // try to infer type based on the default value.
             if (type == ValueType.INFER)

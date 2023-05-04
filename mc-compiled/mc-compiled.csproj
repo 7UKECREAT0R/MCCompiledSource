@@ -86,6 +86,7 @@
     <Compile Include="MCC\Attributes\AttributeBind.cs" />
     <Compile Include="MCC\Attributes\AttributeFolder.cs" />
     <Compile Include="MCC\Attributes\AttributeGlobal.cs" />
+    <Compile Include="MCC\Compiler\MolangBindings.cs" />
     <Compile Include="MCC\Compiler\Clarifier.cs" />
     <Compile Include="MCC\Compiler\Implementations\Attributes\AttributeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\IFunctionProvider.cs" />
@@ -223,7 +224,9 @@
     <AdditionalFiles Include="language.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>
-    <None Include="bindings.json" />
+    <AdditionalFiles Include="bindings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AdditionalFiles>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

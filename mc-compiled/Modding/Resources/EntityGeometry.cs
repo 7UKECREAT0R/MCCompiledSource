@@ -53,6 +53,6 @@ namespace mc_compiled.Modding.Resources
         public string GetOutputFile() =>
             name + ".json";
         public OutputLocation GetOutputLocation() =>
-            OutputLocation.r_MODELS_ENTITY;
+            OutputLocation.r_MODELS__ENTITY;
     }
 }

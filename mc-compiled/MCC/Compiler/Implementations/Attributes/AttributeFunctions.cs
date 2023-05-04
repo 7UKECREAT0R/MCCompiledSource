@@ -3,8 +3,10 @@ using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
+using mc_compiled.NBT;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,12 +52,42 @@ namespace mc_compiled.MCC.Compiler.Implementations.Attributes
         /// Binds the attached value to a MoLang query using animation controllers.
         /// </summary>
         public static readonly AttributeFunction BIND = new AttributeFunction("bind", "bind",
-"Binds a value to a pre-defined MoLang query.")
+"Binds a value to a pre-defined MoLang query. See bindings.json.")
             .AddParameter(new CompiletimeFunctionParameter<TokenStringLiteral>("query"))
             .WithCallAction((parameters, executor, statement) =>
             {
-                string query = parameters[0].CurrentValue as TokenStringLiteral;
-                return new AttributeBind(query);
+                string queryString = parameters[0].CurrentValue as TokenStringLiteral;
+
+                List<string> givenTargets = new List<string>();
+
+                _ = statement.Next(); // skip 'bind' identifier
+                _ = statement.Next(); // skip (
+                _ = statement.Next(); // skip query string
+
+                while (statement.NextIs<TokenStringLiteral>())
+                {
+                    string target = statement.Next<TokenStringLiteral>();
+
+                    int colon = target.IndexOf(':');
+
+                    if (colon != -1) // get rid of namespace
+                        target = target.Substring(colon + 1);
+
+                    if (!target.EndsWith(".json")) // force .json at the end
+                        target += ".json";
+
+                    givenTargets.Add(target);
+                }
+
+                MolangBindings.EnsureLoaded(Program.DEBUG);
+
+                if (!MolangBindings.BINDINGS.TryGetValue(queryString, out var binding))
+                    throw new StatementException(statement, $"No binding could be found under the name '{queryString}'.");
+
+                if(givenTargets.Count > 0)
+                    return new AttributeBind(binding, givenTargets.ToArray());
+                else
+                    return new AttributeBind(binding, null);
             });
 
 

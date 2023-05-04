@@ -9,109 +9,103 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mc_compiled.Commands;
+using System.Collections;
 
 namespace mc_compiled.MCC.Attributes
 {
     public class AttributeBind : IAttribute
     {
-        public string query;
-        public string entity;
+        readonly MolangBinding binding;
+        readonly string[] givenTargets; // if the query has no targets.
 
-        internal AttributeBind(string query)
+        internal AttributeBind(MolangBinding binding, string[] givenTargets)
         {
-            this.query = query;
-            this.entity = entity;
+            this.binding = binding;
+            this.givenTargets = givenTargets;
         }
         public string GetDebugString() => "bind";
 
-        public void OnAddedValue(ScoreboardValue value, Statement causingStatement)
+        public void OnAddedValue(ScoreboardValue value, Statement callingStatement)
         {
-            if (value.valueType != ScoreboardManager.ValueType.BOOL)
-                throw new StatementException(causingStatement, "Bindings can only be applied to 'bool' values.");
-
-            Executor executor = causingStatement.executor;
-
-            // use EntityBehavior to construct an accurate output location
-            EntityBehavior givenEntity = new EntityBehavior(entity);
-            string outputFile = executor.project.GetOutputFileLocationFull(givenEntity, true);
-            int outputFileHash = outputFile.GetHashCode();
-
-            // the JSON of the entity file to write to
-            JToken entityRoot;
-
-            // find the user-defined entity file, or default to the vanilla pack provided by Microsoft
-            if (executor.loadedFiles.TryGetValue(outputFileHash, out object jValue))
-                entityRoot = jValue as JToken;
-            else
+            switch(binding.Type)
             {
-                if (System.IO.File.Exists(outputFile))
-                    entityRoot = executor.LoadJSONFile(outputFile, null);
-                else
-                {
-                    string[] filePath = new[] { "entities", entity + ".json" };
-                    string downloadedFile = DefaultPackManager.Get(DefaultPackManager.PackType.BehaviorPack, filePath);
-                    entityRoot = executor.LoadJSONFile(downloadedFile, outputFileHash, null);
-                }
+                case BindingType.boolean:
+                    if(!(value is ScoreboardValueBoolean))
+                        throw new StatementException(callingStatement, $"Binding '{binding.molangQuery}' can only be applied to 'bool' values.");
+                    break;
+                case BindingType.integer:
+                    if (!(value is ScoreboardValueInteger))
+                        throw new StatementException(callingStatement, $"Binding '{binding.molangQuery}' can only be applied to 'int' values.");
+                    break;
+                case BindingType.floating_point:
+                    // supports all values
+                    break;
+
             }
 
-            // create animation controller for driving the variable
-            string driverName = value.Name.ToLower() + "_driver";
-            string scriptName = value.Name.ToLower() + "_controller";
+            Executor executor = callingStatement.executor;
 
-            AnimationController driver = new AnimationController(driverName);
-            executor.AddExtraFile(driver);
+            // list of targets in the format "entity_name.json"
+            string[] targets =
+                binding.targetFiles ??
+                givenTargets ??
+                throw new StatementException(callingStatement, $"Binding '{binding.molangQuery}' requires target entities to be specified.");
 
-            driver.states.Add(new ControllerState()
+            if (!executor.linting) // will fail if the executor is linting, because project name is not present.
             {
-                name = "off",
-                onEntryCommands = new string[]
+                foreach (string entity in targets)
                 {
-                    '/' + Command.ScoreboardSet(value, 0)
-                },
-                transitions = new ControllerState.Transition[]
-                {
-                    new ControllerState.Transition("on", new MolangValue(query))
+                    // use EntityBehavior to construct an accurate output location
+                    EntityBehavior givenEntity = new EntityBehavior(entity);
+                    JToken entityRoot = executor.Fetch(givenEntity, callingStatement);
+
+                    // create animation controller for driving the variable
+                    string driverName = value.Name.ToLower() + "_driver";
+                    string scriptName = value.Name.ToLower() + "_controller";
+
+                    AnimationController driver = new AnimationController(driverName);
+                    executor.AddExtraFile(driver);
+
+                    // the binding's implementation of the controller states is invoked here
+                    // we support bool, int, and float
+                    ControllerState[] states = this.binding.GetControllerStates(value, callingStatement, out string defaultState);
+                    driver.states.AddRange(states);
+                    driver.defaultState = defaultState;
+
+                    // implement the new AC into the entity file, but don't destroy any of the data
+                    JObject entityBase = entityRoot["minecraft:entity"] as JObject;
+                    JObject description = entityBase["description"] as JObject;
+
+                    JObject animations;
+                    if ((animations = description["animations"] as JObject) == null)
+                        animations = new JObject();
+
+                    JObject scripts;
+                    if ((scripts = description["scripts"] as JObject) == null)
+                        scripts = new JObject();
+
+                    JArray scriptsToAnimate;
+                    if ((scriptsToAnimate = scripts["animate"] as JArray) == null)
+                        scriptsToAnimate = new JArray();
+
+                    animations[scriptName] = driver.Identifier;
+                    if(!scriptsToAnimate.Any(jt => jt.ToString().Equals(scriptName)))
+                        scriptsToAnimate.Add(scriptName);
+
+                    scripts["animate"] = scriptsToAnimate;
+                    description["animations"] = animations;
+                    description["scripts"] = scripts;
+                    entityBase["description"] = description;
+                    entityRoot["minecraft:entity"] = entityBase;
+
+                    // since we don't have parsed entity data, just use a RawFile
+                    // to export the newly changed entity. it's hack, but it works
+                    string outputFile = executor.project.GetOutputFileLocationFull
+                        (OutputLocation.b_ENTITIES, entity);
+                    RawFile file = new RawFile(outputFile, (entityRoot as JObject).ToString());
+                    executor.OverwriteExtraFile(file);
                 }
-            });
-            driver.states.Add(new ControllerState()
-            {
-                name = "on",
-                onEntryCommands = new string[]
-                {
-                    '/' + Command.ScoreboardSet(value, 1)
-                },
-                transitions = new ControllerState.Transition[]
-                {
-                    new ControllerState.Transition("off", new MolangValue($"!({query})"))
-                }
-            });
-
-            JObject entityBase = entityRoot["minecraft:entity"] as JObject;
-            JObject description = entityBase["description"] as JObject;
-
-            JObject animations;
-            if ((animations = description["animations"] as JObject) == null)
-                animations = new JObject();
-
-            JObject scripts;
-            if ((scripts = description["scripts"] as JObject) == null)
-                scripts = new JObject();
-
-            JArray scriptsToAnimate;
-            if ((scriptsToAnimate = scripts["animate"] as JArray) == null)
-                scriptsToAnimate = new JArray();
-
-            animations[scriptName] = driver.Identifier;
-            scriptsToAnimate.Add(scriptName);
-
-            scripts["animate"] = scriptsToAnimate;
-            description["animations"] = animations;
-            description["scripts"] = scripts;
-            entityBase["description"] = description;
-            entityRoot["minecraft:entity"] = entityBase;
-
-            RawFile file = new RawFile(outputFile, (entityRoot as JObject).ToString());
-            executor.OverwriteExtraFile(file);
+            }
         }
 
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement) => throw new StatementException(causingStatement, "Cannot apply attribute 'bind' to a function.");

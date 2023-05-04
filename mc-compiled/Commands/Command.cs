@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace mc_compiled.Commands
 {
@@ -18,6 +19,28 @@ namespace mc_compiled.Commands
     /// </summary>
     public static class Command
     {
+        /// <summary>
+        /// Returns a command as its literal, chat notation for animation controller fields.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public static string ForAC(string command)
+        {
+            return '/' + command;
+        }
+        /// <summary>
+        /// Returns the commands as literal, chat notation for animation controller fields.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public static string[] ForAC(string[] commands)
+        {
+            for (int i = 0; i < commands.Length; i++)
+                commands[i] = '/' + commands[i];
+
+            return commands;
+        }
+
         /// <summary>
         /// Command utils that require instance stuff.
         /// </summary>

@@ -10,9 +10,23 @@ namespace mc_compiled.Modding.Behaviors
     public class AnimationController : IAddonFile
     {
         public readonly string name;
+        public string defaultState;
         public List<ControllerState> states;
 
         public string CommandReference => throw new NotImplementedException();
+        /// <summary>
+        /// Retrieves the default state, or the name of the first state if unavailable.
+        /// </summary>
+        public string DefaultState
+        {
+            get
+            {
+                if(defaultState != null)
+                    return defaultState;
+
+                return (states.Count > 0) ? states[0].name : null as string;
+            }
+        }
 
         public string Identifier
         {
@@ -38,7 +52,7 @@ namespace mc_compiled.Modding.Behaviors
                 [Identifier] = new JObject()
                 {
                     ["states"] = statesJson,
-                    ["initial_state"] = (states.Count > 0) ? states[0].name : null as string
+                    ["initial_state"] = DefaultState
                 }
             };
 

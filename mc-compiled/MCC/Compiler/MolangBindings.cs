@@ -1,7 +1,10 @@
 ﻿using mc_compiled.Commands;
+using mc_compiled.Modding.Behaviors;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,7 +29,18 @@ namespace mc_compiled.MCC.Compiler
         public readonly string[] targetFiles;    // The files that are targetted, by default, for this binding. Nullable.
         public readonly string description;      // A description of the query, used for documentation.
 
+        /// <summary>
+        /// Get the type that this binding falls under.
+        /// </summary>
         public abstract BindingType Type { get; }
+        /// <summary>
+        /// Creates an array of <see cref="ControllerState"/>s that represent this binding.
+        /// </summary>
+        /// <param name="value">The scoreboard value to change.</param>
+        /// <param name="callingStatement">The calling statement, for exceptions.</param>
+        /// <param name="defaultState">[OUT] The default state to use.</param>
+        /// <returns>An array of <see cref="ControllerState"/>s that represent this binding.</returns>
+        public abstract ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState);
         public override string ToString() =>
 $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "none" : string.Join(" ", targetFiles))} :: desc: {description}";
     }
@@ -38,7 +52,39 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         public MolangBindingBool(string molangQuery, string[] targetFiles, string description)
             : base(molangQuery, targetFiles, description) { }
 
+
         public override BindingType Type => BindingType.boolean;
+        public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState)
+        {
+            defaultState = "off";
+
+            return new ControllerState[] {
+                new ControllerState()
+                {
+                    name = "off",
+                    onEntryCommands = new string[]
+                    {
+                       Command.ForAC(Command.ScoreboardSet(value, 0))
+                    },
+                    transitions = new ControllerState.Transition[]
+                    {
+                        new ControllerState.Transition("on", (MolangValue)molangQuery)
+                    }
+                },
+                new ControllerState()
+                {
+                    name = "on",
+                    onEntryCommands = new string[]
+                    {
+                        Command.ForAC(Command.ScoreboardSet(value, 1))
+                    },
+                    transitions = new ControllerState.Transition[]
+                    {
+                        new ControllerState.Transition("off", (MolangValue)$"!({molangQuery})")
+                    }
+                }
+            };
+        }
     }
     /// <summary>
     /// A definition describing how to bind to a Molang query that evaluates to an integer, within a given range.
@@ -56,8 +102,16 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         public MolangBindingInt(string molangQuery, string[] targetFiles, string description, int min, int max)
             : base(molangQuery, targetFiles, description)
         {
-            this.min = min;
-            this.max = max;
+            if (min > max)
+            {
+                this.min = max;
+                this.max = min;
+            }
+            else
+            {
+                this.min = min;
+                this.max = max;
+            }
         }
         public MolangBindingInt(string molangQuery, string[] targetFiles, string description, Range range)
             : base(molangQuery, targetFiles, description)
@@ -67,13 +121,122 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         }
 
         public override BindingType Type => BindingType.integer;
+        public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState)
+        {
+            defaultState = "direct";
+            int numberOfStates = max - min + 1;
+            ControllerState[] states = new ControllerState[numberOfStates + 1]; // + 1 for the director
+            ControllerState director = new ControllerState()
+            {
+                name = defaultState,
+                transitions = new ControllerState.Transition[numberOfStates]
+            };
+
+            for (int i = 0; i < numberOfStates; i++)
+            {
+                int currentState = min + i;
+                string stateName = "when_" + currentState;
+
+                ControllerState state = new ControllerState()
+                {
+                    name = stateName,
+                    onEntryCommands = new string[]
+                    {
+                        Command.ForAC(Command.ScoreboardSet(value, currentState))
+                    },
+                    transitions = new ControllerState.Transition[]
+                    {
+                        new ControllerState.Transition(director, (MolangValue)$"{this.molangQuery} != {currentState}")
+                    }
+                };
+
+                director.transitions[i] = new ControllerState.Transition(state, (MolangValue)$"{this.molangQuery} == {currentState}");
+                states[i + 1] = state;
+            }
+
+            states[0] = director;
+            return states;
+        }
+    }
+    /// <summary>
+    /// A definition describing how to bind to a Molang query that evaluates to an integer, within a given range.
+    /// </summary>
+    public sealed class MolangBindingFloat : MolangBinding
+    {
+        public readonly float min;
+        public readonly float max;
+        public readonly float step;
+
+        public MolangBindingFloat(string molangQuery, string[] targetFiles, string description, float min, float max, float step)
+            : base(molangQuery, targetFiles, description)
+        {
+            this.min = min;
+            this.max = max;
+            this.step = step;
+        }
+
+        public override BindingType Type => BindingType.floating_point;
+        public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState)
+        {
+            defaultState = "direct";
+
+            float distance = max - min;
+            float normalizedStep = distance / step;
+            int numberOfStates = ((int)normalizedStep); // floor
+
+            ControllerState[] states = new ControllerState[numberOfStates + 1]; // + 1 for the director
+            ControllerState director = new ControllerState()
+            {
+                name = defaultState,
+                transitions = new ControllerState.Transition[numberOfStates]
+            };
+
+            float Lerp(float t)
+            {
+                return (1 - t) * min + t * max;
+            }
+
+            for (int i = 0; i < numberOfStates; i++)
+            {
+                float currentValue = min + Lerp(((float)i) * normalizedStep);
+                float lowerBound = currentValue - (normalizedStep / 2);
+                float upperBound = currentValue + (normalizedStep / 2);
+
+                string stateName = "state_" + i;
+
+                ControllerState state = new ControllerState()
+                {
+                    name = stateName,
+
+                    onEntryCommands = value.CommandsSetLiteral(
+                        new TokenDecimalLiteral(currentValue, callingStatement.Lines[0])
+                    ).Select(cmd => Command.ForAC(cmd)).ToArray(),
+
+                    transitions = new ControllerState.Transition[]
+                    {
+                        new ControllerState.Transition(director,
+                            (MolangValue)$"{this.molangQuery} < {lowerBound} && {this.molangQuery} >= {upperBound}")
+                    }
+                };
+
+                director.transitions[i] = new ControllerState.Transition(state, (MolangValue)$"{this.molangQuery} >= {lowerBound} && {this.molangQuery} < {upperBound}");
+                states[i + 1] = state;
+            }
+
+            states[0] = director;
+            return states;
+        }
     }
     public enum BindingType
     {
         boolean,
-        integer
+        integer,
+        floating_point
     }
 
+    /// <summary>
+    /// Manages the holding and loading of the language-defined <see cref="MolangBinding"/>s. Static.
+    /// </summary>
     public static class MolangBindings
     {
         private static bool _isLoaded = false;
@@ -113,11 +276,14 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                 // try to fetch targets
                 if (body.TryGetValue("targets", out JToken value))
                 {
-                    if (value == null)
-                        continue;
-                    targets = (value as JArray)
-                        .Select(jt => jt.ToString())
-                        .ToArray();
+                    JArray casted = value.Value<JArray>();
+
+                    if (casted != null)
+                    {
+                        targets = casted
+                            .Select(jt => jt.ToString())
+                            .ToArray();
+                    }
                 }
 
                 MolangBinding binding;
@@ -131,6 +297,12 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                         int min = body["min"].Value<int>();
                         int max = body["max"].Value<int>();
                         binding = new MolangBindingInt(query, targets, desc, min, max);
+                        break;
+                    case "FLOAT":
+                        float minF = body["min"].Value<float>();
+                        float maxF = body["max"].Value<float>();
+                        float stepF = body["step"].Value<float>();
+                        binding = new MolangBindingFloat(query, targets, desc, minF, maxF, stepF);
                         break;
                     default:
                         if (debug)

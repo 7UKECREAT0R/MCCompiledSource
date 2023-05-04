@@ -45,9 +45,21 @@ namespace mc_compiled.Modding.Behaviors
         /// <returns></returns>
         public string GetEntityName()
         {
-            int i = identifier.IndexOf(':');
-            if (i == -1) return identifier;
-            return identifier.Substring(i + 1);
+            string stripped = identifier;
+
+            if (stripped.EndsWith(".json"))
+                stripped = stripped.Substring(0, stripped.Length - 5);
+
+            int slash = stripped.LastIndexOf('/');
+            if (slash != -1)
+                stripped = stripped.Substring(slash + 1);
+
+            int i = stripped.IndexOf(':');
+
+            if (i == -1)
+                return stripped;
+
+            return stripped.Substring(i + 1);
         }
     }
     public abstract class EntityScript

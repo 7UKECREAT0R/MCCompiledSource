@@ -134,7 +134,9 @@
       "desc": "Runs on sheep. Returns if the sheep is sheared."
     },
     "query.moon_phase": {
-      "type": "bool",
+      "type": "int",
+      "min": 0,
+      "max": 7,
       "targets": [
         "player.json"
       ],

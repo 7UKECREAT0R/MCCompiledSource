@@ -100,8 +100,8 @@ namespace mc_compiled
             bool debug = false;
             bool search = false;
             bool daemon = false;
-            string obp = "?project\\BP";
-            string orp = "?project\\RP";
+            string obp = "?project_BP";
+            string orp = "?project_RP";
             string projectName = null;
 
             for (int i = 0; i < args.Length; i++)
@@ -230,8 +230,8 @@ namespace mc_compiled
                 new Definitions(debug);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
-                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project";
-                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project";
+                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
+                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
                 DECORATE = false;
                 NO_PAUSE = true;
                 using (MCCServer server = new MCCServer(orp, obp, debug))

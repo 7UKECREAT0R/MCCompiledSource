@@ -73,7 +73,7 @@ namespace mc_compiled.Modding
         public static void DownloadNewest(PackType packType, params string[] pathEntries)
         {
             string path = BuildTraversalPath(packType, pathEntries);
-
+            DownloadNewest(path);
         }
         /// <summary>
         /// Download the newest file from remote source, overwriting the old one if it exists.
