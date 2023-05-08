@@ -88,16 +88,27 @@ namespace mc_compiled.MCC.SyntaxHighlighting
             },
             style = new Highlight(255, 79, 79, HighlightStyle.BOLD)
         };
-        public static readonly Keywords preprocessor = new Keywords()
+        public static Keywords preprocessor
         {
-            keywords = KeywordsFromDirectives(MCC.Compiler.Directives.PreprocessorDirectives),
-            style = new Highlight(11, 164, 221, HighlightStyle.NONE)
-        };
-        public static readonly Keywords commands = new Keywords()
+            get
+            {
+                return new Keywords() {
+                    keywords = KeywordsFromDirectives(MCC.Compiler.Directives.PreprocessorDirectives),
+                    style = new Highlight(11, 164, 221, HighlightStyle.NONE)
+                };
+            }
+        }
+        public static Keywords commands
         {
-            keywords = KeywordsFromDirectives(MCC.Compiler.Directives.RegularDirectives),
-            style = new Highlight(238, 91, 175, HighlightStyle.NONE)
-        };
+            get
+            {
+                return new Keywords()
+                {
+                    keywords = KeywordsFromDirectives(MCC.Compiler.Directives.RegularDirectives),
+                    style = new Highlight(238, 91, 175, HighlightStyle.NONE)
+                };
+            }
+        }
         public static readonly Keywords literals = new Keywords()
         {
             keywords = new Keyword[]

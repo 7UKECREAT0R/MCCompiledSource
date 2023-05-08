@@ -2436,15 +2436,23 @@ namespace mc_compiled.MCC.Compiler
         {
             // pull attributes
             List<IAttribute> attributes = new List<IAttribute>();
-            while(tokens.NextIs<TokenAttribute>())
+
+            void FindAttributes()
             {
-                TokenAttribute _attribute = tokens.Next<TokenAttribute>();
-                attributes.Add(_attribute.attribute);
+                while (tokens.NextIs<TokenAttribute>())
+                {
+                    var _attribute = tokens.Next<TokenAttribute>();
+                    attributes.Add(_attribute.attribute);
+                }
             }
+
+            FindAttributes();
 
             // normal definition
             string functionName = tokens.Next<TokenIdentifier>().word;
             List<RuntimeFunctionParameter> parameters = new List<RuntimeFunctionParameter>();
+
+            FindAttributes();
 
             if (tokens.NextIs<TokenOpenParenthesis>())
                 tokens.Next();
@@ -2482,6 +2490,7 @@ namespace mc_compiled.MCC.Compiler
 
             // constructor
             RuntimeFunction function = new RuntimeFunction(functionName, docs, attributes.ToArray(), false);
+            function.documentation = docs;
             function.isAddedToExecutor = true;
             function.AddParameters(parameters);
             function.SignalToAttributes(tokens);

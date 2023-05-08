@@ -606,7 +606,8 @@ namespace mc_compiled.MCC.Compiler
             if (readIndex < 1)
                 return UNDOCUMENTED_TEXT;
 
-            if(PeekLast() is StatementComment comment)
+            Statement last = PeekLast();
+            if(last is StatementComment comment)
                 return comment.comment;
 
             return UNDOCUMENTED_TEXT;
@@ -639,8 +640,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns><b>null</b> if no statements have been gotten yet.</returns>
         public Statement PeekLast()
         {
-            if (readIndex > 0)
-                return statements[readIndex - 1];
+            if (readIndex > 1)
+                return statements[readIndex - 2];
 
             return null;
         }

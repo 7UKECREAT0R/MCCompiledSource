@@ -32,7 +32,7 @@ namespace mc_compiled.MCC.Server
     public class MCCServer : IDisposable
     {
         public const int PORT = 11830;
-        public const float VERSION = 5.6f;
+        public const float VERSION = 5.7f;
         public const int CHUNK_SIZE = 0x100000; // 1MB
         public const int BUFFER_SIZE = 0x10000; // 64K
 
