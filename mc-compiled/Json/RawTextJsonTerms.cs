@@ -2,6 +2,7 @@
 using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,16 @@ namespace mc_compiled.Json
         public static string EscapeString(string text) =>
             text.Replace(@"\", @"\\").Replace("\"", "\\\"");
 
-        public abstract string GetString();
+        /// <summary>
+        /// Builds the JObject that represents this JSON term.
+        /// </summary>
+        /// <returns></returns>
+        public abstract JObject Build();
+
+        /// <summary>
+        /// Returns a preview string of this JSON term, for the rawtext builder.
+        /// </summary>
+        /// <returns></returns>
         public abstract string PreviewString();
     }
 
@@ -32,9 +42,13 @@ namespace mc_compiled.Json
         {
             this.text = EscapeString(text);
         }
-        public override string GetString()
+
+        public override JObject Build()
         {
-            return $@"{{""text"": ""{text}""}}";
+            return new JObject()
+            {
+                ["text"] = text
+            };
         }
         public override string PreviewString()
         {
@@ -57,9 +71,16 @@ namespace mc_compiled.Json
             this.selector = EscapeString(objective.clarifier.CurrentString);
             this.objective = EscapeString(objective.Name);
         }
-        public override string GetString()
+        public override JObject Build()
         {
-            return $@"{{""score"": {{""name"":""{selector}"", ""objective"": ""{objective}""}}}}";
+            return new JObject()
+            {
+                ["score"] = new JObject()
+                {
+                    ["name"] = selector,
+                    ["objective"] = objective
+                }
+            };
         }
         public override string PreviewString()
         {
@@ -76,9 +97,13 @@ namespace mc_compiled.Json
         {
             this.selector = EscapeString(selector);
         }
-        public override string GetString()
+
+        public override JObject Build()
         {
-            return $@"{{""selector"": ""{selector}""}}";
+            return new JObject()
+            {
+                ["selector"] = selector.ToString()
+            };
         }
         public override string PreviewString()
         {
@@ -104,16 +129,21 @@ namespace mc_compiled.Json
             return this;
         }
 
-        public override string GetString()
+        public override JObject Build()
         {
             if(with.Any())
             {
-                string[] subtexts = with.Select(x => x.BuildString()).ToArray();
-                string withComponent = string.Join(",", subtexts);
-                return $@"{{""translate"": ""{translationKey}"",""with"": [{withComponent}]}}";
+                return new JObject()
+                {
+                    ["translate"] = translationKey,
+                    ["with"] = new JArray(from subtext in with select subtext.Build())
+                };
             }
 
-            return $@"{{""translate"": ""{translationKey}""}}";
+            return new JObject()
+            {
+                ["translate"] = translationKey
+            };
         }
         public override string PreviewString()
         {
@@ -135,10 +165,10 @@ namespace mc_compiled.Json
         {
             this.terms = new List<ConditionalTerm>(terms);
         }
-        public override string GetString()
+        public override JObject Build()
         {
             // not supposed to get string'd
-            return "{variant}";
+            return new JObject();
         }
         public override string PreviewString()
         {

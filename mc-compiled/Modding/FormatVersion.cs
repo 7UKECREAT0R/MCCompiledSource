@@ -21,6 +21,7 @@ namespace mc_compiled.Modding
         public static readonly FormatVersion b_ITEM = new FormatVersion(1, 10);
         public static readonly FormatVersion b_RECIPE = new FormatVersion(1, 16);
         public static readonly FormatVersion b_SPAWNRULE = new FormatVersion(1, 8, 0);
+        public static readonly FormatVersion b_DIALOGUE = new FormatVersion(1, 17, 0);
 
         public readonly int release, major;
         public readonly int? minor;

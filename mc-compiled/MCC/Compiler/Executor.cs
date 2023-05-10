@@ -388,9 +388,9 @@ namespace mc_compiled.MCC.Compiler
 
             bool hasVariant = terms.Any(t => t is JSONVariant);
             if (!root && !hasVariant)
-                commands.Add(builder.Run(command + jb.BuildString()));
+                commands.Add(builder.Run(command + jb.Build()));
             else if(root && !hasVariant)
-                commands.Add(command + jb.BuildString());
+                commands.Add(command + jb.Build());
 
             if (root)
                 return commands.ToArray();
@@ -1351,7 +1351,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 RawTextJsonBuilder jb = new RawTextJsonBuilder();
                 jb.AddTerm(new JSONText(project.name + " for Minecraft " + MINECRAFT_VERSION));
-                file.Add(Command.Tellraw("@s", jb.BuildString()));
+                file.Add(Command.Tellraw("@s", jb.Build()));
             }
 
             if(file.IsRootFile && initCommands.Any())

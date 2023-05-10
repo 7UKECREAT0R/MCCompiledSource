@@ -285,6 +285,7 @@ namespace mc_compiled.MCC
             registry[OutputLocation.b_ANIMATION_CONTROLLERS] = Path.Combine(bpBase, "animation_controllers");
             registry[OutputLocation.b_BLOCKS] = Path.Combine(bpBase, "blocks");
             registry[OutputLocation.b_BIOMES] = Path.Combine(bpBase, "biomes");
+            registry[OutputLocation.b_DIALOGUE] = Path.Combine(bpBase, "dialogue");
             registry[OutputLocation.b_ENTITIES] = Path.Combine(bpBase, "entities");
             registry[OutputLocation.b_FEATURES] = Path.Combine(bpBase, "features");
             registry[OutputLocation.b_FEATURE_RULES] = Path.Combine(bpBase, "feature_rules");
@@ -299,7 +300,7 @@ namespace mc_compiled.MCC
             registry[OutputLocation.b_TEXTS] = Path.Combine(bpBase, "texts");
             registry[OutputLocation.b_TRADING] = Path.Combine(bpBase, "trading");
             registry[OutputLocation.b_STRUCTURES] = Path.Combine(bpBase, "structures");
-
+            
             // RP Folders
             registry[OutputLocation.r_ROOT] = rpBase;
             registry[OutputLocation.r_ANIMATION_CONTROLLERS] = Path.Combine(rpBase, "animation_controllers");

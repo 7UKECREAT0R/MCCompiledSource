@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,10 +44,27 @@ namespace mc_compiled.Json
         {
             return string.Join(" ", from term in terms select term.PreviewString());
         }
+
+        /// <summary>
+        /// Builds the terms inside this builder into the completed JSON.
+        /// </summary>
+        /// <returns></returns>
+        public JObject Build()
+        {
+            JObject[] objects = (from term in terms select term.Build()).ToArray();
+
+            return new JObject()
+            {
+                ["rawtext"] = new JArray(objects)
+            };
+        }
+        /// <summary>
+        /// Returns <see cref="Build"/>, but as a minimized JSON string.
+        /// </summary>
+        /// <returns></returns>
         public string BuildString()
         {
-            string inner = string.Join(", ", from term in terms select term.GetString());
-            return $@"{{""rawtext"":[{inner}]}}";
+            return Build().ToString(Newtonsoft.Json.Formatting.None);
         }
 
         public void ConsoleInterface()
@@ -76,7 +94,7 @@ namespace mc_compiled.Json
                     return;
                 if(key.Key == ConsoleKey.C)
                 {
-                    copiedString = BuildString();
+                    copiedString = Build();
                     Clipboard.SetText(copiedString);
                     continue;
                 }

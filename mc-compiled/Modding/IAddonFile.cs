@@ -71,6 +71,7 @@ namespace mc_compiled.Modding
                 case OutputLocation.b_ANIMATION_CONTROLLERS:
                 case OutputLocation.b_BLOCKS:
                 case OutputLocation.b_BIOMES:
+                case OutputLocation.b_DIALOGUE:
                 case OutputLocation.b_ENTITIES:
                 case OutputLocation.b_FEATURES:
                 case OutputLocation.b_FEATURE_RULES:
@@ -123,6 +124,7 @@ namespace mc_compiled.Modding
         b_ANIMATION_CONTROLLERS,
         b_BLOCKS,
         b_BIOMES,
+        b_DIALOGUE,
         b_ENTITIES,
         b_FEATURES,
         b_FEATURE_RULES,
