@@ -64,7 +64,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                     name = "off",
                     onEntryCommands = new string[]
                     {
-                       Command.ForAC(Command.ScoreboardSet(value, 0))
+                       Command.ForJSON(Command.ScoreboardSet(value, 0))
                     },
                     transitions = new ControllerState.Transition[]
                     {
@@ -76,7 +76,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                     name = "on",
                     onEntryCommands = new string[]
                     {
-                        Command.ForAC(Command.ScoreboardSet(value, 1))
+                        Command.ForJSON(Command.ScoreboardSet(value, 1))
                     },
                     transitions = new ControllerState.Transition[]
                     {
@@ -142,7 +142,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                     name = stateName,
                     onEntryCommands = new string[]
                     {
-                        Command.ForAC(Command.ScoreboardSet(value, currentState))
+                        Command.ForJSON(Command.ScoreboardSet(value, currentState))
                     },
                     transitions = new ControllerState.Transition[]
                     {
@@ -210,7 +210,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
 
                     onEntryCommands = value.CommandsSetLiteral(
                         new TokenDecimalLiteral(currentValue, callingStatement.Lines[0])
-                    ).Select(cmd => Command.ForAC(cmd)).ToArray(),
+                    ).Select(cmd => Command.ForJSON(cmd)).ToArray(),
 
                     transitions = new ControllerState.Transition[]
                     {

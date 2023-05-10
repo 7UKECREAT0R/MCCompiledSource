@@ -20,23 +20,23 @@ namespace mc_compiled.Commands
     public static class Command
     {
         /// <summary>
-        /// Returns a command as its literal, chat notation for animation controller fields.
+        /// Returns a command as its literal, chat notation for JSON fields. Escapes any unescaped characters.
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        public static string ForAC(string command)
+        public static string ForJSON(string command)
         {
-            return '/' + command;
+            return '/' + command.Replace("\"", "\\\"");
         }
         /// <summary>
         /// Returns the commands as literal, chat notation for animation controller fields.
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        public static string[] ForAC(string[] commands)
+        public static string[] ForJSON(string[] commands)
         {
             for (int i = 0; i < commands.Length; i++)
-                commands[i] = '/' + commands[i];
+                commands[i] = ForJSON(commands[i]);
 
             return commands;
         }
