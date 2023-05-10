@@ -4,6 +4,7 @@ using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
+using mc_compiled.Modding.Behaviors.Dialogue;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -226,10 +227,20 @@ namespace mc_compiled.Commands
         public static string Deop(string target) =>
             $"deop {target}";
 
-        public static string DialogueShow(string target, string npc, string sceneName) =>
-            $"dialogue open {npc} {target} {sceneName}";
-        public static string DialogueChange(string target, string npc, string sceneName) =>
-            $"dialogue change {npc} {sceneName} {target}";
+        public static string DialogueChange(string npc, string sceneName) =>
+            $"dialogue change {npc} {sceneName}";
+        public static string DialogueChange(string npc, Scene scene) =>
+            $"dialogue change {npc} {scene.sceneTag}";
+        public static string DialogueChange(string npc, string sceneName, string players) =>
+            $"dialogue change {npc} {sceneName} {players}";
+        public static string DialogueChange(string npc, Scene scene, string players) =>
+            $"dialogue change {npc} {scene.sceneTag} {players}";
+        public static string DialogueOpen(string npc, string players) =>
+            $"dialogue open {npc} {players}";
+        public static string DialogueOpen(string npc, string players, string sceneName) =>
+            $"dialogue open {npc} {players} {sceneName}";
+        public static string DialogueOpen(string npc, string players, Scene scene) =>
+            $"dialogue open {npc} {players} {scene.sceneTag}";
 
         public static string Difficulty(DifficultyMode difficulty) =>
             $"difficulty {difficulty}";
