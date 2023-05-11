@@ -54,7 +54,7 @@
   },
   "categories": {
     "preprocessor": "Commands that allow the user to do things at compile time. Preprocessor commands generally start with a $ and are highlighted differently than regular commands.",
-    "text": "Commands which display text to players through FStrings.",
+    "text": "Commands which display text to players through FStrings, or manipulate text otherwise.",
     "entities": "Commands which manipulate, spawn, and transform entities in various ways.",
     "blocks": "Commands which interact with the Minecraft world's blocks.",
     "items": "Commands relating to entity/player items and inventories.",
@@ -340,6 +340,14 @@
         [ "string:text" ]
       ],
       "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
+    },
+    "lang": {
+      "description": "Set Active Language",
+      "details": "Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including FStrings.",
+      "category": "text",
+      "patterns": [
+        [ "id:locale" ]
+      ]
     },
     "define": {
       "description": "Define Variable",

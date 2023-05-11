@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace mc_compiled.MCC
 {
@@ -124,9 +125,27 @@ namespace mc_compiled.MCC
             }
         }
 
+        /// <summary>
+        /// Attempts to add a file to this project, skipping the operation entirely if it's null.
+        /// </summary>
+        /// <param name="file"></param>
+        internal void TryAddFile(IAddonFile file)
+        {
+            if (file == null)
+                return;
+            files.Add(file);
+        }
+        /// <summary>
+        /// Adds a file to this project.
+        /// </summary>
+        /// <param name="file"></param>
         internal void AddFile(IAddonFile file) =>
             files.Add(file);
-        internal void AddFiles(IAddonFile[] files) =>
+        /// <summary>
+        /// Adds a collection of files to this project.
+        /// </summary>
+        /// <param name="files"></param>
+        internal void AddFiles(IEnumerable<IAddonFile> files) =>
             this.files.AddRange(files);
         /// <summary>
         /// Returns if this project has any file name containing a set of text.
@@ -137,6 +156,9 @@ namespace mc_compiled.MCC
         {
             return files.Any(file => file.GetOutputFile().Contains(text));
         }
+        /// <summary>
+        /// Writes all files to the disk and clears the list.
+        /// </summary>
         internal void WriteAllFiles()
         {
             if (linting)
@@ -150,6 +172,19 @@ namespace mc_compiled.MCC
                 CreateUninstallFile();
 
             // manifests
+            ApplyManifests();
+
+            // actual writing
+            foreach (IAddonFile file in files)
+                WriteSingleFile(file);
+            files.Clear();
+        }
+
+        /// <summary>
+        /// Ensures the manifests are present, linked, and are correctly set up. Adds them to the <see cref="files"/> list.
+        /// </summary>
+        private void ApplyManifests()
+        {
             string behaviorManifestLocation = Path.Combine(registry.bpBase, "manifest.json");
             string resourceManifestLocation = Path.Combine(registry.rpBase, "manifest.json");
             bool hasBehaviorManifest = File.Exists(behaviorManifestLocation);
@@ -157,59 +192,59 @@ namespace mc_compiled.MCC
             bool needsBehaviorManifest = !hasBehaviorManifest & files.Any(file => file.GetOutputLocation().IsBehavior());
             bool needsResourceManifest = !hasResourceManifest & files.Any(file => !file.GetOutputLocation().IsBehavior());
 
-            // creating manifests
-            if (needsBehaviorManifest || needsResourceManifest)
+            Manifest behaviorManifest = null;
+            Manifest resourceManifest = null;
+
+            // create/load behavior manifest
+            if (needsBehaviorManifest)
             {
-                // 1st pass, load existing guids
-                Guid? behaviorGuid = null;
-                Guid? resourceGuid = null;
-
-                if (!hasBehaviorManifest)
+                if (hasBehaviorManifest)
                 {
-                    if(needsBehaviorManifest)
-                        behaviorGuid = Guid.NewGuid();
+                    string data = File.ReadAllText(behaviorManifestLocation);
+                    behaviorManifest = new Manifest(data);
                 }
                 else
                 {
-                    string contents = File.ReadAllText(behaviorManifestLocation);
-                    JObject json = JObject.Parse(contents);
-                    string guid = json["header"]["uuid"].Value<string>();
-                    behaviorGuid = Guid.Parse(guid);
-                }
+                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
+                    behaviorManifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), name, projectDescription)
+                        .WithModule(Manifest.Module.BehaviorData(name));
 
-                if (!hasResourceManifest)
-                {
-                    if(needsResourceManifest)
-                        resourceGuid = Guid.NewGuid();
-                }
-                else
-                {
-                    string contents = File.ReadAllText(resourceManifestLocation);
-                    JObject json = JObject.Parse(contents);
-                    string guid = json["header"]["uuid"].Value<string>();
-                    resourceGuid = Guid.Parse(guid);
-                }
-                
-                // 2nd pass, create manifests if needed.
-                if (needsBehaviorManifest)
-                {
-                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
-                    AddFile(new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), name, projectDescription, dependsOn: resourceGuid)
-                        .WithModule(Manifest.Module.BehaviorData(name)));
-                }
-                if (needsResourceManifest)
-                {
-                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
-                    AddFile(new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), name, projectDescription, dependsOn: behaviorGuid)
-                        .WithModule(Manifest.Module.ResourceData(name)));
                 }
             }
 
-            // actual writing
-            foreach (IAddonFile file in files)
-                WriteSingleFile(file);
-            files.Clear();
+            // create/load resource manifest
+            if (needsResourceManifest)
+            {
+                if (hasResourceManifest)
+                {
+                    string data = File.ReadAllText(resourceManifestLocation);
+                    resourceManifest = new Manifest(data);
+                }
+                else
+                {
+                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project - Resources";
+                    resourceManifest = new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), name, projectDescription)
+                        .WithModule(Manifest.Module.ResourceData(name));
+                }
+            }
+
+            // link dependencies
+            if (resourceManifest != null && behaviorManifest != null)
+            {
+                behaviorManifest.dependsOn = resourceManifest.uuid;
+                resourceManifest.dependsOn = behaviorManifest.uuid;
+            }
+
+            TryAddFile(behaviorManifest);
+            TryAddFile(resourceManifest);
         }
+
+        /// <summary>
+        /// Returns the full, exact output location of this IAddonFile in relation to this project.
+        /// </summary>
+        /// <param name="file">The file to get the full path of.</param>
+        /// <param name="includeFileName">Whether to include the file name in the output, or just the directory.</param>
+        /// <returns></returns>
         public string GetOutputFileLocationFull(IAddonFile file, bool includeFileName)
         {
             OutputLocation baseLocation = file.GetOutputLocation();
@@ -224,16 +259,42 @@ namespace mc_compiled.MCC
 
             return folder;
         }
-        public string GetOutputFileLocationFull(OutputLocation outputLocation, string file)
+        /// <summary>
+        /// Returns the full, exact output location of a file that is located under a specific <see cref="OutputLocation"/> in relation to this project.
+        /// </summary>
+        /// <param name="outputLocation">The OutputLocation of the theoretical file.</param>
+        /// <param name="file">The file name and extension. If left null, only the directory will be returned.</param>
+        /// <returns></returns>
+        public string GetOutputFileLocationFull(OutputLocation outputLocation, string file = null)
         {
             string folder = registry[outputLocation];
+
+            if (file == null)
+                return folder;
+
             return Path.Combine(folder, file);
         }
-        public string GetOutputFileLocationFull(OutputLocation outputLocation, string file, string extendedFolder)
+        /// <summary>
+        /// Returns the full, exact output location of a file that is located under a specific <see cref="OutputLocation"/> in relation to this project.
+        /// </summary>
+        /// <param name="outputLocation"></param>
+        /// <param name="file">The file name and extension. If left null, only the directory will be returned.</param>
+        /// <param name="extendedFolder">The extended directory. If left null, only the directory will be returned.</param>
+        /// <returns></returns>
+        public string GetOutputFileLocationFull(OutputLocation outputLocation, params string[] paths)
         {
             string folder = registry[outputLocation];
-            return Path.Combine(folder, extendedFolder, file);
+
+            // concat each path sequentially.
+            foreach (string path in paths)
+                folder = Path.Combine(folder, path);
+
+            return folder;
         }
+        /// <summary>
+        /// Writes an addon file to disk right now, without waiting for the end of the compilation.
+        /// </summary>
+        /// <param name="file"></param>
         internal void WriteSingleFile(IAddonFile file)
         {
             if (linting)

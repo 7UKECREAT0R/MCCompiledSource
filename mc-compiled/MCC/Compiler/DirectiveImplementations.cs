@@ -20,6 +20,7 @@ using mc_compiled.MCC.SyntaxHighlighting;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.CompilerServices;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -1127,6 +1128,11 @@ namespace mc_compiled.MCC.Compiler
             }
 
             executor.AddCommands(commands, "print");
+        }
+        public static void lang(Executor executor, Statement tokens)
+        {
+            string locale = tokens.Next<TokenIdentifier>().word;
+            executor.SetLocale(locale);
         }
         public static void define(Executor executor, Statement tokens)
         {

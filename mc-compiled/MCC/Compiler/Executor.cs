@@ -401,6 +401,17 @@ namespace mc_compiled.MCC.Compiler
 
         private LanguageManager languageManager = null;
         private LocaleDefinition activeLocale = null;
+        private bool manifestIsLocalized = false;
+        /// <summary>
+        /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
+        /// </summary>
+        internal LocaleDefinition ActiveLocale
+        {
+            get => activeLocale;
+        }
+        /// <summary>
+        /// Returns if a locale has been set via <see cref="SetLocale(string)"/>.
+        /// </summary>
         public bool HasLocale
         {
             get => activeLocale != null;
@@ -420,11 +431,21 @@ namespace mc_compiled.MCC.Compiler
             this.activeLocale = languageManager.DefineLocale(locale);
             return;
         }
-        public void AddLocaleEntry(string key, string value, Statement forExceptions)
+        /// <summary>
+        /// Sets a locale entry in the associated .lang file. Throws a <see cref="StatementException"/> if no locale has been set yet via <see cref="SetLocale(string)"/>.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="forExceptions"></param>
+        /// <param name="overwrite"></param>
+        /// <exception cref="StatementException"></exception>
+        public void SetLocaleEntry(string key, string value, Statement forExceptions, bool overwrite = true)
         {
             if (!HasLocale)
                 throw new StatementException(forExceptions, "No language has been set to write to. See the 'lang' command.");
 
+            LangEntry entry = LangEntry.Create(key, value);
+            this.activeLocale.file.Add(entry, overwrite);
         }
 
         public void UnreachableCode() =>
