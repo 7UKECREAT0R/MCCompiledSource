@@ -9,7 +9,7 @@ namespace mc_compiled.Modding
 {
     public class Manifest : IAddonFile
     {
-        public static readonly int[] REQUIRED_ENGINE_VERSION = new[] { 1, 19, 70 };
+        public static readonly int[] REQUIRED_ENGINE_VERSION = new[] { 1, 19, 81 };
         public struct Module
         {
             public string description;

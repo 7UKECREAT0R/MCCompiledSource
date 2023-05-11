@@ -32,7 +32,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             };
         }
 
-        public string CommandReference => null;
+        public string CommandReference => throw new NotImplementedException();
         public string GetExtendedDirectory() => null;
         public byte[] GetOutputData()
         {

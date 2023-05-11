@@ -176,6 +176,10 @@
     <Compile Include="Modding\Offsets.cs" />
     <Compile Include="Modding\Resources\EntityGeometry.cs" />
     <Compile Include="Modding\Resources\EntityResource.cs" />
+    <Compile Include="Modding\Resources\Localization\Lang.cs" />
+    <Compile Include="Modding\Resources\Localization\LangEntry.cs" />
+    <Compile Include="Modding\Resources\Localization\LanguageManager.cs" />
+    <Compile Include="Modding\Resources\Localization\LocaleDefinition.cs" />
     <Compile Include="Modding\StructureFile.cs" />
     <Compile Include="Commands\Selectors\BlockCheck.cs" />
     <Compile Include="Commands\Coord.cs" />

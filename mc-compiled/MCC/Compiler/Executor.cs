@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using mc_compiled.Commands.Execute;
 using System.Runtime.CompilerServices;
 using System.CodeDom.Compiler;
+using mc_compiled.Modding.Resources.Localization;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -29,7 +30,7 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
         //public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+(\\[\"?.+\"?\\])*");
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
-        public const double MCC_VERSION = 1.13;                 // compilerversion
+        public const double MCC_VERSION = 1.14;                 // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string UNDOCUMENTED_TEXT = "undocumented";
@@ -388,15 +389,44 @@ namespace mc_compiled.MCC.Compiler
 
             bool hasVariant = terms.Any(t => t is JSONVariant);
             if (!root && !hasVariant)
-                commands.Add(builder.Run(command + jb.Build()));
+                commands.Add(builder.Run(command + jb.BuildString()));
             else if(root && !hasVariant)
-                commands.Add(command + jb.Build());
+                commands.Add(command + jb.BuildString());
 
             if (root)
                 return commands.ToArray();
 
             return null; // return value isn't used in this case
         }
+
+        private LanguageManager languageManager = null;
+        private LocaleDefinition activeLocale = null;
+        public bool HasLocale
+        {
+            get => activeLocale != null;
+        }
+        /// <summary>
+        /// Sets the active locale that FString data will be sent to.
+        /// </summary>
+        /// <param name="locale"></param>
+        public void SetLocale(string locale)
+        {
+            if (languageManager == null)
+            {
+                languageManager = new LanguageManager(this);
+                this.AddExtraFile(languageManager);
+            }
+
+            this.activeLocale = languageManager.DefineLocale(locale);
+            return;
+        }
+        public void AddLocaleEntry(string key, string value, Statement forExceptions)
+        {
+            if (!HasLocale)
+                throw new StatementException(forExceptions, "No language has been set to write to. See the 'lang' command.");
+
+        }
+
         public void UnreachableCode() =>
             unreachableCode = 1;
         /// <summary>

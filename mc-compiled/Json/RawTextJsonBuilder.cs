@@ -94,7 +94,7 @@ namespace mc_compiled.Json
                     return;
                 if(key.Key == ConsoleKey.C)
                 {
-                    copiedString = Build();
+                    copiedString = Build().ToString(Newtonsoft.Json.Formatting.None);
                     Clipboard.SetText(copiedString);
                     continue;
                 }

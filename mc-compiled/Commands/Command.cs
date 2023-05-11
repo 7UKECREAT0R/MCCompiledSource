@@ -5,6 +5,7 @@ using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding.Behaviors.Dialogue;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -643,6 +644,11 @@ namespace mc_compiled.Commands
             $"tellraw @a {jsonMessage}";
         public static string Tellraw(string targets, string jsonMessage) =>
             $"tellraw {targets} {jsonMessage}";
+        public static string Tellraw(JObject jsonMessage) =>
+            $"tellraw @a {jsonMessage.ToString(Newtonsoft.Json.Formatting.None)}";
+        public static string Tellraw(string targets, JObject jsonMessage) =>
+            $"tellraw {targets} {jsonMessage.ToString(Newtonsoft.Json.Formatting.None)}";
+
 
         public static string TestFor(string targets) =>
             $"testfor {targets}";

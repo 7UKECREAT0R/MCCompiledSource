@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 using System.Xml.Linq;
 
 namespace mc_compiled.Modding.Behaviors.Dialogue
@@ -18,6 +19,9 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         private RawTextJsonBuilder _npcName;
         private RawTextJsonBuilder _text;
         private List<Button> buttons;
+
+        public string[] openCommands;
+        public string[] closeCommands;
 
         public Scene(string sceneTag)
         {
@@ -140,13 +144,21 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
 
         public JObject Build()
         {
-            return new JObject()
+            JObject json = new JObject()
             {
                 ["scene_tag"] = sceneTag,
                 ["npc_name"] = _npcName?.Build(),
                 ["text"] = _text?.Build(),
                 ["buttons"] = new JArray(from btn in buttons select btn.Build())
             };
-        } 
+
+            if (openCommands != null && openCommands.Length > 0)
+                json["on_open_commands"] = new JArray(openCommands);
+
+            if (closeCommands != null && closeCommands.Length > 0)
+                json["on_close_commands"] = new JArray(closeCommands);
+
+            return json;
+        }
     }
 }
