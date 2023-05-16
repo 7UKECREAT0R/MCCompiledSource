@@ -9,7 +9,7 @@ namespace mc_compiled.Modding.Resources.Localization
     /// <summary>
     /// An entry in a .lang file, either a comment, empty line, or key/value pair. Create using the factory methods.
     /// </summary>
-    internal struct LangEntry
+    public struct LangEntry
     {
         internal bool isComment;
         internal bool isEmpty;

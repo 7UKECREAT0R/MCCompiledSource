@@ -14,6 +14,8 @@ namespace mc_compiled.Modding.Resources.Localization
     /// </summary>
     internal class LanguageManager : IAddonFile
     {
+        public const string MERGE_PPV = "_lang_merge";
+
         internal Executor executor;
         internal HashSet<LocaleDefinition> locales;
 
@@ -34,7 +36,7 @@ namespace mc_compiled.Modding.Resources.Localization
             if(this.locales.TryGetValue(lookupDummy, out LocaleDefinition actual))
                 return actual;
 
-            string fileName = locale + ".json";
+            string fileName = locale + ".lang";
             string path = executor.project.GetOutputFileLocationFull(OutputLocation.r_TEXTS, fileName);
 
             Lang lang;
@@ -42,7 +44,7 @@ namespace mc_compiled.Modding.Resources.Localization
             // fetch lang file if it exists. otherwise, create one.
             if (System.IO.File.Exists(path))
             {
-                string file = executor.LoadFileString(locale);
+                string file = executor.LoadFileString(path);
                 lang = Lang.Parse(locale, file);
             }
             else

@@ -27,14 +27,13 @@ namespace mc_compiled.MCC.Server
     /// - Gives code diagnostics
     /// - Compiles code into the user's filesystem.
     /// - Saves/loads data from the filesystem.
-    /// - 
     /// </summary>
     public class MCCServer : IDisposable
     {
-        public const int PORT = 11830;
-        public const float VERSION = 5.7f;
-        public const int CHUNK_SIZE = 0x100000; // 1MB
-        public const int BUFFER_SIZE = 0x10000; // 64K
+        public const int PORT = 11830;              // The port that the server will be opened on. The Minecraft version at the time of the first working prototype (1.18.30).
+        public const float STANDARD_VERSION = 5.7f; // Tha version of the standard this implementation of the server follows.
+        public const int CHUNK_SIZE = 0x100000;     // 1MB
+        public const int BUFFER_SIZE = 0x10000;     // 64K
 
         public const string WEBSOCKET_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -89,7 +88,7 @@ namespace mc_compiled.MCC.Server
             socket.Listen(100); // 100 packet queue
 
             Console.WriteLine("Now listening for socket connection on " + ip + ".");
-            Console.WriteLine("Language Server Version {0}", VERSION);
+            Console.WriteLine("Language Server Version {0}", STANDARD_VERSION);
             Console.WriteLine("MCCompiled Version {0}", Executor.MCC_VERSION);
             
             // begin accepting clients
@@ -322,7 +321,7 @@ namespace mc_compiled.MCC.Server
                 JObject info = new JObject();
                 info["action"] = "menu";
                 info["html"] = CreateGenericMenu("Server Info",
-                    "Language Server Version: " + VERSION,
+                    "Language Server Version: " + STANDARD_VERSION,
                     "MCCompiled Version: " + Executor.MCC_VERSION,
                     "Made for Minecraft Version: " + Executor.MINECRAFT_VERSION,
                     "",

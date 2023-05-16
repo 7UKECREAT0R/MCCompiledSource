@@ -33,6 +33,7 @@ namespace mc_compiled.MCC.Compiler
         public const double MCC_VERSION = 1.14;                 // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
+        public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";
         public const string UNDOCUMENTED_TEXT = "undocumented";
         public const string FAKEPLAYER_NAME = "_";
         public static int MAXIMUM_DEPTH = 100;
@@ -196,37 +197,22 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="fstring"></param>
         /// <returns></returns>
-        public List<JSONRawTerm> FString(string fstring, int[] lineNumbers, out bool advanced)
+        public List<JSONRawTerm> FString(string fstring, Statement forExceptions, out bool advanced)
         {
             // stupid complex search for closing bracket: '}'
             int ScanForCloser(string str, int start)
             {
                 int len = str.Length;
                 int depth = -1;
-                bool skipping = false;
                 bool escape = false;
 
                 for(int i = start + 1; i < len; i++)
                 {
                     char c = str[i];
 
-                    // skipping due to string
-                    if(skipping)
+                    if(c == '\\')
                     {
-                        // escaping chars
-                        if (escape)
-                        {
-                            escape = false;
-                            continue;
-                        }
-                        if (c == '\\')
-                        {
-                            escape = true;
-                            continue;
-                        }
-
-                        if (c == '"')
-                            skipping = false;
+                        escape = !escape;
                         continue;
                     }
 
@@ -257,7 +243,7 @@ namespace mc_compiled.MCC.Compiler
                 string bufferContents = ResolveString(buffer.ToString());
                 if (!string.IsNullOrEmpty(bufferContents))
                 {
-                    terms.Add(new JSONText(bufferContents));
+                    terms.AddRange(new JSONText(bufferContents).Localize(this, forExceptions));
                     buffer.Clear();
                 }
             }
@@ -296,7 +282,7 @@ namespace mc_compiled.MCC.Compiler
                     Tokenizer tokenizer = new Tokenizer(segment, false, false);
                     Token[] tokens = tokenizer.Tokenize();
                     Statement subStatement = new StatementHusk(tokens);
-                    subStatement.SetSource(lineNumbers, "Inline FString Operation");
+                    subStatement.SetSource(forExceptions.Lines, "Inline FString Operation");
 
                     // squash & resolve the tokens as best it can
                     subStatement.PrepareThis(this);
@@ -322,14 +308,19 @@ namespace mc_compiled.MCC.Compiler
                             ScoreboardValue value = identifierValue.value;
                             int indexCopy = scoreIndex;
                             AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.Name);
-                            terms.AddRange(value.ToRawText(ref indexCopy));
+
+                            // localize and flatten the array here.
+                            JSONRawTerm[] toStringTerms = value.ToRawText(ref indexCopy);
+                            terms.AddRange(toStringTerms.SelectMany(term => term.Localize(this, forExceptions)));
+
                             scoreIndex++;
                             continue;
                         }
 
                         // default representation
                         string stringRepresentation = ResolveString(token.ToString());
-                        terms.Add(new JSONText(stringRepresentation));
+                        if(!string.IsNullOrEmpty(stringRepresentation))
+                            terms.AddRange(new JSONText(stringRepresentation).Localize(this, forExceptions));
                         continue;
                     }
 
@@ -402,6 +393,7 @@ namespace mc_compiled.MCC.Compiler
         private LanguageManager languageManager = null;
         private LocaleDefinition activeLocale = null;
         private bool manifestIsLocalized = false;
+
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
         /// </summary>
@@ -438,14 +430,22 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="value"></param>
         /// <param name="forExceptions"></param>
         /// <param name="overwrite"></param>
+        /// <returns>The entry that *should* be used, in the case that a merge occurred.</returns>
         /// <exception cref="StatementException"></exception>
-        public void SetLocaleEntry(string key, string value, Statement forExceptions, bool overwrite = true)
+        public LangEntry SetLocaleEntry(string key, string value, Statement forExceptions, bool overwrite)
         {
             if (!HasLocale)
                 throw new StatementException(forExceptions, "No language has been set to write to. See the 'lang' command.");
 
+            bool merge;
+
+            if(ppv.TryGetValue(LanguageManager.MERGE_PPV, out var val))
+                merge = (bool)val[0];
+            else
+                merge = false;
+
             LangEntry entry = LangEntry.Create(key, value);
-            this.activeLocale.file.Add(entry, overwrite);
+            return this.activeLocale.file.Add(entry, overwrite, merge);
         }
 
         public void UnreachableCode() =>
@@ -1417,24 +1417,33 @@ namespace mc_compiled.MCC.Compiler
             project.AddFile(file);
         }
 
-        private static Dictionary<int, int> branchFileIndexes = new Dictionary<int, int>();
+        private static Dictionary<int, int> generatedNames = new Dictionary<int, int>();
         /// <summary>
-        /// Construct the next available command file with this name, like input0, input1, input2, etc...
+        /// Construct the next available name using a sequential number to distinguish it, like input0, input1, input2, etc...
         /// </summary>
-        /// <param name="friendlyName">A user-friendly name to mark the file by.</param>
-        /// <returns></returns>
-        public static CommandFile GetNextGeneratedFile(string friendlyName)
+        /// <param name="friendlyName"></param>
+        /// <returns>friendlyName[next available index]</returns>
+        public static string GetNextGeneratedName(string friendlyName)
         {
             int hash = friendlyName.GetHashCode();
-            if (!branchFileIndexes.TryGetValue(hash, out int index))
+            if (!generatedNames.TryGetValue(hash, out int index))
                 index = 0;
-
-            branchFileIndexes[hash] = index + 1;
-            return new CommandFile(friendlyName + index, MCC_GENERATED_FOLDER);
+            generatedNames[hash] = index + 1;
+            return friendlyName + index;
         }
-        public static void ResetGeneratedFiles()
+        /// <summary>
+        /// Construct the next available command file (in the generated folder) using a sequential number to distinguish it, like input0, input1, input2, etc...
+        /// </summary>
+        /// <param name="friendlyName">A user-friendly name to mark the file by.</param>
+        /// <returns>A command file titled "friendlyName[next available index]" </returns>
+        public static CommandFile GetNextGeneratedFile(string friendlyName)
         {
-            branchFileIndexes.Clear();
+            string name = GetNextGeneratedName(friendlyName);
+            return new CommandFile(name, MCC_GENERATED_FOLDER);
+        }
+        public static void ResetGeneratedNames()
+        {
+            generatedNames.Clear();
         }
 
         /// <summary>

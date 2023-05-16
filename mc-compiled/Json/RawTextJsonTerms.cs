@@ -2,6 +2,7 @@
 using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC;
+using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,12 @@ namespace mc_compiled.Json
         /// </summary>
         /// <returns></returns>
         public abstract string PreviewString();
+
+        /// <summary>
+        /// Returns an array of terms representing this term, but localized (if enabled).
+        /// </summary>
+        /// <returns></returns>
+        public abstract JSONRawTerm[] Localize(Executor executor, Statement forExceptions);
     }
 
     /// <summary>
@@ -53,6 +60,59 @@ namespace mc_compiled.Json
         public override string PreviewString()
         {
             return '[' + text + ']';
+        }
+
+        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        {
+            if (!executor.HasLocale)
+                return new[] { new JSONText(text) };
+
+            // find leading/trailing whitespace
+            int leadingWhitespace = text.TakeWhile(c => char.IsWhiteSpace(c)).Count();
+            int trailingWhitespace = text.Reverse().TakeWhile(c => char.IsWhiteSpace(c)).Count();
+
+            bool hasLeadingWhitespace = leadingWhitespace > 0;
+            bool hasTrailingWhitespace = trailingWhitespace > 0;
+
+            string safeHashCode = text.GetHashCode().ToString().Replace('-', '_');
+
+            // basic string, nothing fancy here
+            if (!hasLeadingWhitespace && !hasTrailingWhitespace)
+            {
+                string _key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
+                _key = executor.SetLocaleEntry(_key, text, forExceptions, true).key;
+                return new[] { new JSONTranslate(_key) };
+            }
+
+            int indices = 1 + (hasLeadingWhitespace ? 1 : 0) + (hasTrailingWhitespace ? 1 : 0);
+            int index = 0;
+            string textCopy = this.text;
+            JSONRawTerm[] output = new JSONRawTerm[indices];
+
+            // extract the leading whitespace, if any
+            if (hasLeadingWhitespace)
+            {
+                string whitespace = textCopy.Substring(0, leadingWhitespace);
+                textCopy = textCopy.Substring(leadingWhitespace);
+                output[index++] = new JSONText(whitespace);
+            }
+
+            // extract the trailing whitespace, if any
+            if (hasTrailingWhitespace)
+            {
+                int len = textCopy.Length;
+                string whitespace = textCopy.Substring(len - trailingWhitespace);
+                textCopy = textCopy.Substring(0, len - trailingWhitespace);
+                output[index + 1] = new JSONText(whitespace);
+            }
+
+            // finally, the translated part.
+            string key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
+            key = executor.SetLocaleEntry(key, textCopy, forExceptions, true).key;
+            output[index] = new JSONTranslate(key);
+
+            // done
+            return output;
         }
     }
     /// <summary>
@@ -86,6 +146,11 @@ namespace mc_compiled.Json
         {
             return "[SCORE " + objective + " OF " + selector + ']';
         }
+
+        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        {
+            return new[] { this };
+        }
     }
     /// <summary>
     /// Represents an entity's name based off of a selector.
@@ -108,6 +173,11 @@ namespace mc_compiled.Json
         public override string PreviewString()
         {
             return '[' + selector + ']';
+        }
+
+        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        {
+            return new[] { this };
         }
     }
     /// <summary>
@@ -149,6 +219,11 @@ namespace mc_compiled.Json
         {
             return '[' + translationKey + ']';
         }
+
+        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        {
+            return new[] { this };
+        }
     }
     /// <summary>
     /// A term which can convert to multiple possible outcomes depending on the evaluation 
@@ -173,6 +248,20 @@ namespace mc_compiled.Json
         public override string PreviewString()
         {
             return "{variant}";
+        }
+
+        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        {
+            JSONRawTerm[][] localizedTerms = new JSONRawTerm[terms.Count][];
+
+            for(int i = 0; i < terms.Count; i++)
+            {
+                ConditionalTerm term = terms[i];
+                localizedTerms[i] = term.term.Localize(executor, forExceptions);
+            }
+
+            JSONRawTerm[] flattenedArray = localizedTerms.SelectMany(arr => arr).ToArray();
+            return flattenedArray;
         }
     }
     public class ConditionalTerm

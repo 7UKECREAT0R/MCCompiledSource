@@ -21,6 +21,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
 using System.Runtime.CompilerServices;
+using mc_compiled.Modding.Resources.Localization;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -1092,7 +1093,7 @@ namespace mc_compiled.MCC.Compiler
         public static void globalprint(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
-            List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
 
             string[] commands;
 
@@ -1113,7 +1114,7 @@ namespace mc_compiled.MCC.Compiler
                 player = Selector.SELF;
 
             string str = tokens.Next<TokenStringLiteral>();
-            List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
             string[] commands;
 
             if (advanced)
@@ -1132,6 +1133,19 @@ namespace mc_compiled.MCC.Compiler
         public static void lang(Executor executor, Statement tokens)
         {
             string locale = tokens.Next<TokenIdentifier>().word;
+
+            const bool DEFAULT_MERGE = true;
+
+            // create preprocessor variable if it doesn't exist.
+            if (!executor.ppv.TryGetValue(LanguageManager.MERGE_PPV, out _))
+                executor.ppv[LanguageManager.MERGE_PPV] = new dynamic[] { DEFAULT_MERGE };
+
+            if (Program.DEBUG)
+                Console.WriteLine("Set locale to '{0}'", locale);
+
+            if (executor.linting)
+                return; // due to no project being given in linting operations, it's not necessary.
+
             executor.SetLocale(locale);
         }
         public static void define(Executor executor, Statement tokens)
@@ -1778,7 +1792,7 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+                    List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                     string[] commands;
 
                     if (advanced)
@@ -1796,7 +1810,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1831,7 +1845,7 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+                    List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                     string[] commands;
 
                     if (advanced)
@@ -1855,7 +1869,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1887,7 +1901,7 @@ namespace mc_compiled.MCC.Compiler
             else if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                 string[] commands;
 
                 if (advanced)
@@ -1912,7 +1926,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens.Lines, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                 string[] commands;
 
                 if (advanced)

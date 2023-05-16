@@ -196,31 +196,30 @@ namespace mc_compiled.MCC
             Manifest resourceManifest = null;
 
             // create/load behavior manifest
-            if (needsBehaviorManifest)
+            if (hasBehaviorManifest)
             {
-                if (hasBehaviorManifest)
-                {
-                    string data = File.ReadAllText(behaviorManifestLocation);
-                    behaviorManifest = new Manifest(data);
-                }
-                else
+                string data = File.ReadAllText(behaviorManifestLocation);
+                behaviorManifest = new Manifest(data);
+            }
+            else
+            {
+                if (needsBehaviorManifest)
                 {
                     string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
                     behaviorManifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), name, projectDescription)
                         .WithModule(Manifest.Module.BehaviorData(name));
-
                 }
             }
 
             // create/load resource manifest
-            if (needsResourceManifest)
+            if (hasResourceManifest)
             {
-                if (hasResourceManifest)
-                {
-                    string data = File.ReadAllText(resourceManifestLocation);
-                    resourceManifest = new Manifest(data);
-                }
-                else
+                string data = File.ReadAllText(resourceManifestLocation);
+                resourceManifest = new Manifest(data);
+            }
+            else
+            {
+                if (needsResourceManifest)
                 {
                     string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project - Resources";
                     resourceManifest = new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), name, projectDescription)
@@ -303,7 +302,9 @@ namespace mc_compiled.MCC
             string output = GetOutputFileLocationFull(file, true);
 
             // create folder if it doesn't exist
-            Directory.CreateDirectory(Path.GetDirectoryName(output));
+            string directory = Path.GetDirectoryName(output);
+            if(!string.IsNullOrWhiteSpace(directory)) // folder directly at the root (e.g., manifest)
+                Directory.CreateDirectory(directory);
 
             // write it
             File.WriteAllBytes(output, file.GetOutputData());

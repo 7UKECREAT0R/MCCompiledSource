@@ -572,7 +572,7 @@ namespace mc_compiled
         internal static void PrepareToCompile()
         {
             // reset all that icky static stuff
-            Executor.ResetGeneratedFiles();
+            Executor.ResetGeneratedNames();
             Commands.Command.ResetState();
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();
