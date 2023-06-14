@@ -199,7 +199,7 @@ namespace mc_compiled.MCC
             if (hasBehaviorManifest)
             {
                 string data = File.ReadAllText(behaviorManifestLocation);
-                behaviorManifest = new Manifest(data);
+                behaviorManifest = new Manifest(data, OutputLocation.b_ROOT);
             }
             else
             {
@@ -215,7 +215,7 @@ namespace mc_compiled.MCC
             if (hasResourceManifest)
             {
                 string data = File.ReadAllText(resourceManifestLocation);
-                resourceManifest = new Manifest(data);
+                resourceManifest = new Manifest(data, OutputLocation.r_ROOT);
             }
             else
             {

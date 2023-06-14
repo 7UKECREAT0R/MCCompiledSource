@@ -9,7 +9,7 @@ namespace mc_compiled.Modding
 {
     public class Manifest : IAddonFile
     {
-        public static readonly int[] REQUIRED_ENGINE_VERSION = new[] { 1, 19, 81 };
+        public static readonly int[] REQUIRED_ENGINE_VERSION = new[] { 1, 20, 0 };
         public struct Module
         {
             public string description;
@@ -26,7 +26,7 @@ namespace mc_compiled.Modding
             }
             public Module(JObject json)
             {
-                description = json["description"].ToString();
+                description = json["description"]?.ToString() ?? "";
                 type = json["type"].ToString();
                 uuid = Guid.Parse(json["uuid"].ToString());
                 JArray array = (JArray)json["version"];
@@ -89,8 +89,9 @@ namespace mc_compiled.Modding
         /// Parse an existing manifest.
         /// </summary>
         /// <param name="parse"></param>
-        public Manifest(string parse)
+        public Manifest(string parse, OutputLocation type)
         {
+            this.location = type;
             JObject root = JObject.Parse(parse);
             JObject header = root["header"] as JObject;
             JArray modules = root["modules"] as JArray;

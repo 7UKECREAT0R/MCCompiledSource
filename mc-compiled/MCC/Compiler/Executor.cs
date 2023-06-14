@@ -392,7 +392,6 @@ namespace mc_compiled.MCC.Compiler
 
         private LanguageManager languageManager = null;
         private LocaleDefinition activeLocale = null;
-        private bool manifestIsLocalized = false;
 
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
