@@ -399,12 +399,17 @@
     "tp": {
       "description": "Teleport Entity",
       "aliases": [ "teleport" ],
-      "details": "Teleports the given entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
+      "details": "Teleports the executing/given entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "category": "entities",
       "patterns": [
-        [ "selector:source", "coord:x", "coord:y", "coord:z" ],
-        [ "selector:source", "selector:other" ],
-        [ "selector:source", "string:other" ]
+        [ "coord:x", "coord:y", "coord:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
+        [ "coord:x", "coord:y", "coord:z", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ],
+        [ "selector:source", "coord:x", "coord:y", "coord:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
+        [ "selector:source", "coord:x", "coord:y", "coord:z", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ],
+        [ "selector:source", "selector:other", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
+        [ "selector:source", "selector:other", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ],
+        [ "selector:source", "string:other", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
+        [ "selector:source", "string:other", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ]
       ]
     },
     "move": {

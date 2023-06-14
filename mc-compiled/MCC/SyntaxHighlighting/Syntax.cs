@@ -208,7 +208,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("anchored", "Execute subcommand: Runs anchored to the executing entities eyes or feet."),
                 new Keyword("as", "Execute subcommand: Runs as the given entity(s)."),
                 new Keyword("at", "Execute subcommand: Runs at the given location or entity."),
-                new Keyword("facing", "Execute subcommand: Runs facing a certain position."),
+                new Keyword("facing", "Teleport & Execute subcommand: Runs facing a certain position."),
                 new Keyword("facing entity", "Execute subcommand: Runs facing a certain entity."),
                 new Keyword("in", "Execute subcommand: Runs in a given dimension."),
                 new Keyword("positioned", "Execute subcommand: Runs at a given position."),

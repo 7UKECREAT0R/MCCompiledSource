@@ -1504,28 +1504,64 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tp(Executor executor, Statement tokens)
         {
-            Selector entity = tokens.Next<TokenSelectorLiteral>();
-
-            if (tokens.NextIs<TokenSelectorLiteral>())
+            bool GetCheckForBlocks()
             {
-                TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.Teleport(entity.ToString(), selector.selector.ToString()));
+                if (tokens.NextIs<TokenBooleanLiteral>())
+                    return tokens.Next<TokenBooleanLiteral>();
+                else
+                    return false;
             }
-            else
+            void ParseArgs(string selector)
             {
                 Coord x = tokens.Next<TokenCoordinateLiteral>();
                 Coord y = tokens.Next<TokenCoordinateLiteral>();
                 Coord z = tokens.Next<TokenCoordinateLiteral>();
 
-                if (tokens.NextIs<TokenCoordinateLiteral>())
+                if(tokens.NextIs<TokenIdentifier>())
+                {
+                    string id = tokens.Next<TokenIdentifier>().word;
+                    if(id.ToUpper().Equals("FACING"))
+                    {
+                        if (tokens.NextIs<TokenCoordinateLiteral>())
+                        {
+                            Coord fx = tokens.Next<TokenCoordinateLiteral>();
+                            Coord fy = tokens.Next<TokenCoordinateLiteral>();
+                            Coord fz = tokens.Next<TokenCoordinateLiteral>();
+                            executor.AddCommand(Command.TeleportFacing(selector, x, y, z, fx, fy, fz, GetCheckForBlocks()));
+                        }
+                        else if (tokens.NextIs<TokenSelectorLiteral>(true))
+                        {
+                            Selector facingEntity = tokens.Next<Selector>();
+                            executor.AddCommand(Command.TeleportFacing(selector, x, y, z, facingEntity.ToString(), GetCheckForBlocks()));
+                        }
+                    }
+                }
+                else if (tokens.NextIs<TokenCoordinateLiteral>())
                 {
                     Coord ry = tokens.Next<TokenCoordinateLiteral>();
                     Coord rx = tokens.Next<TokenCoordinateLiteral>();
-                    executor.AddCommand(Command.Teleport(entity.ToString(), x, y, z, ry, rx));
+                    executor.AddCommand(Command.Teleport(selector, x, y, z, ry, rx, GetCheckForBlocks()));
                 }
                 else
-                    executor.AddCommand(Command.Teleport(entity.ToString(), x, y, z));
+                    executor.AddCommand(Command.Teleport(selector, x, y, z, GetCheckForBlocks()));
             }
+
+            if(tokens.NextIs<TokenCoordinateLiteral>())
+            {
+                ParseArgs(Selector.SELF.ToString());
+                return;
+            }
+
+            Selector entity = tokens.Next<TokenSelectorLiteral>();
+
+            if (tokens.NextIs<TokenSelectorLiteral>())
+            {
+                TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+                executor.AddCommand(Command.Teleport(entity.ToString(), selector.selector.ToString(), GetCheckForBlocks()));
+                return;
+            }
+
+            ParseArgs(entity.ToString());
         }
         public static void move(Executor executor, Statement tokens)
         {
