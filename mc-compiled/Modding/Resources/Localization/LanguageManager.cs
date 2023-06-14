@@ -14,6 +14,9 @@ namespace mc_compiled.Modding.Resources.Localization
     /// </summary>
     internal class LanguageManager : IAddonFile
     {
+        /// <summary>
+        /// PPV that indicates if identical lang entries should be merged into a single key.
+        /// </summary>
         public const string MERGE_PPV = "_lang_merge";
 
         internal Executor executor;

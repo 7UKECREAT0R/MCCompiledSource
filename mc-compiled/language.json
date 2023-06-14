@@ -50,7 +50,8 @@
     "coord": "TokenCoordinateLiteral",
     "enum": "TokenIdentifierEnum",
     "range": "TokenRangeLiteral",
-    "json": "TokenJSONLiteral"
+    "json": "TokenJSONLiteral",
+    "not": "TokenNot"
   },
   "categories": {
     "preprocessor": "Commands that allow the user to do things at compile time. Preprocessor commands generally start with a $ and are highlighted differently than regular commands.",
@@ -371,6 +372,7 @@
       "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.",
       "category": "logic",
       "patterns": [
+        [ "not:not", "value:boolean" ],
         [ "value:boolean" ],
         [ "value:score", "compare:comparison", "value:other" ],
         [ "selector:check for match" ],
