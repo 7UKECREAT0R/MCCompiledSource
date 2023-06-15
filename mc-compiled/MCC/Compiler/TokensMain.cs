@@ -131,6 +131,24 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
+    /// Represents a selector that needs to be resolved within the active context, rather than statically.
+    /// </summary>
+    public sealed class TokenUnresolvedSelector : Token
+    {
+        public override string AsString() => $"{unresolvedSelector}";
+
+        public UnresolvedSelector unresolvedSelector;
+        public TokenUnresolvedSelector(UnresolvedSelector unresolvedSelector, int lineNumber) : base(lineNumber)
+        {
+            this.unresolvedSelector = unresolvedSelector;
+        }
+
+        public TokenSelectorLiteral Resolve(Executor executor)
+        {
+            return new TokenSelectorLiteral(unresolvedSelector.Resolve(executor), lineNumber);
+        }
+    }
+    /// <summary>
     /// Represents a reference to what is probably a directive's builder field.
     /// </summary>
     public sealed class TokenBuilderIdentifier : TokenIdentifier

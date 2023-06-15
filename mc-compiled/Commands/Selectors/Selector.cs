@@ -288,4 +288,35 @@ namespace mc_compiled.Commands.Selectors
             return clone;
         }
     }
+    public class UnresolvedSelector
+    {
+        public Selector.Core core;
+        public string remainderString;
+
+        public UnresolvedSelector(Selector.Core core, string remainderString)
+        {
+            this.core = core;
+            this.remainderString = remainderString;
+        }
+        public override string ToString()
+        {
+            if (!remainderString.StartsWith("["))
+                remainderString = '[' + remainderString;
+            if (!remainderString.EndsWith("]"))
+                remainderString = remainderString + ']';
+
+            return $"@{core}{remainderString}";
+        }
+
+        /// <summary>
+        /// Resolve this selector so that it can be used.
+        /// </summary>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        public Selector Resolve(Executor executor)
+        {
+            string resolvedString = executor.ResolveString(remainderString);
+            return Selector.Parse(core, resolvedString);
+        }
+    }
 }

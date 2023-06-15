@@ -519,7 +519,7 @@ namespace mc_compiled.MCC.Compiler
 
             return new TokenStringLiteral(sb.ToString(), CURRENT_LINE);
         }
-        public TokenSelectorLiteral NextSelectorLiteral(Selector.Core core)
+        public Token NextSelectorLiteral(Selector.Core core)
         {
             if (Peek() == '[')
                 NextChar();
@@ -560,8 +560,16 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string str = sb.ToString();
-            Selector selector = Selector.Parse(core, str);
-            return new TokenSelectorLiteral(selector, CURRENT_LINE);
+
+            if (str.Contains("$")) // selector probably contains preprocessor stuff. use the non-optimized version.
+            {
+                return new TokenUnresolvedSelector(new UnresolvedSelector(core, str), CURRENT_LINE);
+            }
+            else
+            {
+                Selector selector = Selector.Parse(core, str);
+                return new TokenSelectorLiteral(selector, CURRENT_LINE);
+            }
         }
         public TokenArithmatic ArithmaticIdentifier(char a, bool assignment)
         {

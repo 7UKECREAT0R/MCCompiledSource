@@ -31,7 +31,7 @@
     "UNINSTALL": {
       "description": "Uninstall Function",
       "details": "Creates a function that will 'uninstall' the addon from the world; removes tags, scoreboard objectives, dummy entities, etc.",
-      "min-version": 1.1,
+      "min-version": 1.12,
       "value": 8
     }
   },
@@ -592,23 +592,24 @@
       ]
     },
     "dummy": {
-      "description": "Create/Remove Dummy Entity",
+      "description": "Manage Dummy Entities",
       "details": "Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.",
       "category": "features",
       "features": 1,
       "patterns": [
         [ "id:create", "string:name", "?string:tag", "?coord:x", "?coord:y", "?coord:x" ],
-        [ "id:remove", "string:name", "?string:tag" ],
-        [ "id:class", "id:remove" ],
-        [ "id:class", "string:class" ]
+        [ "id:single", "string:name", "?string:tag", "?coord:x", "?coord:y", "?coord:x" ],
+        [ "id:remove", "string:name", "?string:tag" ]
       ]
     },
     "tag": {
       "description": "Tag Entity",
-      "details": "Adds, removes, or singles out a tag on the given entities.",
+      "details": "Adds, removes, or singles out a tag on the given entities, or all registered ones.",
       "category": "entities",
       "patterns": [
-        [ "selector:target", "id:mode", "string:name" ]
+        [ "selector:target", "id:mode", "string:name" ],
+        [ "id:all", "id:mode", "string:name" ]
+
       ]
     },
     "explode": {

@@ -22,6 +22,7 @@ using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
 using System.Runtime.CompilerServices;
 using mc_compiled.Modding.Resources.Localization;
+using System.CodeDom;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -2144,20 +2145,43 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tag(Executor executor, Statement tokens)
         {
-            string selected = tokens.Next<TokenSelectorLiteral>().selector.ToString();
+            bool isAll;
+            string selected;
+            if(tokens.NextIs<TokenSelectorLiteral>())
+            {
+                isAll = false;
+                selected = tokens.Next<TokenSelectorLiteral>().selector.ToString();
+            }
+            else
+            {
+                string allWord = tokens.Next<TokenIdentifier>().word.ToUpper();
+                if (!allWord.Equals("ALL"))
+                    throw new StatementException(tokens, "The first argument of the tag command can either be a selector or 'all'.");
+                isAll = true;
+                selected = null;
+            }
+
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 
             if (word.Equals("ADD"))
             {
+                if (isAll)
+                    throw new StatementException(tokens, "The 'all' selector can only be used with the 'remove' subcommand.");
                 string tag = tokens.Next<TokenStringLiteral>();
                 executor.definedTags.Add(tag);
                 executor.AddCommand(Command.Tag(selected, tag));
             } else if (word.Equals("REMOVE"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
-                executor.AddCommand(Command.TagRemove(selected, tag));
-            } else if (word.Equals("SINGLE"))
+                if (isAll)
+                    executor.AddCommand(Command.TagRemove("*", tag));
+                else
+                    executor.AddCommand(Command.TagRemove(selected, tag));
+            }
+            else if (word.Equals("SINGLE"))
             {
+                if (isAll)
+                    throw new StatementException(tokens, "The 'all' selector can only be used with the 'remove' subcommand.");
                 string tag = tokens.Next<TokenStringLiteral>();
                 executor.definedTags.Add(tag);
                 executor.AddCommands(new[]

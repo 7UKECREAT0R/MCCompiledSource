@@ -102,6 +102,8 @@ namespace mc_compiled.MCC.Compiler
                 // resolve the token.
                 if (resolveStrings && unresolved is TokenStringLiteral)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
+                else if (unresolved is TokenUnresolvedSelector)
+                    allResolved.Add((unresolved as TokenUnresolvedSelector).Resolve(executor));
                 else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
                     allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, this) ?? new Token[] { unresolved });
                 else if (resolvePPVs && unresolved is TokenIndexerUnresolvedPPV)
