@@ -160,6 +160,8 @@ namespace mc_compiled.MCC.Compiler
             SetCompilerPPVs();
 
             HeadFile = new CommandFile(projectName).AsRoot();
+            if(Program.DECORATE)
+                HeadFile.Add("# Runtime setup is placed here in the 'head file'. Re-run this to ensure new scoreboard objectives are properly created.");
             currentFiles.Push(HeadFile);
         }
         /// <summary>

@@ -79,6 +79,7 @@ namespace mc_compiled.MCC.Compiler
         public StatementCloseBlock closer;
 
         public int statementsInside;
+        public int meaningfulStatementsInside;
         public override bool Skip => false;
 
         /// <summary>
@@ -105,7 +106,10 @@ namespace mc_compiled.MCC.Compiler
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
-            return $"[OPEN BLOCK: {statementsInside} STATEMENTS]";
+            if(meaningfulStatementsInside != statementsInside)
+                return $"[OPEN BLOCK: {meaningfulStatementsInside} STATEMENTS ({statementsInside})]";
+            else
+                return $"[OPEN BLOCK: {statementsInside} STATEMENTS]";
         }
 
         protected override TypePattern[] GetValidPatterns()
@@ -340,7 +344,7 @@ namespace mc_compiled.MCC.Compiler
             Token replacement = bestFunction.CallFunction(commands, executor, this);
 
             // finish with the commands.
-            executor.AddCommandsClean(commands, "call" + bestFunction.Keyword);
+            executor.AddCommands(commands, "call" + bestFunction.Keyword);
             commands.Clear();
 
             return;

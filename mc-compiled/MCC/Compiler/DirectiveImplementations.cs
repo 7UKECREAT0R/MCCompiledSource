@@ -1259,7 +1259,7 @@ namespace mc_compiled.MCC.Compiler
                     }
                     else
                     {
-                        if (openBlock.statementsInside == 1)
+                        if (openBlock.meaningfulStatementsInside == 1)
                         {
                             // modify prepend buffer as if 1 statement was there
                             executor.AppendCommandPrepend(prefix);
@@ -1532,7 +1532,7 @@ namespace mc_compiled.MCC.Compiler
                         }
                         else if (tokens.NextIs<TokenSelectorLiteral>(true))
                         {
-                            Selector facingEntity = tokens.Next<Selector>();
+                            Selector facingEntity = tokens.Next<TokenSelectorLiteral>().selector;
                             executor.AddCommand(Command.TeleportFacing(selector, x, y, z, facingEntity.ToString(), GetCheckForBlocks()));
                         }
                     }
@@ -2145,52 +2145,21 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void tag(Executor executor, Statement tokens)
         {
-            bool isAll;
-            string selected;
-            if(tokens.NextIs<TokenSelectorLiteral>())
-            {
-                isAll = false;
-                selected = tokens.Next<TokenSelectorLiteral>().selector.ToString();
-            }
-            else
-            {
-                string allWord = tokens.Next<TokenIdentifier>().word.ToUpper();
-                if (!allWord.Equals("ALL"))
-                    throw new StatementException(tokens, "The first argument of the tag command can either be a selector or 'all'.");
-                isAll = true;
-                selected = null;
-            }
-
+            string selected = tokens.Next<TokenSelectorLiteral>().selector.ToString();
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 
             if (word.Equals("ADD"))
             {
-                if (isAll)
-                    throw new StatementException(tokens, "The 'all' selector can only be used with the 'remove' subcommand.");
                 string tag = tokens.Next<TokenStringLiteral>();
                 executor.definedTags.Add(tag);
                 executor.AddCommand(Command.Tag(selected, tag));
             } else if (word.Equals("REMOVE"))
             {
                 string tag = tokens.Next<TokenStringLiteral>();
-                if (isAll)
-                    executor.AddCommand(Command.TagRemove("*", tag));
-                else
-                    executor.AddCommand(Command.TagRemove(selected, tag));
+                executor.AddCommand(Command.TagRemove(selected, tag));
             }
-            else if (word.Equals("SINGLE"))
-            {
-                if (isAll)
-                    throw new StatementException(tokens, "The 'all' selector can only be used with the 'remove' subcommand.");
-                string tag = tokens.Next<TokenStringLiteral>();
-                executor.definedTags.Add(tag);
-                executor.AddCommands(new[]
-                {
-                    Command.TagRemove("*", tag),
-                    Command.Tag(selected, tag)
-                }, "tagsingle");
-            } else
-                throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE, SINGLE");
+            else
+                throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE");
         }
         public static void explode(Executor executor, Statement tokens)
         {
@@ -2447,7 +2416,7 @@ namespace mc_compiled.MCC.Compiler
             if (next is StatementOpenBlock openBlock)
             {
                 // only do the block stuff if necessary.
-                if (openBlock.statementsInside == 0)
+                if (openBlock.meaningfulStatementsInside == 0)
                 {
                     openBlock.openAction = null;
                     openBlock.CloseAction = null;
@@ -2458,7 +2427,7 @@ namespace mc_compiled.MCC.Compiler
                     .WithSubcommand(new SubcommandRun())
                     .Build(out _);
 
-                if (openBlock.statementsInside == 1)
+                if (openBlock.meaningfulStatementsInside == 1)
                 {
                     // modify prepend buffer as if 1 statement was there
                     executor.AppendCommandPrepend(finalExecute);

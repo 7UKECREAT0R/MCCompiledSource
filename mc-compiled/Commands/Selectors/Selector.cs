@@ -194,6 +194,14 @@ namespace mc_compiled.Commands.Selectors
         public Coord offsetY = Coord.here;
         public Coord offsetZ = Coord.here;
 
+        /// <summary>
+        /// Returns if this selector has an offset that is not entirely relative-zero.
+        /// </summary>
+        public bool UsesOffset
+        {
+            get => offsetX.HasEffect || offsetY.HasEffect || offsetZ.HasEffect;
+        }
+
         public Selectors.Area area;         // The area where targets should be selected.
         public Selectors.Scores scores;     // The scores that should be evaluated.
         public Selectors.HasItems hasItem;  // The items which should be checked.

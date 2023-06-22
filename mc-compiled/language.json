@@ -604,11 +604,10 @@
     },
     "tag": {
       "description": "Tag Entity",
-      "details": "Adds, removes, or singles out a tag on the given entities, or all registered ones.",
+      "details": "Add and remove tags from the given entity.",
       "category": "entities",
       "patterns": [
-        [ "selector:target", "id:mode", "string:name" ],
-        [ "id:all", "id:mode", "string:name" ]
+        [ "selector:target", "id:mode", "string:name" ]
 
       ]
     },

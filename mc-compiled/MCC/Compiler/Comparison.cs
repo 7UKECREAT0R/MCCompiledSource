@@ -194,23 +194,6 @@ namespace mc_compiled.MCC.Compiler
             if (this.IsEmpty)
                 throw new StatementException(callingStatement, "No valid conditions specified.");
 
-            List<string> commands = new List<string>();
-            List<Subcommand> chunks = new List<Subcommand>();
-
-            bool cancel = false;
-            foreach (Comparison comparison in this)
-            {
-                var partCommands = comparison.GetCommands(executor, callingStatement, out bool cancel0);
-                Subcommand[] localChunks = comparison.GetExecuteChunks(executor, callingStatement, out bool cancel1);
-
-                cancel |= cancel0 | cancel1;
-
-                if (partCommands != null)
-                    commands.AddRange(partCommands);
-                if (localChunks != null && localChunks.Length > 0)
-                    chunks.AddRange(localChunks);
-            }
-
             if (!executor.HasNext)
                 throw new StatementException(callingStatement, "Unexpected end of file when running comparison.");
 
@@ -222,11 +205,35 @@ namespace mc_compiled.MCC.Compiler
                             (atEndOfExecutionSet as StatementDirective)     // if it's a inversion statement... (else/elif)
                                 .HasAttribute(DirectiveAttribute.INVERTS_COMPARISON);
 
+            List<string> commands = new List<string>();
+            List<Subcommand> chunks = new List<Subcommand>();
+
+            bool cancel = false;
+            foreach (Comparison comparison in this)
+            {
+                var partCommands = comparison.GetCommands(executor, callingStatement, usesElse, out bool cancel0);
+                Subcommand[] localChunks = comparison.GetExecuteChunks(executor, callingStatement, usesElse, out bool cancel1);
+
+                cancel |= cancel0 | cancel1;
+
+                if (partCommands != null)
+                    commands.AddRange(partCommands);
+                if (localChunks != null && localChunks.Length > 0)
+                    chunks.AddRange(localChunks);
+            }
+
             // add commands to a file
             CommandFile prepFile = null;
             if (commands.Count > 0 || usesElse)
             {
                 prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
+                if(Program.DECORATE)
+                {
+                    // attempt to add extra detail to the output file for reading users
+                    string activeFile = executor.CurrentFile.CommandReference;
+                    string comparisonString = string.Join(" ", this.Select(c => c.GetDescription()));
+                    string trace = $"Setup for comparison '{}'";
+                }
                 prepFile.Add(commands);
                 executor.AddExtraFile(prepFile);
                 executor.AddCommandClean(Command.Function(prepFile));
@@ -282,7 +289,7 @@ namespace mc_compiled.MCC.Compiler
                             .WithSubcommand(new SubcommandRun())
                             .Build(out _);
 
-                        if (openBlock.statementsInside == 1)
+                        if (openBlock.meaningfulStatementsInside == 1)
                         {
                             // modify prepend buffer as if 1 statement was there
                             executor.AppendCommandPrepend(finalExecute);
@@ -372,7 +379,7 @@ namespace mc_compiled.MCC.Compiler
                     else
                     {
 
-                        if (openBlock.statementsInside == 1)
+                        if (openBlock.meaningfulStatementsInside == 1)
                         {
                             // modify prepend buffer as if 1 statement was there
                             executor.AppendCommandPrepend(executePrefix);
@@ -469,15 +476,19 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="executor">The calling executor.</param>
         /// <param name="callingStatement">The calling statement.</param>
-        /// <param name="cancel">Output parameter signaling to cancel the entire statement, like if a compile-time comparison fails.</param>
+        /// <param name="willBeInverted">If this comparison will be inverted later on using e.g., an else statement.</param>
         /// <returns></returns>
-        public abstract IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, out bool cancel);
+        /// <param name="cancel">Output parameter signaling to cancel the entire statement, like if a compile-time comparison fails.</param>
+        public abstract IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel);
         /// <summary>
         /// Gets the execute chunk needed to perform this comparison. May return null.
         /// </summary>
         /// <param name="executor">The calling executor.</param>
         /// <param name="callingStatement">The calling statement.</param>
+        /// <param name="willBeInverted">If this comparison will be inverted later on using e.g., an else statement.</param>
         /// <param name="cancel">Output parameter signaling to cancel the entire statement, like if a compile-time comparison fails.</param>
-        public abstract Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, out bool cancel);
+        public abstract Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel);
+
+        public abstract string GetDescription();
     }
 }

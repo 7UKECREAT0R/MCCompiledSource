@@ -158,6 +158,19 @@ namespace mc_compiled.Commands
             return a; // default
         }
 
+        /// <summary>
+        /// Returns if this coord has any effect on the resulting location. (aka, non-relative and non-zero)
+        /// </summary>
+        public bool HasEffect
+        {
+            get
+            {
+                if (isRelative || isFacingOffset)
+                    return isFloat ? valuef != 0f : valuei != 0;
+
+                return true;
+            }
+        }
         public override bool Equals(object obj)
         {
             return obj is Coord coord &&

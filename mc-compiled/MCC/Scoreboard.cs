@@ -265,11 +265,11 @@ namespace mc_compiled.MCC
         public abstract string[] CommandsSetLiteral(TokenLiteral token);
 
         /// <summary>
-        /// Compare this scoreboard value to another literal value.
+        /// Compare this scoreboard value to a literal value.
         /// </summary>
-        /// <param name="ctype"></param>
-        /// <param name="literal"></param>
-        /// <returns></returns>
+        /// <param name="ctype">The type of comparison to perform.</param>
+        /// <param name="literal">The literal (right-hand-side) to compare this scoreboard value against.</param>
+        /// <returns>A tuple containing A: The score entries to run in order to perform this comparison. B: The commands to run before starting the score comparisons.</returns>
         public abstract Tuple<ScoresEntry[], string[]> CompareToLiteral(TokenCompare.Type ctype, TokenNumberLiteral literal);
         /// <summary>
         /// Setup temporary variables before printing this variable as rawtext.

@@ -182,7 +182,6 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("spectator", "Spectator mode. (spectator)"),
 
                 // various command options
-                new Keyword("all", "Specifies that the tag should be removed from ALL registered entities, loaded, online, or not."),
                 new Keyword("times", "Specifies the fade-in/stay/fade-out times this text will show for."),
                 new Keyword("subtitle", "Sets the subtitle for the next title shown."),
                 new Keyword("destroy", "Destroy any existing blocks as if broken by a player."),

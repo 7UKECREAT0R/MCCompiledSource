@@ -37,6 +37,7 @@ namespace mc_compiled.MCC.Compiler
             this.scope = scope;
             this.resultStore = tempManager.RequestGlobal(ScoreboardManager.ValueType.BOOL) as ScoreboardValueBoolean;
         }
+
         internal PreviousComparisonStructure(bool cancel)
         {
             this.cancel = cancel;
@@ -51,7 +52,7 @@ namespace mc_compiled.MCC.Compiler
             _disposed = true;
 
             if(tempManager != null)
-                tempManager.ReleaseGlobal(ScoreboardManager.ValueType.BOOL);
+                tempManager.Release(resultStore.valueType, resultStore.clarifier.IsGlobal);
         }
     }
 }

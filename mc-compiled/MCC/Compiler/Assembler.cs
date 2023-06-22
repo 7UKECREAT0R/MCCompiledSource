@@ -63,7 +63,13 @@ namespace mc_compiled.MCC.Compiler
                         }
 
                         StatementOpenBlock opener = blocks.Pop();
-                        opener.statementsInside = statements.Count - opener.statementsInside;
+                        int statementCountRaw = statements.Count - opener.statementsInside;
+                        int statementCount = statements
+                            .Skip(opener.statementsInside)
+                            .Count(s => !(s is StatementComment));
+
+                        opener.statementsInside = statementCountRaw;
+                        opener.meaningfulStatementsInside = statementCount;
 
                         // pointers
                         opener.closer = closer;
