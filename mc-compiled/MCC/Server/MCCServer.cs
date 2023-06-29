@@ -402,7 +402,9 @@ namespace mc_compiled.MCC.Server
             // I/O
             // Requires STA thread.
             const string META_HEADER = "// $meta-start";
-            const string META = "// $meta ";
+            const string META_FIELD_METADATA = "// $meta-data ";
+            const string META_FIELD_PROPERTIES = "// $meta-props ";
+            const string META_FOOTER = "// $meta-end";
 
             if (action.Equals("save"))
             {
@@ -430,20 +432,35 @@ namespace mc_compiled.MCC.Server
 
                     using (var stream = System.IO.File.OpenWrite(file))
                     {
-                        // write metadata, if any
-                        if(metadata != null)
+                        bool hasMetadata = metadata != null;
+                        bool hasProperties = project.properties.Any();
+
+                        if(hasMetadata || hasProperties)
                         {
                             // get bytes for the metadata header and footer
                             byte[] header = Encoding.UTF8.GetBytes(META_HEADER + '\n');
+                            byte[] footer = Encoding.UTF8.GetBytes(META_FOOTER + '\n');
 
                             // start by writing the header
                             stream.Write(header, 0, header.Length);
 
-                            // write the data block
-                            string block = metadata.ToString(Newtonsoft.Json.Formatting.None).Base64Encode();
-                            string blockString = META + block + '\n';
-                            byte[] blockBytes = Encoding.UTF8.GetBytes(blockString);
-                            stream.Write(blockBytes, 0, blockBytes.Length);
+                            if (hasMetadata)
+                            {
+                                string block = metadata.ToString(Newtonsoft.Json.Formatting.None).Base64Encode();
+                                string blockString = META_FIELD_METADATA + block + '\n';
+                                byte[] blockBytes = Encoding.UTF8.GetBytes(blockString);
+                                stream.Write(blockBytes, 0, blockBytes.Length);
+                            }
+                            if(hasProperties)
+                            {
+                                string block = project.PropertiesBase64;
+                                string blockString = META_FIELD_PROPERTIES + block + '\n';
+                                byte[] blockBytes = Encoding.UTF8.GetBytes(blockString);
+                                stream.Write(blockBytes, 0, blockBytes.Length);
+                            }
+
+                            // write footer now.
+                            stream.Write(footer, 0, footer.Length);
                         }
 
                         byte[] bytes = Encoding.UTF8.GetBytes(code);
@@ -483,24 +500,33 @@ namespace mc_compiled.MCC.Server
                             // begin reading metadata.
                             StringReader reader = new StringReader(code);
                             _ = reader.ReadLine(); // skip the header
+                            code = "";
 
-                            string line = reader.ReadLine();
-
-                            // if we've reached the footer, break out of the loop.
-                            if (!line.StartsWith(META))
+                            // read until encountering a footer.
+                            string line;
+                            while((line = reader.ReadLine()) != META_FOOTER)
                             {
-                                var oldColor = Console.ForegroundColor;
-                                Console.ForegroundColor = ConsoleColor.Yellow;
-                                Console.WriteLine($"Malformed metadata (garbage field) in file \"{file}\". Skipping.");
-                                Console.ForegroundColor = oldColor;
-                            } else
-                            {
-                                string dataBlock = line.Substring(META.Length);
-                                metadata = JObject.Parse(dataBlock.Base64Decode());
-
-                                // the code is the rest of the segment without the metadata.
-                                code = reader.ReadToEnd();
+                                if(line.StartsWith(META_FIELD_METADATA))
+                                {
+                                    string dataBlock = line.Substring(META_FIELD_METADATA.Length);
+                                    metadata = JObject.Parse(dataBlock.Base64Decode());
+                                } else if(line.StartsWith(META_FIELD_PROPERTIES))
+                                {
+                                    string dataBlock = line.Substring(META_FIELD_PROPERTIES.Length);
+                                    project.PropertiesBase64 = dataBlock;
+                                } else
+                                {
+                                    var oldColor = Console.ForegroundColor;
+                                    Console.ForegroundColor = ConsoleColor.Yellow;
+                                    Console.WriteLine($"Malformed metadata in file \"{file}\". Treating as beginning of code.");
+                                    Console.ForegroundColor = oldColor;
+                                    code = line + '\n';
+                                    break;
+                                }
                             }
+
+                            // the code is the rest of the segment without the metadata.
+                            code += reader.ReadToEnd();
 
                             reader.Close();
                             reader.Dispose();
@@ -510,6 +536,14 @@ namespace mc_compiled.MCC.Server
                         send["action"] = "postload";
                         send["code"] = code.Base64Encode();
                         send["meta"] = metadata;
+                        send["properties"] = new JArray(
+                            project.properties.Select(kv => new JObject()
+                            {
+                                ["name"] = kv.Key.Base64Encode(),
+                                ["value"] = kv.Value.Base64Encode()
+                            })
+                        );
+
                         package.SendFrame(WebSocketFrame.JSON(send));
 
                         Lint(code, package);
