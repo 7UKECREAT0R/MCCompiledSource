@@ -65,13 +65,16 @@ namespace mc_compiled.MCC.Server
                 dialog.Title = "Save project...";
                 dialog.FileName = defaultName;
 
-                bool selected = dialog.ShowDialog() == DialogResult.OK;
-
-                if (selected)
+                using (Form zSetter = new Form() { TopMost = true, TopLevel = true })
                 {
-                    // did choose file
-                    this.File = dialog.FileName;
-                    return true;
+                    bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
+
+                    if (selected)
+                    {
+                        // did choose file
+                        this.File = dialog.FileName;
+                        return true;
+                    }
                 }
 
                 // didn't choose file
@@ -93,13 +96,16 @@ namespace mc_compiled.MCC.Server
                 dialog.Title = "Load project...";
                 dialog.FileName = "web_project.mcc";
 
-                bool selected = dialog.ShowDialog() == DialogResult.OK;
-
-                if (selected)
+                using (Form zSetter = new Form() { TopMost = true, TopLevel = true })
                 {
-                    // did choose file
-                    this.File = dialog.FileName;
-                    return true;
+                    bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
+
+                    if (selected)
+                    {
+                        // did choose file
+                        this.File = dialog.FileName;
+                        return true;
+                    }
                 }
 
                 // didn't choose file

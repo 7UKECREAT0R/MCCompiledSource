@@ -50,7 +50,7 @@ namespace mc_compiled.MCC
         }
 
         public const string RETURN_NAME = "_mcc_retn";
-        public const int MAX_NAME_LENGTH = 16;
+        public const int MAX_NAME_LENGTH = 256;
 
         string baseName;
         string aliasName = null;
@@ -779,7 +779,7 @@ namespace mc_compiled.MCC
 
                     for (int digits = 0; digits < format.minimumHours; digits++)
                     {
-                        buffer.Add(new ConditionalTerm(new JSONText(textBuffer.ToString()), ConditionalSubcommandScore.New(clarifier.CurrentString, hours, new Range(bound, previousBound)), false));
+                        buffer.Add(new ConditionalTerm(new[] { new JSONText(textBuffer.ToString()) }, ConditionalSubcommandScore.New(clarifier.CurrentString, hours, new Range(bound, previousBound)), false));
 
                         textBuffer.Append('0');
                         previousBound = bound - 1;
@@ -809,7 +809,7 @@ namespace mc_compiled.MCC
 
                     for (int digits = 0; digits < format.minimumMinutes; digits++)
                     {
-                        buffer.Add(new ConditionalTerm(new JSONText(textBuffer.ToString()), ConditionalSubcommandScore.New(clarifier.CurrentString, minutes, new Range(bound, previousBound)), false));
+                        buffer.Add(new ConditionalTerm(new[] { new JSONText(textBuffer.ToString()) }, ConditionalSubcommandScore.New(clarifier.CurrentString, minutes, new Range(bound, previousBound)), false));
 
                         textBuffer.Append('0');
                         previousBound = bound - 1;
@@ -843,7 +843,7 @@ namespace mc_compiled.MCC
 
                     for (int digits = 0; digits < format.minimumSeconds; digits++)
                     {
-                        buffer.Add(new ConditionalTerm(new JSONText(textBuffer.ToString()), ConditionalSubcommandScore.New(clarifier.CurrentString, seconds, new Range(bound, previousBound)), false));
+                        buffer.Add(new ConditionalTerm(new[] { new JSONText(textBuffer.ToString()) }, ConditionalSubcommandScore.New(clarifier.CurrentString, seconds, new Range(bound, previousBound)), false));
 
                         textBuffer.Append('0');
                         previousBound = bound - 1;
@@ -1496,8 +1496,8 @@ namespace mc_compiled.MCC
             {
 
                 new JSONVariant(
-                    new ConditionalTerm(new JSONText(trueValues[0]), ConditionalSubcommandScore.New(this, check), false),
-                    new ConditionalTerm(new JSONText(falseValues[0]), ConditionalSubcommandScore.New(this, check), true)
+                    new ConditionalTerm(new[] { new JSONText(trueValues[0]) }, ConditionalSubcommandScore.New(this, check), false),
+                    new ConditionalTerm(new[] { new JSONText(falseValues[0]) }, ConditionalSubcommandScore.New(this, check), true)
                 )
             };
         }

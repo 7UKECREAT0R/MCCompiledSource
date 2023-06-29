@@ -19,6 +19,7 @@ namespace mc_compiled.MCC.Compiler
         internal readonly int scope;
         internal ConditionalSubcommand conditionalUsed;
 
+        internal readonly string previousComparisonString;
         internal readonly ScoreboardValueBoolean resultStore;
 
         /// <summary>
@@ -29,14 +30,16 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="set"></param>
         /// <param name="scope"></param>
         /// <param name="setupFile"></param>
-        internal PreviousComparisonStructure(TempManager tempManager, Statement caller, int scope, ConditionalSubcommand conditionalUsed = null)
+        internal PreviousComparisonStructure(TempManager tempManager, Statement caller, int scope, string previousComparisonString, ConditionalSubcommand conditionalUsed = null)
         {
             this.conditionalUsed = conditionalUsed;
             this.tempManager = tempManager;
             this.sourceStatement = caller;
             this.scope = scope;
+            this.previousComparisonString = previousComparisonString;
             this.resultStore = tempManager.RequestGlobal(ScoreboardManager.ValueType.BOOL) as ScoreboardValueBoolean;
         }
+
 
         internal PreviousComparisonStructure(bool cancel)
         {

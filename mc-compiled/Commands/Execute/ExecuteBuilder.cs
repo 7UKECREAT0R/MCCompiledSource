@@ -64,6 +64,17 @@ namespace mc_compiled.Commands.Execute
             terminated = subcommands.Last().TerminatesChain;
             return "execute " + string.Join(" ", parts);
         }
+        /// <summary>
+        /// Build just the execute builder's subcommands.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name="terminated">If the chain was terminated properly.</param>
+        public string BuildClean(out bool terminated)
+        {
+            var parts = subcommands.Select(subcommand => subcommand.ToMinecraft());
+            terminated = subcommands.Last().TerminatesChain;
+            return "execute " + string.Join(" ", parts);
+        }
 
         /// <summary>
         /// Aligns the executing coordinates on the given axes.

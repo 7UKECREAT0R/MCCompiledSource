@@ -252,29 +252,32 @@ namespace mc_compiled.Json
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
         {
-            JSONRawTerm[][] localizedTerms = new JSONRawTerm[terms.Count][];
-
-            for(int i = 0; i < terms.Count; i++)
-            {
-                ConditionalTerm term = terms[i];
-                localizedTerms[i] = term.term.Localize(executor, forExceptions);
-            }
-
-            JSONRawTerm[] flattenedArray = localizedTerms.SelectMany(arr => arr).ToArray();
-            return flattenedArray;
+            var newConditionals = terms.Select(term => term.Localize(executor, forExceptions));
+            return new[] { new JSONVariant(newConditionals.ToArray()) };
         }
     }
     public class ConditionalTerm
     {
-        internal readonly JSONRawTerm term;
+        internal readonly JSONRawTerm[] terms;
         internal readonly ConditionalSubcommand condition;
         internal readonly bool invert;
 
-        internal ConditionalTerm(JSONRawTerm term, ConditionalSubcommand condition, bool invert)
+        internal ConditionalTerm(JSONRawTerm[] terms, ConditionalSubcommand condition, bool invert)
         {
-            this.term = term;
+            this.terms = terms;
             this.condition = condition;
             this.invert = invert;
+        }
+
+
+        /// <summary>
+        /// Returns a shallow copy of this ConditionalTerm, but localized (if enabled).
+        /// </summary>
+        /// <returns></returns>
+        internal ConditionalTerm Localize(Executor executor, Statement forExceptions)
+        {
+            var localizedTerms = terms.SelectMany(term => term.Localize(executor, forExceptions));
+            return new ConditionalTerm(localizedTerms.ToArray(), condition, invert);
         }
     }
 }

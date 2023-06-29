@@ -15,6 +15,7 @@ namespace mc_compiled.MCC.Compiler
         public StatementDirective(Directive directive, Token[] tokens) : base(tokens, true)
         {
             this.directive = directive;
+            this.DecorateInSource = !directive.IsPreprocessor;
         }
         public override bool HasAttribute(DirectiveAttribute attribute)
         {
@@ -64,8 +65,31 @@ namespace mc_compiled.MCC.Compiler
             if (!Program.DECORATE)
                 return;
 
+            // peek at the next to determine if this comment will be used as documentation or not.
+            Statement next = executor.Peek();
+            if(next is StatementDirective sd)
+            {
+                if (sd.HasAttribute(DirectiveAttribute.DOCUMENTABLE))
+                    return; // this is a documentation string.
+            }
+
             string str = executor.ResolveString(comment);
-            executor.CurrentFile.Add("# " + str);
+
+            // find whether to add a newline or not
+            CommandFile file = executor.CurrentFile;
+            int length = file.Length;
+
+            if (length > 0)
+            {
+                // get last line
+                string lastLine = file.commands[length - 1];
+                if (!lastLine.StartsWith("#")) // create newline if the last line was not a comment
+                    file.Add("");
+            }
+
+            var chunks = str.Trim().Split('\n').Select(line => "# " + line.Trim());
+            str = string.Join(Environment.NewLine, chunks);
+            file.Add(str);
         }
     }
     /// <summary>
@@ -102,6 +126,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.statementsInside = statementsInside;
             this.openAction = null;
+            this.DecorateInSource = false;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -133,6 +158,7 @@ namespace mc_compiled.MCC.Compiler
         public StatementCloseBlock() : base(null)
         {
             this.closeAction = null;
+            this.DecorateInSource = false;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -209,22 +235,26 @@ namespace mc_compiled.MCC.Compiler
             if (NextIs<TokenIdentifierValue>())
             {
                 TokenIdentifierValue next = Next<TokenIdentifierValue>();
-                if (assignment is TokenArithmatic)
+                CommandFile file = executor.CurrentFile;
+
+                if (assignment is TokenArithmatic arithmatic)
                 {
-                    TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
+                    TokenArithmatic.Type op = arithmatic.GetArithmaticType();
                     executor.AddCommands(value.value.CommandsFromOperation
-                        (next.value, op), "math_op");
+                        (next.value, op), "math_op", $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.AliasName} {arithmatic.AsString()} {next.value.AliasName}).");
                 } else
                     executor.AddCommands(value.value.CommandsSet
-                        (next.value), "set_op");
+                        (next.value), "set_op", $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.AliasName} = {next.value.AliasName}).");
             }
             else if (NextIs<TokenLiteral>())
             {
                 TokenLiteral next = Next<TokenLiteral>();
-                if (assignment is TokenArithmatic)
+                CommandFile file = executor.CurrentFile;
+
+                if (assignment is TokenArithmatic arithmatic)
                 {
                     
-                    TokenArithmatic.Type op = (assignment as TokenArithmatic).GetArithmaticType();
+                    TokenArithmatic.Type op = arithmatic.GetArithmaticType();
                     List<string> commands = new List<string>();
 
                     ScoreboardManager.ValueType type = ScoreboardManager.ValueType.INT;
@@ -242,11 +272,11 @@ namespace mc_compiled.MCC.Compiler
                         executor.scoreboard.temps.ReleaseGlobal(type);
                     }
 
-                    executor.AddCommands(commands, "mathoperation");
+                    executor.AddCommands(commands, "math_op", $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.AliasName} {arithmatic.AsString()} {next.AsString()}).");
                 }
                 else
                     executor.AddCommands(value.value.CommandsSetLiteral
-                        (next), "setoperation");
+                        (next), "set_op", $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.AliasName} = {next.AsString()}).");
             }
             else
                 throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");
@@ -344,7 +374,9 @@ namespace mc_compiled.MCC.Compiler
             Token replacement = bestFunction.CallFunction(commands, executor, this);
 
             // finish with the commands.
-            executor.AddCommands(commands, "call" + bestFunction.Keyword);
+            CommandFile current = executor.CurrentFile;
+            executor.AddCommands(commands, "call" + bestFunction.Keyword,
+                $"From file {current.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", passIn.Select(t => t.AsString()))})");
             commands.Clear();
 
             return;
@@ -359,7 +391,10 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementUnknown : Statement
     {
         public override bool Skip => true;
-        public StatementUnknown(Token[] tokens) : base(tokens) { }
+        public StatementUnknown(Token[] tokens) : base(tokens)
+        {
+            this.DecorateInSource = false;
+        }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {

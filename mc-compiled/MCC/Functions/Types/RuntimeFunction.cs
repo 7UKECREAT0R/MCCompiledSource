@@ -28,16 +28,17 @@ namespace mc_compiled.MCC.Functions.Types
         readonly List<IAttribute> attributes;
         readonly List<RuntimeFunctionParameter> parameters;
         
+        public bool isExtern;               // created outside of 
         public string name;                 // name used internally if the normal name won't work.
         public string documentation;        // docs
         public readonly string aliasedName; // user-facing name (keyword)
         bool _hasSignaled = false;
 
-        public RuntimeFunction(string name, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
+        public RuntimeFunction(string aliasedName, string name, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
             this.isAddedToExecutor = false;
 
-            this.aliasedName = name;
+            this.aliasedName = aliasedName;
             this.name = name;
             this.documentation = documentation;
             this.isCompilerGenerated = isCompilerGenerated;
@@ -139,7 +140,7 @@ namespace mc_compiled.MCC.Functions.Types
             if (sb.temps.DefinedTemps.Add(clone))
                 executor.AddCommandsInit(clone.CommandsDefine());
 
-            AddCommands(clone.CommandsSet(value));
+            executor.AddCommands(clone.CommandsSet(value), "returnValue", $"Returns the objective '{clone.Name}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
             returnValue = clone;
             returnValueType = clone.valueType;
         }
@@ -165,7 +166,7 @@ namespace mc_compiled.MCC.Functions.Types
             if (sb.temps.DefinedTemps.Add(variable))
                 executor.AddCommandsInit(variable.CommandsDefine());
 
-            AddCommands(variable.CommandsSetLiteral(value));
+            executor.AddCommands(variable.CommandsSetLiteral(value), "returnValue", $"Returns the literal '{value}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
             returnValue = variable;
             returnValueType = variable.valueType;
         }
@@ -173,7 +174,7 @@ namespace mc_compiled.MCC.Functions.Types
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
             // add the file to the executor if it hasn't been yet.
-            if(!isAddedToExecutor)
+            if(!isAddedToExecutor && !isExtern)
             {
                 executor.AddExtraFile(file);
                 isAddedToExecutor = true;

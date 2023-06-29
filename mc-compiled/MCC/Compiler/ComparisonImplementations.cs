@@ -137,11 +137,11 @@ namespace mc_compiled.MCC.Compiler
             {
                 ScoreboardValue a = (this.a as TokenIdentifierValue).value;
                 ScoreboardValue b = (this.b as TokenIdentifierValue).value;
+                List<string> commands = new List<string>();
 
                 if (willBeInverted)
                 {
-                    List<string> commands = new List<string>();
-                    ScoreboardValue temp = executor.scoreboard.temps.Request(true);
+                    temp = executor.scoreboard.temps.Request(true);
                     commands.Add(Command.ScoreboardSet(temp, 0));
 
                     if (localComparison == TokenCompare.Type.NOT_EQUAL)
@@ -156,6 +156,8 @@ namespace mc_compiled.MCC.Compiler
                             .IfScore(a, localComparison, b)
                             .Run(Command.ScoreboardSet(temp, 1)));
                     }
+
+                    return commands;
                 }
             }
 
@@ -531,8 +533,8 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public override string GetDescription() => inverted?
-            $"block at ({x}, {y}, {z}) is not {block}:{data}":
-            $"block at ({x}, {y}, {z}) is {block}:{data}";
+            $"block at ({x} {y} {z}) is not {block}:{data}":
+            $"block at ({x} {y} {z}) is {block}:{data}";
     }
     public class ComparisonBlocks : Comparison
     {
@@ -593,8 +595,8 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public override string GetDescription() => inverted ?
-            $"{scanMode} blocks between ({beginX}, {beginY}, {beginZ}) and ({endX}, {endY}, {endZ}) do not match the blocks at ({destX}, {destY}, {destZ})" :
-            $"{scanMode} blocks between ({beginX}, {beginY}, {beginZ}) and ({endX}, {endY}, {endZ}) match the blocks at ({destX}, {destY}, {destZ})";
+            $"{scanMode} blocks between ({beginX} {beginY} {beginZ}) and ({endX} {endY} {endZ}) do not match the blocks at ({destX} {destY} {destZ})" :
+            $"{scanMode} blocks between ({beginX} {beginY} {beginZ}) and ({endX} {endY} {endZ}) match the blocks at ({destX} {destY} {destZ})";
     }
 
     /// <summary>

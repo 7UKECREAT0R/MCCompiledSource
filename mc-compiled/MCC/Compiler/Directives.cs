@@ -84,6 +84,14 @@ namespace mc_compiled.MCC.Compiler
             }
         }
 
+        /// <summary>
+        /// Returns if this directive is a preprocessor directive based on whether it begins with a dollar sign ($).
+        /// </summary>
+        public bool IsPreprocessor
+        {
+            get => identifier.Length > 0 ? identifier[0].Equals('$') : false;
+        }
+
         // Directive might overlap an enum value.
         // In the case this happens, it can use this field to help convert itself.
         public readonly Commands.ParsedEnumValue? enumValue;
@@ -113,6 +121,8 @@ namespace mc_compiled.MCC.Compiler
         DONT_RESOLVE_STRINGS = 1 << 2,  // Won't resolve PPV entries in string parameters.
         USES_FSTRING = 1 << 3,          // Reserved.
         INVERTS_COMPARISON = 1 << 4,    // Inverts a comparison that was previously run on this scope. Used by ELSE and ELIF.
+        DONT_DECORATE = 1 << 5,         // Won't decorate this directive in the compiled file when decoration is enabled.
+        DOCUMENTABLE = 1 << 6,          // This directive is documentable by placing a comment before it.
     }
     public static class Directives
     {

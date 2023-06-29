@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static mc_compiled.MCC.TempManager;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -61,13 +62,6 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public void PrepareThis(Executor executor)
         {
-            // decorator
-            if (Program.DECORATE && DecorateInSource)
-            {
-                if (Source != null)
-                    executor.CurrentFile.Add("# " + Source);
-            }
-
             // set executors
             this.SetExecutor(executor);
 
@@ -140,6 +134,35 @@ namespace mc_compiled.MCC.Compiler
             return;
         }
 
+        /// <summary>
+        /// Decorate the active file with this statement's source if decoration is enabled.
+        /// </summary>
+        public void Decorate(Executor executor)
+        {
+            if (!Program.DECORATE || !DecorateInSource || Source == null)
+                return;
+            if (this is StatementDirective std)
+            {
+                if (std.directive == null)
+                    return;
+                bool dontDecorate = (std.directive.attributes & DirectiveAttribute.DONT_DECORATE) != 0;
+                if (dontDecorate)
+                    return;
+            }
+
+            // find whether to add a newline or not
+            CommandFile file = executor.CurrentFile;
+            int length = file.Length;
+
+            if (length > 0)
+            {
+                string lastLine = file.commands[length - 1];
+                if (!lastLine.StartsWith("#") && lastLine.Length > 0 && !lastLine.All(c => char.IsWhiteSpace(c))) // create newline if the last line was not a comment and not whitespace
+                    file.Add("");
+            }
+
+            file.Add("# " + Source);
+        }
         /// <summary>
         /// Run this statement from square one.
         /// </summary>
@@ -389,7 +412,8 @@ namespace mc_compiled.MCC.Compiler
                     continue; // dont squash assignments
 
                 // this can be assumed due to how squash is meant to be called
-                TokenArithmatic.Type op = (selected as TokenArithmatic).GetArithmaticType();
+                TokenArithmatic arithmatic = selected as TokenArithmatic;
+                TokenArithmatic.Type op = arithmatic.GetArithmaticType();
                 List<string> commands = new List<string>();
                 Token squashedToken = null;
                 
@@ -520,7 +544,10 @@ namespace mc_compiled.MCC.Compiler
                 else
                     throw new StatementException(this, $"No valid data given in tokens '{_left}' and '{_right}'; was there a misspelling?");
 
-                executor.AddCommandsClean(commands, "operation");
+                CommandFile file = executor.CurrentFile;
+                int nextLineNumber = executor.NextLineNumber;
+                executor.AddCommandsClean(commands, "inline_op",
+                    $"Part of an inline math operation from {file.CommandReference} line {nextLineNumber}. Performs ({_left.AsString()} {arithmatic.AsString()} {_right.AsString()}).");
 
                 // replace those three tokens with the one squashed one
                 tokens.RemoveRange(i - 1, 3);
@@ -626,7 +653,9 @@ namespace mc_compiled.MCC.Compiler
                 Token replacement = bestFunction.CallFunction(commands, executor, this);
 
                 // finish with the commands.
-                executor.AddCommandsClean(commands, "call" + bestFunction.Keyword);
+                CommandFile file = executor.CurrentFile;
+                executor.AddCommandsClean(commands, "call" + bestFunction.Keyword,
+                    $"From file {file.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", tokensInside.Select(t => t.AsString()))})");
                 commands.Clear();
 
                 if (useImplicit)

@@ -618,7 +618,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.Next<StatementCloseBlock>();
 
-            string docs = executor.GetDocumentationString();
+            string docs = executor.GetDocumentationString(out _);
             Macro macro = new Macro(macroName, docs, args.ToArray(), statements);
             executor.RegisterMacro(macro);
         }
@@ -1085,6 +1085,30 @@ namespace mc_compiled.MCC.Compiler
             } else
                 throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{json.Type}' in a preprocessor variable.");
         }
+        public static void _call(Executor executor, Statement tokens)
+        {
+            string functionName = tokens.Next<TokenStringLiteral>().text;
+
+            if (!executor.functions.TryGetFunctions(functionName, out Function[] functions))
+                throw new StatementException(tokens, $"Could not find function by the name '{functionName}'");
+
+            Token[] remainingTokens = tokens.GetRemainingTokens();
+            Token[] finalTokens = new Token[remainingTokens.Length + 3];
+
+            int line = tokens.Lines[0];
+            Array.Copy(remainingTokens, 0, finalTokens, 2, remainingTokens.Length);
+            finalTokens[0] = new TokenIdentifierFunction(functionName, functions, line);
+            finalTokens[1] = new TokenOpenParenthesis(line);
+            finalTokens[finalTokens.Length - 1] = new TokenCloseParenthesis(line);
+
+
+            StatementFunctionCall callStatement = new StatementFunctionCall(finalTokens);
+            callStatement.SetSource(tokens.Lines, tokens.Source);
+
+            callStatement
+                .ClonePrepare(executor)
+                .Run0(executor);
+        }
 
         public static void mc(Executor executor, Statement tokens)
         {
@@ -1103,7 +1127,8 @@ namespace mc_compiled.MCC.Compiler
             else
                 commands = executor.ResolveRawText(terms, "tellraw @a ");
 
-            executor.AddCommands(commands, "print");
+            CommandFile file = executor.CurrentFile;
+            executor.AddCommands(commands, "print", $"Called in a globalprint command located in {file.CommandReference} line {executor.NextLineNumber}");
         }
         public static void print(Executor executor, Statement tokens)
         {
@@ -1129,7 +1154,8 @@ namespace mc_compiled.MCC.Compiler
                 commands = executor.ResolveRawText(terms, baseCommand);
             }
 
-            executor.AddCommands(commands, "print");
+            CommandFile file = executor.CurrentFile;
+            executor.AddCommands(commands, "print", $"Called in a print command located in {file.CommandReference} line {executor.NextLineNumber}");
         }
         public static void lang(Executor executor, Statement tokens)
         {
@@ -1151,7 +1177,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void define(Executor executor, Statement tokens)
         {
-            string docs = executor.GetDocumentationString();
+            string docs = executor.GetDocumentationString(out bool hadDocumentation);
 
             ScoreboardManager.ValueDefinition def = executor
                 .scoreboard.GetNextValueDefinition(tokens);
@@ -1170,6 +1196,10 @@ namespace mc_compiled.MCC.Compiler
 
             // all the rest of this is getting the commands to define the variable.
             List<string> commands = new List<string>();
+
+            if (hadDocumentation && Program.DECORATE)
+                commands.AddRange(docs.Trim().Split('\n').Select(str => "# " + str.Trim()));
+
             commands.AddRange(value.CommandsDefine());
 
             if (def.defaultValue != null)
@@ -1187,7 +1217,8 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // add the commands to the executor.
-            executor.AddCommands(commands, "define" + value.AliasName);
+            CommandFile file = executor.CurrentFile;
+            executor.AddCommands(commands, "define" + value.AliasName, $"Called when defining the value '{value.AliasName}' in {file.CommandReference} line {executor.NextLineNumber}");
         }
         public static void init(Executor executor, Statement tokens)
         {
@@ -1205,7 +1236,7 @@ namespace mc_compiled.MCC.Compiler
                 commands.AddRange(value.CommandsInit(selector.ToString()));
             }
 
-            executor.AddCommands(commands, null, true);
+            executor.AddCommands(commands, null, null, true);
         }
         public static void @if(Executor executor, Statement tokens)
         {
@@ -1272,6 +1303,13 @@ namespace mc_compiled.MCC.Compiler
                         else
                         {
                             CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+
+                            if (Program.DECORATE)
+                            {
+                                blockFile.Add($"# Run if the previous condition {set.sourceStatement} did not run.");
+                                blockFile.AddTrace(executor.CurrentFile);
+                            }
+
                             string command = prefix + Command.Function(blockFile);
                             executor.AddCommand(command);
 
@@ -1837,7 +1875,8 @@ namespace mc_compiled.MCC.Compiler
                     else
                         commands = executor.ResolveRawText(terms, "titleraw @a subtitle ");
 
-                    executor.AddCommands(commands, "subtitle");
+                    CommandFile file = executor.CurrentFile;
+                    executor.AddCommands(commands, "subtitle", $"Called in a global-subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
                     return;
                 }
                 else
@@ -1855,7 +1894,8 @@ namespace mc_compiled.MCC.Compiler
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a title ");
 
-                executor.AddCommands(commands, "title");
+                CommandFile file = executor.CurrentFile;
+                executor.AddCommands(commands, "title", $"Called in a globaltitle command located in {file.CommandReference} line {executor.NextLineNumber}");
                 return;
             }
         }
@@ -1896,7 +1936,8 @@ namespace mc_compiled.MCC.Compiler
                         commands = executor.ResolveRawText(terms, $"titleraw {selector} subtitle ");
                     }
 
-                    executor.AddCommands(commands, "subtitle");
+                    CommandFile file = executor.CurrentFile;
+                    executor.AddCommands(commands, "subtitle", $"Called in a subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
                     return;
                 }
                 else
@@ -1920,7 +1961,8 @@ namespace mc_compiled.MCC.Compiler
                     commands = executor.ResolveRawText(terms, $"titleraw {selector} title ");
                 }
 
-                executor.AddCommands(commands, "title");
+                CommandFile file = executor.CurrentFile;
+                executor.AddCommands(commands, "title", $"Called in a title command located in {file.CommandReference} line {executor.NextLineNumber}");
                 return;
             }
         }
@@ -1946,7 +1988,8 @@ namespace mc_compiled.MCC.Compiler
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a actionbar ");
 
-                executor.AddCommands(commands, "actionbar");
+                CommandFile file = executor.CurrentFile;
+                executor.AddCommands(commands, "actionbar", $"Called in a global-actionbar command located in {file.CommandReference} line {executor.NextLineNumber}");
                 return;
             }
             else throw new StatementException(tokens, "Invalid information given to globalactionbar.");
@@ -1977,7 +2020,8 @@ namespace mc_compiled.MCC.Compiler
                     commands = executor.ResolveRawText(terms, $"titleraw {selector} actionbar ");
                 }
 
-                executor.AddCommands(commands, "actionbar");
+                CommandFile file = executor.CurrentFile;
+                executor.AddCommands(commands, "actionbar", $"Called in an actionbar command located in {file.CommandReference} line {executor.NextLineNumber}");
                 return;
             }
             else throw new StatementException(tokens, "Invalid information given to actionbar command.");
@@ -2043,7 +2087,8 @@ namespace mc_compiled.MCC.Compiler
                     executor.entities.dummies.Destroy(damagerEntity, false)
                 };
 
-                executor.AddCommands(commands, "damagefrom");
+                CommandFile file = executor.CurrentFile;
+                executor.AddCommands(commands, "damagefrom", $"Creates a dummy entity and uses it to attack the entity from the location ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
                 return;
             }
 
@@ -2097,7 +2142,9 @@ namespace mc_compiled.MCC.Compiler
                         Command.Tag(selector, tag),
                         Command.Event(selector, DummyManager.TAGGABLE_EVENT_REMOVE_NAME)
                     };
-                    executor.AddCommands(commands, "createDummy");
+
+                    CommandFile file = executor.CurrentFile;
+                    executor.AddCommands(commands, "createDummy", $"Spawns a dummy entity named '{name}' with the tag {tag} at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
                 }
                 return;
             }
@@ -2114,13 +2161,15 @@ namespace mc_compiled.MCC.Compiler
                 if (tokens.NextIs<TokenCoordinateLiteral>())
                     z = tokens.Next<TokenCoordinateLiteral>();
 
+                CommandFile file = executor.CurrentFile;
+
                 if (tag == null)
                 {
                     executor.AddCommands(new string[]
                     {
                         executor.entities.dummies.Destroy(name, false),
                         executor.entities.dummies.Create(name, false, x, y, z)
-                    }, "singletonDummy");
+                    }, "singletonDummy", $"Spawns a singleton dummy entity named '{name}' at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
                 }
                 else
                 {
@@ -2131,7 +2180,7 @@ namespace mc_compiled.MCC.Compiler
                         executor.entities.dummies.Create(name, true, x, y, z),
                         Command.Tag(selector, tag),
                         Command.Event(selector, DummyManager.TAGGABLE_EVENT_REMOVE_NAME)
-                    }, "singletonDummy");
+                    }, "singletonDummy", $"Spawns a singleton dummy entity named '{name}' with the tag {tag} at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
                 }
                 return;
             }
@@ -2436,7 +2485,16 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else
                 {
-                    CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+                    CommandFile blockFile = Executor.GetNextGeneratedFile("execute");
+
+                    if(Program.DECORATE)
+                    {
+                        CommandFile file = executor.CurrentFile;
+                        string subcommandsString = builder.BuildClean(out _);
+                        blockFile.Add($"# Run under the following execute subcommands: [{subcommandsString}]");
+                        blockFile.AddTrace(file);
+                    }
+
                     string command = finalExecute + Command.Function(blockFile);
                     executor.AddCommand(command);
 
@@ -2499,6 +2557,21 @@ namespace mc_compiled.MCC.Compiler
 
             // normal definition
             string functionName = tokens.Next<TokenIdentifier>().word;
+            bool usesFolders = functionName.Contains('.');
+            string[] folders = null;
+
+            if (usesFolders)
+            {
+                var split = functionName.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                if (split.Length > 1)
+                    folders = split.Take(split.Length - 1).ToArray();
+                else
+                {
+                    usesFolders = false; // user wrote beyond shit code; fix it up for them
+                    functionName = functionName.Trim('.');
+                }
+            }
+
             List<RuntimeFunctionParameter> parameters = new List<RuntimeFunctionParameter>();
 
             FindAttributes();
@@ -2526,7 +2599,7 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValue value = def.Create(executor.scoreboard, tokens);
 
                 // abstract away the name of the parameter
-                value.ForceHash(functionName); // nonce string
+                // value.ForceHash(functionName); // nonce string
 
                 executor.scoreboard.TryThrowForDuplicate(value, tokens);
                 executor.scoreboard.Add(value);
@@ -2535,14 +2608,35 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // see if last statement was a comment, and use that for documentation
-            string docs = executor.GetDocumentationString();
+            string docs = executor.GetDocumentationString(out bool hadDocumentation);
+
+            // the actual name of the function file
+            string actualName = usesFolders ? functionName.Substring(functionName.LastIndexOf('.') + 1) : functionName;
 
             // constructor
-            RuntimeFunction function = new RuntimeFunction(functionName, docs, attributes.ToArray(), false);
+            RuntimeFunction function = new RuntimeFunction(functionName, actualName, docs, attributes.ToArray(), false);
             function.documentation = docs;
             function.isAddedToExecutor = true;
             function.AddParameters(parameters);
             function.SignalToAttributes(tokens);
+
+            if (!function.isExtern)
+            {
+                // force hash the parameters so that they can be unique.
+                foreach (RuntimeFunctionParameter parameter in parameters)
+                    parameter.runtimeDestination.ForceHash(functionName);
+
+                // add decoration to it if documentation was given
+                if (hadDocumentation && Program.DECORATE)
+                {
+                    function.AddCommands(docs.Trim().Split('\n').Select(str => "# " + str.Trim()));
+                    function.AddCommand("");
+                }
+            }
+
+            // folders, if specified via dots
+            if (usesFolders)
+                function.file.Folders = folders;
 
             // register it with the compiler
             executor.functions.RegisterFunction(function);
@@ -2558,6 +2652,9 @@ namespace mc_compiled.MCC.Compiler
 
             if (executor.NextIs<StatementOpenBlock>())
             {
+                if (function.isExtern)
+                    throw new StatementException(tokens, "Extern functions cannot have a body.");
+
                 StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
 
                 openBlock.openAction = (e) =>
@@ -2570,7 +2667,7 @@ namespace mc_compiled.MCC.Compiler
                 };
                 return;
             }
-            else
+            else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");
         }
         public static void @return(Executor executor, Statement tokens)
@@ -2620,6 +2717,16 @@ namespace mc_compiled.MCC.Compiler
             {
                 StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
                 CommandFile file = Executor.GetNextGeneratedFile("for");
+
+                if(Program.DECORATE)
+                {
+                    if(x.HasEffect || y.HasEffect || z.HasEffect)
+                        file.Add($"# Run for every entity that matches {selector}, and is run at ({x} {y} {z}).");
+                    else
+                        file.Add($"# Run for every entity that matches {selector}.");
+
+                    file.AddTrace(executor.CurrentFile);
+                }
 
                 string command = Command.Execute()
                     .As(selector)

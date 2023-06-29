@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml.Linq;
 
 namespace mc_compiled.MCC
@@ -100,6 +101,11 @@ namespace mc_compiled.MCC
         /// <param name="file"></param>
         internal void RemoveDuplicatesOf(IAddonFile file)
         {
+            string outputFile = file.GetOutputFile();
+
+            if (string.IsNullOrEmpty(outputFile))
+                return;
+
             // compress to just the file names, we don't care
             // about directory included with the file name.
             string fileA = Path.GetFileName(file.GetOutputFile());
@@ -154,7 +160,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         internal bool HasFileContaining(string text)
         {
-            return files.Any(file => file.GetOutputFile().Contains(text));
+            return files.Any(file => (file.GetOutputFile() ?? "").Contains(text));
         }
         /// <summary>
         /// Writes all files to the disk and clears the list.
@@ -243,9 +249,14 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="file">The file to get the full path of.</param>
         /// <param name="includeFileName">Whether to include the file name in the output, or just the directory.</param>
-        /// <returns></returns>
+        /// <returns>null if the file should not be outputted.</returns>
         public string GetOutputFileLocationFull(IAddonFile file, bool includeFileName)
         {
+            string outputFile = file.GetOutputFile();
+
+            if (string.IsNullOrEmpty(outputFile))
+                return null;
+
             OutputLocation baseLocation = file.GetOutputLocation();
             string folder = registry[baseLocation];
             string extend = file.GetExtendedDirectory();
@@ -254,7 +265,7 @@ namespace mc_compiled.MCC
                 folder = Path.Combine(folder, extend);
 
             if (includeFileName)
-                folder = Path.Combine(folder, file.GetOutputFile());
+                folder = Path.Combine(folder, outputFile);
 
             return folder;
         }
@@ -300,6 +311,9 @@ namespace mc_compiled.MCC
                 return;
 
             string output = GetOutputFileLocationFull(file, true);
+
+            if (output == null)
+                return; // file should not be written.
 
             // create folder if it doesn't exist
             string directory = Path.GetDirectoryName(output);

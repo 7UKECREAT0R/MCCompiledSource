@@ -232,12 +232,13 @@ namespace mc_compiled
                 string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
                 obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
                 orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
-                DECORATE = false;
                 NO_PAUSE = true;
+
                 using (MCCServer server = new MCCServer(orp, obp, debug))
                 {
                     server.StartServer();
                 }
+
                 return;
             }
             if (fileUpper.Equals("--PROTOCOL"))

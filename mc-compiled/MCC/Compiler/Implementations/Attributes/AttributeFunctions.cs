@@ -37,16 +37,14 @@ namespace mc_compiled.MCC.Compiler.Implementations.Attributes
            });
 
         /// <summary>
-        /// Places a function in a specific folder.
+        /// Makes the attached function extern.
         /// </summary>
-        public static readonly AttributeFunction FOLDER = new AttributeFunction("folder", "folder",
-"When attached to a function, the file will be placed in the given folder path rather than the behavior_pack/functions root.")
-            .AddParameter(new CompiletimeFunctionParameter<TokenStringLiteral>("path"))
-            .WithCallAction((parameters, excecutor, statement) =>
-            {
-                string folderPath = parameters[0].CurrentValue as TokenStringLiteral;
-                return new AttributeFolder(folderPath);
-            });
+        public static readonly AttributeFunction EXTERN = new AttributeFunction("extern", "extern",
+"Makes a function extern, meaning it was written outside of MCCompiled and can now be called as any other function.")
+           .WithCallAction((parameters, excecutor, statement) =>
+           {
+               return new AttributeExtern();
+           });
 
         /// <summary>
         /// Binds the attached value to a MoLang query using animation controllers.
@@ -90,14 +88,13 @@ namespace mc_compiled.MCC.Compiler.Implementations.Attributes
                     return new AttributeBind(binding, null);
             });
 
-
         /// <summary>
         /// Keep at the bottom of the class because it's having weird order problems.
         /// </summary>
         internal static readonly AttributeFunction[] ALL_ATTRIBUTES = new AttributeFunction[]
         {
             GLOBAL,
-            FOLDER,
+            EXTERN,
             BIND
         };
     }

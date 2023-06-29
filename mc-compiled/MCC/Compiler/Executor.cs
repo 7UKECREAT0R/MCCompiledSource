@@ -34,7 +34,7 @@ namespace mc_compiled.MCC.Compiler
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";
-        public const string UNDOCUMENTED_TEXT = "undocumented";
+        public const string UNDOCUMENTED_TEXT = "This symbol has no documentation.";
         public const string FAKEPLAYER_NAME = "_";
         public static int MAXIMUM_DEPTH = 100;
 
@@ -159,9 +159,9 @@ namespace mc_compiled.MCC.Compiler
 
             SetCompilerPPVs();
 
+            InitFile = new CommandFile(projectName + "_init"); // don't need to push it, special case
+
             HeadFile = new CommandFile(projectName).AsRoot();
-            if(Program.DECORATE)
-                HeadFile.Add("# Runtime setup is placed here in the 'head file'. Re-run this to ensure new scoreboard objectives are properly created.");
             currentFiles.Push(HeadFile);
         }
         /// <summary>
@@ -306,10 +306,12 @@ namespace mc_compiled.MCC.Compiler
                             continue;
                         } else if(token is TokenIdentifierValue identifierValue)
                         {
+                            CommandFile file = CurrentFile;
                             advanced = true;
                             ScoreboardValue value = identifierValue.value;
                             int indexCopy = scoreIndex;
-                            AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.Name);
+                            AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.Name,
+                                $"Prepares the variable '{value.AliasName}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {NextLineNumber}");
 
                             // localize and flatten the array here.
                             JSONRawTerm[] toStringTerms = value.ToRawText(ref indexCopy);
@@ -371,7 +373,7 @@ namespace mc_compiled.MCC.Compiler
 
                         ExecuteBuilder branch = builder.Clone().WithSubcommand(subcommand);
                         List<JSONRawTerm> rest = terms.Skip(i + 1).ToList();
-                        rest.Insert(0, possibleVariant.term);
+                        rest.InsertRange(0, possibleVariant.terms);
                         ResolveRawText(rest, command, false, branch, commands, jb);
                     }
                     break;
@@ -580,6 +582,9 @@ namespace mc_compiled.MCC.Compiler
         {
             string outputFile = this.project.GetOutputFileLocationFull(toLocate, true);
 
+            if (outputFile == null)
+                throw new StatementException(callingStatement, "Attempted to fetch an unwritable file. Report this to the developers.");
+
             int outputFileHash = outputFile.GetHashCode();
 
             // the JSON root of the file
@@ -653,15 +658,22 @@ namespace mc_compiled.MCC.Compiler
         /// Tries to fetch a documentation string based whether the last statement was a comment or not. Returns <see cref="Executor.UNDOCUMENTED_TEXT"/> if no documentation was supplied.
         /// </summary>
         /// <returns></returns>
-        public string GetDocumentationString()
+        public string GetDocumentationString(out bool hadDocumentation)
         {
             if (readIndex < 1)
+            {
+                hadDocumentation = false;
                 return UNDOCUMENTED_TEXT;
+            }
 
             Statement last = PeekLast();
-            if(last is StatementComment comment)
+            if (last is StatementComment comment)
+            {
+                hadDocumentation = true;
                 return comment.comment;
+            }
 
+            hadDocumentation = false;
             return UNDOCUMENTED_TEXT;
         }
         /// <summary>
@@ -878,8 +890,8 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         void SetCompilerPPVs()
         {
-            ppv["minecraftversion"] = new dynamic[] { MINECRAFT_VERSION };
-            ppv["compilerversion"] = new dynamic[] { MCC_VERSION };
+            ppv["_minecraft"] = new dynamic[] { MINECRAFT_VERSION };
+            ppv["_compiler"] = new dynamic[] { MCC_VERSION };
             ppv["_realtime"] = new dynamic[] { DateTime.Now.ToShortTimeString() };
             ppv["_realdate"] = new dynamic[] { DateTime.Now.ToShortDateString() };
             ppv["_timeformat"] = new dynamic[] { TimeFormat.Default.ToString() };
@@ -896,6 +908,7 @@ namespace mc_compiled.MCC.Compiler
             while (HasNext)
             {
                 Statement unresolved = Next();
+                unresolved.Decorate(this);
                 Statement statement = unresolved.ClonePrepare(this);
                 statement.SetExecutor(this);
                 statement.Run0(this);
@@ -920,6 +933,8 @@ namespace mc_compiled.MCC.Compiler
 
             while (currentFiles.Any())
                 PopFile();
+
+            PopInitFile();
         }
         /// <summary>
         /// Temporarily run another subsection of statements then resume this executor.
@@ -936,6 +951,7 @@ namespace mc_compiled.MCC.Compiler
                 while (HasNext)
                 {
                     Statement unresolved = Next();
+                    unresolved.Decorate(this);
                     Statement statement = unresolved.ClonePrepare(this);
                     statement.Run0(this);
 
@@ -1035,6 +1051,7 @@ namespace mc_compiled.MCC.Compiler
         /// Get the main .mcfunction file for this project.
         /// </summary>
         public CommandFile HeadFile { get; private set; }
+        public CommandFile InitFile { get; private set; }
 
         /// <summary>
         /// Get the current scope level.
@@ -1044,6 +1061,10 @@ namespace mc_compiled.MCC.Compiler
         /// Get if the base file (projectName.mcfunction) is the active file.
         /// </summary>
         public bool IsScopeBase { get => currentFiles.Count <= 1; }
+        /// <summary>
+        /// The number of the next line that will be added.
+        /// </summary>
+        public int NextLineNumber { get => CurrentFile.Length + 1; }
 
         /// <summary>
         /// Add a command to the current file, with prepend buffer.
@@ -1061,10 +1082,11 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Add a set of commands into a new branching file unless inline is set.
         /// </summary>
-        /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
-        /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
         /// <param name="commands"></param>
-        public void AddCommands(IEnumerable<string> commands, string friendlyName, bool inline = false)
+        /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
+        /// <param name="friendlyDescription">The description to be placed at the top of the generated file, if any.</param>
+        /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
+        public void AddCommands(IEnumerable<string> commands, string friendlyName, string friendlyDescription, bool inline = false)
         {
             if (linting)
                 return;
@@ -1086,6 +1108,10 @@ namespace mc_compiled.MCC.Compiler
             }
 
             CommandFile file = Executor.GetNextGeneratedFile(friendlyName);
+
+            if (friendlyDescription != null)
+                file.Add("# " + friendlyDescription);
+
             file.Add(commands);
 
             AddExtraFile(file);
@@ -1106,10 +1132,11 @@ namespace mc_compiled.MCC.Compiler
         /// Add a set of commands into a new branching file, not modifying the prepend buffer.
         /// If inline is set, no branching file will be made.
         /// </summary>
-        /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
-        /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
         /// <param name="commands"></param>
-        public void AddCommandsClean(IEnumerable<string> commands, string friendlyName, bool inline = false)
+        /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
+        /// <param name="friendlyDescription">The description to be placed at the top of the generated file, if any.</param>
+        /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
+        public void AddCommandsClean(IEnumerable<string> commands, string friendlyName, string friendlyDescription, bool inline = false)
         {
             if (linting)
                 return;
@@ -1131,6 +1158,10 @@ namespace mc_compiled.MCC.Compiler
             }
 
             CommandFile file = Executor.GetNextGeneratedFile(friendlyName);
+
+            if(friendlyDescription != null)
+                file.Add("# " + friendlyDescription);
+
             file.Add(commands);
 
             AddExtraFile(file);
@@ -1196,6 +1227,18 @@ namespace mc_compiled.MCC.Compiler
             if (commands.Count() < 1)
                 return;
             initCommands.AddRange(commands);
+        }
+        /// <summary>
+        /// Sets the init file for this project.
+        /// </summary>
+        /// <param name="file"></param>
+        public void SetInitFile(CommandFile file)
+        {
+            if (file == null)
+                throw new NullReferenceException("file was null.");
+
+            file.AddTop(InitFile.commands);
+            InitFile = file;
         }
 
         /// <summary>
@@ -1397,23 +1440,33 @@ namespace mc_compiled.MCC.Compiler
 
             CommandFile file = currentFiles.Pop();
 
-            // file is empty so it causes MC compile errors
-            // solution: print project info!
-            if(currentFiles.Count == 0 && file.Length == 0)
+            if (object.ReferenceEquals(file, InitFile))
+                return; // do not write the init file until the whole program is finished.
+
+            // file is empty, so it causes minecraft errors if we don't do this
+            if (file.Length == 0)
             {
-                RawTextJsonBuilder jb = new RawTextJsonBuilder();
-                jb.AddTerm(new JSONText(project.name + " for Minecraft " + MINECRAFT_VERSION));
-                file.Add(Command.Tellraw("@s", jb.Build()));
+                if (file.IsRootFile)
+                    return; // no need to save down the root file if it doesn't exist.
+                file.Add("# empty file");
             }
 
-            if(file.IsRootFile && initCommands.Any())
-            {
-                // add initialization commands now.
-                file.AddTop(initCommands);
+            project.AddFile(file);
+        }
+        public void PopInitFile()
+        {
+            CommandFile file = InitFile;
+            InitFile = null;
 
-                if (Program.DECORATE)
-                    file.AddTop("# Initialize the project.");
-            }
+            // add compiler initialization commands now.
+            file.AddTop("");
+            file.AddTop(initCommands);
+
+            if (file.Length == 0)
+                return; // no need to save down the init file if it doesn't exist.
+
+            if (Program.DECORATE)
+                file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
 
             project.AddFile(file);
         }

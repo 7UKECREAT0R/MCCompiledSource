@@ -23,6 +23,8 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public ComparisonSet() : base() { }
 
+        public string GetDescription() => "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']';
+        
         /// <summary>
         /// Instantiates a ComparisonSet with an array of items in it to start.
         /// </summary>
@@ -199,7 +201,7 @@ namespace mc_compiled.MCC.Compiler
 
             // get the statement at the end of the execution set, and detect if it's an else-statement.
             int endOfExecutionSet = FindEndOfExecutionSet(executor);
-            Statement atEndOfExecutionSet = executor.SeekSkip(endOfExecutionSet);
+            Statement atEndOfExecutionSet = executor.PeekSkip(endOfExecutionSet);
             bool usesElse = atEndOfExecutionSet != null &&                  // if there is a statement...
                             atEndOfExecutionSet is StatementDirective &&    // if it's a directive call...
                             (atEndOfExecutionSet as StatementDirective)     // if it's a inversion statement... (else/elif)
@@ -230,9 +232,9 @@ namespace mc_compiled.MCC.Compiler
                 if(Program.DECORATE)
                 {
                     // attempt to add extra detail to the output file for reading users
-                    string activeFile = executor.CurrentFile.CommandReference;
-                    string comparisonString = string.Join(" ", this.Select(c => c.GetDescription()));
-                    string trace = $"Setup for comparison '{}'";
+                    string comparisonString = "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']';
+                    prepFile.Add($"# Setup for comparison {comparisonString}");
+                    prepFile.AddTrace(executor.CurrentFile);
                 }
                 prepFile.Add(commands);
                 executor.AddExtraFile(prepFile);
@@ -247,14 +249,20 @@ namespace mc_compiled.MCC.Compiler
         }
         private int FindEndOfExecutionSet(Executor executor)
         {
-            Statement next = executor.Seek();
+            Statement next = executor.Peek();
 
             if (next is StatementOpenBlock openBlock)
-            {
                 return openBlock.statementsInside + 2;
-            }
-            else
-                return 1;
+
+            Statement lastStatement;
+            int count = 0;
+
+            do
+            {
+                lastStatement = executor.PeekSkip(count++);
+            } while (lastStatement.Skip);
+
+            return count;
         }
         /// <summary>
         /// Applies the given comparison subcommands to the executor.
@@ -299,6 +307,13 @@ namespace mc_compiled.MCC.Compiler
                         else
                         {
                             CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+
+                            if (Program.DECORATE)
+                            {
+                                blockFile.Add($"# Run after comparison {GetDescription()}");
+                                blockFile.AddTrace(executor.CurrentFile);
+                            }
+
                             string command = finalExecute + Command.Function(blockFile);
                             executor.AddCommand(command);
 
@@ -348,7 +363,7 @@ namespace mc_compiled.MCC.Compiler
             // get the next statement to determine how to run this comparison
             Statement next = executor.Seek();
 
-            PreviousComparisonStructure record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel);
+            PreviousComparisonStructure record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel, GetDescription());
             ScoreboardValueBoolean resultObjective = record.resultStore;
 
             setupFile.Add(Command.ScoreboardSet(resultObjective, 0));
@@ -389,6 +404,13 @@ namespace mc_compiled.MCC.Compiler
                         else
                         {
                             CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+
+                            if (Program.DECORATE)
+                            {
+                                blockFile.Add($"# Run after comparison {GetDescription()}");
+                                blockFile.AddTrace(executor.CurrentFile);
+                            }
+
                             string command = executePrefix + Command.Function(blockFile);
                             executor.AddCommand(command);
 

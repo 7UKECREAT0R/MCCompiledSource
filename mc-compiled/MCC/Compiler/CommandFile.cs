@@ -2,9 +2,12 @@
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding;
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +18,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class CommandFile : IAddonFile
     {
-        List<string> commands = new List<string>();
+        internal List<string> commands = new List<string>();
 
         public readonly RuntimeFunction runtimeFunction;
         public bool IsUserFunction
@@ -41,9 +44,17 @@ namespace mc_compiled.MCC.Compiler
                 return folder + '/' + name;
             }
         }
+        public string[] Folders
+        {
+            set
+            {
+                folder = string.Join("/", value);
+            }
+        }
 
         public string folder;
         public string name;
+        internal bool doNotWrite;   // do NOT write this commandfile to the output.
 
         /// <summary>
         /// Create a new command file with an optional runtime function linked to it.
@@ -91,19 +102,49 @@ namespace mc_compiled.MCC.Compiler
         public void AddTop(IEnumerable<string> commands) =>
             this.commands.InsertRange(0, commands);
 
+        /// <summary>
+        /// Adds the following standard comment to the file: "Located at (callingFile) line (callingFile.Length)"
+        /// </summary>
+        /// <param name="callingFile"></param>
+        internal void AddTrace(CommandFile callingFile)
+        {
+            commands.Add($"# Located at {callingFile.CommandReference} line {callingFile.Length + 1}");
+            commands.Add("");
+        }
+        /// <summary>
+        /// Adds the following standard comment to the file: "Located at (callingFile) line (line)"
+        /// </summary>
+        /// <param name="callingFile"></param>
+        internal void AddTrace(CommandFile callingFile, int line)
+        {
+            if (callingFile.IsRootFile)
+                commands.Add($"# Located in {callingFile.CommandReference}");
+            else
+                commands.Add($"# Located at {callingFile.CommandReference} line {line}");
+
+            commands.Add("");
+        }
+
         public string GetExtendedDirectory()
         {
+            if(doNotWrite)
+                return null;
             if (folder == null)
                 return null;
 
             // correct path separators
-            string correctedFolder = folder.Replace('/', Path.PathSeparator);
+            string correctedFolder = folder.Replace('/', Path.DirectorySeparatorChar);
 
             // return the corrected directory
             return correctedFolder;
         }
-        public string GetOutputFile() =>
-            $"{name}.mcfunction";
+        public string GetOutputFile()
+        {
+            if (doNotWrite)
+                return null;
+
+            return $"{name}.mcfunction";
+        }
         public byte[] GetOutputData()
         {
             string text = string.Join("\n", commands);

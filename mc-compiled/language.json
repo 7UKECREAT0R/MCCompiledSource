@@ -74,7 +74,7 @@
       "patterns": [
         [ "id:variable", "object:values" ]
       ],
-      "attributes": [ "DONT_FLATTEN_ARRAYS" ]
+      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },
     "$inc": {
       "description": "Increment Preprocessor Variable",
@@ -83,7 +83,8 @@
       "function": "_inc",
       "patterns": [
         [ "id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$dec": {
       "description": "Decrement Preprocessor Variable",
@@ -92,7 +93,8 @@
       "function": "_dec",
       "patterns": [
         [ "id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$add": {
       "description": "Add to Preprocessor Variable",
@@ -101,7 +103,8 @@
       "function": "_add",
       "patterns": [
         [ "id:variable", "object:values" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$sub": {
       "description": "Subtract from Preprocessor Variable",
@@ -110,7 +113,8 @@
       "function": "_sub",
       "patterns": [
         [ "id:variable", "object:values" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$mul": {
       "description": "Multiply with Preprocessor Variable",
@@ -119,7 +123,8 @@
       "function": "_mul",
       "patterns": [
         [ "id:variable", "object:values" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$div": {
       "description": "Divide Preprocessor Variable",
@@ -128,7 +133,8 @@
       "function": "_div",
       "patterns": [
         [ "id:variable", "object:values" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$mod": {
       "description": "Modulo Preprocessor Variable",
@@ -137,7 +143,8 @@
       "function": "_mod",
       "patterns": [
         [ "id:variable", "object:values" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$pow": {
       "description": "Exponentiate Preprocessor Variable",
@@ -146,7 +153,8 @@
       "function": "_pow",
       "patterns": [
         [ "id:variable", "object:values" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$swap": {
       "description": "Swap Preprocessor Variables",
@@ -155,7 +163,8 @@
       "function": "_swap",
       "patterns": [
         [ "id:a", "id:b" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$if": {
       "description": "Preprocessor If",
@@ -164,13 +173,15 @@
       "function": "_if",
       "patterns": [
         [ "id:a", "compare:comparison", "object:b" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$else": {
       "description": "Preprocessor Else",
       "details": "Directly inverts the result of the last $if call at this level in scope.",
       "category": "preprocessor",
-      "function": "_else"
+      "function": "_else",
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$repeat": {
       "description": "Preprocessor Repeat",
@@ -189,7 +200,8 @@
       "function": "_log",
       "patterns": [
         [ "*:message" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$macro": {
       "description": "Define/Call Macro",
@@ -199,7 +211,7 @@
       "patterns": [
         [ "id:name" ]
       ],
-      "attributes": [ "DONT_EXPAND_PPV" ]
+      "attributes": [ "DONT_EXPAND_PPV", "DONT_DECORATE", "DOCUMENTABLE" ]
     },
     "$include": {
       "description": "Include File",
@@ -208,7 +220,8 @@
       "function": "_include",
       "patterns": [
         [ "string:file" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$strfriendly": {
       "description": "Preprocessor String Friendly Name",
@@ -217,7 +230,8 @@
       "function": "_strfriendly",
       "patterns": [
         [ "id:result", "?id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$strupper": {
       "description": "Preprocessor String Uppercase",
@@ -226,7 +240,8 @@
       "function": "_strupper",
       "patterns": [
         [ "id:result", "?id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$strlower": {
       "description": "Preprocessor String Lowercase",
@@ -235,7 +250,8 @@
       "function": "_strlower",
       "patterns": [
         [ "id:result", "?id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$sum": {
       "description": "Preprocessor Array Sum",
@@ -244,7 +260,8 @@
       "function": "_sum",
       "patterns": [
         [ "id:result", "?id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$median": {
       "description": "Preprocessor Array Median",
@@ -253,7 +270,8 @@
       "function": "_median",
       "patterns": [
         [ "id:result", "?id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$mean": {
       "description": "Preprocessor Array Mean",
@@ -262,7 +280,8 @@
       "function": "_mean",
       "patterns": [
         [ "id:result", "?id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$sort": {
       "description": "Preprocessor Array Sort",
@@ -271,7 +290,8 @@
       "function": "_sort",
       "patterns": [
         [ "id:ascending or descending", "id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$reverse": {
       "description": "Preprocessor Reverse",
@@ -280,7 +300,8 @@
       "function": "_reverse",
       "patterns": [
         [ "id:variable" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "$iterate": {
       "description": "Iterate Preprocessor Array",
@@ -290,7 +311,7 @@
       "patterns": [
         [ "id:variable", "id:current" ]
       ],
-      "attributes": [ "DONT_FLATTEN_ARRAYS" ]
+      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },
     "$len": {
       "description": "Preprocessor Length",
@@ -302,7 +323,7 @@
         [ "id:result", "json:array" ],
         [ "id:result", "string:text" ]
       ],
-      "attributes": [ "DONT_FLATTEN_ARRAYS" ]
+      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },
     "$json": {
       "description": "Preprocessor Load JSON Value",
@@ -312,6 +333,16 @@
       "patterns": [
         [ "string:file name", "id:result", "?string:path" ],
         [ "json:existing json", "id:result", "?string:path" ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
+    },
+    "$call": {
+      "description": "Preprocessor Call Function",
+      "details": "Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.",
+      "category": "preprocessor",
+      "function": "_call",
+      "patterns": [
+        [ "string:function name", "?*:parameters" ]
       ]
     },
     "mc": {
@@ -321,7 +352,8 @@
       "category": "other",
       "patterns": [
         [ "string:command" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "globalprint": {
       "description": "Print to All Players",
@@ -348,7 +380,8 @@
       "category": "text",
       "patterns": [
         [ "id:locale" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "define": {
       "description": "Define Variable",
@@ -356,7 +389,8 @@
       "category": "values",
       "patterns": [
         [ "*:args" ]
-      ]
+      ],
+      "attributes": [ "DOCUMENTABLE" ]
     },
     "init": {
       "description": "Initialize Variable",
@@ -626,7 +660,8 @@
       "category": "features",
       "patterns": [
         [ "id:feature name" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
     },
     "function": {
       "description": "Define Function",
@@ -635,7 +670,8 @@
       "category": "logic",
       "patterns": [
         [ "*:args" ]
-      ]
+      ],
+      "attributes": [ "DONT_DECORATE", "DOCUMENTABLE" ]
     },
     "return": {
       "description": "Set Return Value",
