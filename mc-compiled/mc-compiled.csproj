@@ -141,6 +141,7 @@
     <Compile Include="MCC\Server\LintStructures.cs" />
     <Compile Include="MCC\Server\MCCServer.cs" />
     <Compile Include="MCC\Server\MCCServerProject.cs" />
+    <Compile Include="MCC\Server\PropertyImplementations.cs" />
     <Compile Include="MCC\Server\RegistryConfiguration.cs" />
     <Compile Include="MCC\Server\ServerAsyncPackage.cs" />
     <Compile Include="MCC\Server\SocketMessage.cs" />

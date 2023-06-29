@@ -42,7 +42,7 @@ namespace mc_compiled
             Console.Write("\tOptions:\n");
             Console.Write("\t  [-dm | --daemon]\tInitialize to allow background compilation of the same file every time it is modified.\n");
             Console.Write("\t  [-db | --debug]\t\tDebug information during compilation. Hits compilation time for large projects.\n");
-            Console.Write("\t  [-dc | --decorate]\tDecorate the compiled file with original source code (doesn't look great).\n");
+            Console.Write("\t  [-dc | --decorate]\tDecorate the compiled file with original source code and extra helpful information for pathing, debugging, etc...\n");
             Console.Write("\t  [-np | --nopause]\tDoes not wait for user input to close application.\n");
             Console.Write("\t  [-obp | --outputbp] <directory>\tOutput behaviors to a specific directory. Use ?project to denote project name.\n");
             Console.Write("\t  [-orp | --outputrp] <directory>\tOutput resources to a specific directory. Use ?project to denote project name.\n");
@@ -50,40 +50,6 @@ namespace mc_compiled
             Console.Write("\t  [-ppv | --variable] <name> <value>\tRun the compilation with the given preprocessor variable already set.");
             Console.Write("\t  [-p | --project] <name>\tRun the compilation with the given project name.");
 
-        }
-        internal struct InputPPV
-        {
-            internal string name;
-            internal object value;
-
-            internal InputPPV(string name, string value)
-            {
-                this.name = name;
-
-                if(value.ToUpper().Equals("TRUE"))
-                {
-                    this.value = true;
-                    return;
-                }
-                if (value.ToUpper().Equals("FALSE"))
-                {
-                    this.value = false;
-                    return;
-                }
-                if (int.TryParse(value, out int integer))
-                {
-                    this.value = integer;
-                    return;
-                }
-                if (float.TryParse(value, out float floating))
-                {
-                    this.value = floating;
-                    return;
-                }
-
-                this.value = value;
-                return;
-            }
         }
 
         [STAThread]
@@ -732,5 +698,40 @@ namespace mc_compiled
                 return false;
             }
         }
+        internal struct InputPPV
+        {
+            internal string name;
+            internal object value;
+
+            internal InputPPV(string name, string value)
+            {
+                this.name = name;
+
+                if (value.ToUpper().Equals("TRUE"))
+                {
+                    this.value = true;
+                    return;
+                }
+                if (value.ToUpper().Equals("FALSE"))
+                {
+                    this.value = false;
+                    return;
+                }
+                if (int.TryParse(value, out int integer))
+                {
+                    this.value = integer;
+                    return;
+                }
+                if (float.TryParse(value, out float floating))
+                {
+                    this.value = floating;
+                    return;
+                }
+
+                this.value = value;
+                return;
+            }
+        }
     }
+
 }

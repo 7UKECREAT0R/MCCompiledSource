@@ -1,0 +1,114 @@
+﻿using mc_compiled.MCC.Compiler;
+using System;
+using System.CodeDom;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace mc_compiled.MCC.Server
+{
+    /// <summary>
+    /// Implementations of all of the properties that should be handled by the compiler.
+    /// </summary>
+    internal static class PropertyImplementations
+    {
+        private static readonly List<PropertyImpl> ALL_PROPERTIES = new List<PropertyImpl>();
+
+        /// <summary>
+        /// Calls the <see cref="PropertyImpl"/> for the given property string, if one exists.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <param name="currentProject"></param>
+        internal static void TrySetProperty(string name, string value, MCCServerProject currentProject)
+        {
+            PropertyImpl find = ALL_PROPERTIES.FirstOrDefault(impl => impl.InvokeName.Equals(name));
+
+            if (find == null)
+                return;
+
+            find.Call(value, currentProject);
+        }
+        /// <summary>
+        /// Reset all property implementations and set the passed in project's properties to their defaults.
+        /// </summary>
+        /// <param name="currentProject"></param>
+        internal static void ResetAll(MCCServerProject currentProject)
+        {
+            foreach (PropertyImpl property in ALL_PROPERTIES)
+            {
+                property.Reset(currentProject);
+                currentProject.properties[property.InvokeName] = property.DefaultValue;
+            }
+        }
+
+        static PropertyImplementations()
+        {
+            ALL_PROPERTIES.Add(new PropertyImpl("debug", false,
+                new Action<string, MCCServerProject>((_value, project) =>
+                {
+                    if (!bool.TryParse(_value, out bool value))
+                        return;
+
+                    project.server.debug = value;
+                    Program.DEBUG = value;
+                }
+            )));
+            ALL_PROPERTIES.Add(new PropertyImpl("decorate", false,
+                new Action<string, MCCServerProject>((_value, project) =>
+                {
+                    if (!bool.TryParse(_value, out bool value))
+                        return;
+
+                    Program.DECORATE = value;
+                }
+            )));
+        }
+    }
+    /// <summary>
+    /// An implementation of a compiler-specified property. Includes the action to perform when set, and the default value to become when reset.
+    /// </summary>
+    internal class PropertyImpl
+    {
+        private readonly string invokeName;
+        private readonly string defaultValue;
+        private readonly Action<string, MCCServerProject> invokeAction;
+
+        internal PropertyImpl(string invokeName, object defaultValue, Action<string, MCCServerProject> invokeAction)
+        {
+            this.invokeName = invokeName;
+            this.defaultValue = defaultValue.ToString();
+            this.invokeAction = invokeAction;
+        }
+
+        /// <summary>
+        /// Returns the name used to invoke this <see cref="PropertyImpl"/>.
+        /// </summary>
+        internal string InvokeName { get => invokeName; }
+        /// <summary>
+        /// Returns the default value that this property should be.
+        /// </summary>
+        internal string DefaultValue { get => defaultValue; }
+        /// <summary>
+        /// Call the action on this <see cref="PropertyImpl"/> with the given value.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="project"></param>
+        /// <exception cref="NullReferenceException"></exception>
+        internal void Call(string value, MCCServerProject project)
+        {
+            if (invokeAction == null)
+                throw new NullReferenceException("Attempted to call a PropertyImpl without a valid invokeAction.");
+            invokeAction(value, project);
+        }
+        /// <summary>
+        /// Resets this PropertyImpl to its default value.
+        /// </summary>
+        /// <param name="project"></param>
+        internal void Reset(MCCServerProject project)
+        {
+            Call(defaultValue, project);
+        }
+    }
+}

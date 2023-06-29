@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.Server
 
         public static readonly Encoding ENCODING = Encoding.ASCII;
 
-        private bool debug;
+        internal bool debug;
         private readonly MCCServerProject project;
         private readonly IPEndPoint ip;
         private readonly Socket socket;
@@ -296,7 +296,7 @@ namespace mc_compiled.MCC.Server
                 package.SendFrame(response);
                 return false;
             }
-            if (action.Equals("debug"))
+            if (action.Equals("debug")) // Deprecated, use project properties
             {
                 bool enable = json["debug"].Value<bool>();
                 this.debug = enable;
@@ -314,6 +314,13 @@ namespace mc_compiled.MCC.Server
                 }
                 return false;
             }
+            if(action.Equals("property"))
+            {
+                string propertyName = json["name"].ToString().Base64Decode();
+                string propertyValue = json["value"].ToString().Base64Decode();
+                project.SetProperty(propertyName, propertyValue);
+            }
+
             if (action.Equals("close"))
                 return true;
             if(action.Equals("info"))

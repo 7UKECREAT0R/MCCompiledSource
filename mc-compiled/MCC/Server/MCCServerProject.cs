@@ -1,4 +1,6 @@
-﻿using System;
+﻿using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -19,6 +21,78 @@ namespace mc_compiled.MCC.Server
         internal bool hasFile;              // if we have a file yet
         internal string fileLocation;       // output file for the project
         internal string fileDirectory;      // working directory for the project
+
+        /// <summary>
+        /// The properties for this project.
+        /// </summary>
+        internal Dictionary<string, string> properties = new Dictionary<string, string>();
+        /// <summary>
+        /// Get or set by the base64 representation of the project's properties.
+        /// </summary>
+        internal string PropertiesBase64
+        {
+            get
+            {
+                IEnumerable<JProperty> props = properties
+                    .Select(kv => new JProperty(kv.Key, kv.Value));
+
+                JObject json = new JObject();
+
+                foreach (JProperty prop in props)
+                    json.Add(prop);
+
+                return json.ToString(Newtonsoft.Json.Formatting.None).Base64Encode();
+            }
+
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                    return;
+
+                JObject json = JObject.Parse(value.Base64Decode());
+
+                ResetProperties();
+
+                foreach (JProperty property in json.Properties())
+                {
+                    string propertyName = property.Name;
+                    string propertyValue = property.Value.ToString();
+                    SetProperty(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets a project property and invokes any compiler-implemented properties.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        internal void SetProperty(string property, string value)
+        {
+            properties[property] = value;
+            PropertyImplementations.TrySetProperty(property, value, this);
+        }
+        /// <summary>
+        /// Resets all of the properties in this project and their implementations.
+        /// </summary>
+        internal void ResetProperties()
+        {
+            properties.Clear();
+
+            // this method call sets `properties` back to what their defaults should be
+            PropertyImplementations.ResetAll(this);
+        }
+        /// <summary>
+        /// Gets and returns a property's current value.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        internal string GetProperty(string property)
+        {
+            if(properties.TryGetValue(property, out string value))
+                return value;
+            return null;
+        }
 
         /// <summary>
         /// Get:<br />
@@ -47,6 +121,8 @@ namespace mc_compiled.MCC.Server
             this.hasFile = false;
             this.fileLocation = null;
             this.fileDirectory = null;
+
+            ResetProperties();
         }
 
 
