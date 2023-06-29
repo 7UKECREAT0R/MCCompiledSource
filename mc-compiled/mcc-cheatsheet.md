@@ -97,6 +97,10 @@ Sorts the order of the values in the given preprocessor variable either 'ascendi
 Adds all values in the given preprocessor variable together into one value and stores it in a result variable.
 - `$sum` `<id: result>` `[id: variable]`
 
+#### Preprocessor Call Function `$call`
+Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.
+- `$call` `<string: function name>` `[*: parameters]`
+
 #### Preprocessor Else `$else`
 Directly inverts the result of the last $if call at this level in scope.
 
@@ -235,9 +239,8 @@ Rotates the given entities a certain number of degrees horizontally and vertical
 - `rotate` `<selector: source>` `<int: y>` `<int: x>`
 
 #### Tag Entity `tag`
-Adds, removes, or singles out a tag on the given entities, or all registered ones.
+Add and remove tags from the given entity.
 - `tag` `<selector: target>` `<id: mode>` `<string: name>`
-- `tag` `<id: all>` `<id: mode>` `<string: name>`
 
 #### Teleport Entity `tp`
 Teleports the executing/given entities to a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).
