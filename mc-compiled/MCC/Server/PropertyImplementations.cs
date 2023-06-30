@@ -53,6 +53,11 @@ namespace mc_compiled.MCC.Server
 
                     project.server.debug = value;
                     Program.DEBUG = value;
+
+                    if (Program.DEBUG)
+                        Console.WriteLine("Debug enabled by remote client.");
+                    else
+                        Console.WriteLine("Debug disabled by remote client.");
                 }
             )));
             ALL_PROPERTIES.Add(new PropertyImpl("decorate", false,
@@ -78,7 +83,7 @@ namespace mc_compiled.MCC.Server
         internal PropertyImpl(string invokeName, object defaultValue, Action<string, MCCServerProject> invokeAction)
         {
             this.invokeName = invokeName;
-            this.defaultValue = defaultValue.ToString();
+            this.defaultValue = defaultValue.ToString().ToLower();
             this.invokeAction = invokeAction;
         }
 

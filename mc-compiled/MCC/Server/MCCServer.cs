@@ -31,7 +31,7 @@ namespace mc_compiled.MCC.Server
     public class MCCServer : IDisposable
     {
         public const int PORT = 11830;              // The port that the server will be opened on. The Minecraft version at the time of the first working prototype (1.18.30).
-        public const float STANDARD_VERSION = 5.7f; // Tha version of the standard this implementation of the server follows.
+        public const float STANDARD_VERSION = 5.8f; // Tha version of the standard this implementation of the server follows.
         public const int CHUNK_SIZE = 0x100000;     // 1MB
         public const int BUFFER_SIZE = 0x10000;     // 64K
 
@@ -220,6 +220,29 @@ namespace mc_compiled.MCC.Server
             json["action"] = "version";
             json["version"] = (int)(Executor.MCC_VERSION * 1000);
             package.SendFrame(WebSocketFrame.JSON(json));
+
+            // send current property info
+            JArray _properties = new JArray(
+                project.properties.Select(kv => new JObject()
+                {
+                    ["name"] = kv.Key.Base64Encode(),
+                    ["value"] = kv.Value.Base64Encode()
+                })
+            );
+            JObject properties = new JObject()
+            {
+                ["action"] = "properties",
+                ["properties"] = _properties
+            };
+            package.SendFrame(WebSocketFrame.JSON(properties));
+
+            // reset the file because the client is no longer in the loop
+            string file = project.File;
+            if (file != null)
+            {
+                package.SendFrame(CreateNotificationFrame($"Closed file '{file}'.", "gray"));
+                project.File = null;
+            }
         }
 
         /// <summary>
@@ -402,7 +425,7 @@ namespace mc_compiled.MCC.Server
             // I/O
             // Requires STA thread.
             const string META_HEADER = "// $meta-start";
-            const string META_FIELD_METADATA = "// $meta-data ";
+            const string META_FIELD_METADATA = "// $meta ";
             const string META_FIELD_PROPERTIES = "// $meta-props ";
             const string META_FOOTER = "// $meta-end";
 
@@ -532,19 +555,28 @@ namespace mc_compiled.MCC.Server
                             reader.Dispose();
                         }
 
-                        JObject send = new JObject();
-                        send["action"] = "postload";
-                        send["code"] = code.Base64Encode();
-                        send["meta"] = metadata;
-                        send["properties"] = new JArray(
+                        JObject send = new JObject()
+                        {
+                            ["action"] = "postload",
+                            ["code"] = code.Base64Encode(),
+                            ["meta"] = metadata
+                        };
+                        package.SendFrame(WebSocketFrame.JSON(send));
+
+
+                        JArray _properties = new JArray(
                             project.properties.Select(kv => new JObject()
                             {
                                 ["name"] = kv.Key.Base64Encode(),
                                 ["value"] = kv.Value.Base64Encode()
                             })
                         );
-
-                        package.SendFrame(WebSocketFrame.JSON(send));
+                        JObject properties = new JObject()
+                        {
+                            ["action"] = "properties",
+                            ["properties"] = _properties
+                        };
+                        package.SendFrame(WebSocketFrame.JSON(properties));
 
                         Lint(code, package);
 

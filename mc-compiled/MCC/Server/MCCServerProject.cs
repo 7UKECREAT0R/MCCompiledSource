@@ -112,7 +112,8 @@ namespace mc_compiled.MCC.Server
                 this.fileDirectory = Path.GetDirectoryName(value);
 
                 // set working directory
-                Directory.SetCurrentDirectory(this.fileDirectory);
+                if(this.fileDirectory != null)
+                    Directory.SetCurrentDirectory(this.fileDirectory);
             }
         }
         internal MCCServerProject(MCCServer server)
