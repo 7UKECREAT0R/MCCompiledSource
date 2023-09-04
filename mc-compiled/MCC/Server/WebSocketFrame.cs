@@ -17,11 +17,19 @@ namespace mc_compiled.MCC.Server
     {
         public WebSocketOpCode opcode;
         public byte[] data;
+        public bool fin;
 
-        public WebSocketFrame(WebSocketOpCode opcode, byte[] data)
+        public WebSocketFrame(WebSocketOpCode opcode, byte[] data, bool fin)
         {
             this.opcode = opcode;
             this.data = data;
+            this.fin = fin;
+        }
+        public WebSocketFrame AsContinuation(bool fin)
+        {
+            this.opcode = WebSocketOpCode.CONTINUATION;
+            this.fin = fin;
+            return this;
         }
 
         /// <summary>
@@ -86,46 +94,46 @@ namespace mc_compiled.MCC.Server
                     messageData[i] = frame[i + longOffset];
             }
 
-            return new WebSocketFrame(opcode, messageData);
+            return new WebSocketFrame(opcode, messageData, byte0Info.fin);
         }
         /// <summary>
         /// Creates a WebSocketFrame that wraps a UTF-8 string.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static WebSocketFrame String(string text)
+        public static WebSocketFrame String(string text, bool fin = true)
         {
             byte[] data = Encoding.UTF8.GetBytes(text);
-            return new WebSocketFrame(WebSocketOpCode.TEXT, data);
+            return new WebSocketFrame(WebSocketOpCode.TEXT, data, fin);
         }
         /// <summary>
         /// Creates a WebSocketFrame that wraps a JSON object.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static WebSocketFrame JSON(JObject json)
+        public static WebSocketFrame JSON(JObject json, bool fin = true)
         {
             string str = json.ToString(Newtonsoft.Json.Formatting.None);
             byte[] data = Encoding.UTF8.GetBytes(str);
-            return new WebSocketFrame(WebSocketOpCode.TEXT, data);
+            return new WebSocketFrame(WebSocketOpCode.TEXT, data, fin);
         }
         /// <summary>
         /// Creates a WebSocketFrame that initiates a close.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static WebSocketFrame Close()
+        public static WebSocketFrame Close(bool fin = true)
         {
-            return new WebSocketFrame(WebSocketOpCode.CLOSE, new byte[0]);
+            return new WebSocketFrame(WebSocketOpCode.CLOSE, new byte[0], fin);
         }
         /// <summary>
         /// Creates a WebSocketFrame that serves as a response to a "Ping"
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static WebSocketFrame Pong()
+        public static WebSocketFrame Pong(bool fin = true)
         {
-            return new WebSocketFrame(WebSocketOpCode.PONG, new byte[0]);
+            return new WebSocketFrame(WebSocketOpCode.PONG, new byte[0], fin);
         }
 
         /// <summary>

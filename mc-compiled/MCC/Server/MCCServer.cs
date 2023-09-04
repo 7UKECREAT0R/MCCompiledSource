@@ -31,20 +31,55 @@ namespace mc_compiled.MCC.Server
     public class MCCServer : IDisposable
     {
         public const int PORT = 11830;              // The port that the server will be opened on. The Minecraft version at the time of the first working prototype (1.18.30).
-        public const float STANDARD_VERSION = 5.8f; // Tha version of the standard this implementation of the server follows.
+        public const float STANDARD_VERSION = 5.8f; // The version of the standard this implementation of the server follows.
         public const int CHUNK_SIZE = 0x100000;     // 1MB
         public const int BUFFER_SIZE = 0x10000;     // 64K
 
         public const string WEBSOCKET_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
         public static readonly Encoding ENCODING = Encoding.ASCII;
-
+       
         internal bool debug;
         private readonly MCCServerProject project;
         private readonly IPEndPoint ip;
         private readonly Socket socket;
         private readonly ManualResetEvent connectionEstablished;
         private readonly SHA1 sha1;
+
+        private WebSocketFrame multipartHeader;
+        private readonly List<byte[]> multiparts;
+        private WebSocketFrame PopMultipart()
+        {
+            if (multipartHeader == null)
+                return null;
+            if (multiparts.Count < 0)
+                return multipartHeader;
+
+            long baseLength = multipartHeader.data.LongLength;
+            long length = baseLength + multiparts.Sum(array => array.LongLength);
+
+            byte[] merge = new byte[length];
+            long index = 0;
+
+            Array.Copy(multipartHeader.data, 0L, merge, index, baseLength);
+            index += baseLength;
+
+            foreach (byte[] buffer in multiparts)
+            {
+                long bufferLength = buffer.LongLength;
+                Array.Copy(buffer, 0, merge, index, bufferLength);
+                index += bufferLength;
+            }
+
+            multipartHeader.data = merge;
+            multipartHeader.fin = true;
+            multiparts.Clear();
+
+            GC.Collect(); // thats a lot of bytes that just got tossed
+
+            return multipartHeader;
+        }
+
 
         private readonly string
             outputResourcePack,
@@ -67,6 +102,7 @@ namespace mc_compiled.MCC.Server
             this.socket = new Socket(ip.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
             this.sha1 = SHA1CryptoServiceProvider.Create();
+            this.multiparts = new List<byte[]>();
         }
 
         bool _isDisposed = false;
@@ -157,23 +193,14 @@ namespace mc_compiled.MCC.Server
 
                     // construct frame from the data
                     WebSocketFrame frame = WebSocketFrame.FromFrame(package.buffer);
-                    
-                    // if the frame is incomplete, pass it to the cache.
-                    if(info.fin)
+                    bool close = HandleFrame(package, frame);
+
+                    // close the connection with the client.
+                    if (close)
                     {
-                        package.cache.Add(frame);
-                        frame = package.PullMergeCache();
-
-                        bool close = HandleFrame(package, frame);
-
-                        // close the connection with the client.
-                        if(close)
-                        {
-                            package.Close(false);
-                            return;
-                        }
-                    } else
-                        package.cache.Add(frame);
+                        package.Close(false);
+                        return;
+                    }
                 }
 
                 // the only HTTP used by WebSocket is when initiating the handshake.
@@ -263,6 +290,29 @@ namespace mc_compiled.MCC.Server
         {
             if (frame == null)
                 return false;
+
+            // handle multipart/continuation
+            if(frame.fin == false)
+            {
+                if (frame.opcode == WebSocketOpCode.CONTINUATION)
+                {
+                    multiparts.Add(frame.data);
+                    return false;
+                }
+                else
+                {
+                    multipartHeader = frame;
+                    multiparts.Clear();
+                    return false;
+                }
+            }
+            else if(frame.opcode == WebSocketOpCode.CONTINUATION)
+            {
+                // this is the last in the continuation sequence
+                multiparts.Add(frame.data);
+                frame = PopMultipart(); // merge all the data packets into one
+                multipartHeader = null;
+            }
 
             if (debug)
                 Console.WriteLine("Received {0}:\n\t{1}", frame.opcode, Encoding.UTF8.GetString(frame.data));

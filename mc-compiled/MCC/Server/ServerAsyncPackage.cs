@@ -19,7 +19,6 @@ namespace mc_compiled.MCC.Server
         public readonly AsyncCallback receiveCallback;
         public bool didHandshake = false;
         public byte[] buffer;
-        public List<WebSocketFrame> cache;
         internal readonly MCCServerProject project;
 
         /// <summary>
@@ -33,42 +32,9 @@ namespace mc_compiled.MCC.Server
             this.server = server;
             this.client = client;
             this.buffer = new byte[MCCServer.CHUNK_SIZE];
-            this.cache = new List<WebSocketFrame>(8);
             this.receiveCallback = receiveCallback;
 
             this.project = new MCCServerProject(mcc);
-        }
-
-        /// <summary>
-        /// Pulls and merges all frames in the cache.
-        /// </summary>
-        /// <returns></returns>
-        public WebSocketFrame PullMergeCache()
-        {
-            if (cache.Count == 0)
-                return null;
-            if (cache.Count == 1)
-            {
-                var item = cache[0];
-                cache.Clear();
-                return item;
-            }
-
-            long length = cache.Sum(c => c.data.LongLength);
-            byte[] newArray = new byte[length];
-
-            long offset = 0;
-            WebSocketOpCode opcode = 0;
-
-            foreach(var frame in cache)
-            {
-                frame.data.CopyTo(newArray, offset);
-                offset += frame.data.LongLength;
-                opcode = frame.opcode;
-            }
-
-            cache.Clear();
-            return new WebSocketFrame(opcode, newArray);
         }
 
         public void BeginReceive() =>
