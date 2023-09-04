@@ -22,6 +22,7 @@ namespace mc_compiled
         public const string APP_ID = "Microsoft.MinecraftUWP_8wekyb3d8bbwe";
         public static bool NO_PAUSE = false;
         public static bool DECORATE = false;
+        public static bool EXPORT_ALL = false;
         public static bool DEBUG = false;
         public static bool CLEAN = false;
         public static bool REGOLITH = false;
@@ -38,24 +39,23 @@ namespace mc_compiled
             Console.Write("mc-compiled.exe --syntax [exporter...]\n");
             Console.Write("\tExport language information into a file. Not specifying an exporter will list them off.\n\n");
             Console.Write("mc-compiled.exe <file> [options...]\n");
-            Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n\n");
-            Console.Write("\tOptions:\n");
-            Console.Write("\t  [-dm | --daemon]\tInitialize to allow background compilation of the same file every time it is modified.\n");
-            Console.Write("\t  [-db | --debug]\t\tDebug information during compilation. Hits compilation time for large projects.\n");
-            Console.Write("\t  [-dc | --decorate]\tDecorate the compiled file with original source code and extra helpful information for pathing, debugging, etc...\n");
-            Console.Write("\t  [-np | --nopause]\tDoes not wait for user input to close application.\n");
+            Console.Write("\tCompile a .mcc file into the resulting .mcfunction files.\n");
+            Console.Write("\t  [-dm | --daemon]\t\t\tInitialize to allow background compilation of the same file every time it is modified.\n");
+            Console.Write("\t  [-db | --debug]\t\t\tDebug information during compilation. Hits compilation time for large projects.\n");
+            Console.Write("\t  [-dc | --decorate]\t\t\tDecorate the compiled file with original source code and extra helpful information for pathing, debugging, etc...\n");
+            Console.Write("\t  [-ea | --export_all]\t\t\tExports all functions, even if they are unused. Use the `export` attribute to mark individual functions for export.\n");
+            Console.Write("\t  [-np | --nopause]\t\t\tDoes not wait for user input to close application.\n");
             Console.Write("\t  [-obp | --outputbp] <directory>\tOutput behaviors to a specific directory. Use ?project to denote project name.\n");
             Console.Write("\t  [-orp | --outputrp] <directory>\tOutput resources to a specific directory. Use ?project to denote project name.\n");
-            Console.Write("\t  [-od | --outputdevelopment]\tOutput files to the com.mojang development_x_packs directory.\n");
-            Console.Write("\t  [-ppv | --variable] <name> <value>\tRun the compilation with the given preprocessor variable already set.");
-            Console.Write("\t  [-p | --project] <name>\tRun the compilation with the given project name.");
-
+            Console.Write("\t  [-od | --outputdevelopment]\t\tOutput files to the com.mojang development_x_packs directory.\n");
+            Console.Write("\t  [-p | --project] <name>\t\tRun the compilation with the given project name. Defaults to using the input file's name.\n");
+            Console.Write("\t  [-ppv | --variable] <name> <value>\tRun the compilation with the given preprocessor variable already set.\n");
         }
 
         [STAThread]
         static void Main(string[] args)
         {
-            if(args.Length < 1 || args[0].Equals("--help"))
+            if (args.Length < 1 || args[0].Equals("--help"))
             {
                 Help();
                 return;
@@ -66,15 +66,19 @@ namespace mc_compiled
             bool debug = false;
             bool search = false;
             bool daemon = false;
-            string obp = "?project_BP";
-            string orp = "?project_RP";
+            string obp = "?project_BP"; // ?project is the only part that changes.
+            string orp = "?project_RP"; // ?project is the only part that changes.
             string projectName = null;
 
             for (int i = 0; i < args.Length; i++)
             {
                 string word = args[i].ToUpper();
-                switch(word)
+                switch (word)
                 {
+                    case "-EA":
+                    case "--EXPORT_ALL":
+                        EXPORT_ALL = true;
+                        break;
                     case "--DEBUG":
                     case "-DB":
                         debug = true;
@@ -167,7 +171,7 @@ namespace mc_compiled
                     target = Syntax.syntaxTargets[_target];
                 }
 
-                if(target == null)
+                if (target == null)
                 {
                     Console.WriteLine("Syntax Targets");
                     Console.WriteLine("\t*: All available output targets individually.");
@@ -191,7 +195,7 @@ namespace mc_compiled
                 }
                 return;
             }
-            if(fileUpper.Equals("--SERVER"))
+            if (fileUpper.Equals("--SERVER"))
             {
                 new Definitions(debug);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -229,7 +233,7 @@ namespace mc_compiled
             {
                 // check for existing MCCompiled processes.
                 Process[] mccs = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
-                if(mccs.Length > 1)
+                if (mccs.Length > 1)
                     return;
 
                 // okay... step up to the job.
@@ -253,7 +257,7 @@ namespace mc_compiled
                 builder.ConsoleInterface();
                 return;
             }
-            if(fileUpper.Equals("--EMPTYSTRUCTURE"))
+            if (fileUpper.Equals("--EMPTYSTRUCTURE"))
             {
                 int size = int.Parse(args[1]);
 
@@ -297,7 +301,7 @@ namespace mc_compiled
                 StructureFile empty = new StructureFile("empty", null, new StructureNBT()
                 {
                     entities = new EntityListNBT(new EntityNBT[0]),
-                    worldOrigin = new VectorIntNBT(0, 0,0),
+                    worldOrigin = new VectorIntNBT(0, 0, 0),
                     size = new VectorIntNBT(100, 100, 100),
                     palette = new PaletteNBT(
                         new PaletteEntryNBT("air")
@@ -402,11 +406,11 @@ namespace mc_compiled
                 REGOLITH = false;
                 search = true;
                 NO_PAUSE = true;
-                files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.mcc", SearchOption.AllDirectories);
+                files = GetMCCFilesInDirectory();
 
                 if (files.Length == 0)
                 {
-                    Console.WriteLine("No MCC files found.");
+                    Console.Error.WriteLine("No MCC files found.");
                     return;
                 }
             }
@@ -417,11 +421,11 @@ namespace mc_compiled
                 REGOLITH = true;
                 search = true;
                 NO_PAUSE = true;
-                files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.mcc", SearchOption.AllDirectories);
+                files = GetMCCFilesInDirectory();
 
                 if (files.Length == 0)
                 {
-                    Console.WriteLine("No MCC files found. Skipping filter.");
+                    Console.Error.WriteLine("No MCC files found. Skipping filter.");
                     return;
                 }
             }
@@ -429,18 +433,21 @@ namespace mc_compiled
             if (debug)
             {
                 DEBUG = true;
+                ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("Debug Enabled");
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ForegroundColor = oldColor;
             }
+
             if (daemon & !REGOLITH)
             {
+                ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                if(search)
-                    Console.WriteLine($"[daemon] watching directory: {Directory.GetCurrentDirectory()}");
+                if (search)
+                    Console.WriteLine($"[daemon] Watching directory: {Directory.GetCurrentDirectory()}");
                 else
-                    Console.WriteLine($"[daemon] watching files: {string.Join(", ", files)}");
-                Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine($"[daemon] Watching files: {string.Join("\n", files.Select(f => "\t- " + f))}");
+                Console.ForegroundColor = oldColor;
             }
 
             // load definitions.def
@@ -465,11 +472,11 @@ namespace mc_compiled
                 Console.TreatControlCAsInput = true;
                 string changedFile = null;
 
-                while(true)                              
-                {                                        
-                    if (firstRun)                        
-                    {                                    
-                        PrepareToCompile();              
+                while (true)
+                {
+                    if (firstRun)
+                    {
+                        PrepareToCompile();
                         firstRun = false;
                         foreach (string file in files)
                         {
@@ -493,7 +500,7 @@ namespace mc_compiled
                     Console.ForegroundColor = oldColor;
                     while (true)
                     {
-                        var e = watcher.WaitForChanged(WatcherChangeTypes.Changed, 500);
+                        var e = watcher.WaitForChanged(WatcherChangeTypes.Changed, 100);
 
                         // flush stdin
                         while (Console.KeyAvailable)
@@ -521,11 +528,13 @@ namespace mc_compiled
 
             PrepareToCompile();
 
-            if(REGOLITH)
+            if (REGOLITH)
             {
                 foreach (string file in files)
+                {
                     if (RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, projectName, false))
                         File.Delete(file); // delete if compilation succeeded, otherwise might be another format
+                }
             } else
             {
                 foreach (string file in files)
@@ -558,7 +567,7 @@ namespace mc_compiled
             {
                 List<string> files = new List<string>();
 
-                foreach(string filter in CLEAN_FILTERS)
+                foreach (string filter in CLEAN_FILTERS)
                     files.AddRange(Directory.GetFiles(cleanFolder, filter, SearchOption.AllDirectories));
 
                 foreach (string del in files)
@@ -590,7 +599,7 @@ namespace mc_compiled
         /// <returns>If the compilation succeeded.</returns>
         internal static bool RunMCCompiledCode(string code, string file, InputPPV[] ppvs, string outputBP, string outputRP, string projectName = null, bool silentErrors = false)
         {
-            if(projectName == null)
+            if (projectName == null)
                 projectName = Path.GetFileNameWithoutExtension(file);
 
             outputBP = outputBP.Replace("?project", projectName);
@@ -625,11 +634,13 @@ namespace mc_compiled
                 Executor executor = new Executor(statements, ppvs, projectName, outputBP, outputRP);
                 executor.Execute();
 
+                stopwatch.Stop();
+                Console.WriteLine($"Compiled in {stopwatch.Elapsed.TotalSeconds} seconds.");
+
                 Console.WriteLine("Writing files...");
                 executor.project.WriteAllFiles();
-                stopwatch.Stop();
 
-                Console.WriteLine($"Completed in {stopwatch.Elapsed.TotalSeconds} seconds.");
+                Console.WriteLine($"Completed.");
 
                 if (!NO_PAUSE)
                     Console.ReadLine();
@@ -698,6 +709,16 @@ namespace mc_compiled
                 return false;
             }
         }
+
+        /// <summary>
+        /// Returns an array of the paths to all MCCompiled files in the <see cref="Directory.GetCurrentDirectory"/>.
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetMCCFilesInDirectory()
+        {
+            return Directory.GetFiles(Directory.GetCurrentDirectory(), "*.mcc", SearchOption.AllDirectories);
+        }
+        
         internal struct InputPPV
         {
             internal string name;

@@ -30,7 +30,7 @@ namespace mc_compiled.MCC.Compiler
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
         //public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+(\\[\"?.+\"?\\])*");
         public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
-        public const double MCC_VERSION = 1.14;                 // compilerversion
+        public const double MCC_VERSION = 1.15;                 // compilerversion
         public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";
@@ -159,9 +159,8 @@ namespace mc_compiled.MCC.Compiler
 
             SetCompilerPPVs();
 
-            InitFile = new CommandFile(projectName + "_init"); // don't need to push it, special case
-
-            HeadFile = new CommandFile(projectName).AsRoot();
+            InitFile = new CommandFile(true, projectName + "_init"); // don't need to push it, special case
+            HeadFile = new CommandFile(true, projectName).AsRoot();
             currentFiles.Push(HeadFile);
         }
         /// <summary>
@@ -307,7 +306,10 @@ namespace mc_compiled.MCC.Compiler
                         } else if(token is TokenIdentifierValue identifierValue)
                         {
                             CommandFile file = CurrentFile;
-                            advanced = true;
+
+                            if(!identifierValue.value.clarifier.IsGlobal)
+                                advanced = true;
+
                             ScoreboardValue value = identifierValue.value;
                             int indexCopy = scoreIndex;
                             AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.Name,
@@ -383,6 +385,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             bool hasVariant = terms.Any(t => t is JSONVariant);
+
             if (!root && !hasVariant)
                 commands.Add(builder.Run(command + jb.BuildString()));
             else if(root && !hasVariant)
@@ -641,6 +644,11 @@ namespace mc_compiled.MCC.Compiler
             definedStdFiles.Add(file.GetHashCode());
             AddExtraFile(file);
         }
+        /// <summary>
+        /// Returns if the given CommandFile is present in the definedStdFiles list.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
         public bool HasSTDFile(CommandFile file)
         {
             return definedStdFiles.Contains(file.GetHashCode());
@@ -676,6 +684,7 @@ namespace mc_compiled.MCC.Compiler
             hadDocumentation = false;
             return UNDOCUMENTED_TEXT;
         }
+
         /// <summary>
         /// Peek at the next statement.
         /// </summary>
@@ -1493,7 +1502,7 @@ namespace mc_compiled.MCC.Compiler
         public static CommandFile GetNextGeneratedFile(string friendlyName)
         {
             string name = GetNextGeneratedName(friendlyName);
-            return new CommandFile(name, MCC_GENERATED_FOLDER);
+            return new CommandFile(false, name, MCC_GENERATED_FOLDER);
         }
         public static void ResetGeneratedNames()
         {

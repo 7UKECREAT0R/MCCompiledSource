@@ -653,9 +653,14 @@ namespace mc_compiled.MCC.Compiler
                 Token replacement = bestFunction.CallFunction(commands, executor, this);
 
                 // finish with the commands.
-                CommandFile file = executor.CurrentFile;
-                executor.AddCommandsClean(commands, "call" + bestFunction.Keyword,
-                    $"From file {file.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", tokensInside.Select(t => t.AsString()))})");
+                CommandFile current = executor.CurrentFile;
+
+                // register the call for usage tree
+                if (bestFunction is RuntimeFunction runtime)
+                    current.RegisterCall(runtime.file);
+
+                executor.AddCommandsClean(commands, "call" + bestFunction.Keyword.Replace('.', '_'),
+                    $"From file {current.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", tokensInside.Select(t => t.AsString()))})");
                 commands.Clear();
 
                 if (useImplicit)

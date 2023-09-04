@@ -25,14 +25,14 @@ namespace mc_compiled.Commands.Selectors
                     return TokenCompare.Type.NOT_EQUAL;
                 case TokenCompare.Type.NOT_EQUAL:
                     return TokenCompare.Type.EQUAL;
-                case TokenCompare.Type.LESS_THAN:
+                case TokenCompare.Type.LESS:
                     return TokenCompare.Type.GREATER_OR_EQUAL;
                 case TokenCompare.Type.LESS_OR_EQUAL:
-                    return TokenCompare.Type.GREATER_THAN;
-                case TokenCompare.Type.GREATER_THAN:
+                    return TokenCompare.Type.GREATER;
+                case TokenCompare.Type.GREATER:
                     return TokenCompare.Type.LESS_OR_EQUAL;
                 case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return TokenCompare.Type.LESS_THAN;
+                    return TokenCompare.Type.LESS;
                 default:
                     return type;
             }
@@ -51,12 +51,12 @@ namespace mc_compiled.Commands.Selectors
                     return TokenCompare.Type.EQUAL;
                 case TokenCompare.Type.NOT_EQUAL:
                     return TokenCompare.Type.NOT_EQUAL;
-                case TokenCompare.Type.LESS_THAN:
-                    return TokenCompare.Type.GREATER_THAN;
+                case TokenCompare.Type.LESS:
+                    return TokenCompare.Type.GREATER;
                 case TokenCompare.Type.LESS_OR_EQUAL:
                     return TokenCompare.Type.GREATER_OR_EQUAL;
-                case TokenCompare.Type.GREATER_THAN:
-                    return TokenCompare.Type.LESS_THAN;
+                case TokenCompare.Type.GREATER:
+                    return TokenCompare.Type.LESS;
                 case TokenCompare.Type.GREATER_OR_EQUAL:
                     return TokenCompare.Type.LESS_OR_EQUAL;
                 default:

@@ -112,6 +112,12 @@ namespace mc_compiled.MCC.Server
             if (debug)
                 Console.WriteLine("Sending frame {0}", frame.ToString());
 
+            if (_isDisposed || client == null)
+            {
+                Console.WriteLine("Socket closed; Cancelled sending frame: {0}", frame.ToString());
+                return;
+            }
+
             try
             {
                 byte[] bytes = frame.GetBytes();

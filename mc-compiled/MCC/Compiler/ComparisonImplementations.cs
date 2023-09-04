@@ -399,13 +399,13 @@ namespace mc_compiled.MCC.Compiler
                     case TokenCompare.Type.NOT_EQUAL:
                         range = new Range(b, true);
                         break;
-                    case TokenCompare.Type.LESS_THAN:
+                    case TokenCompare.Type.LESS:
                         range = new Range(null, b - 1);
                         break;
                     case TokenCompare.Type.LESS_OR_EQUAL:
                         range = new Range(null, b);
                         break;
-                    case TokenCompare.Type.GREATER_THAN:
+                    case TokenCompare.Type.GREATER:
                         range = new Range(b + 1, null);
                         break;
                     case TokenCompare.Type.GREATER_OR_EQUAL:

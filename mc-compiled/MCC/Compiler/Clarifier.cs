@@ -79,6 +79,7 @@ namespace mc_compiled.MCC.Compiler
         public bool IsGlobal
         {
             get => global;
+            set => SetGlobal(value);
         }
         /// <summary>
         /// Reset this clarifier to its default value, changing depending on if it's <see cref="global"/> or not.
@@ -111,7 +112,7 @@ namespace mc_compiled.MCC.Compiler
         {
             if (global)
                 throw new StatementException(callingStatement, "Attempted to clarify a global value.");
-
+            
             this.currentString = str;
         }
     }

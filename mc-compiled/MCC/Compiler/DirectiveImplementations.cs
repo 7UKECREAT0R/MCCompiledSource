@@ -447,13 +447,13 @@ namespace mc_compiled.MCC.Compiler
                             case TokenCompare.Type.NOT_EQUAL:
                                 run &= a != other;
                                 break;
-                            case TokenCompare.Type.LESS_THAN:
+                            case TokenCompare.Type.LESS:
                                 run &= a < other;
                                 break;
                             case TokenCompare.Type.LESS_OR_EQUAL:
                                 run &= a <= other;
                                 break;
-                            case TokenCompare.Type.GREATER_THAN:
+                            case TokenCompare.Type.GREATER:
                                 run &= a > other;
                                 break;
                             case TokenCompare.Type.GREATER_OR_EQUAL:
@@ -1123,7 +1123,7 @@ namespace mc_compiled.MCC.Compiler
             string[] commands;
 
             if (advanced)
-                commands = executor.ResolveRawText(terms, "tellraw @s ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
+                commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "tellraw @s "));
             else
                 commands = executor.ResolveRawText(terms, "tellraw @a ");
 
@@ -1140,19 +1140,10 @@ namespace mc_compiled.MCC.Compiler
                 player = Selector.SELF;
 
             string str = tokens.Next<TokenStringLiteral>();
-            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
             string[] commands;
 
-            if (advanced)
-            {
-                string baseCommand = "tellraw " + player.ToString() + ' ';
-                commands = executor.ResolveRawText(terms, baseCommand);
-            }
-            else
-            {
-                string baseCommand = "tellraw " + player.ToString() + ' ';
-                commands = executor.ResolveRawText(terms, baseCommand);
-            }
+            commands = executor.ResolveRawText(terms, $"tellraw {player} ");
 
             CommandFile file = executor.CurrentFile;
             executor.AddCommands(commands, "print", $"Called in a print command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1222,8 +1213,6 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void init(Executor executor, Statement tokens)
         {
-            Selector selector = tokens.Next<TokenSelectorLiteral>();
-
             ScoreboardValue value;
             List<string> commands = new List<string>();
 
@@ -1233,7 +1222,7 @@ namespace mc_compiled.MCC.Compiler
                     continue;
 
                 value = tokens.Next<TokenIdentifierValue>().value;
-                commands.AddRange(value.CommandsInit(selector.ToString()));
+                commands.AddRange(value.CommandsInit(value.clarifier.CurrentString));
             }
 
             executor.AddCommands(commands, null, null, true);
@@ -1686,7 +1675,15 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void setblock(Executor executor, Statement tokens)
         {
+            Coord x = tokens.Next<TokenCoordinateLiteral>();
+            Coord y = tokens.Next<TokenCoordinateLiteral>();
+            Coord z = tokens.Next<TokenCoordinateLiteral>();
+            string block = tokens.Next<TokenStringLiteral>();
             OldHandling handling = OldHandling.replace;
+
+            int data = 0;
+            if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
+                data = tokens.Next<TokenIntegerLiteral>();
 
             if (tokens.NextIs<TokenIdentifierEnum>())
             {
@@ -1694,15 +1691,6 @@ namespace mc_compiled.MCC.Compiler
                 enumValue.RequireType<OldHandling>(tokens);
                 handling = (OldHandling)enumValue.value;
             }
-
-            string block = tokens.Next<TokenStringLiteral>();
-            Coord x = tokens.Next<TokenCoordinateLiteral>();
-            Coord y = tokens.Next<TokenCoordinateLiteral>();
-            Coord z = tokens.Next<TokenCoordinateLiteral>();
-
-            int data = 0;
-            if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
-                data = tokens.Next<TokenIntegerLiteral>();
 
             executor.AddCommand(Command.SetBlock(x, y, z, block, data, handling));
         }
@@ -1834,7 +1822,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void remove(Executor executor, Statement tokens)
         {
-            CommandFile file = new CommandFile("silent_remove", Executor.MCC_GENERATED_FOLDER);
+            CommandFile file = new CommandFile(true, "silent_remove", Executor.MCC_GENERATED_FOLDER);
 
             file.Add(new[] {
                 Command.Teleport(Coord.here, new Coord(-99999, false, true, false), Coord.here),
@@ -1871,7 +1859,7 @@ namespace mc_compiled.MCC.Compiler
                     string[] commands;
 
                     if (advanced)
-                        commands = executor.ResolveRawText(terms, "titleraw @s subtitle ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
+                        commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "titleraw @s subtitle "));
                     else
                         commands = executor.ResolveRawText(terms, "titleraw @a subtitle ");
 
@@ -1890,7 +1878,7 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = executor.ResolveRawText(terms, "title @s title ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
+                    commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "title @s title "));
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a title ");
 
@@ -1922,19 +1910,10 @@ namespace mc_compiled.MCC.Compiler
                 else if (word.Equals("SUBTITLE"))
                 {
                     string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
+                    List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
                     string[] commands;
 
-                    if (advanced)
-                    {
-                        string selector = player.ToString();
-                        commands = executor.ResolveRawText(terms, $"titleraw {selector} subtitle ");
-                    }
-                    else
-                    {
-                        string selector = player.ToString();
-                        commands = executor.ResolveRawText(terms, $"titleraw {selector} subtitle ");
-                    }
+                    commands = executor.ResolveRawText(terms, $"titleraw {player} subtitle ");
 
                     CommandFile file = executor.CurrentFile;
                     executor.AddCommands(commands, "subtitle", $"Called in a subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1950,16 +1929,7 @@ namespace mc_compiled.MCC.Compiler
                 List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                 string[] commands;
 
-                if (advanced)
-                {
-                    string selector = player.ToString();
-                    commands = executor.ResolveRawText(terms, $"titleraw {selector} title ");
-                }
-                else
-                {
-                    string selector = player.ToString();
-                    commands = executor.ResolveRawText(terms, $"titleraw {selector} title ");
-                }
+                commands = executor.ResolveRawText(terms, $"titleraw {player} title ");
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "title", $"Called in a title command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1984,7 +1954,7 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = executor.ResolveRawText(terms, "titleraw @s actionbar ", builder: Command.Execute().As(Selector.ALL_PLAYERS).AtSelf());
+                    commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "titleraw @s actionbar "));
                 else
                     commands = executor.ResolveRawText(terms, "titleraw @a actionbar ");
 
@@ -2006,19 +1976,10 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
-                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
                 string[] commands;
 
-                if (advanced)
-                {
-                    string selector = player.ToString();
-                    commands = executor.ResolveRawText(terms, $"titleraw {selector} actionbar ");
-                }
-                else
-                {
-                    string selector = player.ToString();
-                    commands = executor.ResolveRawText(terms, $"titleraw {selector} actionbar ");
-                }
+                commands = executor.ResolveRawText(terms, $"titleraw {player} actionbar ");
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "actionbar", $"Called in an actionbar command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -2033,7 +1994,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void halt(Executor executor, Statement tokens)
         {
-            CommandFile file = new CommandFile("halt_execution", Executor.MCC_GENERATED_FOLDER);
+            CommandFile file = new CommandFile(true, "halt_execution", Executor.MCC_GENERATED_FOLDER);
 
             if (!executor.HasSTDFile(file))
             {
@@ -2597,9 +2558,7 @@ namespace mc_compiled.MCC.Compiler
                     throw new StatementException(tokens, "Preprocessor variable cannot be used as a parameter type. Consider using a function inside a macro.");
                 
                 ScoreboardValue value = def.Create(executor.scoreboard, tokens);
-
-                // abstract away the name of the parameter
-                // value.ForceHash(functionName); // nonce string
+                value.clarifier.IsGlobal = true;
 
                 executor.scoreboard.TryThrowForDuplicate(value, tokens);
                 executor.scoreboard.Add(value);
@@ -2641,11 +2600,11 @@ namespace mc_compiled.MCC.Compiler
             // register it with the compiler
             executor.functions.RegisterFunction(function);
 
-            // register the function's parameters
+            // get the function's parameters
             var allRuntimeDestinations = function.Parameters
                 .Where(p => p is RuntimeFunctionParameter)
                 .Select(p => (p as RuntimeFunctionParameter).runtimeDestination);
-            executor.scoreboard.AddRange(allRuntimeDestinations);
+
             // ...and define them
             foreach(var runtimeDestination in allRuntimeDestinations)
                 executor.AddCommandsInit(runtimeDestination.CommandsDefine());

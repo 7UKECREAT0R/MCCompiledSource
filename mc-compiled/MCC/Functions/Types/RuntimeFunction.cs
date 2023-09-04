@@ -43,7 +43,7 @@ namespace mc_compiled.MCC.Functions.Types
             this.documentation = documentation;
             this.isCompilerGenerated = isCompilerGenerated;
 
-            this.file = new CommandFile(name, null, this);
+            this.file = new CommandFile(false, name, null, this);
             this.returnValue = null;
             this.returnValueType = ScoreboardManager.ValueType.INVALID;
 

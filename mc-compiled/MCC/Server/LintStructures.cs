@@ -230,7 +230,7 @@ namespace mc_compiled.MCC.Server
         public static MacroStructure Wrap(Macro macro)
         {
             return new MacroStructure(macro.name, macro.argNames,
-                (macro.documentation ?? Executor.UNDOCUMENTED_TEXT).Base64Encode());
+                macro.documentation ?? Executor.UNDOCUMENTED_TEXT);
         }
 
         public JObject ToJSON()

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json.Linq;
+using System.Data.SqlTypes;
 
 namespace mc_compiled.MCC.Server
 {
@@ -137,7 +138,7 @@ namespace mc_compiled.MCC.Server
             WebSocketByte1Info byte1Info = new WebSocketByte1Info(false, DeterminePayloadLength(length));
 
             if (byte1Info.extension == WebSocketPayloadLength.NORMAL)
-                byte1Info.payloadLength = (sbyte)length;
+                byte1Info.payloadLength = (byte)length;
 
             byte byte0 = byte0Info.Encode();
             byte byte1 = byte1Info.Encode();
@@ -148,25 +149,38 @@ namespace mc_compiled.MCC.Server
             bytes[0] = byte0;
             bytes[1] = byte1;
 
+            bool littleEndian = BitConverter.IsLittleEndian;
+            int step = littleEndian ? -1 : 1;
+            int pull;
             int offset = 2;
 
             if(byte1Info.extension == WebSocketPayloadLength.EXTENDED)
             {
-                byte[] converted = BitConverter.GetBytes((short)length);
-                bytes[offset++] = converted[1];
-                bytes[offset++] = converted[0];
+                byte[] converted = BitConverter.GetBytes((ushort)length);
+                pull = littleEndian ? 1 : 0;
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull];
             } else if(byte1Info.extension == WebSocketPayloadLength.MASSIVE)
             {
-                byte[] converted = BitConverter.GetBytes(length);
-                bytes[offset++] = converted[7];
-                bytes[offset++] = converted[6];
-                bytes[offset++] = converted[5];
-                bytes[offset++] = converted[4];
-                bytes[offset++] = converted[3];
-                bytes[offset++] = converted[2];
-                bytes[offset++] = converted[1];
-                bytes[offset++] = converted[0];
+                byte[] converted = BitConverter.GetBytes((ulong)length);
+                pull = littleEndian ? 7 : 0;
+
+                // RFC 6455 § 5.2, "Payload Length"
+                // Most significant bit must be 0.
+                converted[pull] &= 0b01111111;
+
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull]; pull += step;
+                bytes[offset++] = converted[pull];
             }
+
+            if(Program.DEBUG)
+                Console.WriteLine("Outgoing payload header ({0}): {1}", (opcode + "/" + length), string.Join(" ", bytes.Take(offset).Select(b => Convert.ToString(b, 2).PadLeft(8, '0'))));
 
             Array.Copy(this.data, 0L, bytes, offset, length);
             return bytes;
@@ -201,14 +215,10 @@ namespace mc_compiled.MCC.Server
             const byte PAYLOAD_MASK = 0b01111111;
             bool mask = (data & MASK_MASK) == MASK_MASK;
 
-            sbyte signedData;
-
             if (mask)
-                signedData = (sbyte)(data & PAYLOAD_MASK);
-            else
-                signedData = (sbyte)data;
+                data &= PAYLOAD_MASK;
 
-            return new WebSocketByte1Info(mask, signedData);
+            return new WebSocketByte1Info(mask, data);
         }
         /// <summary>
         /// Returns the necessary length in order to store the payload size in a frame.
@@ -219,7 +229,7 @@ namespace mc_compiled.MCC.Server
         {
             if (bytes < 126)
                 return WebSocketPayloadLength.NORMAL;
-            else if (bytes <= (long)short.MaxValue)
+            else if (bytes <= (long)ushort.MaxValue)
                 return WebSocketPayloadLength.EXTENDED;
             else
                 return WebSocketPayloadLength.MASSIVE;
@@ -273,11 +283,11 @@ namespace mc_compiled.MCC.Server
     public struct WebSocketByte1Info
     {
         public bool mask;
-        public sbyte payloadLength;
+        public byte payloadLength;
 
         public WebSocketPayloadLength extension;
 
-        internal WebSocketByte1Info(bool mask, sbyte payloadLength)
+        internal WebSocketByte1Info(bool mask, byte payloadLength)
         {
             this.mask = mask;
             this.payloadLength = payloadLength;
@@ -313,7 +323,7 @@ namespace mc_compiled.MCC.Server
         {
             byte final = mask ? (byte)1 : (byte)0;
             final <<= 7;
-            final |= (byte)payloadLength;
+            final |= payloadLength;
             return final;
         }
     }

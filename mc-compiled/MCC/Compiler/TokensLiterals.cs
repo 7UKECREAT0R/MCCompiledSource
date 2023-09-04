@@ -162,11 +162,11 @@ namespace mc_compiled.MCC.Compiler
                         return 0.0f == number;
                     case TokenCompare.Type.NOT_EQUAL:
                         return 0.0f != number;
-                    case TokenCompare.Type.LESS_THAN:
+                    case TokenCompare.Type.LESS:
                         return 0.0f < number;
                     case TokenCompare.Type.LESS_OR_EQUAL:
                         return 0.0f <= number;
-                    case TokenCompare.Type.GREATER_THAN:
+                    case TokenCompare.Type.GREATER:
                         return 0.0f > number;
                     case TokenCompare.Type.GREATER_OR_EQUAL:
                         return 0.0f >= number;
@@ -361,11 +361,11 @@ namespace mc_compiled.MCC.Compiler
                     return a == b;
                 case TokenCompare.Type.NOT_EQUAL:
                     return a != b;
-                case TokenCompare.Type.LESS_THAN:
+                case TokenCompare.Type.LESS:
                     return a < b;
                 case TokenCompare.Type.LESS_OR_EQUAL:
                     return a <= b;
-                case TokenCompare.Type.GREATER_THAN:
+                case TokenCompare.Type.GREATER:
                     return a > b;
                 case TokenCompare.Type.GREATER_OR_EQUAL:
                     return a >= b;
@@ -613,11 +613,11 @@ namespace mc_compiled.MCC.Compiler
                     return a == b;
                 case TokenCompare.Type.NOT_EQUAL:
                     return a != b;
-                case TokenCompare.Type.LESS_THAN:
+                case TokenCompare.Type.LESS:
                     return a < b;
                 case TokenCompare.Type.LESS_OR_EQUAL:
                     return a <= b;
-                case TokenCompare.Type.GREATER_THAN:
+                case TokenCompare.Type.GREATER:
                     return a > b;
                 case TokenCompare.Type.GREATER_OR_EQUAL:
                     return a >= b;
@@ -902,11 +902,11 @@ namespace mc_compiled.MCC.Compiler
                     return b <= thisMax && b >= thisMin;
                 case TokenCompare.Type.NOT_EQUAL:
                     return b < thisMin || b > thisMax;
-                case TokenCompare.Type.LESS_THAN:
+                case TokenCompare.Type.LESS:
                     return b < thisMin;
                 case TokenCompare.Type.LESS_OR_EQUAL:
                     return b <= thisMin;
-                case TokenCompare.Type.GREATER_THAN:
+                case TokenCompare.Type.GREATER:
                     return b > thisMax;
                 case TokenCompare.Type.GREATER_OR_EQUAL:
                     return b >= thisMax;

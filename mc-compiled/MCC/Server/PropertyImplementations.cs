@@ -45,7 +45,7 @@ namespace mc_compiled.MCC.Server
 
         static PropertyImplementations()
         {
-            ALL_PROPERTIES.Add(new PropertyImpl("debug", false,
+            ALL_PROPERTIES.Add(new PropertyImpl("debug", true,
                 new Action<string, MCCServerProject>((_value, project) =>
                 {
                     if (!bool.TryParse(_value, out bool value))
@@ -67,6 +67,15 @@ namespace mc_compiled.MCC.Server
                         return;
 
                     Program.DECORATE = value;
+                }
+            )));
+            ALL_PROPERTIES.Add(new PropertyImpl("export_all", false,
+                new Action<string, MCCServerProject>((_value, project) =>
+                {
+                    if (!bool.TryParse(_value, out bool value))
+                        return;
+
+                    Program.EXPORT_ALL = value;
                 }
             )));
         }

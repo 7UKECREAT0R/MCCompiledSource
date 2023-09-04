@@ -1,8 +1,8 @@
 {
-  "version": 1.14,
+  "version": 1.15,
   "preprocessor_variables": [
-    "compilerversion",
-    "minecraftversion",
+    "_compiler",
+    "_minecraft",
     "_realtime",
     "_realdate",
     "_timeformat",
@@ -395,10 +395,10 @@
     "init": {
       "description": "Initialize Variable",
       "aliases": [ "initialize" ],
-      "details": "Ensures the given entities have a value for the given variable, defaulting to 0 if not. This ensures the given entities function as intended all the time.",
+      "details": "Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., variableName[@a]",
       "category": "values",
       "patterns": [
-        [ "selector:entity", "value:value" ]
+        [ "value:value" ]
       ]
     },
     "if": {
@@ -413,7 +413,15 @@
         [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
         [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
         [ "id:any", "selector:filter" ],
-        [ "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ]
+        [ "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
+        [ "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ],
+        [ "not:not", "value:score", "compare:comparison", "value:other" ],
+        [ "not:not", "selector:check for match" ],
+        [ "not:not", "id:count", "selector:entities", "compare:comparison", "value:amount" ],
+        [ "not:not", "id:count", "selector:entities", "compare:comparison", "number:amount" ],
+        [ "not:not", "id:any", "selector:filter" ],
+        [ "not:not", "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
+        [ "not:not", "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ]
       ]
     },
     "else": {
@@ -478,8 +486,7 @@
       "details": "Sets the block at a specific position, optionally using a replace mode.",
       "category": "blocks",
       "patterns": [
-        [ "id:replace mode", "string:block", "coord:x", "coord:y", "coord:z", "?int:data" ],
-        [ "string:block", "coord:x", "coord:y", "coord:z", "?int:data" ]
+        [ "coord:x", "coord:y", "coord:z", "string:block", "?int:data", "?id:replace mode" ]
       ]
     },
     "fill": {

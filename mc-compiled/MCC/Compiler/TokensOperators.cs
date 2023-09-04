@@ -231,9 +231,9 @@ namespace mc_compiled.MCC.Compiler
         {
             EQUAL,
             NOT_EQUAL,
-            LESS_THAN,
+            LESS,
             LESS_OR_EQUAL,
-            GREATER_THAN,
+            GREATER,
             GREATER_OR_EQUAL
         }
         /// <summary>
@@ -249,11 +249,11 @@ namespace mc_compiled.MCC.Compiler
                     return "=";
                 case Type.NOT_EQUAL:
                     return "DOESNT EXIST MOJANG";
-                case Type.LESS_THAN:
+                case Type.LESS:
                     return "<";
                 case Type.LESS_OR_EQUAL:
                     return "<=";
-                case Type.GREATER_THAN:
+                case Type.GREATER:
                     return ">";
                 case Type.GREATER_OR_EQUAL:
                     return ">=";
@@ -448,7 +448,7 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => "<";
         public TokenLessThan(int lineNumber) : base(lineNumber) { }
 
-        public override Type GetCompareType() => Type.LESS_THAN;
+        public override Type GetCompareType() => Type.LESS;
 
     }
     public sealed class TokenGreaterThan : TokenCompare
@@ -456,7 +456,7 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => ">";
         public TokenGreaterThan(int lineNumber) : base(lineNumber) { }
 
-        public override Type GetCompareType() => Type.GREATER_THAN;
+        public override Type GetCompareType() => Type.GREATER;
     }
     public sealed class TokenLessThanEqual : TokenCompare
     {

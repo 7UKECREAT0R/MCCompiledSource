@@ -31,6 +31,17 @@ namespace mc_compiled.Commands
             return '/' + command.Replace("\"", "\\\"");
         }
         /// <summary>
+        /// Returns this string, but surrounded with quotation marks if it contains whitespace.
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public static string AsCommandParameter(this string parameter)
+        {
+            if (parameter.Contains(' '))
+                return '"' + parameter + '"';
+            return parameter;
+        }
+        /// <summary>
         /// Returns the commands as literal, chat notation for animation controller fields.
         /// </summary>
         /// <param name="command"></param>
@@ -229,19 +240,19 @@ namespace mc_compiled.Commands
             $"deop {target}";
 
         public static string DialogueChange(string npc, string sceneName) =>
-            $"dialogue change {npc} {sceneName}";
+            $"dialogue change {npc.AsCommandParameter()} {sceneName}";
         public static string DialogueChange(string npc, Scene scene) =>
-            $"dialogue change {npc} {scene.sceneTag}";
+            $"dialogue change {npc.AsCommandParameter()} {scene.sceneTag}";
         public static string DialogueChange(string npc, string sceneName, string players) =>
-            $"dialogue change {npc} {sceneName} {players}";
+            $"dialogue change {npc.AsCommandParameter()} {sceneName} {players.AsCommandParameter()}";
         public static string DialogueChange(string npc, Scene scene, string players) =>
-            $"dialogue change {npc} {scene.sceneTag} {players}";
+            $"dialogue change {npc.AsCommandParameter()} {scene.sceneTag} {players.AsCommandParameter()}";
         public static string DialogueOpen(string npc, string players) =>
-            $"dialogue open {npc} {players}";
+            $"dialogue open {npc.AsCommandParameter()} {players.AsCommandParameter()}";
         public static string DialogueOpen(string npc, string players, string sceneName) =>
-            $"dialogue open {npc} {players} {sceneName}";
+            $"dialogue open {npc.AsCommandParameter()} {players.AsCommandParameter()} {sceneName}";
         public static string DialogueOpen(string npc, string players, Scene scene) =>
-            $"dialogue open {npc} {players} {scene.sceneTag}";
+            $"dialogue open {npc.AsCommandParameter()} {players.AsCommandParameter()} {scene.sceneTag}";
 
         public static string Difficulty(DifficultyMode difficulty) =>
             $"difficulty {difficulty}";
@@ -268,22 +279,22 @@ namespace mc_compiled.Commands
         public static ExecuteBuilder Execute() => new ExecuteBuilder();
 
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block}";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()}";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} []";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} []";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, OldHandling fillMode) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} [] {fillMode}";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} [] {fillMode}";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, string replaceBlock) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} [] replace {replaceBlock} -1";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} [] replace {replaceBlock.AsCommandParameter()} -1";
         public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, string replaceBlock, int replaceData) =>
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block} [] replace {replaceBlock} {replaceData}";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} [] replace {replaceBlock.AsCommandParameter()} {replaceData}";
 
         public static string FogPush(string target, string fogId, string userProvidedId) =>
-            $"fog {target} push {fogId} {userProvidedId}";
+            $"fog {target} push {fogId} {userProvidedId.AsCommandParameter()}";
         public static string FogPop(string target, string userProvidedId) =>
-            $"fog {target} pop {userProvidedId}";
+            $"fog {target} pop {userProvidedId.AsCommandParameter()}";
         public static string FogRemove(string target, string userProvidedId) =>
-            $"fog {target} remove {userProvidedId}";
+            $"fog {target} remove {userProvidedId.AsCommandParameter()}";
 
         public static string Function(string name) =>
             $"function {name}";
@@ -434,13 +445,13 @@ namespace mc_compiled.Commands
         public static string RideSummonRider(string rides, string entity) =>
             $"ride {rides} summon_rider {entity}";
         public static string RideSummonRider(string rides, string entity, string nameTag) =>
-            $"ride {rides} summon_rider {entity} none \"{nameTag}\"";
+            $"ride {rides} summon_rider {entity} none {nameTag.AsCommandParameter()}";
         public static string RideSummonRide(string riders, string entity) =>
             $"ride {riders} summon_ride {entity}";
         public static string RideSummonRide(string riders, string entity, RideRules rules) =>
             $"ride {riders} summon_ride {entity} {rules}";
         public static string RideSummonRide(string riders, string entity, RideRules rules, string nameTag) =>
-            $"ride {riders} summon_ride {entity} {rules} none \"{nameTag}\"";
+            $"ride {riders} summon_ride {entity} {rules} none {nameTag.AsCommandParameter()}";
 
         public static string SaveHold() =>
             $"save hold";
@@ -460,87 +471,87 @@ namespace mc_compiled.Commands
             $"schedule on_area_loaded add tickingarea {tickingArea} {function}";
 
         public static string ScoreboardCreateObjective(string name) =>
-            $"scoreboard objectives add \"{name}\" dummy";
+            $"scoreboard objectives add {name} dummy";
         public static string ScoreboardCreateObjective(string name, string display) =>
-            $"scoreboard objectives add \"{name}\" dummy \"{display}\"";
+            $"scoreboard objectives add {name.AsCommandParameter()} dummy {display.AsCommandParameter()}";
         public static string ScoreboardRemoveObjective(string name) =>
-            $"scoreboard objectives remove \"{name}\"";
+            $"scoreboard objectives remove {name.AsCommandParameter()}";
         public static string ScoreboardDisplayList(string name) =>
-            $"scoreboard objectives setdisplay list \"{name}\"";
+            $"scoreboard objectives setdisplay list {name.AsCommandParameter()}";
         public static string ScoreboardDisplayList(string name, ScoreboardOrdering ordering) =>
-            $"scoreboard objectives setdisplay list \"{name}\" {ordering}";
+            $"scoreboard objectives setdisplay list {name.AsCommandParameter()} {ordering}";
         public static string ScoreboardDisplaySidebar(string name) =>
-            $"scoreboard objectives setdisplay sidebar \"{name}\"";
+            $"scoreboard objectives setdisplay sidebar {name.AsCommandParameter()}";
         public static string ScoreboardDisplaySidebar(string name, ScoreboardOrdering ordering) =>
-            $"scoreboard objectives setdisplay sidebar \"{name}\" {ordering}";
+            $"scoreboard objectives setdisplay sidebar {name.AsCommandParameter()} {ordering}";
         public static string ScoreboardDisplayBelowName(string name) =>
-            $"scoreboard objectives setdisplay belowname \"{name}\"";
+            $"scoreboard objectives setdisplay belowname {name.AsCommandParameter()}";
         public static string ScoreboardList(string target) =>
             $"scoreboard players list {target}";
 
         public static string ScoreboardSet(string target, string objective, int value) =>
-            $"scoreboard players set {target} \"{objective}\" {value}";
+            $"scoreboard players set {target} {objective.AsCommandParameter()} {value}";
         public static string ScoreboardAdd(string target, string objective, int amount) =>
-            $"scoreboard players add {target} \"{objective}\" {amount}";
+            $"scoreboard players add {target} {objective.AsCommandParameter()} {amount}";
         public static string ScoreboardSubtract(string target, string objective, int amount) =>
-            $"scoreboard players remove {target} \"{objective}\" {amount}";
+            $"scoreboard players remove {target} {objective.AsCommandParameter()} {amount}";
         public static string ScoreboardRandom(string target, string objective, int minInclusive, int maxInclusive) =>
-            $"scoreboard players random {target} \"{objective}\" {minInclusive} {maxInclusive}";
+            $"scoreboard players random {target} {objective.AsCommandParameter()} {minInclusive} {maxInclusive}";
         public static string ScoreboardReset(string target, string objective) =>
-            $"scoreboard players reset {target} \"{objective}\"";
+            $"scoreboard players reset {target} {objective.AsCommandParameter()}";
         public static string ScoreboardOpRaw(string targetA, string a, ScoreboardOp op, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" {op.String()} {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} {op.String()} {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpSet(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" = {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} = {targetB} {b.AsCommandParameter()}";
         public static string ScoreboardOpAdd(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" += {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} += {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpSub(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" -= {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} -= {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpMul(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" *= {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} *= {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpDiv(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" /= {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} /= {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpMod(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" %= {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} %= {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpSwap(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" >< {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} >< {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpMin(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" < {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} < {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
         public static string ScoreboardOpMax(string targetA, string a, string targetB, string b) =>
-            $"scoreboard players operation {targetA} \"{a}\" > {targetB} \"{b}\"";
+            $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} > {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
 
         public static string ScoreboardSet(ScoreboardValue objective, int value) =>
-            $"scoreboard players set {objective.clarifier.CurrentString} \"{objective.Name}\" {value}";
+            $"scoreboard players set {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {value}";
         public static string ScoreboardAdd(ScoreboardValue objective, int value) =>
-            $"scoreboard players add {objective.clarifier.CurrentString} \"{objective.Name}\" {value}";
+            $"scoreboard players add {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {value}";
         public static string ScoreboardSubtract(ScoreboardValue objective, int amount) =>
-            $"scoreboard players remove {objective.clarifier.CurrentString} \"{objective.Name}\" {amount}";
+            $"scoreboard players remove {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {amount}";
         public static string ScoreboardRandom(ScoreboardValue objective, int minInclusive, int maxInclusive) =>
-            $"scoreboard players random {objective.clarifier.CurrentString} \"{objective.Name}\" {minInclusive} {maxInclusive}";
+            $"scoreboard players random {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {minInclusive} {maxInclusive}";
         public static string ScoreboardReset(ScoreboardValue objective) =>
-            $"scoreboard players reset {objective.clarifier.CurrentString} \"{objective.Name}\"";
+            $"scoreboard players reset {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()}";
         public static string ScoreboardReset(string selector, ScoreboardValue objective) =>
-            $"scoreboard players reset {selector} \"{objective.Name}\"";
+            $"scoreboard players reset {selector.AsCommandParameter()} {objective.Name.AsCommandParameter()}";
         public static string ScoreboardOpRaw(ScoreboardValue a, ScoreboardOp op, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" {op.String()} {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} {op.String()} {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpSet(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" = {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} = {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpAdd(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" += {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} += {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpSub(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" -= {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} -= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpMul(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" *= {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} *= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpDiv(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" /= {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} /= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpMod(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" %= {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} %= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpSwap(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" >< {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} >< {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpMin(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" < {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} < {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
         public static string ScoreboardOpMax(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} \"{a.Name}\" > {b.clarifier.CurrentString} \"{b.Name}\"";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} > {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
 
         public static string SetBlock(Coord x, Coord y, Coord z, string block) =>
             $"setblock {x} {y} {z} {block}";
@@ -563,7 +574,7 @@ namespace mc_compiled.Commands
             $"spawnpoint {target} {x} {y} {z}";
 
         public static string SpreadPlayers(Coord x, Coord z, float spreadDistance, float maxRange, string targets) =>
-            $"spreadplayers {x} {z} {spreadDistance} {maxRange} {targets}";
+            $"spreadplayers {x} {z} {spreadDistance} {maxRange} {targets.AsCommandParameter()}";
 
         public static string Stop() =>
             $"stop";
@@ -574,50 +585,50 @@ namespace mc_compiled.Commands
             $"stopsound {target} {sound}";
 
         public static string StructureSaveDisk(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2) =>
-            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} disk";
+            $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} disk";
         public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2) =>
-            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} memory";
+            $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} memory";
         public static string StructureSaveDisk(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
-            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} disk {includeBlocks.ToString().ToLower()}";
+            $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} disk {includeBlocks.ToString().ToLower()}";
         public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
-            $"structure save {name} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks.ToString().ToLower()}";
+            $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks.ToString().ToLower()}";
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, bool waterLogged = false, float integrity = 100, string seed = null)
         {
             if (seed == null)
-                return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}";
+                return $"structure load {name.AsCommandParameter()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}";
 
-            return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
+            return $"structure load {name.AsCommandParameter()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
         }
         public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, StructureAnimationMode animation = StructureAnimationMode.layer_by_layer,
                 float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, bool waterLogged = false, float integrity = 100, string seed = null)
         {
             if (seed == null)
-                return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}";
+                return $"structure load {name.AsCommandParameter()} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}";
 
-            return $"structure load {name} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
+            return $"structure load {name.AsCommandParameter()} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
         }
         public static string StructureDelete(string name) =>
-            $"structure delete {name}";
+            $"structure delete {name.AsCommandParameter()}";
 
         public static string Summon(string entity) =>
             $"summon {entity}";
         public static string Summon(string entity, Coord x, Coord y, Coord z) =>
             $"summon {entity} {x} {y} {z}";
         public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag) =>
-            $"summon {entity} \"{nameTag}\" {x} {y} {z}";
+            $"summon {entity} {nameTag.AsCommandParameter()} {x} {y} {z}";
         public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag, string spawnEvent) =>
-            $"summon {entity} {x} {y} {z} \"{spawnEvent}\" \"{nameTag}\"";
+            $"summon {entity} {x} {y} {z} {spawnEvent} {nameTag.AsCommandParameter()}";
         public static string SummonWithEvent(string entity, Coord x, Coord y, Coord z, string spawnEvent) =>
-            $"summon {entity} {x} {y} {z} \"{spawnEvent}\"";
+            $"summon {entity} {x} {y} {z} {spawnEvent}";
 
         public static string Tag(string targets, string tag) =>
-            $"tag {targets} add {tag}";
+            $"tag {targets.AsCommandParameter()} add {tag.AsCommandParameter()}";
         public static string TagRemove(string targets, string tag) =>
-            $"tag {targets} remove {tag}";
+            $"tag {targets.AsCommandParameter()} remove {tag.AsCommandParameter()}";
         public static string TagList(string targets) =>
-            $"tag {targets} list";
+            $"tag {targets.AsCommandParameter()} list";
 
         public static string Teleport(string otherEntity, bool checkForBlocks = false) =>
             $"tp @s {otherEntity} {checkForBlocks.ToString().ToLower()}";
@@ -664,11 +675,11 @@ namespace mc_compiled.Commands
             $"testforblocks {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ} masked";
 
         public static string TickingAreaAdd(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2) =>
-            $"tickingarea add {x1} {y1} {z1} {x2} {y2} {z2} \"{name}\"";
+            $"tickingarea add {x1} {y1} {z1} {x2} {y2} {z2} {name.AsCommandParameter()}";
         public static string TickingAreaAdd(string name, Coord x1, Coord y1, Coord z1, int radius) =>
-            $"tickingarea add circle {x1} {y1} {z1} {radius} \"{name}\"";
+            $"tickingarea add circle {x1} {y1} {z1} {radius} {name.AsCommandParameter()}";
         public static string TickingAreaRemove(string name) =>
-            $"tickingarea remove \"{name}\"";
+            $"tickingarea remove {name.AsCommandParameter()}";
         public static string TickingAreaRemove(Coord x1, Coord y1, Coord z1) =>
             $"tickingarea remove {x1} {y1} {z1}";
         public static string TickingAreaRemoveAll() =>
@@ -711,9 +722,9 @@ namespace mc_compiled.Commands
             $"weather query";
 
         public static string Whitelist(string player) =>
-            $"whitelist add {player}";
+            $"whitelist add {player.AsCommandParameter()}";
         public static string WhitelistRemove(string player) =>
-            $"whitelist remove {player}";
+            $"whitelist remove {player.AsCommandParameter()}";
         public static string WhitelistList() =>
             $"whitelist list";
         public static string WhitelistOff() =>
@@ -837,7 +848,9 @@ namespace mc_compiled.Commands
         riptide,
         multishot,
         piercing,
-        quick_charge
+        quick_charge,
+        mending,
+        swift_sneak
     }
     [EnumParsable(typeof(GameMode))]
     public enum GameMode : int

@@ -134,8 +134,16 @@ namespace mc_compiled.MCC.Server
         public void OnReceiveTCP(IAsyncResult result)
         {
             WebSocketPackage package = result.AsyncState as WebSocketPackage;
-
-            int bytesRead = package.EndReceive(result);
+            int bytesRead = 0;
+            
+            try
+            {
+                bytesRead = package.EndReceive(result);
+            } catch(Exception exc)
+            {
+                Console.Error.WriteLine(exc.ToString());
+                return;
+            }
 
             // only process if bytes were read.
             if (bytesRead > 0)

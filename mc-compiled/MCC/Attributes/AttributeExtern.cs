@@ -17,7 +17,7 @@ namespace mc_compiled.MCC.Attributes
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
         {
             function.isExtern = true;           // mark extern
-            function.file.doNotWrite = true;    // we don't want the extern file to be overwritten, but we want it registered.
+            function.file.DoNotWrite = true;    // we don't want the extern file to be overwritten, but we want it registered.
         }
 
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement) =>

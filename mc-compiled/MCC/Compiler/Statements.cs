@@ -1,4 +1,5 @@
 ﻿using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Functions.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -375,7 +376,12 @@ namespace mc_compiled.MCC.Compiler
 
             // finish with the commands.
             CommandFile current = executor.CurrentFile;
-            executor.AddCommands(commands, "call" + bestFunction.Keyword,
+
+            // register the call for usage tree
+            if (bestFunction is RuntimeFunction runtime)
+                current.RegisterCall(runtime.file);
+
+            executor.AddCommands(commands, "call" + bestFunction.Keyword.Replace('.', '_'),
                 $"From file {current.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", passIn.Select(t => t.AsString()))})");
             commands.Clear();
 

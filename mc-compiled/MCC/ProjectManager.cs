@@ -72,7 +72,7 @@ namespace mc_compiled.MCC
         /// </summary>
         internal void CreateUninstallFile()
         {
-            CommandFile file = new CommandFile("uninstall", Executor.MCC_GENERATED_FOLDER);
+            CommandFile file = new CommandFile(true, "uninstall", Executor.MCC_GENERATED_FOLDER);
             this.AddFile(file);
 
             if(HasFeature(Feature.DUMMIES))
@@ -91,7 +91,8 @@ namespace mc_compiled.MCC
 
             foreach (string tag in parentExecutor.definedTags)
             {
-                file.Add(Commands.Command.TagRemove("*", tag));
+                file.Add(Commands.Command.TagRemove($"@e[tag={tag}]", tag));
+
             }
         }
 
@@ -182,7 +183,19 @@ namespace mc_compiled.MCC
 
             // actual writing
             foreach (IAddonFile file in files)
+            {
+                // log the write to console
+                if(Program.DEBUG && file.GetOutputFile() != null)
+                {
+                    string partialPath = GetOutputFileLocationFull(file, true);
+                    string fullPath = Path.GetFullPath(partialPath);
+                    Console.WriteLine($"\t- File: {fullPath}");
+                }
+
+                // write it
                 WriteSingleFile(file);
+            }
+
             files.Clear();
         }
 

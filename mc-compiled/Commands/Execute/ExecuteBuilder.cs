@@ -245,6 +245,36 @@ namespace mc_compiled.Commands.Execute
         }
 
         /// <summary>
+        /// Same as <see cref="Run(string)"/>, but applies to every command in the array.
+        /// </summary>
+        /// <param name="commands"></param>
+        /// <returns></returns>
+        public string[] RunOver(string[] commands)
+        {
+            string[] outputs = new string[commands.Length];
+
+            int workingIndex = subcommands.Count;
+            bool hasCapacity = false;
+
+            for(int i = 0; i < commands.Length; i++)
+            {
+                string command = commands[i];
+
+                if (!hasCapacity)
+                {
+                    subcommands.Add(new SubcommandRun(command));
+                    hasCapacity = true;
+                }
+                else
+                    subcommands[workingIndex] = new SubcommandRun(command);
+
+                outputs[i] = Build(out _);
+            }
+
+            return outputs;
+        }
+
+        /// <summary>
         /// Executes only if a block is located at the given coordinates.
         /// </summary>
         /// <param name="x"></param>

@@ -38,7 +38,7 @@ namespace mc_compiled.MCC.Scheduling
             if(cmds != null && cmds.Length > 0)
             {
                 Compiler.CommandFile func = new Compiler.CommandFile
-                    (task.functionName, "scheduler");
+                    (true, task.functionName, "scheduler");
                 func.Add(cmds);
 
                 executor.AddExtraFile(func);

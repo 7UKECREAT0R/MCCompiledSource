@@ -141,6 +141,15 @@
         "player.json"
       ],
       "desc": "Runs on players. Returns the current phase of the moon, 0-7. 0 being full moon."
+    },
+    "query.sleep_rotation": {
+      "type": "int",
+      "min": 0,
+      "max": 4,
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns the direction of the bed they are sleeping on, or 0."
     }
   }
 }

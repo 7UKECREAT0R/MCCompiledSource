@@ -8,7 +8,7 @@ using mc_compiled.MCC.Compiler;
 namespace mc_compiled.MCC.Scheduling
 {
     /// <summary>
-    /// A scheduled 
+    /// A scheduled task that occurs after a given preiod and terminates.
     /// </summary>
     public sealed class ScheduledOneShot : ScheduledTask
     {

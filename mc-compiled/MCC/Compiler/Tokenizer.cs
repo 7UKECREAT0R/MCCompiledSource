@@ -269,7 +269,7 @@ namespace mc_compiled.MCC.Compiler
                     char next = NextChar();
                     if (next == '\n')
                         CURRENT_LINE++;
-                    if (next == '*' && Peek() == '/')
+                    if (next == '*' && HasNext && Peek() == '/')
                     {
                         NextChar();
                         break;

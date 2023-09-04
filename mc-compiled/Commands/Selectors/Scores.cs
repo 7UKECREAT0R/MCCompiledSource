@@ -54,8 +54,12 @@ namespace mc_compiled.Commands.Selectors
 
                 string scoreName = part.Substring(0, index).Trim();
                 string _range = part.Substring(index + 1).Trim();
-                Range range = Range.Parse(_range).Value;
-                ScoresEntry entry = new ScoresEntry(scoreName, range);
+                Range? range = Range.Parse(_range);
+
+                if(range == null)
+                    continue; // failed parse
+
+                ScoresEntry entry = new ScoresEntry(scoreName, range.Value);
                 scores.checks.Add(entry);
             }
 

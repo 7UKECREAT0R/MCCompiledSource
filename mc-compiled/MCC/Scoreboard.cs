@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 using System.Windows.Media.TextFormatting;
 
 namespace mc_compiled.MCC
@@ -64,7 +65,7 @@ namespace mc_compiled.MCC
             get => baseName;
             set
             {
-                if (value.Length > 16)
+                if (value.Length > MAX_NAME_LENGTH)
                     baseName = StandardizedHash(value);
                 else
                     baseName = value;
@@ -106,7 +107,9 @@ namespace mc_compiled.MCC
         /// <param name="nonce">A nonce string to append to the previous name when hashing.</param>
         public void ForceHash(string nonce = "")
         {
-            aliasName = baseName;
+            if (aliasName == null)
+                aliasName = baseName;
+
             baseName = StandardizedHash(aliasName + nonce);
         }
 
@@ -123,7 +126,7 @@ namespace mc_compiled.MCC
             this.Name = baseName;
 
             // hash was given to baseName
-            if (baseName.Length > 16)
+            if (baseName.Length > MAX_NAME_LENGTH)
                 aliasName = baseName;
 
             this.attributes = new List<IAttribute>();
@@ -421,13 +424,13 @@ namespace mc_compiled.MCC
                 case TokenCompare.Type.NOT_EQUAL:
                     range = new Range(value, true);
                     break;
-                case TokenCompare.Type.LESS_THAN:
+                case TokenCompare.Type.LESS:
                     range = new Range(null, value - 1);
                     break;
                 case TokenCompare.Type.LESS_OR_EQUAL:
                     range = new Range(null, value);
                     break;
-                case TokenCompare.Type.GREATER_THAN:
+                case TokenCompare.Type.GREATER:
                     range = new Range(value + 1, null);
                     break;
                 case TokenCompare.Type.GREATER_OR_EQUAL:
@@ -1053,13 +1056,13 @@ namespace mc_compiled.MCC
                 case TokenCompare.Type.NOT_EQUAL:
                     range = new Range(number, true);
                     break;
-                case TokenCompare.Type.LESS_THAN:
+                case TokenCompare.Type.LESS:
                     range = new Range(null, number - 1);
                     break;
                 case TokenCompare.Type.LESS_OR_EQUAL:
                     range = new Range(null, number);
                     break;
-                case TokenCompare.Type.GREATER_THAN:
+                case TokenCompare.Type.GREATER:
                     range = new Range(number + 1, null);
                     break;
                 case TokenCompare.Type.GREATER_OR_EQUAL:

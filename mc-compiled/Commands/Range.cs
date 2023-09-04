@@ -67,7 +67,7 @@ namespace mc_compiled.Commands
         /// <returns>Null if the parse failed.</returns>
         public static Range? Parse(string str)
         {
-            if (str == null)
+            if (string.IsNullOrEmpty(str))
                 return null;
 
             bool not;
