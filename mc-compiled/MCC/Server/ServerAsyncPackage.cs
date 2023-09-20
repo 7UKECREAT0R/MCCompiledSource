@@ -16,7 +16,6 @@ namespace mc_compiled.MCC.Server
         public readonly bool debug;
         public readonly Socket server;
         public readonly Socket client;
-        public readonly AsyncCallback receiveCallback;
         public bool didHandshake = false;
         public byte[] buffer;
         internal readonly MCCServerProject project;
@@ -26,21 +25,15 @@ namespace mc_compiled.MCC.Server
         /// </summary>
         /// <param name="server"></param>
         /// <param name="client"></param>
-        public WebSocketPackage(bool debug, Socket server, Socket client, MCCServer mcc, AsyncCallback receiveCallback)
+        public WebSocketPackage(bool debug, Socket server, Socket client, MCCServer mcc)
         {
             this.debug = debug;
             this.server = server;
             this.client = client;
             this.buffer = new byte[MCCServer.CHUNK_SIZE];
-            this.receiveCallback = receiveCallback;
 
             this.project = new MCCServerProject(mcc);
         }
-
-        public void BeginReceive() =>
-            client.BeginReceive(buffer, 0, MCCServer.CHUNK_SIZE, SocketFlags.None, receiveCallback, this);
-        public int EndReceive(IAsyncResult result) =>
-            client.EndReceive(result);
 
         /// <summary>
         /// Reads an ASCII string from the buffer with the specified number of bytes.
@@ -80,7 +73,7 @@ namespace mc_compiled.MCC.Server
 
             if (_isDisposed || client == null)
             {
-                Console.WriteLine("Socket closed; Cancelled sending frame: {0}", frame.ToString());
+                Console.WriteLine("Socket closed; Cancelled sending frame.");
                 return;
             }
 

@@ -1,4 +1,5 @@
 ﻿using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace mc_compiled.MCC.Server
         public const int PORT = 11830;              // The port that the server will be opened on. The Minecraft version at the time of the first working prototype (1.18.30).
         public const float STANDARD_VERSION = 5.8f; // The version of the standard this implementation of the server follows.
         public const int CHUNK_SIZE = 0x100000;     // 1MB
-        public const int BUFFER_SIZE = 0x10000;     // 64K
+        public const int READ_SIZE = 0x80;
 
         public const string WEBSOCKET_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -153,63 +154,112 @@ namespace mc_compiled.MCC.Server
 
             // get client/server sockets
             object state = result.AsyncState;
+
             Socket server = state as Socket;
+            server.ReceiveBufferSize = MCCServer.CHUNK_SIZE;
+
             Socket client = server.EndAccept(result);
 
             // create a package for sending to the read thread
             WebSocketPackage package = new WebSocketPackage
-                (debug, server, client, this, new AsyncCallback(OnReceiveTCP));
+                (debug, server, client, this);
 
-            // begin receiving a packet
-            package.BeginReceive();
+            // run the receive loop for the connected client. 
+            Thread thread = new Thread(ReceiveLoop);
+            thread.Start(package);
         }
         /// <summary>
         /// Called when an open connection is sent a TCP packet to be processed.
         /// </summary>
         /// <param name="result"></param>
-        public void OnReceiveTCP(IAsyncResult result)
+        public void ReceiveLoop(object result)
         {
-            WebSocketPackage package = result.AsyncState as WebSocketPackage;
-            int bytesRead = 0;
-            
-            try
-            {
-                bytesRead = package.EndReceive(result);
-            } catch(Exception exc)
-            {
-                Console.Error.WriteLine(exc.ToString());
-                return;
-            }
+            WebSocketPackage package = result as WebSocketPackage;
+            byte[] tempBuffer = new byte[READ_SIZE];
 
-            // only process if bytes were read.
-            if (bytesRead > 0)
-            {
-                string str = package.ReadStringASCII(bytesRead);
+            Debug.WriteLine("Started thread! Client handle " + package.client.Handle);
 
-                // if the handshake has been done, process this as a regular WebSocket frame.
-                if (package.didHandshake)
+            while (true)
+            {
+                int bytesReadTotal = 0;
+                int bytesRead = 0;
+
+                Array.Clear(tempBuffer, 0, READ_SIZE);
+
+                if(package.didHandshake)
                 {
-                    var info = WebSocketFrame.ParseByte0(package.buffer[0]);
+                    // read the first two bytes of the header.
+                    if ((bytesRead = package.client.Receive(tempBuffer, 0, 2, SocketFlags.None)) < 2)
+                        throw new Exception("Client sent incomplete frame header to the server.");
 
-                    // construct frame from the data
-                    WebSocketFrame frame = WebSocketFrame.FromFrame(package.buffer);
+                    // parse bytes 0 and 1.
+                    WebSocketByte0Info byte0 = WebSocketFrame.ParseByte0(tempBuffer[0]);
+                    WebSocketByte1Info byte1 = WebSocketFrame.ParseByte1(tempBuffer[1]);
+
+                    // figure out how many more bytes will be needed based on the information
+                    // from bytes 0/1. mask is 4 bytes, extensions are 0/2/8 bytes respectively.
+                    int additionalBytesNeeded = (int)byte1.extension + (byte1.mask ? 4 : 0);
+
+                    if (additionalBytesNeeded > 0)
+                    {
+                        if ((bytesRead = package.client.Receive(tempBuffer, 2, additionalBytesNeeded, SocketFlags.None)) < additionalBytesNeeded)
+                            throw new Exception("Client sent incomplete frame header to the server.");
+                    }
+                    
+                    // constructs a WebSocketFrame from the remainder of the header that was just read.
+                    WebSocketFrame frame = WebSocketFrame.FromFrameHeader(byte0, byte1, tempBuffer);
+                    long length = frame.length;
+
+                    byte[] content;
+
+                    if (length > 0)
+                    {
+                        // get the numbr of requested bytes by the frame header.
+                        content = new byte[length];
+                        bytesRead = package.client.Receive(content);
+
+                        if (bytesRead < (int)length)
+                            throw new Exception("Client did not fulfill WebSocket length promise.");
+                    } else
+                        content = new byte[0];
+
+
+                    Debug.WriteLine($"Got frame: {frame}");
+
+                    // set the newly read data.
+                    frame.SetData(content);
                     bool close = HandleFrame(package, frame);
 
-                    // close the connection with the client.
                     if (close)
                     {
+                        // close the connection with the client.
                         package.Close(false);
                         return;
                     }
                 }
+                else
+                {
+                    Debug.WriteLine("Waiting for HTTP string... ");
 
-                // the only HTTP used by WebSocket is when initiating the handshake.
-                if (str.StartsWith("GET"))
-                    ProcessWebsocketUpgrade(package, str);
+                    // read a standard string
+                    while (package.client.Available > 0) {
+                        bytesRead = package.client.Receive(tempBuffer);
+                        Array.Copy(tempBuffer, 0, package.buffer, bytesReadTotal, bytesRead);
+                        bytesReadTotal += bytesRead;
+                    }
+
+                    string str = package.ReadStringASCII(bytesReadTotal);
+                    Debug.WriteLine(str);
+
+                    // the only HTTP used by WebSocket is when initiating the handshake.
+                    if (str.StartsWith("GET"))
+                        ProcessWebsocketUpgrade(package, str);
+
+                    bytesReadTotal = 0;
+                }
+
+                Array.Clear(tempBuffer, 0, tempBuffer.Length);
             }
-
-            // start looking for next data chunk
-            package.BeginReceive();
         }
         /// <summary>
         /// Handle a potential websocket HTTP request sent through TCP.
@@ -245,6 +295,7 @@ namespace mc_compiled.MCC.Server
                 ["Connection"] = "Upgrade",
                 ["Sec-WebSocket-Accept"] = acceptKey
             };
+            Debug.WriteLine("Sec-WebSocket-Accept: " + acceptKey);
 
             string responseData = http.ToHTTP(HANDSHAKE_HEADER);
             package.SendStringASCII(responseData);
@@ -312,6 +363,9 @@ namespace mc_compiled.MCC.Server
                 multiparts.Add(frame.data);
                 frame = PopMultipart(); // merge all the data packets into one
                 multipartHeader = null;
+
+                if (debug)
+                    Console.WriteLine("multipart: fin (see below)");
             }
 
             if (debug)
@@ -320,6 +374,7 @@ namespace mc_compiled.MCC.Server
             if (frame.opcode == WebSocketOpCode.CLOSE)
             {
                 WebSocketFrame response = WebSocketFrame.Close();
+                Debug.WriteLine("Closing...");
                 package.SendFrame(response);
                 return true;
             }

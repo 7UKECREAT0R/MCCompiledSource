@@ -7,23 +7,37 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json.Linq;
 using System.Data.SqlTypes;
+using System.Windows.Forms;
+using System.CodeDom;
 
 namespace mc_compiled.MCC.Server
 {
     /// <summary>
-    /// Represents a WebSocket13 data frame.
+    /// Represents a WebSocket data frame (RFC-6455).
     /// </summary>
     public class WebSocketFrame
     {
         public WebSocketOpCode opcode;
+        public long length;
         public byte[] data;
         public bool fin;
 
-        public WebSocketFrame(WebSocketOpCode opcode, byte[] data, bool fin)
+        public byte[] mask;
+
+        public WebSocketFrame(WebSocketOpCode opcode, byte[] data, bool fin, byte[] mask)
         {
             this.opcode = opcode;
+            this.length = data.Length;
             this.data = data;
             this.fin = fin;
+            this.mask = mask;
+        }
+        public WebSocketFrame(WebSocketOpCode opcode, long length, bool fin, byte[] mask)
+        {
+            this.opcode = opcode;
+            this.length = length;
+            this.fin = fin;
+            this.mask = mask;
         }
         public WebSocketFrame AsContinuation(bool fin)
         {
@@ -71,7 +85,7 @@ namespace mc_compiled.MCC.Server
 
             // get/unmask the message data
             byte[] messageData = new byte[messageLength];
-
+            
             if (byte1Info.mask)
             {
                 // unmask the message.
@@ -94,8 +108,58 @@ namespace mc_compiled.MCC.Server
                     messageData[i] = frame[i + longOffset];
             }
 
-            return new WebSocketFrame(opcode, messageData, byte0Info.fin);
+            return new WebSocketFrame(opcode, messageData, byte0Info.fin, null);
         }
+        /// <summary>
+        /// Creates a WebSocketFrame from a complete header, but without the payload.
+        /// </summary>
+        /// <param name="header"></param>
+        public static WebSocketFrame FromFrameHeader(WebSocketByte0Info byte0Info, WebSocketByte1Info byte1Info, byte[] header, int startOffset = 2)
+        {
+            WebSocketOpCode opcode = byte0Info.opcode;
+
+            int offset = startOffset;
+            long messageLength = 0;
+
+            if (byte1Info.extension == WebSocketPayloadLength.NORMAL)
+                messageLength = (long)byte1Info.payloadLength;
+            else if (byte1Info.extension == WebSocketPayloadLength.EXTENDED)
+            {
+                // get 2 more bytes
+                byte a = header[offset++];
+                byte b = header[offset++];
+                messageLength = (long)BitConverter.ToUInt16(new byte[] { b, a }, 0);
+            }
+            else if (byte1Info.extension == WebSocketPayloadLength.MASSIVE)
+            {
+                // get 8 more bytes
+                byte a = header[offset++];
+                byte b = header[offset++];
+                byte c = header[offset++];
+                byte d = header[offset++];
+                byte e = header[offset++];
+                byte f = header[offset++];
+                byte g = header[offset++];
+                byte h = header[offset++];
+                messageLength = (long)BitConverter.ToUInt64(new byte[] { h, g, f, e, d, c, b, a }, 0);
+            }
+
+            // get/unmask the message data
+            byte[] masks = null;
+
+            if (byte1Info.mask)
+            {
+                // get the mask
+                byte maskA = header[offset++];
+                byte maskB = header[offset++];
+                byte maskC = header[offset++];
+                byte maskD = header[offset++];
+                masks = new byte[] { maskA, maskB, maskC, maskD };
+            }
+
+            return new WebSocketFrame(opcode, messageLength, byte0Info.fin, masks);
+        }
+
         /// <summary>
         /// Creates a WebSocketFrame that wraps a UTF-8 string.
         /// </summary>
@@ -104,7 +168,7 @@ namespace mc_compiled.MCC.Server
         public static WebSocketFrame String(string text, bool fin = true)
         {
             byte[] data = Encoding.UTF8.GetBytes(text);
-            return new WebSocketFrame(WebSocketOpCode.TEXT, data, fin);
+            return new WebSocketFrame(WebSocketOpCode.TEXT, data, fin, null);
         }
         /// <summary>
         /// Creates a WebSocketFrame that wraps a JSON object.
@@ -115,7 +179,7 @@ namespace mc_compiled.MCC.Server
         {
             string str = json.ToString(Newtonsoft.Json.Formatting.None);
             byte[] data = Encoding.UTF8.GetBytes(str);
-            return new WebSocketFrame(WebSocketOpCode.TEXT, data, fin);
+            return new WebSocketFrame(WebSocketOpCode.TEXT, data, fin, null);
         }
         /// <summary>
         /// Creates a WebSocketFrame that initiates a close.
@@ -124,7 +188,7 @@ namespace mc_compiled.MCC.Server
         /// <returns></returns>
         public static WebSocketFrame Close(bool fin = true)
         {
-            return new WebSocketFrame(WebSocketOpCode.CLOSE, new byte[0], fin);
+            return new WebSocketFrame(WebSocketOpCode.CLOSE, new byte[0], fin, null);
         }
         /// <summary>
         /// Creates a WebSocketFrame that serves as a response to a "Ping"
@@ -133,7 +197,7 @@ namespace mc_compiled.MCC.Server
         /// <returns></returns>
         public static WebSocketFrame Pong(bool fin = true)
         {
-            return new WebSocketFrame(WebSocketOpCode.PONG, new byte[0], fin);
+            return new WebSocketFrame(WebSocketOpCode.PONG, new byte[0], fin, null);
         }
 
         /// <summary>
@@ -187,11 +251,31 @@ namespace mc_compiled.MCC.Server
                 bytes[offset++] = converted[pull];
             }
 
-            if(Program.DEBUG)
-                Console.WriteLine("Outgoing payload header ({0}): {1}", (opcode + "/" + length), string.Join(" ", bytes.Take(offset).Select(b => Convert.ToString(b, 2).PadLeft(8, '0'))));
-
             Array.Copy(this.data, 0L, bytes, offset, length);
             return bytes;
+        }
+
+        public void UnmaskData()
+        {
+            if(mask != null)
+            {
+                for (long i = 0; i < data.LongLength; i++)
+                    data[i] = (byte)(data[i] ^ mask[i % 4]);
+            }
+        }
+        public byte[] UnmaskData(byte[] data)
+        {
+            if (mask != null)
+            {
+                for (long i = 0; i < data.LongLength; i++)
+                    data[i] = (byte)(data[i] ^ mask[i % 4]);
+            }
+            return data;
+        }
+        public void SetData(byte[] data)
+        {
+            this.data = data;
+            UnmaskData();
         }
 
         /// <summary>
@@ -202,15 +286,25 @@ namespace mc_compiled.MCC.Server
         public static WebSocketByte0Info ParseByte0(byte data)
         {
             const byte FIN_MASK = 0b10000000;
+            const byte RSV_MASK = 0b01110000;
             const byte OPCODE_MASK = 0b00001111;
+
+            if((data & RSV_MASK) != 0)
+                throw new Exception("WebSocket frame contained RSV bits.");
+
             bool fin = (data & FIN_MASK) == FIN_MASK;
             sbyte opcode = (sbyte)(data & OPCODE_MASK);
 
-            return new WebSocketByte0Info()
+            WebSocketByte0Info info = new WebSocketByte0Info()
             {
                 fin = fin,
                 opcode = (WebSocketOpCode)opcode
             };
+
+            if (!Enum.IsDefined(typeof(WebSocketOpCode), info.opcode))
+                throw new Exception("Bad WebSocket frame opcode: " + info.opcode); 
+
+            return info;
         }
         /// <summary>
         /// Parses the first byte in a WebSocket frame.
@@ -245,8 +339,11 @@ namespace mc_compiled.MCC.Server
 
         public override string ToString()
         {
-            string dataString = Encoding.UTF8.GetString(this.data);
-            return $"{{{opcode}: '{dataString}'}}";
+            //string dataString = Encoding.UTF8.GetString(this.data);
+            if (fin)
+                return $"{{[FIN] {opcode}: len '{this.length}'}}";
+            else
+                return $"{{[NOT FIN] {opcode}: len '{this.length}'}}";
         }
     }
 
@@ -314,7 +411,6 @@ namespace mc_compiled.MCC.Server
 
             switch (extension)
             {
-
                 case WebSocketPayloadLength.EXTENDED:
                     this.payloadLength = 126;
                     break;
