@@ -94,6 +94,8 @@
     <Compile Include="MCC\Compiler\TimeFormat.cs" />
     <Compile Include="MCC\Compiler\TokenFeeder.cs" />
     <Compile Include="MCC\Attributes\IAttribute.cs" />
+    <Compile Include="MCC\Compiler\TypeSystem\ITypeStructure.cs" />
+    <Compile Include="MCC\Compiler\TypeSystem\Typedef.cs" />
     <Compile Include="MCC\Functions\Function.cs" />
     <Compile Include="MCC\Functions\FunctionComparator.cs" />
     <Compile Include="MCC\Functions\FunctionManager.cs" />

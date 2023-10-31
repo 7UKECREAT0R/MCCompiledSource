@@ -4,6 +4,7 @@ using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Compiler.TypeSystem;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -113,6 +114,7 @@ namespace mc_compiled.MCC
             baseName = StandardizedHash(aliasName + nonce);
         }
 
+        public readonly Typedef type;
         public List<IAttribute> attributes;
         public Clarifier clarifier { get; protected set; }
         public readonly ScoreboardManager.ValueType valueType;

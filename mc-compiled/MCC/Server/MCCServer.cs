@@ -208,7 +208,7 @@ namespace mc_compiled.MCC.Server
                     
                     // constructs a WebSocketFrame from the remainder of the header that was just read.
                     WebSocketFrame frame = WebSocketFrame.FromFrameHeader(byte0, byte1, tempBuffer);
-                    long length = frame.length;
+                    int length = (int)frame.length;
 
                     byte[] content;
 
@@ -216,7 +216,15 @@ namespace mc_compiled.MCC.Server
                     {
                         // get the numbr of requested bytes by the frame header.
                         content = new byte[length];
-                        bytesRead = package.client.Receive(content);
+                        bytesRead = 0;
+
+                        int remaining = length - bytesRead;
+
+                        while (remaining > 0)
+                        {
+                            bytesRead += package.client.Receive(content, bytesRead, remaining, SocketFlags.None);
+                            remaining = length - bytesRead;
+                        }
 
                         if (bytesRead < (int)length)
                             throw new Exception("Client did not fulfill WebSocket length promise.");
