@@ -22,7 +22,8 @@ namespace mc_compiled.MCC
     /// </summary>
     public abstract class ScoreboardValue : ICloneable
     {
-        public static readonly char[] SUPPORTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+        public static readonly char[] HASH_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+        public static readonly char[] SUPPORTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".ToCharArray();
 
         /// <summary>
         /// Convert a string to a standardized hash.
@@ -38,11 +39,11 @@ namespace mc_compiled.MCC
             for (int i = 0; i < 4; i++)
             {
                 byte b = bytes[i];
-                byte lower = (byte)((b << 2) % SUPPORTED_CHARS.Length);
-                byte upper = (byte)((b >> 2) % SUPPORTED_CHARS.Length);
+                byte lower = (byte)((b << 2) % HASH_CHARS.Length);
+                byte upper = (byte)((b >> 2) % HASH_CHARS.Length);
 
-                char c1 = SUPPORTED_CHARS[lower];
-                char c2 = SUPPORTED_CHARS[upper];
+                char c1 = HASH_CHARS[lower];
+                char c2 = HASH_CHARS[upper];
 
                 chars[(i * 2)] = c1;
                 chars[(i * 2) + 1] = c2;
@@ -88,18 +89,9 @@ namespace mc_compiled.MCC
         {
             get
             {
-                if (documentation == null)
-                    return Executor.UNDOCUMENTED_TEXT;
-
-                return documentation;
+                return documentation ?? Executor.UNDOCUMENTED_TEXT;
             }
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    documentation = null;
-                else
-                    documentation = value;
-            }
+            set { documentation = string.IsNullOrWhiteSpace(value) ? null : value; }
         }
 
         /// <summary>
@@ -115,6 +107,8 @@ namespace mc_compiled.MCC
         }
 
         public readonly Typedef type;
+        public readonly object data;
+
         public List<IAttribute> attributes;
         public Clarifier clarifier { get; protected set; }
         public readonly ScoreboardManager.ValueType valueType;
@@ -208,7 +202,7 @@ namespace mc_compiled.MCC
         /// <param name="global">If this ScoreboardValue should be global.</param>
         /// <param name="sb">The scoreboard manager managing this.</param>
         /// <param name="forExceptions">Statement for exceptions.</param>
-        /// <param name="decimalPrecision">The precision of the decimal value, if type == <see cref="ScoreboardManager.ValueType.DECIMAL"/></param>
+        /// <param name="decimalPrecision">The precision of the decimal value, if type == <see cref="ScoreboardManager.ValueType.FIXEDDECIMAL"/></param>
         /// <returns></returns>
         /// <exception cref="StatementException"></exception>
         public static ScoreboardValue CreateByType(ScoreboardManager.ValueType type, string name, bool global,
@@ -218,7 +212,7 @@ namespace mc_compiled.MCC
             {
                 case ScoreboardManager.ValueType.INT:
                     return new ScoreboardValueInteger(name, global, sb);
-                case ScoreboardManager.ValueType.DECIMAL:
+                case ScoreboardManager.ValueType.FIXEDDECIMAL:
                     return new ScoreboardValueDecimal(name, decimalPrecision, global, sb);
                 case ScoreboardManager.ValueType.BOOL:
                     return new ScoreboardValueBoolean(name, global, sb);
@@ -379,6 +373,16 @@ namespace mc_compiled.MCC
                 return hashCode;
             }
         }
+    }
+    public class ScoreboardException : Exception
+    {
+        readonly ScoreboardValue value;
+
+        public ScoreboardException(string msg, ScoreboardValue value) : base(msg)
+        {
+            this.value = value;
+        }
+        public override string Source { get => value.ToString(); }
     }
 
     public class ScoreboardValueInteger : ScoreboardValue
@@ -894,7 +898,7 @@ namespace mc_compiled.MCC
         /// <param name="manager">The ScoreboardManager managing this new value.</param>
         /// <param name="forExceptions">The statement that caused an exception, if any.</param>
         public ScoreboardValueDecimal(string name, int precision, bool global, ScoreboardManager manager) :
-            base(name, global, ScoreboardManager.ValueType.DECIMAL, manager)
+            base(name, global, ScoreboardManager.ValueType.FIXEDDECIMAL, manager)
         {
             this.precision = precision;
         }
@@ -955,7 +959,6 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Basically Command.ScoreboardOpSet but balances 'other' to fit into this scoreboard value's precision properly.
         /// </summary>
-        /// <param name="selector">The selector to use.</param>
         /// <param name="other"></param>
         /// <returns></returns>
         public string[] BalancePrecisionInto(ScoreboardValueDecimal other)
@@ -1045,7 +1048,6 @@ namespace mc_compiled.MCC
         }
         public override Tuple<ScoresEntry[], string[]> CompareToLiteral(TokenCompare.Type ctype, TokenNumberLiteral literal)
         {
-            int exp = (int)Math.Pow(10, precision);
             float _number = literal.GetNumber();
             int number = _number.ToFixedPoint(precision);
 

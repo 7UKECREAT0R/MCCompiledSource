@@ -986,7 +986,7 @@ namespace mc_compiled.MCC.Compiler
         public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
 
         public override ScoreboardManager.ValueType GetScoreboardValueType() =>
-            ScoreboardManager.ValueType.DECIMAL;
+            ScoreboardManager.ValueType.FIXEDDECIMAL;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {

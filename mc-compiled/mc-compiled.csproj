@@ -94,6 +94,10 @@
     <Compile Include="MCC\Compiler\TimeFormat.cs" />
     <Compile Include="MCC\Compiler\TokenFeeder.cs" />
     <Compile Include="MCC\Attributes\IAttribute.cs" />
+    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefBoolean.cs" />
+    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefFixedDecimal.cs" />
+    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefInteger.cs" />
+    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefTime.cs" />
     <Compile Include="MCC\Compiler\TypeSystem\ITypeStructure.cs" />
     <Compile Include="MCC\Compiler\TypeSystem\Typedef.cs" />
     <Compile Include="MCC\Functions\Function.cs" />
@@ -102,7 +106,6 @@
     <Compile Include="MCC\Compiler\PreprocessorUtils.cs" />
     <Compile Include="MCC\Compiler\Assembler.cs" />
     <Compile Include="Commands\CommandEnumParser.cs" />
-    <Compile Include="Commands\CommandLimits.cs" />
     <Compile Include="Commands\Command.cs" />
     <Compile Include="Commands\Native\EnchantmentEntry.cs" />
     <Compile Include="GlobalSuppressions.cs" />

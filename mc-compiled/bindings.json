@@ -100,9 +100,10 @@
     "query.is_sneaking": {
       "type": "bool",
       "targets": [
-        "player.json"
+        "player.json",
+        "fox.json"
       ],
-      "desc": "Runs on players. Returns if the attached player is sneaking."
+      "desc": "Runs on players. Returns if the attached player (or fox) is sneaking."
     },
     "query.is_sprinting": {
       "type": "bool",
@@ -125,6 +126,14 @@
       "type": "bool",
       "targets": null,
       "desc": "Runs on the given entities. Returns if the entity is on the ground."
+    },
+    "query.is_sleeping": {
+      "type": "bool",
+      "targets": [
+        "player.json",
+        "fox.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player (or fox) is sleeping."
     },
     "query.is_sheared": {
       "type": "bool",

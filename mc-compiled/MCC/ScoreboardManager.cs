@@ -36,7 +36,7 @@ namespace mc_compiled.MCC
             /// <summary>
             /// A decimal value with a set precision.
             /// </summary>
-            DECIMAL,
+            FIXEDDECIMAL,
             /// <summary>
             /// A boolean (true/false) value.
             /// </summary>
@@ -64,7 +64,7 @@ namespace mc_compiled.MCC
                     return "XXX";
                 case ValueType.INT:
                     return "INT";
-                case ValueType.DECIMAL:
+                case ValueType.FIXEDDECIMAL:
                     return "DEC";
                 case ValueType.BOOL:
                     return "BLN";
@@ -256,7 +256,7 @@ namespace mc_compiled.MCC
                         type = ValueType.INT;
                         break;
                     case "DECIMAL":
-                        type = ValueType.DECIMAL;
+                        type = ValueType.FIXEDDECIMAL;
                         break;
                     case "BOOL":
                         type = ValueType.BOOL;
@@ -278,7 +278,7 @@ namespace mc_compiled.MCC
             int precision = 0;
 
 
-            if (type == ValueType.DECIMAL)
+            if (type == ValueType.FIXEDDECIMAL)
             {
                 if (!tokens.NextIs<TokenIntegerLiteral>())
                     throw new StatementException(tokens, $"Decimal value type requires a precision. e.g., 'decimal 2'");

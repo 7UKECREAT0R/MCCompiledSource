@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC.Attributes;
+﻿using mc_compiled.Commands;
+using mc_compiled.MCC.Attributes;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -222,6 +223,32 @@ namespace mc_compiled.MCC.Compiler
         public TokenArithmaticSecond(int lineNumber) : base(lineNumber) { }
     }
 
+    /// <summary>
+    /// Extensions for <see cref="TokenCompare.Type"/>.
+    /// </summary>
+    public static class TokenCompareTypeExtensions
+    {
+        public static Range AsRange(this TokenCompare.Type type, int comparingTo)
+        {
+            switch (type)
+            {
+                case TokenCompare.Type.EQUAL:
+                    return new Range(comparingTo, false);
+                case TokenCompare.Type.NOT_EQUAL:
+                    return new Range(comparingTo, true);
+                case TokenCompare.Type.LESS:
+                    return new Range(null, comparingTo - 1);
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    return new Range(null, comparingTo);
+                case TokenCompare.Type.GREATER:
+                    return new Range(comparingTo + 1, null);
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    return new Range(comparingTo, null);
+                default:
+                    return new Range();
+            }
+        }
+    }
     /// <summary>
     /// Represents a generic comparison operator.
     /// </summary>
