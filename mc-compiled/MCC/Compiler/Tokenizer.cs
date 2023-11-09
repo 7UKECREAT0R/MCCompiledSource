@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
-using mc_compiled.Commands.Native;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -571,30 +568,30 @@ namespace mc_compiled.MCC.Compiler
                 return new TokenSelectorLiteral(selector, CURRENT_LINE);
             }
         }
-        public TokenArithmatic ArithmaticIdentifier(char a, bool assignment)
+        public TokenArithmetic ArithmaticIdentifier(char a, bool assignment)
         {
             switch (a)
             {
                 case '+':
                     return assignment ?
-                        (TokenArithmatic)new TokenAddAssignment(CURRENT_LINE) :
-                        (TokenArithmatic)new TokenAdd(CURRENT_LINE);
+                        (TokenArithmetic)new TokenAddAssignment(CURRENT_LINE) :
+                        (TokenArithmetic)new TokenAdd(CURRENT_LINE);
                 case '-':
                     return assignment ?
-                        (TokenArithmatic)new TokenSubtractAssignment(CURRENT_LINE) :
-                        (TokenArithmatic)new TokenSubtract(CURRENT_LINE);
+                        (TokenArithmetic)new TokenSubtractAssignment(CURRENT_LINE) :
+                        (TokenArithmetic)new TokenSubtract(CURRENT_LINE);
                 case '*':
                     return assignment ?
-                        (TokenArithmatic)new TokenMultiplyAssignment(CURRENT_LINE) :
-                        (TokenArithmatic)new TokenMultiply(CURRENT_LINE);
+                        (TokenArithmetic)new TokenMultiplyAssignment(CURRENT_LINE) :
+                        (TokenArithmetic)new TokenMultiply(CURRENT_LINE);
                 case '/':
                     return assignment ?
-                        (TokenArithmatic)new TokenDivideAssignment(CURRENT_LINE) :
-                        (TokenArithmatic)new TokenDivide(CURRENT_LINE);
+                        (TokenArithmetic)new TokenDivideAssignment(CURRENT_LINE) :
+                        (TokenArithmetic)new TokenDivide(CURRENT_LINE);
                 case '%':
                     return assignment ?
-                        (TokenArithmatic)new TokenModuloAssignment(CURRENT_LINE) :
-                        (TokenArithmatic)new TokenModulo(CURRENT_LINE);
+                        (TokenArithmetic)new TokenModuloAssignment(CURRENT_LINE) :
+                        (TokenArithmetic)new TokenModulo(CURRENT_LINE);
                 default:
                     throw new TokenizerException("Couldn't parse identifier?");
             }

@@ -1,11 +1,8 @@
 ﻿using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.Implementations.Attributes;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {

@@ -3,14 +3,14 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 {
     internal sealed class TypedefTime : TypedefInteger
     {
+        internal TypedefTime() {}
+        
         private const string SB_HOURS = "_mcc_t_hrs";
         private const string SB_MINUTES = "_mcc_t_min";
         private const string SB_SECONDS = "_mcc_t_sec";
@@ -18,6 +18,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         private const string SB_CONST = "_mcc_t_const";
 
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.TIME;
+        public override string TypeShortcode => "TME";
         public override string TypeKeyword => "time";
 
         internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
@@ -37,26 +38,25 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
             if (format.HasOption(TimeOption.h))
             {
-                // TODO update this with new scoreboard stuff
                 string _hours = SB_HOURS + index;
-                scoreboardHours = new ScoreboardValueInteger(_hours, false, manager);
+                scoreboardHours = new ScoreboardValue(_hours, false, Typedef.INTEGER, manager);
                 scoreboardHours.clarifier.CopyFrom(value.clarifier);
             }
             if (format.HasOption(TimeOption.m))
             {
                 string _minutes = SB_MINUTES + index;
-                scoreboardMinutes = new ScoreboardValueInteger(_minutes, false, manager);
+                scoreboardMinutes = new ScoreboardValue(_minutes, false, Typedef.INTEGER,  manager);
                 scoreboardMinutes.clarifier.CopyFrom(value.clarifier);
             }
             if (format.HasOption(TimeOption.s))
             {
                 string _seconds = SB_SECONDS + index;
-                scoreboardSeconds = new ScoreboardValueInteger(_seconds, false, manager);
+                scoreboardSeconds = new ScoreboardValue(_seconds, false, Typedef.INTEGER,  manager);
                 scoreboardSeconds.clarifier.CopyFrom(value.clarifier);
             }
 
-            ScoreboardValue temporary = new ScoreboardValueInteger(_temporary, true, manager);
-            ScoreboardValue constant = new ScoreboardValueInteger(_constant, true, manager);
+            var temporary = new ScoreboardValue(_temporary, true, Typedef.INTEGER, manager);
+            var constant = new ScoreboardValue(_constant, true, Typedef.INTEGER,  manager);
 
             manager.DefineMany(scoreboardHours, scoreboardMinutes, scoreboardSeconds, temporary, constant);
 

@@ -3,13 +3,8 @@ using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using mc_compiled.Commands;
-using System.Collections;
 
 namespace mc_compiled.MCC.Attributes
 {

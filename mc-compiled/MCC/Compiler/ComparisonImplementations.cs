@@ -1,15 +1,8 @@
 ﻿using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
-using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace mc_compiled.MCC.Compiler
 {

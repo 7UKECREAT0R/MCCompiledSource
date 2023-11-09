@@ -1,15 +1,10 @@
 ﻿using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.CustomEntities;
 using mc_compiled.Modding;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Xml.Linq;
 
 namespace mc_compiled.MCC
 {

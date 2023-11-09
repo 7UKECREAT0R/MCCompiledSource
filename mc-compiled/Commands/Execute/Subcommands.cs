@@ -2,11 +2,8 @@
 using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.TextFormatting;
 
 namespace mc_compiled.Commands.Execute
 {

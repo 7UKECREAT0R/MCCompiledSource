@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace mc_compiled.Modding.Resources.Localization
+﻿namespace mc_compiled.Modding.Resources.Localization
 {
     /// <summary>
     /// Defines a locale, e.g., 'en_US', and pairs it with a lang file.

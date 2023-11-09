@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -58,29 +56,44 @@ namespace mc_compiled.MCC.Compiler
 
         public TypePattern PrependAnd(NamedType type, string argName)
         {
-            pattern.Prepend(new MultiType(false, argName, type));
+            _ = pattern.Prepend(new MultiType(false, argName, type));
             return this;
         }
         public TypePattern PrependAnd(NamedType type)
         {
-            pattern.Prepend(new MultiType(false, type.name, type));
+            _ = pattern.Prepend(new MultiType(false, type.name, type));
             return this;
         }
         public TypePattern PrependOptional(NamedType type, string argName)
         {
-            pattern.Prepend(new MultiType(true, argName, type));
+            _ = pattern.Prepend(new MultiType(true, argName, type));
             return this;
         }
         public TypePattern PrependOptional(NamedType type)
         {
-            pattern.Prepend(new MultiType(true, type.name, type));
+            _ = pattern.Prepend(new MultiType(true, type.name, type));
             return this;
         }
-
+        
+        /// <summary>
+        /// Checks tokens straight from the given statement, without consuming them. Shorthand for Check(tokens.GetRemainingTokens());
+        /// </summary>
+        /// <param name="_tokens"></param>
+        /// <returns></returns>
+        public MatchResult Check(Statement _tokens)
+        {
+            var tokens = _tokens.GetRemainingTokens();
+            return Check(tokens);
+        }
+        /// <summary>
+        /// Checks the given array of tokens against this pattern, returning information about how much they match, if it matched, and which tokens are missing.
+        /// </summary>
+        /// <param name="tokens"></param>
+        /// <returns></returns>
         public MatchResult Check(Token[] tokens)
         {
-            int givenLength = tokens.Length;
-            int minLength = pattern.Count(mt => !mt.IsOptional);
+            float givenLength = (float)tokens.Length;
+            float minLength = (float)pattern.Count(mt => !mt.IsOptional);
             if (tokens.Length < minLength)
             {
                 // return the missing tokens.

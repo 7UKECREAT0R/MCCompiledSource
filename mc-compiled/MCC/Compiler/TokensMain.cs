@@ -1,10 +1,6 @@
 ﻿using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Functions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -164,6 +160,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public TokenBuilderIdentifier(string fullWord, int lineNumber) : base(fullWord, lineNumber)
         {
+            // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (fullWord.EndsWith(":")) // it should as long as its not implicitly converted from identifier
                 builderField = fullWord.Substring(0, fullWord.Length - 1).Trim();
             else
@@ -198,11 +195,12 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the full name used to access this value.
         /// </summary>
-        public string Accessor { get => word; }
+        public string Accessor => word;
+
         /// <summary>
         /// Shorthand for .value.clarifier.CurrentString();
         /// </summary>
-        public string ClarifierStr { get => value.clarifier.CurrentString; }
+        public string ClarifierStr => value.clarifier.CurrentString;
 
         internal TokenIdentifierValue() : base(null, -1) { } 
         public TokenIdentifierValue(string word, ScoreboardValue value, int lineNumber) : base(word, lineNumber)
@@ -212,22 +210,24 @@ namespace mc_compiled.MCC.Compiler
 
         public Token Index(TokenIndexer indexer, Statement forExceptions)
         {
-            if(indexer is TokenIndexerString @string)
+            switch (indexer)
             {
-                ScoreboardValue clone = value.Clone() as ScoreboardValue;
-                string fakePlayer = @string.token.text;
-                clone.clarifier.SetString(fakePlayer, forExceptions);
-                return new TokenIdentifierValue(word, clone, lineNumber);
+                case TokenIndexerString @string:
+                {
+                    var clone = value.Clone(forExceptions) as ScoreboardValue;
+                    string fakePlayer = @string.token.text;
+                    clone.clarifier.SetString(fakePlayer, forExceptions);
+                    return new TokenIdentifierValue(word, clone, lineNumber);
+                }
+                case TokenIndexerSelector selector:
+                {
+                    var clone = value.Clone(forExceptions) as ScoreboardValue;
+                    clone.clarifier.SetSelector(selector.token.selector, forExceptions);
+                    return new TokenIdentifierValue(word, clone, lineNumber);
+                }
+                default:
+                    throw indexer.GetException(this, forExceptions);
             }
-
-            if(indexer is TokenIndexerSelector selector)
-            {
-                ScoreboardValue clone = value.Clone() as ScoreboardValue;
-                clone.clarifier.SetSelector(selector.token.selector, forExceptions);
-                return new TokenIdentifierValue(word, clone, lineNumber);
-            }
-
-            throw indexer.GetException(this, forExceptions);
         }
 
         public string GetDocumentation() => "The name of a runtime value that was defined using the `define` command.";

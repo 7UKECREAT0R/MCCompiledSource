@@ -2,14 +2,10 @@
 using mc_compiled.Modding.Behaviors;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {

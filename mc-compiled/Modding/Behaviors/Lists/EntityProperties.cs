@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using mc_compiled.Commands;
 
 namespace mc_compiled.Modding.Behaviors

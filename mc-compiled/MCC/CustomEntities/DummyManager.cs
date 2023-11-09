@@ -3,11 +3,7 @@ using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.CustomEntities
 {

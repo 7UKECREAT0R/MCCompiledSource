@@ -1,11 +1,6 @@
-﻿using mc_compiled.Commands.Selectors;
-using mc_compiled.Commands;
-using mc_compiled.MCC.Compiler;
-using System;
+﻿using mc_compiled.MCC.Compiler;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Functions
 {

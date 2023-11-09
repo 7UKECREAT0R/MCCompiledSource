@@ -1,9 +1,5 @@
 ﻿using mc_compiled.MCC.Compiler;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -19,21 +15,21 @@ namespace mc_compiled.MCC.Functions.Types
         public readonly ScoreboardValue runtimeDestination;
         /// <summary>
         /// The actual name of the objective that will store the parameter.
-        /// Shorthand for <see cref="ScoreboardValue.Name"/> on <see cref="runtimeDestination"/>
+        /// Shorthand for <see cref="ScoreboardValue.InternalName"/> on <see cref="runtimeDestination"/>
         /// </summary>
         public readonly string objectiveName;
 
-        public RuntimeFunctionParameter(ScoreboardValue value, Token defaultValue = null) : base(value.AliasName, defaultValue)
+        public RuntimeFunctionParameter(ScoreboardValue value, Token defaultValue = null) : base(value.Name, defaultValue)
         {
             this.runtimeDestination = value;
-            this.objectiveName = value.Name;
+            this.objectiveName = value.InternalName;
         }
 
         public override ParameterFit CheckInput(Token token)
         {
             if(token is TokenLiteral literal)
             {
-                var sbType = literal.GetScoreboardValueType();
+                var sbType = literal.GetTypedef(out TODO);
                 var sbDestType = this.runtimeDestination.valueType;
 
                 if (sbType == ScoreboardManager.ValueType.INVALID)
@@ -88,10 +84,10 @@ namespace mc_compiled.MCC.Functions.Types
         {
             if (token is TokenLiteral literal)
             {
-                var type = literal.GetScoreboardValueType();
+                var type = literal.GetTypedef(out TODO);
                 if (type != ScoreboardManager.ValueType.INVALID)
                 {
-                    string accessor = this.runtimeDestination.AliasName;
+                    string accessor = this.runtimeDestination.Name;
                     string selector = this.runtimeDestination.clarifier.CurrentString;
                     string[] commands = this.runtimeDestination
                         .CommandsSetLiteral(literal);
@@ -103,8 +99,8 @@ namespace mc_compiled.MCC.Functions.Types
             {
                 ScoreboardValue value = _value.value;
                 string selector = this.runtimeDestination.clarifier.CurrentString;
-                string thisAccessor = this.runtimeDestination.AliasName;
-                string thatAccessor = value.AliasName;
+                string thisAccessor = this.runtimeDestination.Name;
+                string thatAccessor = value.Name;
                 string[] commands = this.runtimeDestination
                     .CommandsSet(value);
                 commandBuffer.AddRange(commands);

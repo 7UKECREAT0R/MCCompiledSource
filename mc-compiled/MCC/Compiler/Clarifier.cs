@@ -1,9 +1,4 @@
 ﻿using mc_compiled.Commands.Selectors;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -46,14 +41,18 @@ namespace mc_compiled.MCC.Compiler
             return new Clarifier(this.global, this.currentString);
         }
 
+        public static Clarifier Local() => new Clarifier(false);
+        public static Clarifier Global() => new Clarifier(true);
+        public static Clarifier With(string selector) => new Clarifier(false, selector);
+
         /// <summary>
-        /// Sets this clarifier's global state.
+        /// Sets this clarifier's global state. Makes call to <see cref="Reset"/>.
         /// </summary>
-        /// <param name="global">Whether to have global set or not.</param>
+        /// <param name="newGlobal">Whether to have global set or not.</param>
         /// <returns>This object for chaining.</returns>
-        public Clarifier SetGlobal(bool global)
+        public Clarifier SetGlobal(bool newGlobal)
         {
-            this.global = global;
+            this.global = newGlobal;
             this.Reset();
             return this;
         }

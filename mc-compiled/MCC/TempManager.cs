@@ -1,13 +1,8 @@
 ﻿using mc_compiled.MCC.Compiler;
-using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.TextFormatting;
-using System.Xml.Linq;
+using mc_compiled.MCC.Compiler.TypeSystem;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace mc_compiled.MCC
 {
@@ -19,8 +14,13 @@ namespace mc_compiled.MCC
         // _tmp[L|G][SHORTCODE][INDEX]
         // Example: '_tmpGBLN1' is an index=1 Global Boolean
         // Example: '_tmpLDEC0' is an index=0 Local Decimal
-        public const string PREFIX_LOCAL = "_tmpL";
-        public const string PREFIX_GLOBAL = "_tmpG";
+        private const string PREFIX_LOCAL = "_tmpL";
+        private const string PREFIX_GLOBAL = "_tmpG";
+
+        private static string BuildLocalTempName(Typedef type, int index) =>
+            $"{PREFIX_LOCAL}{type.TypeShortcode}{index}";
+        private static string BuildGlobalTempName(Typedef type, int index) =>
+            $"{PREFIX_GLOBAL}{type.TypeShortcode}{index}";
 
         private ScoreboardManager manager;
         private Executor executor;
@@ -70,54 +70,51 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public ScoreboardValue RequestCopy(ScoreboardValue toCopy, bool? overrideGlobal = null)
         {
-            ScoreboardValue created = toCopy.Clone() as ScoreboardValue;
-            bool isNowGlobal = created.clarifier.IsGlobal;
+            bool isNowGlobal = toCopy.clarifier.IsGlobal;
+            ScoreboardManager.ValueType typeEnum = toCopy.type.TypeEnum;
+            string shortcode = toCopy.type.TypeShortcode;
 
-            // get depth depending on local/global.
-            int currentDepth;
-            if(isNowGlobal)
-                this.globalTemps.TryGetValue(created.valueType, out currentDepth);
-            else
-                this.localTemps.TryGetValue(created.valueType, out currentDepth);
+            string newName;
+            Clarifier newClarifier = overrideGlobal == null?
+                toCopy.clarifier.Clone() : overrideGlobal.Value?
+                    Clarifier.Global():
+                    Clarifier.Local();
 
-            // construct name
-            string shortcode = ScoreboardManager.GetShortcodeFor(created.valueType);
-
-            if(created.clarifier.IsGlobal)
-                created.Name = PREFIX_GLOBAL + shortcode + currentDepth;
-            else
-                created.Name = PREFIX_LOCAL + shortcode + currentDepth;
-
-            // override global setting if specified
-            if (overrideGlobal.HasValue && toCopy.clarifier.IsGlobal != overrideGlobal)
+            if (isNowGlobal)
             {
-                isNowGlobal = overrideGlobal.Value;
-                toCopy.clarifier.SetGlobal(isNowGlobal);
+                this.globalTemps.TryGetValue(typeEnum, out int d);
+                this.globalTemps[typeEnum] = d + 1;
+                newName = PREFIX_GLOBAL + shortcode + d;
             }
+            else
+            {
+                this.localTemps.TryGetValue(typeEnum, out int d);
+                this.localTemps[typeEnum] = d + 1;
+                newName = PREFIX_LOCAL + shortcode + d;
+            }
+
+            ScoreboardValue clone = toCopy.Clone(null,
+                newName: null,
+                newInternalName: newName,
+                newClarifier: newClarifier);
 
             // define the temp value if it hasn't yet.
-            if (DefinedTemps.Add(created.Name))
-            {
-                executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit(toCopy.clarifier.CurrentString));
-            }
+            if (!DefinedTemps.Add(clone.InternalName))
+                return clone;
+            
+            executor.AddCommandsInit(clone.CommandsDefine());
+            executor.AddCommandsInit(clone.CommandsInit(toCopy.clarifier.CurrentString));
 
-            // increment the currentDepth.
-            if (isNowGlobal)
-                this.globalTemps[created.valueType] = currentDepth + 1;
-            else
-                this.localTemps[created.valueType] = currentDepth + 1;
-
-            return created;
+            return clone;
         }
-        public ScoreboardValueInteger Request(bool global)
+        public ScoreboardValue Request(bool global)
         {
             if (global)
                 return RequestGlobal();
             else
                 return RequestLocal();
         }
-        public ScoreboardValue Request(ScoreboardManager.ValueType type, bool global)
+        public ScoreboardValue Request(Typedef type, bool global)
         {
             if(global)
                 return RequestGlobal(type);
@@ -138,24 +135,23 @@ namespace mc_compiled.MCC
             else
                 ReleaseLocal();
         }
-        public void Release(ScoreboardManager.ValueType valueType, bool global)
+        public void Release(Typedef type, bool global)
         {
             if(global)
-                ReleaseGlobal(valueType);
+                ReleaseGlobal(type);
             else
-                ReleaseLocal(valueType);
+                ReleaseLocal(type);
         }
 
-        public ScoreboardValueInteger RequestLocal() => RequestLocal(ScoreboardManager.ValueType.INT) as ScoreboardValueInteger;
-        public ScoreboardValue RequestLocal(ScoreboardManager.ValueType type)
+        public ScoreboardValue RequestLocal() => RequestLocal(Typedef.INTEGER, null);
+        public ScoreboardValue RequestLocal(Typedef type, object data = null)
         {
-            this.localTemps.TryGetValue(type, out int currentDepth); // assignment
-            string shortCode = ScoreboardManager.GetShortcodeFor(type);
+            this.localTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
 
             // create the temp value.
-            string name = PREFIX_LOCAL + shortCode + currentDepth;
-            ScoreboardValue created = ScoreboardValue.CreateByType(type, name, false, manager);
-
+            string name = BuildLocalTempName(type, currentDepth);
+            var created = new ScoreboardValue(name, false, type, manager);
+            
             // define the temp value if it hasn't yet.
             if(DefinedTemps.Add(name))
             {
@@ -164,20 +160,19 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.localTemps[type] = currentDepth + 1;
+            this.localTemps[type.TypeEnum] = currentDepth + 1;
 
             return created;
         }
         public ScoreboardValue RequestLocal(TokenLiteral literal, Statement forExceptions)
         {
-            var type = literal.GetScoreboardValueType();
+            Typedef type = literal.GetTypedef(out _);
 
-            if(type == ScoreboardManager.ValueType.INVALID)
-                throw new StatementException(forExceptions, $"Unexpected literal of type '{literal.GetType().Name}' in TempManager::RequestLocal");
+            if(type == null)
+                throw new StatementException(forExceptions, $"Unexpected literal of type '{literal.GetType().Name}' in TempManager#RequestLocal");
 
-            this.localTemps.TryGetValue(type, out int currentDepth); // assignment
-            string shortCode = ScoreboardManager.GetShortcodeFor(type);
-            string name = PREFIX_LOCAL + shortCode + currentDepth;
+            this.localTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            string name = BuildLocalTempName(type, currentDepth);
 
             ScoreboardValue created = manager.CreateFromLiteral(name, false, literal, forExceptions);
 
@@ -189,30 +184,29 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.localTemps[type] = currentDepth + 1;
+            this.localTemps[type.TypeEnum] = currentDepth + 1;
 
             return created;
         }
-        public void ReleaseLocal() => ReleaseLocal(ScoreboardManager.ValueType.INT);
-        public void ReleaseLocal(ScoreboardManager.ValueType type)
+        public void ReleaseLocal() => ReleaseLocal(Typedef.INTEGER);
+        public void ReleaseLocal(Typedef type)
         {
-            this.localTemps.TryGetValue(type, out int currentDepth); // assignment
+            this.localTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
 
             if (currentDepth == 0)
                 throw new Exception($"Called ReleaseLocal with no local temps of type {type}.");
 
-            this.localTemps[type] = currentDepth - 1;
+            this.localTemps[type.TypeEnum] = currentDepth - 1;
         }
 
-        public ScoreboardValueInteger RequestGlobal() => RequestGlobal(ScoreboardManager.ValueType.INT) as ScoreboardValueInteger;
-        public ScoreboardValue RequestGlobal(ScoreboardManager.ValueType type)
+        public ScoreboardValue RequestGlobal() => RequestGlobal(Typedef.INTEGER);
+        public ScoreboardValue RequestGlobal(Typedef type)
         {
-            this.globalTemps.TryGetValue(type, out int currentDepth); // assignment
-            string shortCode = ScoreboardManager.GetShortcodeFor(type);
+            this.globalTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
 
             // create the temp value.
-            string name = PREFIX_GLOBAL + shortCode + currentDepth;
-            ScoreboardValue created = ScoreboardValue.CreateByType(type, name, true, manager);
+            string name = BuildGlobalTempName(type, currentDepth);
+            var created = new ScoreboardValue(name, true, type, manager);
 
             // define the temp value if it hasn't yet.
             if (DefinedTemps.Add(name))
@@ -222,20 +216,19 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.globalTemps[type] = currentDepth + 1;
+            this.globalTemps[type.TypeEnum] = currentDepth + 1;
 
             return created;
         }
         public ScoreboardValue RequestGlobal(TokenLiteral literal, Statement forExceptions)
         {
-            var type = literal.GetScoreboardValueType();
+            Typedef type = literal.GetTypedef(out _);
 
-            if (type == ScoreboardManager.ValueType.INVALID)
-                throw new StatementException(forExceptions, $"Unexpected literal of type '{literal.GetType().Name}' in TempManager::RequestGlobal");
+            if (type == null)
+                throw new StatementException(forExceptions, $"Unexpected literal of type '{literal.GetType().Name}' in TempManager#RequestGlobal");
 
-            this.globalTemps.TryGetValue(type, out int currentDepth); // assignment
-            string shortCode = ScoreboardManager.GetShortcodeFor(type);
-            string name = PREFIX_GLOBAL + shortCode + currentDepth;
+            this.globalTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            string name = BuildGlobalTempName(type, currentDepth);
 
             ScoreboardValue created = manager.CreateFromLiteral(name, true, literal, forExceptions);
 
@@ -247,19 +240,19 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.globalTemps[type] = currentDepth + 1;
+            this.globalTemps[type.TypeEnum] = currentDepth + 1;
 
             return created;
         }
-        public void ReleaseGlobal() => ReleaseGlobal(ScoreboardManager.ValueType.INT);
-        public void ReleaseGlobal(ScoreboardManager.ValueType type)
+        public void ReleaseGlobal() => ReleaseGlobal(Typedef.INTEGER);
+        public void ReleaseGlobal(Typedef type)
         {
-            this.globalTemps.TryGetValue(type, out int currentDepth); // assignment
+            this.globalTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
 
             if (currentDepth == 0)
                 throw new Exception($"Called ReleaseGlobal with no global temps of type {type}.");
 
-            this.globalTemps[type] = currentDepth - 1;
+            this.globalTemps[type.TypeEnum] = currentDepth - 1;
         }
 
         /// <summary>
@@ -268,7 +261,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public TempStateContract PushTempState()
         {
-            TempStateContract contract = new TempStateContract(this);
+            var contract = new TempStateContract(this);
             this.Contracts.Add(contract);
             return contract;
         }
@@ -303,8 +296,8 @@ namespace mc_compiled.MCC
         public class TempStateContract : IDisposable
         {
             private bool _isDisposed;
-            private TempManager parent;
-
+            
+            private readonly TempManager parent;
             private readonly HashSet<string> definedTempsState;
             private readonly Dictionary<ScoreboardManager.ValueType, int> localTempState;
             private readonly Dictionary<ScoreboardManager.ValueType, int> globalTempState;
@@ -353,7 +346,6 @@ namespace mc_compiled.MCC
             public override int GetHashCode()
             {
                 int hashCode = -1224315232;
-                hashCode = hashCode * -1521134295 + _isDisposed.GetHashCode();
                 hashCode = hashCode * -1521134295 + EqualityComparer<TempManager>.Default.GetHashCode(parent);
                 hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(definedTempsState);
                 hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<ScoreboardManager.ValueType, int>>.Default.GetHashCode(localTempState);

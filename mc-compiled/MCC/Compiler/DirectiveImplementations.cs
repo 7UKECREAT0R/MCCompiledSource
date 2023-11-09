@@ -12,17 +12,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using mc_compiled.Commands.Execute;
-using System.Security.Claims;
-using mc_compiled.MCC.SyntaxHighlighting;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
-using System.Windows.Forms;
-using static System.Net.Mime.MediaTypeNames;
-using System.Runtime.CompilerServices;
 using mc_compiled.Modding.Resources.Localization;
-using System.CodeDom;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -1134,16 +1125,12 @@ namespace mc_compiled.MCC.Compiler
         {
             Selector player;
 
-            if (tokens.NextIs<TokenSelectorLiteral>(false))
-                player = tokens.Next<TokenSelectorLiteral>();
-            else
-                player = Selector.SELF;
+            player = tokens.NextIs<TokenSelectorLiteral>(false) ?
+                tokens.Next<TokenSelectorLiteral>() : Selector.SELF;
 
             string str = tokens.Next<TokenStringLiteral>();
             List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
-            string[] commands;
-
-            commands = executor.ResolveRawText(terms, $"tellraw {player} ");
+            string[] commands = executor.ResolveRawText(terms, $"tellraw {player} ");
 
             CommandFile file = executor.CurrentFile;
             executor.AddCommands(commands, "print", $"Called in a print command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1172,11 +1159,7 @@ namespace mc_compiled.MCC.Compiler
 
             ScoreboardManager.ValueDefinition def = executor
                 .scoreboard.GetNextValueDefinition(tokens);
-
-            // defining value all the wrong ways
-            if (def.type == ScoreboardManager.ValueType.PPV)
-                throw new StatementException(tokens, "Type 'PPV' is not supported by this command. Use $var for preprocessor code.");
-
+            
             // create the new scoreboard value.
             ScoreboardValue value = def.Create(executor.scoreboard, tokens);
             value.Documentation = docs;
@@ -1195,21 +1178,22 @@ namespace mc_compiled.MCC.Compiler
 
             if (def.defaultValue != null)
             {
-                if (def.defaultValue is TokenLiteral literal)
+                switch (def.defaultValue)
                 {
-                    commands.AddRange(value.CommandsSetLiteral(literal));
+                    case TokenLiteral literal:
+                        commands.AddRange(value.AssignLiteral(literal, tokens));
+                        break;
+                    case TokenIdentifierValue identifier:
+                        commands.AddRange(value.Assign(identifier.value, tokens));
+                        break;
+                    default:
+                        throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
                 }
-                else if (def.defaultValue is TokenIdentifierValue identifier)
-                {
-                    commands.AddRange(value.CommandsSet(identifier.value));
-                }
-                else
-                    throw new StatementException(tokens, $"Cannot assign value of type {def.defaultValue.GetType().Name} into a variable");
             }
 
             // add the commands to the executor.
             CommandFile file = executor.CurrentFile;
-            executor.AddCommands(commands, "define" + value.AliasName, $"Called when defining the value '{value.AliasName}' in {file.CommandReference} line {executor.NextLineNumber}");
+            executor.AddCommands(commands, "define" + value.Name, $"Called when defining the value '{value.Name}' in {file.CommandReference} line {executor.NextLineNumber}");
         }
         public static void init(Executor executor, Statement tokens)
         {
@@ -1247,7 +1231,7 @@ namespace mc_compiled.MCC.Compiler
             if (set == null)
                 throw new StatementException(tokens, "No if-statement was found in front of this else-statement at this scope level.");
 
-            ScoreboardValueBoolean resultBoolean = set.resultStore;
+            ScoreboardValue resultBoolean = set.resultStore;
 
             bool cancel = set.cancel;
             string prefix = "";
@@ -2546,16 +2530,13 @@ namespace mc_compiled.MCC.Compiler
             while (tokens.HasNext && tokens.NextIs<TokenIdentifier>(false))
             {
                 // fetch a parameter definition
-                var def = executor.scoreboard.GetNextValueDefinition(tokens);
+                ScoreboardManager.ValueDefinition def = executor.scoreboard.GetNextValueDefinition(tokens);
 
                 // don't let users define non-optional parameters if they already specified one.
                 if (def.defaultValue == null && hasBegunOptionals)
                     throw new StatementException(tokens, "All parameters proceeding an optional parameter must also be optional.");
                 if(def.defaultValue != null)
                     hasBegunOptionals = true;
-                
-                if (def.type == ScoreboardManager.ValueType.PPV)
-                    throw new StatementException(tokens, "Preprocessor variable cannot be used as a parameter type. Consider using a function inside a macro.");
                 
                 ScoreboardValue value = def.Create(executor.scoreboard, tokens);
                 value.clarifier.IsGlobal = true;
@@ -2573,9 +2554,12 @@ namespace mc_compiled.MCC.Compiler
             string actualName = usesFolders ? functionName.Substring(functionName.LastIndexOf('.') + 1) : functionName;
 
             // constructor
-            RuntimeFunction function = new RuntimeFunction(functionName, actualName, docs, attributes.ToArray(), false);
-            function.documentation = docs;
-            function.isAddedToExecutor = true;
+            var function = new RuntimeFunction(functionName, actualName, docs, attributes.ToArray(), false)
+            {
+                documentation = docs,
+                isAddedToExecutor = true
+            };
+            
             function.AddParameters(parameters);
             function.SignalToAttributes(tokens);
 
@@ -2603,10 +2587,10 @@ namespace mc_compiled.MCC.Compiler
             // get the function's parameters
             var allRuntimeDestinations = function.Parameters
                 .Where(p => p is RuntimeFunctionParameter)
-                .Select(p => (p as RuntimeFunctionParameter).runtimeDestination);
+                .Select(p => ((RuntimeFunctionParameter)p).runtimeDestination);
 
             // ...and define them
-            foreach(var runtimeDestination in allRuntimeDestinations)
+            foreach(ScoreboardValue runtimeDestination in allRuntimeDestinations)
                 executor.AddCommandsInit(runtimeDestination.CommandsDefine());
 
             if (executor.NextIs<StatementOpenBlock>())
@@ -2638,18 +2622,19 @@ namespace mc_compiled.MCC.Compiler
 
             if (tokens.NextIs<TokenIdentifierValue>())
             {
-                TokenIdentifierValue token = tokens.Next<TokenIdentifierValue>();
-                activeFunction.TryReturnValue(tokens, token.value, executor);
+                var token = tokens.Next<TokenIdentifierValue>();
+                activeFunction.TryReturnValue(token.value, executor, tokens);
             }
             else
             {
-                TokenLiteral token = tokens.Next<TokenLiteral>();
-                activeFunction.TryReturnValue(tokens, executor, token);
+                var token = tokens.Next<TokenLiteral>();
+                activeFunction.TryReturnValue(token, tokens, executor);
             }
         }
         public static void @for(Executor executor, Statement tokens)
         {
-            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+            var selector = tokens.Next<TokenSelectorLiteral>();
+            
             Coord x = Coord.here,
                   y = Coord.here,
                   z = Coord.here;

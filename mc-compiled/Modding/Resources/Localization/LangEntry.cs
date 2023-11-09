@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace mc_compiled.Modding.Resources.Localization
+﻿namespace mc_compiled.Modding.Resources.Localization
 {
     /// <summary>
     /// An entry in a .lang file, either a comment, empty line, or key/value pair. Create using the factory methods.

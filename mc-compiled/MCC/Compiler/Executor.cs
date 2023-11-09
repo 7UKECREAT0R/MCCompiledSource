@@ -2,7 +2,6 @@
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Functions;
-using mc_compiled.MCC.Attributes;
 using mc_compiled.Modding;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,10 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using mc_compiled.Commands.Execute;
-using System.Runtime.CompilerServices;
-using System.CodeDom.Compiler;
 using mc_compiled.Modding.Resources.Localization;
 
 namespace mc_compiled.MCC.Compiler
@@ -312,8 +308,8 @@ namespace mc_compiled.MCC.Compiler
 
                             ScoreboardValue value = identifierValue.value;
                             int indexCopy = scoreIndex;
-                            AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.Name,
-                                $"Prepares the variable '{value.AliasName}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {NextLineNumber}");
+                            AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.InternalName,
+                                $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {NextLineNumber}");
 
                             // localize and flatten the array here.
                             JSONRawTerm[] toStringTerms = value.ToRawText(ref indexCopy);

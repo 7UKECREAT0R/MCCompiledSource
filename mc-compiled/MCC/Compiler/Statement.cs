@@ -5,10 +5,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static mc_compiled.MCC.TempManager;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -23,7 +19,8 @@ namespace mc_compiled.MCC.Compiler
         public abstract bool Skip { get; }
 
         private TypePattern[] patterns;
-        public Statement(Token[] tokens, bool waitForPatterns = false) : base(tokens)
+
+        protected Statement(Token[] tokens, bool waitForPatterns = false) : base(tokens)
         {
             if (!waitForPatterns)
                 patterns = GetValidPatterns();
@@ -50,9 +47,10 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public Statement ClonePrepare(Executor executor)
         {
-            Statement statement = MemberwiseClone() as Statement;
+            if (!(MemberwiseClone() is Statement statement))
+                return null;
+            
             statement.PrepareThis(executor);
-
             return statement;
         }
         /// <summary>
@@ -63,17 +61,16 @@ namespace mc_compiled.MCC.Compiler
         public void PrepareThis(Executor executor)
         {
             // set executors
-            this.SetExecutor(executor);
+            SetExecutor(executor);
 
             // e.g. close/open block
-            if (this.tokens == null)
+            if (tokens == null)
                 return;
 
             bool resolvePPVsGlobal = !HasAttribute(DirectiveAttribute.DONT_EXPAND_PPV);
             bool resolveStrings = !HasAttribute(DirectiveAttribute.DONT_RESOLVE_STRINGS);
-            int length = this.tokens.Length;
-            List<Token> allUnresolved = new List<Token>(this.tokens);
-            List<Token> allResolved = new List<Token>();
+            var allUnresolved = new List<Token>(tokens);
+            var allResolved = new List<Token>();
 
             // now resolve tokens forward
             int len = allUnresolved.Count;
@@ -82,56 +79,63 @@ namespace mc_compiled.MCC.Compiler
                 Token unresolved = allUnresolved[i];
                 Token next = (i + 1 < len) ? allUnresolved[i + 1] : null;
                 int line = unresolved.lineNumber;
-
-                // define resolvePPVs
-                bool resolvePPVs;
-
-                // if the next token is an indexer, dont resolve the ppv since.
-                // the resolve will be done by the indexer.
-                if (next != null && next is TokenIndexer)
-                    resolvePPVs = false;
-                else
-                    resolvePPVs = resolvePPVsGlobal;
+                
+                bool resolvePPVs =
+                    // if the next token is an indexer, dont resolve the ppv since.
+                    // the resolve will be done by the indexer.
+                    !(next is TokenIndexer) && resolvePPVsGlobal;
 
                 // resolve the token.
-                if (resolveStrings && unresolved is TokenStringLiteral)
-                    allResolved.Add(new TokenStringLiteral(executor.ResolveString(unresolved as TokenStringLiteral), line));
-                else if (unresolved is TokenUnresolvedSelector)
-                    allResolved.Add((unresolved as TokenUnresolvedSelector).Resolve(executor));
-                else if (resolvePPVs && unresolved is TokenUnresolvedPPV)
-                    allResolved.AddRange(executor.ResolvePPV(unresolved as TokenUnresolvedPPV, this) ?? new Token[] { unresolved });
-                else if (resolvePPVs && unresolved is TokenIndexerUnresolvedPPV)
-                    allResolved.Add((unresolved as TokenIndexerUnresolvedPPV).Resolve(executor, this));
-                else if (unresolved is TokenIdentifier)
+                if (resolveStrings && unresolved is TokenStringLiteral literal)
+                    allResolved.Add(new TokenStringLiteral(executor.ResolveString(literal), line));
+                else if (unresolved is TokenUnresolvedSelector selector)
+                    allResolved.Add(selector.Resolve(executor));
+                else switch (resolvePPVs)
                 {
-                    // identifier resolve requires a manual search.
-                    TokenIdentifier identifier = unresolved as TokenIdentifier;
-                    string word = identifier.word;
-                    if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value))
-                        allResolved.Add(new TokenIdentifierValue(word, value, line));
-                    else if (executor.TryLookupMacro(word, out Macro? macro))
-                        allResolved.Add(new TokenIdentifierMacro(macro.Value, line));
-                    else if (executor.functions.TryGetFunctions(word, out Function[] functions))
-                        allResolved.Add(new TokenIdentifierFunction(word, functions, line));
-                    else
-                        allResolved.Add(unresolved);
+                    case true when unresolved is TokenUnresolvedPPV ppv:
+                        allResolved.AddRange(executor.ResolvePPV(ppv, this) ?? new Token[] {ppv});
+                        break;
+                    case true when unresolved is TokenIndexerUnresolvedPPV ppv:
+                        allResolved.Add(ppv.Resolve(executor, this));
+                        break;
+                    default:
+                    {
+                        switch (unresolved)
+                        {
+                            case TokenIdentifier tokenIdentifier:
+                            {
+                                // identifier resolve requires a manual search.
+                                string word = tokenIdentifier.word;
+                                if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value))
+                                    allResolved.Add(new TokenIdentifierValue(word, value, line));
+                                else if (executor.TryLookupMacro(word, out Macro? macro))
+                                    allResolved.Add(new TokenIdentifierMacro(macro.GetValueOrDefault(), line));
+                                else if (executor.functions.TryGetFunctions(word, out Function[] functions))
+                                    allResolved.Add(new TokenIdentifierFunction(word, functions, line));
+                                else
+                                    allResolved.Add(tokenIdentifier);
+                                break;
+                            }
+                            case TokenOpenParenthesis parenthesis:
+                                parenthesis.hasBeenSquashed = false;
+                                allResolved.Add(parenthesis);
+                                break;
+                            default:
+                                allResolved.Add(unresolved);
+                                break;
+                        }
+
+                        break;
+                    }
                 }
-                else if (unresolved is TokenOpenParenthesis)
-                {
-                    (unresolved as TokenOpenParenthesis).hasBeenSquashed = false;
-                    allResolved.Add(unresolved);
-                }
-                else
-                    allResolved.Add(unresolved);
             }
 
             SquashIndexers(allResolved);
             SquashAll(allResolved, executor);
             SquashSpecial(allResolved); // ranges and JArray flattening
 
-            this.tokens = allResolved.ToArray();
-            this.patterns = this.GetValidPatterns();
-            return;
+            tokens = allResolved.ToArray();
+            patterns = GetValidPatterns();
         }
 
         /// <summary>
@@ -171,12 +175,13 @@ namespace mc_compiled.MCC.Compiler
             if (patterns != null && patterns.Length > 0)
             {
                 IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens));
-
-                if(results.All(result => !result.match))
+                IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
+                
+                if(matchResults.All(result => !result.match))
                 {
                     // get the closest matched pattern
-                    MatchResult closest = results.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
-                    var missingArgs = closest.missing.Select(m => m.ToString());
+                    MatchResult closest = matchResults.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
+                    IEnumerable<string> missingArgs = closest.missing.Select(m => m.ToString());
                     throw new StatementException(this, "Missing argument(s): " + string.Join(", ", missingArgs));
                 }
             }
@@ -184,84 +189,73 @@ namespace mc_compiled.MCC.Compiler
             currentToken = 0;
             Run(executor);
         }
-        public void SquashSpecial(List<Token> tokens)
+        private void SquashSpecial(List<Token> tokens)
         {
             // going over it backwards for merging any particular tokens
             for (int i = tokens.Count - 1; i >= 0; i--)
             {
-                Token Previous(int amount)
-                {
-                    if (i - amount < 0)
-                        return null;
-                    return tokens[i - amount];
-                };
-                Token After(int amount)
-                {
-                    if (i + amount >= tokens.Count)
-                        return null;
-                    return tokens[i + amount];
-                };
-
                 Token token = tokens[i];
 
-                // ridiculously complex range stuff
-                if (token is TokenRangeDots)
+                switch (token)
                 {
-                    TokenRangeLiteral replacement;
-                    int replacementLocation;
-                    int replacementLength;
-
-                    Token back2 = Previous(2);
-                    Token back1 = Previous(1);
-                    Token next1 = After(1);
-
-                    if (back1 is TokenIntegerLiteral)
+                    // ridiculously complex range stuff
+                    case TokenRangeDots _:
                     {
-                        int? numberMax;
-                        if (next1 is TokenIntegerLiteral)
-                            numberMax = next1 as TokenIntegerLiteral;
+                        TokenRangeLiteral replacement;
+                        int replacementLocation;
+                        int replacementLength;
+
+                        Token back1 = Previous(1);
+                        Token next1 = After(1);
+
+                        if (back1 is TokenIntegerLiteral)
+                        {
+                            int? numberMax;
+                            if (next1 is TokenIntegerLiteral)
+                                numberMax = next1 as TokenIntegerLiteral;
+                            else
+                                numberMax = null;
+
+                            replacementLocation = -1;
+                            replacementLength = numberMax.HasValue ? 3 : 2;
+                            int numberMin = back1 as TokenIntegerLiteral;
+                            Range range = new Range(numberMin, numberMax, false);
+                            replacement = new TokenRangeLiteral(range, token.lineNumber);
+                        }
                         else
-                            numberMax = null;
+                        {
+                            if (!(next1 is TokenIntegerLiteral))
+                                throw new TokenizerException("Range argument only accepts integers.");
+                            replacementLocation = 0;
+                            replacementLength = 2;
+                            int number = next1 as TokenIntegerLiteral;
+                            var range = new Range(null, number, false);
+                            replacement = new TokenRangeLiteral(range, token.lineNumber);
+                        }
 
-                        replacementLocation = -1;
-                        replacementLength = numberMax.HasValue ? 3 : 2;
-                        int numberMin = back1 as TokenIntegerLiteral;
-                        Range range = new Range(numberMin, numberMax, false);
-                        replacement = new TokenRangeLiteral(range, token.lineNumber);
+                        i += replacementLocation;
+                        if (Previous(1) is TokenRangeInvert)
+                        {
+                            i--;
+                            replacementLength += 1;
+                            replacement.range.invert = true;
+                        }
+
+                        tokens.RemoveRange(i, replacementLength);
+                        tokens.Insert(i, replacement);
+                        continue;
                     }
-                    else
+                    case TokenRangeInvert _:
                     {
-                        if (!(next1 is TokenIntegerLiteral))
-                            throw new TokenizerException("Range argument only accepts integers.");
-                        replacementLocation = 0;
-                        replacementLength = 2;
-                        int number = next1 as TokenIntegerLiteral;
-                        Range range = new Range(null, number, false);
-                        replacement = new TokenRangeLiteral(range, token.lineNumber);
+                        Token after = After(1);
+                        if (!(after is TokenIntegerLiteral))
+                            throw new TokenizerException("You can only invert integers.");
+                        tokens.RemoveRange(i, 2);
+                        int number = after as TokenIntegerLiteral;
+                        Range range = new Range(number, true);
+                        tokens.Insert(i, new TokenRangeLiteral(range, token.lineNumber));
+                        continue;
                     }
-
-                    i += replacementLocation;
-                    if (Previous(1) is TokenRangeInvert)
-                    {
-                        i--;
-                        replacementLength += 1;
-                        replacement.range.invert = true;
-                    }
-
-                    tokens.RemoveRange(i, replacementLength);
-                    tokens.Insert(i, replacement);
-                    continue;
-                }
-                if (token is TokenRangeInvert)
-                {
-                    Token after = After(1);
-                    if (!(after is TokenIntegerLiteral))
-                        throw new TokenizerException("You can only invert integers.");
-                    tokens.RemoveRange(i, 2);
-                    int number = after as TokenIntegerLiteral;
-                    Range range = new Range(number, true);
-                    tokens.Insert(i, new TokenRangeLiteral(range, token.lineNumber));
-                    continue;
                 }
 
                 // flatten JArrays, as long as !DONT_FLATTEN_ARRAYS
@@ -270,7 +264,7 @@ namespace mc_compiled.MCC.Compiler
                     JToken json = _json.token;
                     if(json is JArray jsonArray)
                     {
-                        List<TokenLiteral> replace = new List<TokenLiteral>(jsonArray.Count);
+                        var replace = new List<TokenLiteral>(jsonArray.Count);
                         int line = this.Lines[0];
 
                         foreach(JToken jsonToken in jsonArray)
@@ -285,26 +279,36 @@ namespace mc_compiled.MCC.Compiler
                         continue;
                     }
                 }
-            }
-        }
-        public void SquashIndexers(List<Token> tokens)
-        {
-            // going over it backwards for merging any particular tokens
-            for (int i = tokens.Count - 1; i >= 0; i--)
-            {
+
+                continue;
+
                 Token Previous(int amount)
                 {
                     if (i - amount < 0)
                         return null;
                     return tokens[i - amount];
-                };
+                }
 
+                Token After(int amount)
+                {
+                    if (i + amount >= tokens.Count)
+                        return null;
+                    return tokens[i + amount];
+                }
+            }
+        }
+
+        private void SquashIndexers(List<Token> tokens)
+        {
+            // going over it backwards for merging any particular tokens
+            for (int i = tokens.Count - 1; i >= 0; i--)
+            {
                 Token token = tokens[i];
 
                 // apply indexer to IIndexable
                 if (token is TokenIndexer indexer)
                 {
-                    Stack<TokenIndexer> indexerBuffer = new Stack<TokenIndexer>();
+                    var indexerBuffer = new Stack<TokenIndexer>();
                     indexerBuffer.Push(indexer);
                     Token current;
                     int indexerCount = 1;
@@ -327,10 +331,9 @@ namespace mc_compiled.MCC.Compiler
                     {
                         indexer = indexerBuffer.Pop();
 
-                        if (!(current is IIndexable))
+                        if (!(current is IIndexable indexable))
                             throw new StatementException(this, $"Cannot index token '{current.AsString()}'. (indexer: {indexer.AsString()})");
 
-                        IIndexable indexable = current as IIndexable;
                         current = indexable.Index(indexer, this);
                     }
                     while (indexerBuffer.Count > 0);
@@ -342,6 +345,15 @@ namespace mc_compiled.MCC.Compiler
                     // 'i' is setup so that the next iteration here will run over 'current'.
                     // just incase it needs to be resolved further past this point.
                     continue;
+                }
+
+                continue;
+
+                Token Previous(int amount)
+                {
+                    if (i - amount < 0)
+                        return null;
+                    return tokens[i - amount];
                 }
             }
         }
@@ -398,8 +410,8 @@ namespace mc_compiled.MCC.Compiler
 
             // root of the statement
             SquashFunctions(ref tokens, executor);
-            Squash<TokenArithmaticFirst>(ref tokens, executor);
-            Squash<TokenArithmaticSecond>(ref tokens, executor);
+            Squash<TokenArithmeticFirst>(ref tokens, executor);
+            Squash<TokenArithmeticSecond>(ref tokens, executor);
         }
         public void Squash<T>(ref List<Token> tokens, Executor executor)
         {
@@ -412,8 +424,8 @@ namespace mc_compiled.MCC.Compiler
                     continue; // dont squash assignments
 
                 // this can be assumed due to how squash is meant to be called
-                TokenArithmatic arithmatic = selected as TokenArithmatic;
-                TokenArithmatic.Type op = arithmatic.GetArithmaticType();
+                TokenArithmetic arithmetic = (TokenArithmetic)selected;
+                TokenArithmetic.Type op = arithmetic.GetArithmeticType();
                 List<string> commands = new List<string>();
                 Token squashedToken = null;
                 
@@ -429,24 +441,24 @@ namespace mc_compiled.MCC.Compiler
                 if (leftIsLiteral & rightIsLiteral)
                 {
                     squashToGlobal = false;
-                    TokenLiteral left = _left as TokenLiteral;
-                    TokenLiteral right = _right as TokenLiteral;
+                    var left = _left as TokenLiteral;
+                    var right = _right as TokenLiteral;
 
                     switch (op)
                     {
-                        case TokenArithmatic.Type.ADD:
+                        case TokenArithmetic.Type.ADD:
                             squashedToken = left.AddWithOther(right);
                             break;
-                        case TokenArithmatic.Type.SUBTRACT:
+                        case TokenArithmetic.Type.SUBTRACT:
                             squashedToken = left.SubWithOther(right);
                             break;
-                        case TokenArithmatic.Type.MULTIPLY:
+                        case TokenArithmetic.Type.MULTIPLY:
                             squashedToken = left.MulWithOther(right);
                             break;
-                        case TokenArithmatic.Type.DIVIDE:
+                        case TokenArithmetic.Type.DIVIDE:
                             squashedToken = left.DivWithOther(right);
                             break;
-                        case TokenArithmatic.Type.MODULO:
+                        case TokenArithmetic.Type.MODULO:
                             squashedToken = left.ModWithOther(right);
                             break;
                         default:
@@ -455,8 +467,8 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else if (leftIsValue & rightIsValue)
                 {
-                    TokenIdentifierValue left = _left as TokenIdentifierValue;
-                    TokenIdentifierValue right = _right as TokenIdentifierValue;
+                    var left = _left as TokenIdentifierValue;
+                    var right = _right as TokenIdentifierValue;
                     ScoreboardValue a = left.value;
                     ScoreboardValue b = right.value;
                     squashToGlobal = a.clarifier.IsGlobal || b.clarifier.IsGlobal;
@@ -464,24 +476,24 @@ namespace mc_compiled.MCC.Compiler
                     ScoreboardValue temp = executor.scoreboard.temps.RequestCopy(a, squashToGlobal);
                     string accessorTemp = temp.Name;
 
-                    commands.AddRange(temp.CommandsSet(a));
+                    commands.AddRange(temp.Assign(a, this));
                     squashedToken = new TokenIdentifierValue(accessorTemp, temp, selected.lineNumber);
 
                     switch (op)
                     {
-                        case TokenArithmatic.Type.ADD:
+                        case TokenArithmetic.Type.ADD:
                             commands.AddRange(temp.CommandsAdd(b));
                             break;
-                        case TokenArithmatic.Type.SUBTRACT:
+                        case TokenArithmetic.Type.SUBTRACT:
                             commands.AddRange(temp.CommandsSub(b));
                             break;
-                        case TokenArithmatic.Type.MULTIPLY:
+                        case TokenArithmetic.Type.MULTIPLY:
                             commands.AddRange(temp.CommandsMul(b));
                             break;
-                        case TokenArithmatic.Type.DIVIDE:
+                        case TokenArithmetic.Type.DIVIDE:
                             commands.AddRange(temp.CommandsDiv(b));
                             break;
-                        case TokenArithmatic.Type.MODULO:
+                        case TokenArithmetic.Type.MODULO:
                             commands.AddRange(temp.CommandsMod(b));
                             break;
                         default:
@@ -500,7 +512,7 @@ namespace mc_compiled.MCC.Compiler
 
                         a = executor.scoreboard.temps.Request(_left as TokenLiteral, this, true);
                         aAccessor = a.Name;
-                        commands.AddRange(a.CommandsSetLiteral(_left as TokenLiteral));
+                        commands.AddRange(a.AssignLiteral(_left as TokenLiteral, this));
                         bAccessor = (_right as TokenIdentifierValue).Accessor;
                     }
                     else
@@ -510,11 +522,11 @@ namespace mc_compiled.MCC.Compiler
 
                         b = executor.scoreboard.temps.Request(_right as TokenLiteral, this, true);
                         bAccessor = b.Name;
-                        commands.AddRange(b.CommandsSetLiteral(_right as TokenLiteral));
+                        commands.AddRange(b.AssignLiteral(_right as TokenLiteral, this));
 
                         // left is a value, so it needs to be put into a temp variable so that the source is not modified
                         a = executor.scoreboard.temps.RequestCopy(left.value, squashToGlobal);
-                        commands.AddRange(a.CommandsSet(left.value));
+                        commands.AddRange(a.Assign(left.value, this));
                         aAccessor = a.Name;
                     }
 
@@ -522,21 +534,22 @@ namespace mc_compiled.MCC.Compiler
 
                     switch (op)
                     {
-                        case TokenArithmatic.Type.ADD:
+                        case TokenArithmetic.Type.ADD:
                             commands.AddRange(a.CommandsAdd(b));
                             break;
-                        case TokenArithmatic.Type.SUBTRACT:
+                        case TokenArithmetic.Type.SUBTRACT:
                             commands.AddRange(a.CommandsSub(b));
                             break;
-                        case TokenArithmatic.Type.MULTIPLY:
+                        case TokenArithmetic.Type.MULTIPLY:
                             commands.AddRange(a.CommandsMul(b));
                             break;
-                        case TokenArithmatic.Type.DIVIDE:
+                        case TokenArithmetic.Type.DIVIDE:
                             commands.AddRange(a.CommandsDiv(b));
                             break;
-                        case TokenArithmatic.Type.MODULO:
+                        case TokenArithmetic.Type.MODULO:
                             commands.AddRange(a.CommandsMod(b));
                             break;
+                        case TokenArithmetic.Type.SWAP:
                         default:
                             break;
                     }
@@ -557,7 +570,8 @@ namespace mc_compiled.MCC.Compiler
                 i = -1;
             }
         }
-        public void SquashFunctions(ref List<Token> tokens, Executor executor)
+
+        private void SquashFunctions(ref List<Token> tokens, Executor executor)
         {
             int startAt = 0;
 

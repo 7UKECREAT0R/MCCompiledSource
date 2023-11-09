@@ -1,9 +1,5 @@
 ﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -174,20 +170,17 @@ namespace mc_compiled.MCC.Compiler
         public Token[] GetRemainingTokens()
         {
             if (tokens.Length <= currentToken)
-                return new Token[0];
+                return Array.Empty<Token>();
 
-            Token[] ret = new Token[tokens.Length - currentToken];
-            int ri = 0;
-
-            for (int i = currentToken; i < tokens.Length; i++)
-            {
-                Token current = tokens[i];
-                if (current is IInformationless)
-                    continue;
-                ret[ri++] = current;
-            }
-
-            return ret;
+            return tokens.Skip(currentToken)
+                .Where(t => !(t is IInformationless))
+                .ToArray();
         }
+
+        /// <summary>
+        /// Returns the number of remaining tokens in this feeder, excluding comments.
+        /// </summary>
+        public int RemainingTokens => tokens.Skip(currentToken)
+            .Count(t => !(t is IInformationless));
     }
 }

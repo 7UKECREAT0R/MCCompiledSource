@@ -1,10 +1,4 @@
-﻿using mc_compiled.MCC;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static mc_compiled.Commands.Command;
+﻿using System.Collections.Generic;
 
 namespace mc_compiled.Commands.Selectors
 {

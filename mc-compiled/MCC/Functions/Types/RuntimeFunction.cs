@@ -1,13 +1,10 @@
-﻿using mc_compiled.Commands.Selectors;
-using mc_compiled.Commands;
+﻿using mc_compiled.Commands;
 using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using mc_compiled.MCC.Attributes;
-using System.Security.Cryptography;
+using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -20,18 +17,16 @@ namespace mc_compiled.MCC.Functions.Types
         internal bool isAddedToExecutor; // if the function's files have been added to the executor yet.
 
         public readonly CommandFile file;
-
-        public ScoreboardManager.ValueType returnValueType;
-        public ScoreboardValue returnValue;
+        private ScoreboardValue returnValue;
 
         public readonly bool isCompilerGenerated;
-        readonly List<IAttribute> attributes;
-        readonly List<RuntimeFunctionParameter> parameters;
+        private readonly List<IAttribute> attributes;
+        private readonly List<RuntimeFunctionParameter> parameters;
         
-        public bool isExtern;               // created outside of 
+        public bool isExtern;               // created outside of MCCompiled, assume parameter names are as-listed.
+        public readonly string aliasedName; // user-facing name (keyword)
         public string name;                 // name used internally if the normal name won't work.
         public string documentation;        // docs
-        public readonly string aliasedName; // user-facing name (keyword)
         bool _hasSignaled = false;
 
         public RuntimeFunction(string aliasedName, string name, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
@@ -45,10 +40,9 @@ namespace mc_compiled.MCC.Functions.Types
 
             this.file = new CommandFile(false, name, null, this);
             this.returnValue = null;
-            this.returnValueType = ScoreboardManager.ValueType.INVALID;
 
             if (attributes == null)
-                attributes = new IAttribute[0];
+                attributes = Array.Empty<IAttribute>();
 
             this.attributes = new List<IAttribute>(attributes);
             this.parameters = new List<RuntimeFunctionParameter>();
@@ -65,7 +59,7 @@ namespace mc_compiled.MCC.Functions.Types
 
             _hasSignaled = true;
 
-            foreach (var attribute in attributes)
+            foreach (IAttribute attribute in attributes)
                 attribute.OnAddedFunction(this, callingStatement);
         }
 
@@ -100,7 +94,7 @@ namespace mc_compiled.MCC.Functions.Types
             return this;
         }
         /// <summary>
-        /// Require this functions's internal name to be hashed and hidden behind an alias.
+        /// Require this functions' internal name to be hashed and hidden behind an alias.
         /// </summary>
         /// <returns>This object for chaining.</returns>
         public RuntimeFunction ForceHash()
@@ -110,9 +104,9 @@ namespace mc_compiled.MCC.Functions.Types
         }
 
         public override string Keyword => aliasedName;
-        public override string Returns => returnValue?.GetTypeKeyword();
+        public override string Returns => returnValue?.GetExtendedTypeKeyword();
         public override string Documentation => documentation;
-        public override FunctionParameter[] Parameters => this.parameters.ToArray();
+        public override FunctionParameter[] Parameters => this.parameters.Cast<FunctionParameter>().ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;
         public override int Importance => 0; // least important. always call runtime functions at last resort.
@@ -121,54 +115,61 @@ namespace mc_compiled.MCC.Functions.Types
         /// <summary>
         /// Add commands and setup scoreboard to return a value.
         /// </summary>
-        /// <param name="caller"></param>
-        /// <param name="value"></param>
+        /// <param name="value">The value to try to return.</param>
+        /// <param name="executor">The executor.</param>
+        /// <param name="caller">The statement to blame for when everything explodes.</param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(Statement caller, ScoreboardValue value, Executor executor)
+        public void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller)
         {
-            if (returnValue != null)
+            IEnumerable<string> commands;
+            if (returnValue != null && value.NeedsToBeConvertedFor(returnValue))
             {
-                // check if types match
-                if (value.valueType != returnValueType)
-                    throw new StatementException(caller, $"All return statements in this function must return the same type. Return type: {returnValueType}");
+                commands = value.CommandsConvert(returnValue, caller);
             }
+            else
+            {
+                // only run this code once for this function, that
+                // will sort of 'define' what the return type should be
+                ScoreboardManager sb = executor.scoreboard;
+                ScoreboardValue clone = ScoreboardValue.AsReturnValue(value, caller);
+                if (sb.temps.DefinedTemps.Add(clone))
+                    executor.AddCommandsInit(clone.CommandsDefine());
 
-            //   only run this code once for this function, that
-            // will sort of 'define' what the return type should be
-            ScoreboardManager sb = executor.scoreboard;
-            ScoreboardValue clone = ScoreboardValue.AsReturnValue(value);
-            if (sb.temps.DefinedTemps.Add(clone))
-                executor.AddCommandsInit(clone.CommandsDefine());
-
-            executor.AddCommands(clone.CommandsSet(value), "returnValue", $"Returns the objective '{clone.Name}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
-            returnValue = clone;
-            returnValueType = clone.valueType;
+                commands = clone.Assign(value, caller);
+                returnValue = clone;
+            }
+            
+            executor.AddCommands(commands, "returnValue", $"Returns the objective '{returnValue.InternalName}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
         }
+
         /// <summary>
         /// Add commands and setup scoreboard to return a value.
         /// </summary>
         /// <param name="caller"></param>
+        /// <param name="executor"></param>
         /// <param name="value"></param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(Statement caller, Executor executor, TokenLiteral value)
+        public void TryReturnValue(TokenLiteral value, Statement caller, Executor executor)
         {
+            IEnumerable<string> commands;
+            
             if (returnValue != null)
             {
-                if(value.GetScoreboardValueType() != returnValueType)
-                    throw new StatementException(caller, $"All return statements in this function must return the same type. Required: {returnValueType}");
-
-                return;
+                commands = returnValue.AssignLiteral(value, caller);
             }
+            else
+            {
+                ScoreboardManager sb = executor.scoreboard;
+                ScoreboardValue variable = ScoreboardValue.AsReturnValue(value, sb, caller);
 
-            ScoreboardManager sb = executor.scoreboard;
-            ScoreboardValue variable = ScoreboardValue.AsReturnValue(value, sb, caller);
+                if (sb.temps.DefinedTemps.Add(variable))
+                    executor.AddCommandsInit(variable.CommandsDefine());
 
-            if (sb.temps.DefinedTemps.Add(variable))
-                executor.AddCommandsInit(variable.CommandsDefine());
-
-            executor.AddCommands(variable.CommandsSetLiteral(value), "returnValue", $"Returns the literal '{value}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
-            returnValue = variable;
-            returnValueType = variable.valueType;
+                commands = variable.AssignLiteral(value, caller);
+                returnValue = variable;
+            }
+            
+            executor.AddCommands(commands, "returnValue", $"Returns the literal '{value}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
         }
 
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
@@ -192,8 +193,8 @@ namespace mc_compiled.MCC.Functions.Types
 
             // sets a temp to the return value.
             ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(returnValue, false);
-            commandBuffer.AddRange(returnHolder.CommandsSet(returnValue));
-            return new TokenIdentifierValue(returnHolder.AliasName, returnHolder, statement.Lines[0]);
+            commandBuffer.AddRange(returnHolder.Assign(returnValue, statement));
+            return new TokenIdentifierValue(returnHolder.Name, returnHolder, statement.Lines[0]);
         }
 
         public void AddCommand(string command) =>

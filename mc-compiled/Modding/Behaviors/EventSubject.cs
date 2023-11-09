@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace mc_compiled.Modding.Behaviors
+﻿namespace mc_compiled.Modding.Behaviors
 {
     /// <summary>
     /// A subject to run an event on.

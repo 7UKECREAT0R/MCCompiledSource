@@ -1,12 +1,6 @@
-﻿using mc_compiled.Commands.Execute;
-using mc_compiled.MCC;
-using mc_compiled.MCC.Compiler;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace mc_compiled.Commands.Selectors
 {

@@ -1,15 +1,8 @@
-﻿using mc_compiled.MCC.Functions;
-using mc_compiled.MCC.Functions.Types;
+﻿using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding;
-using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {

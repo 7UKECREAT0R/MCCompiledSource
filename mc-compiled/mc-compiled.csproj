@@ -100,6 +100,7 @@
     <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefTime.cs" />
     <Compile Include="MCC\Compiler\TypeSystem\ITypeStructure.cs" />
     <Compile Include="MCC\Compiler\TypeSystem\Typedef.cs" />
+    <Compile Include="MCC\Compiler\TypeSystem\TypedefStatic.cs" />
     <Compile Include="MCC\Functions\Function.cs" />
     <Compile Include="MCC\Functions\FunctionComparator.cs" />
     <Compile Include="MCC\Functions\FunctionManager.cs" />

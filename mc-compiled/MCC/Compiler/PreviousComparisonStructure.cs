@@ -1,9 +1,6 @@
 ﻿using mc_compiled.Commands.Execute;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -12,7 +9,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     internal class PreviousComparisonStructure : IDisposable
     {
-        internal bool cancel;
+        internal readonly bool cancel;
 
         private readonly TempManager tempManager;
         internal readonly Statement sourceStatement;
@@ -20,16 +17,16 @@ namespace mc_compiled.MCC.Compiler
         internal ConditionalSubcommand conditionalUsed;
 
         internal readonly string previousComparisonString;
-        internal readonly ScoreboardValueBoolean resultStore;
+        internal readonly ScoreboardValue resultStore;
 
         /// <summary>
         /// Allocates one BOOL global temp variable, which is released on disposal.
         /// </summary>
         /// <param name="tempManager"></param>
         /// <param name="caller"></param>
-        /// <param name="set"></param>
         /// <param name="scope"></param>
-        /// <param name="setupFile"></param>
+        /// <param name="previousComparisonString"></param>
+        /// <param name="conditionalUsed"></param>
         internal PreviousComparisonStructure(TempManager tempManager, Statement caller, int scope, string previousComparisonString, ConditionalSubcommand conditionalUsed = null)
         {
             this.conditionalUsed = conditionalUsed;
@@ -37,7 +34,7 @@ namespace mc_compiled.MCC.Compiler
             this.sourceStatement = caller;
             this.scope = scope;
             this.previousComparisonString = previousComparisonString;
-            this.resultStore = tempManager.RequestGlobal(ScoreboardManager.ValueType.BOOL) as ScoreboardValueBoolean;
+            this.resultStore = tempManager.RequestGlobal(Typedef.BOOLEAN);
         }
 
 
@@ -46,16 +43,14 @@ namespace mc_compiled.MCC.Compiler
             this.cancel = cancel;
         }
 
-        bool _disposed = false;
+        private bool _disposed = false;
         public void Dispose()
         {
             if (_disposed)
                 return;
-
+            
             _disposed = true;
-
-            if(tempManager != null)
-                tempManager.Release(resultStore.valueType, resultStore.clarifier.IsGlobal);
+            tempManager?.Release(resultStore.type, resultStore.clarifier.IsGlobal);
         }
     }
 }

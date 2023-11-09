@@ -1,16 +1,7 @@
 ﻿using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
-using mc_compiled.Modding;
-using mc_compiled.Modding.Behaviors;
-using mc_compiled.NBT;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler.Implementations.Attributes
 {

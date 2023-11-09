@@ -4,10 +4,7 @@ using mc_compiled.MCC.Functions.Types;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Server
 {
@@ -192,13 +189,13 @@ namespace mc_compiled.MCC.Server
         }
         public static VariableStructure Wrap(ScoreboardValue value)
         {
-            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword(), value.Documentation);
+            VariableStructure structure = new VariableStructure(value.Name, value.GetExtendedTypeKeyword(), value.Documentation);
             return structure;
         }
         public static VariableStructure Wrap(RuntimeFunctionParameter parameter)
         {
             ScoreboardValue value = parameter.runtimeDestination;
-            VariableStructure structure = new VariableStructure(value.AliasName, value.GetExtendedTypeKeyword(), value.Documentation);
+            VariableStructure structure = new VariableStructure(value.Name, value.GetExtendedTypeKeyword(), value.Documentation);
 
             return structure;
         }

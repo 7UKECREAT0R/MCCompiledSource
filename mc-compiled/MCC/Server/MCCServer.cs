@@ -1,5 +1,4 @@
 ﻿using mc_compiled.MCC.Compiler;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -12,13 +11,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Input;
-using static mc_compiled.Commands.Selectors.Selector;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
-using static System.Windows.Forms.LinkLabel;
 
 namespace mc_compiled.MCC.Server
 {

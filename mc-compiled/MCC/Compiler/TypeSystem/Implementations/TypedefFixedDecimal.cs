@@ -3,17 +3,12 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Security.Permissions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 {
-    internal readonly struct FixedDecimalData : ITypeStructure
+    public readonly struct FixedDecimalData : ITypeStructure
     {
-        internal readonly int precision;
+        public readonly int precision;
 
         internal FixedDecimalData(int precision)
         {
@@ -26,28 +21,29 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
     }
     internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
     {
-        public const string SB_WHOLE = "_mcc_d_whole";
-        public const string SB_PART = "_mcc_d_part";
-        public const string SB_TEMP = "_mcc_d_temp";
-        public const string SB_BASE = "_mcc_d_base";
+        private const string SB_WHOLE = "_mcc_d_whole";
+        private const string SB_PART = "_mcc_d_part";
+        private const string SB_TEMP = "_mcc_d_temp";
+        private const string SB_BASE = "_mcc_d_base";
 
-        public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.FIXEDDECIMAL;
+        public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.FIXED_DECIMAL;
+        public override string TypeShortcode => "FDC";
         public override string TypeKeyword => "decimal";
         internal override string[] GetObjectives(ScoreboardValue input)
         {
-            return new[] { input.Name };
+            return new[] { input.InternalName };
         }
 
         public override bool CanCompareAlone => false;
         internal override Range CompareAlone(bool invert) => default;
 
         public override TypePattern SpecifyPattern => new TypePattern(new NamedType(typeof(TokenIntegerLiteral), "precision"));
-        public override object AcceptPattern(TokenLiteral[] inputs)
+        public override object AcceptPattern(TokenLiteral[] inputs, Statement callingStatement)
         {
             int precision = (inputs[0] as TokenIntegerLiteral);
             return new FixedDecimalData(precision);
         }
-
+        
         // Conversion
         internal override bool CanConvertTo(Typedef type)
         {
@@ -60,7 +56,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     return false;
             }
         }
-        internal override string[] ConvertTo(ScoreboardValue src, ScoreboardValue dst)
+        internal override IEnumerable<string> ConvertTo(ScoreboardValue src, ScoreboardValue dst)
         {
             Typedef dstType = dst.type;
             ScoreboardManager manager = src.manager;
@@ -68,7 +64,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             int srcPrecision = ((FixedDecimalData)src.data).precision;
             int factor;
             
-            ScoreboardValueInteger temp = manager.temps.RequestGlobal();
+            ScoreboardValue temp = manager.temps.RequestGlobal();
             manager.temps.ReleaseGlobal();
             
             switch (dstType)
@@ -117,6 +113,15 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     return new[] { Command.ScoreboardOpSet(dst, src) };
             }
         }
+        internal override bool NeedsToBeConvertedTo(ScoreboardValue src, ScoreboardValue dst)
+        {
+            if (!(dst.type is TypedefFixedDecimal))
+                return base.NeedsToBeConvertedTo(src, dst);
+            
+            var dataA = (FixedDecimalData)src.data;
+            var dataB = (FixedDecimalData)dst.data;
+            return dataA.precision != dataB.precision;
+        }
 
         // Other
         internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
@@ -130,17 +135,17 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             string _temporary = SB_TEMP + index;
             string _tempBase = SB_BASE + index;
 
-            var whole = new ScoreboardValueInteger(_whole, false, manager);
-            var part = new ScoreboardValueInteger(_part, false, manager);
-            var temporary = new ScoreboardValueInteger(_temporary, true, manager);
-            var tempBase = new ScoreboardValueInteger(_tempBase, true, manager);
+            var whole = new ScoreboardValue(_whole, false, Typedef.INTEGER, manager);
+            var part = new ScoreboardValue(_part, false, Typedef.INTEGER, manager);
+            var temporary = new ScoreboardValue(_temporary, true, Typedef.INTEGER, manager);
+            var tempBase = new ScoreboardValue(_tempBase, true, Typedef.INTEGER, manager);
 
             whole.clarifier.CopyFrom(clarifier);
             part.clarifier.CopyFrom(clarifier);
 
             manager.DefineMany(whole, part, temporary, tempBase);
 
-            string[] commands = new string[]
+            string[] commands = new[]
             {
                 Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
                 Command.ScoreboardOpSet(temporary, value),
@@ -153,7 +158,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 Command.Execute().IfScore(part, new Range(null, -1)).Run(Command.ScoreboardOpMul(part, temporary))
             };
 
-            JSONRawTerm[] terms = new JSONRawTerm[]
+            var terms = new JSONRawTerm[]
             {
                 new JSONScore(clarifier.CurrentString, whole),
                 new JSONText("."),
@@ -173,16 +178,16 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
             return new Tuple<string[], ConditionalSubcommandScore[]>(
                 null,
-                new ConditionalSubcommandScore[]
+                new[]
                 {
                     ConditionalSubcommandScore.New(self, comparisonType.AsRange(number)),
                 }
             );
         }
-        internal override string[] AssignLiteral(ScoreboardValue self, TokenLiteral literal)
+        internal override IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal)
         {
             if (literal is TokenNullLiteral)
-                return new string[] { Command.ScoreboardSet(self, 0) };
+                return new[] { Command.ScoreboardSet(self, 0) };
 
             int precision = ((FixedDecimalData)self.data).precision;
 
@@ -191,7 +196,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 case TokenIntegerLiteral integer:
                 {
                     int i = integer.number;
-                    return new string[]
+                    return new[]
                     {
                         Command.ScoreboardSet(self, i.ToFixedPoint(precision))
                     };
@@ -199,7 +204,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 case TokenNumberLiteral number:
                 {
                     float f = number.GetNumber();
-                    return new string[]
+                    return new[]
                     {
                         Command.ScoreboardSet(self, f.ToFixedPoint(precision))
                     };
@@ -208,7 +213,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     throw LiteralConversionError(self, literal);
             }
         }
-        internal override string[] AddLiteral(ScoreboardValue self, TokenLiteral literal)
+        internal override IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal)
         {
             if (literal is TokenNullLiteral)
                 return Array.Empty<string>();
@@ -220,7 +225,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 case TokenIntegerLiteral integer:
                 {
                     int i = integer.number;
-                    return new string[]
+                    return new[]
                     {
                         Command.ScoreboardAdd(self, i.ToFixedPoint(precision))
                     };
@@ -228,7 +233,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 case TokenNumberLiteral number:
                 {
                     float f = number.GetNumber();
-                    return new string[]
+                    return new[]
                     {
                         Command.ScoreboardAdd(self, f.ToFixedPoint(precision))
                     };
@@ -237,7 +242,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     throw LiteralConversionError(self, literal);
             }
         }
-        internal override string[] SubtractLiteral(ScoreboardValue self, TokenLiteral literal)
+        internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal)
         {
             if (literal is TokenNullLiteral)
                 return Array.Empty<string>();
@@ -249,7 +254,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 case TokenIntegerLiteral integer:
                 {
                     int i = integer.number;
-                    return new string[]
+                    return new[]
                     {
                         Command.ScoreboardSubtract(self, i.ToFixedPoint(precision))
                     };
@@ -257,7 +262,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 case TokenNumberLiteral number:
                 {
                     float f = number.GetNumber();
-                    return new string[]
+                    return new[]
                     {
                         Command.ScoreboardSubtract(self, f.ToFixedPoint(precision))
                     };
@@ -268,19 +273,19 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         }
 
         // Methods
-        protected override string[] _Assign(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other)
         {
             return new[] { Command.ScoreboardOpSet(self, other) };
         }
-        protected override string[] _Add(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other)
         {
             return new[] { Command.ScoreboardOpAdd(self, other) };
         }
-        protected override string[] _Subtract(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other)
         {
             return new[] { Command.ScoreboardOpSub(self, other) };
         }
-        protected override string[] _Multiply(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other)
         {
             int precision = ((FixedDecimalData)self.data).precision;
             ScoreboardManager manager = self.manager;
@@ -293,7 +298,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 Command.ScoreboardOpDiv(self, tempBase)
             };
         }
-        protected override string[] _Divide(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other)
         {
             int precision = ((FixedDecimalData)self.data).precision;
             ScoreboardManager manager = self.manager;
@@ -306,7 +311,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 Command.ScoreboardOpDiv(self, other)
             };
         }
-        protected override string[] _Modulo(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other)
         {
             return new[] { Command.ScoreboardOpMod(self, other) };
         }
