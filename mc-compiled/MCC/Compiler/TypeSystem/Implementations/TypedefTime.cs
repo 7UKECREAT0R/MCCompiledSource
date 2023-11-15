@@ -19,7 +19,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.TIME;
         public override string TypeShortcode => "TME";
-        public override string TypeKeyword => "time";
+        public override string TypeKeyword => "TIME";
 
         internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
         {

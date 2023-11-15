@@ -4,8 +4,10 @@ using mc_compiled.MCC.Attributes;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Security.Permissions;
 using System.Windows.Forms;
 using mc_compiled.MCC.Compiler.TypeSystem;
+using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -23,11 +25,20 @@ namespace mc_compiled.MCC.Compiler
 
         /// <summary>
         /// Return this literal's Scoreboard value type. Used when defining a variable with type inference.
-        /// Returns <see cref="ScoreboardManager.ValueType.INVALID"/> if the literal cannot be stored in a scoreboard objective.
+        /// Returns null if the literal cannot be stored in a scoreboard objective.
         /// </summary>
-        /// <param name="tryToInfer"></param>
+        /// <returns>null if the literal cannot be stored in a scoreboard objective.</returns>
+        public abstract Typedef GetTypedef();
+
+        /// <summary>
+        /// Creates a new <see cref="ScoreboardValue"/> to hold this literal.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="global"></param>
+        /// <param name="tokens"></param>
         /// <returns></returns>
-        public abstract Typedef GetTypedef(out bool tryToInfer);
+        public abstract ScoreboardValue CreateValue(string name, bool global,
+            Statement tokens);
 
         /// <summary>
         /// Return a NEW token literal that is the result of adding these two literals in the order THIS + OTHER.
@@ -83,10 +94,10 @@ namespace mc_compiled.MCC.Compiler
             return (int)0;
         }
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => Typedef.INTEGER;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
         {
-            tryToInfer = true;
-            return null;
+            return new ScoreboardValue(name, global, Typedef.INTEGER, tokens.executor.scoreboard);
         }
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -210,10 +221,10 @@ namespace mc_compiled.MCC.Compiler
             throw new NotImplementedException();
         }
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => null;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
         {
-            tryToInfer = false;
-            return null;
+            throw new StatementException(tokens, $"Cannot create a value to hold the literal '{AsString()}'");
         }
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -264,11 +275,7 @@ namespace mc_compiled.MCC.Compiler
         public abstract float GetNumber();
         public abstract object GetValue();
 
-        public override Typedef GetTypedef(out bool tryToInfer)
-        {
-            tryToInfer = false;
-            return Typedef.INTEGER;
-        }
+        public override Typedef GetTypedef() => Typedef.INTEGER;
     }
     public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken, IIndexable, IDocumented
     {
@@ -286,10 +293,10 @@ namespace mc_compiled.MCC.Compiler
 
         public static implicit operator string(TokenStringLiteral literal) => literal.text;
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => null;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
         {
-            tryToInfer = false;
-            return null;
+            throw new StatementException(tokens, $"Cannot create a value to hold the literal '{AsString()}'");
         }
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -493,10 +500,10 @@ namespace mc_compiled.MCC.Compiler
 
         public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => Typedef.BOOLEAN;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
         {
-            tryToInfer = false;
-            return Typedef.BOOLEAN;
+            return new ScoreboardValue(name, global, Typedef.BOOLEAN, tokens.executor.scoreboard);
         }
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -529,7 +536,8 @@ namespace mc_compiled.MCC.Compiler
 
     public class TokenCoordinateLiteral : TokenNumberLiteral, IDocumented
     {
-        public readonly Coord coordinate;
+        private readonly Coord coordinate;
+        
         public override string AsString() => coordinate.ToString();
         public override string ToString() => coordinate.ToString();
         internal TokenCoordinateLiteral() : base(-1) { }
@@ -546,10 +554,15 @@ namespace mc_compiled.MCC.Compiler
                 return coordinate.valuei;
         }
         public override object GetValue() => coordinate;
+        public override Typedef GetTypedef() => null;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
+        {
+            throw new StatementException(tokens, $"Cannot create a value to hold the literal '{AsString()}'");
+        }
 
         public static implicit operator Coord(TokenCoordinateLiteral literal) => literal.coordinate;
         public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valuei;
-        public static implicit operator float(TokenCoordinateLiteral literal) => literal;
+        public static implicit operator float(TokenCoordinateLiteral literal) => literal.coordinate.valuef;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
@@ -706,6 +719,12 @@ namespace mc_compiled.MCC.Compiler
             return number;
         }
 
+        public override Typedef GetTypedef() => Typedef.INTEGER;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
+        {
+            return new ScoreboardValue(name, global, Typedef.INTEGER, tokens.executor.scoreboard);
+        }
+
         public static implicit operator int(TokenIntegerLiteral literal) => literal.number;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -818,10 +837,10 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral Clone() => new TokenRangeLiteral(new Range(range), lineNumber);
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => null;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement forExceptions)
         {
-            tryToInfer = false;
-            return null;
+            throw new StatementException(forExceptions, $"Cannot create a value to hold the literal '{AsString()}'");
         }
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -1052,10 +1071,11 @@ namespace mc_compiled.MCC.Compiler
 
         public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => Typedef.FIXED_DECIMAL;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
         {
-            tryToInfer = false;
-            return Typedef.FIXED_DECIMAL;
+            var data = new FixedDecimalData(number.GetPrecision());
+            return new ScoreboardValue(name, global, Typedef.FIXED_DECIMAL, data, tokens.executor.scoreboard);
         }
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -1129,10 +1149,10 @@ namespace mc_compiled.MCC.Compiler
         public static implicit operator Selector(TokenSelectorLiteral t) => t.selector;
         public static implicit operator Selector.Core(TokenSelectorLiteral t) => t.selector.core;
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => null;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement forExceptions)
         {
-            tryToInfer = false;
-            return null;
+            throw new StatementException(forExceptions, $"Cannot create a value to hold the literal '{AsString()}'");
         }
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
@@ -1190,12 +1210,12 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral Clone() => new TokenJSONLiteral(token, lineNumber);
         public static implicit operator JToken(TokenJSONLiteral t) => t.token;
 
-        public override Typedef GetTypedef(out bool tryToInfer)
+        public override Typedef GetTypedef() => null;
+        public override ScoreboardValue CreateValue(string name, bool global, Statement forExceptions)
         {
-            tryToInfer = false;
-            return null;
+            throw new StatementException(forExceptions, $"Cannot create a value to hold the literal '{AsString()}'");
         }
-
+        
         public object GetValue() => token;
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {

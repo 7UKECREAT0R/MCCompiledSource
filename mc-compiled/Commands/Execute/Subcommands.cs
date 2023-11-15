@@ -74,7 +74,7 @@ namespace mc_compiled.Commands.Execute
             this.axes = axes;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenStringLiteral), "axes")
@@ -101,7 +101,7 @@ namespace mc_compiled.Commands.Execute
             this.anchor = anchor;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenIdentifierEnum), "anchor")
@@ -131,7 +131,7 @@ namespace mc_compiled.Commands.Execute
             this.entity = entity;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "target")
@@ -157,7 +157,7 @@ namespace mc_compiled.Commands.Execute
             this.entity = entity;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "target")
@@ -193,7 +193,7 @@ namespace mc_compiled.Commands.Execute
             this.z = z;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             // coordinate
             new TypePattern(
@@ -250,7 +250,7 @@ namespace mc_compiled.Commands.Execute
             this.dimension = dimension;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenIdentifierEnum), "dimension")
@@ -286,7 +286,7 @@ namespace mc_compiled.Commands.Execute
             this.z = z;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             // coordinate
             new TypePattern(
@@ -340,7 +340,7 @@ namespace mc_compiled.Commands.Execute
             this.pitch = pitch;
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             // coordinate
             new TypePattern(
@@ -397,7 +397,7 @@ namespace mc_compiled.Commands.Execute
             this.command = "";
         }
 
-        public override TypePattern[] Pattern => new TypePattern[] {
+        public override TypePattern[] Patterns => new TypePattern[] {
             new TypePattern(
                 new NamedType(typeof(TokenStringLiteral), "command")
             )
@@ -422,11 +422,11 @@ namespace mc_compiled.Commands.Execute
             this.condition = condition;
         }
 
-        public override TypePattern[] Pattern
+        public override TypePattern[] Patterns
         {
             get
             {
-                IEnumerable<TypePattern> validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Pattern);
+                IEnumerable<TypePattern> validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
 
                 foreach (TypePattern pattern in validPatterns)
                     pattern.PrependAnd(new NamedType(typeof(TokenIdentifier)), "subcommand");
@@ -459,11 +459,11 @@ namespace mc_compiled.Commands.Execute
             this.condition = condition;
         }
 
-        public override TypePattern[] Pattern
+        public override TypePattern[] Patterns
         {
             get
             {
-                IEnumerable<TypePattern> validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Pattern);
+                IEnumerable<TypePattern> validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
 
                 foreach (TypePattern pattern in validPatterns)
                     pattern.PrependAnd(new NamedType(typeof(TokenIdentifier)), "subcommand");

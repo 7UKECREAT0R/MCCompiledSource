@@ -79,7 +79,7 @@ namespace mc_compiled.MCC
             /// <returns></returns>
             internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
             {
-                object data = this.dataObject;
+                object data = dataObject;
 
                 if (data == null)
                 {
@@ -97,10 +97,8 @@ namespace mc_compiled.MCC
                         }
 
                         // digest pattern
-                        data = type.AcceptPattern(this.data, tokens);
+                        data = type.AcceptPattern(tokens);
                     }
-                    else
-                        data = null;
                 }
 
                 ScoreboardValue value = new ScoreboardValue(name, false, type, data, sb)
@@ -114,10 +112,10 @@ namespace mc_compiled.MCC
                     // check if it's a literal.
                     case TokenLiteral literal:
                     {
-                        Typedef type = literal.GetTypedef(out _);
+                        Typedef type = literal.GetTypedef();
                         
                         if(type == null)
-                            throw new StatementException(tokens, $"Input \"{literal.AsString()}\" cannot be stored in a value.");
+                            throw new StatementException(tokens, $"Input '{literal.AsString()}' cannot be stored in a value.");
                         
                         if (this.type.SpecifyPattern != null)
                         {
@@ -207,36 +205,13 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Add a set of scoreboard values to the cache.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="values">The values to add.</param>
         public void AddRange(IEnumerable<ScoreboardValue> values)
         {
             foreach (ScoreboardValue value in values)
                 Add(value);
         }
-
-        /// <summary>
-        /// Create a scoreboard value from a literal value.
-        /// </summary>
-        /// <param name="name">The name of the scoreboard value.</param>
-        /// <param name="global">If the </param>
-        /// <param name="literal"></param>
-        /// <param name="forExceptions"></param>
-        /// <returns></returns>
-        public ScoreboardValue CreateFromLiteral(string name, bool global, TokenLiteral literal, Statement forExceptions)
-        {
-            if (literal is TokenIntegerLiteral)
-                return new ScoreboardValueInteger(name, global, this);
-            else if (literal is TokenBooleanLiteral)
-                return new ScoreboardValueBoolean(name, global, this);
-            else if (literal is TokenDecimalLiteral)
-            {
-                float number = (literal as TokenDecimalLiteral).number;
-                int precision = number.GetPrecision();
-                return new ScoreboardValueDecimal(name, precision, global, this);
-            }
-            else throw new StatementException(forExceptions, "Internal Error: Attempted to " +
-                    $"create a scoreboard value for invalid literal type {literal.GetType()}.");
-        }
+        
         /// <summary>
         /// Fetch a value/field definition from this statement. e.g., 'int coins = 3', 'decimal 3 thing', 'bool isPlaying'.
         /// This method automatically performs type inference if possible.
@@ -249,54 +224,38 @@ namespace mc_compiled.MCC
 
             FindAttributes();
 
-            var type = ValueType.INFER;
+            Typedef type = null;
+            object data = null;
             string name = null;
 
             if (tokens.NextIs<TokenIdentifier>())
             {
                 var identifier = tokens.Next<TokenIdentifier>();
                 string typeWord = identifier.word.ToUpper();
-                switch (typeWord)
+                Typedef[] types = Typedef.ALL_TYPES;
+
+                type = types.FirstOrDefault(t => t.TypeKeyword.Equals(typeWord));
+
+                if (type == null)
+                    name = identifier.word;
+                else
                 {
-                    case "INT":
-                        type = ValueType.INT;
-                        break;
-                    case "DECIMAL":
-                        type = ValueType.FIXED_DECIMAL;
-                        break;
-                    case "BOOL":
-                        type = ValueType.BOOL;
-                        break;
-                    case "TIME":
-                        type = ValueType.TIME;
-                        break;
-                    case "PPV":
-                        type = ValueType.PPV;
-                        break;
-                    default:
-                        name = identifier.Convert(executor, TokenIdentifier.CONVERT_STRING) as TokenStringLiteral;
-                        break;
-                }
-            }
-
-            // the default value to set it to.
-            Token defaultValue = null;
-            int precision = 0;
-
-
-            if (type == ValueType.FIXED_DECIMAL)
-            {
-                if (!tokens.NextIs<TokenIntegerLiteral>())
-                    throw new StatementException(tokens, $"Decimal value type requires a precision. e.g., 'decimal 2'");
-
-                precision = tokens.Next<TokenIntegerLiteral>();
-
-                if (precision > 3)
-                {
-                    ConsoleColor oldColor = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Executor.Warn("Decimal precisions >3 could begin to break. Avoid multiplication/division on larger numbers.");
-                    Console.ForegroundColor = oldColor;
+                    // process input tokens, if needed
+                    TypePattern pattern = type.SpecifyPattern;
+                    if (pattern != null)
+                    {
+                        Token[] remaining = tokens.GetRemainingTokens();
+                        MatchResult match = pattern.Check(remaining);
+                        
+                        if(match.match)
+                            data = type.AcceptPattern(tokens);
+                        else
+                        {
+                            MultiType[] missing = match.missing;
+                            string list = string.Join(", ", missing.Select(m => m.ToString()));
+                            throw new StatementException(tokens, $"Missing argument(s) for type definition '{type.TypeKeyword}': {list}");
+                        }
+                    }
                 }
             }
 
@@ -309,6 +268,9 @@ namespace mc_compiled.MCC
                 name = tokens.Next<TokenStringLiteral>();
             }
 
+            // the default value to set it to.
+            Token defaultValue = null;
+            
             if (tokens.NextIs<TokenAssignment>())
             {
                 tokens.Next();
@@ -316,18 +278,13 @@ namespace mc_compiled.MCC
             }
 
             IAttribute[] attributesArray = attributes.ToArray();
-            ValueDefinition definition;
+            var definition = new ValueDefinition(attributesArray, name, type, dataObject: data, defaultValue: defaultValue);
 
-            if (!Typedef.FromValueType(type, out Typedef typedef))
-                throw new StatementException(tokens, "");
-
-            definition = new ValueDefinition(attributesArray, name, typedef, defaultValue: defaultValue);
-            
             // try to infer type based on the default value.
-            if (type != ValueType.INFER)
+            if (type != null)
                 return definition;
             if (defaultValue == null)
-                throw new StatementException(tokens, $"Cannot infer value \"{name}\"'s type because there is no default value in declaration.");
+                throw new StatementException(tokens, $"Cannot infer value \"{name}\"s type because there is no default value in its declaration. Hint: 'define name = 123'");
 
             definition.InferType(tokens);
 
@@ -342,70 +299,24 @@ namespace mc_compiled.MCC
                 }
             }
         }
-
-        /// <summary>
-        /// Get a scoreboard value by its INTERNAL NAME.
-        /// </summary>
-        /// <returns>Null if not found.</returns>
-        public ScoreboardValue GetByName(string internalName) =>
-            values.FirstOrDefault(v => v.InternalName.Equals(internalName));
+        
         /// <summary>
         /// Tries to get a scoreboard value by its INTERNAL NAME.
         /// </summary>
         /// <returns>True if found and output is set.</returns>
-        public bool TryGetByName(string internalName, out ScoreboardValue output)
+        public bool TryGetByInternalName(string internalName, out ScoreboardValue output)
         {
-            foreach (ScoreboardValue value in values)
-                if (value.InternalName.Equals(internalName))
-                {
-                    output = value;
-                    return true;
-                }
-
-            output = null;
-            return false;
+            output = values.FirstOrDefault(value => value.InternalName.Equals(internalName));
+            return output != null;
         }
         /// <summary>
-        /// Tries to get a scoreboard value by any of its USER-EXPOSED NAMES.
+        /// Tries to get a scoreboard value by its user-facing name.
         /// </summary>
-        /// <param name="accessor"></param>
-        /// <returns>True if found and output is set.</returns>
-        public bool TryGetByAccessor(string accessor, out ScoreboardValue output)
+        /// <returns>true if found and output is set.</returns>
+        public bool TryGetByUserFacingName(string name, out ScoreboardValue output)
         {
-            foreach (ScoreboardValue value in values)
-            {
-                string[] names = value.GetAccessibleNames();
-                if (names.Contains(accessor))
-                {
-                    output = value;
-                    return true;
-                }
-            }
-            output = null;
-            return false;
-        }
-        /// <summary>
-        /// Tries to get a scoreboard value by EITHER NAME
-        /// </summary>
-        /// <returns>True if found and output is set.</returns>
-        public bool TryGetByAny(string name, out ScoreboardValue output)
-        {
-            foreach (ScoreboardValue value in values)
-            {
-                if (value.InternalName.Equals(name))
-                {
-                    output = value;
-                    return true;
-                }
-                if (value.Name.Equals(name))
-                {
-                    output = value;
-                    return true;
-                }
-            }
-
-            output = null;
-            return false;
+            output = values.FirstOrDefault(value => value.Name.Equals(name));
+            return output != null;
         }
     }
 }

@@ -23,6 +23,8 @@ namespace mc_compiled.MCC.Compiler
         protected Statement(Token[] tokens, bool waitForPatterns = false) : base(tokens)
         {
             if (!waitForPatterns)
+                // ReSharper disable once VirtualMemberCallInConstructor
+                // DNC
                 patterns = GetValidPatterns();
             DecorateInSource = true;
         }
@@ -106,7 +108,7 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // identifier resolve requires a manual search.
                                 string word = tokenIdentifier.word;
-                                if (executor.scoreboard.TryGetByAccessor(word, out ScoreboardValue value))
+                                if (executor.scoreboard.TryGetByInternalName(word, out ScoreboardValue value))
                                     allResolved.Add(new TokenIdentifierValue(word, value, line));
                                 else if (executor.TryLookupMacro(word, out Macro? macro))
                                     allResolved.Add(new TokenIdentifierMacro(macro.GetValueOrDefault(), line));
@@ -357,7 +359,8 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
         }
-        public void SquashAll(List<Token> tokens, Executor executor)
+
+        private void SquashAll(List<Token> tokens, Executor executor)
         {
             // recursively call parenthesis first
             for(int i = 0; i < tokens.Count; i++)
@@ -369,17 +372,22 @@ namespace mc_compiled.MCC.Compiler
                     continue;
 
                 int level = 1;
-                List<Token> toSquash = new List<Token>();
+                var toSquash = new List<Token>();
                 for(int x = i + 1; x < tokens.Count; x++)
                 {
                     token = tokens[x];
-                    if (token is TokenOpenParenthesis)
-                        level++;
-                    else if(token is TokenCloseParenthesis)
+                    switch (token)
                     {
-                        level--;
-                        if (level < 1)
-                            goto properlyClosed;
+                        case TokenOpenParenthesis _:
+                            level++;
+                            break;
+                        case TokenCloseParenthesis _:
+                        {
+                            level--;
+                            if (level < 1)
+                                goto properlyClosed;
+                            break;
+                        }
                     }
                     toSquash.Add(token);
                 }
@@ -413,7 +421,8 @@ namespace mc_compiled.MCC.Compiler
             Squash<TokenArithmeticFirst>(ref tokens, executor);
             Squash<TokenArithmeticSecond>(ref tokens, executor);
         }
-        public void Squash<T>(ref List<Token> tokens, Executor executor)
+
+        private void Squash<T>(ref List<Token> tokens, Executor executor)
         {
             for (int i = 1; i < (tokens.Count() - 1); i++)
             {
@@ -424,9 +433,9 @@ namespace mc_compiled.MCC.Compiler
                     continue; // dont squash assignments
 
                 // this can be assumed due to how squash is meant to be called
-                TokenArithmetic arithmetic = (TokenArithmetic)selected;
+                var arithmetic = (TokenArithmetic)selected;
                 TokenArithmetic.Type op = arithmetic.GetArithmeticType();
-                List<string> commands = new List<string>();
+                var commands = new List<string>();
                 Token squashedToken = null;
                 
                 Token _left = tokens[i - 1];
@@ -461,6 +470,8 @@ namespace mc_compiled.MCC.Compiler
                         case TokenArithmetic.Type.MODULO:
                             squashedToken = left.ModWithOther(right);
                             break;
+                        case TokenArithmetic.Type.SWAP:
+                            throw new StatementException(this, "Attempting to swap literals");
                         default:
                             break;
                     }
@@ -482,28 +493,31 @@ namespace mc_compiled.MCC.Compiler
                     switch (op)
                     {
                         case TokenArithmetic.Type.ADD:
-                            commands.AddRange(temp.CommandsAdd(b));
+                            commands.AddRange(temp.Add(b, this));
                             break;
                         case TokenArithmetic.Type.SUBTRACT:
-                            commands.AddRange(temp.CommandsSub(b));
+                            commands.AddRange(temp.Subtract(b, this));
                             break;
                         case TokenArithmetic.Type.MULTIPLY:
-                            commands.AddRange(temp.CommandsMul(b));
+                            commands.AddRange(temp.Multiply(b, this));
                             break;
                         case TokenArithmetic.Type.DIVIDE:
-                            commands.AddRange(temp.CommandsDiv(b));
+                            commands.AddRange(temp.Divide(b, this));
                             break;
                         case TokenArithmetic.Type.MODULO:
-                            commands.AddRange(temp.CommandsMod(b));
+                            commands.AddRange(temp.Modulo(b, this));
+                            break;
+                        case TokenArithmetic.Type.SWAP:
+                            commands.AddRange(temp.Swap(b, this));
                             break;
                         default:
-                            break;
+                            throw new Exception($"Unknown arithmetic type '{op}'.");
                     }
                 }
                 else if (leftIsValue | rightIsValue
                     && leftIsLiteral | rightIsLiteral)
                 {
-                    string aAccessor, bAccessor;
+                    string aAccessor;
                     ScoreboardValue a, b;
                     if (leftIsLiteral)
                     {
@@ -513,15 +527,13 @@ namespace mc_compiled.MCC.Compiler
                         a = executor.scoreboard.temps.Request(_left as TokenLiteral, this, true);
                         aAccessor = a.Name;
                         commands.AddRange(a.AssignLiteral(_left as TokenLiteral, this));
-                        bAccessor = (_right as TokenIdentifierValue).Accessor;
                     }
                     else
                     {
-                        TokenIdentifierValue left = _left as TokenIdentifierValue;
+                        var left = _left as TokenIdentifierValue;
                         squashToGlobal = left.value.clarifier.IsGlobal;
 
                         b = executor.scoreboard.temps.Request(_right as TokenLiteral, this, true);
-                        bAccessor = b.Name;
                         commands.AddRange(b.AssignLiteral(_right as TokenLiteral, this));
 
                         // left is a value, so it needs to be put into a temp variable so that the source is not modified
@@ -535,23 +547,25 @@ namespace mc_compiled.MCC.Compiler
                     switch (op)
                     {
                         case TokenArithmetic.Type.ADD:
-                            commands.AddRange(a.CommandsAdd(b));
+                            commands.AddRange(a.Add(b, this));
                             break;
                         case TokenArithmetic.Type.SUBTRACT:
-                            commands.AddRange(a.CommandsSub(b));
+                            commands.AddRange(a.Subtract(b, this));
                             break;
                         case TokenArithmetic.Type.MULTIPLY:
-                            commands.AddRange(a.CommandsMul(b));
+                            commands.AddRange(a.Multiply(b, this));
                             break;
                         case TokenArithmetic.Type.DIVIDE:
-                            commands.AddRange(a.CommandsDiv(b));
+                            commands.AddRange(a.Divide(b, this));
                             break;
                         case TokenArithmetic.Type.MODULO:
-                            commands.AddRange(a.CommandsMod(b));
+                            commands.AddRange(a.Modulo(b, this));
                             break;
                         case TokenArithmetic.Type.SWAP:
-                        default:
+                            commands.AddRange(a.Swap(b, this));
                             break;
+                        default:
+                            throw new Exception($"Unknown arithmetic type '{op}'.");
                     }
                 }
                 else
@@ -560,7 +574,7 @@ namespace mc_compiled.MCC.Compiler
                 CommandFile file = executor.CurrentFile;
                 int nextLineNumber = executor.NextLineNumber;
                 executor.AddCommandsClean(commands, "inline_op",
-                    $"Part of an inline math operation from {file.CommandReference} line {nextLineNumber}. Performs ({_left.AsString()} {arithmatic.AsString()} {_right.AsString()}).");
+                    $"Part of an inline math operation from {file.CommandReference} line {nextLineNumber}. Performs ({_left.AsString()} {arithmetic} {_right.AsString()}).");
 
                 // replace those three tokens with the one squashed one
                 tokens.RemoveRange(i - 1, 3);
@@ -585,11 +599,10 @@ namespace mc_compiled.MCC.Compiler
                 Token second = (tokens.Count > (i + 1)) ? tokens[i + 1] : null;
                 Token third = (tokens.Count > (i + 2)) ? tokens[i + 2] : null;
 
-                if (!(selected is TokenIdentifierFunction))
+                if (!(selected is TokenIdentifierFunction identifierFunction))
                     continue;
 
-                TokenIdentifierFunction func = selected as TokenIdentifierFunction;
-                Function[] functions = func.functions;
+                Function[] functions = identifierFunction.functions;
 
                 // skip if there's no parenthesis and no functions can be implicitly called.
                 bool useImplicit = false;
@@ -607,7 +620,7 @@ namespace mc_compiled.MCC.Compiler
                 int x = i + (useImplicit ? 0 : 2);
 
                 // if its not parameterless() or implicit, fetch until level <= 0
-                List<Token> _tokensInside = new List<Token>();
+                var _tokensInside = new List<Token>();
                 if (!useImplicit && !(third is TokenCloseParenthesis))
                 {
                     for(int z = x; z < tokens.Count; z++)
@@ -643,12 +656,12 @@ namespace mc_compiled.MCC.Compiler
                             continue;
                         }
 
-                        if (score > bestFunctionScore)
-                        {
-                            foundValidMatch = true;
-                            bestFunction = function;
-                            bestFunctionScore = score;
-                        }
+                        if (score <= bestFunctionScore)
+                            continue;
+                        
+                        foundValidMatch = true;
+                        bestFunction = function;
+                        bestFunctionScore = score;
                     }
 
                     if (!foundValidMatch)
@@ -656,9 +669,9 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 if (bestFunction == null)
-                    throw new StatementException(this, $"Strange error, report to the devs. No best function was found for identifier: {func.word}. Implicit: {useImplicit}");
+                    throw new StatementException(this, $"No best function was found for identifier: {identifierFunction.word}. Implicit: {useImplicit}. Please submit this as an issue on GitHub, or contact lukecreator on Discord about this.");
 
-                List<string> commands = new List<string>();
+                var commands = new List<string>();
 
                 // process the parameters and get their commands.
                 bestFunction.ProcessParameters(tokensInside, commands, executor, this);
@@ -681,7 +694,6 @@ namespace mc_compiled.MCC.Compiler
                 {
                     tokens.RemoveAt(i);
                     tokens.Insert(i, replacement);
-                    i--;
                 }
                 else
                 {

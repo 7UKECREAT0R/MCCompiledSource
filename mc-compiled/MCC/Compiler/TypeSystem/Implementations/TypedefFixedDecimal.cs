@@ -28,19 +28,19 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.FIXED_DECIMAL;
         public override string TypeShortcode => "FDC";
-        public override string TypeKeyword => "decimal";
+        public override string TypeKeyword => "DECIMAL";
         internal override string[] GetObjectives(ScoreboardValue input)
         {
             return new[] { input.InternalName };
         }
 
         public override bool CanCompareAlone => false;
-        internal override Range CompareAlone(bool invert) => default;
+        internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value) => default;
 
         public override TypePattern SpecifyPattern => new TypePattern(new NamedType(typeof(TokenIntegerLiteral), "precision"));
-        public override object AcceptPattern(TokenLiteral[] inputs, Statement callingStatement)
+        public override object AcceptPattern(Statement statement)
         {
-            int precision = (inputs[0] as TokenIntegerLiteral);
+            int precision = statement.Next<TokenNumberLiteral>().GetNumberInt();
             return new FixedDecimalData(precision);
         }
         
@@ -65,7 +65,6 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             int factor;
             
             ScoreboardValue temp = manager.temps.RequestGlobal();
-            manager.temps.ReleaseGlobal();
             
             switch (dstType)
             {
@@ -290,7 +289,6 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             int precision = ((FixedDecimalData)self.data).precision;
             ScoreboardManager manager = self.manager;
             ScoreboardValue tempBase = manager.temps.RequestGlobal();
-            manager.temps.ReleaseGlobal();
 
             return new[] {
                 Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
@@ -303,7 +301,6 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             int precision = ((FixedDecimalData)self.data).precision;
             ScoreboardManager manager = self.manager;
             ScoreboardValue tempBase = manager.temps.RequestGlobal();
-            manager.temps.ReleaseGlobal();
 
             return new[] {
                 Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),

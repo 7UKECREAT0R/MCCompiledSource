@@ -27,7 +27,7 @@ namespace mc_compiled.MCC.Compiler
             this.global = global;
             this.Reset();
         }
-        private Clarifier(bool global, string currentString)
+        public Clarifier(bool global, string currentString)
         {
             this.global = global;
             this.currentString = currentString;

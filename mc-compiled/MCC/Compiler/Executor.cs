@@ -308,12 +308,15 @@ namespace mc_compiled.MCC.Compiler
 
                             ScoreboardValue value = identifierValue.value;
                             int indexCopy = scoreIndex;
-                            AddCommandsClean(value.CommandsRawTextSetup(ref indexCopy), "string" + value.InternalName,
+
+                            // type implementation called here
+                            (string[] rtCommands, JSONRawTerm[] rtTerms) = value.ToRawText(ref indexCopy);
+                            
+                            AddCommandsClean(rtCommands, "string" + value.InternalName,
                                 $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {NextLineNumber}");
 
-                            // localize and flatten the array here.
-                            JSONRawTerm[] toStringTerms = value.ToRawText(ref indexCopy);
-                            terms.AddRange(toStringTerms.SelectMany(term => term.Localize(this, forExceptions)));
+                            // localize and flatten the array.
+                            terms.AddRange(rtTerms.SelectMany(term => term.Localize(this, forExceptions)));
 
                             scoreIndex++;
                             continue;

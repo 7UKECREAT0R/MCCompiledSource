@@ -1,16 +1,32 @@
 ﻿using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using mc_compiled.MCC.Compiler.TypeSystem;
+using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace mc_compiled.MCC
 {
     /// <summary>
-    /// Manages temp scoreboards. Used internally through Executor.scoreboard
+    /// Manages temp scoreboards. Used internally through <see cref="Executor.scoreboard"/> field in <see cref="Executor"/>
     /// </summary>
-    public class TempManager
+    public class TempManager : IDisposable
     {
+        private bool _isDisposed;
+        public void Dispose()
+        {
+            if (_isDisposed)
+                return;
+
+            foreach (TempStateContract contract in Contracts.Where(contract => contract != null))
+                contract.Dispose();
+            
+            Contracts.Clear();
+            _isDisposed = true;
+        }
+
         // _tmp[L|G][SHORTCODE][INDEX]
         // Example: '_tmpGBLN1' is an index=1 Global Boolean
         // Example: '_tmpLDEC0' is an index=0 Local Decimal
@@ -22,24 +38,24 @@ namespace mc_compiled.MCC
         private static string BuildGlobalTempName(Typedef type, int index) =>
             $"{PREFIX_GLOBAL}{type.TypeShortcode}{index}";
 
-        private ScoreboardManager manager;
-        private Executor executor;
+        private readonly ScoreboardManager manager;
+        private readonly Executor executor;
         internal TempManager(ScoreboardManager manager, Executor executor)
         {
             this.manager = manager;
             this.executor = executor;
 
-            this.localTemps = new Dictionary<ScoreboardManager.ValueType, int>();
-            this.globalTemps = new Dictionary<ScoreboardManager.ValueType, int>();
+            this.localTemps = new Dictionary<Typedef, int>();
+            this.globalTemps = new Dictionary<Typedef, int>();
             this.DefinedTemps = new HashSet<string>();
             this.Contracts = new List<TempStateContract>();
 
             Array valueTypes = Enum.GetValues(typeof(ScoreboardManager.ValueType));
 
-            foreach (ScoreboardManager.ValueType valueType in valueTypes)
+            foreach (Typedef type in Typedef.ALL_TYPES)
             {
-                this.localTemps[valueType] = 0;
-                this.globalTemps[valueType] = 0;
+                this.localTemps[type] = 0;
+                this.globalTemps[type] = 0;
             }
         }
 
@@ -55,11 +71,11 @@ namespace mc_compiled.MCC
         /// <summary>
         /// The current number of local temps allocated.
         /// </summary>
-        private Dictionary<ScoreboardManager.ValueType, int> localTemps;
+        private Dictionary<Typedef, int> localTemps;
         /// <summary>
         /// The current number of global temps allocated.
         /// </summary>
-        private Dictionary<ScoreboardManager.ValueType, int> globalTemps;
+        private Dictionary<Typedef, int> globalTemps;
 
         /// <summary>
         /// Requests a temp variable that copies the properties of the given <see cref="ScoreboardValue"/>.
@@ -71,7 +87,7 @@ namespace mc_compiled.MCC
         public ScoreboardValue RequestCopy(ScoreboardValue toCopy, bool? overrideGlobal = null)
         {
             bool isNowGlobal = toCopy.clarifier.IsGlobal;
-            ScoreboardManager.ValueType typeEnum = toCopy.type.TypeEnum;
+            Typedef type = toCopy.type;
             string shortcode = toCopy.type.TypeShortcode;
 
             string newName;
@@ -82,14 +98,14 @@ namespace mc_compiled.MCC
 
             if (isNowGlobal)
             {
-                this.globalTemps.TryGetValue(typeEnum, out int d);
-                this.globalTemps[typeEnum] = d + 1;
+                this.globalTemps.TryGetValue(type, out int d);
+                this.globalTemps[type] = d + 1;
                 newName = PREFIX_GLOBAL + shortcode + d;
             }
             else
             {
-                this.localTemps.TryGetValue(typeEnum, out int d);
-                this.localTemps[typeEnum] = d + 1;
+                this.localTemps.TryGetValue(type, out int d);
+                this.localTemps[type] = d + 1;
                 newName = PREFIX_LOCAL + shortcode + d;
             }
 
@@ -143,10 +159,10 @@ namespace mc_compiled.MCC
                 ReleaseLocal(type);
         }
 
-        public ScoreboardValue RequestLocal() => RequestLocal(Typedef.INTEGER, null);
+        public ScoreboardValue RequestLocal() => RequestLocal(Typedef.INTEGER);
         public ScoreboardValue RequestLocal(Typedef type, object data = null)
         {
-            this.localTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            this.localTemps.TryGetValue(type, out int currentDepth); // assignment
 
             // create the temp value.
             string name = BuildLocalTempName(type, currentDepth);
@@ -160,21 +176,21 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.localTemps[type.TypeEnum] = currentDepth + 1;
+            this.localTemps[type] = currentDepth + 1;
 
             return created;
         }
         public ScoreboardValue RequestLocal(TokenLiteral literal, Statement forExceptions)
         {
-            Typedef type = literal.GetTypedef(out _);
+            Typedef type = literal.GetTypedef();
 
             if(type == null)
                 throw new StatementException(forExceptions, $"Unexpected literal of type '{literal.GetType().Name}' in TempManager#RequestLocal");
 
-            this.localTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            this.localTemps.TryGetValue(type, out int currentDepth); // assignment
             string name = BuildLocalTempName(type, currentDepth);
 
-            ScoreboardValue created = manager.CreateFromLiteral(name, false, literal, forExceptions);
+            ScoreboardValue created = literal.CreateValue(name, false, forExceptions);
 
             // define the temp value if it hasn't yet.
             if (DefinedTemps.Add(name))
@@ -184,25 +200,25 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.localTemps[type.TypeEnum] = currentDepth + 1;
+            this.localTemps[type] = currentDepth + 1;
 
             return created;
         }
         public void ReleaseLocal() => ReleaseLocal(Typedef.INTEGER);
         public void ReleaseLocal(Typedef type)
         {
-            this.localTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            this.localTemps.TryGetValue(type, out int currentDepth); // assignment
 
             if (currentDepth == 0)
                 throw new Exception($"Called ReleaseLocal with no local temps of type {type}.");
 
-            this.localTemps[type.TypeEnum] = currentDepth - 1;
+            this.localTemps[type] = currentDepth - 1;
         }
 
         public ScoreboardValue RequestGlobal() => RequestGlobal(Typedef.INTEGER);
         public ScoreboardValue RequestGlobal(Typedef type)
         {
-            this.globalTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            this.globalTemps.TryGetValue(type, out int currentDepth); // assignment
 
             // create the temp value.
             string name = BuildGlobalTempName(type, currentDepth);
@@ -216,21 +232,21 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.globalTemps[type.TypeEnum] = currentDepth + 1;
+            this.globalTemps[type] = currentDepth + 1;
 
             return created;
         }
         public ScoreboardValue RequestGlobal(TokenLiteral literal, Statement forExceptions)
         {
-            Typedef type = literal.GetTypedef(out _);
+            Typedef type = literal.GetTypedef();
 
             if (type == null)
                 throw new StatementException(forExceptions, $"Unexpected literal of type '{literal.GetType().Name}' in TempManager#RequestGlobal");
 
-            this.globalTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            this.globalTemps.TryGetValue(type, out int currentDepth); // assignment
             string name = BuildGlobalTempName(type, currentDepth);
 
-            ScoreboardValue created = manager.CreateFromLiteral(name, true, literal, forExceptions);
+            ScoreboardValue created = literal.CreateValue(name, true, forExceptions);
 
             // define the temp value if it hasn't yet.
             if (DefinedTemps.Add(name))
@@ -240,23 +256,23 @@ namespace mc_compiled.MCC
             }
 
             // increment the currentDepth.
-            this.globalTemps[type.TypeEnum] = currentDepth + 1;
+            this.globalTemps[type] = currentDepth + 1;
 
             return created;
         }
         public void ReleaseGlobal() => ReleaseGlobal(Typedef.INTEGER);
         public void ReleaseGlobal(Typedef type)
         {
-            this.globalTemps.TryGetValue(type.TypeEnum, out int currentDepth); // assignment
+            this.globalTemps.TryGetValue(type, out int currentDepth); // assignment
 
             if (currentDepth == 0)
                 throw new Exception($"Called ReleaseGlobal with no global temps of type {type}.");
 
-            this.globalTemps[type.TypeEnum] = currentDepth - 1;
+            this.globalTemps[type] = currentDepth - 1;
         }
 
         /// <summary>
-        /// Creates a contextual copy of the TempManager's state and pushes it, like a stack.
+        /// Creates a contextual copy of the TempManager's state and pushes it, like a stack. To pop, just dispose the contract.
         /// </summary>
         /// <returns></returns>
         public TempStateContract PushTempState()
@@ -264,18 +280,6 @@ namespace mc_compiled.MCC
             var contract = new TempStateContract(this);
             this.Contracts.Add(contract);
             return contract;
-        }
-        /// <summary>
-        /// Restores the last popped version of the TempManager's state. Disposes the contract associated with it.
-        /// To 
-        /// </summary>
-        public void PopTempState()
-        {
-            int lastIndex = this.Contracts.Count - 1;
-            TempStateContract contract = this.Contracts[lastIndex];
-            contract.Dispose();
-
-            this.Contracts.RemoveAt(lastIndex);
         }
 
         /// <summary>
@@ -299,16 +303,16 @@ namespace mc_compiled.MCC
             
             private readonly TempManager parent;
             private readonly HashSet<string> definedTempsState;
-            private readonly Dictionary<ScoreboardManager.ValueType, int> localTempState;
-            private readonly Dictionary<ScoreboardManager.ValueType, int> globalTempState;
+            private readonly Dictionary<Typedef, int> localTempState;
+            private readonly Dictionary<Typedef, int> globalTempState;
 
             internal TempStateContract(TempManager parent)
             {
                 this.parent = parent;
 
                 this.definedTempsState = new HashSet<string>(parent.DefinedTemps);
-                this.localTempState = new Dictionary<ScoreboardManager.ValueType, int>(parent.localTemps);
-                this.globalTempState = new Dictionary<ScoreboardManager.ValueType, int>(parent.globalTemps);
+                this.localTempState = new Dictionary<Typedef, int>(parent.localTemps);
+                this.globalTempState = new Dictionary<Typedef, int>(parent.globalTemps);
             }
             /// <summary>
             /// Restores this contract to its <see cref="TempManager"/> and gets rid of it.
@@ -348,8 +352,8 @@ namespace mc_compiled.MCC
                 int hashCode = -1224315232;
                 hashCode = hashCode * -1521134295 + EqualityComparer<TempManager>.Default.GetHashCode(parent);
                 hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(definedTempsState);
-                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<ScoreboardManager.ValueType, int>>.Default.GetHashCode(localTempState);
-                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<ScoreboardManager.ValueType, int>>.Default.GetHashCode(globalTempState);
+                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Typedef, int>>.Default.GetHashCode(localTempState);
+                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Typedef, int>>.Default.GetHashCode(globalTempState);
                 return hashCode;
             }
         }

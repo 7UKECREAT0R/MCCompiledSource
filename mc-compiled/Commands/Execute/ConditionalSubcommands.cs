@@ -34,7 +34,7 @@ namespace mc_compiled.Commands.Execute
             return new ConditionalSubcommandBlock(x, y, z, block, data);
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenCoordinateLiteral), "x"),
@@ -114,7 +114,7 @@ namespace mc_compiled.Commands.Execute
 
         
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenCoordinateLiteral), "begin x"),
@@ -172,7 +172,7 @@ namespace mc_compiled.Commands.Execute
             return new ConditionalSubcommandEntity(entity);
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "target")
@@ -191,6 +191,8 @@ namespace mc_compiled.Commands.Execute
     {
         internal bool comparesRange;
 
+        internal bool SourceIsGlobal => sourceSelector.Equals(Executor.FAKEPLAYER_NAME);
+        internal Clarifier SourceClarifier => new Clarifier(SourceIsGlobal, sourceSelector);
         internal string sourceSelector;
         internal string sourceValue;
 
@@ -199,6 +201,9 @@ namespace mc_compiled.Commands.Execute
 
         // if !comparesRange
         internal TokenCompare.Type comparisonType;
+        
+        internal bool OtherIsGlobal => otherSelector.Equals(Executor.FAKEPLAYER_NAME);
+        internal Clarifier OtherClarifier => new Clarifier(OtherIsGlobal, otherSelector);
         internal string otherSelector;
         internal string otherValue;
 
@@ -280,7 +285,7 @@ namespace mc_compiled.Commands.Execute
             return new ConditionalSubcommandScore(false, sourceSelector, sourceObjective, Range.zero, type, otherSelector, otherObjective);
         }
 
-        public override TypePattern[] Pattern => new TypePattern[]
+        public override TypePattern[] Patterns => new TypePattern[]
         {
             new TypePattern(
                 new NamedType(typeof(TokenIdentifierValue), "source"),

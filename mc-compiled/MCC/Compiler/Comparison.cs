@@ -38,7 +38,7 @@ namespace mc_compiled.MCC.Compiler
             if (!tokens.HasNext)
                 return new ComparisonSet();
 
-            ComparisonSet set = new ComparisonSet();
+            var set = new ComparisonSet();
             bool invertNext = false;
             Token currentToken;
 
@@ -57,13 +57,12 @@ namespace mc_compiled.MCC.Compiler
                 if (currentToken is TokenIdentifierValue identifierValue)
                 {
                     ScoreboardValue value = identifierValue.value;
-                    if (value is ScoreboardValueBoolean booleanValue)
+                    if (value.type.CanCompareAlone)
                     {
-                        // ComparisonBoolean
-                        // if <boolean>
-                        ComparisonBoolean boolean = new ComparisonBoolean(booleanValue, invertNext);
+                        // if <score>
+                        var comparisonAlone = new ComparisonAlone(value, invertNext);
                         invertNext = false;
-                        set.Add(boolean);
+                        set.Add(comparisonAlone);
                     }
                     else
                     {
@@ -72,7 +71,7 @@ namespace mc_compiled.MCC.Compiler
                         TokenCompare.Type comparison = tokens.Next<TokenCompare>().GetCompareType();
                         Token b = tokens.Next();
 
-                        ComparisonValue field = new ComparisonValue(identifierValue, comparison, b, invertNext);
+                        var field = new ComparisonValue(identifierValue, comparison, b, invertNext);
 
                         invertNext = false;
                         set.Add(field);
@@ -82,7 +81,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     // ComparisonSelector
                     // if <@selector>
-                    ComparisonSelector comparison = new ComparisonSelector(selectorLiteral.selector, invertNext);
+                    var comparison = new ComparisonSelector(selectorLiteral.selector, invertNext);
                     invertNext = false;
                     set.Add(comparison);
                 }
@@ -94,11 +93,11 @@ namespace mc_compiled.MCC.Compiler
                     {
                         // ComparisonCount
                         // if count <@selector> <operator> <value>
-                        TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-                        TokenCompare comparison = tokens.Next<TokenCompare>();
+                        var selector = tokens.Next<TokenSelectorLiteral>();
+                        var comparison = tokens.Next<TokenCompare>();
                         Token b = tokens.Next();
 
-                        ComparisonCount count = new ComparisonCount(selector,
+                        var count = new ComparisonCount(selector,
                             comparison.GetCompareType(), b, invertNext);
 
                         invertNext = false;
@@ -108,8 +107,8 @@ namespace mc_compiled.MCC.Compiler
                     {
                         // ComparisonAny
                         // if any <@selector>
-                        TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
-                        ComparisonAny any = new ComparisonAny(selector, invertNext);
+                        var selector = tokens.Next<TokenSelectorLiteral>();
+                        var any = new ComparisonAny(selector, invertNext);
 
                         invertNext = false;
                         set.Add(any);
@@ -127,7 +126,7 @@ namespace mc_compiled.MCC.Compiler
                         if (tokens.NextIs<TokenIntegerLiteral>())
                             data = tokens.Next<TokenIntegerLiteral>();
 
-                        ComparisonBlock blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
+                        var blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
 
                         invertNext = false;
                         set.Add(blockCheck);
@@ -146,7 +145,7 @@ namespace mc_compiled.MCC.Compiler
                         Coord destY = tokens.Next<TokenCoordinateLiteral>();
                         Coord destZ = tokens.Next<TokenCoordinateLiteral>();
 
-                        BlocksScanMode scanMode = BlocksScanMode.all;
+                        var scanMode = BlocksScanMode.all;
                         if(tokens.NextIs<TokenIdentifierEnum>())
                         {
                             ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>().value;
@@ -154,7 +153,7 @@ namespace mc_compiled.MCC.Compiler
                             scanMode = (BlocksScanMode)parsed.value;
                         }
 
-                        ComparisonBlocks blockCheck = new ComparisonBlocks(startX, startY, startZ,
+                        var blockCheck = new ComparisonBlocks(startX, startY, startZ,
                             endX, endY, endZ, destX, destY, destZ, scanMode, invertNext);
 
                         invertNext = false;
@@ -170,9 +169,8 @@ namespace mc_compiled.MCC.Compiler
                 // loop again if an AND operator is present
                 if (currentToken is TokenAnd)
                     continue;
-                else
-                    break;
-
+                break;
+                
             } while (tokens.HasNext);
 
             return set;
@@ -195,18 +193,16 @@ namespace mc_compiled.MCC.Compiler
             // get the statement at the end of the execution set, and detect if it's an else-statement.
             int endOfExecutionSet = FindEndOfExecutionSet(executor);
             Statement atEndOfExecutionSet = executor.PeekSkip(endOfExecutionSet);
-            bool usesElse = atEndOfExecutionSet != null &&                  // if there is a statement...
-                            atEndOfExecutionSet is StatementDirective &&    // if it's a directive call...
-                            (atEndOfExecutionSet as StatementDirective)     // if it's a inversion statement... (else/elif)
-                                .HasAttribute(DirectiveAttribute.INVERTS_COMPARISON);
+            bool usesElse = atEndOfExecutionSet is StatementDirective directive &&
+                            directive.HasAttribute(DirectiveAttribute.INVERTS_COMPARISON);
 
-            List<string> commands = new List<string>();
-            List<Subcommand> chunks = new List<Subcommand>();
+            var commands = new List<string>();
+            var chunks = new List<Subcommand>();
 
             bool cancel = false;
             foreach (Comparison comparison in this)
             {
-                var partCommands = comparison.GetCommands(executor, callingStatement, usesElse, out bool cancel0);
+                IEnumerable<string> partCommands = comparison.GetCommands(executor, callingStatement, usesElse, out bool cancel0);
                 Subcommand[] localChunks = comparison.GetExecuteChunks(executor, callingStatement, usesElse, out bool cancel1);
 
                 cancel |= cancel0 | cancel1;
@@ -240,7 +236,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 ApplyComparisonToSolo(chunks, callingStatement, executor, cancel);
         }
-        private int FindEndOfExecutionSet(Executor executor)
+        private static int FindEndOfExecutionSet(Executor executor)
         {
             Statement next = executor.Peek();
 
@@ -344,10 +340,12 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
         }
+
         /// <summary>
         /// Applies the given comparison subcommands to the executor, assuming there will be an else statement.
         /// </summary>
         /// <param name="chunks">The chunks to add.</param>
+        /// <param name="setupFile">The init file with all the setup commands. (runs once per world)</param>
         /// <param name="forExceptions">For exceptions.</param>
         /// <param name="executor">The executor to modify.</param>
         /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
@@ -356,8 +354,8 @@ namespace mc_compiled.MCC.Compiler
             // get the next statement to determine how to run this comparison
             Statement next = executor.Seek();
 
-            PreviousComparisonStructure record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel, GetDescription());
-            ScoreboardValueBoolean resultObjective = record.resultStore;
+            var record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel, GetDescription());
+            ScoreboardValue resultObjective = record.resultStore;
 
             setupFile.Add(Command.ScoreboardSet(resultObjective, 0));
             setupFile.Add(Command.Execute().WithSubcommands(chunks).Run(Command.ScoreboardSet(resultObjective, 1)));

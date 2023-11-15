@@ -7,6 +7,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 
@@ -317,6 +319,27 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
+        /// Check <see cref="Typedef.CanCompareAlone"/> before attempting this.
+        /// Returns the comparisons needed to compare this value alone. (booleans)
+        /// </summary>
+        /// <returns>null if <see cref="Typedef.CanCompareAlone"/> is false.</returns>
+        internal ConditionalSubcommandScore[] CompareAlone(bool invert)
+        {
+            return type.CompareAlone(invert, this);
+        }
+        /// <summary>
+        /// Compare a value with this type to a literal value. Returns both the setup commands needed, and the score comparisons needed.
+        /// <br/>
+        /// <b>Either field may be null, in which it will count as empty.</b>
+        /// </summary>
+        /// <param name="comparisonType">The comparison type.</param>
+        /// <param name="literal">The literal to compare to.</param>
+        internal Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(TokenCompare.Type comparisonType, TokenLiteral literal)
+        {
+            return type.CompareToLiteral(comparisonType, this, literal);
+        }
+        
+        /// <summary>
         /// Returns the commands needed to assign a literal to this value.
         /// </summary>
         /// <param name="literal">The literal to assign to this.</param>
@@ -347,6 +370,29 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
+        /// Calls one of this object's operation methods (Add, Subtract, Multiply, etc...) based on the given arithmetic type.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="type"></param>
+        /// <param name="callingStatement"></param>
+        /// <returns></returns>
+        public IEnumerable<string> Operation(ScoreboardValue other, TokenArithmetic.Type type,
+            Statement callingStatement)
+        {
+            switch (type)
+            {
+                case TokenArithmetic.Type.ADD: return Add(other, callingStatement);
+                case TokenArithmetic.Type.SUBTRACT: return Subtract(other, callingStatement);
+                case TokenArithmetic.Type.MULTIPLY: return Multiply(other, callingStatement);
+                case TokenArithmetic.Type.DIVIDE: return Divide(other, callingStatement);
+                case TokenArithmetic.Type.MODULO: return Modulo(other, callingStatement);
+                case TokenArithmetic.Type.SWAP: return Swap(other, callingStatement);
+                default:
+                    throw new StatementException(callingStatement, $"Unknown arithmetic type '{type}'.");
+            }
+        }
+        
+        /// <summary>
         /// Returns the commands needed to assign another value to self.
         /// </summary>
         /// <param name="other">The </param>
@@ -359,16 +405,194 @@ namespace mc_compiled.MCC
 
             return this.type._Assign(this, other);
         }
-
-        
+        /// <summary>
+        /// Returns the commands needed to add another value to this.
+        /// <code>
+        ///     this += other
+        /// </code>
+        /// </summary>
+        /// <param name="other">B</param>
+        /// <param name="callingStatement"></param>
+        /// <returns>The commands needed to perform the operation.</returns>
         public IEnumerable<string> Add(ScoreboardValue other, Statement callingStatement)
         {
+            var commands = new List<string>();
+            ScoreboardValue b;
+            
             if (this.NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
                 ScoreboardManager manager = other.manager;
-                manager.temps.RequestCopy(this);
+                b = manager.temps.RequestCopy(this);
+                
+                // convert 'other' into the new temp
+                commands.AddRange(other.CommandsConvert(b, callingStatement));
             }
+            else
+                b = other;
+            
+            commands.AddRange(this.type._Add(this, b));
+            return commands;
+        }
+        /// <summary>
+        /// Returns the commands needed to subtract another value from this.
+        /// <code>
+        ///     this -= other
+        /// </code>
+        /// </summary>
+        /// <param name="other">B</param>
+        /// <param name="callingStatement"></param>
+        /// <returns>The commands needed to perform the operation.</returns>
+        public IEnumerable<string> Subtract(ScoreboardValue other, Statement callingStatement)
+        {
+            var commands = new List<string>();
+            ScoreboardValue b;
+            
+            if (this.NeedsToBeConvertedFor(other))
+            {
+                // create temp to hold it in
+                ScoreboardManager manager = other.manager;
+                b = manager.temps.RequestCopy(this);
+                
+                // convert 'other' into the new temp
+                commands.AddRange(other.CommandsConvert(b, callingStatement));
+            }
+            else
+                b = other;
+            
+            commands.AddRange(this.type._Subtract(this, b));
+            return commands;
+        }
+        /// <summary>
+        /// Returns the commands needed to multiply another value with this.
+        /// <code>
+        ///     this *= other
+        /// </code>
+        /// </summary>
+        /// <param name="other">B</param>
+        /// <param name="callingStatement"></param>
+        /// <returns>The commands needed to perform the operation.</returns>
+        public IEnumerable<string> Multiply(ScoreboardValue other, Statement callingStatement)
+        {
+            var commands = new List<string>();
+            ScoreboardValue b;
+            
+            if (this.NeedsToBeConvertedFor(other))
+            {
+                // create temp to hold it in
+                ScoreboardManager manager = other.manager;
+                b = manager.temps.RequestCopy(this);
+                
+                // convert 'other' into the new temp
+                commands.AddRange(other.CommandsConvert(b, callingStatement));
+            }
+            else
+                b = other;
+            
+            commands.AddRange(this.type._Multiply(this, b));
+            return commands;
+        }
+        /// <summary>
+        /// Returns the commands needed to divide this with another value.
+        /// <code>
+        ///     this /= other
+        /// </code>
+        /// </summary>
+        /// <param name="other">B</param>
+        /// <param name="callingStatement"></param>
+        /// <returns>The commands needed to perform the operation.</returns>
+        public IEnumerable<string> Divide(ScoreboardValue other, Statement callingStatement)
+        {
+            var commands = new List<string>();
+            ScoreboardValue b;
+            
+            if (this.NeedsToBeConvertedFor(other))
+            {
+                // create temp to hold it in
+                ScoreboardManager manager = other.manager;
+                b = manager.temps.RequestCopy(this);
+                
+                // convert 'other' into the new temp
+                commands.AddRange(other.CommandsConvert(b, callingStatement));
+            }
+            else
+                b = other;
+            
+            commands.AddRange(this.type._Divide(this, b));
+            return commands;
+        }
+        /// <summary>
+        /// Returns the commands needed to modulo this with another value.
+        /// <code>
+        ///     this %= other
+        /// </code>
+        /// </summary>
+        /// <param name="other">B</param>
+        /// <param name="callingStatement"></param>
+        /// <returns>The commands needed to perform the operation.</returns>
+        public IEnumerable<string> Modulo(ScoreboardValue other, Statement callingStatement)
+        {
+            var commands = new List<string>();
+            ScoreboardValue b;
+            
+            if (this.NeedsToBeConvertedFor(other))
+            {
+                // create temp to hold it in
+                ScoreboardManager manager = other.manager;
+                b = manager.temps.RequestCopy(this);
+                
+                // convert 'other' into the new temp
+                commands.AddRange(other.CommandsConvert(b, callingStatement));
+            }
+            else
+                b = other;
+            
+            commands.AddRange(this.type._Modulo(this, b));
+            return commands;
+        }
+        /// <summary>
+        /// Returns the commands needed to swap this with another value.
+        /// <code>
+        ///     this %= other
+        /// </code>
+        /// </summary>
+        /// <param name="other">B</param>
+        /// <param name="callingStatement"></param>
+        /// <returns>The commands needed to perform the operation.</returns>
+        public IEnumerable<string> Swap(ScoreboardValue other, Statement callingStatement)
+        {
+            var commands = new List<string>();
+            
+            if (this.NeedsToBeConvertedFor(other))
+            {
+                // create temp to hold it in
+                ScoreboardManager manager = other.manager;
+                
+                ScoreboardValue a = manager.temps.RequestCopy(this);
+                ScoreboardValue b = manager.temps.RequestCopy(other);
+                
+                // convert both types into the temp variables
+                commands.AddRange(b.Assign(this, callingStatement));
+                commands.AddRange(a.Assign(other, callingStatement));
+                
+                // assign to their destinations, assume compatible
+                commands.AddRange(other.type._Assign(other, b));
+                commands.AddRange(this.type._Assign(this, a));
+                return commands;
+            }
+
+            string[] thisObjectives = this.type.GetObjectives(this);
+            string[] otherObjectives = other.type.GetObjectives(other);
+            string thisSelector = this.clarifier.CurrentString;
+            string otherSelector = other.clarifier.CurrentString;
+            
+            for (int i = 0; i < thisObjectives.Length; i++)
+            {
+                string objA = thisObjectives[i];
+                string objB = otherObjectives[i];
+                commands.Add(Command.ScoreboardOpSwap(thisSelector, objA, otherSelector, objB));
+            }
+            return commands;
         }
     }
     public class ScoreboardException : Exception

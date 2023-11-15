@@ -225,57 +225,70 @@ namespace mc_compiled.MCC.Compiler
         }
         protected override void Run(Executor executor)
         {
-            TokenIdentifierValue value = Next<TokenIdentifierValue>();
-            IAssignment assignment = Next<IAssignment>();
+            var value = Next<TokenIdentifierValue>();
+            var assignment = Next<IAssignment>();
 
             if (!HasNext)
                 throw new StatementException(this, "Nothing on right-hand side of assignment.");
 
             if (NextIs<TokenIdentifierValue>())
             {
-                TokenIdentifierValue next = Next<TokenIdentifierValue>();
+                var next = Next<TokenIdentifierValue>();
                 CommandFile file = executor.CurrentFile;
 
-                if (assignment is TokenArithmetic arithmatic)
+                if (assignment is TokenArithmetic arithmetic)
                 {
-                    TokenArithmetic.Type op = arithmatic.GetArithmeticType();
-                    executor.AddCommands(value.value.CommandsFromOperation
-                        (next.value, op), "math_op", $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} {arithmatic.AsString()} {next.value.Name}).");
+                    TokenArithmetic.Type op = arithmetic.GetArithmeticType();
+                    
+                    // switch on 'op' and perform operation
+                    IEnumerable<string> commands = value.value.Operation
+                        (next.value, op, this);
+                    
+                    executor.AddCommands(commands,
+                        "math_op",
+                        $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} {arithmetic.AsString()} {next.value.Name}).");
                 } else
-                    executor.AddCommands(value.value.CommandsSet
-                        (next.value), "set_op", $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} = {next.value.Name}).");
+                    executor.AddCommands(value.value.Assign(next.value, this),
+                        "set_op",
+                        $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} = {next.value.Name}).");
             }
             else if (NextIs<TokenLiteral>())
             {
-                TokenLiteral next = Next<TokenLiteral>();
+                var next = Next<TokenLiteral>();
                 CommandFile file = executor.CurrentFile;
 
-                if (assignment is TokenArithmetic arithmatic)
+                if (assignment is TokenArithmetic arithmetic)
                 {
                     
-                    TokenArithmetic.Type op = arithmatic.GetArithmeticType();
-                    List<string> commands = new List<string>();
+                    TokenArithmetic.Type op = arithmetic.GetArithmeticType();
+                    var commands = new List<string>();
 
-                    ScoreboardManager.ValueType type = ScoreboardManager.ValueType.INT;
-
-                    if (op == TokenArithmetic.Type.ADD)
-                        commands.AddRange(value.value.CommandsAddLiteral(next, this));
-                    else if (op == TokenArithmetic.Type.SUBTRACT)
-                        commands.AddRange(value.value.CommandsSubLiteral(next, this));
-                    else
+                    switch (op)
                     {
-                        ScoreboardValue temp = executor.scoreboard.temps.RequestGlobal(next, this);
-                        type = temp.valueType;
-                        commands.AddRange(temp.CommandsSetLiteral(next));
-                        commands.AddRange(value.value.CommandsFromOperation(temp, op));
-                        executor.scoreboard.temps.ReleaseGlobal(type);
+                        case TokenArithmetic.Type.ADD:
+                            commands.AddRange(value.value.AddLiteral(next, this));
+                            break;
+                        case TokenArithmetic.Type.SUBTRACT:
+                            commands.AddRange(value.value.SubtractLiteral(next, this));
+                            break;
+                        case TokenArithmetic.Type.MULTIPLY:
+                        case TokenArithmetic.Type.DIVIDE:
+                        case TokenArithmetic.Type.MODULO:
+                        case TokenArithmetic.Type.SWAP:
+                        default:
+                        {
+                            ScoreboardValue temp = executor.scoreboard.temps.RequestGlobal(next, this);
+                            commands.AddRange(temp.AssignLiteral(next, this));
+                            commands.AddRange(value.value.Operation(temp, op, this));
+                            break;
+                        }
                     }
 
-                    executor.AddCommands(commands, "math_op", $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} {arithmatic.AsString()} {next.AsString()}).");
+                    executor.AddCommands(commands, "math_op", $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} {arithmetic.AsString()} {next.AsString()}).");
                 }
                 else
-                    executor.AddCommands(value.value.CommandsSetLiteral
-                        (next), "set_op", $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} = {next.AsString()}).");
+                    executor.AddCommands(value.value.AssignLiteral
+                        (next, this), "set_op", $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} = {next.AsString()}).");
             }
             else
                 throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");

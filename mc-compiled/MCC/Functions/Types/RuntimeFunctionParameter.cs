@@ -1,5 +1,6 @@
 ﻿using mc_compiled.MCC.Compiler;
 using System.Collections.Generic;
+using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -27,84 +28,69 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override ParameterFit CheckInput(Token token)
         {
-            if(token is TokenLiteral literal)
+            switch (token)
             {
-                var sbType = literal.GetTypedef(out TODO);
-                var sbDestType = this.runtimeDestination.valueType;
-
-                if (sbType == ScoreboardManager.ValueType.INVALID)
-                    return ParameterFit.No;
-                if (sbType == sbDestType)
+                case TokenLiteral literal:
                 {
-                    // return WithSubConversion if the decimal precision doesn't match.
-                    if(this.runtimeDestination is ScoreboardValueDecimal @decimal)
-                    {
-                        int sbPrecision = (literal as TokenDecimalLiteral).number.GetPrecision();
-                        if (@decimal.precision == sbPrecision)
-                            return ParameterFit.Yes;
+                    Typedef sbType = literal.GetTypedef();
+                    Typedef sbDestType = this.runtimeDestination.type;
 
-                        return ParameterFit.WithSubConversion;
-                    }
-
+                    if (sbType == null)
+                        return ParameterFit.No;
+                    if (sbType != sbDestType)
+                        return ParameterFit.WithConversion;
+                    
                     return ParameterFit.Yes;
+
                 }
-
-                return ParameterFit.WithConversion;
-            }
-
-            if (token is TokenIdentifierValue _value)
-            {
-                var valueType = _value.value.valueType;
-                var valueDestType = this.runtimeDestination.valueType;
-
-                if (valueType == ScoreboardManager.ValueType.INVALID)
-                    return ParameterFit.No;
-                if (valueType == valueDestType)
+                case TokenIdentifierValue _value:
                 {
-                    // return WithSubConversion if the decimal precision doesn't match. 
-                    if (this.runtimeDestination is ScoreboardValueDecimal @decimal)
-                    {
-                        int sourcePrecision = (_value.value as ScoreboardValueDecimal).precision;
-                        if (@decimal.precision == sourcePrecision)
-                            return ParameterFit.Yes;
+                    Typedef valueType = _value.value.type;
+                    Typedef valueDestType = this.runtimeDestination.type;
 
+                    if (valueType == null)
+                        return ParameterFit.No;
+
+                    if (!valueType.NeedsToBeConvertedTo(_value.value, this.runtimeDestination))
+                        return ParameterFit.Yes;
+                    
+                    if (valueType.TypeEnum == valueDestType.TypeEnum)
                         return ParameterFit.WithSubConversion;
-                    }
+                    
+                    if (valueType.CanConvertTo(valueDestType))
+                        return ParameterFit.WithConversion;
+                    
+                    return ParameterFit.No;
 
-                    return ParameterFit.Yes;
                 }
-
-                return ParameterFit.WithConversion;
+                default:
+                    return ParameterFit.No;
             }
-
-            return ParameterFit.No;
         }
 
         public override void SetParameter(Token token, List<string> commandBuffer, Executor executor, Statement callingStatement)
         {
-            if (token is TokenLiteral literal)
+            switch (token)
             {
-                var type = literal.GetTypedef(out TODO);
-                if (type != ScoreboardManager.ValueType.INVALID)
+                case TokenLiteral literal:
                 {
-                    string accessor = this.runtimeDestination.Name;
-                    string selector = this.runtimeDestination.clarifier.CurrentString;
-                    string[] commands = this.runtimeDestination
-                        .CommandsSetLiteral(literal);
+                    Typedef type = literal.GetTypedef();
+                    if (type != null)
+                    {
+                        IEnumerable<string> commands = this.runtimeDestination.AssignLiteral(literal, callingStatement);
+                        commandBuffer.AddRange(commands);
+                        return;
+                    }
+
+                    break;
+                }
+                case TokenIdentifierValue _value:
+                {
+                    ScoreboardValue value = _value.value;
+                    IEnumerable<string> commands = this.runtimeDestination.Assign(value, callingStatement);
                     commandBuffer.AddRange(commands);
                     return;
                 }
-            }
-            else if (token is TokenIdentifierValue _value)
-            {
-                ScoreboardValue value = _value.value;
-                string selector = this.runtimeDestination.clarifier.CurrentString;
-                string thisAccessor = this.runtimeDestination.Name;
-                string thatAccessor = value.Name;
-                string[] commands = this.runtimeDestination
-                    .CommandsSet(value);
-                commandBuffer.AddRange(commands);
-                return;
             }
 
             throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
@@ -112,7 +98,7 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string ToString()
         {
-            string type = this.runtimeDestination.GetTypeKeyword();
+            string type = this.runtimeDestination.type.TypeKeyword;
             return $"[{type} {name}]";
         }
     }

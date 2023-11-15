@@ -13,10 +13,17 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         // Data
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.BOOL;
         public override string TypeShortcode => "BLN";
-        public override string TypeKeyword => "bool";
+        public override string TypeKeyword => "BOOL";
         public override object CloneData(object data) => null; // no data to clone anyways
         public override bool CanCompareAlone => true;
-        internal override Range CompareAlone(bool invert) => new Range(1, invert);
+
+        internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value)
+        {
+            return new ConditionalSubcommandScore[]
+            {
+                ConditionalSubcommandScore.New(value, new Range(1, invert))
+            };
+        }
         internal override string[] GetObjectives(ScoreboardValue input)
         {
             return new[] { input.Name };

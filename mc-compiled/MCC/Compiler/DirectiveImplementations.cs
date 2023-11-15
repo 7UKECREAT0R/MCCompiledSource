@@ -2378,7 +2378,7 @@ namespace mc_compiled.MCC.Compiler
                     throw new StatementException(tokens, $"Subcommand '{_subcommand}' is not allowed here as it terminates the chain.");
 
                 // match subcommand pattern now, if any
-                TypePattern[] patterns = subcommand.Pattern;
+                TypePattern[] patterns = subcommand.Patterns;
                 if (patterns != null && patterns.Length > 0)
                 {
                     IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens.GetRemainingTokens()));

@@ -3,6 +3,7 @@ using mc_compiled.Modding.Behaviors;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -54,7 +55,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         {
             defaultState = "off";
 
-            return new ControllerState[] {
+            return new[] {
                 new ControllerState()
                 {
                     name = "off",
@@ -87,8 +88,8 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
     /// </summary>
     public sealed class MolangBindingInt : MolangBinding
     {
-        public readonly int min;
-        public readonly int max;
+        private readonly int min;
+        private readonly int max;
 
         public Range AsRange
         {
@@ -121,8 +122,8 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         {
             defaultState = "direct";
             int numberOfStates = max - min + 1;
-            ControllerState[] states = new ControllerState[numberOfStates + 1]; // + 1 for the director
-            ControllerState director = new ControllerState()
+            var states = new ControllerState[numberOfStates + 1]; // + 1 for the director
+            var director = new ControllerState()
             {
                 name = defaultState,
                 transitions = new ControllerState.Transition[numberOfStates]
@@ -133,7 +134,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                 int currentState = min + i;
                 string stateName = "when_" + currentState;
 
-                ControllerState state = new ControllerState()
+                var state = new ControllerState()
                 {
                     name = stateName,
                     onEntryCommands = new string[]
@@ -159,9 +160,9 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
     /// </summary>
     public sealed class MolangBindingFloat : MolangBinding
     {
-        public readonly float min;
-        public readonly float max;
-        public readonly float step;
+        private readonly float min;
+        private readonly float max;
+        private readonly float step;
 
         public MolangBindingFloat(string molangQuery, string[] targetFiles, string description, float min, float max, float step)
             : base(molangQuery, targetFiles, description)
@@ -180,8 +181,8 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
             float normalizedStep = distance / step;
             int numberOfStates = ((int)normalizedStep); // floor
 
-            ControllerState[] states = new ControllerState[numberOfStates + 1]; // + 1 for the director
-            ControllerState director = new ControllerState()
+            var states = new ControllerState[numberOfStates + 1]; // + 1 for the director
+            var director = new ControllerState()
             {
                 name = defaultState,
                 transitions = new ControllerState.Transition[numberOfStates]
@@ -204,9 +205,9 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                 {
                     name = stateName,
 
-                    onEntryCommands = value.CommandsSetLiteral(
-                        new TokenDecimalLiteral(currentValue, callingStatement.Lines[0])
-                    ).Select(cmd => Command.ForJSON(cmd)).ToArray(),
+                    onEntryCommands = value.AssignLiteral(
+                        new TokenDecimalLiteral(currentValue, callingStatement.Lines[0]), callingStatement
+                    ).Select(Command.ForJSON).ToArray(),
 
                     transitions = new ControllerState.Transition[]
                     {
@@ -246,10 +247,15 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
             LAST_MC_VERSION = json["last_mc_version"].ToString();
 
             JObject bindingsDict = json["bindings"] as JObject;
+            
+            Debug.Assert(bindingsDict != null, "Field 'bindings' (at root) was missing in bindings.json");
+            
             foreach(JProperty property in bindingsDict.Properties())
             {
                 string query = property.Name.ToString();
                 JObject body = property.Value as JObject;
+
+                Debug.Assert(body != null, "Field 'body' (under 'bindings') was missing in bindings.json");
 
                 // get the type of the binding.
                 string type;
@@ -290,29 +296,23 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                         binding = new MolangBindingBool(query, targets, desc);
                         break;
                     case "INT":
-                        int min = body["min"].Value<int>();
-                        int max = body["max"].Value<int>();
+                        int min = (body["min"] ?? throw new Exception($"Missing field 'min' in binding '{query}'.")).Value<int>();
+                        int max = (body["max"] ?? throw new Exception($"Missing field 'max' in binding '{query}'.")).Value<int>();
                         binding = new MolangBindingInt(query, targets, desc, min, max);
                         break;
                     case "FLOAT":
-                        float minF = body["min"].Value<float>();
-                        float maxF = body["max"].Value<float>();
-                        float stepF = body["step"].Value<float>();
+                        float minF = (body["min"] ?? throw new Exception($"Missing field 'min' in binding '{query}'.")).Value<float>();
+                        float maxF = (body["max"] ?? throw new Exception($"Missing field 'max' in binding '{query}'.")).Value<float>();
+                        float stepF = (body["step"] ?? throw new Exception($"Missing field 'step' in binding '{query}'.")).Value<float>();
                         binding = new MolangBindingFloat(query, targets, desc, minF, maxF, stepF);
                         break;
                     default:
-                        if (debug)
-                            Console.WriteLine("Invalid type '{0}' specified under binding '{1}'. Skipping.", type, query);
-                        continue;
+                        throw new Exception($"Invalid type '{type}' specified in binding '{query}'.");
                 }
 
                 // check if the query is already registered
                 if(BINDINGS.TryGetValue(query, out _))
-                {
-                    if (debug)
-                        Console.WriteLine("Duplicate binding for molang query '{0}'. Skipping.", query);
-                    continue;
-                }
+                    throw new Exception($"Duplicate binding '{query}'.");
 
                 // add the binding to the cache
                 BINDINGS[query] = binding;
@@ -320,7 +320,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
 
                 // display it to debug users
                 if (debug)
-                    Console.WriteLine("Loaded {0}", binding.ToString());
+                    Console.WriteLine("Loaded {0}", binding);
             }
 
             // display number of successes to debug users
@@ -330,14 +330,15 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         private static void Load(bool debug)
         {
             string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Debug.Assert(assemblyDir != null, "Application is in an inaccessible directory.");
             string path = Path.Combine(assemblyDir, Executor.BINDINGS_FILE);
 
             if (!File.Exists(path))
             {
-                ConsoleColor errprevious = Console.ForegroundColor;
+                ConsoleColor colorPrevious = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("WARNING: Missing bindings.json file at '{0}'. Execution cannot continue.", path);
-                Console.ForegroundColor = errprevious;
+                Console.ForegroundColor = colorPrevious;
                 Console.ReadLine();
                 throw new Exception("missing bindings.json");
             }

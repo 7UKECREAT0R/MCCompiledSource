@@ -60,11 +60,11 @@ namespace mc_compiled.Json
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
         {
             if (!executor.HasLocale)
-                return new[] { new JSONText(text) };
+                return new JSONRawTerm[] { new JSONText(text) };
 
             // find leading/trailing whitespace
-            int leadingWhitespace = text.TakeWhile(c => char.IsWhiteSpace(c)).Count();
-            int trailingWhitespace = text.Reverse().TakeWhile(c => char.IsWhiteSpace(c)).Count();
+            int leadingWhitespace = text.TakeWhile(char.IsWhiteSpace).Count();
+            int trailingWhitespace = text.Reverse().TakeWhile(char.IsWhiteSpace).Count();
 
             bool hasLeadingWhitespace = leadingWhitespace > 0;
             bool hasTrailingWhitespace = trailingWhitespace > 0;
@@ -76,13 +76,13 @@ namespace mc_compiled.Json
             {
                 string _key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
                 _key = executor.SetLocaleEntry(_key, text, forExceptions, true).key;
-                return new[] { new JSONTranslate(_key) };
+                return new JSONRawTerm[] { new JSONTranslate(_key) };
             }
 
             int indices = 1 + (hasLeadingWhitespace ? 1 : 0) + (hasTrailingWhitespace ? 1 : 0);
             int index = 0;
             string textCopy = this.text;
-            JSONRawTerm[] output = new JSONRawTerm[indices];
+            var output = new JSONRawTerm[indices];
 
             // extract the leading whitespace, if any
             if (hasLeadingWhitespace)

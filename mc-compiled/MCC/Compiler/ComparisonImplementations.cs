@@ -3,18 +3,20 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
 
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
     /// Compares if a boolean value is true.
     /// </summary>
-    public class ComparisonBoolean : Comparison
+    public class ComparisonAlone : Comparison
     {
-        readonly ScoreboardValueBoolean boolean;
-        public ComparisonBoolean(ScoreboardValueBoolean boolean, bool invert) : base(invert)
+        private readonly ScoreboardValue score;
+        public ComparisonAlone(ScoreboardValue score, bool invert) : base(invert)
         {
-            this.boolean = boolean;
+            this.score = score;
         }
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
@@ -24,18 +26,12 @@ namespace mc_compiled.MCC.Compiler
         public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             cancel = false;
-
-            string name = boolean.Name;
-            Range range = new Range(1, inverted);
-
-            return new Subcommand[] {
-                new SubcommandIf(ConditionalSubcommandScore.New(boolean, range))
-            };
+            return score.CompareAlone(this.inverted).Cast<Subcommand>().ToArray();
         }
 
-        public override string GetDescription() => inverted?
-            $"{boolean.AliasName} ({boolean.Name}) is false.":
-            $"{boolean.AliasName} ({boolean.Name}) is true.";
+        public override string GetDescription() => inverted ?
+            $"not {score.Name}.":
+            $"{score.Name}.";
     }
 
     /// <summary>
@@ -43,50 +39,51 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class ComparisonValue : Comparison
     {
-        public Token LeftToken
+        private readonly Token a;
+        private readonly TokenCompare.Type comparison;
+        private readonly Token b;
+        private SideType aType;
+        private SideType bType;
+
+        /// <summary>
+        /// Returns if both sides of the comparison are values.
+        /// </summary>
+        private bool BothValues => aType == SideType.Variable && bType == SideType.Variable;
+        /// <summary>
+        /// Returns if the sides of the comparison need to be swapped.
+        /// </summary>
+        private bool RequiresSwap => aType == SideType.Constant && bType == SideType.Variable;
+
+        private void FindAType()
         {
-            get => a;
-        }
-        public TokenCompare.Type ComparisonMethod
-        {
-            get => comparison;
-        }
-        public Token RightToken
-        {
-            get => b;
+            switch (a)
+            {
+                case TokenIdentifierValue _:
+                    aType = SideType.Variable;
+                    break;
+                case TokenNumberLiteral _:
+                    aType = SideType.Constant;
+                    break;
+                default:
+                    aType = SideType.Unknown;
+                    break;
+            }
         }
 
-        Token a;
-        TokenCompare.Type comparison;
-        Token b;
-        SideType aType;
-        SideType bType;
-        bool BothValues
+        private void FindBType()
         {
-            get => aType == SideType.Variable && bType == SideType.Variable;
-        }
-        bool RequiresSwap
-        {
-            get => aType == SideType.Constant && bType == SideType.Variable;
-        }
-
-        void FindAType()
-        {
-            if (a is TokenIdentifierValue)
-                aType = SideType.Variable;
-            else if (a is TokenNumberLiteral)
-                aType = SideType.Constant;
-            else
-                aType = SideType.Unknown;
-        }
-        void FindBType()
-        {
-            if (b is TokenIdentifierValue)
-                bType = SideType.Variable;
-            else if (b is TokenNumberLiteral)
-                bType = SideType.Constant;
-            else
-                bType = SideType.Unknown;
+            switch (b)
+            {
+                case TokenIdentifierValue _:
+                    bType = SideType.Variable;
+                    break;
+                case TokenNumberLiteral _:
+                    bType = SideType.Constant;
+                    break;
+                default:
+                    bType = SideType.Unknown;
+                    break;
+            }
         }
         public ComparisonValue(Token a, TokenCompare.Type comparison, Token b, bool invert) : base(invert)
         {
@@ -98,19 +95,17 @@ namespace mc_compiled.MCC.Compiler
             FindAType();
             FindBType();
 
-            // swap for code simplicity
-            if (RequiresSwap)
-            {
-                SideType temp = bType;
-                bType = aType;
-                aType = temp;
-                this.a = b;
-                this.b = a;
-                this.comparison = comparison.InvertDirection();
-            }
+            if (!RequiresSwap)
+                return;
+            
+            // swap tokens for simplicity
+            (bType, aType) = (aType, bType);
+            this.a = b;
+            this.b = a;
+            this.comparison = comparison.InvertDirection();
         }
 
-        private Tuple<ScoresEntry[], string[]> entries;
+        private Tuple<string[], ConditionalSubcommandScore[]> entries;
         private ScoreboardValue temp;
 
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
@@ -128,9 +123,9 @@ namespace mc_compiled.MCC.Compiler
 
             if (aType == SideType.Variable && bType == SideType.Variable)
             {
-                ScoreboardValue a = (this.a as TokenIdentifierValue).value;
-                ScoreboardValue b = (this.b as TokenIdentifierValue).value;
-                List<string> commands = new List<string>();
+                ScoreboardValue a = ((TokenIdentifierValue) this.a).value;
+                ScoreboardValue b = ((TokenIdentifierValue) this.b).value;
+                var commands = new List<string>();
 
                 if (willBeInverted)
                 {
@@ -156,33 +151,52 @@ namespace mc_compiled.MCC.Compiler
 
             if (aType == SideType.Variable && bType == SideType.Constant)
             {
-                ScoreboardValue a = (this.a as TokenIdentifierValue).value;
-                TokenNumberLiteral b = (this.b as TokenNumberLiteral);
+                ScoreboardValue a = ((TokenIdentifierValue)this.a).value;
+                TokenNumberLiteral b = (TokenNumberLiteral)this.b;
                 this.entries = a.CompareToLiteral(localComparison, b);
 
                 if(willBeInverted)
                 {
-                    List<string> commands = new List<string>(this.entries.Item2);
+                    var commands = new List<string>(this.entries.Item1);
                     temp = executor.scoreboard.temps.Request(true);
                     commands.Add(Command.ScoreboardSet(temp, 0));
 
                     ExecuteBuilder builder = Command.Execute();
-                    foreach (ScoresEntry entry in this.entries.Item1)
+                    foreach (ConditionalSubcommandScore entry in this.entries.Item2)
                     {
                         // retrieve the scoreboard value
-                        string scoreName = entry.name;
+                        if (entry.comparesRange)
+                        {
+                            string scoreName = entry.sourceValue;
 
-                        if (!executor.scoreboard.TryGetByName(scoreName, out ScoreboardValue score))
-                            throw new StatementException(callingStatement, $"Unknown scoreboard value: '{scoreName}'. Is it defined above this line?");
+                            if (!executor.scoreboard.TryGetByInternalName(scoreName, out ScoreboardValue score))
+                                throw new StatementException(callingStatement, $"Unknown value: '{scoreName}'. Is it defined above this line?");
 
-                        builder.IfScore(score, entry.value);
+                            score = score.Clone(callingStatement, newClarifier: entry.SourceClarifier);
+                            builder.IfScore(score, entry.range);
+                        }
+                        else
+                        {
+                            string sourceName = entry.sourceValue;
+                            string otherName = entry.otherValue;
+                            
+                            if (!executor.scoreboard.TryGetByInternalName(sourceName, out ScoreboardValue source))
+                                throw new StatementException(callingStatement, $"Unknown value: '{sourceName}'. Is it defined above this line?");
+                            if (!executor.scoreboard.TryGetByInternalName(otherName, out ScoreboardValue other))
+                                throw new StatementException(callingStatement, $"Unknown value: '{otherName}'. Is it defined above this line?");
+
+                            source = source.Clone(callingStatement, newClarifier: entry.SourceClarifier);
+                            other = other.Clone(callingStatement, newClarifier: entry.OtherClarifier);
+                            builder.IfScore(source, entry.comparisonType, other);
+                        }
+
                     }
 
                     commands.Add(builder.Run(Command.ScoreboardSet(temp, 1)));
                     return commands;
                 }
 
-                return this.entries.Item2;
+                return this.entries.Item1;
             }
 
             return null;
@@ -198,8 +212,8 @@ namespace mc_compiled.MCC.Compiler
             if (BothValues)
             {
                 // "value value" comparison
-                ScoreboardValue a = (this.a as TokenIdentifierValue).value;
-                ScoreboardValue b = (this.b as TokenIdentifierValue).value;
+                ScoreboardValue a = ((TokenIdentifierValue) this.a).value;
+                ScoreboardValue b = ((TokenIdentifierValue) this.b).value;
 
                 if(willBeInverted)
                 {
@@ -235,26 +249,15 @@ namespace mc_compiled.MCC.Compiler
                 else
                 {
                     // "value constant" comparison
-                    List<Subcommand> scores = new List<Subcommand>(this.entries.Item1.Length);
-
-                    foreach (ScoresEntry scoreTest in this.entries.Item1)
-                    {
-                        string scoreName = scoreTest.name;
-
-                        if (!executor.scoreboard.TryGetByName(scoreName, out ScoreboardValue score))
-                            throw new StatementException(callingStatement, $"Unknown scoreboard value: '{scoreName}'. Is it defined above this line?");
-
-                        scores.Add(new SubcommandIf(ConditionalSubcommandScore.New(score, scoreTest.value)));
-                    }
-
-                    return scores.ToArray();
+                    return this.entries.Item2.Cast<Subcommand>().ToArray();
                 }
             }
 
             // "constant constant" comparison.
-            TokenNumberLiteral numberA = this.a as TokenNumberLiteral;
-            TokenNumberLiteral numberB = this.b as TokenNumberLiteral;
+            var numberA = this.a as TokenNumberLiteral;
+            var numberB = this.b as TokenNumberLiteral;
 
+            // ReSharper disable once PossibleNullReferenceException
             bool result = numberA.CompareWithOther(localComparison, numberB);
             cancel = !result;
             return null;
@@ -266,15 +269,15 @@ namespace mc_compiled.MCC.Compiler
     }
     public class ComparisonSelector : Comparison
     {
-        public const string ERROR_MESSAGE = "[if <selector>] format should only use @s selectors. Use [if any <selector>] to more concisely show checking for a selector match.";
-        public readonly Selector selector;
+        private const string ERROR_MESSAGE = "[if <selector>] format should only use @s selectors. Use [if any <selector>] to more concisely show checking for any selector match.";
+        private readonly Selector selector;
+        private ScoreboardValue temp;
 
         public ComparisonSelector(Selector selector, bool invert) : base(invert)
         {
             this.selector = selector;
         }
 
-        ScoreboardValue temp;
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             if (selector.core != Selector.Core.s)
@@ -306,7 +309,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (willBeInverted || inverted)
             {
-                Range range = new Range(1, inverted);
+                var range = new Range(1, inverted);
                 return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
             }
 
@@ -319,11 +322,11 @@ namespace mc_compiled.MCC.Compiler
     }
     public class ComparisonCount : Comparison
     {
-        public readonly Selector selector;
-        public TokenCompare.Type comparison;
+        private readonly Selector selector;
+        private TokenCompare.Type comparison;
 
-        public readonly Token goalCount;
-        public SideType goalType;
+        private readonly Token goalCount;
+        private SideType goalType;
 
         public bool RequiresSubtraction
         {
@@ -347,14 +350,14 @@ namespace mc_compiled.MCC.Compiler
             FindGoalType();
         }
 
-        ScoreboardValueInteger temp;
+        ScoreboardValue temp;
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             if (goalType == SideType.Unknown)
                 throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {goalCount.AsString()}");
 
             // count number of entities
-            List<string> commands = new List<string>();
+            var commands = new List<string>();
 
             temp = executor.scoreboard.temps.Request(true);
             commands.Add(Command.ScoreboardSet(temp, 0));
@@ -375,7 +378,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (goalType == SideType.Variable)
             {
-                ScoreboardValue b = (this.goalCount as TokenIdentifierValue).value;
+                ScoreboardValue b = ((TokenIdentifierValue)this.goalCount).value;
                 return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, localComparison, b)) };
             } else
             {

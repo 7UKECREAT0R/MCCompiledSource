@@ -41,7 +41,16 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
             Modulo,
             Swap
         }
-
+        
+        /// <summary>
+        /// Returns the HashCode of this type. Short for: <code>this.TypeEnum.GetHashCode();</code>
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return TypeEnum.GetHashCode();
+        }
+        
         /// <summary>
         /// Returns the enum for this type.
         /// </summary>
@@ -51,7 +60,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         public abstract string TypeShortcode { get; }
         /// <summary>
-        /// Returns the keyword used to refer to this type.
+        /// Returns the keyword used to refer to this type, in UPPERCASE for comparison.
         /// </summary>
         public abstract string TypeKeyword { get; }
         /// <summary>
@@ -65,14 +74,13 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         public virtual TypePattern SpecifyPattern => null;
 
         /// <summary>
-        /// Accepts the input pattern given by the user and returns a data object containing it.
+        /// Accepts the given statement as input for this type's pattern.
         /// See <see cref="SpecifyPattern"/>. Do not call this method if it is null.
         /// </summary>
-        /// <param name="inputs">The inputs to the data object.</param>
-        /// <param name="callingStatement">The statement for exceptions.</param>
+        /// <param name="statement">The statement to pull tokens from.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public virtual object AcceptPattern(TokenLiteral[] inputs, Statement callingStatement) => null;
+        public virtual object AcceptPattern(Statement statement) => null;
 
         /// <summary>
         /// Deep-clone the given data object as per this Typedef instance.
@@ -163,8 +171,9 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// Returns the range needed to compare this type alone, given that <see cref="CanCompareAlone"/> is <b>true</b>.
         /// </summary>
         /// <param name="invert">Whether to invert the range.</param>
+        /// <param name="value">The value holding this type.</param>
         /// <returns></returns>
-        internal abstract Range CompareAlone(bool invert);
+        internal abstract ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value);
         /// <summary>
         /// Compare a value with this type to a literal value. Returns both the setup commands needed, and the score comparisons needed.
         /// <br/>

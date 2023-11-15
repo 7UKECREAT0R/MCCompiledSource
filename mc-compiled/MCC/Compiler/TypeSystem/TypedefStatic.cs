@@ -50,7 +50,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         {
             return _FROM_KEYWORD.TryGetValue(keyword, out type);
         }
-        
+
         private static readonly Dictionary<ScoreboardManager.ValueType, Typedef> _FROM_VALUE_TYPE
             = new Dictionary<ScoreboardManager.ValueType, Typedef>();
         private static readonly Dictionary<string, Typedef> _FROM_KEYWORD
