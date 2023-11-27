@@ -9,7 +9,7 @@ namespace mc_compiled.Commands.Selectors
     /// </summary>
     public struct Scores
     {
-        public static readonly Regex MATCHER = new Regex(@"scores={([\w\d=,.]+)}");
+        private static readonly Regex MATCHER = new Regex(@"scores={([\w\d=,.]+)}");
         public List<ScoresEntry> checks;
 
         public Scores(params ScoresEntry[] start)

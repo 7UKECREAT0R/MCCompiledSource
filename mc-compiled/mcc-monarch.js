@@ -4,7 +4,7 @@ const mccompiled = {
 	preprocessor: [ `$var`, `$inc`, `$dec`, `$add`, `$sub`, `$mul`, `$div`, `$mod`, `$pow`, `$swap`, `$if`, `$else`, `$repeat`, `$log`, `$macro`, `$include`, `$strfriendly`, `$strupper`, `$strlower`, `$sum`, `$median`, `$mean`, `$sort`, `$reverse`, `$iterate`, `$len`, `$json`, `$call` ],
 	commands: [ `mc`, `command`, `cmd`, `globalprint`, `print`, `lang`, `define`, `init`, `initialize`, `if`, `else`, `give`, `tp`, `teleport`, `move`, `face`, `lookat`, `rotate`, `setblock`, `fill`, `scatter`, `replace`, `kill`, `remove`, `clear`, `globaltitle`, `title`, `globalactionbar`, `actionbar`, `say`, `halt`, `damage`, `effect`, `playsound`, `particle`, `dummy`, `tag`, `explode`, `feature`, `function`, `fn`, `return`, `for`, `execute` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
-	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `bind` ],
+	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto` ],
 	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
 	options: [ `dummies`, `gametest`, `exploders`, `uninstall`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
@@ -45,55 +45,55 @@ const mccompiled = {
 const mcc_operators = [
 	{
 		word: `<`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `>`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `{`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `}`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `=`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `(`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `)`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `+`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `-`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `*`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `/`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `%`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 	{
 		word: `!`,
-		docs: 'No documentation available for v1.14.'
+		docs: 'No documentation available for v1.15.'
 	},
 ]
 const mcc_selectors = [
@@ -267,11 +267,11 @@ const mcc_commands = [
 	},
 	{
 		word: `init`,
-		docs: `Ensures the given entities have a value for the given variable, defaulting to 0 if not. This ensures the given entities function as intended all the time.`
+		docs: `Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]``
 	},
 	{
 		word: `initialize`,
-		docs: `Alias of 'init'. Ensures the given entities have a value for the given variable, defaulting to 0 if not. This ensures the given entities function as intended all the time.`
+		docs: `Alias of 'init'. Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]``
 	},
 	{
 		word: `if`,
@@ -395,11 +395,11 @@ const mcc_commands = [
 	},
 	{
 		word: `function`,
-		docs: `Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: functionName(parameters)`
+		docs: `Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)``
 	},
 	{
 		word: `fn`,
-		docs: `Alias of 'function'. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: functionName(parameters)`
+		docs: `Alias of 'function'. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)``
 	},
 	{
 		word: `return`,
@@ -407,7 +407,7 @@ const mcc_commands = [
 	},
 	{
 		word: `for`,
-		docs: `Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to 'execute as \<selector\> at @s run \<code\>'`
+		docs: `Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>``
 	},
 	{
 		word: `execute`,
@@ -471,15 +471,23 @@ const mcc_types = [
 	},
 	{
 		word: `global`,
-		docs: `Makes a value global, meaning it will only be accessed in the context of the global fakeplayer, '_'.`
+		docs: `Makes a value global, meaning it will only be accessed in the context of the global fakeplayer, `_``
 	},
 	{
 		word: `extern`,
 		docs: `Makes a function extern, meaning it was written outside of MCCompiled and can now be called as any other function.`
 	},
 	{
+		word: `export`,
+		docs: `Marks a function for export, meaning it will be outputted regardless of if it is used or not.`
+	},
+	{
 		word: `bind`,
 		docs: `Binds a value to a pre-defined MoLang query. See bindings.json.`
+	},
+	{
+		word: `auto`,
+		docs: `Makes a function run every tick (via tick.json), or if specified, some other interval.`
 	},
 ]
 const mcc_comparisons = [
@@ -519,7 +527,7 @@ const mcc_options = [
 	},
 	{
 		word: `uninstall`,
-		docs: `Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc., made by this project.`
+		docs: `Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project.`
 	},
 	{
 		word: `up`,

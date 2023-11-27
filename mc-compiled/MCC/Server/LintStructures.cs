@@ -41,6 +41,7 @@ namespace mc_compiled.MCC.Server
         {
             return new ErrorStructure(During.unknown, lines, exception.ToString());
         }
+        
 
         public string ToJSON()
         {

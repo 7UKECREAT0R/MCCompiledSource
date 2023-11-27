@@ -124,7 +124,7 @@ namespace mc_compiled.Json
         public JSONScore(ScoreboardValue objective)
         {
             this.selector = EscapeString(objective.clarifier.CurrentString);
-            this.objective = EscapeString(objective.Name);
+            this.objective = EscapeString(objective.InternalName);
         }
         public override JObject Build()
         {

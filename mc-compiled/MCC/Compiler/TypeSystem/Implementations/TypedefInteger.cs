@@ -19,7 +19,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value) => default;
         internal override string[] GetObjectives(ScoreboardValue input)
         {
-            return new[] { input.Name };
+            return new[] { input.InternalName };
         }
 
         // Conversion
@@ -70,7 +70,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             var terms = new JSONRawTerm[] { new JSONScore(value) };
             return new Tuple<string[], JSONRawTerm[]>(null, terms);
         }
-        internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal)
+        internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
+            TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement)
         {
             int value;
 
@@ -83,7 +84,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     value = number.GetNumberInt();
                     break;
                 default:
-                    throw LiteralConversionError(self, literal);
+                    throw LiteralConversionError(self, literal, callingStatement);
             }
 
             return new Tuple<string[], ConditionalSubcommandScore[]>(
@@ -94,7 +95,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 }
             );
         }
-        internal override IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal)
+        internal override IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal,
+            Statement callingStatement)
         {
             int value;
 
@@ -107,12 +109,13 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     value = number.GetNumberInt();
                     break;
                 default:
-                    throw LiteralConversionError(self, literal);
+                    throw LiteralConversionError(self, literal, callingStatement);
             }
 
             return new[] { Command.ScoreboardSet(self, value) };
         }
-        internal override IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal)
+        internal override IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal,
+            Statement callingStatement)
         {
             int value;
 
@@ -125,12 +128,13 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     value = number.GetNumberInt();
                     break;
                 default:
-                    throw LiteralConversionError(self, literal);
+                    throw LiteralConversionError(self, literal, callingStatement);
             }
 
             return new[] { Command.ScoreboardAdd(self, value) };
         }
-        internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal)
+        internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal,
+            Statement callingStatement)
         {
             int value;
 
@@ -143,34 +147,40 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     value = number.GetNumberInt();
                     break;
                 default:
-                    throw LiteralConversionError(self, literal);
+                    throw LiteralConversionError(self, literal, callingStatement);
             }
 
             return new[] { Command.ScoreboardSubtract(self, value) };
         }
 
         // Methods
-        internal override IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement)
         {
             return new[] { Command.ScoreboardOpSet(self, other) };
         }
-        internal override IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement)
         {
             return new[] { Command.ScoreboardOpAdd(self, other) };
         }
-        internal override IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement)
         {
             return new[] { Command.ScoreboardOpSub(self, other) };
         }
-        internal override IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement)
         {
             return new[] { Command.ScoreboardOpMul(self, other) };
         }
-        internal override IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement)
         {
             return new[] { Command.ScoreboardOpDiv(self, other) };
         }
-        internal override IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other)
+        internal override IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement)
         {
             return new[] { Command.ScoreboardOpMod(self, other) };
         }

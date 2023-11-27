@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Functions.Types;
 using System.Collections.Generic;
 
@@ -27,13 +28,14 @@ namespace mc_compiled.MCC.Attributes
         void OnAddedFunction(RuntimeFunction function, Statement causingStatement);
 
         /// <summary>
-        /// Called when the function this attribute is attached to is called.
-        /// This is called after the function call has been completed, but before the return value has been set.
+        /// Called when the function this attribute is attached to is called. Modify the call command by writing to 'command'.
         /// </summary>
         /// <param name="function">The function being called.</param>
-        /// <param name="commandBuffer">The commands that are going to be added when the procedure is done.</param>
+        /// <param name="commands">The commands being run to call the function. Index 0 should ALWAYS be the initial command, no matter what. It can be set to null.</param>
         /// <param name="executor">The executor in this context.</param>
         /// <param name="statement">The calling statement.</param>
-        void OnCalledFunction(RuntimeFunction function, List<string> commandBuffer, Executor executor, Statement statement);
+        void OnCalledFunction(RuntimeFunction function,
+            List<string> commands,
+            Executor executor, Statement statement);
     }
 }

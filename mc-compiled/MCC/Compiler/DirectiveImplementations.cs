@@ -1114,9 +1114,9 @@ namespace mc_compiled.MCC.Compiler
             string[] commands;
 
             if (advanced)
-                commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "tellraw @s "));
+                commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "tellraw @s "));
             else
-                commands = executor.ResolveRawText(terms, "tellraw @a ");
+                commands = Executor.ResolveRawText(terms, "tellraw @a ");
 
             CommandFile file = executor.CurrentFile;
             executor.AddCommands(commands, "print", $"Called in a globalprint command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1130,7 +1130,7 @@ namespace mc_compiled.MCC.Compiler
 
             string str = tokens.Next<TokenStringLiteral>();
             List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
-            string[] commands = executor.ResolveRawText(terms, $"tellraw {player} ");
+            string[] commands = Executor.ResolveRawText(terms, $"tellraw {player} ");
 
             CommandFile file = executor.CurrentFile;
             executor.AddCommands(commands, "print", $"Called in a print command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1806,7 +1806,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void remove(Executor executor, Statement tokens)
         {
-            CommandFile file = new CommandFile(true, "silent_remove", Executor.MCC_GENERATED_FOLDER);
+            var file = new CommandFile(true, "silent_remove", Executor.MCC_GENERATED_FOLDER);
 
             file.Add(new[] {
                 Command.Teleport(Coord.here, new Coord(-99999, false, true, false), Coord.here),
@@ -1843,9 +1843,9 @@ namespace mc_compiled.MCC.Compiler
                     string[] commands;
 
                     if (advanced)
-                        commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "titleraw @s subtitle "));
+                        commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "titleraw @s subtitle "));
                     else
-                        commands = executor.ResolveRawText(terms, "titleraw @a subtitle ");
+                        commands = Executor.ResolveRawText(terms, "titleraw @a subtitle ");
 
                     CommandFile file = executor.CurrentFile;
                     executor.AddCommands(commands, "subtitle", $"Called in a global-subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1862,9 +1862,9 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "title @s title "));
+                    commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "title @s title "));
                 else
-                    commands = executor.ResolveRawText(terms, "titleraw @a title ");
+                    commands = Executor.ResolveRawText(terms, "titleraw @a title ");
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "title", $"Called in a globaltitle command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1897,7 +1897,7 @@ namespace mc_compiled.MCC.Compiler
                     List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
                     string[] commands;
 
-                    commands = executor.ResolveRawText(terms, $"titleraw {player} subtitle ");
+                    commands = Executor.ResolveRawText(terms, $"titleraw {player} subtitle ");
 
                     CommandFile file = executor.CurrentFile;
                     executor.AddCommands(commands, "subtitle", $"Called in a subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1913,7 +1913,7 @@ namespace mc_compiled.MCC.Compiler
                 List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                 string[] commands;
 
-                commands = executor.ResolveRawText(terms, $"titleraw {player} title ");
+                commands = Executor.ResolveRawText(terms, $"titleraw {player} title ");
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "title", $"Called in a title command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1938,9 +1938,9 @@ namespace mc_compiled.MCC.Compiler
                 string[] commands;
 
                 if (advanced)
-                    commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(executor.ResolveRawText(terms, "titleraw @s actionbar "));
+                    commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "titleraw @s actionbar "));
                 else
-                    commands = executor.ResolveRawText(terms, "titleraw @a actionbar ");
+                    commands = Executor.ResolveRawText(terms, "titleraw @a actionbar ");
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "actionbar", $"Called in a global-actionbar command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1963,7 +1963,7 @@ namespace mc_compiled.MCC.Compiler
                 List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
                 string[] commands;
 
-                commands = executor.ResolveRawText(terms, $"titleraw {player} actionbar ");
+                commands = Executor.ResolveRawText(terms, $"titleraw {player} actionbar ");
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "actionbar", $"Called in an actionbar command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -1978,7 +1978,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public static void halt(Executor executor, Statement tokens)
         {
-            CommandFile file = new CommandFile(true, "halt_execution", Executor.MCC_GENERATED_FOLDER);
+            var file = new CommandFile(true, "halt_execution", Executor.MCC_GENERATED_FOLDER);
 
             if (!executor.HasSTDFile(file))
             {

@@ -514,37 +514,37 @@ namespace mc_compiled.Commands
             $"scoreboard players operation {targetA.AsCommandParameter()} {a.AsCommandParameter()} > {targetB.AsCommandParameter()} {b.AsCommandParameter()}";
 
         public static string ScoreboardSet(ScoreboardValue objective, int value) =>
-            $"scoreboard players set {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {value}";
+            $"scoreboard players set {objective.clarifier.CurrentString} {objective.InternalName.AsCommandParameter()} {value}";
         public static string ScoreboardAdd(ScoreboardValue objective, int value) =>
-            $"scoreboard players add {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {value}";
+            $"scoreboard players add {objective.clarifier.CurrentString} {objective.InternalName.AsCommandParameter()} {value}";
         public static string ScoreboardSubtract(ScoreboardValue objective, int amount) =>
-            $"scoreboard players remove {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {amount}";
+            $"scoreboard players remove {objective.clarifier.CurrentString} {objective.InternalName.AsCommandParameter()} {amount}";
         public static string ScoreboardRandom(ScoreboardValue objective, int minInclusive, int maxInclusive) =>
-            $"scoreboard players random {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()} {minInclusive} {maxInclusive}";
+            $"scoreboard players random {objective.clarifier.CurrentString} {objective.InternalName.AsCommandParameter()} {minInclusive} {maxInclusive}";
         public static string ScoreboardReset(ScoreboardValue objective) =>
-            $"scoreboard players reset {objective.clarifier.CurrentString} {objective.Name.AsCommandParameter()}";
+            $"scoreboard players reset {objective.clarifier.CurrentString} {objective.InternalName.AsCommandParameter()}";
         public static string ScoreboardReset(string selector, ScoreboardValue objective) =>
-            $"scoreboard players reset {selector.AsCommandParameter()} {objective.Name.AsCommandParameter()}";
+            $"scoreboard players reset {selector.AsCommandParameter()} {objective.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpRaw(ScoreboardValue a, ScoreboardOp op, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} {op.String()} {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} {op.String()} {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpSet(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} = {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} = {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpAdd(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} += {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} += {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpSub(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} -= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} -= {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpMul(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} *= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} *= {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpDiv(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} /= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} /= {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpMod(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} %= {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} %= {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpSwap(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} >< {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} >< {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpMin(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} < {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} < {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
         public static string ScoreboardOpMax(ScoreboardValue a, ScoreboardValue b) =>
-            $"scoreboard players operation {a.clarifier.CurrentString} {a.Name.AsCommandParameter()} > {b.clarifier.CurrentString} {b.Name.AsCommandParameter()}";
+            $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} > {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
 
         public static string SetBlock(Coord x, Coord y, Coord z, string block) =>
             $"setblock {x} {y} {z} {block}";

@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding;
@@ -56,8 +57,8 @@ namespace mc_compiled.MCC.Attributes
                 JToken entityRoot = executor.Fetch(givenEntity, callingStatement);
 
                 // create animation controller for driving the variable
-                string driverName = value.Name.ToLower() + "_driver";
-                string scriptName = value.Name.ToLower() + "_controller";
+                string driverName = value.Name.ToLower() + "_driver_" + value.Name.GetHashCode();
+                string scriptName = value.Name.ToLower() + "_controller_" + value.Name.GetHashCode();
 
                 var driver = new AnimationController(driverName);
                 executor.AddExtraFile(driver);
@@ -104,6 +105,8 @@ namespace mc_compiled.MCC.Attributes
         }
 
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement) => throw new StatementException(causingStatement, "Cannot apply attribute 'bind' to a function.");
-        public void OnCalledFunction(RuntimeFunction function, List<string> commandBuffer, Executor executor, Statement statement) { }
+
+        public void OnCalledFunction(RuntimeFunction function,
+            List<string> commands, Executor executor, Statement statement) {}
     }
 }

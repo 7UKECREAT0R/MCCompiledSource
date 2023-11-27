@@ -320,7 +320,7 @@ namespace mc_compiled.MCC
             public void Dispose()
             {
                 if (_isDisposed)
-                    return;
+                    throw new Exception("Temp contract was already disposed.");
 
                 // copy all attributes to the TempManager
                 parent.DefinedTemps = this.definedTempsState;

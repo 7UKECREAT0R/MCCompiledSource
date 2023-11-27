@@ -21,7 +21,7 @@ namespace mc_compiled.Commands.Execute
         /// <summary>
         /// Returns a new instance of the subcommand tied to the given keyword. Case insensitive.
         /// </summary>
-        /// <param name="keyword">The case-insensitive keyword to use.param>
+        /// <param name="keyword">The case-insensitive keyword to use.</param>
         /// <param name="forExceptions">The calling statement, only used for exceptions.</param>
         /// <returns></returns>
         public static ConditionalSubcommand GetConditionalSubcommandForKeyword(string keyword, Statement forExceptions)

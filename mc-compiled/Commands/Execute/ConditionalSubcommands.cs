@@ -193,6 +193,9 @@ namespace mc_compiled.Commands.Execute
 
         internal bool SourceIsGlobal => sourceSelector.Equals(Executor.FAKEPLAYER_NAME);
         internal Clarifier SourceClarifier => new Clarifier(SourceIsGlobal, sourceSelector);
+        
+        // The reason this isn't a ScoreboardValue is because sometimes the user
+        // uses a different selector and it's not worth cloning it.
         internal string sourceSelector;
         internal string sourceValue;
 
@@ -213,7 +216,7 @@ namespace mc_compiled.Commands.Execute
             this.comparesRange = comparesRange;
 
             this.sourceSelector = sourceValue.clarifier.CurrentString;
-            this.sourceValue = sourceValue.Name;
+            this.sourceValue = sourceValue.InternalName;
 
             this.range = range;
             this.comparisonType = comparisonType;
@@ -221,7 +224,7 @@ namespace mc_compiled.Commands.Execute
             if (otherValue != null)
             {
                 this.otherSelector = otherValue.clarifier.CurrentString;
-                this.otherValue = otherValue.Name;
+                this.otherValue = otherValue.InternalName;
             } else
             {
                 this.otherSelector = null;
@@ -303,14 +306,14 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            this.sourceValue = tokens.Next<TokenIdentifierValue>().value;
+            this.sourceValue = tokens.Next<TokenIdentifierValue>().value.InternalName;
 
             // thisScore == otherScore
             if(tokens.NextIs<TokenCompare>(false))
             {
                 this.comparesRange = false;
                 this.comparisonType = tokens.Next<TokenCompare>().GetCompareType();
-                this.otherValue = tokens.Next<TokenIdentifierValue>().value;
+                this.otherValue = tokens.Next<TokenIdentifierValue>().value.InternalName;
                 return;
             }
 

@@ -43,10 +43,12 @@ namespace mc_compiled.Commands.Selectors
                         gamemode = ParseGameMode(b.Trim('\"'));
                         break;
                     case "LM":
-                        levelMin = int.Parse(b);
+                        if (int.TryParse(b, out int lm))
+                            levelMin = lm;
                         break;
                     case "L":
-                        levelMax = int.Parse(b);
+                        if (int.TryParse(b, out int l))
+                            levelMax = l;
                         break;
                 }
             }

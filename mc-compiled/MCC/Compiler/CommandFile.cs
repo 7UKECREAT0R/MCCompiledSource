@@ -14,8 +14,12 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// A list of all of the other CommandFiles that this file makes reference to.
         /// </summary>
-        private List<CommandFile> calls = new List<CommandFile>();
-
+        private readonly List<CommandFile> calls = new List<CommandFile>();
+        /// <summary>
+        /// A list of all of the commands in this file.
+        /// </summary>
+        internal readonly List<string> commands = new List<string>();
+        
         private bool isInUse = false;
         internal bool IsInUse
         {
@@ -25,7 +29,7 @@ namespace mc_compiled.MCC.Compiler
                 // update all calls to also be in use.
                 if(value)
                 {
-                    foreach (var call in calls)
+                    foreach (CommandFile call in calls)
                         call.AsInUse();
                 }
 
@@ -45,13 +49,7 @@ namespace mc_compiled.MCC.Compiler
 
             calls.Add(file);
         }
-
-
-        /// <summary>
-        /// A list of all of the commands in this file.
-        /// </summary>
-        internal List<string> commands = new List<string>();
-
+        
         public readonly RuntimeFunction runtimeFunction;
         public bool IsUserFunction
         {
@@ -78,14 +76,11 @@ namespace mc_compiled.MCC.Compiler
         }
         public string[] Folders
         {
-            set
-            {
-                folder = string.Join("/", value);
-            }
+            set => folder = string.Join("/", value);
         }
 
-        public string folder;
-        public string name;
+        private string folder;
+        private readonly string name;
         private bool _doNotWrite;
 
         /// <summary>
@@ -106,6 +101,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="runtimeFunction"></param>
         public CommandFile(bool isInUse, string name, string folder = null, RuntimeFunction runtimeFunction = null)
         {
+            this.isInUse = isInUse;
             this.name = name;
             this.folder = folder;
             this.runtimeFunction = runtimeFunction;
@@ -123,7 +119,7 @@ namespace mc_compiled.MCC.Compiler
         /// Returns this CommandFile with isInUse set to true.
         /// </summary>
         /// <returns></returns>
-        internal CommandFile AsInUse()
+        public CommandFile AsInUse()
         {
             this.IsInUse = true;
             return this;
@@ -132,7 +128,7 @@ namespace mc_compiled.MCC.Compiler
         /// Returns this CommandFile with isInUse set to false.
         /// </summary>
         /// <returns></returns>
-        internal CommandFile AsNotInUse()
+        public CommandFile AsNotInUse()
         {
             this.IsInUse = false;
             return this;
@@ -171,10 +167,12 @@ namespace mc_compiled.MCC.Compiler
             commands.Add($"# Located at {callingFile.CommandReference} line {callingFile.Length + 1}");
             commands.Add("");
         }
+
         /// <summary>
         /// Adds the following standard comment to the file: "Located at (callingFile) line (line)"
         /// </summary>
-        /// <param name="callingFile"></param>
+        /// <param name="callingFile">The command file to make reference to.</param>
+        /// <param name="line">The line of the file to reference.</param>
         internal void AddTrace(CommandFile callingFile, int line)
         {
             if (callingFile.IsRootFile)
@@ -189,11 +187,17 @@ namespace mc_compiled.MCC.Compiler
         {
             if(DoNotWrite)
                 return null;
-            if (folder == null)
-                return null;
 
             // correct path separators
-            string correctedFolder = folder.Replace('/', Path.DirectorySeparatorChar);
+            string correctedFolder = folder?.Replace('/', Path.DirectorySeparatorChar);
+
+            // return the corrected directory
+            return correctedFolder;
+        }
+        public string GetExtendedDirectoryIDoNotCareIfYouDontWantToWriteIt()
+        {
+            // correct path separators
+            string correctedFolder = folder?.Replace('/', Path.DirectorySeparatorChar);
 
             // return the corrected directory
             return correctedFolder;
@@ -203,6 +207,10 @@ namespace mc_compiled.MCC.Compiler
             if (DoNotWrite)
                 return null;
 
+            return $"{name}.mcfunction";
+        }
+        public string GetOutputFileIDoNotCareIfYouDontWantToWriteIt()
+        {
             return $"{name}.mcfunction";
         }
         public byte[] GetOutputData()

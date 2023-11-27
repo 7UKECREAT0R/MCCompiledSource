@@ -1,8 +1,8 @@
 ﻿using mc_compiled.MCC.Compiler;
-using mc_compiled.MCC.Compiler.Implementations.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Attributes.Implementations;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {
@@ -157,7 +157,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("dummies", "Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world."),
                 new Keyword("gametest", "Feature: Gametest Integration (not implemented)"),
                 new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
-                new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc., made by this project."),
+                new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project."),
                 //new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
                 
                 // directions

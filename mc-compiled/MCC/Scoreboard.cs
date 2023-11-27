@@ -130,6 +130,7 @@ namespace mc_compiled.MCC
         public ScoreboardValue(Typedef type, Clarifier clarifier, object data, string internalName, string name, string documentation,
             ScoreboardManager manager)
         {
+            this.attributes = new List<IAttribute>();
             this.type = type;
             this.clarifier = clarifier;
             this.data = data;
@@ -174,8 +175,7 @@ namespace mc_compiled.MCC
             string internalName = newInternalName ?? this.internalName;
             string name = newName ?? this.name;
 
-            ScoreboardValue clone =
-                new ScoreboardValue(type, clarifier, data, internalName, name, null, manager);
+            var clone = new ScoreboardValue(type, clarifier, data, internalName, name, null, manager);
             clone.WithAttributes(attributes, callingStatement);
 
             return clone;
@@ -230,8 +230,6 @@ namespace mc_compiled.MCC
                     throw new StatementException(forExceptions, "Cannot return this literal.");
             }
         }
-
-        public static implicit operator string(ScoreboardValue value) => value.InternalName;
 
         /// <summary>
         /// Returns how this variable definition might look. but with attributes/extra things included.
@@ -327,6 +325,7 @@ namespace mc_compiled.MCC
         {
             return type.CompareAlone(invert, this);
         }
+
         /// <summary>
         /// Compare a value with this type to a literal value. Returns both the setup commands needed, and the score comparisons needed.
         /// <br/>
@@ -334,9 +333,11 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="comparisonType">The comparison type.</param>
         /// <param name="literal">The literal to compare to.</param>
-        internal Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(TokenCompare.Type comparisonType, TokenLiteral literal)
+        /// <param name="callingStatement"></param>
+        internal Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(TokenCompare.Type comparisonType,
+            TokenLiteral literal, Statement callingStatement)
         {
-            return type.CompareToLiteral(comparisonType, this, literal);
+            return type.CompareToLiteral(comparisonType, this, literal, callingStatement);
         }
         
         /// <summary>
@@ -346,7 +347,7 @@ namespace mc_compiled.MCC
         /// <param name="callingStatement">The calling statement.</param>
         public IEnumerable<string> AssignLiteral(TokenLiteral literal, Statement callingStatement)
         {
-            return this.type.AssignLiteral(this, literal);
+            return this.type.AssignLiteral(this, literal, callingStatement);
         }
 
         /// <summary>
@@ -356,7 +357,7 @@ namespace mc_compiled.MCC
         /// <param name="callingStatement">The calling statement.</param>
         public IEnumerable<string> AddLiteral(TokenLiteral literal, Statement callingStatement)
         {
-            return this.type.AddLiteral(this, literal);
+            return this.type.AddLiteral(this, literal, callingStatement);
         }
 
         /// <summary>
@@ -366,7 +367,7 @@ namespace mc_compiled.MCC
         /// <param name="callingStatement">The calling statement.</param>
         public IEnumerable<string> SubtractLiteral(TokenLiteral literal, Statement callingStatement)
         {
-            return this.type.SubtractLiteral(this, literal);
+            return this.type.SubtractLiteral(this, literal, callingStatement);
         }
 
         /// <summary>
@@ -403,7 +404,7 @@ namespace mc_compiled.MCC
             if (this.NeedsToBeConvertedFor(other))
                 return other.CommandsConvert(this, callingStatement);
 
-            return this.type._Assign(this, other);
+            return this.type._Assign(this, other, callingStatement);
         }
         /// <summary>
         /// Returns the commands needed to add another value to this.
@@ -431,7 +432,7 @@ namespace mc_compiled.MCC
             else
                 b = other;
             
-            commands.AddRange(this.type._Add(this, b));
+            commands.AddRange(this.type._Add(this, b, callingStatement));
             return commands;
         }
         /// <summary>
@@ -460,7 +461,7 @@ namespace mc_compiled.MCC
             else
                 b = other;
             
-            commands.AddRange(this.type._Subtract(this, b));
+            commands.AddRange(this.type._Subtract(this, b, callingStatement));
             return commands;
         }
         /// <summary>
@@ -489,7 +490,7 @@ namespace mc_compiled.MCC
             else
                 b = other;
             
-            commands.AddRange(this.type._Multiply(this, b));
+            commands.AddRange(this.type._Multiply(this, b, callingStatement));
             return commands;
         }
         /// <summary>
@@ -518,7 +519,7 @@ namespace mc_compiled.MCC
             else
                 b = other;
             
-            commands.AddRange(this.type._Divide(this, b));
+            commands.AddRange(this.type._Divide(this, b, callingStatement));
             return commands;
         }
         /// <summary>
@@ -547,7 +548,7 @@ namespace mc_compiled.MCC
             else
                 b = other;
             
-            commands.AddRange(this.type._Modulo(this, b));
+            commands.AddRange(this.type._Modulo(this, b, callingStatement));
             return commands;
         }
         /// <summary>
@@ -576,8 +577,8 @@ namespace mc_compiled.MCC
                 commands.AddRange(a.Assign(other, callingStatement));
                 
                 // assign to their destinations, assume compatible
-                commands.AddRange(other.type._Assign(other, b));
-                commands.AddRange(this.type._Assign(this, a));
+                commands.AddRange(other.type._Assign(other, b, callingStatement));
+                commands.AddRange(this.type._Assign(this, a, callingStatement));
                 return commands;
             }
 
@@ -594,15 +595,5 @@ namespace mc_compiled.MCC
             }
             return commands;
         }
-    }
-    public class ScoreboardException : Exception
-    {
-        private readonly ScoreboardValue value;
-
-        public ScoreboardException(string msg, ScoreboardValue value) : base(msg)
-        {
-            this.value = value;
-        }
-        public override string Source => value.ToString();
     }
 }

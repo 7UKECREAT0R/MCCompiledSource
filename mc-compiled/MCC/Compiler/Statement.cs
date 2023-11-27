@@ -108,7 +108,7 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // identifier resolve requires a manual search.
                                 string word = tokenIdentifier.word;
-                                if (executor.scoreboard.TryGetByInternalName(word, out ScoreboardValue value))
+                                if (executor.scoreboard.TryGetByUserFacingName(word, out ScoreboardValue value))
                                     allResolved.Add(new TokenIdentifierValue(word, value, line));
                                 else if (executor.TryLookupMacro(word, out Macro? macro))
                                     allResolved.Add(new TokenIdentifierMacro(macro.GetValueOrDefault(), line));
@@ -176,7 +176,8 @@ namespace mc_compiled.MCC.Compiler
         {
             if (patterns != null && patterns.Length > 0)
             {
-                IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens));
+                IEnumerable<MatchResult> results = patterns.Select(
+                    pattern => pattern.Check(tokens));
                 IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
                 
                 if(matchResults.All(result => !result.match))

@@ -395,7 +395,7 @@
     "init": {
       "description": "Initialize Variable",
       "aliases": [ "initialize" ],
-      "details": "Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., variableName[@a]",
+      "details": "Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]`",
       "category": "values",
       "patterns": [
         [ "value:value" ]
@@ -409,6 +409,7 @@
         [ "not:not", "value:boolean" ],
         [ "value:boolean" ],
         [ "value:score", "compare:comparison", "value:other" ],
+        [ "value:score", "compare:comparison", "any:other" ],
         [ "selector:check for match" ],
         [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
         [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
@@ -416,6 +417,7 @@
         [ "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
         [ "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ],
         [ "not:not", "value:score", "compare:comparison", "value:other" ],
+        [ "not:not", "value:score", "compare:comparison", "any:other" ],
         [ "not:not", "selector:check for match" ],
         [ "not:not", "id:count", "selector:entities", "compare:comparison", "value:amount" ],
         [ "not:not", "id:count", "selector:entities", "compare:comparison", "number:amount" ],
@@ -673,7 +675,7 @@
     "function": {
       "description": "Define Function",
       "aliases": [ "fn" ],
-      "details": "Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: functionName(parameters)",
+      "details": "Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`",
       "category": "logic",
       "patterns": [
         [ "*:args" ]
@@ -691,7 +693,7 @@
     },
     "for": {
       "description": "For Each Entity",
-      "details": "Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to 'execute as \\<selector\\> at @s run \\<code\\>'",
+      "details": "Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>`",
       "category": "logic",
       "patterns": [
         [ "selector:entities" ]

@@ -1,6 +1,7 @@
 ﻿using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using mc_compiled.MCC.Attributes;
 
 namespace mc_compiled.MCC.Functions.Types
@@ -71,22 +72,20 @@ namespace mc_compiled.MCC.Functions.Types
         public override string Keyword => visualName;
         public override string Returns => "Compiler-Defined Attribute";
         public override string Documentation => documentation;
-        public override FunctionParameter[] Parameters => this.parameters.ToArray();
+        public override FunctionParameter[] Parameters => this.parameters.Cast<FunctionParameter>().ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;
         public override int Importance => 2; // most important.
-        public override bool ImplicitCall => this.parameters.Count == 0;
+        public override bool ImplicitCall => this.parameters.Count(p => !p.optional) == 0;
 
         public override bool MatchParameters(Token[] inputs, out string error, out int score)
         {
-            if (this.callAction == null)
-            {
-                error = $"Function \"{internalName}\" has no call action bound. This is a bug with the compiler.";
-                score = 0;
-                return false;
-            }
-
-            return base.MatchParameters(inputs, out error, out score);
+            if (this.callAction != null)
+                return base.MatchParameters(inputs, out error, out score);
+            
+            error = $"Function \"{internalName}\" has no call action bound. This is a bug with the compiler.";
+            score = 0;
+            return false;
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {

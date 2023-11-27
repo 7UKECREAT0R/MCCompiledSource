@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using mc_compiled.MCC.Attributes.Implementations;
+using mc_compiled.MCC.Functions.Types;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {
@@ -62,7 +64,7 @@ Starts and ends with brackets, holding code inside:
             writer.WriteLine("# Types");
             writer.WriteLine("Descriptions of the upcoming types that will be present in the different command arguments.");
             writer.WriteLine("- `id` An identifier that either has meaning or doesn't. An identifier can be the name of anything defined in the language, and is usually context dependent.");
-            foreach (var typeKV in Syntax.mappings.Values)
+            foreach (NamedType typeKV in Syntax.mappings.Values)
             {
                 string typeID = typeKV.name;
                 Type type = typeKV.type;
@@ -74,8 +76,8 @@ Starts and ends with brackets, holding code inside:
 
                 try
                 {
-                    IDocumented docs = Activator.CreateInstance(type, true) as IDocumented;
-                    string documentString = docs.GetDocumentation();
+                    var docs = Activator.CreateInstance(type, true) as IDocumented;
+                    string documentString = docs?.GetDocumentation() ?? throw new Exception($"Could not create instance of type {type.Name}. as IDocumented.");
                     writer.WriteLine($"- `{typeID}` {documentString}");
                 } catch(Exception)
                 {
@@ -89,10 +91,10 @@ Starts and ends with brackets, holding code inside:
             writer.WriteLine();
 
             writer.WriteLine("# Commands");
-            writer.WriteLine($"All of the commands in the language (version {Executor.MCC_VERSION}). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in \\<angle brackets\\>, and an optional parameter is surrounded in [square brackets].");
+            writer.WriteLine($@"All of the commands in the language (version {Executor.MCC_VERSION}). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in \<angle brackets\>, and an optional parameter is surrounded in [square brackets].");
             writer.WriteLine();
 
-            Dictionary<string, List<string>> sortedDirectives = new Dictionary<string, List<string>>();
+            var sortedDirectives = new Dictionary<string, List<string>>();
 
             foreach (string category in Syntax.categories.Keys)
             {
@@ -121,10 +123,10 @@ Starts and ends with brackets, holding code inside:
 {Syntax.categories[kv.Key]}
 
 
-{string.Join("\n", kv.Value)}"
+{string.Join("", kv.Value)}"
             );
 
-            string finalString = string.Join("\n", directivesAndCategories);
+            string finalString = string.Join("", directivesAndCategories);
             writer.WriteLine(finalString);
 
             writer.WriteLine("---");
@@ -136,9 +138,32 @@ Starts and ends with brackets, holding code inside:
                 string name = feature.ToString().ToLower();
                 string docs = Syntax.options.keywords.First(key => key.name == name).documentation;
                 writer.WriteLine($"#### `feature` `{name}`");
-                writer.WriteLine($"{docs}\n");
-
+                writer.WriteLine($"{docs}");
             }
+            writer.WriteLine();
+            writer.WriteLine("---");
+            writer.WriteLine("# Attributes");
+            writer.WriteLine("Attributes can be added to functions or values to change how they work or add some extra functionality.");
+            writer.WriteLine();
+            foreach (AttributeFunction attribute in AttributeFunctions.ALL_ATTRIBUTES)
+            {
+                string name = attribute.visualName.ToLower();
+                string docs = attribute.documentation;
+                
+                if(attribute.ImplicitCall)
+                    writer.WriteLine($"#### `{name}`");
+                else
+                {
+                    IEnumerable<string> names = attribute.Parameters.Select
+                        (p => p.optional ? $"{p.name}?" : $"{p.name}");
+                            
+                    writer.WriteLine($"#### `{name}({string.Join(", ", names)})`");
+                }
+                
+                writer.WriteLine($"{docs}");
+            }
+            writer.WriteLine();
+
         }
     }
 }

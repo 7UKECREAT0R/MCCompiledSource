@@ -1,4 +1,5 @@
-﻿using mc_compiled.Commands.Selectors;
+﻿using System.Diagnostics;
+using mc_compiled.Commands.Selectors;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -94,24 +95,20 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Sets the clarifier to a specific selector.
         /// </summary>
-        /// <param name="selector"></param>
-        public void SetSelector(Selector selector, Statement callingStatement)
+        /// <param name="selector">The selector.</param>
+        public void SetSelector(Selector selector)
         {
-            if (global)
-                throw new StatementException(callingStatement, "Attempted to clarify a global value.");
-
+            Debug.Assert(!global, "Attempted to clarify a global value.");
             string str = selector.ToString();
             this.currentString = str;
         }
         /// <summary>
         /// Sets the clarifier to a specific string.
         /// </summary>
-        /// <param name="selector"></param>
-        public void SetString(string str, Statement callingStatement)
+        /// <param name="str">The string.</param>
+        public void SetString(string str)
         {
-            if (global)
-                throw new StatementException(callingStatement, "Attempted to clarify a global value.");
-            
+            Debug.Assert(!global, "Attempted to clarify a global value.");
             this.currentString = str;
         }
     }

@@ -717,8 +717,10 @@ namespace mc_compiled.MCC.Server
                 Program.PrepareToCompile();
                 Token[] tokens = new Tokenizer(code).Tokenize();
                 Statement[] statements = Assembler.AssembleTokens(tokens);
-                executor = new Executor(statements, new Program.InputPPV[0], "lint", outputBehaviorPack, outputResourcePack);
-                executor.Linter().Execute();
+                executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", outputBehaviorPack,
+                    outputResourcePack);
+                executor.Linter();
+                executor.Execute();
 
                 // gather information.
                 LintStructure lint = LintStructure.Harvest(executor);
@@ -728,7 +730,7 @@ namespace mc_compiled.MCC.Server
 
                 string json = lint.ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
-                
+
                 // tell the client that there are no more errors
                 package.SendFrame(WebSocketFrame.String(
                     @"{""action"":""seterrors"",""errors"":[]}"
@@ -742,7 +744,6 @@ namespace mc_compiled.MCC.Server
                     Console.WriteLine("\tError. " + exc.Message);
                 string json = ErrorStructure.Wrap(exc).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
-                return;
             }
             catch (StatementException exc)
             {
@@ -750,7 +751,6 @@ namespace mc_compiled.MCC.Server
                     Console.WriteLine("\tError. " + exc.Message);
                 string json = ErrorStructure.Wrap(exc).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
-                return;
             }
             catch (FeederException exc)
             {
@@ -758,11 +758,10 @@ namespace mc_compiled.MCC.Server
                     Console.WriteLine("\tError. " + exc.Message);
                 string json = ErrorStructure.Wrap(exc).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
-                return;
             }
             catch (Exception exc)
             {
-                if (System.Diagnostics.Debugger.IsAttached)
+                if (Debugger.IsAttached)
                     throw;
                 if (debug)
                 {
@@ -771,7 +770,6 @@ namespace mc_compiled.MCC.Server
                 }
                 string json = ErrorStructure.Wrap(exc, new[] { 0 }).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
-                return;
             } finally
             {
                 // no longer busy

@@ -320,16 +320,16 @@ namespace mc_compiled.MCC.Compiler
         {
             if (!NextIs<TokenIdentifierFunction>())
             {
-                TokenIdentifier id = Next<TokenIdentifier>();
+                var id = Next<TokenIdentifier>();
                 throw new StatementException(this, $"Unresolved function name \"{id.word}\". Is it spelled right & defined somewhere above this line?");
             }
 
-            TokenIdentifierFunction value = Next<TokenIdentifierFunction>();
+            var value = Next<TokenIdentifierFunction>();
 
             if (NextIs<TokenOpenParenthesis>())
                 Next();
 
-            List<Token> _passIn = new List<Token>();
+            var _passIn = new List<Token>();
             int level = 1;
             while(HasNext)
             {
@@ -366,25 +366,32 @@ namespace mc_compiled.MCC.Compiler
                     continue;
                 }
 
-                if (score > bestFunctionScore)
-                {
-                    foundValidMatch = true;
-                    bestFunction = function;
-                    bestFunctionScore = score;
-                }
+                if (score <= bestFunctionScore)
+                    continue;
+                
+                foundValidMatch = true;
+                bestFunction = function;
+                bestFunctionScore = score;
             }
 
             if (!foundValidMatch)
                 throw new StatementException(this, lastError);
 
-            List<string> commands = new List<string>();
+            var parameterCommands = new List<string>();
+            var callCommands = new List<string>();
+            
+            if (bestFunction is RuntimeFunction)
+            {
+                _ = bestFunction.CallFunction(callCommands, executor, this);
+                bestFunction.ProcessParameters(passIn, parameterCommands, executor, this);
+            }
+            else
+            {
+                bestFunction.ProcessParameters(passIn, parameterCommands, executor, this);
+                _ = bestFunction.CallFunction(callCommands, executor, this);
+            }
 
-            // process the parameters and get their commands.
-            bestFunction.ProcessParameters(passIn, commands, executor, this);
-
-            // call the function.
-            Token replacement = bestFunction.CallFunction(commands, executor, this);
-
+            
             // finish with the commands.
             CommandFile current = executor.CurrentFile;
 
@@ -392,11 +399,10 @@ namespace mc_compiled.MCC.Compiler
             if (bestFunction is RuntimeFunction runtime)
                 current.RegisterCall(runtime.file);
 
+            string[] commands = parameterCommands.Concat(callCommands).ToArray();
+            
             executor.AddCommands(commands, "call" + bestFunction.Keyword.Replace('.', '_'),
                 $"From file {current.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", passIn.Select(t => t.AsString()))})");
-            commands.Clear();
-
-            return;
         }
     }
 

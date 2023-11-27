@@ -116,14 +116,13 @@ namespace mc_compiled.MCC.Functions
         /// <summary>
         /// Load the given tokens into this function's parameters.
         /// </summary>
-        /// <param name="inputs">The input parameters that have been checked by <see cref="MatchParameters(Token[])"/></param>
+        /// <param name="inputs">The input parameters that have been checked by <see cref="MatchParameters"/></param>
         /// <param name="commandBuffer">The commands that will be added after this function call is completed in full.</param>
         /// <param name="executor">The executor.</param>
         /// <param name="callingStatement">The statement calling this method.</param>
-        public virtual void ProcessParameters(Token[] inputs, List<string> commandBuffer, Executor executor, Statement callingStatement)
+        public void ProcessParameters(Token[] inputs, List<string> commandBuffer, Executor executor, Statement callingStatement)
         {
             ScoreboardManager sb = executor.scoreboard;
-            List<string> commandsToCall = new List<string>();
             FunctionParameter[] parameters = this.Parameters;
 
             using (sb.temps.PushTempState())
@@ -142,22 +141,21 @@ namespace mc_compiled.MCC.Functions
                         if (parameter.optional)
                             input = parameter.defaultValue;
                         else
-                            throw new StatementException(callingStatement, $"Missing parameter '{parameter}' in function call.");
+                            throw new StatementException(callingStatement, $"Missing parameter '{parameter}' in '{Keyword}' call.");
                     }
                     else
                         input = inputs[i];
 
                     if(parameter.CheckInput(input) == ParameterFit.No)
-                        throw new StatementException(callingStatement, $"Couldn't accept input \"{input.ToString()}\" for parameter \"{parameter.name}\"");
+                        throw new StatementException(callingStatement, $"Couldn't accept input \"{input}\" for parameter '{parameter.name}'");
 
                     parameter.SetParameter(input, commandBuffer, executor, callingStatement);
-                    continue;
                 }
             }
         }
 
         /// <summary>
-        /// Call this function after the inputs have been processed by <see cref="ProcessParameters(Token[])"/>.
+        /// Call this function after the inputs have been processed by <see cref="ProcessParameters"/>.
         /// </summary>
         /// <param name="commandBuffer">The commands that will be added after this function call is completed in full.</param>
         /// <param name="executor">The executing environment.</param>

@@ -1,8 +1,8 @@
 ﻿using mc_compiled.MCC.Compiler.Implementations;
-using mc_compiled.MCC.Compiler.Implementations.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Attributes.Implementations;
 
 namespace mc_compiled.MCC.Functions
 {

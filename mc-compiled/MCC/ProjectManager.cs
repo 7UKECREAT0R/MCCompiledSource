@@ -81,7 +81,7 @@ namespace mc_compiled.MCC
 
             foreach (ScoreboardValue sb in parentExecutor.scoreboard.values)
             {
-                file.Add(Commands.Command.ScoreboardRemoveObjective(sb.Name));
+                file.Add(Commands.Command.ScoreboardRemoveObjective(sb.InternalName));
             }
 
             foreach (string tag in parentExecutor.definedTags)
@@ -268,6 +268,25 @@ namespace mc_compiled.MCC
             OutputLocation baseLocation = file.GetOutputLocation();
             string folder = registry[baseLocation];
             string extend = file.GetExtendedDirectory();
+
+            if (extend != null)
+                folder = Path.Combine(folder, extend);
+
+            if (includeFileName)
+                folder = Path.Combine(folder, outputFile);
+
+            return folder;
+        }
+        public string GetOutputFileLocationFullIDoNotCareIfYouDontWantToWriteIt(CommandFile file, bool includeFileName)
+        {
+            string outputFile = file.GetOutputFileIDoNotCareIfYouDontWantToWriteIt();
+
+            if (string.IsNullOrEmpty(outputFile))
+                return null;
+
+            OutputLocation baseLocation = file.GetOutputLocation();
+            string folder = registry[baseLocation];
+            string extend = file.GetExtendedDirectoryIDoNotCareIfYouDontWantToWriteIt();
 
             if (extend != null)
                 folder = Path.Combine(folder, extend);

@@ -132,7 +132,7 @@ namespace mc_compiled.MCC.Functions.Types
                 // will sort of 'define' what the return type should be
                 ScoreboardManager sb = executor.scoreboard;
                 ScoreboardValue clone = ScoreboardValue.AsReturnValue(value, caller);
-                if (sb.temps.DefinedTemps.Add(clone))
+                if (sb.temps.DefinedTemps.Add(clone.InternalName))
                     executor.AddCommandsInit(clone.CommandsDefine());
 
                 commands = clone.Assign(value, caller);
@@ -162,7 +162,7 @@ namespace mc_compiled.MCC.Functions.Types
                 ScoreboardManager sb = executor.scoreboard;
                 ScoreboardValue variable = ScoreboardValue.AsReturnValue(value, sb, caller);
 
-                if (sb.temps.DefinedTemps.Add(variable))
+                if (sb.temps.DefinedTemps.Add(variable.InternalName))
                     executor.AddCommandsInit(variable.CommandsDefine());
 
                 commands = variable.AssignLiteral(value, caller);
@@ -186,7 +186,7 @@ namespace mc_compiled.MCC.Functions.Types
             // apply attributes
             foreach (IAttribute attribute in this.attributes)
                 attribute.OnCalledFunction(this, commandBuffer, executor, statement);
-
+            
             // if there's nothing to 'return', send back a null literal.
             if (returnValue == null) 
                 return new TokenNullLiteral(statement.Lines[0]);

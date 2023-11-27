@@ -23,10 +23,9 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 
                 writer.WriteLine("\t{");
                 writer.WriteLine($"\t\tword: `{value.name}`,");
-                if(value.documentation != null)
-                    writer.WriteLine($"\t\tdocs: `{value.documentation}`");
-                else
-                    writer.WriteLine($"\t\tdocs: 'No documentation available for v{Compiler.Executor.MCC_VERSION}.'");
+                writer.WriteLine(value.documentation != null
+                    ? $"\t\tdocs: `{value.documentation.Replace("`", "\\`")}`"
+                    : $"\t\tdocs: 'No documentation available for v{Compiler.Executor.MCC_VERSION}.'");
                 writer.WriteLine("\t},");
             }
 

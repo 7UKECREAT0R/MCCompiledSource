@@ -153,11 +153,11 @@ namespace mc_compiled.MCC.Compiler
             {
                 ScoreboardValue a = ((TokenIdentifierValue)this.a).value;
                 TokenNumberLiteral b = (TokenNumberLiteral)this.b;
-                this.entries = a.CompareToLiteral(localComparison, b);
+                this.entries = a.CompareToLiteral(localComparison, b, callingStatement);
 
                 if(willBeInverted)
                 {
-                    var commands = new List<string>(this.entries.Item1);
+                    var commands = new List<string>(this.entries.Item1 ?? Array.Empty<string>());
                     temp = executor.scoreboard.temps.Request(true);
                     commands.Add(Command.ScoreboardSet(temp, 0));
 

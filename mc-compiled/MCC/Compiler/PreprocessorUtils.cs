@@ -110,28 +110,30 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>null if the dynamic couldn't be wrapped.</returns>
         public static TokenLiteral DynamicToLiteral(dynamic value, int line)
         {
-            if (value is int)
-                return new TokenIntegerLiteral(value, IntMultiplier.none, line);
-            if (value is float)
-                return new TokenDecimalLiteral(value, line);
-            if (value is bool)
-                return new TokenBooleanLiteral(value, line);
-            if (value is string)
-                return new TokenStringLiteral(value, line);
-            if (value is Coord)
-                return new TokenCoordinateLiteral(value, line);
-            if (value is Selector)
-                return new TokenSelectorLiteral(value, line);
-            if (value is Range)
-                return new TokenRangeLiteral(value, line);
-            if (value is JToken)
-                return new TokenJSONLiteral(value, line);
-            if (value is IAttribute)
-                return new TokenAttribute(value, line);
-
-            return null;
+            switch (value)
+            {
+                case int _:
+                    return new TokenIntegerLiteral(value, IntMultiplier.none, line);
+                case float _:
+                    return new TokenDecimalLiteral(value, line);
+                case bool _:
+                    return new TokenBooleanLiteral(value, line);
+                case string _:
+                    return new TokenStringLiteral(value, line);
+                case Coord _:
+                    return new TokenCoordinateLiteral(value, line);
+                case Selector _:
+                    return new TokenSelectorLiteral(value, line);
+                case Range _:
+                    return new TokenRangeLiteral(value, line);
+                case JToken _:
+                    return new TokenJSONLiteral(value, line);
+                case IAttribute _:
+                    return new TokenAttribute(value, line);
+                default:
+                    return null;
+            }
         }
-
 
         /// <summary>
         /// Parse the "JSONAccessor" format documented for MCCompiled.

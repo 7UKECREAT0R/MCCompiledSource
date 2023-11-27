@@ -10,7 +10,7 @@ namespace mc_compiled.MCC
     /// </summary>
     public class EntityManager
     {
-        internal readonly List<ISelectorProvider> allProviders;
+        private readonly List<ISelectorProvider> allProviders;
         internal readonly DummyManager dummies;
         internal readonly ExploderManager exploders;
 
@@ -32,8 +32,6 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public bool HasEntity(string name)
         {
-            int hash = name.GetHashCode();
-
             return allProviders.Any(provider =>
                 provider.HasEntity(name));
         }

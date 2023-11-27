@@ -15,17 +15,19 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// A scoreboard exception with formatted text: "Literal [{src}] could not be converted to {dst}"
         /// </summary>
         /// <returns></returns>
-        protected static ScoreboardException LiteralConversionError(ScoreboardValue causer, TokenLiteral literal)
+        protected static StatementException LiteralConversionError(ScoreboardValue value, TokenLiteral literal,
+            Statement callingStatement)
         {
-            return new ScoreboardException($"Literal [{literal.AsString()}] could not be converted to {causer.type.TypeKeyword}", causer);
+            return new StatementException(callingStatement, $"Literal [{literal.AsString()}] could not be converted to {value.type.TypeKeyword}");
         }
         /// <summary>
         /// A scoreboard exception with formatted text: "Operation '{operation}' is unsupported by type '{src}'."
         /// </summary>
         /// <returns></returns>
-        protected static ScoreboardException UnsupportedOperationError(ScoreboardValue src, UnsupportedOperationType operation)
+        protected static StatementException UnsupportedOperationError(ScoreboardValue value,
+            UnsupportedOperationType operation, Statement callingStatement)
         {
-            return new ScoreboardException($"Operation '{operation}' is unsupported by type {src.type.TypeKeyword}.", src);
+            return new StatementException(callingStatement, $"Operation '{operation}' is unsupported by type {value.type.TypeKeyword}.");
         }
 
         protected enum UnsupportedOperationType
@@ -90,7 +92,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         public abstract object CloneData(object data);
 
         /// <summary>
-        /// Returns all scoreboard objectives that this type uses, with the given <see cref="ScoreboardValue"/>.
+        /// Returns all internal scoreboard objectives that this type uses, with the given <see cref="ScoreboardValue"/>.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -137,24 +139,30 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         /// <param name="self">The scoreboard value that has this type.</param>
         /// <param name="literal">The literal to assign.</param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal);
+        internal abstract IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to add a literal to this type.
         /// </summary>
         /// <param name="self">The scoreboard value that has this type.</param>
         /// <param name="literal">The literal to assign.</param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal);
+        internal abstract IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to subtract a literal from this type.
         /// </summary>
         /// <param name="self">The scoreboard value that has this type.</param>
         /// <param name="literal">The literal to assign.</param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal);
+        internal abstract IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to assign another value to self, given that they are both the same type and compatible.
@@ -164,8 +172,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         /// <param name="self"></param>
         /// <param name="other"></param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other);
+        internal abstract IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the range needed to compare this type alone, given that <see cref="CanCompareAlone"/> is <b>true</b>.
@@ -174,6 +184,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// <param name="value">The value holding this type.</param>
         /// <returns></returns>
         internal abstract ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value);
+
         /// <summary>
         /// Compare a value with this type to a literal value. Returns both the setup commands needed, and the score comparisons needed.
         /// <br/>
@@ -182,8 +193,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// <param name="comparisonType">The comparison type.</param>
         /// <param name="self"></param>
         /// <param name="literal"></param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal);
+        internal abstract Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
+            TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to add another value to self, given that they are both the same type and compatible.
@@ -193,8 +206,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         /// <param name="self"></param>
         /// <param name="other"></param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other);
+        internal abstract IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to subtract another value from self, given that they are both the same type and compatible.
@@ -204,8 +219,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         /// <param name="self"></param>
         /// <param name="other"></param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other);
+        internal abstract IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to multiply self by another value, given that they are both the same type and compatible.
@@ -215,8 +232,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         /// <param name="self"></param>
         /// <param name="other"></param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other);
+        internal abstract IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to divide self by another value, given that they are both the same type and compatible.
@@ -226,8 +245,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         /// <param name="self"></param>
         /// <param name="other"></param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other);
+        internal abstract IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement);
 
         /// <summary>
         /// Returns the commands needed to get the remainder of self after division with another value, given that they are both the same type and compatible.
@@ -237,8 +258,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         /// <param name="self"></param>
         /// <param name="other"></param>
+        /// <param name="callingStatement"></param>
         /// <returns></returns>
-        internal abstract IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other);
+        internal abstract IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other,
+            Statement callingStatement);
     }
     /// <summary>
     /// A type definition.

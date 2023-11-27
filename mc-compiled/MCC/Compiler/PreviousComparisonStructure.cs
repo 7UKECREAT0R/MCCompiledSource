@@ -50,7 +50,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             
             _disposed = true;
-            tempManager?.Release(resultStore.type, resultStore.clarifier.IsGlobal);
+            //tempManager?.Release(resultStore.type, resultStore.clarifier.IsGlobal);
         }
     }
 }

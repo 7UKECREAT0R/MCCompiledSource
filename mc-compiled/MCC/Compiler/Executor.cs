@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using mc_compiled.Commands.Execute;
+using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
 
 namespace mc_compiled.MCC.Compiler
@@ -20,14 +21,14 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Executor
     {
-        public const string _FSTRING_SELECTOR = @"@(?:[spaeri]|initiator)(?:\[.+\])?";
-        public const string _FSTRING_VARIABLE = @"[\w\d_\-:]+";
+        private const string _FSTRING_SELECTOR = @"@(?:[spaeri]|initiator)(?:\[.+\])?";
+        private const string _FSTRING_VARIABLE = @"[\w\d_\-:]+";
+        private static readonly Regex PPV_FMT = new Regex(@"\\*\$[\w\d]+");
+        
         public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
-        //public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+(\\[\"?.+\"?\\])*");
-        public static readonly Regex PPV_FMT = new Regex("\\\\*\\$[\\w\\d]+");
         public const double MCC_VERSION = 1.15;                 // compilerversion
-        public static string MINECRAFT_VERSION = "x.xx.xxx";    // mcversion
+        public static string MINECRAFT_VERSION = "0.00.000";    // mcversion
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";
         public const string UNDOCUMENTED_TEXT = "This symbol has no documentation.";
@@ -52,6 +53,7 @@ namespace mc_compiled.MCC.Compiler
         /// Display a warning regardless of debug setting.
         /// </summary>
         /// <param name="warning">The warning to display.</param>
+        /// <param name="source">The statement that is causing this warning, if any.</param>
         public static void Warn(string warning, Statement source = null)
         {
             ConsoleColor old;
@@ -71,7 +73,7 @@ namespace mc_compiled.MCC.Compiler
             Console.ForegroundColor = old;
         }
 
-        int iterationsUntilDeferProcess = 0;
+        private int iterationsUntilDeferProcess = 0;
         /// <summary>
         /// Defer an action to happen after the next valid statement has run.
         /// </summary>
@@ -88,41 +90,37 @@ namespace mc_compiled.MCC.Compiler
         {
             while(this.deferredActions.Any())
             {
-                var action = this.deferredActions.Pop();
+                Action<Executor> action = this.deferredActions.Pop();
                 action.Invoke(this);
             }
         }
 
         internal readonly EntityManager entities;
         internal readonly ProjectManager project;
-        public string lastStatementSource;
 
-        Statement[] statements;
-        int readIndex = 0;
-        int unreachableCode = -1;
-
+        private Statement[] statements;
+        private int readIndex = 0;
+        private int unreachableCode = -1;
+        private readonly Stack<Action<Executor>> deferredActions;
+        private readonly Dictionary<int, object> loadedFiles;
+        private readonly List<int> definedStdFiles;
+        private readonly bool[] lastPreprocessorCompare;
+        private readonly PreviousComparisonStructure[] lastCompare;
+        private readonly StringBuilder prependBuffer;
+        private readonly Stack<CommandFile> currentFiles;
+        
         internal int depth;
         internal bool linting;
-        internal readonly Stack<Action<Executor>> deferredActions;
-        internal readonly Dictionary<int, object> loadedFiles;
-        internal readonly List<int> definedStdFiles;
+        internal readonly ScoreboardManager scoreboard;
         internal readonly List<Macro> macros;
         internal readonly FunctionManager functions;
         internal readonly HashSet<string> definedTags;
-        internal readonly bool[] lastPreprocessorCompare;
-        internal readonly PreviousComparisonStructure[] lastCompare;
         internal readonly Dictionary<string, dynamic[]> ppv;
-        readonly StringBuilder prependBuffer;
-        readonly Stack<CommandFile> currentFiles;
-        public readonly ScoreboardManager scoreboard;
-
+        
         /// <summary>
         /// Get the bracket depth of the executor currently.
         /// </summary>
-        public int Depth
-        {
-            get => depth;
-        }
+        public int Depth => depth;
 
         internal Executor(Statement[] statements, Program.InputPPV[] inputPPVs,
             string projectName, string bpBase, string rpBase)
@@ -177,73 +175,30 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="selector"></param>
         public void PushAlignSelector(ref Selector selector)
         {
-            if(selector.NonSelf)
-            {
-                ExecuteBuilder builder = new ExecuteBuilder()
-                    .WithSubcommand(new SubcommandAs(selector))
-                    .WithSubcommand(new SubcommandAt(Selector.SELF))
-                    .WithSubcommand(new SubcommandRun());
+            if (!selector.NonSelf)
+                return;
+            
+            ExecuteBuilder builder = new ExecuteBuilder()
+                .WithSubcommand(new SubcommandAs(selector))
+                .WithSubcommand(new SubcommandAt(Selector.SELF))
+                .WithSubcommand(new SubcommandRun());
 
-                AppendCommandPrepend(builder.Build(out _));
-                selector = Selector.SELF;
-            }
+            AppendCommandPrepend(builder.Build(out _));
+            selector = Selector.SELF;
         }
 
         /// <summary>
         /// Resolve an FString into rawtext terms. Also adds all setup commands for variables.
         /// </summary>
-        /// <param name="fstring"></param>
+        /// <param name="fstring">The string to resolve.</param>
+        /// <param name="forExceptions">The statement to use for exceptions.</param>
+        /// <param name="advanced">If this FString is 'advanced' as in, requires per-user execution.</param>
         /// <returns></returns>
         public List<JSONRawTerm> FString(string fstring, Statement forExceptions, out bool advanced)
         {
-            // stupid complex search for closing bracket: '}'
-            int ScanForCloser(string str, int start)
-            {
-                int len = str.Length;
-                int depth = -1;
-                bool escape = false;
-
-                for(int i = start + 1; i < len; i++)
-                {
-                    char c = str[i];
-
-                    if(c == '\\')
-                    {
-                        escape = !escape;
-                        continue;
-                    }
-
-                    // actual bracket stuff
-                    if (c == '{')
-                    {
-                        depth++;
-                        continue;
-                    }
-                    if(c == '}')
-                    {
-                        depth--;
-                        if (depth < 0)
-                            return i - start;
-                    }
-                }
-
-                return -1;
-            }
-
             advanced = false;
-            List<JSONRawTerm> terms = new List<JSONRawTerm>();
-            StringBuilder buffer = new StringBuilder();
-
-            // dumps the contents of the text buffer into a string and adds it to the terms as text.
-            void DumpTextBuffer()
-            {
-                string bufferContents = ResolveString(buffer.ToString());
-                if (!string.IsNullOrEmpty(bufferContents))
-                {
-                    terms.AddRange(new JSONText(bufferContents).Localize(this, forExceptions));
-                    buffer.Clear();
-                }
-            }
+            var terms = new List<JSONRawTerm>();
+            var buffer = new StringBuilder();
 
             int scoreIndex = 0;
             for(int i = 0; i < fstring.Length; i++)
@@ -276,7 +231,7 @@ namespace mc_compiled.MCC.Compiler
                     }
 
                     // tokenize and assemble the inputs (without character stripping or definitions.def)
-                    Tokenizer tokenizer = new Tokenizer(segment, false, false);
+                    var tokenizer = new Tokenizer(segment, false, false);
                     Token[] tokens = tokenizer.Tokenize();
                     Statement subStatement = new StatementHusk(tokens);
                     subStatement.SetSource(forExceptions.Lines, "Inline FString Operation");
@@ -292,41 +247,44 @@ namespace mc_compiled.MCC.Compiler
                     Token[] remaining = subStatement.GetRemainingTokens();
                     foreach (Token token in remaining)
                     {
-                        // try to find the best rawtext representation
-                        if(token is TokenSelectorLiteral selectorLiteral)
+                        switch (token)
                         {
-                            advanced = true;
-                            Selector selector = selectorLiteral.selector;
-                            terms.Add(new JSONSelector(selector.ToString()));
-                            continue;
-                        } else if(token is TokenIdentifierValue identifierValue)
-                        {
-                            CommandFile file = CurrentFile;
-
-                            if(!identifierValue.value.clarifier.IsGlobal)
+                            // try to find the best rawtext representation
+                            case TokenSelectorLiteral selectorLiteral:
+                            {
                                 advanced = true;
+                                Selector selector = selectorLiteral.selector;
+                                terms.Add(new JSONSelector(selector.ToString()));
+                                continue;
+                            }
+                            case TokenIdentifierValue identifierValue:
+                            {
+                                CommandFile file = CurrentFile;
 
-                            ScoreboardValue value = identifierValue.value;
-                            int indexCopy = scoreIndex;
+                                if(!identifierValue.value.clarifier.IsGlobal)
+                                    advanced = true;
 
-                            // type implementation called here
-                            (string[] rtCommands, JSONRawTerm[] rtTerms) = value.ToRawText(ref indexCopy);
+                                ScoreboardValue value = identifierValue.value;
+                                int indexCopy = scoreIndex;
+
+                                // type implementation called here
+                                (string[] rtCommands, JSONRawTerm[] rtTerms) = value.ToRawText(ref indexCopy);
                             
-                            AddCommandsClean(rtCommands, "string" + value.InternalName,
-                                $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {NextLineNumber}");
+                                AddCommandsClean(rtCommands, "string" + value.InternalName,
+                                    $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {NextLineNumber}");
 
-                            // localize and flatten the array.
-                            terms.AddRange(rtTerms.SelectMany(term => term.Localize(this, forExceptions)));
+                                // localize and flatten the array.
+                                terms.AddRange(rtTerms.SelectMany(term => term.Localize(this, forExceptions)));
 
-                            scoreIndex++;
-                            continue;
+                                scoreIndex++;
+                                continue;
+                            }
                         }
 
                         // default representation
                         string stringRepresentation = ResolveString(token.ToString());
                         if(!string.IsNullOrEmpty(stringRepresentation))
                             terms.AddRange(new JSONText(stringRepresentation).Localize(this, forExceptions));
-                        continue;
                     }
 
                     continue;
@@ -337,6 +295,51 @@ namespace mc_compiled.MCC.Compiler
 
             DumpTextBuffer();
             return terms;
+
+            // dumps the contents of the text buffer into a string and adds it to the terms as text.
+            void DumpTextBuffer()
+            {
+                string bufferContents = ResolveString(buffer.ToString());
+                
+                if (string.IsNullOrEmpty(bufferContents))
+                    return;
+                
+                terms.AddRange(new JSONText(bufferContents).Localize(this, forExceptions));
+                buffer.Clear();
+            }
+
+            // stupid complex search for closing bracket: '}'
+            int ScanForCloser(string str, int start)
+            {
+                int len = str.Length;
+                int depth = -1;
+                bool escape = false;
+
+                for(int i = start + 1; i < len; i++)
+                {
+                    char c = str[i];
+
+                    switch (c)
+                    {
+                        case '\\':
+                            escape = !escape;
+                            continue;
+                        // actual bracket stuff
+                        case '{':
+                            depth++;
+                            continue;
+                        case '}':
+                        {
+                            depth--;
+                            if (depth < 0)
+                                return i - start;
+                            break;
+                        }
+                    }
+                }
+
+                return -1;
+            }
         }
         /// <summary>
         /// Append these terms to the end of this command. Will resolve <see cref="JSONVariant"/>s and construct the command combinations.
@@ -344,14 +347,14 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="terms">The terms constructed by FString.</param>
         /// <param name="command">The command to append the terms to.</param>
         /// <param name="root">If this is the root call.</param>
-        /// <param name="currentSelector">The current selector that holds all the scores checks. Set to null for default behavior.</param>
+        /// <param name="builder">The ExecuteBuilder that will hold all score checks in it.</param>
         /// <param name="commands">Used for recursion, set to null.</param>
         /// <param name="copy">The existing terms to copy from.</param>
         /// <returns></returns>
-        public string[] ResolveRawText(List<JSONRawTerm> terms, string command, bool root = true,
+        public static string[] ResolveRawText(List<JSONRawTerm> terms, string command, bool root = true,
             ExecuteBuilder builder = null, List<string> commands = null, RawTextJsonBuilder copy = null)
         {
-            RawTextJsonBuilder jb = new RawTextJsonBuilder(copy);
+            var jb = new RawTextJsonBuilder(copy);
 
             if (builder == null)
                 builder = Command.Execute();
@@ -385,10 +388,15 @@ namespace mc_compiled.MCC.Compiler
 
             bool hasVariant = terms.Any(t => t is JSONVariant);
 
-            if (!root && !hasVariant)
-                commands.Add(builder.Run(command + jb.BuildString()));
-            else if(root && !hasVariant)
-                commands.Add(command + jb.BuildString());
+            switch (root)
+            {
+                case false when !hasVariant:
+                    commands.Add(builder.Run(command + jb.BuildString()));
+                    break;
+                case true when !hasVariant:
+                    commands.Add(command + jb.BuildString());
+                    break;
+            }
 
             if (root)
                 return commands.ToArray();
@@ -397,22 +405,17 @@ namespace mc_compiled.MCC.Compiler
         }
 
         private LanguageManager languageManager = null;
-        private LocaleDefinition activeLocale = null;
 
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
         /// </summary>
-        internal LocaleDefinition ActiveLocale
-        {
-            get => activeLocale;
-        }
+        private LocaleDefinition ActiveLocale { get; set; } = null;
+
         /// <summary>
         /// Returns if a locale has been set via <see cref="SetLocale(string)"/>.
         /// </summary>
-        public bool HasLocale
-        {
-            get => activeLocale != null;
-        }
+        public bool HasLocale => ActiveLocale != null;
+
         /// <summary>
         /// Sets the active locale that FString data will be sent to.
         /// </summary>
@@ -425,8 +428,7 @@ namespace mc_compiled.MCC.Compiler
                 this.AddExtraFile(languageManager);
             }
 
-            this.activeLocale = languageManager.DefineLocale(locale);
-            return;
+            this.ActiveLocale = languageManager.DefineLocale(locale);
         }
         /// <summary>
         /// Sets a locale entry in the associated .lang file. Throws a <see cref="StatementException"/> if no locale has been set yet via <see cref="SetLocale(string)"/>.
@@ -444,13 +446,13 @@ namespace mc_compiled.MCC.Compiler
 
             bool merge;
 
-            if(ppv.TryGetValue(LanguageManager.MERGE_PPV, out var val))
+            if(ppv.TryGetValue(LanguageManager.MERGE_PPV, out dynamic[] val))
                 merge = (bool)val[0];
             else
                 merge = false;
 
-            LangEntry entry = LangEntry.Create(key, value);
-            return this.activeLocale.file.Add(entry, overwrite, merge);
+            var entry = LangEntry.Create(key, value);
+            return this.ActiveLocale.file.Add(entry, overwrite, merge);
         }
 
         public void UnreachableCode() =>
@@ -473,7 +475,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="current">The statement that is currently being run.</param>
         /// <exception cref="StatementException">If the execution context is currently in an unreachable area.</exception>
-        void CheckUnreachable(Statement current)
+        private void CheckUnreachable(Statement current)
         {
             if (unreachableCode > 0)
                 unreachableCode--;
@@ -486,7 +488,8 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Load JSON file with caching for next use.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">The path to the JSON file.</param>
+        /// <param name="callingStatement">The calling statement.</param>
         /// <returns></returns>
         public JToken LoadJSONFile(string path, Statement callingStatement)
         {
@@ -495,8 +498,8 @@ namespace mc_compiled.MCC.Compiler
             // cached file, dont read again
             if (loadedFiles.TryGetValue(hash, out object value))
             {
-                if (value is JToken)
-                    return value as JToken;
+                if (value is JToken token)
+                    return token;
             }
 
             if(string.IsNullOrWhiteSpace(path))
@@ -510,19 +513,21 @@ namespace mc_compiled.MCC.Compiler
             loadedFiles[hash] = json;
             return json;
         }
+
         /// <summary>
         /// Load JSON file with caching for next use, under a different hashcode.
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="underName"></param>
+        /// <param name="path">The path to the JSON file.</param>
+        /// <param name="hash">The hash to use for remembering if the path is loaded once yet.</param>
+        /// <param name="callingStatement">The statement to use for exceptions.</param>
         /// <returns></returns>
         public JToken LoadJSONFile(string path, int hash, Statement callingStatement)
         {
             // cached file, dont read again
             if (loadedFiles.TryGetValue(hash, out object value))
             {
-                if (value is JToken)
-                    return value as JToken;
+                if (value is JToken token)
+                    return token;
             }
 
             if (string.IsNullOrWhiteSpace(path))
@@ -539,7 +544,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Load file with caching for next use.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">The path to the file.</param>
         /// <returns></returns>
         public string LoadFileString(string path)
         {
@@ -547,8 +552,8 @@ namespace mc_compiled.MCC.Compiler
 
             // cached file, dont read again
             if (loadedFiles.TryGetValue(hash, out object value))
-                if (value is string)
-                    return value as string;
+                if (value is string s)
+                    return s;
 
             string contents = File.ReadAllText(path);
             loadedFiles[hash] = contents;
@@ -557,7 +562,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Load file with caching for next use.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">The path to the file.</param>
         /// <returns></returns>
         public byte[] LoadFileBytes(string path)
         {
@@ -566,10 +571,13 @@ namespace mc_compiled.MCC.Compiler
             // cached file, dont read again
             if (loadedFiles.TryGetValue(hash, out object value))
             {
-                if (value is string)
-                    return Encoding.UTF8.GetBytes(value as string);
-                else if (value is byte[])
-                    return value as byte[];
+                switch (value)
+                {
+                    case string s:
+                        return Encoding.UTF8.GetBytes(s);
+                    case byte[] bytes:
+                        return bytes;
+                }
             }
 
             byte[] contents = File.ReadAllBytes(path);
@@ -656,10 +664,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Returns if this executor has another statement available to run.
         /// </summary>
-        public bool HasNext
-        {
-            get => readIndex < statements.Length;
-        }
+        public bool HasNext => readIndex < statements.Length;
 
         /// <summary>
         /// Tries to fetch a documentation string based whether the last statement was a comment or not. Returns <see cref="Executor.UNDOCUMENTED_TEXT"/> if no documentation was supplied.
@@ -807,10 +812,9 @@ namespace mc_compiled.MCC.Compiler
 
             Statement _tokens = statements[readIndex];
 
-            if (!(_tokens is StatementUnknown))
+            if (!(_tokens is StatementUnknown tokens))
                 return false;
 
-            StatementUnknown tokens = _tokens as StatementUnknown;
             return tokens.NextIs<TokenBuilderIdentifier>();
         }
         public bool NextBuilderField(ref Statement tokens, out TokenBuilderIdentifier builderField)
@@ -843,9 +847,9 @@ namespace mc_compiled.MCC.Compiler
         public Statement[] Peek(int amount)
         {
             if (amount == 0)
-                return new Statement[0];
+                return Array.Empty<Statement>();
 
-            Statement[] ret = new Statement[amount];
+            var ret = new Statement[amount];
 
             int write = 0;
             for (int i = readIndex; i < statements.Length && i < readIndex + amount; i++)
@@ -866,7 +870,7 @@ namespace mc_compiled.MCC.Compiler
 
             if(NextIs<StatementOpenBlock>())
             {
-                StatementOpenBlock block = Next<StatementOpenBlock>();
+                var block = Next<StatementOpenBlock>();
                 int statements = block.statementsInside;
                 Statement[] code = Peek(statements);
                 readIndex += statements;
@@ -896,7 +900,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Setup the default preprocessor variables.
         /// </summary>
-        void SetCompilerPPVs()
+        private void SetCompilerPPVs()
         {
             ppv["_minecraft"] = new dynamic[] { MINECRAFT_VERSION };
             ppv["_compiler"] = new dynamic[] { MCC_VERSION };
@@ -918,8 +922,12 @@ namespace mc_compiled.MCC.Compiler
                 Statement unresolved = Next();
                 unresolved.Decorate(this);
                 Statement statement = unresolved.ClonePrepare(this);
-                statement.SetExecutor(this);
-                statement.Run0(this);
+                
+                using (scoreboard.temps.PushTempState())
+                {
+                    statement.SetExecutor(this);
+                    statement.Run0(this);
+                }
 
                 if (statement.Skip)
                     continue; // ignore this statement
@@ -949,42 +957,43 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void ExecuteSubsection(Statement[] section)
         {
-            using (scoreboard.temps.PushTempState())
+            Statement[] restore0 = statements;
+            int restore1 = readIndex;
+
+            statements = section;
+            readIndex = 0;
+            while (HasNext)
             {
-                Statement[] restore0 = statements;
-                int restore1 = readIndex;
+                Statement unresolved = Next();
+                unresolved.Decorate(this);
+                Statement statement = unresolved.ClonePrepare(this);
 
-                statements = section;
-                readIndex = 0;
-                while (HasNext)
+                using (scoreboard.temps.PushTempState())
                 {
-                    Statement unresolved = Next();
-                    unresolved.Decorate(this);
-                    Statement statement = unresolved.ClonePrepare(this);
                     statement.Run0(this);
-
-                    if (statement.Skip)
-                        continue; // ignore this statement
-
-                    // check for unreachable code due to halt directive
-                    CheckUnreachable(statement);
-
-                    // run deferred processes
-                    if (iterationsUntilDeferProcess > 0)
-                    {
-                        iterationsUntilDeferProcess--;
-                        if (iterationsUntilDeferProcess == 0)
-                            ProcessDeferredActions();
-                    }
-
-                    if (Program.DEBUG)
-                        Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement.ToString());
                 }
 
-                // now its done, so restore state
-                statements = restore0;
-                readIndex = restore1;
+                if (statement.Skip)
+                    continue; // ignore this statement
+
+                // check for unreachable code due to halt directive
+                CheckUnreachable(statement);
+
+                // run deferred processes
+                if (iterationsUntilDeferProcess > 0)
+                {
+                    iterationsUntilDeferProcess--;
+                    if (iterationsUntilDeferProcess == 0)
+                        ProcessDeferredActions();
+                }
+
+                if (Program.DEBUG)
+                    Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement.ToString());
             }
+
+            // now its done, so restore state
+            statements = restore0;
+            readIndex = restore1;
         }
 
         /// <summary>
@@ -997,11 +1006,12 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <returns></returns>
         public bool GetLastIfResult() => lastPreprocessorCompare[ScopeLevel];
-
+        
         /// <summary>
         /// Set the last comparison data used at the given/current scope level.
         /// </summary>
-        /// <param name="selector"></param>
+        /// <param name="set">The previous comparison that ran.</param>
+        /// <param name="scope">The scope of this comparison. Leave null and it will be replaced with <see cref="ScopeLevel"/>.</param>
         internal void SetLastCompare(PreviousComparisonStructure set, int? scope = null)
         {
             if (scope == null)
@@ -1034,9 +1044,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A nullable <see cref="Macro"/> which contains the found macro, if any.</returns>
         public Macro? LookupMacro(string name)
         {
-            foreach (Macro macro in macros)
-                if (macro.Matches(name))
-                    return macro;
+            foreach (Macro macro in macros.Where(macro => macro.Matches(name)))
+                return macro;
             return null;
         }
         /// <summary>
@@ -1054,25 +1063,22 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the current file that should be written to.
         /// </summary>
-        public CommandFile CurrentFile { get => currentFiles.Peek(); }
-        /// <summary>
-        /// Get the main .mcfunction file for this project.
-        /// </summary>
-        public CommandFile HeadFile { get; private set; }
-        public CommandFile InitFile { get; private set; }
+        public CommandFile CurrentFile => currentFiles.Peek();
+        private CommandFile HeadFile { get; set; }
+        private CommandFile InitFile { get; set; }
 
         /// <summary>
         /// Get the current scope level.
         /// </summary>
-        public int ScopeLevel { get => currentFiles.Count - 1; }
+        public int ScopeLevel => currentFiles.Count - 1;
         /// <summary>
         /// Get if the base file (projectName.mcfunction) is the active file.
         /// </summary>
-        public bool IsScopeBase { get => currentFiles.Count <= 1; }
+        public bool IsScopeBase => currentFiles.Count <= 1;
         /// <summary>
         /// The number of the next line that will be added.
         /// </summary>
-        public int NextLineNumber { get => CurrentFile.Length + 1; }
+        public int NextLineNumber => CurrentFile.Length + 1;
 
         /// <summary>
         /// Add a command to the current file, with prepend buffer.
@@ -1098,29 +1104,30 @@ namespace mc_compiled.MCC.Compiler
         {
             if (linting)
                 return;
-            int count = commands.Count();
+            string[] commandsAsArray = commands as string[] ?? commands.ToArray();
+            int count = commandsAsArray.Count();
             if (count < 1)
                 return;
 
             if (inline)
             {
                 string buffer = PopPrepend();
-                CurrentFile.Add(from c in commands select buffer + c);
+                CurrentFile.Add(from c in commandsAsArray select buffer + c);
                 return;
             }
 
             if (count == 1)
             {
-                AddCommand(commands.First());
+                AddCommand(commandsAsArray.First());
                 return;
             }
 
-            CommandFile file = Executor.GetNextGeneratedFile(friendlyName);
+            CommandFile file = GetNextGeneratedFile(friendlyName);
 
             if (friendlyDescription != null)
                 file.Add("# " + friendlyDescription);
 
-            file.Add(commands);
+            file.Add(commandsAsArray);
 
             AddExtraFile(file);
             AddCommand(Command.Function(file));
@@ -1146,7 +1153,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
         public void AddCommandsClean(IEnumerable<string> commands, string friendlyName, string friendlyDescription, bool inline = false)
         {
-            if (linting)
+            if (linting || commands == null)
                 return;
             string buffer = prependBuffer.ToString();
 
@@ -1156,12 +1163,13 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            int count = commands.Count();
+            string[] commandsAsArray = commands as string[] ?? commands.ToArray();
+            int count = commandsAsArray.Count();
             if (count < 1)
                 return;
             if (count == 1)
             {
-                AddCommandClean(commands.First());
+                AddCommandClean(commandsAsArray.First());
                 return;
             }
 
@@ -1170,7 +1178,7 @@ namespace mc_compiled.MCC.Compiler
             if(friendlyDescription != null)
                 file.Add("# " + friendlyDescription);
 
-            file.Add(commands);
+            file.Add(commandsAsArray);
 
             AddExtraFile(file);
             CurrentFile.Add(buffer + Command.Function(file));
@@ -1193,14 +1201,14 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Add a set of files on their own to the list.
         /// </summary>
-        /// <param name="file"></param>
-        public void AddExtraFiles(IAddonFile[] files) =>
+        /// <param name="files">The files to add.</param>
+        public void AddExtraFiles(IEnumerable<IAddonFile> files) =>
             project.AddFiles(files);
         /// <summary>
         /// Add a set of files on their own to the list, removing any other files that have a matching name/directory.
         /// </summary>
-        /// <param name="file"></param>
-        public void OverwriteExtraFiles(IAddonFile[] files)
+        /// <param name="files">The files to overwrite.</param>
+        public void OverwriteExtraFiles(IEnumerable<IAddonFile> files)
         {
             foreach (IAddonFile file in files)
                 OverwriteExtraFile(file);
@@ -1213,7 +1221,7 @@ namespace mc_compiled.MCC.Compiler
         public bool HasExtraFileContaining(string text) =>
             this.project.HasFileContaining(text);
 
-        private List<string> initCommands = new List<string>();
+        private readonly List<string> initCommands = new List<string>();
         /// <summary>
         /// Add a command to the 'init' file. Does not affect the prepend buffer.
         /// </summary>
@@ -1230,11 +1238,15 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="commands"></param>
         public void AddCommandsInit(IEnumerable<string> commands)
         {
-            if (linting)
+            if (linting || commands == null)
                 return;
-            if (commands.Count() < 1)
+            
+            string[] commandsAsArray = commands as string[] ?? commands.ToArray();
+            
+            if (!commandsAsArray.Any())
                 return;
-            initCommands.AddRange(commands);
+            
+            initCommands.AddRange(commandsAsArray);
         }
         /// <summary>
         /// Sets the init file for this project.
@@ -1249,6 +1261,23 @@ namespace mc_compiled.MCC.Compiler
             InitFile = file;
         }
 
+        /// <summary>
+        /// Gets the tick scheduler in this Executor, or creates a new one if it doesn't already exist.
+        /// </summary>
+        /// <returns></returns>
+        public TickScheduler GetScheduler()
+        {
+            if (scheduler != null)
+                return scheduler;
+            
+            // create new one
+            scheduler = new TickScheduler(this);
+            project.AddFile(scheduler);
+            return scheduler;
+        }
+
+        private TickScheduler scheduler;
+        
         /// <summary>
         /// Set the content that will prepend the next added command.
         /// </summary>
@@ -1299,10 +1328,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the names of all registered preprocessor variables.
         /// </summary>
-        public string[] PPVNames
-        {
-            get => ppv.Select(p => p.Key).ToArray();
-        }
+        public IEnumerable<string> PPVNames => ppv.Select(p => p.Key).ToArray();
 
         /// <summary>
         /// Resolve all unescaped preprocessor variables in a string.
@@ -1314,7 +1340,7 @@ namespace mc_compiled.MCC.Compiler
             if (ppv.Count < 1)
                 return str;
 
-            StringBuilder sb = new StringBuilder(str);
+            var sb = new StringBuilder(str);
             MatchCollection matches = PPV_FMT.Matches(str);
             int count = matches.Count;
 
@@ -1342,11 +1368,7 @@ namespace mc_compiled.MCC.Compiler
                 if (!TryGetPPV(ppvName, out dynamic[] values))
                     continue; // no ppv named that
 
-                string insertText;
-                if (values.Length > 1)
-                    insertText = string.Join(" ", values);
-                else
-                    insertText = values[0].ToString();
+                string insertText = values.Length > 1 ? string.Join(" ", values) : (string) values[0].ToString();
 
                 sb.Remove(insertIndex, match.Length - offset);
                 sb.Insert(insertIndex, insertText);
@@ -1366,23 +1388,30 @@ namespace mc_compiled.MCC.Compiler
             int line = unresolved.lineNumber;
             string word = unresolved.word;
 
-            if (TryGetPPV(word, out dynamic[] values))
+            if (!TryGetPPV(word, out dynamic[] values))
+                throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
+            
+            var literals = new TokenLiteral[values.Length];
+            
+            for (int i = 0; i < values.Length; i++)
             {
-                TokenLiteral[] literals = new TokenLiteral[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                dynamic value = values[i];
+
+                if (value is TokenLiteral literal)
                 {
-                    dynamic value = values[i];
-                    TokenLiteral wrapped = PreprocessorUtils.DynamicToLiteral(value, line);
-
-                    if (wrapped == null)
-                        throw new StatementException(thrower, $"Found unexpected value in PPV '{word}': {value.ToString()}");
-
-                    literals[i] = wrapped;
+                    literals[i] = literal;
+                    continue;
                 }
-                return literals;
-            }
+                
+                TokenLiteral wrapped = PreprocessorUtils.DynamicToLiteral(value, line);
 
-            throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
+                if (wrapped == null)
+                    throw new StatementException(thrower, $"Found unexpected value in PPV '{word}': {value.ToString()}");
+
+                literals[i] = wrapped;
+            }
+            return literals;
+
         }
         /// <summary>
         /// Resolves a PPV using an indexer rather than a general expansion.
@@ -1479,7 +1508,7 @@ namespace mc_compiled.MCC.Compiler
             project.AddFile(file);
         }
 
-        private static Dictionary<int, int> generatedNames = new Dictionary<int, int>();
+        private static readonly Dictionary<int, int> generatedNames = new Dictionary<int, int>();
         /// <summary>
         /// Construct the next available name using a sequential number to distinguish it, like input0, input1, input2, etc...
         /// </summary>
@@ -1501,7 +1530,7 @@ namespace mc_compiled.MCC.Compiler
         public static CommandFile GetNextGeneratedFile(string friendlyName)
         {
             string name = GetNextGeneratedName(friendlyName);
-            return new CommandFile(false, name, MCC_GENERATED_FOLDER);
+            return new CommandFile(true, name, MCC_GENERATED_FOLDER);
         }
         public static void ResetGeneratedNames()
         {

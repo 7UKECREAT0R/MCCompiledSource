@@ -91,12 +91,15 @@ namespace mc_compiled.MCC.Compiler
             };
         public Token Convert(Executor executor, int index)
         {
-            if(index == CONVERT_STRING)
-                return new TokenStringLiteral(word, lineNumber);
-            else if(index == CONVERT_BUILDER)
-                return new TokenBuilderIdentifier(word, lineNumber);
-
-            return null;
+            switch (index)
+            {
+                case CONVERT_STRING:
+                    return new TokenStringLiteral(word, lineNumber);
+                case CONVERT_BUILDER:
+                    return new TokenBuilderIdentifier(word, lineNumber);
+                default:
+                    return null;
+            }
         }
     }
     /// <summary>
@@ -216,13 +219,13 @@ namespace mc_compiled.MCC.Compiler
                 {
                     var clone = value.Clone(forExceptions) as ScoreboardValue;
                     string fakePlayer = @string.token.text;
-                    clone.clarifier.SetString(fakePlayer, forExceptions);
+                    clone.clarifier.SetString(fakePlayer);
                     return new TokenIdentifierValue(word, clone, lineNumber);
                 }
                 case TokenIndexerSelector selector:
                 {
                     var clone = value.Clone(forExceptions) as ScoreboardValue;
-                    clone.clarifier.SetSelector(selector.token.selector, forExceptions);
+                    clone.clarifier.SetSelector(selector.token.selector);
                     return new TokenIdentifierValue(word, clone, lineNumber);
                 }
                 default:

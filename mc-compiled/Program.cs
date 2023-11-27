@@ -586,13 +586,16 @@ namespace mc_compiled
             string content = File.ReadAllText(file);
             return RunMCCompiledCode(content, file, ppvs, outputBP, outputRP, projectName, silentErrors);
         }
+
         /// <summary>
         /// Compile a file with MCCompiled using the existing options.
         /// </summary>
         /// <param name="code">The code to compile.</param>
         /// <param name="file">The file the contents were gotten from.</param>
+        /// <param name="ppvs">The PPVs to set on the executor before the code runs.</param>
         /// <param name="outputBP">The root location that the BP content will be written to.</param>
         /// <param name="outputRP">The root location that the RP content will be written to.</param>
+        /// <param name="projectName">The name of the project.</param>
         /// <param name="silentErrors">Whether to silently throw away errors.</param>
         /// <returns>If the compilation succeeded.</returns>
         internal static bool RunMCCompiledCode(string code, string file, InputPPV[] ppvs, string outputBP, string outputRP, string projectName = null, bool silentErrors = false)
@@ -607,7 +610,7 @@ namespace mc_compiled
 
             try
             {
-                Stopwatch stopwatch = Stopwatch.StartNew();
+                var stopwatch = Stopwatch.StartNew();
                 Token[] tokens = new Tokenizer(code).Tokenize();
 
                 if (DEBUG)
@@ -629,7 +632,7 @@ namespace mc_compiled
                     Console.WriteLine();
                 }
 
-                Executor executor = new Executor(statements, ppvs, projectName, outputBP, outputRP);
+                var executor = new Executor(statements, ppvs, projectName, outputBP, outputRP);
                 executor.Execute();
 
                 stopwatch.Stop();
@@ -658,7 +661,7 @@ namespace mc_compiled
                 ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("Problem encountered during tokenization of file:\n" +
-                    $"\t{Path.GetFileName(file)}:{lines} -- {message}\n\nTokenization cannot be continued.");
+                                        $"\t{Path.GetFileName(file)}:{lines} -- {message}\n\nTokenization cannot be continued.");
                 Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)
                     Console.ReadLine();
@@ -679,7 +682,7 @@ namespace mc_compiled
                 ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("An error has occurred during compilation:\n" +
-                    $"\t{Path.GetFileName(file)}:{lines} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
+                                        $"\t{Path.GetFileName(file)}:{lines} -- {thrower.ToString()}:\n\t\t{message}\n\nCompilation cannot be continued.");
                 Console.ForegroundColor = oldColor;
                 if (!NO_PAUSE)
                     Console.ReadLine();
