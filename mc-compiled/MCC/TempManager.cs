@@ -48,6 +48,7 @@ namespace mc_compiled.MCC
             this.localTemps = new Dictionary<Typedef, int>();
             this.globalTemps = new Dictionary<Typedef, int>();
             this.DefinedTemps = new HashSet<string>();
+            this.DefinedTempsRecord = new HashSet<string>();
             this.Contracts = new List<TempStateContract>();
 
             Array valueTypes = Enum.GetValues(typeof(ScoreboardManager.ValueType));
@@ -63,6 +64,10 @@ namespace mc_compiled.MCC
         /// The stack of <see cref="TempStateContract"/>s that belong to this instance.
         /// </summary>
         public List<TempStateContract> Contracts { get; private set; }
+        /// <summary>
+        /// The internal names of all the currently defined temps over the entire project, not just the current context.
+        /// </summary>
+        public HashSet<string> DefinedTempsRecord { get; private set; }
         /// <summary>
         /// The internal names of all the currently defined temps.
         /// </summary>
@@ -117,7 +122,8 @@ namespace mc_compiled.MCC
             // define the temp value if it hasn't yet.
             if (!DefinedTemps.Add(clone.InternalName))
                 return clone;
-            
+
+            DefinedTempsRecord.Add(clone.InternalName);
             executor.AddCommandsInit(clone.CommandsDefine());
             executor.AddCommandsInit(clone.CommandsInit(toCopy.clarifier.CurrentString));
 
@@ -171,6 +177,7 @@ namespace mc_compiled.MCC
             // define the temp value if it hasn't yet.
             if(DefinedTemps.Add(name))
             {
+                DefinedTempsRecord.Add(name);
                 executor.AddCommandsInit(created.CommandsDefine());
                 executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
@@ -195,6 +202,7 @@ namespace mc_compiled.MCC
             // define the temp value if it hasn't yet.
             if (DefinedTemps.Add(name))
             {
+                DefinedTempsRecord.Add(name);
                 executor.AddCommandsInit(created.CommandsDefine());
                 executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
@@ -227,6 +235,7 @@ namespace mc_compiled.MCC
             // define the temp value if it hasn't yet.
             if (DefinedTemps.Add(name))
             {
+                DefinedTempsRecord.Add(name);
                 executor.AddCommandsInit(created.CommandsDefine());
                 executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
@@ -251,6 +260,7 @@ namespace mc_compiled.MCC
             // define the temp value if it hasn't yet.
             if (DefinedTemps.Add(name))
             {
+                DefinedTempsRecord.Add(name);
                 executor.AddCommandsInit(created.CommandsDefine());
                 executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }

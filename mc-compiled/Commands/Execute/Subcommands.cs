@@ -242,7 +242,7 @@ namespace mc_compiled.Commands.Execute
     }
     internal class SubcommandIn : Subcommand
     {
-        internal Dimension dimension;
+        private Dimension dimension;
 
         internal SubcommandIn() { }
         internal SubcommandIn(Dimension dimension)
@@ -261,7 +261,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            TokenIdentifierEnum @enum = tokens.Next<TokenIdentifierEnum>();
+            var @enum = tokens.Next<TokenIdentifierEnum>();
             ParsedEnumValue parsedEnum = @enum.value;
 
             parsedEnum.RequireType<Dimension>(tokens);
@@ -272,9 +272,9 @@ namespace mc_compiled.Commands.Execute
     }
     internal class SubcommandPositioned : Subcommand
     {
-        internal bool asEntity;
-        internal Selector entity;
-        internal Coord x, y, z;
+        private bool asEntity;
+        private Selector entity;
+        private Coord x, y, z;
 
         internal SubcommandPositioned() { }
         internal SubcommandPositioned(bool asEntity, Selector entity, Coord x, Coord y, Coord z)
@@ -327,9 +327,9 @@ namespace mc_compiled.Commands.Execute
     }
     internal class SubcommandRotated : Subcommand
     {
-        internal bool asEntity;
-        internal Selector entity;
-        internal Coord yaw, pitch;
+        private bool asEntity;
+        private Selector entity;
+        private Coord yaw, pitch;
 
         internal SubcommandRotated() { }
         internal SubcommandRotated(bool asEntity, Selector entity, Coord yaw, Coord pitch)
@@ -372,7 +372,7 @@ namespace mc_compiled.Commands.Execute
         public override string ToMinecraft()
         {
             if (asEntity)
-                return $"rotated as {entity.ToString()}";
+                return $"rotated as {entity}";
 
             return $"rotated {yaw} {pitch}";
         }

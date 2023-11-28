@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace mc_compiled.MCC.Compiler.TypeSystem
 {
     /// <summary>
-    /// A type definition. Please extend <see cref="Typedef{T}"/> though.
+    /// A type definition. Extend <see cref="Typedef{T}"/> instead if this type has a data structure (being T).
     /// </summary>
     public abstract partial class Typedef
     {

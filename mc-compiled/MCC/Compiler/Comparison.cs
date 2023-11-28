@@ -40,124 +40,134 @@ namespace mc_compiled.MCC.Compiler
 
             var set = new ComparisonSet();
             bool invertNext = false;
-            Token currentToken;
 
             // ! read at your own risk !
 
             do
             {
-                currentToken = tokens.Next();
+                Token currentToken = tokens.Next();
 
-                if (currentToken is TokenNot)
+                switch (currentToken)
                 {
-                    invertNext = !invertNext;
-                    continue;
-                }
-
-                if (currentToken is TokenIdentifierValue identifierValue)
-                {
-                    ScoreboardValue value = identifierValue.value;
-                    if (value.type.CanCompareAlone)
+                    case TokenNot _:
+                        invertNext = !invertNext;
+                        continue;
+                    case TokenIdentifierValue identifierValue:
                     {
-                        // if <score>
-                        var comparisonAlone = new ComparisonAlone(value, invertNext);
-                        invertNext = false;
-                        set.Add(comparisonAlone);
-                    }
-                    else
-                    {
+                        ScoreboardValue value = identifierValue.value;
+                        
                         // ComparisonValue
                         // if <score> <operator> <value>
-                        TokenCompare.Type comparison = tokens.Next<TokenCompare>().GetCompareType();
-                        Token b = tokens.Next();
-
-                        var field = new ComparisonValue(identifierValue, comparison, b, invertNext);
-
-                        invertNext = false;
-                        set.Add(field);
-                    }
-                }
-                else if (currentToken is TokenSelectorLiteral selectorLiteral)
-                {
-                    // ComparisonSelector
-                    // if <@selector>
-                    var comparison = new ComparisonSelector(selectorLiteral.selector, invertNext);
-                    invertNext = false;
-                    set.Add(comparison);
-                }
-                else if (currentToken is TokenIdentifier identifier)
-                {
-                    string word = identifier.word.ToUpper();
-
-                    if (word.Equals("COUNT"))
-                    {
-                        // ComparisonCount
-                        // if count <@selector> <operator> <value>
-                        var selector = tokens.Next<TokenSelectorLiteral>();
-                        var comparison = tokens.Next<TokenCompare>();
-                        Token b = tokens.Next();
-
-                        var count = new ComparisonCount(selector,
-                            comparison.GetCompareType(), b, invertNext);
-
-                        invertNext = false;
-                        set.Add(count);
-                    }
-                    else if (word.Equals("ANY"))
-                    {
-                        // ComparisonAny
-                        // if any <@selector>
-                        var selector = tokens.Next<TokenSelectorLiteral>();
-                        var any = new ComparisonAny(selector, invertNext);
-
-                        invertNext = false;
-                        set.Add(any);
-                    }
-                    else if (word.Equals("BLOCK"))
-                    {
-                        // ComparisonBlock
-                        // if block <x, y, z> <block> [data]
-                        Coord x = tokens.Next<TokenCoordinateLiteral>();
-                        Coord y = tokens.Next<TokenCoordinateLiteral>();
-                        Coord z = tokens.Next<TokenCoordinateLiteral>();
-                        string block = tokens.Next<TokenStringLiteral>();
-
-                        int? data = null;
-                        if (tokens.NextIs<TokenIntegerLiteral>())
-                            data = tokens.Next<TokenIntegerLiteral>();
-
-                        var blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
-
-                        invertNext = false;
-                        set.Add(blockCheck);
-                    }
-                    else if(word.Equals("BLOCKS"))
-                    {
-                        // ComparisonBlocks
-                        // if blocks <start x, y, z> <end x, y, z> <dest x, y, z> <ScanMode>
-                        Coord startX = tokens.Next<TokenCoordinateLiteral>();
-                        Coord startY = tokens.Next<TokenCoordinateLiteral>();
-                        Coord startZ = tokens.Next<TokenCoordinateLiteral>();
-                        Coord endX = tokens.Next<TokenCoordinateLiteral>();
-                        Coord endY = tokens.Next<TokenCoordinateLiteral>();
-                        Coord endZ = tokens.Next<TokenCoordinateLiteral>();
-                        Coord destX = tokens.Next<TokenCoordinateLiteral>();
-                        Coord destY = tokens.Next<TokenCoordinateLiteral>();
-                        Coord destZ = tokens.Next<TokenCoordinateLiteral>();
-
-                        var scanMode = BlocksScanMode.all;
-                        if(tokens.NextIs<TokenIdentifierEnum>())
+                        if (tokens.NextIs<TokenCompare>())
                         {
-                            ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>().value;
-                            parsed.RequireType<BlocksScanMode>(tokens);
-                            scanMode = (BlocksScanMode)parsed.value;
+                            TokenCompare.Type comparison = tokens.Next<TokenCompare>().GetCompareType();
+                            Token b = tokens.Next();
+                            var field = new ComparisonValue(identifierValue, comparison, b, invertNext);
+                            invertNext = false;
+                            set.Add(field);
+                        }
+                        else if (value.type.CanCompareAlone)
+                        {
+                            // if <score>
+                            var comparisonAlone = new ComparisonAlone(value, invertNext);
+                            invertNext = false;
+                            set.Add(comparisonAlone);
+                        }
+                        
+                        break;
+                    }
+                    case TokenSelectorLiteral selectorLiteral:
+                    {
+                        // ComparisonSelector
+                        // if <@selector>
+                        var comparison = new ComparisonSelector(selectorLiteral.selector, invertNext);
+                        invertNext = false;
+                        set.Add(comparison);
+                        break;
+                    }
+                    case TokenIdentifier identifier:
+                    {
+                        string word = identifier.word.ToUpper();
+
+                        switch (word)
+                        {
+                            case "COUNT":
+                            {
+                                // ComparisonCount
+                                // if count <@selector> <operator> <value>
+                                var selector = tokens.Next<TokenSelectorLiteral>();
+                                var comparison = tokens.Next<TokenCompare>();
+                                Token b = tokens.Next();
+
+                                var count = new ComparisonCount(selector,
+                                    comparison.GetCompareType(), b, invertNext);
+
+                                invertNext = false;
+                                set.Add(count);
+                                break;
+                            }
+                            case "ANY":
+                            {
+                                // ComparisonAny
+                                // if any <@selector>
+                                var selector = tokens.Next<TokenSelectorLiteral>();
+                                var any = new ComparisonAny(selector, invertNext);
+
+                                invertNext = false;
+                                set.Add(any);
+                                break;
+                            }
+                            case "BLOCK":
+                            {
+                                // ComparisonBlock
+                                // if block <x, y, z> <block> [data]
+                                Coord x = tokens.Next<TokenCoordinateLiteral>();
+                                Coord y = tokens.Next<TokenCoordinateLiteral>();
+                                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                                string block = tokens.Next<TokenStringLiteral>();
+
+                                int? data = null;
+                                if (tokens.NextIs<TokenIntegerLiteral>())
+                                    data = tokens.Next<TokenIntegerLiteral>();
+
+                                var blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
+
+                                invertNext = false;
+                                set.Add(blockCheck);
+                                break;
+                            }
+                            case "BLOCKS":
+                            {
+                                // ComparisonBlocks
+                                // if blocks <start x, y, z> <end x, y, z> <dest x, y, z> <ScanMode>
+                                Coord startX = tokens.Next<TokenCoordinateLiteral>();
+                                Coord startY = tokens.Next<TokenCoordinateLiteral>();
+                                Coord startZ = tokens.Next<TokenCoordinateLiteral>();
+                                Coord endX = tokens.Next<TokenCoordinateLiteral>();
+                                Coord endY = tokens.Next<TokenCoordinateLiteral>();
+                                Coord endZ = tokens.Next<TokenCoordinateLiteral>();
+                                Coord destX = tokens.Next<TokenCoordinateLiteral>();
+                                Coord destY = tokens.Next<TokenCoordinateLiteral>();
+                                Coord destZ = tokens.Next<TokenCoordinateLiteral>();
+
+                                var scanMode = BlocksScanMode.all;
+                                if(tokens.NextIs<TokenIdentifierEnum>())
+                                {
+                                    ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>().value;
+                                    parsed.RequireType<BlocksScanMode>(tokens);
+                                    scanMode = (BlocksScanMode)parsed.value;
+                                }
+
+                                var blockCheck = new ComparisonBlocks(startX, startY, startZ,
+                                    endX, endY, endZ, destX, destY, destZ, scanMode, invertNext);
+
+                                invertNext = false;
+                                set.Add(blockCheck);
+                                break;
+                            }
                         }
 
-                        var blockCheck = new ComparisonBlocks(startX, startY, startZ,
-                            endX, endY, endZ, destX, destY, destZ, scanMode, invertNext);
-
-                        invertNext = false;
-                        set.Add(blockCheck);
+                        break;
                     }
                 }
 
@@ -359,15 +369,15 @@ namespace mc_compiled.MCC.Compiler
 
             setupFile.Add(Command.ScoreboardSet(resultObjective, 0));
             setupFile.Add(Command.Execute().WithSubcommands(chunks).Run(Command.ScoreboardSet(resultObjective, 1)));
-
+            
             ConditionalSubcommand used = ConditionalSubcommandScore.New(resultObjective, new Range(1, false));
             record.conditionalUsed = used;
             executor.SetLastCompare(record);
-
+            
             string executePrefix = new ExecuteBuilder()
                 .WithSubcommand(new SubcommandIf(used))
                 .Run();
-
+            
             if (next is StatementOpenBlock openBlock)
             {
                 // only do the block stuff if necessary.

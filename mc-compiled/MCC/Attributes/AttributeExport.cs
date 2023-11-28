@@ -8,6 +8,7 @@ namespace mc_compiled.MCC.Attributes
     internal class AttributeExport : IAttribute
     {
         public string GetDebugString() => "export";
+        public string GetCodeRepresentation() => "export";
 
         internal AttributeExport() { }
 

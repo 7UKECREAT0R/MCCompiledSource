@@ -8,7 +8,8 @@ namespace mc_compiled.MCC.Attributes
     internal class AttributeGlobal : IAttribute
     {
         public string GetDebugString() => "global";
-
+        public string GetCodeRepresentation() => "global";
+        
         internal AttributeGlobal() { }
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement)
         {

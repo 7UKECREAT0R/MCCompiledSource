@@ -3,6 +3,7 @@ using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms.VisualStyles;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC
@@ -112,9 +113,9 @@ namespace mc_compiled.MCC
                     // check if it's a literal.
                     case TokenLiteral literal:
                     {
-                        Typedef type = literal.GetTypedef();
+                        this.type = literal.GetTypedef();
                         
-                        if(type == null)
+                        if(this.type == null)
                             throw new StatementException(tokens, $"Input '{literal.AsString()}' cannot be stored in a value.");
                         
                         if (this.type.SpecifyPattern != null)
@@ -171,6 +172,7 @@ namespace mc_compiled.MCC
                     continue;
 
                 temps.DefinedTemps.Add(name);
+                temps.DefinedTempsRecord.Add(name);
                 executor.AddCommandsInit(value.CommandsDefine());
             }
         }

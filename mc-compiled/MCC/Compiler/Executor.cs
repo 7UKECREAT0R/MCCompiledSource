@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using mc_compiled.Commands.Execute;
+using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
 
@@ -115,6 +116,7 @@ namespace mc_compiled.MCC.Compiler
         internal readonly List<Macro> macros;
         internal readonly FunctionManager functions;
         internal readonly HashSet<string> definedTags;
+        internal readonly HashSet<Typedef> definedReturnedTypes;
         internal readonly Dictionary<string, dynamic[]> ppv;
         
         /// <summary>
@@ -133,6 +135,7 @@ namespace mc_compiled.MCC.Compiler
             ppv = new Dictionary<string, dynamic[]>();
             macros = new List<Macro>();
             definedTags = new HashSet<string>();
+            definedReturnedTypes = new HashSet<Typedef>();
 
             if (inputPPVs != null && inputPPVs.Length > 0)
                 foreach (Program.InputPPV ppv in inputPPVs)

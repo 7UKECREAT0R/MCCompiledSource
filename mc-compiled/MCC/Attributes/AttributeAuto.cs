@@ -14,12 +14,25 @@ namespace mc_compiled.MCC.Attributes
         private readonly int tickDelay;
         private ScheduledTask task;
 
+        private string TickDelayOptimized
+        {
+            get
+            {
+                if (tickDelay % 1200 == 0)
+                    return $"{tickDelay / 1200}m";
+                if (tickDelay % 20 == 0)
+                    return $"{tickDelay / 20}s";
+                return tickDelay.ToString();
+            }
+        }
         internal AttributeAuto(int tickDelay)
         {
             this.tickDelay = tickDelay;
         }
         
-        public string GetDebugString() => "auto";
+        public string GetDebugString() => $"auto: {tickDelay} ticks";
+        public string GetCodeRepresentation() => tickDelay < 2 ? "auto" : $"auto({TickDelayOptimized})";
+
 
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement)
             => throw new StatementException(causingStatement, "Cannot apply attribute 'auto' to a value.");

@@ -26,7 +26,10 @@ namespace mc_compiled.MCC.Compiler
         public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             cancel = false;
-            return score.CompareAlone(this.inverted).Cast<Subcommand>().ToArray();
+            return score.CompareAlone(this.inverted)
+                .Select(check => new SubcommandIf(check))
+                .Cast<Subcommand>()
+                .ToArray();
         }
 
         public override string GetDescription() => inverted ?
@@ -249,7 +252,9 @@ namespace mc_compiled.MCC.Compiler
                 else
                 {
                     // "value constant" comparison
-                    return this.entries.Item2.Cast<Subcommand>().ToArray();
+                    return this.entries.Item2
+                        .Select(condition => new SubcommandIf(condition))
+                        .Cast<Subcommand>().ToArray();
                 }
             }
 
@@ -580,7 +585,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (willBeInverted)
             {
-                Range range = new Range(1, inverted);
+                var range = new Range(1, inverted);
                 return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
             }
 

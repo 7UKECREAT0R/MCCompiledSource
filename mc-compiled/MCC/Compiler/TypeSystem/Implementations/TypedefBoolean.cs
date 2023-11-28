@@ -62,10 +62,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             switch (comparisonType)
             {
                 case TokenCompare.Type.EQUAL:
-                    range = new Range(src, true);
+                    range = new Range(src, false);
                     break;
                 case TokenCompare.Type.NOT_EQUAL:
-                    range = new Range(src, false);
+                    range = new Range(src, true);
                     break;
                 case TokenCompare.Type.LESS:
                 case TokenCompare.Type.LESS_OR_EQUAL:

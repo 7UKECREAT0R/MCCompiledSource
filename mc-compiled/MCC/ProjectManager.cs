@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using mc_compiled.Commands;
+using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC
 {
@@ -65,29 +67,64 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Creates the uninstall file.
         /// </summary>
-        internal void CreateUninstallFile()
+        private void CreateUninstallFile()
         {
-            CommandFile file = new CommandFile(true, "uninstall", Executor.MCC_GENERATED_FOLDER);
+            var file = new CommandFile(true, "uninstall", Executor.MCC_GENERATED_FOLDER);
+            
             this.AddFile(file);
-
+            file.Add("# Created by the 'uninstall' feature. Uninstalls the addon from the world.");
+            file.Add("");
+            
             if(HasFeature(Feature.DUMMIES))
             {
-                // remove all dummies from the world.
+                file.Add("# Removes dummy entities from the world.");
                 file.Add(Commands.Command.Event($"@e[type={parentExecutor.entities.dummies.dummyType}]", DummyManager.DESTROY_EVENT_NAME));
+                file.Add("");
             }
 
-            foreach (string temp in parentExecutor.scoreboard.temps.DefinedTemps)
-                file.Add(Commands.Command.ScoreboardRemoveObjective(temp));
-
-            foreach (ScoreboardValue sb in parentExecutor.scoreboard.values)
+            if (parentExecutor.scoreboard.temps.DefinedTempsRecord.Any())
             {
-                file.Add(Commands.Command.ScoreboardRemoveObjective(sb.InternalName));
+                file.Add($"# Remove temporary values used by the compiled code.");
+                foreach (string temp in parentExecutor.scoreboard.temps.DefinedTempsRecord)
+                    file.Add(Commands.Command.ScoreboardRemoveObjective(temp));
+                file.Add("");
+            }
+            
+            // removes return related scoreboard objectives, if any.
+            if (parentExecutor.definedReturnedTypes.Any())
+            {
+                file.Add("# Removes return values used by the compiled code.");
+
+                var objectives = new HashSet<string>();
+                foreach (Typedef returnedType in parentExecutor.definedReturnedTypes)
+                {
+                    var value = new ScoreboardValue(ScoreboardValue.RETURN_NAME,
+                        false, returnedType, parentExecutor.scoreboard);
+                    foreach (string objective in value.GetObjectives())
+                        objectives.Add(objective);
+                }
+
+                foreach (string objective in objectives)
+                    file.Add(Command.ScoreboardRemoveObjective(objective));
+                
+                file.Add("");
+            }
+            
+            if (parentExecutor.scoreboard.values.Any())
+            {
+                file.Add("# Removes user-defined values.");
+                foreach (ScoreboardValue sb in parentExecutor.scoreboard.values)
+                    file.Add(Commands.Command.ScoreboardRemoveObjective(sb.InternalName));
+                file.Add("");
             }
 
-            foreach (string tag in parentExecutor.definedTags)
+            // ReSharper disable once InvertIf
+            if (parentExecutor.definedTags.Any())
             {
-                file.Add(Commands.Command.TagRemove($"@e[tag={tag}]", tag));
-
+                foreach (string tag in parentExecutor.definedTags)
+                {
+                    file.Add(Commands.Command.TagRemove($"@e[tag={tag}]", tag));
+                }
             }
         }
 
@@ -119,10 +156,10 @@ namespace mc_compiled.MCC
                 match &= fileA.Equals(fileB);
                 match &= (directoryA == null) == (directoryB == null);
 
-                if (match && directoryA != null && directoryB != null)
+                if (match && directoryA != null)
                     match &= directoryA.Equals(directoryB);
 
-                if (test.GetOutputFile().Equals(file) && test.GetOutputLocation() == fileLocation)
+                if (test.GetOutputFile().Equals(file.GetOutputFile()) && test.GetOutputLocation() == fileLocation)
                     files.RemoveAt(i);
             }
         }
@@ -311,22 +348,17 @@ namespace mc_compiled.MCC
 
             return Path.Combine(folder, file);
         }
+
         /// <summary>
         /// Returns the full, exact output location of a file that is located under a specific <see cref="OutputLocation"/> in relation to this project.
         /// </summary>
         /// <param name="outputLocation"></param>
-        /// <param name="file">The file name and extension. If left null, only the directory will be returned.</param>
-        /// <param name="extendedFolder">The extended directory. If left null, only the directory will be returned.</param>
+        /// <param name="paths">The path to follow after the given output location.</param>
         /// <returns></returns>
         public string GetOutputFileLocationFull(OutputLocation outputLocation, params string[] paths)
         {
             string folder = registry[outputLocation];
-
-            // concat each path sequentially.
-            foreach (string path in paths)
-                folder = Path.Combine(folder, path);
-
-            return folder;
+            return paths.Aggregate(folder, Path.Combine);
         }
         /// <summary>
         /// Writes an addon file to disk right now, without waiting for the end of the compilation.

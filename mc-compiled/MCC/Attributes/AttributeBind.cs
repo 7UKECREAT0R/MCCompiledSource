@@ -11,15 +11,22 @@ namespace mc_compiled.MCC.Attributes
 {
     public class AttributeBind : IAttribute
     {
-        readonly MolangBinding binding;
-        readonly string[] givenTargets; // if the query has no targets.
+        private readonly MolangBinding binding;
+        private readonly string[] givenTargets; // if the query has no targets.
 
         internal AttributeBind(MolangBinding binding, string[] givenTargets)
         {
             this.binding = binding;
             this.givenTargets = givenTargets;
         }
-        public string GetDebugString() => "bind";
+        public string GetDebugString() => givenTargets == null ? $"bind: [{binding}]" : $"bind to ({string.Join(", ", givenTargets)}): [{binding}]";
+
+        public string GetCodeRepresentation()
+        {
+            if (givenTargets == null)
+                return $"bind(\"{binding.molangQuery}\")";
+            return $"bind(\"{binding.molangQuery}\", {string.Join(", ", givenTargets.Select(t => $"\"{t}\""))})";
+        }
 
         public void OnAddedValue(ScoreboardValue value, Statement callingStatement)
         {
@@ -36,7 +43,8 @@ namespace mc_compiled.MCC.Attributes
                 case BindingType.floating_point:
                     // supports all values
                     break;
-
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             Executor executor = callingStatement.executor;

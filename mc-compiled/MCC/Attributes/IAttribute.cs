@@ -15,6 +15,12 @@ namespace mc_compiled.MCC.Attributes
         /// </summary>
         /// <returns></returns>
         string GetDebugString();
+        /// <summary>
+        /// Returns the code needed to define this attribute. It could just be the keyword.<br />
+        /// Returns null if this attribute cannot be defined with code.
+        /// </summary>
+        /// <returns></returns>
+        string GetCodeRepresentation();
 
         /// <summary>
         /// Called when this attribute is added to a value.

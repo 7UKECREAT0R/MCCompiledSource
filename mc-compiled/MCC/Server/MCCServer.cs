@@ -490,10 +490,10 @@ namespace mc_compiled.MCC.Server
                         toOpen = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                         break;
                     case "bp":
-                        toOpen = outputBehaviorPack.Replace("?project", ""); // no project
+                        toOpen = outputBehaviorPack.Replace("?project_BP", ""); // no project
                         break;
                     case "rp":
-                        toOpen = outputResourcePack.Replace("?project", ""); // no project
+                        toOpen = outputResourcePack.Replace("?project_RP", ""); // no project
                         break;
                     case "install":
                         toOpen = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -780,7 +780,7 @@ namespace mc_compiled.MCC.Server
         {
             Program.DEBUG = debug;
             Program.PrepareToCompile();
-            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", new Program.InputPPV[0], outputBehaviorPack, outputResourcePack, projectName);
+            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", Array.Empty<Program.InputPPV>(), outputBehaviorPack, outputResourcePack, projectName);
 
             if (debug)
                 Console.WriteLine("Compilation Success: {0}", success);

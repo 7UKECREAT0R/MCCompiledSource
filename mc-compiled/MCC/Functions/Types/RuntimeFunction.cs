@@ -132,8 +132,15 @@ namespace mc_compiled.MCC.Functions.Types
                 // will sort of 'define' what the return type should be
                 ScoreboardManager sb = executor.scoreboard;
                 ScoreboardValue clone = ScoreboardValue.AsReturnValue(value, caller);
+                
                 if (sb.temps.DefinedTemps.Add(clone.InternalName))
+                {
+                    sb.temps.DefinedTempsRecord.Add(clone.InternalName);
                     executor.AddCommandsInit(clone.CommandsDefine());
+                }
+                
+                // register return type with executor
+                executor.definedReturnedTypes.Add(value.type);
 
                 commands = clone.Assign(value, caller);
                 returnValue = clone;
@@ -163,7 +170,10 @@ namespace mc_compiled.MCC.Functions.Types
                 ScoreboardValue variable = ScoreboardValue.AsReturnValue(value, sb, caller);
 
                 if (sb.temps.DefinedTemps.Add(variable.InternalName))
+                {
+                    sb.temps.DefinedTempsRecord.Add(variable.InternalName);
                     executor.AddCommandsInit(variable.CommandsDefine());
+                }
 
                 commands = variable.AssignLiteral(value, caller);
                 returnValue = variable;

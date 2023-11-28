@@ -239,11 +239,25 @@ namespace mc_compiled.MCC
         {
             var sb = new StringBuilder();
 
-            if (clarifier.IsGlobal)
-                sb.Append("global ");
+            foreach (string code in attributes
+                         .Select(attribute => attribute.GetCodeRepresentation())
+                         .Where(code => code != null))
+            {
+                sb.Append(code);
+                sb.Append(' ');
+            }
 
             sb.Append(type.TypeKeyword);
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Returns all of the scoreboard objectives associated with this value.
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetObjectives()
+        {
+            return type.GetObjectives(this);
         }
         
         public override int GetHashCode()

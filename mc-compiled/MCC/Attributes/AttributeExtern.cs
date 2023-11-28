@@ -11,7 +11,8 @@ namespace mc_compiled.MCC.Attributes
     internal class AttributeExtern : IAttribute
     {
         public string GetDebugString() => "extern";
-
+        public string GetCodeRepresentation() => "extern";
+        
         internal AttributeExtern() { }
 
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
