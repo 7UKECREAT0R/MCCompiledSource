@@ -68,7 +68,7 @@ namespace mc_compiled.MCC.Server
             multipartHeader.fin = true;
             multiparts.Clear();
 
-            GC.Collect(); // thats a lot of bytes that just got tossed
+            GC.Collect(); // that's a lot of bytes that just got tossed
 
             return multipartHeader;
         }
@@ -94,7 +94,7 @@ namespace mc_compiled.MCC.Server
             this.ip = new IPEndPoint(IPAddress.Loopback, PORT);
             this.socket = new Socket(ip.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
-            this.sha1 = SHA1CryptoServiceProvider.Create();
+            this.sha1 = SHA1.Create();
             this.multiparts = new List<byte[]>();
         }
 
@@ -147,17 +147,17 @@ namespace mc_compiled.MCC.Server
             // get client/server sockets
             object state = result.AsyncState;
 
-            Socket server = state as Socket;
+            var server = (Socket)state;
             server.ReceiveBufferSize = MCCServer.CHUNK_SIZE;
 
             Socket client = server.EndAccept(result);
 
             // create a package for sending to the read thread
-            WebSocketPackage package = new WebSocketPackage
+            var package = new WebSocketPackage
                 (debug, server, client, this);
 
             // run the receive loop for the connected client. 
-            Thread thread = new Thread(ReceiveLoop);
+            var thread = new Thread(ReceiveLoop);
             thread.Start(package);
         }
         /// <summary>
@@ -166,7 +166,7 @@ namespace mc_compiled.MCC.Server
         /// <param name="result"></param>
         public void ReceiveLoop(object result)
         {
-            WebSocketPackage package = result as WebSocketPackage;
+            var package = (WebSocketPackage)result;
             byte[] tempBuffer = new byte[READ_SIZE];
 
             Debug.WriteLine("Started thread! Client handle " + package.client.Handle);
@@ -221,9 +221,8 @@ namespace mc_compiled.MCC.Server
                         if (bytesRead < (int)length)
                             throw new Exception("Client did not fulfill WebSocket length promise.");
                     } else
-                        content = new byte[0];
-
-
+                        content = Array.Empty<byte>();
+                    
                     Debug.WriteLine($"Got frame: {frame}");
 
                     // set the newly read data.
@@ -239,25 +238,23 @@ namespace mc_compiled.MCC.Server
                 }
                 else
                 {
-                    Debug.WriteLine("Waiting for HTTP string... ");
-
                     // read a standard string
                     while (package.client.Available > 0) {
                         bytesRead = package.client.Receive(tempBuffer);
                         Array.Copy(tempBuffer, 0, package.buffer, bytesReadTotal, bytesRead);
                         bytesReadTotal += bytesRead;
                     }
-
+                    
                     string str = package.ReadStringASCII(bytesReadTotal);
                     Debug.WriteLine(str);
-
+                    
                     // the only HTTP used by WebSocket is when initiating the handshake.
                     if (str.StartsWith("GET"))
                         ProcessWebsocketUpgrade(package, str);
-
+                    
                     bytesReadTotal = 0;
                 }
-
+                
                 Array.Clear(tempBuffer, 0, tempBuffer.Length);
             }
         }
@@ -274,7 +271,7 @@ namespace mc_compiled.MCC.Server
             // look for websocket upgrade request
             if (!entries.TryGetValue("Connection", out string value))
                 return;
-            if (!value.Equals("Upgrade"))
+            if (!value.Contains("Upgrade"))
                 return;
 
             // get secret websocket key
