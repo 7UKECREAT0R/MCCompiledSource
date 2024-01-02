@@ -31,13 +31,13 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     }
     internal sealed class FunctionGlyphE0 : FunctionGlyph
     {
-        internal FunctionGlyphE0() : base(0xE0, "glyphE0", "compile_time_access_glyph_e0_at", "Returns the character in the glyph_E0 file at the given coordinates. If one number is specified, it acts as the x coordinate of the icon, wrapping around LTR-TTB. If the second number is specified, it acts as the Y-coordinate of the icon.")
+        internal FunctionGlyphE0() : base(0xE0, "glyphE0", "accessGlyphE0_at", "Returns the character in the glyph_E0 file at the given coordinates. If one number is specified, it acts as the x coordinate of the icon, wrapping around LTR-TTB. If the second number is specified, it acts as the Y-coordinate of the icon.")
         {
         }
     }
     internal sealed class FunctionGlyphE1 : FunctionGlyph
     {
-        internal FunctionGlyphE1() : base(0xE1, "glyphE1", "compile_time_access_glyph_e1_at", "Returns the character in the glyph_E1 file at the given coordinates. If one number is specified, it acts as the x coordinate of the icon, wrapping around LTR-TTB. If the second number is specified, it acts as the Y-coordinate of the icon.")
+        internal FunctionGlyphE1() : base(0xE1, "glyphE1", "accessGlyphE1_at", "Returns the character in the glyph_E1 file at the given coordinates. If one number is specified, it acts as the x coordinate of the icon, wrapping around LTR-TTB. If the second number is specified, it acts as the Y-coordinate of the icon.")
         {
         }
     }

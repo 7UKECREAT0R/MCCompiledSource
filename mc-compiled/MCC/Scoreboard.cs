@@ -197,7 +197,7 @@ namespace mc_compiled.MCC
         {
             return returning.Clone(callingStatement,
                 newClarifier: Clarifier.Global(),
-                newName: null,
+                newName: RETURN_NAME,
                 newInternalName: RETURN_NAME);
         }
         /// <summary>

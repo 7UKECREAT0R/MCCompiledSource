@@ -15,7 +15,7 @@ namespace mc_compiled.MCC.Functions.Types
     /// </summary>
     internal abstract class GenerativeFunction : Function
     {
-        private static readonly string VARIANTS_FOLDER = System.IO.Path.Combine(Executor.MCC_GENERATED_FOLDER, "generated");
+        private static readonly string VARIANTS_FOLDER = Executor.MCC_GENERATED_FOLDER + "/generated";
 
         private Dictionary<int, Tuple<CommandFile, ScoreboardValue>> createdVariants;
         private Dictionary<int, int> tempValues;
@@ -191,7 +191,7 @@ namespace mc_compiled.MCC.Functions.Types
             if(!this.createdVariants.TryGetValue(signature, out Tuple<CommandFile, ScoreboardValue> file))
             {
                 // this is a new combination of input types, thus the code should be re-generated.
-                CommandFile newFile = new CommandFile(true, name + '_' + signature.ToString().Replace('-', '_'), VARIANTS_FOLDER);
+                CommandFile newFile = new CommandFile(true, "call" + name + '_' + signature.ToString().Replace('-', '_'), VARIANTS_FOLDER);
                 executor.AddExtraFile(newFile);
 
                 if (Program.DECORATE)

@@ -13,7 +13,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
     internal class FunctionMinCompiletime : CompiletimeFunction
     {
-        public FunctionMinCompiletime() : base("min", "compile_time_min", "T", "Returns the smaller of the two input values, favoring `a` if both values are equal.")
+        public FunctionMinCompiletime() : base("min", "compiletimeMin", "T", "Returns the smaller of the two input values, favoring `a` if both values are equal.")
         {
             this.AddParameters(
                 new CompiletimeFunctionParameter<TokenLiteral>("a"),
@@ -33,7 +33,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     }
     internal class FunctionMinRuntime : GenerativeFunction
     {
-        public FunctionMinRuntime() : base("min", "run_time_min", "T", "Returns the smaller of the two input values, favoring `a` if both values are equal.")
+        public FunctionMinRuntime() : base("min", "runtimeMin", "T", "Returns the smaller of the two input values, favoring `a` if both values are equal.")
         {
             this.AddParameters(
                 new RuntimeFunctionParameterAny(this, "a", "runtime_min_a"),
@@ -70,7 +70,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
 
     internal class FunctionMaxCompiletime : CompiletimeFunction
     {
-        public FunctionMaxCompiletime() : base("max", "compile_time_max", "T", "Returns the larger of the two input values, favoring `a` if both values are equal.")
+        public FunctionMaxCompiletime() : base("max", "compiletimeMax", "T", "Returns the larger of the two input values, favoring `a` if both values are equal.")
         {
             this.AddParameters(
                 new CompiletimeFunctionParameter<TokenLiteral>("a"),

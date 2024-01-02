@@ -14,6 +14,7 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
+using System.Diagnostics;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -1231,7 +1232,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="command"></param>
         public void AddCommandInit(string command)
         {
-            if (linting)
+            if (linting || command == null)
                 return;
             initCommands.Add(command);
         }
@@ -1250,18 +1251,6 @@ namespace mc_compiled.MCC.Compiler
                 return;
             
             initCommands.AddRange(commandsAsArray);
-        }
-        /// <summary>
-        /// Sets the init file for this project.
-        /// </summary>
-        /// <param name="file"></param>
-        public void SetInitFile(CommandFile file)
-        {
-            if (file == null)
-                throw new NullReferenceException("file was null.");
-
-            file.AddTop(InitFile.commands);
-            InitFile = file;
         }
 
         /// <summary>
@@ -1498,17 +1487,19 @@ namespace mc_compiled.MCC.Compiler
             CommandFile file = InitFile;
             InitFile = null;
 
-            // add compiler initialization commands now.
-            file.AddTop("");
-            file.AddTop(initCommands);
+            if(initCommands.Count > 0)
+            {
+                file.AddTop("");
+                file.AddTop(initCommands);
 
-            if (file.Length == 0)
-                return; // no need to save down the init file if it doesn't exist.
+                if (Program.DECORATE)
+                {
+                    file.AddTop("# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having weird issues, re-running this may fix it.");
+                    file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
+                }
 
-            if (Program.DECORATE)
-                file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
-
-            project.AddFile(file);
+                project.AddFile(file);
+            }
         }
 
         private static readonly Dictionary<int, int> generatedNames = new Dictionary<int, int>();

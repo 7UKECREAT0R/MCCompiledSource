@@ -9,7 +9,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
     internal class FunctionRoundCompiletime : CompiletimeFunction
     {
-        public FunctionRoundCompiletime() : base("round", "compile_time_round", "int", "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
+        public FunctionRoundCompiletime() : base("round", "compiletimeRound", "int", "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
         {
             this.AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
@@ -25,7 +25,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     }
     internal class FunctionFloorCompiletime : CompiletimeFunction
     {
-        public FunctionFloorCompiletime() : base("floor", "compile_time_floor", "int", "Rounds down the given value to the nearest integer.")
+        public FunctionFloorCompiletime() : base("floor", "compiletimeFloor", "int", "Rounds down the given value to the nearest integer.")
         {
             this.AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
@@ -41,7 +41,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     }
     internal class FunctionCeilingCompiletime : CompiletimeFunction
     {
-        public FunctionCeilingCompiletime() : base("ceiling", "compile_time_ceiling", "int", "Rounds up the given value to the nearest integer.")
+        public FunctionCeilingCompiletime() : base("ceiling", "compiletimeCeiling", "int", "Rounds up the given value to the nearest integer.")
         {
             this.AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")

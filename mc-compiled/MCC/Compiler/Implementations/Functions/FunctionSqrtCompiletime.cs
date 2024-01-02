@@ -9,7 +9,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
     internal class FunctionSqrtCompiletime : CompiletimeFunction
     {
-        public FunctionSqrtCompiletime() : base("sqrt", "compile_time_sqrt", "decimal ?", "Calculates the square root of the given number.")
+        public FunctionSqrtCompiletime() : base("sqrt", "compiletimeSqrt", "decimal ?", "Calculates the square root of the given number.")
         {
             this.AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")

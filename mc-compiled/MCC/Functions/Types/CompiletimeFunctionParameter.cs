@@ -16,6 +16,12 @@ namespace mc_compiled.MCC.Functions.Types
         /// </summary>
         public abstract Token CurrentValue { get; protected set; }
         protected CompiletimeFunctionParameter(string name, Token defaultValue) : base(name, defaultValue) { }
+
+        /// <summary>
+        /// Returns the name of the type that is required by this compile-time parameter.
+        /// </summary>
+        /// <returns></returns>
+        public abstract string GetRequiredTypeName();
     }
 
     /// <summary>
@@ -80,6 +86,10 @@ namespace mc_compiled.MCC.Functions.Types
             return;
         }
 
+        public override string GetRequiredTypeName()
+        {
+            return nameof(T);
+        }
         public override string ToString()
         {
             string type = nameof(T);

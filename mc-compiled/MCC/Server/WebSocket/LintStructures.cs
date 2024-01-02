@@ -80,7 +80,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             // harvest variables
             lint.variables.AddRange(executor.scoreboard.values.Select(sb => VariableStructure.Wrap(sb)));
 
-            // harvest (runtime) functions
+            // harvest functions
             lint.functions.AddRange(executor.functions
                 .FetchAll()
                 .Where(func => !(func is AttributeFunction))
@@ -147,6 +147,8 @@ namespace mc_compiled.MCC.ServerWebSocket
         public static FunctionStructure Wrap(Function function, LintStructure parent)
         {
             // now readable :)
+            // thanks past luke :ok_hand:
+
             string returnType = function.Returns;
 
             int count = function.ParameterCount;
@@ -157,9 +159,17 @@ namespace mc_compiled.MCC.ServerWebSocket
             {
                 FunctionParameter parameter = parameters[i];
 
-                if (parameter is RuntimeFunctionParameter runtimeParameter)
+                switch(parameter)
                 {
-                    variables.Add(VariableStructure.Wrap(runtimeParameter.RuntimeDestination));
+                    case RuntimeFunctionParameterAny runtimeParameterAny:
+                        variables.Add(VariableStructure.Any(runtimeParameterAny.aliasName));
+                        break;
+                    case RuntimeFunctionParameter runtimeParameter:
+                        variables.Add(VariableStructure.Wrap(runtimeParameter.RuntimeDestination));
+                        break;
+                    case CompiletimeFunctionParameter compileTimeParameter:
+                        variables.Add(new VariableStructure(compileTimeParameter.name, compileTimeParameter.GetRequiredTypeName(), Executor.UNDOCUMENTED_TEXT));
+                        break;
                 }
             }
 
@@ -187,6 +197,10 @@ namespace mc_compiled.MCC.ServerWebSocket
             this.name = name;
             this.type = type;
             this.docs = docs;
+        }
+        public static VariableStructure Any(string name, string docs = null)
+        {
+            return new VariableStructure(name, "any", docs ?? Executor.UNDOCUMENTED_TEXT);
         }
         public static VariableStructure Wrap(ScoreboardValue value)
         {
