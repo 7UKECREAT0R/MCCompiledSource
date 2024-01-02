@@ -2,7 +2,7 @@
 using System;
 using System.Reflection;
 
-namespace mc_compiled.MCC.Server
+namespace mc_compiled.MCC.ServerWebSocket
 {
     /// <summary>
     /// Configures custom protocol to launch MCCompiled from the web.

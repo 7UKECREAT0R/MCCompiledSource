@@ -8,7 +8,7 @@ namespace mc_compiled.MCC.Functions
     /// </summary>
     public abstract class FunctionParameter
     {
-        public readonly string name;        // the name of this parameter
+        public string name;                 // the name of this parameter
         public readonly bool optional;      // if this parameter can be skipped.
         public readonly Token defaultValue;
 

@@ -910,7 +910,6 @@ namespace mc_compiled.MCC.Compiler
 
             if (executor.TryGetPPV(variable, out dynamic[] values))
             {
-
                 if (values.Length < 2)
                     return;
 
@@ -931,8 +930,27 @@ namespace mc_compiled.MCC.Compiler
                 }
                 catch (Exception)
                 {
-                    throw new StatementException(tokens, "Couldn't sort these values.");
+                    throw new StatementException(tokens, "Couldn't reverse these values.");
                 }
+            }
+            else
+                throw new StatementException(tokens, "Preprocessor variable '" + variable + "' does not exist.");
+        }
+        public static void _unique(Executor executor, Statement tokens)
+        {
+            string variable = tokens.Next<TokenIdentifier>().word;
+
+            if (executor.TryGetPPV(variable, out dynamic[] values))
+            {
+                if (values.Length < 2)
+                    return;
+
+                HashSet<object> items = new HashSet<object>();
+                
+                foreach (dynamic value in values)
+                    items.Add(value);
+
+                executor.SetPPV(variable, items.ToArray());
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + variable + "' does not exist.");
@@ -2567,7 +2585,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 // force hash the parameters so that they can be unique.
                 foreach (RuntimeFunctionParameter parameter in parameters)
-                    parameter.runtimeDestination.ForceHash(functionName);
+                    parameter.RuntimeDestination.ForceHash(functionName);
 
                 // add decoration to it if documentation was given
                 if (hadDocumentation && Program.DECORATE)
@@ -2587,7 +2605,7 @@ namespace mc_compiled.MCC.Compiler
             // get the function's parameters
             var allRuntimeDestinations = function.Parameters
                 .Where(p => p is RuntimeFunctionParameter)
-                .Select(p => ((RuntimeFunctionParameter)p).runtimeDestination);
+                .Select(p => ((RuntimeFunctionParameter)p).RuntimeDestination);
 
             // ...and define them
             foreach(ScoreboardValue runtimeDestination in allRuntimeDestinations)

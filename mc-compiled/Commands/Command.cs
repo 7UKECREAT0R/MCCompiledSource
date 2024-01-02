@@ -216,8 +216,6 @@ namespace mc_compiled.Commands
             $"clone {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ}";
         public static string Clone(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, Coord dstX, Coord dstY, Coord dstZ, bool copyAir, CloneMode mode) =>
             $"clone {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ} " + (copyAir ? "replace" : "masked") + $" {mode}";
-        public static string Clone(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, Coord dstX, Coord dstY, Coord dstZ, CloneMode mode, string filterBlock, int filterData) =>
-            $"clone {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ} filtered {mode} {filterBlock} {filterData}";
 
         public static string ConnectWSServer(string serverUri) =>
             $"wsserver {serverUri}";
@@ -549,9 +547,9 @@ namespace mc_compiled.Commands
         public static string SetBlock(Coord x, Coord y, Coord z, string block) =>
             $"setblock {x} {y} {z} {block}";
         public static string SetBlock(Coord x, Coord y, Coord z, string block, int data) =>
-            $"setblock {x} {y} {z} {block} {data}";
+            $"setblock {x} {y} {z} {block} []";
         public static string SetBlock(Coord x, Coord y, Coord z, string block, int data, OldHandling handling) =>
-            $"setblock {x} {y} {z} {block} {data} {handling}";
+            $"setblock {x} {y} {z} {block} [] {handling}";
 
         public static string SetMaxPlayers(int max) =>
             $"setmaxplayers {max}";
@@ -660,7 +658,7 @@ namespace mc_compiled.Commands
         public static string TestForBlock(Coord x, Coord y, Coord z, string block) =>
             $"testforblock {x} {y} {z} {block}";
         public static string TestForBlock(Coord x, Coord y, Coord z, string block, int data) =>
-            $"testforblock {x} {y} {z} {block} {data}";
+            $"testforblock {x} {y} {z} {block} []";
 
         public static string TestForBlocks(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, Coord dstX, Coord dstY, Coord dstZ) =>
             $"testforblocks {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ}";

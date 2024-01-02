@@ -162,14 +162,5 @@ namespace mc_compiled.MCC.Functions
         /// <param name="statement">The statement that is calling this function.</param>
         /// <returns>The token to replace the function during squashing. Return null to completely remove the token.</returns>
         public abstract Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement);
-        
-        /// <summary>
-        /// Gets the hash of this function's Keyword.
-        /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
-        {
-            return this.Keyword.GetHashCode();
-        }
     }
 }

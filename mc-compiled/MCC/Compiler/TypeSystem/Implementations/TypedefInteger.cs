@@ -14,7 +14,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.INT;
         public override string TypeShortcode => "INT";
         public override string TypeKeyword => "INT";
-        public override object CloneData(object data) => null; // no data to clone
+        public override ITypeStructure CloneData(ITypeStructure data) => null; // no data to clone
         public override bool CanCompareAlone => false;
         internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value) => default;
         internal override string[] GetObjectives(ScoreboardValue input)

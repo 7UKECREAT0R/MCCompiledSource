@@ -6,24 +6,22 @@ namespace mc_compiled.MCC.Functions.Types
 {
     /// <summary>
     /// A function parameter that points to a runtime value.
-    /// Setting this parameter's value will result in commands being added to set <see cref="runtimeDestination"/>.
+    /// Setting this parameter's value will result in commands being added to set <see cref="RuntimeDestination"/>.
     /// </summary>
     public class RuntimeFunctionParameter : FunctionParameter
     {
         /// <summary>
         /// The destination variable that the value given will arrive at.
         /// </summary>
-        public readonly ScoreboardValue runtimeDestination;
-        /// <summary>
-        /// The actual name of the objective that will store the parameter.
-        /// Shorthand for <see cref="ScoreboardValue.InternalName"/> on <see cref="runtimeDestination"/>
-        /// </summary>
-        public readonly string objectiveName;
+        public ScoreboardValue RuntimeDestination { get; protected set; }
 
         public RuntimeFunctionParameter(ScoreboardValue value, Token defaultValue = null) : base(value.Name, defaultValue)
         {
-            this.runtimeDestination = value;
-            this.objectiveName = value.InternalName;
+            this.RuntimeDestination = value;
+        }
+        protected RuntimeFunctionParameter(string name, Token defaultValue = null) : base(name, defaultValue)
+        {
+            this.RuntimeDestination = null;
         }
 
         public override ParameterFit CheckInput(Token token)
@@ -31,38 +29,36 @@ namespace mc_compiled.MCC.Functions.Types
             switch (token)
             {
                 case TokenLiteral literal:
-                {
-                    Typedef sbType = literal.GetTypedef();
-                    Typedef sbDestType = this.runtimeDestination.type;
+                    {
+                        Typedef sbType = literal.GetTypedef();
+                        Typedef sbDestType = this.RuntimeDestination.type;
 
-                    if (sbType == null)
-                        return ParameterFit.No;
-                    if (sbType != sbDestType)
-                        return ParameterFit.WithConversion;
-                    
-                    return ParameterFit.Yes;
+                        if (sbType == null)
+                            return ParameterFit.No;
+                        if (sbType != sbDestType)
+                            return ParameterFit.WithConversion;
 
-                }
-                case TokenIdentifierValue _value:
-                {
-                    Typedef valueType = _value.value.type;
-                    Typedef valueDestType = this.runtimeDestination.type;
-
-                    if (valueType == null)
-                        return ParameterFit.No;
-
-                    if (!valueType.NeedsToBeConvertedTo(_value.value, this.runtimeDestination))
                         return ParameterFit.Yes;
-                    
-                    if (valueType.TypeEnum == valueDestType.TypeEnum)
-                        return ParameterFit.WithSubConversion;
-                    
-                    if (valueType.CanConvertTo(valueDestType))
-                        return ParameterFit.WithConversion;
-                    
-                    return ParameterFit.No;
+                    }
+                case TokenIdentifierValue _value:
+                    {
+                        Typedef valueType = _value.value.type;
+                        Typedef valueDestType = this.RuntimeDestination.type;
 
-                }
+                        if (valueType == null)
+                            return ParameterFit.No;
+
+                        if (!valueType.NeedsToBeConvertedTo(_value.value, this.RuntimeDestination))
+                            return ParameterFit.Yes;
+
+                        if (valueType.TypeEnum == valueDestType.TypeEnum)
+                            return ParameterFit.WithSubConversion;
+
+                        if (valueType.CanConvertTo(valueDestType))
+                            return ParameterFit.WithConversion;
+
+                        return ParameterFit.No;
+                    }
                 default:
                     return ParameterFit.No;
             }
@@ -73,24 +69,23 @@ namespace mc_compiled.MCC.Functions.Types
             switch (token)
             {
                 case TokenLiteral literal:
-                {
-                    Typedef type = literal.GetTypedef();
-                    if (type != null)
                     {
-                        IEnumerable<string> commands = this.runtimeDestination.AssignLiteral(literal, callingStatement);
+                        Typedef type = literal.GetTypedef();
+                        if (type != null)
+                        {
+                            IEnumerable<string> commands = this.RuntimeDestination.AssignLiteral(literal, callingStatement);
+                            commandBuffer.AddRange(commands);
+                            return;
+                        }
+                        break;
+                    }
+                case TokenIdentifierValue _value:
+                    {
+                        ScoreboardValue value = _value.value;
+                        IEnumerable<string> commands = this.RuntimeDestination.Assign(value, callingStatement);
                         commandBuffer.AddRange(commands);
                         return;
                     }
-
-                    break;
-                }
-                case TokenIdentifierValue _value:
-                {
-                    ScoreboardValue value = _value.value;
-                    IEnumerable<string> commands = this.runtimeDestination.Assign(value, callingStatement);
-                    commandBuffer.AddRange(commands);
-                    return;
-                }
             }
 
             throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
@@ -98,8 +93,13 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string ToString()
         {
-            string type = this.runtimeDestination.type.TypeKeyword;
+            string type = this.RuntimeDestination.type.TypeKeyword;
             return $"[{type} {name}]";
+        }
+        public override int GetHashCode()
+        {
+            return this.name.GetHashCode() ^
+                this.RuntimeDestination.GetHashCode();
         }
     }
 }

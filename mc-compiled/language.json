@@ -1,5 +1,5 @@
 {
-  "version": 1.15,
+  "version": 1.16,
   "preprocessor_variables": [
     "_compiler",
     "_minecraft",
@@ -298,6 +298,16 @@
       "details": "Reverses the order of the values in the given preprocessor variable.",
       "category": "preprocessor",
       "function": "_reverse",
+      "patterns": [
+        [ "id:variable" ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
+    },
+    "$unique": {
+      "description": "Preprocessor Array Unique",
+      "details": "Flattens the given preprocessor array to unique values.",
+      "category": "preprocessor",
+      "function": "_unique",
       "patterns": [
         [ "id:variable" ]
       ],

@@ -2,7 +2,7 @@
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-namespace mc_compiled.MCC.Server
+namespace mc_compiled.MCC.ServerWebSocket
 {
     /// <summary>
     /// Represents a WebSocket data frame (RFC-6455).

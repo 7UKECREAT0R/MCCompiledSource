@@ -18,6 +18,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         {
             return new FixedDecimalData(precision);
         }
+        public int TypeHashCode()
+        {
+            return precision.GetHashCode();
+        }
     }
     internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
     {
@@ -38,7 +42,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value) => default;
 
         public override TypePattern SpecifyPattern => new TypePattern(new NamedType(typeof(TokenIntegerLiteral), "precision"));
-        public override object AcceptPattern(Statement statement)
+        public override ITypeStructure AcceptPattern(Statement statement)
         {
             int precision = statement.Next<TokenNumberLiteral>().GetNumberInt();
             return new FixedDecimalData(precision);

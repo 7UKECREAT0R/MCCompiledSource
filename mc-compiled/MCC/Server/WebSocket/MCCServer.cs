@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
-namespace mc_compiled.MCC.Server
+namespace mc_compiled.MCC.ServerWebSocket
 {
     /// <summary>
     /// MCCompiled Language Server
@@ -83,11 +83,10 @@ namespace mc_compiled.MCC.Server
         /// </summary>
         /// <param name="outputResourcePack">The output location for the resource pack. Use '?project' to denote the name of the project.</param>
         /// <param name="outputBehaviorPack">The output location for the behavior pack. Use '?project' to denote the name of the project.</param>
-        public MCCServer(string outputResourcePack, string outputBehaviorPack, bool debug)
+        public MCCServer(string outputResourcePack, string outputBehaviorPack)
         {
             this.outputResourcePack = outputResourcePack;
             this.outputBehaviorPack = outputBehaviorPack;
-            this.debug = debug;
             this.connectionEstablished = new ManualResetEvent(false);
 
             this.project = new MCCServerProject(this);
@@ -154,7 +153,7 @@ namespace mc_compiled.MCC.Server
 
             // create a package for sending to the read thread
             var package = new WebSocketPackage
-                (debug, server, client, this);
+                (server, client, this);
 
             // run the receive loop for the connected client. 
             var thread = new Thread(ReceiveLoop);

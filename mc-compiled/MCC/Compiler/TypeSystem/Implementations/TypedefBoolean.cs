@@ -14,7 +14,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.BOOL;
         public override string TypeShortcode => "BLN";
         public override string TypeKeyword => "BOOL";
-        public override object CloneData(object data) => null; // no data to clone anyways
+        public override ITypeStructure CloneData(ITypeStructure data) => null; // no data to clone anyways
         public override bool CanCompareAlone => true;
 
         internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value)

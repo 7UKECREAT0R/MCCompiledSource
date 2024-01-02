@@ -53,7 +53,7 @@ namespace mc_compiled.MCC
         
         internal readonly ScoreboardManager manager;
         public readonly Typedef type;
-        public readonly object data;
+        public readonly ITypeStructure data;
         public readonly List<IAttribute> attributes;
         
         string internalName;
@@ -113,7 +113,7 @@ namespace mc_compiled.MCC
             this.clarifier = new Clarifier(global);
             this.type = type;
         }
-        public ScoreboardValue(string name, bool global, Typedef type, object data, ScoreboardManager manager)
+        public ScoreboardValue(string name, bool global, Typedef type, ITypeStructure data, ScoreboardManager manager)
         {
             this.manager = manager;
             this.InternalName = name;
@@ -127,7 +127,7 @@ namespace mc_compiled.MCC
             this.data = data;
             this.type = type;
         }
-        public ScoreboardValue(Typedef type, Clarifier clarifier, object data, string internalName, string name, string documentation,
+        public ScoreboardValue(Typedef type, Clarifier clarifier, ITypeStructure data, string internalName, string name, string documentation,
             ScoreboardManager manager)
         {
             this.attributes = new List<IAttribute>();
@@ -167,11 +167,11 @@ namespace mc_compiled.MCC
         /// <param name="newInternalName">If specified, the internal name to change the cloned ScoreboardValue to.</param>
         /// <param name="newName">If specified, the name to change the cloned ScoreboardValue to.</param>
         /// <returns></returns>
-        public ScoreboardValue Clone(Statement callingStatement, Typedef newType = null, Clarifier newClarifier = null, object newData = null, string newInternalName = null, string newName = null)
+        public ScoreboardValue Clone(Statement callingStatement, Typedef newType = null, Clarifier newClarifier = null, ITypeStructure newData = null, string newInternalName = null, string newName = null)
         {
             Typedef type = newType ?? this.type;
             Clarifier clarifier = newClarifier ?? this.clarifier.Clone();
-            object data = newData ?? (this.data == null ? null : type.CloneData(this.data));
+            ITypeStructure data = newData ?? (this.data == null ? null : type.CloneData(this.data));
             string internalName = newInternalName ?? this.internalName;
             string name = newName ?? this.name;
 
@@ -266,6 +266,9 @@ namespace mc_compiled.MCC
             {
                 int hashCode = InternalName.GetHashCode();
                 hashCode += (int)type.TypeEnum;
+
+                if (this.data != null)
+                    hashCode ^= this.data.TypeHashCode();
 
                 return hashCode;
             }

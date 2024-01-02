@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
-namespace mc_compiled.MCC.Server
+namespace mc_compiled.MCC.ServerWebSocket
 {
     /// <summary>
     /// Implementation of an MCC socket message.

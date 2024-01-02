@@ -28,8 +28,8 @@ namespace mc_compiled.MCC.Compiler
         
         public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
-        public const double MCC_VERSION = 1.15;                 // compilerversion
-        public static string MINECRAFT_VERSION = "0.00.000";    // mcversion
+        public const double MCC_VERSION = 1.16;                 // _compiler
+        public static string MINECRAFT_VERSION = "0.00.000";    // _minecraft
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";
         public const string UNDOCUMENTED_TEXT = "This symbol has no documentation.";
@@ -152,7 +152,7 @@ namespace mc_compiled.MCC.Compiler
             scoreboard = new ScoreboardManager(this);
 
             functions = new FunctionManager(scoreboard);
-            functions.RegisterDefaultProviders(scoreboard);
+            functions.RegisterDefaultProviders();
 
             SetCompilerPPVs();
 

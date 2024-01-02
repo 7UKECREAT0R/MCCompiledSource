@@ -20,8 +20,8 @@ namespace mc_compiled.MCC.Functions.Types
         private ScoreboardValue returnValue;
 
         public readonly bool isCompilerGenerated;
-        private readonly List<IAttribute> attributes;
-        private readonly List<RuntimeFunctionParameter> parameters;
+        protected readonly List<RuntimeFunctionParameter> parameters;
+        protected readonly List<IAttribute> attributes;
         
         public bool isExtern;               // created outside of MCCompiled, assume parameter names are as-listed.
         public readonly string aliasedName; // user-facing name (keyword)
@@ -148,7 +148,6 @@ namespace mc_compiled.MCC.Functions.Types
             
             executor.AddCommands(commands, "returnValue", $"Returns the objective '{returnValue.InternalName}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
         }
-
         /// <summary>
         /// Add commands and setup scoreboard to return a value.
         /// </summary>
@@ -215,5 +214,10 @@ namespace mc_compiled.MCC.Functions.Types
             file.Add(commands);
         public void AddCommandsTop(IEnumerable<string> commands) =>
             file.AddTop(commands);
+
+        public override int GetHashCode()
+        {
+            return (this.name ?? this.aliasedName).GetHashCode();
+        }
     }
 }

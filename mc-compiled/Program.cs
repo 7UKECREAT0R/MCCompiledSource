@@ -2,7 +2,8 @@
 using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
-using mc_compiled.MCC.Server;
+using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.ServerWebSocket;
 using mc_compiled.MCC.SyntaxHighlighting;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
@@ -202,7 +203,8 @@ namespace mc_compiled
                 orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
                 NO_PAUSE = true;
 
-                using (MCCServer server = new MCCServer(orp, obp, debug))
+                DEBUG = debug;
+                using (MCCServer server = new MCCServer(orp, obp))
                 {
                     server.StartServer();
                 }
@@ -242,7 +244,8 @@ namespace mc_compiled
                 orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
                 DECORATE = false;
                 NO_PAUSE = true;
-                using (MCCServer server = new MCCServer(orp, obp, debug))
+                DEBUG = debug;
+                using (MCCServer server = new MCCServer(orp, obp))
                 {
                     server.StartServer();
                 }

@@ -82,14 +82,14 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// <param name="statement">The statement to pull tokens from.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public virtual object AcceptPattern(Statement statement) => null;
+        public virtual ITypeStructure AcceptPattern(Statement statement) => null;
 
         /// <summary>
         /// Deep-clone the given data object as per this Typedef instance.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public abstract object CloneData(object data);
+        public abstract ITypeStructure CloneData(ITypeStructure data);
 
         /// <summary>
         /// Returns all internal scoreboard objectives that this type uses, with the given <see cref="ScoreboardValue"/>.
@@ -269,7 +269,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
     /// <typeparam name="T">The data structure held inside the ScoreboardValues that are of this type.</typeparam>
     public abstract class Typedef<T> : Typedef where T: ITypeStructure
     {
-        public override object CloneData(object data)
+        public override ITypeStructure CloneData(ITypeStructure data)
         {
             // data should be T
             var convert = (T)data;

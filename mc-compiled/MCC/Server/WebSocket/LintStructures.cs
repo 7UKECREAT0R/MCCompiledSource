@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace mc_compiled.MCC.Server
+namespace mc_compiled.MCC.ServerWebSocket
 {
     public class ErrorStructure
     {
@@ -83,7 +83,7 @@ namespace mc_compiled.MCC.Server
             // harvest (runtime) functions
             lint.functions.AddRange(executor.functions
                 .FetchAll()
-                .Where(func => func is RuntimeFunction)
+                .Where(func => !(func is AttributeFunction))
                 .Select(func => FunctionStructure.Wrap(func, lint)));
 
             // harvest macros
@@ -159,7 +159,7 @@ namespace mc_compiled.MCC.Server
 
                 if (parameter is RuntimeFunctionParameter runtimeParameter)
                 {
-                    variables.Add(VariableStructure.Wrap(runtimeParameter.runtimeDestination));
+                    variables.Add(VariableStructure.Wrap(runtimeParameter.RuntimeDestination));
                 }
             }
 
@@ -195,7 +195,7 @@ namespace mc_compiled.MCC.Server
         }
         public static VariableStructure Wrap(RuntimeFunctionParameter parameter)
         {
-            ScoreboardValue value = parameter.runtimeDestination;
+            ScoreboardValue value = parameter.RuntimeDestination;
             VariableStructure structure = new VariableStructure(value.Name, value.GetExtendedTypeKeyword(), value.Documentation);
 
             return structure;

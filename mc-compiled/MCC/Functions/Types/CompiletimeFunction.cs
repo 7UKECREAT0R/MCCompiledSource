@@ -7,12 +7,9 @@ namespace mc_compiled.MCC.Functions.Types
     /// <summary>
     /// Represents a function that can be called and fully evaluated at compile-time.
     /// </summary>
-    public class CompiletimeFunction : Function
+    public abstract class CompiletimeFunction : Function
     {
         readonly List<CompiletimeFunctionParameter> parameters;
-
-        //          ARG1                            ARG2      ARG3       RETURN
-        public Func<CompiletimeFunctionParameter[], Executor, Statement, Token> callAction;
 
         public readonly string aliasedName; // user-facing name (keyword)
         public readonly string name;        // name used internally.
@@ -31,28 +28,7 @@ namespace mc_compiled.MCC.Functions.Types
             this.name = name;
             this.returnType = returnType;
             this.documentation = documentation;
-
             this.parameters = new List<CompiletimeFunctionParameter>();
-        }
-        /// <summary>
-        /// Returns this function with a given call action.
-        /// The input delegate takes four parameters and returns a <see cref="Token"/>.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="CompiletimeFunctionParameter"/>[] - The parameters passed into this function. <br />
-        /// <see cref="Executor"/> - The executor running this action. <br />
-        /// <see cref="Statement"/> - The statement running this action.
-        /// </remarks>
-        /// <param name="callAction">The call action to set. See above for its parameters.</param>
-        /// <returns>This object for chaining.</returns>
-        public CompiletimeFunction WithCallAction(Func<
-            CompiletimeFunctionParameter[],
-            Executor,
-            Statement,
-            Token> callAction)
-        {
-            this.callAction = callAction;
-            return this;
         }
         /// <summary>
         /// Adds a compile-time parameter to this function.
@@ -86,32 +62,21 @@ namespace mc_compiled.MCC.Functions.Types
         }
 
         public override string Keyword => aliasedName;
-        public override string Returns => "Compiler-Defined: " + returnType;
-        public override string Documentation => documentation;
+        public override string Returns => returnType;
+        public override string Documentation => documentation + "\n(compiler implemented)";
         public override FunctionParameter[] Parameters => this.parameters.ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;
-        public override int Importance => 1; // more important. tries to run compile-time stuff over runtime stuff.
+        public override int Importance => 2; // most important. always prefer compile-time.
         public override bool ImplicitCall => false;
 
         public override bool MatchParameters(Token[] inputs, out string error, out int score)
         {
-            if (this.callAction == null)
-            {
-                error = $"Function \"{name}\" has no call action bound. This is a bug with the compiler.";
-                score = -999;
-                return false;
-            }
-
             return base.MatchParameters(inputs, out error, out score);
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override int GetHashCode()
         {
-            if (this.callAction == null)
-                throw new StatementException(statement, $"Function \"{name}\" has no call action bound. This is a bug with the compiler.");
-
-            // call the delegate
-            return callAction(parameters.ToArray(), executor, statement);
+            return (this.name ?? this.aliasedName).GetHashCode();
         }
     }
 }

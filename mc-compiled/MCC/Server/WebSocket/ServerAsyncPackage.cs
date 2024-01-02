@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace mc_compiled.MCC.Server
+namespace mc_compiled.MCC.ServerWebSocket
 {
     /// <summary>
     /// Represents a WebSocket structure passed into a thread for networking.
@@ -10,7 +10,6 @@ namespace mc_compiled.MCC.Server
     /// </summary>
     public class WebSocketPackage : IDisposable
     {
-        public readonly bool debug;
         public readonly Socket server;
         public readonly Socket client;
         public bool didHandshake = false;
@@ -22,9 +21,8 @@ namespace mc_compiled.MCC.Server
         /// </summary>
         /// <param name="server"></param>
         /// <param name="client"></param>
-        public WebSocketPackage(bool debug, Socket server, Socket client, MCCServer mcc)
+        public WebSocketPackage(Socket server, Socket client, MCCServer mcc)
         {
-            this.debug = debug;
             this.server = server;
             this.client = client;
             this.buffer = new byte[MCCServer.CHUNK_SIZE];
@@ -44,7 +42,7 @@ namespace mc_compiled.MCC.Server
         /// <param name="str"></param>
         public void SendStringASCII(string str)
         {
-            if (debug)
+            if (Program.DEBUG)
                 Console.WriteLine("Sending string '{0}'", str);
 
             try
@@ -65,7 +63,7 @@ namespace mc_compiled.MCC.Server
         /// <param name="frame"></param>
         public void SendFrame(WebSocketFrame frame)
         {
-            if (debug)
+            if (Program.DEBUG)
                 Console.WriteLine("Sending frame {0}", frame.ToString());
 
             if (_isDisposed || client == null)

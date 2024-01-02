@@ -22,17 +22,6 @@ namespace mc_compiled.MCC.Compiler
         public static List<string> guessedValues = new List<string>();
         public static List<string> guessedPPValues = new List<string>();
 
-        struct TokenCharCategory
-        {
-            readonly string name;
-            readonly char[] chars;
-            
-            public TokenCharCategory(string name, string chars)
-            {
-                this.name = name;
-                this.chars = chars.ToCharArray();
-            }
-        }
         static readonly char[] TOKENIZER_IGNORE_CHARS = new char[] { ' ', '\t', ',' };
         static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
         static readonly char[] LETTERS = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
@@ -478,9 +467,6 @@ namespace mc_compiled.MCC.Compiler
                 if (float.TryParse(str, out float f))
                 {
                     f *= (int)multiplier;
-                    int converted = (int)f;
-                    if(f == (float)converted)
-                        return new TokenIntegerLiteral(converted, multiplier, CURRENT_LINE);
                     return new TokenDecimalLiteral(f, CURRENT_LINE);
                 }
                 else

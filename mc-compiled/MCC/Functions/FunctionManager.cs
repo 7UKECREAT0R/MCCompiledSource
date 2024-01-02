@@ -22,7 +22,8 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         internal static IFunctionProvider[] DefaultCompilerProviders =
         {
-            AttributeFunctions.PROVIDER
+            AttributeFunctions.PROVIDER,
+            CompiletimeFunctions.PROVIDER,
         };
 
         /// <summary>
@@ -36,11 +37,11 @@ namespace mc_compiled.MCC.Functions
         /// <summary>
         /// Registers the function providers included with the compiler.
         /// </summary>
-        internal void RegisterDefaultProviders(ScoreboardManager manager)
+        internal void RegisterDefaultProviders()
         {
             foreach (IFunctionProvider provider in FunctionManager.DefaultCompilerProviders)
             {
-                var functions = provider.ProvideFunctions(manager);
+                var functions = provider.ProvideFunctions(scoreboardManager);
                 foreach (Function function in functions)
                     RegisterFunction(function);
             }

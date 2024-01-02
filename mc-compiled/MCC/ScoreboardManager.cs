@@ -59,13 +59,13 @@ namespace mc_compiled.MCC
             internal Typedef type;
             
             // either of these could be valid, or both null; dataObject takes precedence.
-            internal object dataObject;     
+            internal ITypeStructure dataObject;     
             internal TokenLiteral[] data;
 
             internal readonly Token defaultValue;
 
             internal ValueDefinition(IAttribute[] attributes, string name, Typedef type,
-                TokenLiteral[] data = null, object dataObject = null, Token defaultValue = null)
+                TokenLiteral[] data = null, ITypeStructure dataObject = null, Token defaultValue = null)
             {
                 this.attributes = attributes;
                 this.name = name;
@@ -80,7 +80,7 @@ namespace mc_compiled.MCC
             /// <returns></returns>
             internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
             {
-                object data = dataObject;
+                ITypeStructure data = dataObject;
 
                 if (data == null)
                 {
@@ -227,7 +227,7 @@ namespace mc_compiled.MCC
             FindAttributes();
 
             Typedef type = null;
-            object data = null;
+            ITypeStructure data = null;
             string name = null;
 
             if (tokens.NextIs<TokenIdentifier>())

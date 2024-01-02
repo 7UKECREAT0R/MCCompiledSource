@@ -9,7 +9,9 @@ namespace mc_compiled.MCC.Compiler.Implementations
     internal interface IFunctionProvider
     {
         /// <summary>
-        /// Provide the functions to be added to the "backup" function pool to be added when used.
+        /// Provide the functions to be added to the function pool by the compiler.
+        /// It's important to note that any functions that store state should have a new instance created every time this function is called.
+        ///     (don't store any functions statically unless they are 100% implementation, and no state)
         /// </summary>
         /// <param name="manager"></param>
         /// <returns></returns>
