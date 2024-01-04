@@ -83,7 +83,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             // harvest functions
             lint.functions.AddRange(executor.functions
                 .FetchAll()
-                .Where(func => !(func is AttributeFunction))
+                .Where(func => func.AdvertiseOverLSP)
                 .Select(func => FunctionStructure.Wrap(func, lint))
                 .Distinct());
 

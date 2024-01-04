@@ -16,7 +16,7 @@ namespace mc_compiled.MCC.Functions
         /// All of the functions currently in the project.
         /// </summary>
         private Dictionary<string, List<Function>> functionRegistry;
-        private List<RuntimeFunction> tests;
+        private List<TestFunction> tests;
         private readonly ScoreboardManager scoreboardManager;
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace mc_compiled.MCC.Functions
         {
             this.functionRegistry = new Dictionary<string, List<Function>>(StringComparer.OrdinalIgnoreCase);
             this.scoreboardManager = manager;
-            this.tests = new List<RuntimeFunction>();
+            this.tests = new List<TestFunction>();
         }
         /// <summary>
         /// Registers the function providers included with the compiler.
@@ -84,7 +84,7 @@ namespace mc_compiled.MCC.Functions
             functionRegistry[name] = functions;
         }
 
-        public void RegisterTest(RuntimeFunction function)
+        internal void RegisterTest(TestFunction function)
         {
             this.tests.Add(function);
         }

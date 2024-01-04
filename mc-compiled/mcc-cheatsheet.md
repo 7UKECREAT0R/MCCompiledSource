@@ -85,12 +85,6 @@ Adds all values in the given preprocessor variable together into one value and s
 #### Preprocessor Array Unique `$unique`
 Flattens the given preprocessor array to unique values.
 - `$unique` `<id: variable>`
-#### Preprocessor Assertion `$assert`
-Asserts that the input comparison is true, and throws a compiler error if not.
-- `$assert` `<object: a>` `<compare: comparison>` `<object: b>`
-- `$assert` `<id: a>` `<compare: comparison>` `<object: b>`
-- `$assert` `<object: a>` `<compare: comparison>` `<id: b>`
-- `$assert` `<id: a>` `<compare: comparison>` `<id: b>`
 #### Preprocessor Call Function `$call`
 Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.
 - `$call` `<string: function name>` `[*: parameters]`
@@ -276,28 +270,8 @@ Ensures this variable has a value, defaulting to 0 if not. This ensures the exec
 Commands which handle logic and code flow. The butter for all the bread (code).
 
 
-#### Assert Statement `assert`
-Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).
-- `assert` `<not: not>` `<value: boolean>`
-- `assert` `<value: boolean>`
-- `assert` `<value: score>` `<compare: comparison>` `<value: other>`
-- `assert` `<value: score>` `<compare: comparison>` `<any: other>`
-- `assert` `<selector: check for match>`
-- `assert` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
-- `assert` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
-- `assert` `<id: any>` `<selector: filter>`
-- `assert` `<id: block>` `<coord: x>` `<coord: y>` `<coord: z>` `<string: block>` `[int: data]`
-- `assert` `<id: blocks>` `<coord: x1>` `<coord: y1>` `<coord: z1>` `<coord: x2>` `<coord: y2>` `<coord: z2>` `<coord: x destination>` `<coord: y destination>` `<coord: z destination>`
-- `assert` `<not: not>` `<value: score>` `<compare: comparison>` `<value: other>`
-- `assert` `<not: not>` `<value: score>` `<compare: comparison>` `<any: other>`
-- `assert` `<not: not>` `<selector: check for match>`
-- `assert` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
-- `assert` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
-- `assert` `<not: not>` `<id: any>` `<selector: filter>`
-- `assert` `<not: not>` `<id: block>` `<coord: x>` `<coord: y>` `<coord: z>` `<string: block>` `[int: data]`
-- `assert` `<not: not>` `<id: blocks>` `<coord: x1>` `<coord: y1>` `<coord: z1>` `<coord: x2>` `<coord: y2>` `<coord: z2>` `<coord: x destination>` `<coord: y destination>` `<coord: z destination>`
 #### Define Function `function`
-Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`
+Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`
 - `function` `<*: args>`
 #### Else Statement `else`
 Inverts the comparison given by the previous if-statement at this scope level.
@@ -333,6 +307,40 @@ Allows comparison of variables, along with a huge collection of other criteria. 
 Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.
 - `return` `<value: variable>`
 - `return` `<any: return value>`
+---
+## Category: debug
+Commands related to testing, debugging and all-around solidifying code.
+
+
+#### Assert Statement `assert`
+Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).
+- `assert` `<not: not>` `<value: boolean>`
+- `assert` `<value: boolean>`
+- `assert` `<value: score>` `<compare: comparison>` `<value: other>`
+- `assert` `<value: score>` `<compare: comparison>` `<any: other>`
+- `assert` `<selector: check for match>`
+- `assert` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
+- `assert` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
+- `assert` `<id: any>` `<selector: filter>`
+- `assert` `<id: block>` `<coord: x>` `<coord: y>` `<coord: z>` `<string: block>` `[int: data]`
+- `assert` `<id: blocks>` `<coord: x1>` `<coord: y1>` `<coord: z1>` `<coord: x2>` `<coord: y2>` `<coord: z2>` `<coord: x destination>` `<coord: y destination>` `<coord: z destination>`
+- `assert` `<not: not>` `<value: score>` `<compare: comparison>` `<value: other>`
+- `assert` `<not: not>` `<value: score>` `<compare: comparison>` `<any: other>`
+- `assert` `<not: not>` `<selector: check for match>`
+- `assert` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
+- `assert` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
+- `assert` `<not: not>` `<id: any>` `<selector: filter>`
+- `assert` `<not: not>` `<id: block>` `<coord: x>` `<coord: y>` `<coord: z>` `<string: block>` `[int: data]`
+- `assert` `<not: not>` `<id: blocks>` `<coord: x1>` `<coord: y1>` `<coord: z1>` `<coord: x2>` `<coord: y2>` `<coord: z2>` `<coord: x destination>` `<coord: y destination>` `<coord: z destination>`
+#### Define Test `test`
+Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.
+- `test` `<id: test name>`
+#### Preprocessor Assertion `$assert`
+Asserts that the input comparison is true, and throws a compiler error if not.
+- `$assert` `<object: a>` `<compare: comparison>` `<object: b>`
+- `$assert` `<id: a>` `<compare: comparison>` `<object: b>`
+- `$assert` `<object: a>` `<compare: comparison>` `<id: b>`
+- `$assert` `<id: a>` `<compare: comparison>` `<id: b>`
 #### Throw Error `throw`
 Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format strings.
 - `throw` `<string: error>`
@@ -374,7 +382,7 @@ Feature: Create exploder entity behavior/resource files and allow them to be cre
 #### `feature` `uninstall`
 Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project.
 #### `feature` `tests`
-Feature: Enables the 'test' attribute on functions, which are automatically run on `/function test`. Use the 'assert' command to test various parts of your code.
+Feature: Enables the ability to use the 'test' command, which creates tests that are run on '/function test'. Use the 'assert' command to test various parts of your code.
 
 ---
 # Attributes
@@ -390,6 +398,4 @@ Marks a function for export, meaning it will be outputted regardless of if it is
 Binds a value to a pre-defined MoLang query. See bindings.json.
 #### `auto`
 Makes a function run every tick (via tick.json), or if specified, some other interval.
-#### `test`
-Requires 'tests' feature to be enabled. Makes a function a test, which is automatically run on `/function test`. Use the 'assert' command to create test conditions.
 

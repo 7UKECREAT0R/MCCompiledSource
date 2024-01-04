@@ -1,10 +1,10 @@
 const mccompiled = {
 	operators: [ `<`, `>`, `{`, `}`, `=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `!` ],
 	selectors: [ `@e`, `@a`, `@s`, `@p`, `@i`, `@initiator` ],
-	preprocessor: [ `$var`, `$inc`, `$dec`, `$add`, `$sub`, `$mul`, `$div`, `$mod`, `$pow`, `$swap`, `$if`, `$else`, `$assert`, `$repeat`, `$log`, `$macro`, `$include`, `$strfriendly`, `$strupper`, `$strlower`, `$sum`, `$median`, `$mean`, `$sort`, `$reverse`, `$unique`, `$iterate`, `$len`, `$json`, `$call` ],
-	commands: [ `mc`, `command`, `cmd`, `globalprint`, `print`, `lang`, `define`, `init`, `initialize`, `if`, `else`, `assert`, `throw`, `give`, `tp`, `teleport`, `move`, `face`, `lookat`, `rotate`, `setblock`, `fill`, `scatter`, `replace`, `kill`, `remove`, `clear`, `globaltitle`, `title`, `globalactionbar`, `actionbar`, `say`, `halt`, `damage`, `effect`, `playsound`, `particle`, `dummy`, `tag`, `explode`, `feature`, `function`, `fn`, `return`, `for`, `execute` ],
+	preprocessor: [ `$add`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
+	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
-	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto`, `test` ],
+	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto` ],
 	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
 	options: [ `dummies`, `gametest`, `exploders`, `uninstall`, `tests`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
@@ -124,60 +124,52 @@ const mcc_selectors = [
 ]
 const mcc_preprocessor = [
 	{
-		word: `$var`,
-		docs: `Sets a preprocessor variable to the value(s) provided.`
-	},
-	{
-		word: `$inc`,
-		docs: `Increments the given preprocessor variable by one. If multiple values are held, they are all incremented.`
-	},
-	{
-		word: `$dec`,
-		docs: `Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.`
-	},
-	{
 		word: `$add`,
 		docs: `Adds two preprocessor variables/values together, changing only the first one. A += B`
-	},
-	{
-		word: `$sub`,
-		docs: `Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B`
-	},
-	{
-		word: `$mul`,
-		docs: `Multiplies two preprocessor variables/values together, changing only the first one. A *= B`
-	},
-	{
-		word: `$div`,
-		docs: `Divides two preprocessor variables/values from each other, changing only the first one. A /= B`
-	},
-	{
-		word: `$mod`,
-		docs: `Divides two preprocessor variables/values from each other, setting only the first one to the remainder of the operation. A %= B`
-	},
-	{
-		word: `$pow`,
-		docs: `Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B`
-	},
-	{
-		word: `$swap`,
-		docs: `Swaps the values of two preprocessor variables`
-	},
-	{
-		word: `$if`,
-		docs: `Compares a preprocessor variable and another value/variable. If the source variable contains multiple values, they all must match the condition.`
-	},
-	{
-		word: `$else`,
-		docs: `Directly inverts the result of the last $if call at this level in scope.`
 	},
 	{
 		word: `$assert`,
 		docs: `Asserts that the input comparison is true, and throws a compiler error if not.`
 	},
 	{
-		word: `$repeat`,
-		docs: `Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.`
+		word: `$call`,
+		docs: `Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.`
+	},
+	{
+		word: `$dec`,
+		docs: `Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.`
+	},
+	{
+		word: `$div`,
+		docs: `Divides two preprocessor variables/values from each other, changing only the first one. A /= B`
+	},
+	{
+		word: `$else`,
+		docs: `Directly inverts the result of the last $if call at this level in scope.`
+	},
+	{
+		word: `$if`,
+		docs: `Compares a preprocessor variable and another value/variable. If the source variable contains multiple values, they all must match the condition.`
+	},
+	{
+		word: `$inc`,
+		docs: `Increments the given preprocessor variable by one. If multiple values are held, they are all incremented.`
+	},
+	{
+		word: `$include`,
+		docs: `Places the contents of the given file in replacement for this statement. Not intended for production use yet.`
+	},
+	{
+		word: `$iterate`,
+		docs: `Runs the following statement/code-block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.`
+	},
+	{
+		word: `$json`,
+		docs: `Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.`
+	},
+	{
+		word: `$len`,
+		docs: `If a preprocessor variable ID is given, the number of elements it holds is gotten. If a JSON array is given, the number of elements is gotten. If a string is given, the number of characters is gotten.`
 	},
 	{
 		word: `$log`,
@@ -188,63 +180,179 @@ const mcc_preprocessor = [
 		docs: `If a code-block follows this call, it is treated as a definition. Arguments are passed in as preprocessor variables. If no code-block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.`
 	},
 	{
-		word: `$include`,
-		docs: `Places the contents of the given file in replacement for this statement. Not intended for production use yet.`
-	},
-	{
-		word: `$strfriendly`,
-		docs: `Convert the given preprocessor variable value(s) to a string in 'Title Case'.`
-	},
-	{
-		word: `$strupper`,
-		docs: `Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.`
-	},
-	{
-		word: `$strlower`,
-		docs: `Convert the given preprocessor variable value(s) to a string in 'lowercase'.`
-	},
-	{
-		word: `$sum`,
-		docs: `Adds all values in the given preprocessor variable together into one value and stores it in a result variable.`
+		word: `$mean`,
+		docs: `Averages all values in the given preprocessor variable together into one value and stores it in a result variable.`
 	},
 	{
 		word: `$median`,
 		docs: `Gets the middle value/average of the two middle values and stores it in a result variable.`
 	},
 	{
-		word: `$mean`,
-		docs: `Averages all values in the given preprocessor variable together into one value and stores it in a result variable.`
+		word: `$mod`,
+		docs: `Divides two preprocessor variables/values from each other, setting only the first one to the remainder of the operation. A %= B`
 	},
 	{
-		word: `$sort`,
-		docs: `Sorts the order of the values in the given preprocessor variable either 'ascending' or 'descending'. Values must be comparable.`
+		word: `$mul`,
+		docs: `Multiplies two preprocessor variables/values together, changing only the first one. A *= B`
+	},
+	{
+		word: `$pow`,
+		docs: `Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B`
+	},
+	{
+		word: `$repeat`,
+		docs: `Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.`
 	},
 	{
 		word: `$reverse`,
 		docs: `Reverses the order of the values in the given preprocessor variable.`
 	},
 	{
+		word: `$sort`,
+		docs: `Sorts the order of the values in the given preprocessor variable either 'ascending' or 'descending'. Values must be comparable.`
+	},
+	{
+		word: `$strfriendly`,
+		docs: `Convert the given preprocessor variable value(s) to a string in 'Title Case'.`
+	},
+	{
+		word: `$strlower`,
+		docs: `Convert the given preprocessor variable value(s) to a string in 'lowercase'.`
+	},
+	{
+		word: `$strupper`,
+		docs: `Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.`
+	},
+	{
+		word: `$sub`,
+		docs: `Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B`
+	},
+	{
+		word: `$sum`,
+		docs: `Adds all values in the given preprocessor variable together into one value and stores it in a result variable.`
+	},
+	{
+		word: `$swap`,
+		docs: `Swaps the values of two preprocessor variables`
+	},
+	{
 		word: `$unique`,
 		docs: `Flattens the given preprocessor array to unique values.`
 	},
 	{
-		word: `$iterate`,
-		docs: `Runs the following statement/code-block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.`
-	},
-	{
-		word: `$len`,
-		docs: `If a preprocessor variable ID is given, the number of elements it holds is gotten. If a JSON array is given, the number of elements is gotten. If a string is given, the number of characters is gotten.`
-	},
-	{
-		word: `$json`,
-		docs: `Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.`
-	},
-	{
-		word: `$call`,
-		docs: `Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.`
+		word: `$var`,
+		docs: `Sets a preprocessor variable to the value(s) provided.`
 	},
 ]
 const mcc_commands = [
+	{
+		word: `actionbar`,
+		docs: `Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format strings.`
+	},
+	{
+		word: `assert`,
+		docs: `Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).`
+	},
+	{
+		word: `clear`,
+		docs: `Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.`
+	},
+	{
+		word: `damage`,
+		docs: `Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
+	},
+	{
+		word: `define`,
+		docs: `Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.`
+	},
+	{
+		word: `dummy`,
+		docs: `Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.`
+	},
+	{
+		word: `effect`,
+		docs: `Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect \<selector\> clear'.`
+	},
+	{
+		word: `else`,
+		docs: `Inverts the comparison given by the previous if-statement at this scope level.`
+	},
+	{
+		word: `execute`,
+		docs: `Begins a vanilla minecraft 1.19.70+ execute chain. Can be followed by a statement or code-block, but does not explicitly support the 'run' subcommand.`
+	},
+	{
+		word: `explode`,
+		docs: `Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.`
+	},
+	{
+		word: `face`,
+		docs: `Faces the given entities towards a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
+	},
+	{
+		word: `lookat`,
+		docs: `Alias of 'face'. Faces the given entities towards a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
+	},
+	{
+		word: `feature`,
+		docs: `Enables a feature to be used for this project, generating any of the necessary files.`
+	},
+	{
+		word: `fill`,
+		docs: `Fills blocks in a specific region, optionally using a replace mode.`
+	},
+	{
+		word: `for`,
+		docs: `Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to \`execute as <selector> at @s run <code>\``
+	},
+	{
+		word: `function`,
+		docs: `Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: \`functionName(parameters)\``
+	},
+	{
+		word: `fn`,
+		docs: `Alias of 'function'. Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: \`functionName(parameters)\``
+	},
+	{
+		word: `give`,
+		docs: `Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.`
+	},
+	{
+		word: `globalactionbar`,
+		docs: `Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format strings.`
+	},
+	{
+		word: `globalprint`,
+		docs: `Prints a chat message to all players in the game. Supports format strings.`
+	},
+	{
+		word: `globaltitle`,
+		docs: `Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format strings.`
+	},
+	{
+		word: `halt`,
+		docs: `Ends the execution of the code entirely by hitting the function command limit.`
+	},
+	{
+		word: `if`,
+		docs: `Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.`
+	},
+	{
+		word: `init`,
+		docs: `Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., \`variableName[@a]\``
+	},
+	{
+		word: `initialize`,
+		docs: `Alias of 'init'. Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., \`variableName[@a]\``
+	},
+	{
+		word: `kill`,
+		docs: `Kills the given entities, causing the death animation, sounds, and particles to appear.`
+	},
+	{
+		word: `lang`,
+		docs: `Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including FStrings.`
+	},
 	{
 		word: `mc`,
 		docs: `Places a plain command in the output file, used for when the language lacks a certain feature.`
@@ -258,48 +366,64 @@ const mcc_commands = [
 		docs: `Alias of 'mc'. Places a plain command in the output file, used for when the language lacks a certain feature.`
 	},
 	{
-		word: `globalprint`,
-		docs: `Prints a chat message to all players in the game. Supports format strings.`
+		word: `move`,
+		docs: `Moves the specified entity in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.`
+	},
+	{
+		word: `particle`,
+		docs: `Spawns a particle effect in the world.`
+	},
+	{
+		word: `playsound`,
+		docs: `Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.`
 	},
 	{
 		word: `print`,
 		docs: `Prints a chat message to the executing player, or to the given one if specified. Supports format strings.`
 	},
 	{
-		word: `lang`,
-		docs: `Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including FStrings.`
+		word: `remove`,
+		docs: `Teleports the given entities deep into the void, causing a silent death.`
 	},
 	{
-		word: `define`,
-		docs: `Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.`
+		word: `replace`,
+		docs: `Replaces all source blocks with a result block in a specific region.`
 	},
 	{
-		word: `init`,
-		docs: `Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., \`variableName[@a]\``
+		word: `return`,
+		docs: `Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.`
 	},
 	{
-		word: `initialize`,
-		docs: `Alias of 'init'. Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., \`variableName[@a]\``
+		word: `rotate`,
+		docs: `Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.`
 	},
 	{
-		word: `if`,
-		docs: `Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.`
+		word: `say`,
+		docs: `Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.`
 	},
 	{
-		word: `else`,
-		docs: `Inverts the comparison given by the previous if-statement at this scope level.`
+		word: `scatter`,
+		docs: `Randomly scatters blocks throughout a region with a certain percentage.`
 	},
 	{
-		word: `assert`,
-		docs: `Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).`
+		word: `setblock`,
+		docs: `Sets the block at a specific position, optionally using a replace mode.`
+	},
+	{
+		word: `tag`,
+		docs: `Add and remove tags from the given entity.`
+	},
+	{
+		word: `test`,
+		docs: `Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.`
 	},
 	{
 		word: `throw`,
 		docs: `Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format strings.`
 	},
 	{
-		word: `give`,
-		docs: `Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.`
+		word: `title`,
+		docs: `Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format strings.`
 	},
 	{
 		word: `tp`,
@@ -308,126 +432,6 @@ const mcc_commands = [
 	{
 		word: `teleport`,
 		docs: `Alias of 'tp'. Teleports the executing/given entities to a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
-	},
-	{
-		word: `move`,
-		docs: `Moves the specified entity in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.`
-	},
-	{
-		word: `face`,
-		docs: `Faces the given entities towards a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
-	},
-	{
-		word: `lookat`,
-		docs: `Alias of 'face'. Faces the given entities towards a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
-	},
-	{
-		word: `rotate`,
-		docs: `Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.`
-	},
-	{
-		word: `setblock`,
-		docs: `Sets the block at a specific position, optionally using a replace mode.`
-	},
-	{
-		word: `fill`,
-		docs: `Fills blocks in a specific region, optionally using a replace mode.`
-	},
-	{
-		word: `scatter`,
-		docs: `Randomly scatters blocks throughout a region with a certain percentage.`
-	},
-	{
-		word: `replace`,
-		docs: `Replaces all source blocks with a result block in a specific region.`
-	},
-	{
-		word: `kill`,
-		docs: `Kills the given entities, causing the death animation, sounds, and particles to appear.`
-	},
-	{
-		word: `remove`,
-		docs: `Teleports the given entities deep into the void, causing a silent death.`
-	},
-	{
-		word: `clear`,
-		docs: `Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.`
-	},
-	{
-		word: `globaltitle`,
-		docs: `Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format strings.`
-	},
-	{
-		word: `title`,
-		docs: `Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format strings.`
-	},
-	{
-		word: `globalactionbar`,
-		docs: `Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format strings.`
-	},
-	{
-		word: `actionbar`,
-		docs: `Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format strings.`
-	},
-	{
-		word: `say`,
-		docs: `Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.`
-	},
-	{
-		word: `halt`,
-		docs: `Ends the execution of the code entirely by hitting the function command limit.`
-	},
-	{
-		word: `damage`,
-		docs: `Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
-	},
-	{
-		word: `effect`,
-		docs: `Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect \<selector\> clear'.`
-	},
-	{
-		word: `playsound`,
-		docs: `Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.`
-	},
-	{
-		word: `particle`,
-		docs: `Spawns a particle effect in the world.`
-	},
-	{
-		word: `dummy`,
-		docs: `Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.`
-	},
-	{
-		word: `tag`,
-		docs: `Add and remove tags from the given entity.`
-	},
-	{
-		word: `explode`,
-		docs: `Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.`
-	},
-	{
-		word: `feature`,
-		docs: `Enables a feature to be used for this project, generating any of the necessary files.`
-	},
-	{
-		word: `function`,
-		docs: `Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: \`functionName(parameters)\``
-	},
-	{
-		word: `fn`,
-		docs: `Alias of 'function'. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: \`functionName(parameters)\``
-	},
-	{
-		word: `return`,
-		docs: `Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.`
-	},
-	{
-		word: `for`,
-		docs: `Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to \`execute as <selector> at @s run <code>\``
-	},
-	{
-		word: `execute`,
-		docs: `Begins a vanilla minecraft 1.19.70+ execute chain. Can be followed by a statement or code-block, but does not explicitly support the 'run' subcommand.`
 	},
 ]
 const mcc_literals = [
@@ -505,10 +509,6 @@ const mcc_types = [
 		word: `auto`,
 		docs: `Makes a function run every tick (via tick.json), or if specified, some other interval.`
 	},
-	{
-		word: `test`,
-		docs: `Requires 'tests' feature to be enabled. Makes a function a test, which is automatically run on \`/function test\`. Use the 'assert' command to create test conditions.`
-	},
 ]
 const mcc_comparisons = [
 	{
@@ -551,7 +551,7 @@ const mcc_options = [
 	},
 	{
 		word: `tests`,
-		docs: `Feature: Enables the 'test' attribute on functions, which are automatically run on \`/function test\`. Use the 'assert' command to test various parts of your code.`
+		docs: `Feature: Enables the ability to use the 'test' command, which creates tests that are run on '/function test'. Use the 'assert' command to test various parts of your code.`
 	},
 	{
 		word: `up`,

@@ -69,6 +69,7 @@ namespace mc_compiled.MCC.Functions.Types
         public override string[] Aliases => null;
         public override int Importance => 2; // most important. always prefer compile-time.
         public override bool ImplicitCall => false;
+        public override bool AdvertiseOverLSP => true;
 
         public override bool MatchParameters(Token[] inputs, out string error, out int score)
         {

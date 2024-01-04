@@ -108,6 +108,7 @@ namespace mc_compiled.MCC.Functions.Types
         public override string[] Aliases => null;
         public override int Importance => 1; // more important than run-time, but less important than compile-time.
         public override bool ImplicitCall => false; // can never implicitly call these functions.
+        public override bool AdvertiseOverLSP => true;
 
         /// <summary>
         /// Get the command needed to return the given value. If multiple commands are needed, the branch will be made and returned as a function call.

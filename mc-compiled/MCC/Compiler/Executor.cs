@@ -21,7 +21,7 @@ using static System.Net.Mime.MediaTypeNames;
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
-    /// The final stage of the compilation process. Runs statements and holds state on 
+    /// The final stage of the compilation process. Runs statements and holds state.
     /// </summary>
     public class Executor
     {
@@ -1497,7 +1497,7 @@ namespace mc_compiled.MCC.Compiler
                 CommandFile tests = TestsFile;
                 tests.Add($"# Test {testId}: {func.name}, located at line {creationStatement.Lines[0]}");
                 tests.Add(Command.Function(file));
-                tests.Add(Command.Tellraw("@s", new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} passed.")).BuildString()));
+                tests.Add(Command.Tellraw("@s", new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} ({func.name}) passed.")).BuildString()));
                 tests.Add("");
             }
 

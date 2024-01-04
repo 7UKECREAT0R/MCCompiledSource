@@ -24,7 +24,6 @@ namespace mc_compiled.MCC.Functions.Types
         protected readonly List<RuntimeFunctionParameter> parameters;
         protected readonly List<IAttribute> attributes;
 
-        protected bool isTest;              // run as a test, always in the `tests` folder and has special requirements
         public bool isExtern;               // created outside of MCCompiled, assume parameter names are as-listed.
         public readonly string aliasedName; // user-facing name (keyword)
         public string name;                 // name used internally if the normal name won't work.
@@ -35,7 +34,6 @@ namespace mc_compiled.MCC.Functions.Types
         {
             this.creationStatement = creationStatement;
             this.isAddedToExecutor = false;
-            this.isTest = false;
 
             this.aliasedName = aliasedName;
             this.name = name;
@@ -107,13 +105,6 @@ namespace mc_compiled.MCC.Functions.Types
             return this;
         }
 
-        public RuntimeFunction AsTest()
-        {
-            this.isTest = true;
-            this.file.AsTest();
-            return this;
-        }
-
         public override string Keyword => aliasedName;
         public override string Returns => returnValue?.GetExtendedTypeKeyword();
         public override string Documentation => documentation;
@@ -122,6 +113,7 @@ namespace mc_compiled.MCC.Functions.Types
         public override string[] Aliases => null;
         public override int Importance => 0; // least important. always call runtime functions at last resort.
         public override bool ImplicitCall => false;
+        public override bool AdvertiseOverLSP => true;
 
         /// <summary>
         /// Add commands and setup scoreboard to return a value.
@@ -194,9 +186,6 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            if (isTest)
-                throw new StatementException(statement, "Cannot call test function, use");
-
             // add the file to the executor if it hasn't been yet.
             if(!isAddedToExecutor && !isExtern)
             {

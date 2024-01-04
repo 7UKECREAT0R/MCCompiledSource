@@ -2768,6 +2768,64 @@ namespace mc_compiled.MCC.Compiler
             else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");
         }
+        public static void test(Executor executor, Statement tokens)
+        {
+            executor.RequireFeature(tokens, Feature.TESTS);
+
+            // normal definition
+            string testName = tokens.Next<TokenIdentifier>().word;
+
+            bool usesFolders = testName.Contains('.');
+            string[] folders = null;
+
+            if (usesFolders)
+            {
+                var split = testName.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                if (split.Length > 1)
+                    folders = split.Take(split.Length - 1).ToArray();
+                else
+                {
+                    usesFolders = false; // user wrote beyond-shit code; fix it up for them
+                    testName = testName.Trim('.');
+                }
+            }
+
+            // see if last statement was a comment, and use that for documentation
+            string docs = executor.GetDocumentationString(out bool hadDocumentation);
+
+            // the actual name of the function file
+            string actualName = usesFolders ? testName.Substring(testName.LastIndexOf('.') + 1) : testName;
+
+            // constructor
+            var test = new TestFunction(tokens, testName, actualName, docs)
+            {
+                documentation = docs,
+                isAddedToExecutor = true
+            };
+
+            // folders, if specified via dots
+            if (usesFolders)
+                test.file.Folders = folders;
+
+            // register it with the compiler
+            executor.functions.RegisterTest(test);
+
+            if (executor.NextIs<StatementOpenBlock>())
+            {
+                StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
+
+                openBlock.openAction = (e) =>
+                {
+                    e.PushFile(test.file);
+                };
+                openBlock.CloseAction = (e) =>
+                {
+                    e.PopFile();
+                };
+
+                return;
+            }
+        }
         public static void @return(Executor executor, Statement tokens)
         {
             RuntimeFunction activeFunction = executor.CurrentFile.runtimeFunction;

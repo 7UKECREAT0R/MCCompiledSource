@@ -77,6 +77,7 @@ namespace mc_compiled.MCC.Functions.Types
         public override string[] Aliases => null;
         public override int Importance => 2; // most important.
         public override bool ImplicitCall => this.parameters.Count(p => !p.optional) == 0;
+        public override bool AdvertiseOverLSP => false;
 
         public override bool MatchParameters(Token[] inputs, out string error, out int score)
         {

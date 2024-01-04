@@ -34,6 +34,10 @@ namespace mc_compiled.MCC.Functions
         /// Get the number of parameters in this function.
         /// </summary>
         public abstract int ParameterCount { get; }
+        /// <summary>
+        /// If this function should be sent to any LSP clients.
+        /// </summary>
+        public abstract bool AdvertiseOverLSP { get; }
 
         /// <summary>
         /// The importance of this function. Functions are sorted and checked from highest-importance-first.

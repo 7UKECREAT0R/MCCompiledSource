@@ -331,6 +331,13 @@ namespace mc_compiled.MCC.Compiler
             foreach(string dictKey in directive.DictKeys)
                 directiveLookup[dictKey.ToUpper()] = directive;
         }
+        /// <summary>
+        /// Sorts all the directives by name.
+        /// </summary>
+        public static void SortDirectives()
+        {
+            REGISTRY = REGISTRY.OrderBy(directive => directive.identifier).ToList();
+        }
 
         public static void LoadFromLanguage(bool debug)
         {
@@ -508,6 +515,7 @@ namespace mc_compiled.MCC.Compiler
                 RegisterDirective(directive);
             }
 
+            SortDirectives();
             return;
         }
     }

@@ -79,7 +79,13 @@ namespace mc_compiled.MCC.Compiler
         }
         public string[] Folders
         {
-            set => folder = string.Join("/", value);
+            set
+            {
+                if (isTest)
+                    folder = Executor.MCC_TESTS_FOLDER + '/' + string.Join("/", value);
+                else
+                    folder = string.Join("/", value);
+            }
         }
 
         internal string folder;

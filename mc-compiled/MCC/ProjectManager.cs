@@ -69,7 +69,7 @@ namespace mc_compiled.MCC
         /// </summary>
         private void CreateUninstallFile()
         {
-            var file = new CommandFile(true, "uninstall", Executor.MCC_GENERATED_FOLDER);
+            var file = new CommandFile(true, "uninstall");
             
             this.AddFile(file);
             file.Add("# Created by the 'uninstall' feature. Uninstalls the addon from the world.");
@@ -394,7 +394,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="feature"></param>
         internal bool HasFeature(Feature feature) =>
-            (features &= feature) != Feature.NO_FEATURES;
+            (features & feature) != Feature.NO_FEATURES;
     }
     /// <summary>
     /// Generates and holds a "registry" for directing file outputs.

@@ -65,7 +65,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
             return keywords.ToArray();
         }
 
-        internal static Dictionary<string, string> categories; // set when processing language.json
+        internal static Dictionary<string, string> categories;  // set when processing language.json
         internal static Dictionary<string, NamedType> mappings; // set when processing language.json
 
         public static readonly Keywords operators = new Keywords()
@@ -158,7 +158,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("gametest", "Feature: Gametest Integration (not implemented)"),
                 new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
                 new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project."),
-                new Keyword("tests", "Feature: Enables the 'test' attribute on functions, which are automatically run on `/function test`. Use the 'assert' command to test various parts of your code."),
+                new Keyword("tests", "Feature: Enables the ability to use the 'test' command, which creates tests that are run on '/function test'. Use the 'assert' command to test various parts of your code."),
                 //new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
                 
                 // directions
