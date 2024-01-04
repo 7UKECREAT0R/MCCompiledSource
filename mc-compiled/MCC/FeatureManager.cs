@@ -38,6 +38,9 @@ namespace mc_compiled.MCC
             },
             {
                 Feature.UNINSTALL, (executor) => { }
+            },
+            {
+                Feature.TESTS, (executor) => executor.CreateTestsFile()
             }
         };
 

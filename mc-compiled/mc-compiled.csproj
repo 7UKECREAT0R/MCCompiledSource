@@ -95,6 +95,7 @@
     <Compile Include="MCC\Attributes\AttributeExport.cs" />
     <Compile Include="MCC\Attributes\AttributeExtern.cs" />
     <Compile Include="MCC\Attributes\AttributeGlobal.cs" />
+    <Compile Include="MCC\Attributes\AttributeTest.cs" />
     <Compile Include="MCC\Attributes\Implementations\AttributeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\CompiletimeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionGlyphs.cs" />
@@ -145,7 +146,7 @@
     <Compile Include="MCC\Functions\Types\GenerativeFunction.cs" />
     <Compile Include="MCC\Functions\Types\RuntimeFunction.cs" />
     <Compile Include="MCC\Functions\Types\RuntimeFunctionParameter.cs" />
-    <Compile Include="MCC\Functions\Types\RuntimeFunctionParameterAny.cs" />
+    <Compile Include="MCC\Functions\Types\RuntimeFunctionParameterDynamic.cs" />
     <Compile Include="MCC\ProjectManager.cs" />
     <Compile Include="MCC\Macro.cs" />
     <Compile Include="MCC\Scheduling\Implementations\ScheduledOneShot.cs" />
@@ -266,9 +267,6 @@
     <Content Include="definitions.def">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <AdditionalFiles Include="notepadplusplus_language.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AdditionalFiles>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

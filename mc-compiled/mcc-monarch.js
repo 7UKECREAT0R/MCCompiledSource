@@ -1,12 +1,12 @@
 const mccompiled = {
 	operators: [ `<`, `>`, `{`, `}`, `=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `!` ],
 	selectors: [ `@e`, `@a`, `@s`, `@p`, `@i`, `@initiator` ],
-	preprocessor: [ `$var`, `$inc`, `$dec`, `$add`, `$sub`, `$mul`, `$div`, `$mod`, `$pow`, `$swap`, `$if`, `$else`, `$repeat`, `$log`, `$macro`, `$include`, `$strfriendly`, `$strupper`, `$strlower`, `$sum`, `$median`, `$mean`, `$sort`, `$reverse`, `$iterate`, `$len`, `$json`, `$call` ],
-	commands: [ `mc`, `command`, `cmd`, `globalprint`, `print`, `lang`, `define`, `init`, `initialize`, `if`, `else`, `give`, `tp`, `teleport`, `move`, `face`, `lookat`, `rotate`, `setblock`, `fill`, `scatter`, `replace`, `kill`, `remove`, `clear`, `globaltitle`, `title`, `globalactionbar`, `actionbar`, `say`, `halt`, `damage`, `effect`, `playsound`, `particle`, `dummy`, `tag`, `explode`, `feature`, `function`, `fn`, `return`, `for`, `execute` ],
+	preprocessor: [ `$var`, `$inc`, `$dec`, `$add`, `$sub`, `$mul`, `$div`, `$mod`, `$pow`, `$swap`, `$if`, `$else`, `$assert`, `$repeat`, `$log`, `$macro`, `$include`, `$strfriendly`, `$strupper`, `$strlower`, `$sum`, `$median`, `$mean`, `$sort`, `$reverse`, `$unique`, `$iterate`, `$len`, `$json`, `$call` ],
+	commands: [ `mc`, `command`, `cmd`, `globalprint`, `print`, `lang`, `define`, `init`, `initialize`, `if`, `else`, `assert`, `throw`, `give`, `tp`, `teleport`, `move`, `face`, `lookat`, `rotate`, `setblock`, `fill`, `scatter`, `replace`, `kill`, `remove`, `clear`, `globaltitle`, `title`, `globalactionbar`, `actionbar`, `say`, `halt`, `damage`, `effect`, `playsound`, `particle`, `dummy`, `tag`, `explode`, `feature`, `function`, `fn`, `return`, `for`, `execute` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
-	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto` ],
+	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto`, `test` ],
 	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
-	options: [ `dummies`, `gametest`, `exploders`, `uninstall`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
+	options: [ `dummies`, `gametest`, `exploders`, `uninstall`, `tests`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
         root: [
             [ /@?[a-zA-Z$][\w]*/, {
@@ -45,55 +45,55 @@ const mccompiled = {
 const mcc_operators = [
 	{
 		word: `<`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `>`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `{`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `}`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `=`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `(`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `)`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `+`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `-`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `*`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `/`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `%`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 	{
 		word: `!`,
-		docs: 'No documentation available for v1.15.'
+		docs: 'No documentation available for v1.16.'
 	},
 ]
 const mcc_selectors = [
@@ -172,6 +172,10 @@ const mcc_preprocessor = [
 		docs: `Directly inverts the result of the last $if call at this level in scope.`
 	},
 	{
+		word: `$assert`,
+		docs: `Asserts that the input comparison is true, and throws a compiler error if not.`
+	},
+	{
 		word: `$repeat`,
 		docs: `Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.`
 	},
@@ -218,6 +222,10 @@ const mcc_preprocessor = [
 	{
 		word: `$reverse`,
 		docs: `Reverses the order of the values in the given preprocessor variable.`
+	},
+	{
+		word: `$unique`,
+		docs: `Flattens the given preprocessor array to unique values.`
 	},
 	{
 		word: `$iterate`,
@@ -267,11 +275,11 @@ const mcc_commands = [
 	},
 	{
 		word: `init`,
-		docs: `Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]``
+		docs: `Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., \`variableName[@a]\``
 	},
 	{
 		word: `initialize`,
-		docs: `Alias of 'init'. Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]``
+		docs: `Alias of 'init'. Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., \`variableName[@a]\``
 	},
 	{
 		word: `if`,
@@ -280,6 +288,14 @@ const mcc_commands = [
 	{
 		word: `else`,
 		docs: `Inverts the comparison given by the previous if-statement at this scope level.`
+	},
+	{
+		word: `assert`,
+		docs: `Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).`
+	},
+	{
+		word: `throw`,
+		docs: `Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format strings.`
 	},
 	{
 		word: `give`,
@@ -395,11 +411,11 @@ const mcc_commands = [
 	},
 	{
 		word: `function`,
-		docs: `Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)``
+		docs: `Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: \`functionName(parameters)\``
 	},
 	{
 		word: `fn`,
-		docs: `Alias of 'function'. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)``
+		docs: `Alias of 'function'. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: \`functionName(parameters)\``
 	},
 	{
 		word: `return`,
@@ -407,7 +423,7 @@ const mcc_commands = [
 	},
 	{
 		word: `for`,
-		docs: `Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>``
+		docs: `Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to \`execute as <selector> at @s run <code>\``
 	},
 	{
 		word: `execute`,
@@ -471,7 +487,7 @@ const mcc_types = [
 	},
 	{
 		word: `global`,
-		docs: `Makes a value global, meaning it will only be accessed in the context of the global fakeplayer, `_``
+		docs: `Makes a value global, meaning it will only be accessed in the context of the global fakeplayer, \`_\``
 	},
 	{
 		word: `extern`,
@@ -488,6 +504,10 @@ const mcc_types = [
 	{
 		word: `auto`,
 		docs: `Makes a function run every tick (via tick.json), or if specified, some other interval.`
+	},
+	{
+		word: `test`,
+		docs: `Requires 'tests' feature to be enabled. Makes a function a test, which is automatically run on \`/function test\`. Use the 'assert' command to create test conditions.`
 	},
 ]
 const mcc_comparisons = [
@@ -528,6 +548,10 @@ const mcc_options = [
 	{
 		word: `uninstall`,
 		docs: `Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project.`
+	},
+	{
+		word: `tests`,
+		docs: `Feature: Enables the 'test' attribute on functions, which are automatically run on \`/function test\`. Use the 'assert' command to test various parts of your code.`
 	},
 	{
 		word: `up`,

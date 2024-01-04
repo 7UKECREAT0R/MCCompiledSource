@@ -47,7 +47,16 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             int precision = statement.Next<TokenNumberLiteral>().GetNumberInt();
             return new FixedDecimalData(precision);
         }
-        
+
+        public override bool CanAcceptLiteralForData(TokenLiteral literal)
+        {
+            return literal is TokenDecimalLiteral;
+        }
+        public override ITypeStructure AcceptLiteral(TokenLiteral literal)
+        {
+            return new FixedDecimalData((literal as TokenDecimalLiteral).number.GetPrecision());
+        }
+
         // Conversion
         internal override bool CanConvertTo(Typedef type)
         {
@@ -176,8 +185,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             if(!(literal is TokenNumberLiteral numberLiteral))
                 throw LiteralConversionError(self, literal, callingStatement);
 
-            int precision = ((FixedDecimalData)self.data).precision;
             float _number = numberLiteral.GetNumber();
+            int precision = ((FixedDecimalData)self.data).precision;
             int number = _number.ToFixedPoint(precision);
 
             return new Tuple<string[], ConditionalSubcommandScore[]>(

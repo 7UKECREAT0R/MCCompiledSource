@@ -209,7 +209,9 @@ namespace mc_compiled.MCC.Functions.Types
             if (file.Item2 == null)
                 return new TokenNullLiteral(statement.Lines[0]);
 
-            return new TokenIdentifierValue(file.Item2.Name, file.Item2, statement.Lines[0]);
+            ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(file.Item2, true);
+            commandBuffer.AddRange(returnHolder.Assign(file.Item2, statement));
+            return new TokenIdentifierValue(returnHolder.Name, returnHolder, statement.Lines[0]);
         }
         
         public override int GetHashCode()

@@ -17,21 +17,25 @@ namespace mc_compiled.MCC.Functions.Types
         internal bool isAddedToExecutor; // if the function's files have been added to the executor yet.
 
         public readonly CommandFile file;
+        public readonly Statement creationStatement;
         private ScoreboardValue returnValue;
 
         public readonly bool isCompilerGenerated;
         protected readonly List<RuntimeFunctionParameter> parameters;
         protected readonly List<IAttribute> attributes;
-        
+
+        protected bool isTest;              // run as a test, always in the `tests` folder and has special requirements
         public bool isExtern;               // created outside of MCCompiled, assume parameter names are as-listed.
         public readonly string aliasedName; // user-facing name (keyword)
         public string name;                 // name used internally if the normal name won't work.
         public string documentation;        // docs
         bool _hasSignaled = false;
 
-        public RuntimeFunction(string aliasedName, string name, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
+        public RuntimeFunction(Statement creationStatement, string aliasedName, string name, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
+            this.creationStatement = creationStatement;
             this.isAddedToExecutor = false;
+            this.isTest = false;
 
             this.aliasedName = aliasedName;
             this.name = name;
@@ -100,6 +104,13 @@ namespace mc_compiled.MCC.Functions.Types
         public RuntimeFunction ForceHash()
         {
             this.name = ScoreboardValue.StandardizedHash(this.name);
+            return this;
+        }
+
+        public RuntimeFunction AsTest()
+        {
+            this.isTest = true;
+            this.file.AsTest();
             return this;
         }
 
@@ -183,6 +194,9 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
+            if (isTest)
+                throw new StatementException(statement, "Cannot call test function, use");
+
             // add the file to the executor if it hasn't been yet.
             if(!isAddedToExecutor && !isExtern)
             {
@@ -201,7 +215,7 @@ namespace mc_compiled.MCC.Functions.Types
                 return new TokenNullLiteral(statement.Lines[0]);
 
             // sets a temp to the return value.
-            ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(returnValue, false);
+            ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(returnValue, true);
             commandBuffer.AddRange(returnHolder.Assign(returnValue, statement));
             return new TokenIdentifierValue(returnHolder.Name, returnHolder, statement.Lines[0]);
         }

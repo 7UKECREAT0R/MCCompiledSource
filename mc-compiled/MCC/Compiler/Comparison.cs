@@ -28,6 +28,12 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="comparisons"></param>
         public ComparisonSet(IEnumerable<Comparison> comparisons) : base(comparisons) { }
+        /// <summary>
+        /// Returns all targets (scoreboard values) which should show up in an assertion of this comparison.
+        /// </summary>
+        /// <returns></returns>
+        internal IEnumerable<ScoreboardValue> GetAssertionTargets() =>
+            this.SelectMany(comparison => comparison.GetAssertionTargets());
 
         /// <summary>
         /// Pulls tokens identifying with comparisons from a statement and return a new ComparisonSet holding them.
@@ -245,6 +251,56 @@ namespace mc_compiled.MCC.Compiler
                 ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel);
             else
                 ApplyComparisonToSolo(chunks, callingStatement, executor, cancel);
+        }
+        /// <summary>
+        /// Run this ComparisonSet and run a command if it evaluates true.
+        /// </summary>
+        /// <param name="executor"></param>
+        /// <param name="callingStatement"></param>
+        public void RunCommand(string command, Executor executor, Statement callingStatement)
+        {
+            if (this.IsEmpty)
+                throw new StatementException(callingStatement, "No valid conditions specified.");
+
+            var commands = new List<string>();
+            var chunks = new List<Subcommand>();
+
+            bool cancel = false;
+            foreach (Comparison comparison in this)
+            {
+                IEnumerable<string> partCommands = comparison.GetCommands(executor, callingStatement, false, out bool cancel0);
+                Subcommand[] localChunks = comparison.GetExecuteChunks(executor, callingStatement, false, out bool cancel1);
+
+                cancel |= cancel0 | cancel1;
+
+                if (partCommands != null)
+                    commands.AddRange(partCommands);
+                if (localChunks != null && localChunks.Length > 0)
+                    chunks.AddRange(localChunks);
+            }
+
+            // add commands to a file
+            CommandFile prepFile = null;
+            if (commands.Count > 0)
+            {
+                prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
+                if (Program.DECORATE)
+                {
+                    // attempt to add extra detail to the output file for reading users
+                    string comparisonString = "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']';
+                    prepFile.Add($"# Setup for comparison {comparisonString}");
+                    prepFile.AddTrace(executor.CurrentFile);
+                }
+                prepFile.Add(commands);
+                executor.AddExtraFile(prepFile);
+                executor.AddCommandClean(Command.Function(prepFile));
+            }
+
+            // apply the comparisons.
+            string finalExecute = new ExecuteBuilder()
+                .WithSubcommands(chunks)
+                .Run(command);
+            executor.AddCommand(finalExecute);
         }
         private static int FindEndOfExecutionSet(Executor executor)
         {
@@ -513,5 +569,6 @@ namespace mc_compiled.MCC.Compiler
         public abstract Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel);
 
         public abstract string GetDescription();
+        public abstract IEnumerable<ScoreboardValue> GetAssertionTargets();
     }
 }

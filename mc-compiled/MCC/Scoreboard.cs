@@ -53,9 +53,9 @@ namespace mc_compiled.MCC
         
         internal readonly ScoreboardManager manager;
         public readonly Typedef type;
-        public readonly ITypeStructure data;
         public readonly List<IAttribute> attributes;
-        
+        public ITypeStructure data;
+
         string internalName;
         string name;
         string documentation;
@@ -70,7 +70,7 @@ namespace mc_compiled.MCC
         public string InternalName
         {
             get => internalName;
-            private set => internalName = value.Length > MAX_NAME_LENGTH ? StandardizedHash(value) : value;
+            internal set => internalName = value.Length > MAX_NAME_LENGTH ? StandardizedHash(value) : value;
         }
         /// <summary>
         /// The name used to reference this variable in the user's code.

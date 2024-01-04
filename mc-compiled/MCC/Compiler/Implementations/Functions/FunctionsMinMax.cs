@@ -36,14 +36,14 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         public FunctionMinRuntime() : base("min", "runtimeMin", "T", "Returns the smaller of the two input values, favoring `a` if both values are equal.")
         {
             this.AddParameters(
-                new RuntimeFunctionParameterAny(this, "a", "runtime_min_a"),
-                new RuntimeFunctionParameterAny(this, "b", "runtime_min_b")
+                new RuntimeFunctionParameterDynamic(this, "a", "runtime_min_a"),
+                new RuntimeFunctionParameterDynamic(this, "b", "runtime_min_b")
             );
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            RuntimeFunctionParameterAny _a = parameters[0] as RuntimeFunctionParameterAny;
-            RuntimeFunctionParameterAny _b = parameters[1] as RuntimeFunctionParameterAny;
+            RuntimeFunctionParameterDynamic _a = parameters[0] as RuntimeFunctionParameterDynamic;
+            RuntimeFunctionParameterDynamic _b = parameters[1] as RuntimeFunctionParameterDynamic;
             ScoreboardValue a = _a.RuntimeDestination;
             ScoreboardValue b = _b.RuntimeDestination;
 
@@ -86,6 +86,42 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 return a;
 
             return b;
+        }
+    }
+    internal class FunctionMaxRuntime : GenerativeFunction
+    {
+        public FunctionMaxRuntime() : base("max", "runtimeMax", "T", "Returns the larger of the two input values, favoring `a` if both values are equal.")
+        {
+            this.AddParameters(
+                new RuntimeFunctionParameterDynamic(this, "a", "runtime_min_a"),
+                new RuntimeFunctionParameterDynamic(this, "b", "runtime_min_b")
+            );
+        }
+        public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
+        {
+            RuntimeFunctionParameterDynamic _a = parameters[0] as RuntimeFunctionParameterDynamic;
+            RuntimeFunctionParameterDynamic _b = parameters[1] as RuntimeFunctionParameterDynamic;
+            ScoreboardValue a = _a.RuntimeDestination;
+            ScoreboardValue b = _b.RuntimeDestination;
+
+            ScoreboardValue converted;
+
+            if (b.NeedsToBeConvertedFor(a))
+            {
+                string convertedName = CreateUniqueTempValueName(uniqueIdentifier);
+                converted = a.Clone(statement, newInternalName: convertedName, newName: convertedName);
+                executor.scoreboard.Add(converted);
+                executor.AddCommandsInit(converted.CommandsInit());
+                output.Add(b.CommandsConvert(converted, statement));
+            }
+            else
+                converted = b;
+
+            string commandToReturnA = this.TryReturnValue(a, executor, statement, out resultValue);
+            string commandToReturnB = this.TryReturnValue(b, executor, statement, out _);
+
+            output.Add(Command.Execute().IfScore(a, TokenCompare.Type.GREATER_OR_EQUAL, converted).Run(commandToReturnA));
+            output.Add(Command.Execute().IfScore(a, TokenCompare.Type.LESS, converted).Run(commandToReturnB));
         }
     }
 }

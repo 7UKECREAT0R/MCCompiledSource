@@ -63,7 +63,7 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string Keyword => aliasedName;
         public override string Returns => returnType;
-        public override string Documentation => documentation + "\n(compiler implemented)";
+        public override string Documentation => documentation;
         public override FunctionParameter[] Parameters => this.parameters.ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;

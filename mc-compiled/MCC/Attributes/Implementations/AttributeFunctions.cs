@@ -42,6 +42,13 @@ namespace mc_compiled.MCC.Attributes.Implementations
            .WithCallAction((parameters, executor, statement) => new AttributeExtern());
 
         /// <summary>
+        /// Makes the attached function a test, if TESTS feature is enabled.
+        /// </summary>
+        public static readonly AttributeFunction TESTS = new AttributeFunction("test", "test",
+"Requires 'tests' feature to be enabled. Makes a function a test, which is automatically run on `/function test`. Use the 'assert' command to create test conditions.")
+           .WithCallAction((parameters, executor, statement) => new AttributeTest());
+
+        /// <summary>
         /// Makes the attached function extern.
         /// </summary>
         public static readonly AttributeFunction EXPORT = new AttributeFunction("export", "export",
@@ -89,7 +96,7 @@ namespace mc_compiled.MCC.Attributes.Implementations
             });
 
         /// <summary>
-        /// Keep at the bottom of the class because it's having weird order problems.
+        /// Keep at the bottom of the class because of static ordering.
         /// </summary>
         internal static readonly AttributeFunction[] ALL_ATTRIBUTES = new AttributeFunction[]
         {
@@ -97,7 +104,8 @@ namespace mc_compiled.MCC.Attributes.Implementations
             EXTERN,
             EXPORT,
             BIND,
-            AUTO
+            AUTO,
+            TESTS
         };
     }
 }

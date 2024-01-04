@@ -35,6 +35,10 @@ namespace mc_compiled.MCC.Compiler
         public override string GetDescription() => inverted ?
             $"not {score.Name}.":
             $"{score.Name}.";
+        public override IEnumerable<ScoreboardValue> GetAssertionTargets()
+        {
+            return new[] { score };
+        }
     }
 
     /// <summary>
@@ -271,6 +275,17 @@ namespace mc_compiled.MCC.Compiler
         public override string GetDescription() => inverted?
             $"{a.AsString()} is not {comparison.ToString().Replace("_", "").ToLower()} to {b.AsString()}":
             $"{a.AsString()} is {comparison.ToString().Replace("_", "").ToLower()} to {b.AsString()}";
+        public override IEnumerable<ScoreboardValue> GetAssertionTargets()
+        {
+            if (aType == SideType.Variable && bType != SideType.Variable)
+                return new[] { (a as TokenIdentifierValue).value };
+            if (aType != SideType.Variable && bType == SideType.Variable)
+                return new[] { (b as TokenIdentifierValue).value };
+            if (aType == SideType.Variable && bType == SideType.Variable)
+                return new[] { (a as TokenIdentifierValue).value, (b as TokenIdentifierValue).value };
+
+            return Array.Empty<ScoreboardValue>();
+        }
     }
     public class ComparisonSelector : Comparison
     {
@@ -324,6 +339,10 @@ namespace mc_compiled.MCC.Compiler
         public override string GetDescription() => inverted?
             $"{selector} does not match the executing entity":
             $"{selector} matches the executing entity";
+        public override IEnumerable<ScoreboardValue> GetAssertionTargets()
+        {
+            return Array.Empty<ScoreboardValue>();
+        }
     }
     public class ComparisonCount : Comparison
     {
@@ -423,6 +442,12 @@ namespace mc_compiled.MCC.Compiler
         public override string GetDescription() => inverted?
             $"count of {selector} is not {comparison.ToString().Replace("_", "").ToLower()} to {goalCount.AsString()}":
             $"count of {selector} is {comparison.ToString().Replace("_", "").ToLower()} to {goalCount.AsString()}";
+        public override IEnumerable<ScoreboardValue> GetAssertionTargets()
+        {
+            if (goalType == SideType.Variable)
+                return new[] { (goalCount as TokenIdentifierValue).value };
+            return Array.Empty<ScoreboardValue>();
+        }
     }
     public class ComparisonAny : Comparison
     {
@@ -479,6 +504,10 @@ namespace mc_compiled.MCC.Compiler
         public override string GetDescription() => inverted ?
             $"{selector} does not match any entity":
             $"{selector} matches any entity";
+        public override IEnumerable<ScoreboardValue> GetAssertionTargets()
+        {
+            return Array.Empty<ScoreboardValue>();
+        }
     }
     public class ComparisonBlock : Comparison
     {
@@ -536,6 +565,10 @@ namespace mc_compiled.MCC.Compiler
         public override string GetDescription() => inverted?
             $"block at ({x} {y} {z}) is not {block}:{data}":
             $"block at ({x} {y} {z}) is {block}:{data}";
+        public override IEnumerable<ScoreboardValue> GetAssertionTargets()
+        {
+            return Array.Empty<ScoreboardValue>();
+        }
     }
     public class ComparisonBlocks : Comparison
     {
@@ -598,6 +631,10 @@ namespace mc_compiled.MCC.Compiler
         public override string GetDescription() => inverted ?
             $"{scanMode} blocks between ({beginX} {beginY} {beginZ}) and ({endX} {endY} {endZ}) do not match the blocks at ({destX} {destY} {destZ})" :
             $"{scanMode} blocks between ({beginX} {beginY} {beginZ}) and ({endX} {endY} {endZ}) match the blocks at ({destX} {destY} {destZ})";
+        public override IEnumerable<ScoreboardValue> GetAssertionTargets()
+        {
+            return Array.Empty<ScoreboardValue>();
+        }
     }
 
     /// <summary>

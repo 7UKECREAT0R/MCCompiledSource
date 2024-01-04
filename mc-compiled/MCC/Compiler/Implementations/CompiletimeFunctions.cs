@@ -37,7 +37,11 @@ namespace mc_compiled.MCC.Compiler.Implementations
                     new FunctionCeilingCompiletime(),
 
                     // generative functions (generates runtime code as needed)
-                    new FunctionMinRuntime()
+                    new FunctionMinRuntime(),
+                    new FunctionMaxRuntime(),
+                    new FunctionRoundRuntime(),
+                    new FunctionFloorRuntime(),
+                    new FunctionCeilingRuntime(),
                 };
             }
         }

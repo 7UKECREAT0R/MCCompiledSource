@@ -21,6 +21,9 @@ namespace mc_compiled.MCC.Compiler
         internal readonly List<string> commands = new List<string>();
         
         private bool isInUse = false;
+        private bool isTest = false;
+        private bool hasAssertions = false;
+
         internal bool IsInUse
         {
             get => isInUse;
@@ -79,8 +82,8 @@ namespace mc_compiled.MCC.Compiler
             set => folder = string.Join("/", value);
         }
 
-        private string folder;
-        private readonly string name;
+        internal string folder;
+        internal readonly string name;
         private bool _doNotWrite;
 
         /// <summary>
@@ -132,6 +135,47 @@ namespace mc_compiled.MCC.Compiler
         {
             this.IsInUse = false;
             return this;
+        }
+        /// <summary>
+        /// Returns this CommandFile with isTest set to true.
+        /// </summary>
+        /// <returns></returns>
+        internal CommandFile AsTest()
+        {
+            if(!this.isTest)
+            {
+                if (this.folder == null)
+                    this.folder = Executor.MCC_TESTS_FOLDER;
+                else
+                    this.folder = Executor.MCC_TESTS_FOLDER + '/' + this.folder;
+            }
+
+            this.isTest = true;
+            return this;
+        }
+        /// <summary>
+        /// Mark this file as containing a test assertion.
+        /// </summary>
+        internal void MarkAssertion()
+        {
+            this.hasAssertions = true;
+        }
+
+        internal bool IsTest
+        {
+            get => this.isTest;
+        }
+        /// <summary>
+        /// Returns if this file is a valid test, if it is. Otherwise, true.
+        /// </summary>
+        internal bool IsValidTest
+        {
+            get
+            {
+                if (!this.isTest)
+                    return true;
+                return this.hasAssertions;
+            }
         }
 
         public override bool Equals(object obj)
@@ -189,18 +233,12 @@ namespace mc_compiled.MCC.Compiler
                 return null;
 
             // correct path separators
-            string correctedFolder = folder?.Replace('/', Path.DirectorySeparatorChar);
-
-            // return the corrected directory
-            return correctedFolder;
+            return folder?.Replace('/', Path.DirectorySeparatorChar);
         }
         public string GetExtendedDirectoryIDoNotCareIfYouDontWantToWriteIt()
         {
             // correct path separators
-            string correctedFolder = folder?.Replace('/', Path.DirectorySeparatorChar);
-
-            // return the corrected directory
-            return correctedFolder;
+            return folder?.Replace('/', Path.DirectorySeparatorChar);
         }
         public string GetOutputFile()
         {
@@ -220,5 +258,6 @@ namespace mc_compiled.MCC.Compiler
         }
         public OutputLocation GetOutputLocation() =>
             OutputLocation.b_FUNCTIONS;
+
     }
 }

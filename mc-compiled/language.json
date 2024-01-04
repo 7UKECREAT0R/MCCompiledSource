@@ -172,7 +172,10 @@
       "category": "preprocessor",
       "function": "_if",
       "patterns": [
-        [ "id:a", "compare:comparison", "object:b" ]
+        [ "object:a", "compare:comparison", "object:b" ],
+        [ "id:a", "compare:comparison", "object:b" ],
+        [ "object:a", "compare:comparison", "id:b" ],
+        [ "id:a", "compare:comparison", "id:b" ]
       ],
       "attributes": [ "DONT_DECORATE" ]
     },
@@ -182,6 +185,19 @@
       "category": "preprocessor",
       "function": "_else",
       "attributes": [ "DONT_DECORATE" ]
+    },
+    "$assert": {
+      "description": "Preprocessor Assertion",
+      "details": "Asserts that the input comparison is true, and throws a compiler error if not.",
+      "category": "preprocessor",
+      "function": "_assert",
+      "patterns": [
+        [ "object:a", "compare:comparison", "object:b" ],
+        [ "id:a", "compare:comparison", "object:b" ],
+        [ "object:a", "compare:comparison", "id:b" ],
+        [ "id:a", "compare:comparison", "id:b" ]
+      ],
+      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },
     "$repeat": {
       "description": "Preprocessor Repeat",
@@ -409,7 +425,8 @@
       "category": "values",
       "patterns": [
         [ "value:value" ]
-      ]
+      ],
+      "attributes": [ "DOCUMENTABLE" ]
     },
     "if": {
       "description": "If Statement",
@@ -441,6 +458,39 @@
       "details": "Inverts the comparison given by the previous if-statement at this scope level.",
       "category": "logic",
       "attributes": [ "INVERTS_COMPARISON" ]
+    },
+    "assert": {
+      "description": "Assert Statement",
+      "details": "Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).",
+      "category": "logic",
+      "patterns": [
+        [ "not:not", "value:boolean" ],
+        [ "value:boolean" ],
+        [ "value:score", "compare:comparison", "value:other" ],
+        [ "value:score", "compare:comparison", "any:other" ],
+        [ "selector:check for match" ],
+        [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
+        [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
+        [ "id:any", "selector:filter" ],
+        [ "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
+        [ "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ],
+        [ "not:not", "value:score", "compare:comparison", "value:other" ],
+        [ "not:not", "value:score", "compare:comparison", "any:other" ],
+        [ "not:not", "selector:check for match" ],
+        [ "not:not", "id:count", "selector:entities", "compare:comparison", "value:amount" ],
+        [ "not:not", "id:count", "selector:entities", "compare:comparison", "number:amount" ],
+        [ "not:not", "id:any", "selector:filter" ],
+        [ "not:not", "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
+        [ "not:not", "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ]
+      ]
+    },
+    "throw": {
+      "description": "Throw Error",
+      "details": "Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format strings.",
+      "category": "logic",
+      "patterns": [
+        [ "string:error" ]
+      ]
     },
     "give": {
       "description": "Give Item",

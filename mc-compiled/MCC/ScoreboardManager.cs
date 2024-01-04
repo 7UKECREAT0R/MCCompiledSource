@@ -112,28 +112,34 @@ namespace mc_compiled.MCC
                 {
                     // check if it's a literal.
                     case TokenLiteral literal:
-                    {
-                        this.type = literal.GetTypedef();
-                        
-                        if(this.type == null)
-                            throw new StatementException(tokens, $"Input '{literal.AsString()}' cannot be stored in a value.");
-                        
-                        if (this.type.SpecifyPattern != null)
                         {
-                            this.data = tokens
-                                .GetRemainingTokens()
-                                .OfType<TokenLiteral>()
-                                .ToArray();
+                            this.type = literal.GetTypedef();
+                        
+                            if(this.type == null)
+                                throw new StatementException(tokens, $"Input '{literal.AsString()}' cannot be stored in a value.");
+                        
+                            if (this.type.SpecifyPattern != null)
+                            {
+                                if(this.type.CanAcceptLiteralForData(literal))
+                                {
+                                    this.dataObject = this.type.AcceptLiteral(literal);
+                                } else
+                                {
+                                    this.data = tokens
+                                        .GetRemainingTokens()
+                                        .OfType<TokenLiteral>()
+                                        .ToArray();
+                                }
+                            }
+                            break;
                         }
-                        break;
-                    }
                     // check if it's a runtime value.
                     case TokenIdentifierValue identifier:
-                    {
-                        this.type = identifier.value.type;
-                        this.dataObject = identifier.value.data;
-                        break;
-                    }
+                        {
+                            this.type = identifier.value.type;
+                            this.dataObject = identifier.value.data;
+                            break;
+                        }
                     default:
                         throw new StatementException(tokens, $"Cannot assign value of type {this.defaultValue.GetType().Name} into a variable");
                 }

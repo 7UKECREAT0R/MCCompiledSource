@@ -43,7 +43,11 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
             Modulo,
             Swap
         }
-        
+
+        public override bool Equals(object obj)
+        {
+            return (obj is Typedef def) && def.TypeEnum == this.TypeEnum;
+        }
         /// <summary>
         /// Returns the HashCode of this type. Short for: <code>this.TypeEnum.GetHashCode();</code>
         /// </summary>
@@ -74,6 +78,12 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// If <b>null</b> is returned, then this Typedef does not use data, and its <see cref="AcceptPattern"/> method should not be called.
         /// </summary>
         public virtual TypePattern SpecifyPattern => null;
+        /// <summary>
+        /// Returns if the given literal value can be accepted to construct data from.
+        /// </summary>
+        /// <param name="literal"></param>
+        /// <returns></returns>
+        public virtual bool CanAcceptLiteralForData(TokenLiteral literal) { return false; }
 
         /// <summary>
         /// Accepts the given statement as input for this type's pattern.
@@ -82,7 +92,15 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// <param name="statement">The statement to pull tokens from.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public virtual ITypeStructure AcceptPattern(Statement statement) => null;
+        public virtual ITypeStructure AcceptPattern(Statement statement) => throw new NotImplementedException();
+        /// <summary>
+        /// Accepts the given literal as input for this type's pattern.
+        /// See <see cref="CanAcceptLiteralForData(TokenLiteral)"/>.
+        /// </summary>
+        /// <param name="literal">The literal to interpret into a type structure.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public virtual ITypeStructure AcceptLiteral(TokenLiteral literal) => throw new NotImplementedException();
 
         /// <summary>
         /// Deep-clone the given data object as per this Typedef instance.

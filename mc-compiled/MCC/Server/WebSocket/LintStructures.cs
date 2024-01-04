@@ -84,7 +84,8 @@ namespace mc_compiled.MCC.ServerWebSocket
             lint.functions.AddRange(executor.functions
                 .FetchAll()
                 .Where(func => !(func is AttributeFunction))
-                .Select(func => FunctionStructure.Wrap(func, lint)));
+                .Select(func => FunctionStructure.Wrap(func, lint))
+                .Distinct());
 
             // harvest macros
             lint.macros.AddRange(executor.macros
@@ -148,7 +149,6 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             // now readable :)
             // thanks past luke :ok_hand:
-
             string returnType = function.Returns;
 
             int count = function.ParameterCount;
@@ -161,7 +161,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                 switch(parameter)
                 {
-                    case RuntimeFunctionParameterAny runtimeParameterAny:
+                    case RuntimeFunctionParameterDynamic runtimeParameterAny:
                         variables.Add(VariableStructure.Any(runtimeParameterAny.aliasName));
                         break;
                     case RuntimeFunctionParameter runtimeParameter:
@@ -176,6 +176,43 @@ namespace mc_compiled.MCC.ServerWebSocket
             string docs = function.Documentation ?? Executor.UNDOCUMENTED_TEXT;
             return new FunctionStructure(function.Keyword, returnType, docs, variables.ToArray());
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is FunctionStructure structure))
+                return false;
+            if (!name.Equals(structure.name))
+                return false;
+            if (returnType != null)
+            {
+                if (!returnType.Equals(structure.returnType))
+                    return false;
+            }
+            if(structure.args.Count != args.Count)
+                return false;
+
+            for(int i = 0; i < args.Count; i++)
+            {
+                if (!args[i].Equals(structure.args[i]))
+                    return false;
+            }
+
+            return true;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = 1090742913;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(returnType);
+
+            foreach(VariableStructure structure in args)
+            {
+                hashCode ^= structure.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
         public JObject ToJSON()
         {
             JObject json = new JObject();
@@ -185,6 +222,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             json["return"] = returnType;
             return json;
         }
+
     }
     public struct VariableStructure
     {
@@ -200,7 +238,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         }
         public static VariableStructure Any(string name, string docs = null)
         {
-            return new VariableStructure(name, "any", docs ?? Executor.UNDOCUMENTED_TEXT);
+            return new VariableStructure(name, "T", docs ?? Executor.UNDOCUMENTED_TEXT);
         }
         public static VariableStructure Wrap(ScoreboardValue value)
         {
@@ -225,6 +263,19 @@ namespace mc_compiled.MCC.ServerWebSocket
         public static JArray Join(List<VariableStructure> variables)
         {
             return new JArray(variables.Select(variable => variable.ToJSON()).ToArray());
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is VariableStructure structure &&
+                   name == structure.name &&
+                   type == structure.type;
+        }
+        public override int GetHashCode()
+        {
+            int hashCode = -1614644627;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(type);
+            return hashCode;
         }
     }
     public struct MacroStructure

@@ -26,17 +26,25 @@ namespace mc_compiled.Json
             if (copy != null)
                 terms.AddRange(copy.terms);
         }
-        public void ClearTerms()
+        public RawTextJsonBuilder ClearTerms()
         {
             terms.Clear();
+            return this;
         }
-        public void AddTerm(JSONRawTerm term)
+        public RawTextJsonBuilder AddTerm(JSONRawTerm term)
         {
             terms.Add(term);
+            return this;
         }
-        public void AddTerms(IEnumerable<JSONRawTerm> terms)
+        public RawTextJsonBuilder AddTerms(IEnumerable<JSONRawTerm> terms)
         {
             this.terms.AddRange(terms);
+            return this;
+        }
+        public RawTextJsonBuilder AddTerms(params JSONRawTerm[] terms)
+        {
+            this.terms.AddRange(terms);
+            return this;
         }
         public string BuildPreviewString()
         {

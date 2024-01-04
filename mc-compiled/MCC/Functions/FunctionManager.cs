@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Attributes.Implementations;
+using mc_compiled.MCC.Functions.Types;
 
 namespace mc_compiled.MCC.Functions
 {
@@ -15,6 +16,7 @@ namespace mc_compiled.MCC.Functions
         /// All of the functions currently in the project.
         /// </summary>
         private Dictionary<string, List<Function>> functionRegistry;
+        private List<RuntimeFunction> tests;
         private readonly ScoreboardManager scoreboardManager;
 
         /// <summary>
@@ -33,6 +35,7 @@ namespace mc_compiled.MCC.Functions
         {
             this.functionRegistry = new Dictionary<string, List<Function>>(StringComparer.OrdinalIgnoreCase);
             this.scoreboardManager = manager;
+            this.tests = new List<RuntimeFunction>();
         }
         /// <summary>
         /// Registers the function providers included with the compiler.
@@ -79,6 +82,11 @@ namespace mc_compiled.MCC.Functions
 
             functions.Add(function);
             functionRegistry[name] = functions;
+        }
+
+        public void RegisterTest(RuntimeFunction function)
+        {
+            this.tests.Add(function);
         }
 
         /// <summary>

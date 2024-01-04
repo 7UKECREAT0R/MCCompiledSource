@@ -15,6 +15,8 @@ using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
 using System.Diagnostics;
+using mc_compiled.MCC.Functions.Types;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -32,6 +34,7 @@ namespace mc_compiled.MCC.Compiler
         public const double MCC_VERSION = 1.16;                 // _compiler
         public static string MINECRAFT_VERSION = "0.00.000";    // _minecraft
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
+        public const string MCC_TESTS_FOLDER = "tests";         // folder that generated tests go into
         public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";
         public const string UNDOCUMENTED_TEXT = "This symbol has no documentation.";
         public const string FAKEPLAYER_NAME = "_";
@@ -110,7 +113,8 @@ namespace mc_compiled.MCC.Compiler
         private readonly PreviousComparisonStructure[] lastCompare;
         private readonly StringBuilder prependBuffer;
         private readonly Stack<CommandFile> currentFiles;
-        
+
+        internal int testCount;
         internal int depth;
         internal bool linting;
         internal readonly ScoreboardManager scoreboard;
@@ -1070,6 +1074,7 @@ namespace mc_compiled.MCC.Compiler
         public CommandFile CurrentFile => currentFiles.Peek();
         private CommandFile HeadFile { get; set; }
         private CommandFile InitFile { get; set; }
+        private CommandFile TestsFile { get; set; }
 
         /// <summary>
         /// Get the current scope level.
@@ -1084,6 +1089,12 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public int NextLineNumber => CurrentFile.Length + 1;
 
+        public void CreateTestsFile()
+        {
+            TestsFile = new CommandFile(true, "test");
+            AddExtraFile(TestsFile);
+            TestsFile.Add("");
+        }
         /// <summary>
         /// Add a command to the current file, with prepend buffer.
         /// </summary>
@@ -1469,6 +1480,27 @@ namespace mc_compiled.MCC.Compiler
 
             CommandFile file = currentFiles.Pop();
 
+            if(!file.IsValidTest)
+            {
+                // test doesnt have any assertions
+                RuntimeFunction func = file.runtimeFunction;
+                Statement creationStatement = func.creationStatement;
+                throw new StatementException(creationStatement, $"Test '{func.name}' does not contain any assert statements, and thus will always pass.");
+            }
+            else if(file.IsTest) // test is valid
+            {
+                // test related stuff
+                int testId = ++testCount;
+                RuntimeFunction func = file.runtimeFunction;
+                Statement creationStatement = func.creationStatement;
+
+                CommandFile tests = TestsFile;
+                tests.Add($"# Test {testId}: {func.name}, located at line {creationStatement.Lines[0]}");
+                tests.Add(Command.Function(file));
+                tests.Add(Command.Tellraw("@s", new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} passed.")).BuildString()));
+                tests.Add("");
+            }
+
             if (object.ReferenceEquals(file, InitFile))
                 return; // do not write the init file until the whole program is finished.
 
@@ -1487,14 +1519,21 @@ namespace mc_compiled.MCC.Compiler
             CommandFile file = InitFile;
             InitFile = null;
 
-            if(initCommands.Count > 0)
+            if (TestsFile != null)
+            {
+                TestsFile.AddTop(Command.Function(file));
+                TestsFile.AddTop("# Run the initialization file to make sure any needed data is there.");
+
+            }
+
+            if (initCommands.Count > 0)
             {
                 file.AddTop("");
                 file.AddTop(initCommands);
 
                 if (Program.DECORATE)
                 {
-                    file.AddTop("# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having weird issues, re-running this may fix it.");
+                    file.AddTop("# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having strange issues, re-running this may fix it.");
                     file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
                 }
 

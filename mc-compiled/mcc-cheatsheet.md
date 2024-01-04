@@ -30,7 +30,7 @@ Descriptions of the upcoming types that will be present in the different command
 ---
 
 # Commands
-All of the commands in the language (version 1.15). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in \<angle brackets\>, and an optional parameter is surrounded in [square brackets].
+All of the commands in the language (version 1.16). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in \<angle brackets\>, and an optional parameter is surrounded in [square brackets].
 
 ---
 ## Category: preprocessor
@@ -82,6 +82,15 @@ Sorts the order of the values in the given preprocessor variable either 'ascendi
 #### Preprocessor Array Sum `$sum`
 Adds all values in the given preprocessor variable together into one value and stores it in a result variable.
 - `$sum` `<id: result>` `[id: variable]`
+#### Preprocessor Array Unique `$unique`
+Flattens the given preprocessor array to unique values.
+- `$unique` `<id: variable>`
+#### Preprocessor Assertion `$assert`
+Asserts that the input comparison is true, and throws a compiler error if not.
+- `$assert` `<object: a>` `<compare: comparison>` `<object: b>`
+- `$assert` `<id: a>` `<compare: comparison>` `<object: b>`
+- `$assert` `<object: a>` `<compare: comparison>` `<id: b>`
+- `$assert` `<id: a>` `<compare: comparison>` `<id: b>`
 #### Preprocessor Call Function `$call`
 Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.
 - `$call` `<string: function name>` `[*: parameters]`
@@ -89,7 +98,10 @@ Calls a function by name and passes in the given parameters. Because this is a p
 Directly inverts the result of the last $if call at this level in scope.
 #### Preprocessor If `$if`
 Compares a preprocessor variable and another value/variable. If the source variable contains multiple values, they all must match the condition.
+- `$if` `<object: a>` `<compare: comparison>` `<object: b>`
 - `$if` `<id: a>` `<compare: comparison>` `<object: b>`
+- `$if` `<object: a>` `<compare: comparison>` `<id: b>`
+- `$if` `<id: a>` `<compare: comparison>` `<id: b>`
 #### Preprocessor Length `$len`
 If a preprocessor variable ID is given, the number of elements it holds is gotten. If a JSON array is given, the number of elements is gotten. If a string is given, the number of characters is gotten.
 - `$len` `<id: result>` `<id: variable>`
@@ -264,6 +276,26 @@ Ensures this variable has a value, defaulting to 0 if not. This ensures the exec
 Commands which handle logic and code flow. The butter for all the bread (code).
 
 
+#### Assert Statement `assert`
+Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).
+- `assert` `<not: not>` `<value: boolean>`
+- `assert` `<value: boolean>`
+- `assert` `<value: score>` `<compare: comparison>` `<value: other>`
+- `assert` `<value: score>` `<compare: comparison>` `<any: other>`
+- `assert` `<selector: check for match>`
+- `assert` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
+- `assert` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
+- `assert` `<id: any>` `<selector: filter>`
+- `assert` `<id: block>` `<coord: x>` `<coord: y>` `<coord: z>` `<string: block>` `[int: data]`
+- `assert` `<id: blocks>` `<coord: x1>` `<coord: y1>` `<coord: z1>` `<coord: x2>` `<coord: y2>` `<coord: z2>` `<coord: x destination>` `<coord: y destination>` `<coord: z destination>`
+- `assert` `<not: not>` `<value: score>` `<compare: comparison>` `<value: other>`
+- `assert` `<not: not>` `<value: score>` `<compare: comparison>` `<any: other>`
+- `assert` `<not: not>` `<selector: check for match>`
+- `assert` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
+- `assert` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
+- `assert` `<not: not>` `<id: any>` `<selector: filter>`
+- `assert` `<not: not>` `<id: block>` `<coord: x>` `<coord: y>` `<coord: z>` `<string: block>` `[int: data]`
+- `assert` `<not: not>` `<id: blocks>` `<coord: x1>` `<coord: y1>` `<coord: z1>` `<coord: x2>` `<coord: y2>` `<coord: z2>` `<coord: x destination>` `<coord: y destination>` `<coord: z destination>`
 #### Define Function `function`
 Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`
 - `function` `<*: args>`
@@ -282,6 +314,7 @@ Allows comparison of variables, along with a huge collection of other criteria. 
 - `if` `<not: not>` `<value: boolean>`
 - `if` `<value: boolean>`
 - `if` `<value: score>` `<compare: comparison>` `<value: other>`
+- `if` `<value: score>` `<compare: comparison>` `<any: other>`
 - `if` `<selector: check for match>`
 - `if` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
 - `if` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
@@ -289,6 +322,7 @@ Allows comparison of variables, along with a huge collection of other criteria. 
 - `if` `<id: block>` `<coord: x>` `<coord: y>` `<coord: z>` `<string: block>` `[int: data]`
 - `if` `<id: blocks>` `<coord: x1>` `<coord: y1>` `<coord: z1>` `<coord: x2>` `<coord: y2>` `<coord: z2>` `<coord: x destination>` `<coord: y destination>` `<coord: z destination>`
 - `if` `<not: not>` `<value: score>` `<compare: comparison>` `<value: other>`
+- `if` `<not: not>` `<value: score>` `<compare: comparison>` `<any: other>`
 - `if` `<not: not>` `<selector: check for match>`
 - `if` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<value: amount>`
 - `if` `<not: not>` `<id: count>` `<selector: entities>` `<compare: comparison>` `<number: amount>`
@@ -299,6 +333,9 @@ Allows comparison of variables, along with a huge collection of other criteria. 
 Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.
 - `return` `<value: variable>`
 - `return` `<any: return value>`
+#### Throw Error `throw`
+Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format strings.
+- `throw` `<string: error>`
 ---
 ## Category: features
 Commands related to the optionally enable-able features in the language.
@@ -336,6 +373,8 @@ Feature: Gametest Integration (not implemented)
 Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command.
 #### `feature` `uninstall`
 Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project.
+#### `feature` `tests`
+Feature: Enables the 'test' attribute on functions, which are automatically run on `/function test`. Use the 'assert' command to test various parts of your code.
 
 ---
 # Attributes
@@ -349,6 +388,8 @@ Makes a function extern, meaning it was written outside of MCCompiled and can no
 Marks a function for export, meaning it will be outputted regardless of if it is used or not.
 #### `bind(query)`
 Binds a value to a pre-defined MoLang query. See bindings.json.
-#### `auto(interval?)`
+#### `auto`
 Makes a function run every tick (via tick.json), or if specified, some other interval.
+#### `test`
+Requires 'tests' feature to be enabled. Makes a function a test, which is automatically run on `/function test`. Use the 'assert' command to create test conditions.
 
