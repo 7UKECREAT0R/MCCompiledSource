@@ -54,7 +54,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         }
         public override ITypeStructure AcceptLiteral(TokenLiteral literal)
         {
-            return new FixedDecimalData((literal as TokenDecimalLiteral).number.GetPrecision());
+            return new FixedDecimalData(((TokenDecimalLiteral)literal).number.GetPrecision());
         }
 
         // Conversion

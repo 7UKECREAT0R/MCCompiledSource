@@ -156,7 +156,19 @@ namespace mc_compiled.MCC
             
             return this;
         }
-
+        /// <summary>
+        /// Checks if the ScoreboardValue has an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type of attribute to check for.</typeparam>
+        /// <returns>
+        /// True if the instance has an attribute of type <typeparamref name="T"/>,
+        /// otherwise False.
+        /// </returns>
+        public bool HasAttribute<T>() where T : IAttribute
+        {
+            return attributes.Any(attribute => attribute is T);
+        }
+        
         /// <summary>
         /// Perform a fully implemented deep clone of this scoreboard value, with specified fields changed. Fully supports changes to type, name, data, clarifier, etc...
         /// </summary>

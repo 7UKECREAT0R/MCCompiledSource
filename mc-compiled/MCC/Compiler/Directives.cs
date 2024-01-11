@@ -378,10 +378,11 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
         }
+
         /// <summary>
         /// Read all directives from the language.json root object.
         /// </summary>
-        /// <param name="root"></param>
+        /// <param name="root">The root object of the language.json file.</param>
         public static void ReadJSON(JObject root)
         {
             const string IDENTIFIER_PREFIX = "mc_compiled.MCC.Compiler.";

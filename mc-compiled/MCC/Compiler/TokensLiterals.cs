@@ -426,7 +426,7 @@ namespace mc_compiled.MCC.Compiler
                             return new TokenSelectorLiteral(parsed, lineNumber);
                         }
 
-                        var single = new Selector() { core = core };
+                        var single = new Selector { core = core };
                         return new TokenSelectorLiteral(single, lineNumber);
                     }
 
@@ -476,7 +476,6 @@ namespace mc_compiled.MCC.Compiler
 
             string newString = text[value].ToString();
             return new TokenStringLiteral(newString, lineNumber);
-
         }
 
         public string GetDocumentation() => "A block of text on a single line, surrounded with either 'single quotes' or \"double quotes.\"";

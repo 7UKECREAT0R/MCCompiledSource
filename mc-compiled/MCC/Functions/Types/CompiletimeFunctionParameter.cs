@@ -62,20 +62,20 @@ namespace mc_compiled.MCC.Functions.Types
         {
             if (!(token is T))
             {
-                if (token is IImplicitToken conversion)
+                if (!(token is IImplicitToken conversion))
+                    throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
+                
+                Type[] types = conversion.GetImplicitTypes();
+
+                for(int i = 0; i < types.Length; i++)
                 {
-                    Type[] types = conversion.GetImplicitTypes();
+                    Type type = types[i];
 
-                    for(int i = 0; i < types.Length; i++)
-                    {
-                        Type type = types[i];
+                    if (!typeof(T).IsAssignableFrom(type))
+                        continue;
 
-                        if (!typeof(T).IsAssignableFrom(type))
-                            continue;
-
-                        T convertedCasted = conversion.Convert(executor, i) as T;
-                        CurrentValue = convertedCasted;
-                    }
+                    var convertedCasted = conversion.Convert(executor, i) as T;
+                    CurrentValue = convertedCasted;
                 }
 
                 throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");

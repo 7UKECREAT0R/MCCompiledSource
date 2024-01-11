@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
+using JetBrains.Annotations;
+using Microsoft.CSharp.RuntimeBinder;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -23,17 +25,60 @@ namespace mc_compiled.MCC.Compiler
         {
             scatterFile = 0;
         }
-        public static int scatterFile = 0;
+        private static int scatterFile = 0;
 
+        // ReSharper disable once ReturnTypeCanBeEnumerable.Local
+        /// <summary>
+        /// Gathers either a preprocessor variable's values, or a list of dynamic values in the source file.
+        /// </summary>
+        /// <param name="executor">The executor object used for executing statements.</param>
+        /// <param name="tokens">The statement tokens.</param>
+        /// <param name="forcePPV">Optional. The name of the preprocessor variable to force fetch rather than pull from `tokens`.</param>
+        /// <returns>An array of dynamic values.</returns>
+        /// <exception cref="StatementException">Thrown when a preprocessor variable with the provided identifier is not found.</exception>
+        private static dynamic[] FetchPPVOrDynamics(Executor executor, Statement tokens, string forcePPV = null)
+        {
+            if (forcePPV != null)
+            {
+                if (executor.TryGetPPV(forcePPV, out dynamic[] ppv))
+                {
+                    return ppv;
+                }
+
+                throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{forcePPV}'.");
+            }
+
+            var token = tokens.Next<IPreprocessor>();
+            if (tokens.NextIs<TokenIdentifier>(false))
+            {
+                var identifier = tokens.Next<TokenIdentifier>();
+                if (executor.TryGetPPV(identifier.word, out dynamic[] ppv))
+                {
+                    return ppv;
+                }
+                throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{identifier.word}'.");
+            }
+            
+            var others = new List<dynamic> {token.GetValue()};
+            while (tokens.NextIs<IPreprocessor>())
+            {
+                others.Add(tokens.Next<IPreprocessor>().GetValue());
+            }
+
+            return others.ToArray();
+        }
+        
+        [UsedImplicitly]
         public static void _var(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            List<dynamic> values = new List<dynamic>();
+            var values = new List<dynamic>();
             while (tokens.NextIs<IPreprocessor>())
                 values.Add(tokens.Next<IPreprocessor>().GetValue());
 
             executor.SetPPV(varName, values.ToArray());
         }
+        [UsedImplicitly]
         public static void _inc(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
@@ -53,6 +98,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _dec(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
@@ -72,318 +118,170 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
         }
+        
+        [UsedImplicitly]
         public static void _add(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
+            dynamic[] a = FetchPPVOrDynamics(executor, tokens, varName);
+            dynamic[] b = FetchPPVOrDynamics(executor, tokens);
 
-            dynamic[] others;
-            if (otherToken is TokenIdentifier)
+            int bIndex = 0;
+            dynamic[] result = new dynamic[a.Length];
+            
+            for (int aIndex = 0; aIndex < a.Length; aIndex++)
             {
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
-                    others = ppv;
-                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
-            }
-            else
-            {
-                List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IPreprocessor).GetValue());
-                while (tokens.NextIs<IPreprocessor>())
-                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
-                others = inputs.ToArray();
-            }
-
-            if (executor.TryGetPPV(varName, out dynamic[] values))
-            {
-                dynamic[] outputs = new dynamic[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                dynamic aValue = a[aIndex];
+                bIndex %= b.Length;
+                dynamic bValue = b[bIndex++];
+                
+                try
                 {
-                    dynamic a = values[i];
-
-                    dynamic other;
-                    if (others.Length > i)
-                        other = others[i];
-                    else
-                    {
-                        outputs[i] = a;
-                        continue;
-                    }
-
-                    try
-                    {
-                        outputs[i] = a + other;
-                    }
-                    catch (Exception)
-                    {
-                        throw new StatementException(tokens, "Couldn't add these values.");
-                    }
+                    result[aIndex] = aValue + bValue;
                 }
-                executor.SetPPV(varName, outputs);
+                catch (RuntimeBinderException)
+                {
+                    throw new StatementException(tokens, $"Couldn't add these values: {aValue} + {bValue}");
+                }
             }
-            else
-                throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
+            executor.SetPPV(varName, result);
         }
+        [UsedImplicitly]
         public static void _sub(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
+            dynamic[] a = FetchPPVOrDynamics(executor, tokens, varName);
+            dynamic[] b = FetchPPVOrDynamics(executor, tokens);
 
-            dynamic[] others;
-            if (otherToken is TokenIdentifier)
+            int bIndex = 0;
+            dynamic[] result = new dynamic[a.Length];
+            
+            for (int aIndex = 0; aIndex < a.Length; aIndex++)
             {
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
-                    others = ppv;
-                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
-            }
-            else
-            {
-                List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IPreprocessor).GetValue());
-                while (tokens.NextIs<IPreprocessor>())
-                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
-                others = inputs.ToArray();
-            }
-
-            if (executor.TryGetPPV(varName, out dynamic[] values))
-            {
-                dynamic[] outputs = new dynamic[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                dynamic aValue = a[aIndex];
+                bIndex %= b.Length;
+                dynamic bValue = b[bIndex++];
+                
+                try
                 {
-                    dynamic a = values[i];
-
-                    dynamic other;
-                    if (others.Length > i)
-                        other = others[i];
-                    else
-                    {
-                        outputs[i] = a;
-                        continue;
-                    }
-
-                    try
-                    {
-                        outputs[i] = a - other;
-                    }
-                    catch (Exception)
-                    {
-                        throw new StatementException(tokens, "Couldn't subtract these values.");
-                    }
+                    result[aIndex] = aValue - bValue;
                 }
-                executor.SetPPV(varName, outputs);
+                catch (RuntimeBinderException)
+                {
+                    throw new StatementException(tokens, $"Couldn't add these values: {aValue} + {bValue}");
+                }
             }
-            else
-                throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
+            executor.SetPPV(varName, result);
         }
+        [UsedImplicitly]
         public static void _mul(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
-
-            dynamic[] others;
-            if (otherToken is TokenIdentifier)
+            dynamic[] a = FetchPPVOrDynamics(executor, tokens, varName);
+            dynamic[] b = FetchPPVOrDynamics(executor, tokens);
+            
+            int bIndex = 0;
+            dynamic[] result = new dynamic[a.Length];
+            
+            for (int aIndex = 0; aIndex < a.Length; aIndex++)
             {
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
-                    others = ppv;
-                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
-            }
-            else
-            {
-                List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IPreprocessor).GetValue());
-                while (tokens.NextIs<IPreprocessor>())
-                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
-                others = inputs.ToArray();
-            }
-
-            if (executor.TryGetPPV(varName, out dynamic[] values))
-            {
-                dynamic[] outputs = new dynamic[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                dynamic aValue = a[aIndex];
+                bIndex %= b.Length;
+                dynamic bValue = b[bIndex++];
+                
+                try
                 {
-                    dynamic a = values[i];
-
-                    dynamic other;
-                    if (others.Length > i)
-                        other = others[i];
-                    else
-                    {
-                        outputs[i] = a;
-                        continue;
-                    }
-
-                    try
-                    {
-                        outputs[i] = a * other;
-                    }
-                    catch (Exception)
-                    {
-                        throw new StatementException(tokens, "Couldn't multiply these values.");
-                    }
+                    result[aIndex] = aValue * bValue;
                 }
-                executor.SetPPV(varName, outputs);
+                catch (RuntimeBinderException)
+                {
+                    throw new StatementException(tokens, $"Couldn't multiply these values: {aValue} * {bValue}");
+                }
             }
-            else
-                throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
+            executor.SetPPV(varName, result);
         }
+        [UsedImplicitly]
         public static void _div(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
+            dynamic[] a = FetchPPVOrDynamics(executor, tokens, varName);
+            dynamic[] b = FetchPPVOrDynamics(executor, tokens);
 
-            dynamic[] others;
-            if (otherToken is TokenIdentifier)
+            int bIndex = 0;
+            dynamic[] result = new dynamic[a.Length];
+            
+            for (int aIndex = 0; aIndex < a.Length; aIndex++)
             {
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
-                    others = ppv;
-                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
-            }
-            else
-            {
-                List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IPreprocessor).GetValue());
-                while (tokens.NextIs<IPreprocessor>())
-                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
-                others = inputs.ToArray();
-            }
-
-            if (executor.TryGetPPV(varName, out dynamic[] values))
-            {
-                dynamic[] outputs = new dynamic[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                dynamic aValue = a[aIndex];
+                bIndex %= b.Length;
+                dynamic bValue = b[bIndex++];
+                
+                try
                 {
-                    dynamic a = values[i];
-
-                    dynamic other;
-                    if (others.Length > i)
-                        other = others[i];
-                    else
-                    {
-                        outputs[i] = a;
-                        continue;
-                    }
-
-                    try
-                    {
-                        outputs[i] = a / other;
-                    }
-                    catch (Exception)
-                    {
-                        throw new StatementException(tokens, "Couldn't divide these values.");
-                    }
+                    result[aIndex] = aValue / bValue;
                 }
-                executor.SetPPV(varName, outputs);
+                catch (RuntimeBinderException)
+                {
+                    throw new StatementException(tokens, $"Couldn't divide these values: {aValue} / {bValue}");
+                }
             }
-            else
-                throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
+            executor.SetPPV(varName, result);
         }
+        [UsedImplicitly]
         public static void _mod(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
-
-            dynamic[] others;
-            if (otherToken is TokenIdentifier)
+            dynamic[] a = FetchPPVOrDynamics(executor, tokens, varName);
+            dynamic[] b = FetchPPVOrDynamics(executor, tokens);
+            
+            int bIndex = 0;
+            dynamic[] result = new dynamic[a.Length];
+            
+            for (int aIndex = 0; aIndex < a.Length; aIndex++)
             {
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
-                    others = ppv;
-                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
-            }
-            else
-            {
-                List<dynamic> inputs = new List<dynamic>();
-                inputs.Add((otherToken as IPreprocessor).GetValue());
-                while (tokens.NextIs<IPreprocessor>())
-                    inputs.Add(tokens.Next<IPreprocessor>().GetValue());
-                others = inputs.ToArray();
-            }
-
-            if (executor.TryGetPPV(varName, out dynamic[] values))
-            {
-                dynamic[] outputs = new dynamic[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                dynamic aValue = a[aIndex];
+                bIndex %= b.Length;
+                dynamic bValue = b[bIndex++];
+                
+                try
                 {
-                    dynamic a = values[i];
-
-                    dynamic other;
-                    if (others.Length > i)
-                        other = others[i];
-                    else
-                    {
-                        outputs[i] = a;
-                        continue;
-                    }
-
-                    try
-                    {
-                        outputs[i] = a % other;
-                    }
-                    catch (Exception)
-                    {
-                        throw new StatementException(tokens, "Couldn't modulo these values.");
-                    }
+                    result[aIndex] = aValue % bValue;
                 }
-                executor.SetPPV(varName, outputs);
+                catch (RuntimeBinderException)
+                {
+                    throw new StatementException(tokens, $"Couldn't mod these values: {aValue} % {bValue}");
+                }
             }
-            else
-                throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
+            executor.SetPPV(varName, result);
         }
+        [UsedImplicitly]
         public static void _pow(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            IPreprocessor otherToken = tokens.Next<IPreprocessor>();
-
-            dynamic[] others;
-            if (otherToken is TokenIdentifier)
+            dynamic[] a = FetchPPVOrDynamics(executor, tokens, varName);
+            dynamic[] b = FetchPPVOrDynamics(executor, tokens);
+            
+            int bIndex = 0;
+            dynamic[] result = new dynamic[a.Length];
+            
+            for (int aIndex = 0; aIndex < a.Length; aIndex++)
             {
-                if (executor.TryGetPPV((otherToken as TokenIdentifier).word, out dynamic[] ppv))
-                    others = ppv;
-                else throw new StatementException(tokens, "Couldn't find preprocessor variable named '" + varName + "'.");
-            }
-            else
-            {
-                List<dynamic> inputLiterals = new List<dynamic>();
-                inputLiterals.Add((otherToken as IPreprocessor).GetValue());
-                while (tokens.NextIs<IPreprocessor>())
-                    inputLiterals.Add(tokens.Next<IPreprocessor>().GetValue());
-                others = inputLiterals.ToArray();
-            }
-
-            if (executor.TryGetPPV(varName, out dynamic[] inputs))
-            {
-                dynamic[] outputs = new dynamic[inputs.Length];
-                for (int i = 0; i < inputs.Length; i++)
+                dynamic aValue = a[aIndex];
+                bIndex %= b.Length;
+                dynamic bValue = b[bIndex++];
+                
+                try
                 {
-                    dynamic input = inputs[i];
-
-                    dynamic other;
-                    if (others.Length > i)
-                        other = others[i];
-                    else
-                    {
-                        outputs[i] = input;
-                        continue;
-                    }
-
-                    if (!(other is int))
-                        throw new StatementException(tokens, "Can only exponentiate to an integer value.");
-                    int count = (int)other;
-
-                    try
-                    {
-                        outputs[i] = input;
-                        for (int x = 1; x < count; x++)
-                            outputs[i] *= input;
-                    }
-                    catch (Exception)
-                    {
-                        throw new StatementException(tokens, "Couldn't pow these values.");
-                    }
+                    result[aIndex] = Math.Pow(aValue, bValue);
                 }
-                executor.SetPPV(varName, outputs);
+                catch (RuntimeBinderException)
+                {
+                    throw new StatementException(tokens, $"Couldn't raise {aValue} to the power of {bValue}");
+                }
             }
-            else
-                throw new StatementException(tokens, "Preprocessor variable '" + varName + "' does not exist.");
+            executor.SetPPV(varName, result);
         }
+        [UsedImplicitly]
         public static void _swap(Executor executor, Statement tokens)
         {
             string aName = tokens.Next<TokenIdentifier>().word;
@@ -402,11 +300,12 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + aName + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _if(Executor executor, Statement tokens)
         {
             dynamic[] tokensA, tokensB;
 
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string varName = tokens.Next<TokenIdentifier>().word;
                 if (!executor.TryGetPPV(varName, out tokensA))
@@ -414,13 +313,13 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                IPreprocessor firstToken = tokens.Next<IPreprocessor>();
+                var firstToken = tokens.Next<IPreprocessor>();
                 tokensA = new dynamic[] { firstToken.GetValue() };
             }
 
-            TokenCompare compare = tokens.Next<TokenCompare>();
+            var compare = tokens.Next<TokenCompare>();
 
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string varName = tokens.Next<TokenIdentifier>().word;
                 if (!executor.TryGetPPV(varName, out tokensB))
@@ -428,7 +327,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                IPreprocessor secondToken = tokens.Next<IPreprocessor>();
+                var secondToken = tokens.Next<IPreprocessor>();
                 tokensB = new dynamic[] { secondToken.GetValue() };
             }
 
@@ -466,7 +365,7 @@ namespace mc_compiled.MCC.Compiler
                             result &= a >= b;
                             break;
                         default:
-                            break;
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
                 catch (Exception)
@@ -482,7 +381,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (executor.NextIs<StatementOpenBlock>())
             {
-                StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
+                var block = executor.Peek<StatementOpenBlock>();
 
                 if (result)
                 {
@@ -499,16 +398,18 @@ namespace mc_compiled.MCC.Compiler
                 }
                 return;
             }
-            else if (!result)
+            
+            if (!result)
                 executor.Next(); // skip the next statement
         }
+        [UsedImplicitly]
         public static void _else(Executor executor, Statement tokens)
         {
             bool run = !executor.GetLastIfResult();
 
             if (executor.NextIs<StatementOpenBlock>())
             {
-                StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
+                var block = executor.Peek<StatementOpenBlock>();
                 if (run)
                 {
                     block.openAction = null;
@@ -523,16 +424,16 @@ namespace mc_compiled.MCC.Compiler
                             e.Next();
                     };
                 }
-                return;
             }
             else if (!run)
                 executor.Next(); // skip the next statement
         }
+        [UsedImplicitly]
         public static void _assert(Executor executor, Statement tokens)
         {
             dynamic[] tokensA, tokensB;
 
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string varName = tokens.Next<TokenIdentifier>().word;
                 if (!executor.TryGetPPV(varName, out tokensA))
@@ -540,13 +441,13 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                IPreprocessor firstToken = tokens.Next<IPreprocessor>();
+                var firstToken = tokens.Next<IPreprocessor>();
                 tokensA = new dynamic[] { firstToken.GetValue() };
             }
 
-            TokenCompare compare = tokens.Next<TokenCompare>();
+            var compare = tokens.Next<TokenCompare>();
 
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string varName = tokens.Next<TokenIdentifier>().word;
                 if (!executor.TryGetPPV(varName, out tokensB))
@@ -554,7 +455,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else
             {
-                IPreprocessor secondToken = tokens.Next<IPreprocessor>();
+                var secondToken = tokens.Next<IPreprocessor>();
                 tokensB = new dynamic[] { secondToken.GetValue() };
             }
 
@@ -591,8 +492,6 @@ namespace mc_compiled.MCC.Compiler
                         case TokenCompare.Type.GREATER_OR_EQUAL:
                             result &= a >= b;
                             break;
-                        default:
-                            break;
                     }
                 }
                 catch (Exception)
@@ -601,18 +500,19 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            if (result == false)
-            {
-                string leftSide = tokensA.Length > 1 ? $"[{string.Join(", ", tokensA)}]" : tokensA[0].ToString();
-                string rightSide = tokensB.Length > 1 ? $"[{string.Join(", ", tokensB)}]" : tokensB[0].ToString();
-                throw new StatementException(tokens, $"Assertion failed: {leftSide} {compare.ToString()} {rightSide}");
-            }
+            if (result)
+                return;
+            
+            string leftSide = tokensA.Length > 1 ? $"[{string.Join(", ", tokensA)}]" : tokensA[0].ToString();
+            string rightSide = tokensB.Length > 1 ? $"[{string.Join(", ", tokensB)}]" : tokensB[0].ToString();
+            throw new StatementException(tokens, $"Assertion failed: {leftSide} {compare} {rightSide}");
         }
+        [UsedImplicitly]
         public static void _repeat(Executor executor, Statement tokens)
         {
             bool useRange;
             Range range = default;
-            int amount = default;
+            int amount;
 
             if (tokens.NextIs<TokenIntegerLiteral>())
             {
@@ -638,6 +538,9 @@ namespace mc_compiled.MCC.Compiler
 
             if(useRange)
             {
+                if (range.min == null || range.max == null)
+                    throw new StatementException(tokens, $"Iterating over a range must have minimum and maximum bounds. (got {range})");
+                
                 int min = range.min.Value;
                 int max = range.max.Value;
                 for (int i = min; i <= max; i++)
@@ -656,12 +559,13 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
         }
+        [UsedImplicitly]
         public static void _log(Executor executor, Statement tokens)
         {
             if (executor.linting)
                 return;
 
-            List<string> strings = new List<string>();
+            var strings = new List<string>();
 
             while(tokens.HasNext)
             {
@@ -675,6 +579,7 @@ namespace mc_compiled.MCC.Compiler
 
             Console.WriteLine("[LOG] {0}", string.Join(" ", strings));
         }
+        [UsedImplicitly]
         public static void _macro(Executor executor, Statement tokens)
         {
             if (executor.NextIs<StatementOpenBlock>())
@@ -682,15 +587,16 @@ namespace mc_compiled.MCC.Compiler
             else
                 _macrocall(executor, tokens);
         }
-        public static void _macrodefine(Executor executor, Statement tokens)
+        [UsedImplicitly]
+        private static void _macrodefine(Executor executor, Statement tokens)
         {
             string macroName = tokens.Next<TokenIdentifier>().word;
 
-            List<string> args = new List<string>();
+            var args = new List<string>();
             while (tokens.HasNext && tokens.NextIs<TokenIdentifier>())
                 args.Add(tokens.Next<TokenIdentifier>().word);
 
-            StatementOpenBlock block = executor.Next<StatementOpenBlock>();
+            var block = executor.Next<StatementOpenBlock>();
             int count = block.statementsInside;
             Statement[] statements = executor.Peek(count);
 
@@ -702,10 +608,11 @@ namespace mc_compiled.MCC.Compiler
             executor.Next<StatementCloseBlock>();
 
             string docs = executor.GetDocumentationString(out _);
-            Macro macro = new Macro(macroName, docs, args.ToArray(), statements);
+            var macro = new Macro(macroName, docs, args.ToArray(), statements);
             executor.RegisterMacro(macro);
         }
-        public static void _macrocall(Executor executor, Statement tokens)
+
+        private static void _macrocall(Executor executor, Statement tokens)
         {
             string macroName = tokens.Next<TokenIdentifier>().word;
             Macro? _lookedUp = executor.LookupMacro(macroName);
@@ -725,7 +632,10 @@ namespace mc_compiled.MCC.Compiler
 
                 if (tokens.NextIs<TokenUnresolvedPPV>())
                 {
-                    args[i] = executor.ResolvePPV(tokens.Next<TokenUnresolvedPPV>(), tokens);
+                    args[i] = executor
+                        .ResolvePPV(tokens.Next<TokenUnresolvedPPV>(), tokens)
+                        .Cast<dynamic>()
+                        .ToArray();
                     continue;
                 }
 
@@ -736,7 +646,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // save variables which collide with this macro's args.
-            Dictionary<string, dynamic[]> collidedValues
+            var collidedValues
                 = new Dictionary<string, dynamic[]>();
             foreach (string arg in lookedUp.argNames)
                 if (executor.TryGetPPV(arg, out dynamic[] value))
@@ -760,9 +670,10 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // restore variables
-            foreach (var kv in collidedValues)
+            foreach (KeyValuePair<string, dynamic[]> kv in collidedValues)
                 executor.SetPPV(kv.Key, kv.Value);
         }
+        [UsedImplicitly]
         public static void _include(Executor executor, Statement tokens)
         {
             string file = tokens.Next<TokenStringLiteral>();
@@ -795,15 +706,13 @@ namespace mc_compiled.MCC.Compiler
 
             executor.ExecuteSubsection(statements);
         }
+        [UsedImplicitly]
         public static void _strfriendly(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-
-            string input;
-            if (tokens.NextIs<TokenIdentifier>(false))
-                input = tokens.Next<TokenIdentifier>().word;
-            else
-                input = output;
+            string input = tokens.NextIs<TokenIdentifier>(false) ?
+                tokens.Next<TokenIdentifier>().word :
+                output;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -827,6 +736,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _strupper(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
@@ -850,15 +760,13 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _strlower(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-
-            string input;
-            if (tokens.NextIs<TokenIdentifier>(false))
-                input = tokens.Next<TokenIdentifier>().word;
-            else
-                input = output;
+            string input = tokens.NextIs<TokenIdentifier>(false) ?
+                tokens.Next<TokenIdentifier>().word :
+                output;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
@@ -873,15 +781,13 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _sum(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-
-            string input;
-            if (tokens.NextIs<TokenIdentifier>(false))
-                input = tokens.Next<TokenIdentifier>().word;
-            else
-                input = output;
+            string input = tokens.NextIs<TokenIdentifier>(false) ?
+                tokens.Next<TokenIdentifier>().word :
+                output;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -900,15 +806,13 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _median(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-
-            string input;
-            if (tokens.NextIs<TokenIdentifier>(false))
-                input = tokens.Next<TokenIdentifier>().word;
-            else
-                input = output;
+            string input = tokens.NextIs<TokenIdentifier>(false) ?
+                tokens.Next<TokenIdentifier>().word :
+                output;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -917,8 +821,7 @@ namespace mc_compiled.MCC.Compiler
                     int len = values.Length;
                     if (len < 2)
                     {
-                        executor.SetPPV(output, new dynamic[] { values[0] });
-                        return;
+                        executor.SetPPV(output, new[] { values[0] });
                     }
                     else if (len % 2 == 0)
                     {
@@ -926,12 +829,12 @@ namespace mc_compiled.MCC.Compiler
                         dynamic first = values[mid];
                         dynamic second = values[mid - 1];
                         dynamic result = (first + second) / 2;
-                        executor.SetPPV(output, new dynamic[] { result });
+                        executor.SetPPV(output, new[] { result });
                     }
                     else
                     {
                         dynamic result = values[len / 2]; // truncates to middle index
-                        executor.SetPPV(output, new dynamic[] { result });
+                        executor.SetPPV(output, new[] { result });
                     }
                 }
                 catch (Exception)
@@ -942,15 +845,13 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _mean(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-
-            string input;
-            if (tokens.NextIs<TokenIdentifier>(false))
-                input = tokens.Next<TokenIdentifier>().word;
-            else
-                input = output;
+            string input = tokens.NextIs<TokenIdentifier>(false) ?
+                tokens.Next<TokenIdentifier>().word :
+                output;
 
             if (executor.TryGetPPV(input, out dynamic[] values))
             {
@@ -971,6 +872,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _sort(Executor executor, Statement tokens)
         {
             string sortDirection = tokens.Next<TokenIdentifier>().word.ToUpper();
@@ -996,6 +898,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + variable + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _reverse(Executor executor, Statement tokens)
         {
             string variable = tokens.Next<TokenIdentifier>().word;
@@ -1013,9 +916,7 @@ namespace mc_compiled.MCC.Compiler
                     for(int i = 0; i < max; i++)
                     {
                         int e = end - i;
-                        dynamic temp = values[i];
-                        values[i] = values[e];
-                        values[e] = temp;
+                        (values[i], values[e]) = (values[e], values[i]);
                     }
 
                     executor.SetPPV(variable, values);
@@ -1028,6 +929,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + variable + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _unique(Executor executor, Statement tokens)
         {
             string variable = tokens.Next<TokenIdentifier>().word;
@@ -1037,7 +939,7 @@ namespace mc_compiled.MCC.Compiler
                 if (values.Length < 2)
                     return;
 
-                HashSet<object> items = new HashSet<object>();
+                var items = new HashSet<object>();
                 
                 foreach (dynamic value in values)
                     items.Add(value);
@@ -1047,6 +949,13 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + variable + "' does not exist.");
         }
+
+        /// <summary>
+        /// Iterates over values of a preprocessor variable and executes a set of statements for each value.
+        /// </summary>
+        /// <param name="executor">The executor object used to execute statements.</param>
+        /// <param name="tokens">The statement tokens.</param
+        [UsedImplicitly]
         public static void _iterate(Executor executor, Statement tokens)
         {
             string input = tokens.Next<TokenIdentifier>().word;
@@ -1057,12 +966,33 @@ namespace mc_compiled.MCC.Compiler
 
             Statement[] statements = executor.NextExecutionSet();
 
+            foreach (dynamic value in values)
+            {
+                switch (value)
+                {
+                    case TokenJSONLiteral jsonLiteral:
+                    {
+                        JToken token = jsonLiteral.token;
+                        if (token is JArray array)
+                            IterateArray(array);
+                        break;
+                    }
+                    case JArray array:
+                        IterateArray(array);
+                        break;
+                    default:
+                        executor.SetPPV(current, new dynamic[] { value });
+                        executor.ExecuteSubsection(statements);
+                        break;
+                }
+            }
+
+            return;
+
             void IterateArray(JArray array)
             {
-                int item = -1;
                 foreach (JToken arrayItem in array)
                 {
-                    item++;
                     if (PreprocessorUtils.TryUnwrapToken(arrayItem, out object obj))
                     {
                         if (obj == null)
@@ -1074,28 +1004,9 @@ namespace mc_compiled.MCC.Compiler
                     else
                         throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{arrayItem.Type}' in a preprocessor variable.");
                 }
-                return;
-            }
-
-            foreach (dynamic value in values)
-            {
-                if (value is TokenJSONLiteral jsonLiteral)
-                {
-                    JToken token = jsonLiteral.token;
-                    if (token is JArray array)
-                        IterateArray(array);
-                }
-                else if(value is JArray array)
-                {
-                    IterateArray(array);
-                }
-                else
-                {
-                    executor.SetPPV(current, new dynamic[] { value });
-                    executor.ExecuteSubsection(statements);
-                }
             }
         }
+        [UsedImplicitly]
         public static void _len(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
@@ -1107,18 +1018,18 @@ namespace mc_compiled.MCC.Compiler
                 executor.SetPPV(output, new dynamic[] { inputString.Length });
                 return;
             }
-            else if(tokens.NextIs<TokenJSONLiteral>())
+
+            if(tokens.NextIs<TokenJSONLiteral>())
             {
                 // JSON Array
                 JToken inputJSON = tokens.Next<TokenJSONLiteral>();
 
-                if (inputJSON is JArray array)
-                {
-                    executor.SetPPV(output, new dynamic[] { array.Count });
-                    return;
-                }
-                else
-                    throw new StatementException(tokens, "Attempted to get the length of a non-array JSON token.");
+                if (!(inputJSON is JArray array))
+                    throw new StatementException(tokens, "Cannot get the length of a non-array JSON token.");
+                
+                executor.SetPPV(output, new dynamic[] { array.Count });
+                return;
+
             }
 
             // Preprocessor Variable
@@ -1132,6 +1043,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
         }
+        [UsedImplicitly]
         public static void _json(Executor executor, Statement tokens)
         {
             JToken json;
@@ -1155,27 +1067,48 @@ namespace mc_compiled.MCC.Compiler
                 foreach (string _access in accessParts)
                 {
                     string access = _access.Trim();
-                    if (json.Type == JTokenType.Array)
+                    switch (json.Type)
                     {
-                        JArray array = json as JArray;
-                        if (!int.TryParse(access, out int index))
-                            throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' requires index to access. Given: {access}");
-                        if (index < 0)
-                            throw new StatementException(tokens, $"JSON Error: Index given was less than 0.");
-                        if (index >= array.Count)
-                            throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' only contains {array.Count} items. Given: {index + 1}");
-                        json = array[index];
-                        continue;
+                        case JTokenType.Array:
+                        {
+                            var array = (JArray)json;
+                            if (!int.TryParse(access, out int index))
+                                throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' requires index to access. Given: {access}");
+                            if (index < 0)
+                                throw new StatementException(tokens, $"JSON Error: Index given was less than 0.");
+                            if (index >= array.Count)
+                                throw new StatementException(tokens, $"JSON Error: Array at '{array.Path}' only contains {array.Count} items. Given: {index + 1}");
+                            json = array[index];
+                            continue;
+                        }
+                        case JTokenType.Object:
+                        {
+                            var obj = (JObject)json;
+                            
+                            if (!obj.TryGetValue(access, out json))
+                                throw new StatementException(tokens, $"JSON Error: Cannot find child '{access}' under token {obj.Path}.");
+                            continue;
+                        }
+                        // unsupported
+                        case JTokenType.None:
+                        case JTokenType.Constructor:
+                        case JTokenType.Property:
+                        case JTokenType.Comment:
+                        case JTokenType.Integer:
+                        case JTokenType.Float:
+                        case JTokenType.String:
+                        case JTokenType.Boolean:
+                        case JTokenType.Null:
+                        case JTokenType.Undefined:
+                        case JTokenType.Date:
+                        case JTokenType.Raw:
+                        case JTokenType.Bytes:
+                        case JTokenType.Guid:
+                        case JTokenType.Uri:
+                        case JTokenType.TimeSpan:
+                        default:
+                            throw new StatementException(tokens, $"JSON Error: Unexpected end of JSON tree at {json.Path}.");
                     }
-                    else if (json.Type == JTokenType.Object)
-                    {
-                        JObject obj = json as JObject;
-                        if (!obj.TryGetValue(access, out json))
-                            throw new StatementException(tokens, $"JSON Error: Cannot find child '{access}' under token {obj.Path}.");
-                        continue;
-                    }
-                    else
-                        throw new StatementException(tokens, $"JSON Error: Unexpected end of JSON tree at {json.Path}.");
                 }
             }
 
@@ -1186,6 +1119,7 @@ namespace mc_compiled.MCC.Compiler
             } else
                 throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{json.Type}' in a preprocessor variable.");
         }
+        [UsedImplicitly]
         public static void _call(Executor executor, Statement tokens)
         {
             string functionName = tokens.Next<TokenStringLiteral>().text;
@@ -1194,7 +1128,7 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, $"Could not find function by the name '{functionName}'");
 
             Token[] remainingTokens = tokens.GetRemainingTokens();
-            Token[] finalTokens = new Token[remainingTokens.Length + 3];
+            var finalTokens = new Token[remainingTokens.Length + 3];
 
             int line = tokens.Lines[0];
             Array.Copy(remainingTokens, 0, finalTokens, 2, remainingTokens.Length);
@@ -1203,7 +1137,7 @@ namespace mc_compiled.MCC.Compiler
             finalTokens[finalTokens.Length - 1] = new TokenCloseParenthesis(line);
 
 
-            StatementFunctionCall callStatement = new StatementFunctionCall(finalTokens);
+            var callStatement = new StatementFunctionCall(finalTokens);
             callStatement.SetSource(tokens.Lines, tokens.Source);
 
             callStatement
@@ -1211,11 +1145,13 @@ namespace mc_compiled.MCC.Compiler
                 .Run0(executor);
         }
 
+        [UsedImplicitly]
         public static void mc(Executor executor, Statement tokens)
         {
             string command = tokens.Next<TokenStringLiteral>();
             executor.AddCommand(command);
         }
+        [UsedImplicitly]
         public static void globalprint(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
@@ -1231,6 +1167,7 @@ namespace mc_compiled.MCC.Compiler
             CommandFile file = executor.CurrentFile;
             executor.AddCommands(commands, "print", $"Called in a globalprint command located in {file.CommandReference} line {executor.NextLineNumber}");
         }
+        [UsedImplicitly]
         public static void print(Executor executor, Statement tokens)
         {
             Selector player;
@@ -1245,6 +1182,7 @@ namespace mc_compiled.MCC.Compiler
             CommandFile file = executor.CurrentFile;
             executor.AddCommands(commands, "print", $"Called in a print command located in {file.CommandReference} line {executor.NextLineNumber}");
         }
+        [UsedImplicitly]
         public static void lang(Executor executor, Statement tokens)
         {
             string locale = tokens.Next<TokenIdentifier>().word;
@@ -1263,6 +1201,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.SetLocale(locale);
         }
+        [UsedImplicitly]
         public static void define(Executor executor, Statement tokens)
         {
             string docs = executor.GetDocumentationString(out bool hadDocumentation);
@@ -1283,7 +1222,7 @@ namespace mc_compiled.MCC.Compiler
             if (def.defaultValue != null)
             {
                 // all the rest of this is getting the commands to define the variable.
-                List<string> commands = new List<string>();
+                var commands = new List<string>();
 
                 switch (def.defaultValue)
                 {
@@ -1307,10 +1246,11 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommands(commands, "define" + value.Name, $"Called when defining the value '{value.Name}' in {file.CommandReference} line {executor.NextLineNumber}", inline);
             }
         }
+        [UsedImplicitly]
         public static void init(Executor executor, Statement tokens)
         {
             ScoreboardValue value;
-            List<string> commands = new List<string>();
+            var commands = new List<string>();
 
             while (tokens.HasNext)
             {
@@ -1323,6 +1263,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommands(commands, null, null, true);
         }
+        [UsedImplicitly]
         public static void @if(Executor executor, Statement tokens)
         {
             if (!executor.HasNext)
@@ -1333,6 +1274,7 @@ namespace mc_compiled.MCC.Compiler
             set.InvertAll(false);
             set.Run(executor, tokens);
         }
+        [UsedImplicitly]
         public static void @else(Executor executor, Statement tokens)
         {
             if (!executor.HasNext)
@@ -1342,8 +1284,6 @@ namespace mc_compiled.MCC.Compiler
 
             if (set == null)
                 throw new StatementException(tokens, "No if-statement was found in front of this else-statement at this scope level.");
-
-            ScoreboardValue resultBoolean = set.resultStore;
 
             bool cancel = set.cancel;
             string prefix = "";
@@ -1438,6 +1378,7 @@ namespace mc_compiled.MCC.Compiler
                 });
             }
         }
+        [UsedImplicitly]
         public static void assert(Executor executor, Statement tokens)
         {
             executor.CurrentFile.MarkAssertion();
@@ -1449,7 +1390,7 @@ namespace mc_compiled.MCC.Compiler
             IEnumerable<ScoreboardValue> values = set.GetAssertionTargets();
 
             // construct assertion failed message based on all values in this comparison set
-            string red = "§c";
+            const string red = "§c";
             file.Add(Command.Tellraw(new RawTextJsonBuilder().AddTerm(new JSONText(red + "Assertion failed! " + set.GetDescription())).BuildString()));
             foreach(ScoreboardValue value in values)
             {
@@ -1466,16 +1407,18 @@ namespace mc_compiled.MCC.Compiler
             set.RunCommand(Command.Function(file), executor, tokens);
             return;
         }
+        [UsedImplicitly]
         public static void @throw(Executor executor, Statement tokens)
         {
             string text = tokens.Next<TokenStringLiteral>();
-            var json = executor.FString(text, tokens, out bool _);
+            List<JSONRawTerm> json = executor.FString(text, tokens, out bool _);
             string[] commands = Executor.ResolveRawText(json, "tellraw @s ");
 
             executor.AddCommandsClean(commands, "throwError", $"Called in a throw command located in {executor.CurrentFile.CommandReference} line {executor.NextLineNumber}");
             executor.AddCommand(halt_command(executor, tokens));
             return;
         }
+        [UsedImplicitly]
         public static void give(Executor executor, Statement tokens)
         {
             Selector player = tokens.Next<TokenSelectorLiteral>();
@@ -1489,10 +1432,10 @@ namespace mc_compiled.MCC.Compiler
             bool keep = false;
             bool lockInventory = false;
             bool lockSlot = false;
-            List<string> loreLines = new List<string>();
-            List<string> canPlaceOn = new List<string>();
-            List<string> canDestroy = new List<string>();
-            List<Tuple<Enchantment, int>> enchants = new List<Tuple<Enchantment, int>>();
+            var loreLines = new List<string>();
+            var canPlaceOn = new List<string>();
+            var canDestroy = new List<string>();
+            var enchants = new List<Tuple<Enchantment, int>>();
             string displayName = null;
 
             ItemTagBookData? book = null;
@@ -1507,9 +1450,7 @@ namespace mc_compiled.MCC.Compiler
                     data = tokens.Next<TokenIntegerLiteral>();
             }
 
-            TokenBuilderIdentifier builderIdentifier;
-
-            while (executor.NextBuilderField(ref tokens, out builderIdentifier))
+            while (executor.NextBuilderField(ref tokens, out TokenBuilderIdentifier builderIdentifier))
             {
                 string builderField = builderIdentifier.BuilderField;
 
@@ -1536,7 +1477,7 @@ namespace mc_compiled.MCC.Compiler
                     case "ENCHANT":
                         ParsedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>().value;
                         parsedEnchantment.RequireType<Enchantment>(tokens);
-                        Enchantment enchantment = (Enchantment)parsedEnchantment.value;
+                        var enchantment = (Enchantment)parsedEnchantment.value;
                         int level = tokens.Next<TokenIntegerLiteral>();
                         enchants.Add(new Tuple<Enchantment, int>(enchantment, level));
                         needsStructure = true;
@@ -1582,8 +1523,10 @@ namespace mc_compiled.MCC.Compiler
                             break;
                     }
                 }
+                // ReSharper disable once InvertIf
                 if (itemNameComp.StartsWith("LEATHER_"))
                 {
+                    // ReSharper disable once InvertIf
                     if(builderField.Equals("DYE"))
                     {
                         color = new ItemTagCustomColor()
@@ -1593,7 +1536,6 @@ namespace mc_compiled.MCC.Compiler
                             b = (byte)tokens.Next<TokenIntegerLiteral>()
                         };
                         needsStructure = true;
-                        continue;
                     }
                 }
             }
@@ -1607,7 +1549,7 @@ namespace mc_compiled.MCC.Compiler
                     book = bookData;
                 }
 
-                ItemStack item = new ItemStack()
+                var item = new ItemStack()
                 {
                     id = itemName,
                     count = count,
@@ -1623,7 +1565,7 @@ namespace mc_compiled.MCC.Compiler
                     bookData = book,
                     customColor = color
                 };
-                StructureFile file = new StructureFile("item" + item.GetHashCode(),
+                var file = new StructureFile("item" + item.GetHashCode(),
                     Executor.MCC_GENERATED_FOLDER, StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
 
@@ -1637,7 +1579,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            List<string> json = new List<string>();
+            var json = new List<string>();
 
             if (keep)
                 json.Add("\"keep_on_death\":{}");
@@ -1664,6 +1606,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(command);
         }
+        [UsedImplicitly]
         public static void tp(Executor executor, Statement tokens)
         {
             bool GetCheckForBlocks()
@@ -1682,6 +1625,7 @@ namespace mc_compiled.MCC.Compiler
                 if(tokens.NextIs<TokenIdentifier>())
                 {
                     string id = tokens.Next<TokenIdentifier>().word;
+                    // ReSharper disable once InvertIf
                     if(id.ToUpper().Equals("FACING"))
                     {
                         if (tokens.NextIs<TokenCoordinateLiteral>())
@@ -1718,13 +1662,14 @@ namespace mc_compiled.MCC.Compiler
 
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
-                TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+                var selector = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.Teleport(entity.ToString(), selector.selector.ToString(), GetCheckForBlocks()));
                 return;
             }
 
             ParseArgs(entity.ToString());
         }
+        [UsedImplicitly]
         public static void move(Executor executor, Statement tokens)
         {
             Selector selector = tokens.Next<TokenSelectorLiteral>();
@@ -1766,13 +1711,14 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.Teleport(selector.ToString(), x, y, z, checkForBlocks));
         }
+        [UsedImplicitly]
         public static void face(Executor executor, Statement tokens)
         {
             Selector selector = tokens.Next<TokenSelectorLiteral>();
 
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
-                TokenSelectorLiteral other = tokens.Next<TokenSelectorLiteral>();
+                var other = tokens.Next<TokenSelectorLiteral>();
                 executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coord.here, Coord.here, Coord.here, other.ToString()));
             }
             else
@@ -1784,36 +1730,36 @@ namespace mc_compiled.MCC.Compiler
                 executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coord.here, Coord.here, Coord.here, x, y, z));
             }
         }
+        [UsedImplicitly]
         public static void rotate(Executor executor, Statement tokens)
         {
             Selector selector = tokens.Next<TokenSelectorLiteral>();
 
-            TokenNumberLiteral number = tokens.Next<TokenNumberLiteral>();
-            Coord ry, rx = Coord.here;
+            var number = tokens.Next<TokenNumberLiteral>();
+            Coord rx = Coord.here;
 
-            if (number is TokenDecimalLiteral)
-                ry = new Coord(number.GetNumber(), true, true, false);
-            else
-                ry = new Coord(number.GetNumberInt(), false, true, false);
+            Coord ry = number is TokenDecimalLiteral ?
+                new Coord(number.GetNumber(), true, true, false) :
+                new Coord(number.GetNumberInt(), false, true, false);
 
             if (tokens.HasNext && tokens.NextIs<TokenNumberLiteral>())
             {
                 number = tokens.Next<TokenNumberLiteral>();
-                if (number is TokenDecimalLiteral)
-                    rx = new Coord(number.GetNumber(), true, true, false);
-                else
-                    rx = new Coord(number.GetNumberInt(), false, true, false);
+                rx = number is TokenDecimalLiteral ?
+                    new Coord(number.GetNumber(), true, true, false) :
+                    new Coord(number.GetNumberInt(), false, true, false);
             }
 
             executor.AddCommand(Command.Teleport(selector.ToString(), Coord.here, Coord.here, Coord.here, ry, rx));
         }
+        [UsedImplicitly]
         public static void setblock(Executor executor, Statement tokens)
         {
             Coord x = tokens.Next<TokenCoordinateLiteral>();
             Coord y = tokens.Next<TokenCoordinateLiteral>();
             Coord z = tokens.Next<TokenCoordinateLiteral>();
             string block = tokens.Next<TokenStringLiteral>();
-            OldHandling handling = OldHandling.replace;
+            var handling = OldHandling.replace;
 
             int data = 0;
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
@@ -1828,9 +1774,10 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.SetBlock(x, y, z, block, data, handling));
         }
+        [UsedImplicitly]
         public static void fill(Executor executor, Statement tokens)
         {
-            OldHandling handling = OldHandling.replace;
+            var handling = OldHandling.replace;
 
             if (tokens.NextIs<TokenIdentifierEnum>())
             {
@@ -1853,6 +1800,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, block, data, handling));
         }
+        [UsedImplicitly]
         public static void scatter(Executor executor, Statement tokens)
         {
             string block = tokens.Next<TokenStringLiteral>();
@@ -1890,7 +1838,7 @@ namespace mc_compiled.MCC.Compiler
                     for (int z = 0; z < sizeZ; z++)
                         blocks[x, y, z] = 0;
 
-            StructureNBT structure = new StructureNBT()
+            var structure = new StructureNBT()
             {
                 formatVersion = 1,
                 size = new VectorIntNBT(sizeX, sizeY, sizeZ),
@@ -1902,12 +1850,9 @@ namespace mc_compiled.MCC.Compiler
             };
 
             string fileName = "scatter_" + scatterFile++;
-            StructureFile file = new StructureFile(fileName,
+            var file = new StructureFile(fileName,
                 Executor.MCC_GENERATED_FOLDER, structure);
             executor.project.WriteSingleFile(file);
-
-            blocks = null;
-            structure = default;
 
             Coord minX = Coord.Min(x1, x2);
             Coord minY = Coord.Min(y1, y2);
@@ -1924,6 +1869,7 @@ namespace mc_compiled.MCC.Compiler
                     StructureRotation._0_degrees, StructureMirror.none, false, true, false, percent, seed));
             }
         }
+        [UsedImplicitly]
         public static void replace(Executor executor, Statement tokens)
         {
             string src = tokens.Next<TokenStringLiteral>();
@@ -1945,6 +1891,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, src, srcData, dst, dstData));
         }
+        [UsedImplicitly]
         public static void kill(Executor executor, Statement tokens)
         {
             Selector selector = Selector.SELF;
@@ -1954,6 +1901,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(Command.Kill(selector.ToString()));
         }
+        [UsedImplicitly]
         public static void remove(Executor executor, Statement tokens)
         {
             var file = new CommandFile(true, "silent_remove", Executor.MCC_GENERATED_FOLDER);
@@ -1973,88 +1921,91 @@ namespace mc_compiled.MCC.Compiler
             executor.PushAlignSelector(ref selector);
             executor.AddCommand(Command.Function(file));
         }
+        [UsedImplicitly]
         public static void globaltitle(Executor executor, Statement tokens)
         {
             if (tokens.NextIs<TokenIdentifier>(false))
             {
-                string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-                if (word.Equals("TIMES"))
+                string word = tokens.Next<TokenIdentifier>().word;
+                switch (word.ToUpper())
                 {
-                    int fadeIn = tokens.Next<TokenIntegerLiteral>();
-                    int stay = tokens.Next<TokenIntegerLiteral>();
-                    int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                    executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
-                    return;
-                }
-                else if (word.Equals("SUBTITLE"))
-                {
-                    string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
-                    string[] commands;
+                    case "TIMES":
+                    {
+                        int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                        int stay = tokens.Next<TokenIntegerLiteral>();
+                        int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                        executor.AddCommand(Command.TitleTimes("@a", fadeIn, stay, fadeOut));
+                        return;
+                    }
+                    case "SUBTITLE":
+                    {
+                        string str = tokens.Next<TokenStringLiteral>();
+                        List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
 
-                    if (advanced)
-                        commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "titleraw @s subtitle "));
-                    else
-                        commands = Executor.ResolveRawText(terms, "titleraw @a subtitle ");
+                        string[] commands = advanced ?
+                            Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "titleraw @s subtitle ")) :
+                            Executor.ResolveRawText(terms, "titleraw @a subtitle ");
 
-                    CommandFile file = executor.CurrentFile;
-                    executor.AddCommands(commands, "subtitle", $"Called in a global-subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
-                    return;
+                        CommandFile file = executor.CurrentFile;
+                        executor.AddCommands(commands, "subtitle", $"Called in a global-subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
+                        return;
+                    }
+                    default:
+                        throw new StatementException(tokens, $"Invalid globaltitle subcommand '{word}'. Must be 'times' or 'subtitle'.");
                 }
-                else
-                    throw new StatementException(tokens, $"Invalid globaltitle subcommand '{word}'. Must be 'times' or 'subtitle'.");
             }
 
+            // ReSharper disable once InvertIf
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
                 List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
                 string[] commands;
 
-                if (advanced)
-                    commands = Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "title @s title "));
-                else
-                    commands = Executor.ResolveRawText(terms, "titleraw @a title ");
+                commands = advanced ?
+                    Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "title @s title ")) :
+                    Executor.ResolveRawText(terms, "titleraw @a title ");
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "title", $"Called in a globaltitle command located in {file.CommandReference} line {executor.NextLineNumber}");
-                return;
             }
         }
+        [UsedImplicitly]
         public static void title(Executor executor, Statement tokens)
         {
             Selector player;
 
-            if (tokens.NextIs<TokenSelectorLiteral>(false))
-                player = tokens.Next<TokenSelectorLiteral>();
-            else
-                player = Selector.SELF;
+            player = tokens.NextIs<TokenSelectorLiteral>(false) ?
+                tokens.Next<TokenSelectorLiteral>() :
+                Selector.SELF;
 
             if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
-                if (word.Equals("TIMES"))
+                switch (word)
                 {
-                    int fadeIn = tokens.Next<TokenIntegerLiteral>();
-                    int stay = tokens.Next<TokenIntegerLiteral>();
-                    int fadeOut = tokens.Next<TokenIntegerLiteral>();
-                    executor.AddCommand(Command.TitleTimes(player.ToString(), fadeIn, stay, fadeOut));
-                    return;
-                }
-                else if (word.Equals("SUBTITLE"))
-                {
-                    string str = tokens.Next<TokenStringLiteral>();
-                    List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
-                    string[] commands;
+                    case "TIMES":
+                    {
+                        int fadeIn = tokens.Next<TokenIntegerLiteral>();
+                        int stay = tokens.Next<TokenIntegerLiteral>();
+                        int fadeOut = tokens.Next<TokenIntegerLiteral>();
+                        executor.AddCommand(Command.TitleTimes(player.ToString(), fadeIn, stay, fadeOut));
+                        return;
+                    }
+                    case "SUBTITLE":
+                    {
+                        string str = tokens.Next<TokenStringLiteral>();
+                        List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
 
-                    commands = Executor.ResolveRawText(terms, $"titleraw {player} subtitle ");
+                        string[] commands = Executor.ResolveRawText(terms, $"titleraw {player} subtitle ");
 
-                    CommandFile file = executor.CurrentFile;
-                    executor.AddCommands(commands, "subtitle", $"Called in a subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
-                    return;
+                        CommandFile file = executor.CurrentFile;
+                        executor.AddCommands(commands, "subtitle", $"Called in a subtitle command located in {file.CommandReference} line {executor.NextLineNumber}");
+                        return;
+                    }
+                    default:
+                        throw new StatementException(tokens, $"Invalid title subcommand '{word}'. Must be 'times' or 'subtitle'.");
                 }
-                else
-                    throw new StatementException(tokens, $"Invalid title subcommand '{word}'. Must be 'times' or 'subtitle'.");
             }
 
             if (tokens.NextIs<TokenStringLiteral>())
@@ -2070,6 +2021,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
         }
+        [UsedImplicitly]
         public static void globalactionbar(Executor executor, Statement tokens)
         {
             if (tokens.NextIs<TokenIdentifier>(false))
@@ -2098,6 +2050,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else throw new StatementException(tokens, "Invalid information given to globalactionbar.");
         }
+        [UsedImplicitly]
         public static void actionbar(Executor executor, Statement tokens)
         {
             Selector player;
@@ -2121,12 +2074,13 @@ namespace mc_compiled.MCC.Compiler
             }
             else throw new StatementException(tokens, "Invalid information given to actionbar command.");
         }
+        [UsedImplicitly]
         public static void say(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>();
             executor.AddCommand(Command.Say(str));
         }
-        public static string halt_command(Executor executor, Statement tokens)
+        private static string halt_command(Executor executor, Statement tokens)
         {
             var file = new CommandFile(true, "halt_execution", Executor.MCC_GENERATED_FOLDER);
 
@@ -2140,29 +2094,31 @@ namespace mc_compiled.MCC.Compiler
             executor.UnreachableCode();
             return Command.Function(file);
         }
+        [UsedImplicitly]
         public static void halt(Executor executor, Statement tokens)
         {
             string command = halt_command(executor, tokens);
             executor.AddCommand(command);
         }
+        [UsedImplicitly]
         public static void damage(Executor executor, Statement tokens)
         {
             Selector target = tokens.Next<TokenSelectorLiteral>();
 
             int damage = tokens.Next<TokenIntegerLiteral>();
-            DamageCause cause = DamageCause.all;
+            var cause = DamageCause.all;
             Selector blame = null;
 
             if(tokens.NextIs<TokenIdentifierEnum>())
             {
-                TokenIdentifierEnum idEnum = tokens.Next<TokenIdentifierEnum>();
+                var idEnum = tokens.Next<TokenIdentifierEnum>();
                 idEnum.value.RequireType<DamageCause>(tokens);
                 cause = (DamageCause)idEnum.value.value;
             }
 
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
-                TokenSelectorLiteral value = tokens.Next<TokenSelectorLiteral>();
+                var value = tokens.Next<TokenSelectorLiteral>();
                 blame = value.selector;
             }
             else if(tokens.NextIs<TokenCoordinateLiteral>())
@@ -2204,6 +2160,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(command);
         }
+        [UsedImplicitly]
         public static void dummy(Executor executor, Statement tokens)
         {
             executor.RequireFeature(tokens, Feature.DUMMIES);
@@ -2292,6 +2249,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, $"Invalid mode for dummy command: {word}. Valid options are CREATE, SINGLE, or REMOVE");
         }
+        [UsedImplicitly]
         public static void tag(Executor executor, Statement tokens)
         {
             string selected = tokens.Next<TokenSelectorLiteral>().selector.ToString();
@@ -2310,6 +2268,7 @@ namespace mc_compiled.MCC.Compiler
             else
                 throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE");
         }
+        [UsedImplicitly]
         public static void explode(Executor executor, Statement tokens)
         {
             executor.RequireFeature(tokens, Feature.EXPLODERS);
@@ -2367,6 +2326,7 @@ namespace mc_compiled.MCC.Compiler
             string command = executor.entities.exploders.CreateExplosion(x, y, z, power, delay, fire, breaks);
             executor.AddCommand(command);
         }
+        [UsedImplicitly]
         public static void clear(Executor executor, Statement tokens)
         {
             string selector;
@@ -2404,6 +2364,7 @@ namespace mc_compiled.MCC.Compiler
 
             executor.AddCommand(command);
         }
+        [UsedImplicitly]
         public static void effect(Executor executor, Statement tokens)
         {
             string selector = tokens.Next<TokenSelectorLiteral>().selector.ToString();
@@ -2425,10 +2386,10 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string command;
-            TokenIdentifierEnum effectToken = tokens.Next<TokenIdentifierEnum>();
+            var effectToken = tokens.Next<TokenIdentifierEnum>();
             ParsedEnumValue parsedEffect = effectToken.value;
             parsedEffect.RequireType<PotionEffect>(tokens);
-            PotionEffect effect = (PotionEffect)parsedEffect.value;
+            var effect = (PotionEffect)parsedEffect.value;
 
             if (tokens.NextIs<TokenIntegerLiteral>())
             {
@@ -2455,6 +2416,7 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommand(command);
             return;
         }
+        [UsedImplicitly]
         public static void playsound(Executor executor, Statement tokens)
         {
             string soundId = tokens.Next<TokenStringLiteral>();
@@ -2503,6 +2465,7 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, volume, pitch, minVolume));
             return;
         }
+        [UsedImplicitly]
         public static void particle(Executor executor, Statement tokens)
         {
             string particleId = tokens.Next<TokenStringLiteral>();
@@ -2519,15 +2482,16 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommand(Command.Particle(particleId,
                 Coord.here, Coord.here, Coord.here));
         }
-
+        
+        [UsedImplicitly]
         public static void execute(Executor executor, Statement tokens)
         {
-            ExecuteBuilder builder = new ExecuteBuilder();
+            var builder = new ExecuteBuilder();
 
             do
             {
                 string _subcommand = tokens.Next<TokenIdentifier>().word.ToUpper();
-                Subcommand subcommand = Subcommand.GetSubcommandForKeyword(_subcommand, tokens);
+                var subcommand = Subcommand.GetSubcommandForKeyword(_subcommand, tokens);
 
                 if (subcommand.TerminatesChain)
                     throw new StatementException(tokens, $"Subcommand '{_subcommand}' is not allowed here as it terminates the chain.");
@@ -2616,10 +2580,11 @@ namespace mc_compiled.MCC.Compiler
                 executor.AppendCommandPrepend(finalExecute);
             }
         }
+        [UsedImplicitly]
         public static void feature(Executor executor, Statement tokens)
         {
             string featureStr = tokens.Next<TokenIdentifier>().word.ToUpper();
-            Feature feature = Feature.NO_FEATURES;
+            var feature = Feature.NO_FEATURES;
 
             foreach(Feature possibleFeature in FeatureManager.FEATURE_LIST)
             {
@@ -2639,10 +2604,11 @@ namespace mc_compiled.MCC.Compiler
             if (Program.DEBUG && !executor.project.linting)
                 Console.WriteLine("Feature enabled: {0}", feature);
         }
+        [UsedImplicitly]
         public static void function(Executor executor, Statement tokens)
         {
             // pull attributes
-            List<IAttribute> attributes = new List<IAttribute>();
+            var attributes = new List<IAttribute>();
 
             void FindAttributes()
             {
@@ -2672,7 +2638,7 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            List<RuntimeFunctionParameter> parameters = new List<RuntimeFunctionParameter>();
+            var parameters = new List<RuntimeFunctionParameter>();
 
             FindAttributes();
 
@@ -2753,7 +2719,7 @@ namespace mc_compiled.MCC.Compiler
                 if (function.isExtern)
                     throw new StatementException(tokens, "Extern functions cannot have a body.");
 
-                StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
+                var openBlock = executor.Peek<StatementOpenBlock>();
 
                 openBlock.openAction = (e) =>
                 {
@@ -2768,6 +2734,7 @@ namespace mc_compiled.MCC.Compiler
             else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");
         }
+        [UsedImplicitly]
         public static void test(Executor executor, Statement tokens)
         {
             executor.RequireFeature(tokens, Feature.TESTS);
@@ -2812,7 +2779,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (executor.NextIs<StatementOpenBlock>())
             {
-                StatementOpenBlock openBlock = executor.Peek<StatementOpenBlock>();
+                var openBlock = executor.Peek<StatementOpenBlock>();
 
                 openBlock.openAction = (e) =>
                 {
@@ -2826,6 +2793,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
         }
+        [UsedImplicitly]
         public static void @return(Executor executor, Statement tokens)
         {
             RuntimeFunction activeFunction = executor.CurrentFile.runtimeFunction;
@@ -2844,6 +2812,7 @@ namespace mc_compiled.MCC.Compiler
                 activeFunction.TryReturnValue(token, tokens, executor);
             }
         }
+        [UsedImplicitly]
         public static void @for(Executor executor, Statement tokens)
         {
             var selector = tokens.Next<TokenSelectorLiteral>();
@@ -2872,7 +2841,7 @@ namespace mc_compiled.MCC.Compiler
 
             if(executor.NextIs<StatementOpenBlock>())
             {
-                StatementOpenBlock block = executor.Peek<StatementOpenBlock>();
+                var block = executor.Peek<StatementOpenBlock>();
                 CommandFile file = Executor.GetNextGeneratedFile("for");
 
                 if(Program.DECORATE)

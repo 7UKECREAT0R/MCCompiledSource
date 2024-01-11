@@ -23,7 +23,7 @@ namespace mc_compiled.MCC.Compiler
         private bool isInUse = false;
         private bool isTest = false;
         private bool hasAssertions = false;
-
+        
         internal bool IsInUse
         {
             get => isInUse;

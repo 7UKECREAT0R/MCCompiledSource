@@ -35,17 +35,20 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public static TokenIndexer CreateIndexer(Token token, Statement forExceptions = null)
         {
-            if(token is TokenLiteral literal)
-                return CreateIndexer(literal, forExceptions);
-
-            if (token is TokenUnresolvedPPV unresolvedPPV)
-                return new TokenIndexerUnresolvedPPV(unresolvedPPV, token.lineNumber);
-
-            // throw exception
+            switch (token)
+            {
+                case TokenLiteral literal:
+                    return CreateIndexer(literal, forExceptions);
+                case TokenMultiply _:
+                    return new TokenIndexerAsterisk(token.lineNumber);
+                case TokenUnresolvedPPV unresolvedPPV:
+                    return new TokenIndexerUnresolvedPPV(unresolvedPPV, token.lineNumber);
+            }
+            
             if(forExceptions == null)
                 throw new TokenizerException($"Cannot index/scope with a token: " + token.DebugString(), new[] { token.lineNumber });
-            else
-                throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + token.DebugString());
+            
+            throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + token.DebugString());
         }
         /// <summary>
         /// Creates an indexer based on the type of literal given.
@@ -54,22 +57,24 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="literal">The literal to wrap in an indexer.</param>
         /// <param name="forExceptions">Statement that would be considered the one throwing this exception. If null, will throw a tokenizer exception.</param>
         /// <returns></returns>
-        public static TokenIndexer CreateIndexer(TokenLiteral literal, Statement forExceptions = null)
+        protected static TokenIndexer CreateIndexer(TokenLiteral literal, Statement forExceptions = null)
         {
             int lineNumber = literal.lineNumber;
 
-            if (literal is TokenIntegerLiteral intLiteral)
-                return new TokenIndexerInteger(intLiteral, lineNumber);
-            else if (literal is TokenStringLiteral stringLiteral)
-                return new TokenIndexerString(stringLiteral, lineNumber);
-            else if (literal is TokenSelectorLiteral selectorLiteral)
-                return new TokenIndexerSelector(selectorLiteral, lineNumber);
+            switch (literal)
+            {
+                case TokenIntegerLiteral intLiteral:
+                    return new TokenIndexerInteger(intLiteral, lineNumber);
+                case TokenStringLiteral stringLiteral:
+                    return new TokenIndexerString(stringLiteral, lineNumber);
+                case TokenSelectorLiteral selectorLiteral:
+                    return new TokenIndexerSelector(selectorLiteral, lineNumber);
+            }
 
-            // throw exception
             if (forExceptions == null)
                 throw new TokenizerException($"Cannot index/scope with a token: " + literal.DebugString(), new[] { literal.lineNumber } );
-            else
-                throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + literal.DebugString());
+            
+            throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + literal.DebugString());
         }
 
         /// <summary>
@@ -113,7 +118,7 @@ namespace mc_compiled.MCC.Compiler
             TokenLiteral _value = resolvedValues[0];
 
             // return one of the primary allowed indexer types.
-            return TokenIndexer.CreateIndexer(_value, runningStatement);
+            return CreateIndexer(_value, runningStatement);
         }
     }
     /// <summary>
@@ -154,14 +159,24 @@ namespace mc_compiled.MCC.Compiler
     {
         public override string AsString() => $"[{token.selector}]";
 
-        public TokenSelectorLiteral token;
+        public readonly TokenSelectorLiteral token;
         public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(lineNumber)
         {
             this.token = token;
         }
         public override Token GetIndexerToken() => token;
     }
+    /// <summary>
+    /// An indexer for a single asterisk character (*).
+    /// </summary>
+    public sealed class TokenIndexerAsterisk : TokenIndexer
+    {
+        public override string AsString() => "*";
+        public TokenIndexerAsterisk(int lineNumber) : base(lineNumber) { }
 
+        public override Token GetIndexerToken() => new TokenMultiply(lineNumber);
+    }
+    
 
     /// <summary>
     /// Represents a generic bracket, not open or closed.

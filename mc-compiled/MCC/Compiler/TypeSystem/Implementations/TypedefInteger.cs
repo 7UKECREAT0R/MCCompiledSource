@@ -8,8 +8,6 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 {
     internal class TypedefInteger : Typedef
     {
-        internal TypedefInteger() {}
-        
         // Data
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.INT;
         public override string TypeShortcode => "INT";
@@ -42,7 +40,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             {
                 case TypedefInteger _:
                 {
-                    return new string[] { Command.ScoreboardOpSet(dst, src) };
+                    return new[] { Command.ScoreboardOpSet(dst, src) };
                 }
                 case TypedefFixedDecimal _:
                 {
@@ -52,7 +50,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     ScoreboardManager manager = src.manager;
                     ScoreboardValue temp = manager.temps.RequestGlobal();
                     
-                    return new string[]
+                    return new[]
                     {
                         Command.ScoreboardSet(temp, factor),
                         Command.ScoreboardOpSet(dst, src),
@@ -89,7 +87,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
             return new Tuple<string[], ConditionalSubcommandScore[]>(
                 null,
-                new ConditionalSubcommandScore[]
+                new[]
                 {
                     ConditionalSubcommandScore.New(self, comparisonType.AsRange(value))
                 }

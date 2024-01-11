@@ -1,6 +1,8 @@
 ﻿using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Functions;
 using System;
+using System.Diagnostics;
+using mc_compiled.MCC.Attributes;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -35,6 +37,7 @@ namespace mc_compiled.MCC.Compiler
                 case 0:
                     return new TokenIdentifier(directive.identifier, lineNumber);
                 case 1:
+                    Debug.Assert(directive.enumValue != null, "directive.enumValue was null");
                     return new TokenIdentifierEnum(directive.identifier, directive.enumValue.Value, lineNumber);
             }
             return null;
@@ -173,7 +176,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents an enum constant defined by the compiler.
     /// </summary>
-    public sealed class TokenIdentifierEnum : TokenIdentifier, IPreprocessor, IDocumented
+    public sealed class TokenIdentifierEnum : TokenIdentifier, IDocumented
     {
         public readonly Commands.ParsedEnumValue value;
         internal TokenIdentifierEnum() : base(null, -1) { }
@@ -205,7 +208,6 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public string ClarifierStr => value.clarifier.CurrentString;
 
-        internal TokenIdentifierValue() : base(null, -1) { } 
         public TokenIdentifierValue(string word, ScoreboardValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
@@ -213,18 +215,27 @@ namespace mc_compiled.MCC.Compiler
 
         public Token Index(TokenIndexer indexer, Statement forExceptions)
         {
+            if (value.HasAttribute<AttributeGlobal>() || value.clarifier.IsGlobal)
+                throw new StatementException(forExceptions, "Cannot clarify a value that is defined as global.");
+            
             switch (indexer)
             {
                 case TokenIndexerString @string:
                 {
-                    var clone = value.Clone(forExceptions) as ScoreboardValue;
+                    ScoreboardValue clone = value.Clone(forExceptions);
                     string fakePlayer = @string.token.text;
                     clone.clarifier.SetString(fakePlayer);
                     return new TokenIdentifierValue(word, clone, lineNumber);
                 }
+                case TokenIndexerAsterisk _:
+                {
+                    ScoreboardValue clone = value.Clone(forExceptions);
+                    clone.clarifier.SetString("*");
+                    return new TokenIdentifierValue(word, clone, lineNumber);
+                }
                 case TokenIndexerSelector selector:
                 {
-                    var clone = value.Clone(forExceptions) as ScoreboardValue;
+                    ScoreboardValue clone = value.Clone(forExceptions);
                     clone.clarifier.SetSelector(selector.token.selector);
                     return new TokenIdentifierValue(word, clone, lineNumber);
                 }

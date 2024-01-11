@@ -17,7 +17,6 @@ namespace mc_compiled.MCC.Compiler
         public const string DEFAULT_CLARIFIER = "@s";
 
         private bool global;
-        private string currentString;
 
         /// <summary>
         /// Creates a new Clarifier with the default string attached to the global state.
@@ -31,7 +30,7 @@ namespace mc_compiled.MCC.Compiler
         public Clarifier(bool global, string currentString)
         {
             this.global = global;
-            this.currentString = currentString;
+            this.CurrentString = currentString;
         }
         /// <summary>
         /// Return a deep clone of this clarifier.
@@ -39,7 +38,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Clarifier Clone()
         {
-            return new Clarifier(this.global, this.currentString);
+            return new Clarifier(this.global, this.CurrentString);
         }
 
         public static Clarifier Local() => new Clarifier(false);
@@ -51,17 +50,15 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="newGlobal">Whether to have global set or not.</param>
         /// <returns>This object for chaining.</returns>
-        public Clarifier SetGlobal(bool newGlobal)
+        public void SetGlobal(bool newGlobal)
         {
             this.global = newGlobal;
             this.Reset();
-            return this;
         }
-        public Clarifier CopyFrom(Clarifier other)
+        public void CopyFrom(Clarifier other)
         {
             this.global = other.global;
-            this.currentString = other.currentString;
-            return this;
+            this.CurrentString = other.CurrentString;
         }
 
         /// <summary>
@@ -69,10 +66,8 @@ namespace mc_compiled.MCC.Compiler
         /// <br />
         /// To set, use <see cref="SetSelector(Selector)"/> or <see cref="SetString(string)"/>
         /// </summary>
-        public string CurrentString
-        {
-            get => currentString;
-        }
+        public string CurrentString { get; private set; }
+
         /// <summary>
         /// Returns if the clarifier was defined as global.
         /// </summary>
@@ -84,12 +79,9 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Reset this clarifier to its default value, changing depending on if it's <see cref="global"/> or not.
         /// </summary>
-        public void Reset()
+        private void Reset()
         {
-            if (global)
-                currentString = Executor.FAKEPLAYER_NAME;
-            else
-                currentString = DEFAULT_CLARIFIER;
+            CurrentString = global ? Executor.FAKEPLAYER_NAME : DEFAULT_CLARIFIER;
         }
 
         /// <summary>
@@ -98,9 +90,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="selector">The selector.</param>
         public void SetSelector(Selector selector)
         {
-            Debug.Assert(!global, "Attempted to clarify a global value.");
             string str = selector.ToString();
-            this.currentString = str;
+            this.CurrentString = str;
         }
         /// <summary>
         /// Sets the clarifier to a specific string.
@@ -108,8 +99,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="str">The string.</param>
         public void SetString(string str)
         {
-            Debug.Assert(!global, "Attempted to clarify a global value.");
-            this.currentString = str;
+            this.CurrentString = str;
         }
     }
 }

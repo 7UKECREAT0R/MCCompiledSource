@@ -18,7 +18,7 @@ namespace mc_compiled.MCC
         /// <summary>
         /// An identifier used in this project's entities/assets.
         /// </summary>
-        public string Identifier
+        private string Identifier
         {
             get => name.ToLower().Replace(' ', '_').Trim();
         }
@@ -96,12 +96,13 @@ namespace mc_compiled.MCC
                 file.Add("# Removes return values used by the compiled code.");
 
                 var objectives = new HashSet<string>();
-                foreach (Typedef returnedType in parentExecutor.definedReturnedTypes)
+                
+                foreach (string objective in parentExecutor
+                             .definedReturnedTypes
+                             .Select(returnedType => new ScoreboardValue(ScoreboardValue.RETURN_NAME, false, returnedType, parentExecutor.scoreboard))
+                             .SelectMany(value => value.GetObjectives()))
                 {
-                    var value = new ScoreboardValue(ScoreboardValue.RETURN_NAME,
-                        false, returnedType, parentExecutor.scoreboard);
-                    foreach (string objective in value.GetObjectives())
-                        objectives.Add(objective);
+                    objectives.Add(objective);
                 }
 
                 foreach (string objective in objectives)
@@ -167,13 +168,14 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Attempts to add a file to this project, skipping the operation entirely if it's null.
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="file">The file to be added to the project.</param>
         internal void TryAddFile(IAddonFile file)
         {
             if (file == null)
                 return;
             files.Add(file);
         }
+
         /// <summary>
         /// Adds a file to this project.
         /// </summary>
@@ -242,7 +244,7 @@ namespace mc_compiled.MCC
             bool hasResourceManifest = File.Exists(resourceManifestLocation);
             bool needsBehaviorManifest = !hasBehaviorManifest & files.Any(file => file.GetOutputLocation().IsBehavior());
             bool needsResourceManifest = !hasResourceManifest & files.Any(file => !file.GetOutputLocation().IsBehavior());
-
+            
             Manifest behaviorManifest = null;
             Manifest resourceManifest = null;
 

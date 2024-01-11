@@ -53,5 +53,7 @@ namespace mc_compiled.MCC.Attributes
 
         public void OnCalledFunction(RuntimeFunction function,
             List<string> commands, Executor executor, Statement statement) {}
+        
+        
     }
 }

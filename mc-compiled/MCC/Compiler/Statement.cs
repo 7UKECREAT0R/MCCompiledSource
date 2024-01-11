@@ -346,7 +346,7 @@ namespace mc_compiled.MCC.Compiler
                     tokens[i - 1] = current;
 
                     // 'i' is setup so that the next iteration here will run over 'current'.
-                    // just incase it needs to be resolved further past this point.
+                    // just in case it needs to be resolved further past this point.
                     continue;
                 }
 

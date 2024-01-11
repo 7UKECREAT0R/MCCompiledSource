@@ -16,7 +16,7 @@ namespace mc_compiled.MCC
         public static Definitions GLOBAL_DEFS;
 
         public const string FILE = "definitions.def";
-        public static readonly Regex DEF_REGEX = new Regex("\\[([\\w ]+):\\s*([\\w ,]+)\\]");
+        public static readonly Regex DEF_REGEX = new Regex(@"\[([\w ]+):\s*([\w ,]+)\]");
 
         internal readonly Dictionary<string, string> defs;
 
