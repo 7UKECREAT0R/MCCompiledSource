@@ -1,40 +1,59 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
-    /// A container holding multiple dynamic values with support for reallocation like a list when needed.
-    /// Think of this like a hybrid between a dynamic[] and List[dynamic].
+    /// A preprocessor variable.
     /// </summary>
-    public class PreprocessorVariable
+    public class PreprocessorVariable : PreprocessorVariableRaw<dynamic>
     {
-        private dynamic[] items;
+        public PreprocessorVariable(params dynamic[] items) : base(items) {}
+
+        /// <summary>
+        /// Creates a shallow copy of this preprocessor variable, copying the internal array but not the items.
+        /// </summary>
+        public PreprocessorVariable Clone()
+        {
+            dynamic[] clonedItems = new dynamic[Length];
+            Array.Copy(items, clonedItems, Length);
+            return new PreprocessorVariable(clonedItems);
+        }
+    }
+    
+    /// <summary>
+    /// A container holding multiple T values with support for reallocation like a list when needed.
+    /// Think of this like a hybrid between a T[] and List[T].
+    /// </summary>
+    public class PreprocessorVariableRaw<T> : IEnumerable<T>
+    {
+        protected T[] items;
         
         [PublicAPI]
         public int Length { get; private set; }
         [PublicAPI]
         public int Capacity { get; private set; }
         
-        public PreprocessorVariable(params dynamic[] items)
+        public PreprocessorVariableRaw(params T[] items)
         {
             if (items.Length == 0)
-                throw new Exception("Attempted to create empty PreprocessorVariable.");
+                throw new Exception("Cannot create empty PreprocessorVariable.");
             
             this.items = items;
             Length = items.Length;
             Capacity = items.Length;
         }
-
+        
         /// <summary>
         /// Retrieves the element at the specified index.
         /// </summary>
         /// <param name="index">The zero-based index of the element to retrieve.</param>
         /// <returns>The element at the specified index.</returns>
         /// <exception cref="IndexOutOfRangeException">Thrown when the index is out of range.</exception>
-        public dynamic Get(int index)
+        private T Get(int index)
         {
             if (index >= Length)
                 throw new IndexOutOfRangeException();
@@ -46,18 +65,33 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="index">The index at which to set the item.</param>
         /// <param name="item">The item to be set.</param>
         /// <exception cref="IndexOutOfRangeException">Thrown if the index is out of range.</exception>
-        public void Set(int index, dynamic item)
+        private void Set(int index, T item)
         {
             if (index >= Length)
                 throw new IndexOutOfRangeException();
             items[index] = item;
         }
+        /// <summary>
+        /// Sets all the items of the preprocessor variable with the specified items.
+        /// </summary>
+        /// <typeparam name="T">The type of items.</typeparam>
+        /// <param name="items">The items to set in the preprocessor variable.</param>
+        /// <exception cref="Exception">Thrown when the items array is empty.</exception>
+        public void SetAll(params T[] items)
+        {
+            if (items.Length == 0)
+                throw new Exception("Cannot fill preprocessor variable with 0 items.");
 
+            this.items = items;
+            Length = items.Length;
+            Capacity = items.Length;
+        }
+        
         /// <summary>
         /// Adds an item to the collection.
         /// </summary>
         /// <param name="item">The item to be added.</param>
-        public void Add(dynamic item)
+        public void Add(T item)
         {
             if (Length == Capacity)
             {
@@ -84,6 +118,24 @@ namespace mc_compiled.MCC.Compiler
                 items[i] = items[i + 1];
             }
             Length--;
+        }
+        
+        public T this[int index]
+        {
+            get => Get(index);
+            set => Set(index, value);
+        }
+        
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < Length; i++)
+            {
+                yield return items[i];
+            }
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

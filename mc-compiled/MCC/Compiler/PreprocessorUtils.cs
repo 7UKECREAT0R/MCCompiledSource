@@ -2,6 +2,7 @@
 using mc_compiled.Commands;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using mc_compiled.MCC.Attributes;
 
 namespace mc_compiled.MCC.Compiler
@@ -52,7 +53,14 @@ namespace mc_compiled.MCC.Compiler
                     int time = (int)Math.Round(token.Value<TimeSpan>().TotalSeconds * 20d); // convert to ticks
                     output = new TokenIntegerLiteral(time, IntMultiplier.s, lineNumber);
                     return true;
-
+                case JTokenType.None:
+                case JTokenType.Constructor:
+                case JTokenType.Property:
+                case JTokenType.Comment:
+                case JTokenType.Null:
+                case JTokenType.Undefined:
+                case JTokenType.Raw:
+                case JTokenType.Bytes:
                 default:
                     output = null;
                     return false;
@@ -96,6 +104,14 @@ namespace mc_compiled.MCC.Compiler
                 case JTokenType.TimeSpan:
                     obj = (int)Math.Round(token.Value<TimeSpan>().TotalSeconds * 20d); // convert to ticks
                     return true;
+                case JTokenType.None:
+                case JTokenType.Constructor:
+                case JTokenType.Property:
+                case JTokenType.Comment:
+                case JTokenType.Null:
+                case JTokenType.Undefined:
+                case JTokenType.Raw:
+                case JTokenType.Bytes:
                 default:
                     obj = null;
                     return false;
@@ -140,7 +156,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <param name="tree"></param>
         /// <returns></returns>
-        public static string[] ParseAccessor(string tree)
+        public static IEnumerable<string> ParseAccessor(string tree)
         {
             char[] SEPARATORS = { '.', '/' };
             return tree.Split(SEPARATORS);

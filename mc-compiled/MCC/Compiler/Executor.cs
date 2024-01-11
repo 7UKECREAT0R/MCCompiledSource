@@ -113,8 +113,8 @@ namespace mc_compiled.MCC.Compiler
         private readonly PreviousComparisonStructure[] lastCompare;
         private readonly StringBuilder prependBuffer;
         private readonly Stack<CommandFile> currentFiles;
-
-        internal int testCount;
+        private int testCount;
+        
         internal int depth;
         internal bool linting;
         internal readonly ScoreboardManager scoreboard;
@@ -122,14 +122,9 @@ namespace mc_compiled.MCC.Compiler
         internal readonly FunctionManager functions;
         internal readonly HashSet<string> definedTags;
         internal readonly HashSet<Typedef> definedReturnedTypes;
-        internal readonly Dictionary<string, dynamic[]> ppv;
-        
-        /// <summary>
-        /// Get the bracket depth of the executor currently.
-        /// </summary>
-        public int Depth => depth;
+        internal readonly Dictionary<string, PreprocessorVariable> ppv;
 
-        internal Executor(Statement[] statements, Program.InputPPV[] inputPPVs,
+        internal Executor(Statement[] statements, IReadOnlyCollection<Program.InputPPV> inputPPVs,
             string projectName, string bpBase, string rpBase)
         {
             this.statements = statements;
@@ -137,14 +132,14 @@ namespace mc_compiled.MCC.Compiler
             this.entities = new EntityManager(this);
 
             definedStdFiles = new List<int>();
-            ppv = new Dictionary<string, dynamic[]>();
+            ppv = new Dictionary<string, PreprocessorVariable>();
             macros = new List<Macro>();
             definedTags = new HashSet<string>();
             definedReturnedTypes = new HashSet<Typedef>();
 
-            if (inputPPVs != null && inputPPVs.Length > 0)
+            if (inputPPVs != null && inputPPVs.Count > 0)
                 foreach (Program.InputPPV ppv in inputPPVs)
-                    SetPPV(ppv.name, new object[] { ppv.value });
+                    SetPPV(ppv.name, ppv.value);
 
             // support up to MAXIMUM_SCOPE levels of scope before blowing up
             lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
@@ -158,10 +153,10 @@ namespace mc_compiled.MCC.Compiler
 
             functions = new FunctionManager(scoreboard);
             functions.RegisterDefaultProviders();
-
+            
             SetCompilerPPVs();
-
-            InitFile = new CommandFile(true, projectName + "_init"); // don't need to push it, special case
+            
+            InitFile = new CommandFile(true, "init"); // don't need to push it, special case
             HeadFile = new CommandFile(true, projectName).AsRoot();
             currentFiles.Push(HeadFile);
         }
@@ -169,11 +164,10 @@ namespace mc_compiled.MCC.Compiler
         /// Returns this executor after setting it to lint mode, lowering memory usage
         /// </summary>
         /// <returns></returns>
-        internal Executor Linter()
+        internal void Linter()
         {
-            this.linting = true;
-            this.project.Linter();
-            return this;
+            linting = true;
+            project.Linter();
         }
 
         /// <summary>
@@ -412,12 +406,12 @@ namespace mc_compiled.MCC.Compiler
             return null; // return value isn't used in this case
         }
 
-        private LanguageManager languageManager = null;
+        private LanguageManager languageManager;
 
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
         /// </summary>
-        private LocaleDefinition ActiveLocale { get; set; } = null;
+        private LocaleDefinition ActiveLocale { get; set; }
 
         /// <summary>
         /// Returns if a locale has been set via <see cref="SetLocale(string)"/>.
@@ -454,13 +448,13 @@ namespace mc_compiled.MCC.Compiler
 
             bool merge;
 
-            if(ppv.TryGetValue(LanguageManager.MERGE_PPV, out dynamic[] val))
+            if(ppv.TryGetValue(LanguageManager.MERGE_PPV, out PreprocessorVariable val))
                 merge = (bool)val[0];
             else
                 merge = false;
 
             var entry = LangEntry.Create(key, value);
-            return this.ActiveLocale.file.Add(entry, overwrite, merge);
+            return ActiveLocale.file.Add(entry, overwrite, merge);
         }
 
         public void UnreachableCode() =>
@@ -650,8 +644,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Define a file that sort-of equates to a "standard library." Will only be added once.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="file"></param>
+        /// <param name="file">The command file to define as a standard library file.</param>
         public void DefineSTDFile(CommandFile file)
         {
             if (definedStdFiles.Contains(file.GetHashCode()))
@@ -659,11 +652,12 @@ namespace mc_compiled.MCC.Compiler
             definedStdFiles.Add(file.GetHashCode());
             AddExtraFile(file);
         }
+
         /// <summary>
-        /// Returns if the given CommandFile is present in the definedStdFiles list.
+        /// Determines if the given CommandFile exists in the definedStdFiles list.
         /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
+        /// <param name="file">The CommandFile object to check for.</param>
+        /// <returns>True if the CommandFile exists in the definedStdFiles list; otherwise, false.</returns>
         public bool HasSTDFile(CommandFile file)
         {
             return definedStdFiles.Contains(file.GetHashCode());
@@ -910,13 +904,13 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         private void SetCompilerPPVs()
         {
-            ppv["_minecraft"] = new dynamic[] { MINECRAFT_VERSION };
-            ppv["_compiler"] = new dynamic[] { MCC_VERSION };
-            ppv["_realtime"] = new dynamic[] { DateTime.Now.ToShortTimeString() };
-            ppv["_realdate"] = new dynamic[] { DateTime.Now.ToShortDateString() };
-            ppv["_timeformat"] = new dynamic[] { TimeFormat.Default.ToString() };
-            ppv["_true"] = new dynamic[] { "true" };
-            ppv["_false"] = new dynamic[] { "false" };
+            ppv["_minecraft"] = new PreprocessorVariable("_minecraft", MINECRAFT_VERSION);
+            ppv["_compiler"] = new PreprocessorVariable("_compiler", MCC_VERSION);
+            ppv["_realtime"] = new PreprocessorVariable("_realtime", DateTime.Now.ToShortTimeString());
+            ppv["_realdate"] = new PreprocessorVariable("_realdate", DateTime.Now.ToShortDateString());
+            ppv["_timeformat"] = new PreprocessorVariable("_timeformat", TimeFormat.Default.ToString());
+            ppv["_true"] = new PreprocessorVariable("_true", "true");
+            ppv["_false"] = new PreprocessorVariable("_false", "false");
         }
         /// <summary>
         /// Run this executor start to finish.
@@ -1315,19 +1309,25 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool TryGetPPV(string name, out dynamic[] value)
+        public bool TryGetPPV(string name, out PreprocessorVariable value)
         {
             if (name.StartsWith("$"))
                 name = name.Substring(1);
             return ppv.TryGetValue(name, out value);
         }
+
         /// <summary>
         /// Set or create a preprocessor variable.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="values"></param>
-        public void SetPPV(string name, object[] values) =>
-            ppv[name] = values;
+        public void SetPPV(string name, params dynamic[] values)
+        {
+            if (ppv.TryGetValue(name, out PreprocessorVariable existing))
+                existing.SetAll(values);
+            ppv[name] = new PreprocessorVariable(name, values);
+        }
+
         /// <summary>
         /// Get the names of all registered preprocessor variables.
         /// </summary>
@@ -1360,7 +1360,7 @@ namespace mc_compiled.MCC.Compiler
                 int offset = lastIndex < 0 ? 0 : lastIndex;
                 int insertIndex = match.Index + offset;
 
-                // If there are an odd number of preceeding backslashes, this is escaped.
+                // If there are an odd number of preceding backslashes, this is escaped.
                 if (backslashes % 2 == 1)
                 {
                     sb.Remove(match.Index + lastIndex, 1);
@@ -1368,7 +1368,7 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 string ppvName = text.Substring(lastIndex + 1);
-                if (!TryGetPPV(ppvName, out dynamic[] values))
+                if (!TryGetPPV(ppvName, out PreprocessorVariable values))
                     continue; // no ppv named that
 
                 string insertText = values.Length > 1 ? string.Join(" ", values) : (string) values[0].ToString();
@@ -1391,7 +1391,7 @@ namespace mc_compiled.MCC.Compiler
             int line = unresolved.lineNumber;
             string word = unresolved.word;
 
-            if (!TryGetPPV(word, out dynamic[] values))
+            if (!TryGetPPV(word, out PreprocessorVariable values))
                 throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
             
             var literals = new TokenLiteral[values.Length];
@@ -1429,7 +1429,7 @@ namespace mc_compiled.MCC.Compiler
             int line = unresolved.lineNumber;
             string word = unresolved.word;
 
-            if(TryGetPPV(word, out dynamic[] values))
+            if(TryGetPPV(word, out PreprocessorVariable values))
             {
                 int length = values.Length;
                 if(length > 1)

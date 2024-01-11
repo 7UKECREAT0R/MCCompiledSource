@@ -16,8 +16,9 @@ namespace mc_compiled.MCC.Functions
         /// All of the functions currently in the project.
         /// </summary>
         private Dictionary<string, List<Function>> functionRegistry;
-        private List<TestFunction> tests;
+        private readonly List<TestFunction> tests;
         private readonly ScoreboardManager scoreboardManager;
+        
 
         /// <summary>
         /// Contains all compiler-implemented providers that should be added on new instances of a FunctionManager.
@@ -64,9 +65,11 @@ namespace mc_compiled.MCC.Functions
 
             RegisterUnderName(key, function);
 
-            if (aliases != null)
-                foreach (string alias in aliases)
-                    RegisterUnderName(alias, function);
+            if (aliases == null)
+                return;
+            
+            foreach (string alias in aliases)
+                RegisterUnderName(alias, function);
         }
         /// <summary>
         /// Registers a function under a specific name. Ignores keyword and aliases of the function itself.
@@ -75,9 +78,7 @@ namespace mc_compiled.MCC.Functions
         /// <param name="function"></param>
         private void RegisterUnderName(string name, Function function)
         {
-            List<Function> functions;
-
-            if (!functionRegistry.TryGetValue(name, out functions))
+            if (!functionRegistry.TryGetValue(name, out List<Function> functions))
                 functions = new List<Function>();
 
             functions.Add(function);

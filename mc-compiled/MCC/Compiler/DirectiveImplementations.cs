@@ -41,9 +41,9 @@ namespace mc_compiled.MCC.Compiler
         {
             if (forcePPV != null)
             {
-                if (executor.TryGetPPV(forcePPV, out dynamic[] ppv))
+                if (executor.TryGetPPV(forcePPV, out PreprocessorVariable ppv))
                 {
-                    return ppv;
+                    return ppv.ToArray();
                 }
 
                 throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{forcePPV}'.");
@@ -53,9 +53,9 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIdentifier>(false))
             {
                 var identifier = tokens.Next<TokenIdentifier>();
-                if (executor.TryGetPPV(identifier.word, out dynamic[] ppv))
+                if (executor.TryGetPPV(identifier.word, out PreprocessorVariable ppv))
                 {
-                    return ppv;
+                    return ppv.ToArray();
                 }
                 throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{identifier.word}'.");
             }
@@ -83,7 +83,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _inc(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            if (executor.TryGetPPV(varName, out dynamic[] value))
+            if (executor.TryGetPPV(varName, out PreprocessorVariable value))
             {
                 try
                 {
@@ -103,7 +103,7 @@ namespace mc_compiled.MCC.Compiler
         public static void _dec(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>().word;
-            if (executor.TryGetPPV(varName, out dynamic[] value))
+            if (executor.TryGetPPV(varName, out PreprocessorVariable value))
             {
                 try
                 {
@@ -288,9 +288,9 @@ namespace mc_compiled.MCC.Compiler
             string aName = tokens.Next<TokenIdentifier>().word;
             string bName = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(aName, out dynamic[] a))
+            if (executor.TryGetPPV(aName, out PreprocessorVariable a))
             {
-                if (executor.TryGetPPV(bName, out dynamic[] b))
+                if (executor.TryGetPPV(bName, out PreprocessorVariable b))
                 {
                     executor.SetPPV(aName, b);
                     executor.SetPPV(bName, a);
@@ -304,7 +304,7 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void _if(Executor executor, Statement tokens)
         {
-            dynamic[] tokensA, tokensB;
+            PreprocessorVariable tokensA, tokensB;
 
             if (tokens.NextIs<TokenIdentifier>(false))
             {
@@ -315,7 +315,7 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 var firstToken = tokens.Next<IPreprocessor>();
-                tokensA = new dynamic[] { firstToken.GetValue() };
+                tokensA = new PreprocessorVariable { firstToken.GetValue() };
             }
 
             var compare = tokens.Next<TokenCompare>();
@@ -329,7 +329,7 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 var secondToken = tokens.Next<IPreprocessor>();
-                tokensB = new dynamic[] { secondToken.GetValue() };
+                tokensB = new PreprocessorVariable { secondToken.GetValue() };
             }
 
             if(tokensA.Length != tokensB.Length)
@@ -432,7 +432,7 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void _assert(Executor executor, Statement tokens)
         {
-            dynamic[] tokensA, tokensB;
+            PreprocessorVariable tokensA, tokensB;
 
             if (tokens.NextIs<TokenIdentifier>(false))
             {
@@ -443,7 +443,7 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 var firstToken = tokens.Next<IPreprocessor>();
-                tokensA = new dynamic[] { firstToken.GetValue() };
+                tokensA = new PreprocessorVariable { firstToken.GetValue() };
             }
 
             var compare = tokens.Next<TokenCompare>();
@@ -457,7 +457,7 @@ namespace mc_compiled.MCC.Compiler
             else
             {
                 var secondToken = tokens.Next<IPreprocessor>();
-                tokensB = new dynamic[] { secondToken.GetValue() };
+                tokensB = new PreprocessorVariable { secondToken.GetValue() };
             }
 
             if (tokensA.Length != tokensB.Length)
@@ -547,7 +547,7 @@ namespace mc_compiled.MCC.Compiler
                 for (int i = min; i <= max; i++)
                 {
                     if (tracker != null)
-                        executor.SetPPV(tracker, new dynamic[] { i });
+                        executor.SetPPV(tracker, new PreprocessorVariable { i });
                     executor.ExecuteSubsection(statements);
                 }
             } else
@@ -555,7 +555,7 @@ namespace mc_compiled.MCC.Compiler
                 for (int i = 0; i < amount; i++)
                 {
                     if (tracker != null)
-                        executor.SetPPV(tracker, new dynamic[] { i });
+                        executor.SetPPV(tracker, new PreprocessorVariable { i });
                     executor.ExecuteSubsection(statements);
                 }
             }
@@ -623,7 +623,7 @@ namespace mc_compiled.MCC.Compiler
 
             Macro lookedUp = _lookedUp.Value;
             string[] argNames = lookedUp.argNames;
-            dynamic[][] args = new dynamic[argNames.Length][];
+            var args = new PreprocessorVariable[argNames.Length];
 
             // get input variables
             for (int i = 0; i < argNames.Length; i++)
@@ -633,25 +633,25 @@ namespace mc_compiled.MCC.Compiler
 
                 if (tokens.NextIs<TokenUnresolvedPPV>())
                 {
-                    args[i] = executor
+                    // ReSharper disable once RedundantEnumerableCastCall
+                    args[i] = new PreprocessorVariable(executor
                         .ResolvePPV(tokens.Next<TokenUnresolvedPPV>(), tokens)
-                        .Cast<dynamic>()
-                        .ToArray();
+                        .Cast<dynamic>());
                     continue;
                 }
 
                 if (!tokens.NextIs<IPreprocessor>())
                     throw new StatementException(tokens, "Invalid argument type for '" + argNames[i] + "' in macro call.");
 
-                args[i] = new dynamic[] { tokens.Next<IPreprocessor>().GetValue() };
+                args[i] = new PreprocessorVariable { tokens.Next<IPreprocessor>().GetValue() };
             }
 
             // save variables which collide with this macro's args.
             var collidedValues
-                = new Dictionary<string, dynamic[]>();
+                = new Dictionary<string, PreprocessorVariable>();
             foreach (string arg in lookedUp.argNames)
-                if (executor.TryGetPPV(arg, out dynamic[] value))
-                    collidedValues[arg] = value;
+                if (executor.TryGetPPV(arg, out PreprocessorVariable value))
+                    collidedValues[arg] = value.Clone();
 
             // set input variables
             for (int i = 0; i < argNames.Length; i++)
@@ -671,7 +671,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // restore variables
-            foreach (KeyValuePair<string, dynamic[]> kv in collidedValues)
+            foreach (KeyValuePair<string, PreprocessorVariable> kv in collidedValues)
                 executor.SetPPV(kv.Key, kv.Value);
         }
         [UsedImplicitly]
@@ -715,7 +715,7 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenIdentifier>().word :
                 output;
 
-            if (executor.TryGetPPV(input, out dynamic[] value))
+            if (executor.TryGetPPV(input, out PreprocessorVariable value))
             {
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
@@ -746,7 +746,7 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenIdentifier>().word :
                 output;
 
-            if (executor.TryGetPPV(input, out dynamic[] value))
+            if (executor.TryGetPPV(input, out PreprocessorVariable value))
             {
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
@@ -768,7 +768,7 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenIdentifier>().word :
                 output;
 
-            if (executor.TryGetPPV(input, out dynamic[] value))
+            if (executor.TryGetPPV(input, out PreprocessorVariable value))
             {
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
@@ -790,14 +790,14 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenIdentifier>().word :
                 output;
 
-            if (executor.TryGetPPV(input, out dynamic[] values))
+            if (executor.TryGetPPV(input, out PreprocessorVariable values))
             {
                 try
                 {
                     dynamic result = values[0];
                     for (int i = 1; i < values.Length; i++)
                         result += values[i];
-                    executor.SetPPV(output, new dynamic[] { result });
+                    executor.SetPPV(output, result);
                 }
                 catch (Exception)
                 {
@@ -815,12 +815,12 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenIdentifier>().word :
                 output;
 
-            if (executor.TryGetPPV(input, out dynamic[] values))
+            if (executor.TryGetPPV(input, out PreprocessorVariable values))
             {
                 try
                 {
                     int len = values.Length;
-                    if (len < 2)
+                    if (len == 1)
                     {
                         executor.SetPPV(output, new[] { values[0] });
                     }
@@ -854,16 +854,23 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenIdentifier>().word :
                 output;
 
-            if (executor.TryGetPPV(input, out dynamic[] values))
+            if (executor.TryGetPPV(input, out PreprocessorVariable values))
             {
                 try
                 {
                     int length = values.Length;
+
+                    if (length == 1)
+                    {
+                        executor.SetPPV(output, new[] { values[0] });
+                        return;
+                    }
+                    
                     dynamic result = values[0];
                     for (int i = 1; i < length; i++)
                         result += values[i];
                     result /= length;
-                    executor.SetPPV(output, new dynamic[] { result });
+                    executor.SetPPV(output, new[] { result });
                 }
                 catch (Exception)
                 {
@@ -879,7 +886,7 @@ namespace mc_compiled.MCC.Compiler
             string sortDirection = tokens.Next<TokenIdentifier>().word.ToUpper();
             string variable = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(variable, out dynamic[] values))
+            if (executor.TryGetPPV(variable, out PreprocessorVariable values))
             {
                 try
                 {
@@ -904,7 +911,7 @@ namespace mc_compiled.MCC.Compiler
         {
             string variable = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(variable, out dynamic[] values))
+            if (executor.TryGetPPV(variable, out PreprocessorVariable values))
             {
                 if (values.Length < 2)
                     return;
@@ -935,7 +942,7 @@ namespace mc_compiled.MCC.Compiler
         {
             string variable = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(variable, out dynamic[] values))
+            if (executor.TryGetPPV(variable, out PreprocessorVariable values))
             {
                 if (values.Length < 2)
                     return;
@@ -962,7 +969,7 @@ namespace mc_compiled.MCC.Compiler
             string input = tokens.Next<TokenIdentifier>().word;
             string current = tokens.Next<TokenIdentifier>().word;
 
-            if (!executor.TryGetPPV(input, out dynamic[] values))
+            if (!executor.TryGetPPV(input, out PreprocessorVariable values))
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
 
             Statement[] statements = executor.NextExecutionSet();
@@ -982,7 +989,7 @@ namespace mc_compiled.MCC.Compiler
                         IterateArray(array);
                         break;
                     default:
-                        executor.SetPPV(current, new dynamic[] { value });
+                        executor.SetPPV(current, value);
                         executor.ExecuteSubsection(statements);
                         break;
                 }
@@ -999,7 +1006,7 @@ namespace mc_compiled.MCC.Compiler
                         if (obj == null)
                             throw new StatementException(tokens, $"Couldn't unwrap JSON token to be placed in a preprocessor variable: {arrayItem.ToString()}");
 
-                        executor.SetPPV(current, new dynamic[] { obj });
+                        executor.SetPPV(current, obj);
                         executor.ExecuteSubsection(statements);
                     }
                     else
@@ -1016,7 +1023,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 // String
                 string inputString = tokens.Next<TokenStringLiteral>().text;
-                executor.SetPPV(output, new dynamic[] { inputString.Length });
+                executor.SetPPV(output, inputString.Length);
                 return;
             }
 
@@ -1028,7 +1035,7 @@ namespace mc_compiled.MCC.Compiler
                 if (!(inputJSON is JArray array))
                     throw new StatementException(tokens, "Cannot get the length of a non-array JSON token.");
                 
-                executor.SetPPV(output, new dynamic[] { array.Count });
+                executor.SetPPV(output, array.Count);
                 return;
 
             }
@@ -1036,10 +1043,10 @@ namespace mc_compiled.MCC.Compiler
             // Preprocessor Variable
             string input = tokens.Next<TokenIdentifier>().word;
 
-            if (executor.TryGetPPV(input, out dynamic[] values))
+            if (executor.TryGetPPV(input, out PreprocessorVariable values))
             {
                 int length = values.Length;
-                executor.SetPPV(output, new dynamic[] { length });
+                executor.SetPPV(output, length);
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
@@ -1062,7 +1069,7 @@ namespace mc_compiled.MCC.Compiler
             if(tokens.NextIs<TokenStringLiteral>())
             {
                 string accessor = tokens.Next<TokenStringLiteral>();
-                string[] accessParts = PreprocessorUtils.ParseAccessor(accessor);
+                IEnumerable<string> accessParts = PreprocessorUtils.ParseAccessor(accessor);
 
                 // crawl the tree
                 foreach (string _access in accessParts)
@@ -1192,7 +1199,7 @@ namespace mc_compiled.MCC.Compiler
 
             // create preprocessor variable if it doesn't exist.
             if (!executor.ppv.TryGetValue(LanguageManager.MERGE_PPV, out _))
-                executor.ppv[LanguageManager.MERGE_PPV] = new dynamic[] { DEFAULT_MERGE };
+                executor.ppv[LanguageManager.MERGE_PPV] = new PreprocessorVariable(LanguageManager.MERGE_PPV, DEFAULT_MERGE);
 
             if (Program.DEBUG)
                 Console.WriteLine("Set locale to '{0}'", locale);

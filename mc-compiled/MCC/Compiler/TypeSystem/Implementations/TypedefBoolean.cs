@@ -36,15 +36,15 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         // Other
         internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
         {
-            value.manager.executor.TryGetPPV("_true", out dynamic[] trueValues);
-            value.manager.executor.TryGetPPV("_false", out dynamic[] falseValues);
+            value.manager.executor.TryGetPPV("_true", out PreprocessorVariable trueValues);
+            value.manager.executor.TryGetPPV("_false", out PreprocessorVariable falseValues);
 
-            Range check = new Range(1, false);
+            var check = new Range(1, false);
             
-            JSONRawTerm[] terms = new JSONRawTerm[] {
+            var terms = new JSONRawTerm[] {
                 new JSONVariant(
-                    new ConditionalTerm(new JSONRawTerm[] { new JSONText(trueValues[0]) }, ConditionalSubcommandScore.New(value, check), false),
-                    new ConditionalTerm(new JSONRawTerm[] { new JSONText(falseValues[0]) }, ConditionalSubcommandScore.New(value, check), true)
+                    new ConditionalTerm(new JSONRawTerm[] { new JSONText(trueValues[0].ToString()) }, ConditionalSubcommandScore.New(value, check), false),
+                    new ConditionalTerm(new JSONRawTerm[] { new JSONText(falseValues[0].ToString()) }, ConditionalSubcommandScore.New(value, check), true)
                 )
             };
 
