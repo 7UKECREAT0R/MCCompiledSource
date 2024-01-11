@@ -16,6 +16,7 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
 using Microsoft.CSharp.RuntimeBinder;
+// ReSharper disable IdentifierTypo
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -719,7 +720,8 @@ namespace mc_compiled.MCC.Compiler
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
                 {
-                    string str = value[r].ToString();
+                    if (!(value[r] is string str))
+                        continue;
                     string[] parts = str.Split('_', '-', ' ');
                     for (int i = 0; i < parts.Length; i++)
                     {
@@ -740,19 +742,17 @@ namespace mc_compiled.MCC.Compiler
         public static void _strupper(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-
-            string input;
-            if (tokens.NextIs<TokenIdentifier>(false))
-                input = tokens.Next<TokenIdentifier>().word;
-            else
-                input = output;
+            string input = tokens.NextIs<TokenIdentifier>(false) ?
+                tokens.Next<TokenIdentifier>().word :
+                output;
 
             if (executor.TryGetPPV(input, out dynamic[] value))
             {
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
                 {
-                    string str = value[r].ToString();
+                    if (!(value[r] is string str))
+                        continue;
                     results[r] = str.ToUpper();
                 }
                 executor.SetPPV(output, results);
@@ -773,7 +773,8 @@ namespace mc_compiled.MCC.Compiler
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
                 {
-                    string str = value[r].ToString();
+                    if (!(value[r] is string str))
+                        continue;
                     results[r] = str.ToLower();
                 }
                 executor.SetPPV(output, results);
@@ -954,7 +955,7 @@ namespace mc_compiled.MCC.Compiler
         /// Iterates over values of a preprocessor variable and executes a set of statements for each value.
         /// </summary>
         /// <param name="executor">The executor object used to execute statements.</param>
-        /// <param name="tokens">The statement tokens.</param
+        /// <param name="tokens">The statement tokens.</param>
         [UsedImplicitly]
         public static void _iterate(Executor executor, Statement tokens)
         {
