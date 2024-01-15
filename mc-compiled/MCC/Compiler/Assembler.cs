@@ -96,33 +96,34 @@ namespace mc_compiled.MCC.Compiler
         {
             Token firstToken = line[0];
 
-            if(firstToken is TokenComment)
+            switch (firstToken)
             {
-                TokenComment comment = firstToken as TokenComment;
-                Statement add = new StatementComment(comment.contents);
-                if(includeSource)
-                    add.SetSource(new[] { firstToken.lineNumber }, "#" + comment.contents);
-                return add;
-            }
-            if (firstToken is TokenDirective)
-            {
-                Token[] rest = line.Skip(1).ToArray();
-                Directive directive = (firstToken as TokenDirective).directive;
-                StatementDirective add = new StatementDirective(directive, rest);
-                if(includeSource)
-                    add.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
-                return add;
+                case TokenComment comment:
+                {
+                    Statement add = new StatementComment(comment.contents);
+                    if(includeSource)
+                        add.SetSource(new[] { comment.lineNumber }, "#" + comment.contents);
+                    return add;
+                }
+                case TokenDirective tokenDirective:
+                {
+                    Token[] rest = line.Skip(1).ToArray();
+                    Directive directive = tokenDirective.directive;
+                    var add = new StatementDirective(directive, rest);
+                    if(includeSource)
+                        add.SetSource(new[] { tokenDirective.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    return add;
+                }
             }
 
-            if (line.Length <= 1 || !(firstToken is TokenIdentifier))
+            if (line.Length <= 1 || !(firstToken is TokenIdentifier identifier))
             {
-                StatementUnknown unknown = new StatementUnknown(line);
+                var unknown = new StatementUnknown(line);
                 if(includeSource)
                     unknown.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return unknown;
             }
 
-            TokenIdentifier identifier = firstToken as TokenIdentifier;
             Token secondToken = line[1];
 
             // strip any indexers so 'secondToken' is actually the next meaningful unit of information.
@@ -130,31 +131,46 @@ namespace mc_compiled.MCC.Compiler
             if(secondToken is TokenIndexer && line.Length > 2)
             {
                 int index = 2;
-
-                do secondToken = line[index++];
+                
+                do
+                    secondToken = line[index++];
                 while(secondToken is TokenIndexer && line.Length > index);
             }
 
-
-            if (secondToken is IAssignment)
+            for (int lineIndex = 1; lineIndex < line.Length; lineIndex++)
             {
-                StatementOperation statement = new StatementOperation(line);
+                bool endOfLine = lineIndex == line.Length - 1;
+                Token currentToken = line[lineIndex];
+
+                if(currentToken is TokenIndexer)
+                {
+                    if (endOfLine)
+                        break;
+                    continue;
+                }
+                
+                // want to find an assignment token
+                if (!(currentToken is IAssignment))
+                    continue;
+                
+                var statement = new StatementOperation(line);
                 if(includeSource)
-                    statement.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    statement.SetSource(new[] { identifier.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return statement;
             }
-            else if (secondToken is TokenOpenParenthesis)
+            
+            if (secondToken is TokenOpenParenthesis)
             {
-                StatementFunctionCall statement = new StatementFunctionCall(line);
+                var statement = new StatementFunctionCall(line);
                 if (includeSource)
-                    statement.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    statement.SetSource(new[] { identifier.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return statement;
             }
             else
             {
-                StatementUnknown unknown = new StatementUnknown(line);
+                var unknown = new StatementUnknown(line);
                 if (includeSource)
-                    unknown.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    unknown.SetSource(new[] { identifier.lineNumber }, string.Join(" ", from t in line select t.AsString()));
                 return unknown;
             }
         }
