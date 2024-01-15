@@ -961,40 +961,52 @@ namespace mc_compiled.MCC.Compiler
         }
         
         [UsedImplicitly]
-        public static void _iterate(Executor executor, Statement tokens)
+        public static void _iterate(Executor executor, Statement tokens) 
         {
-            string input = tokens.Next<TokenIdentifier>().word;
-            string current = tokens.Next<TokenIdentifier>().word;
+            string current;
 
-            if (!executor.TryGetPPV(input, out PreprocessorVariable values))
-                throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
-
-            Statement[] statements = executor.NextExecutionSet();
-
-            foreach (dynamic value in values)
+            Statement[] statements;
+            if (tokens.NextIs<TokenJSONLiteral>())
             {
-                switch (value)
+                var json = tokens.Next<TokenJSONLiteral>();
+                current = tokens.Next<TokenIdentifier>().word;
+                statements = executor.NextExecutionSet();
+
+                JToken jsonToken = json.token;
+
+                switch (jsonToken)
                 {
-                    case TokenJSONLiteral jsonLiteral:
-                    {
-                        JToken token = jsonLiteral.token;
-                        if (token is JArray array)
-                            IterateArray(array);
-                        break;
-                    }
                     case JArray array:
                         IterateArray(array);
                         break;
-                    default:
-                        executor.SetPPV(current, value);
-                        executor.ExecuteSubsection(statements);
+                    case JObject obj:
+                        IterateStrings(obj.Properties().Select(prop => prop.Name));
                         break;
+                    default:
+                        throw new StatementException(tokens, $"Can't iterate over JSON object of type {jsonToken.Type}.");
+                }
+            }
+            else
+            {
+                string input = tokens.Next<TokenIdentifier>().word;
+                current = tokens.Next<TokenIdentifier>().word;
+
+                if (!executor.TryGetPPV(input, out PreprocessorVariable values))
+                    throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
+
+                statements = executor.NextExecutionSet();
+
+                foreach (dynamic value in values)
+                {
+                    executor.SetPPV(current, value);
+                    executor.ExecuteSubsection(statements);
+                    break;
                 }
             }
 
             return;
 
-            void IterateArray(JArray array)
+            void IterateArray(IEnumerable<JToken> array)
             {
                 foreach (JToken arrayItem in array)
                 {
@@ -1010,12 +1022,20 @@ namespace mc_compiled.MCC.Compiler
                         throw new StatementException(tokens, $"JSON Error: Cannot store token of type '{arrayItem.Type}' in a preprocessor variable.");
                 }
             }
+            void IterateStrings(IEnumerable<string> array)
+            {
+                foreach (string str in array)
+                {
+                    executor.SetPPV(current, str);
+                    executor.ExecuteSubsection(statements);
+                }
+            }
         }
         [UsedImplicitly]
         public static void _len(Executor executor, Statement tokens)
         {
             string output = tokens.Next<TokenIdentifier>().word;
-
+            
             if(tokens.NextIs<TokenStringLiteral>(false))
             {
                 // String
@@ -1030,7 +1050,7 @@ namespace mc_compiled.MCC.Compiler
                 JToken inputJSON = tokens.Next<TokenJSONLiteral>();
 
                 if (!(inputJSON is JArray array))
-                    throw new StatementException(tokens, "Cannot get the length of a non-array JSON token.");
+                    throw new StatementException(tokens, "Cannot get the length of a non-array JSON input.");
                 
                 executor.SetPPV(output, array.Count);
                 return;
@@ -1127,18 +1147,18 @@ namespace mc_compiled.MCC.Compiler
             string functionName = tokens.Next<TokenStringLiteral>().text;
 
             if (!executor.functions.TryGetFunctions(functionName, out Function[] functions))
-                throw new StatementException(tokens, $"Could not find function by the name '{functionName}'");
+                throw new StatementException(tokens, $"Could not find a function by the name '{functionName}'");
 
             Token[] remainingTokens = tokens.GetRemainingTokens();
-            var finalTokens = new Token[remainingTokens.Length + 3];
-
             int line = tokens.Lines[0];
+
+            // construct a literal function call and then run it
+            var finalTokens = new Token[remainingTokens.Length + 3];
             Array.Copy(remainingTokens, 0, finalTokens, 2, remainingTokens.Length);
             finalTokens[0] = new TokenIdentifierFunction(functionName, functions, line);
             finalTokens[1] = new TokenOpenParenthesis(line);
             finalTokens[finalTokens.Length - 1] = new TokenCloseParenthesis(line);
-
-
+            
             var callStatement = new StatementFunctionCall(finalTokens);
             callStatement.SetSource(tokens.Lines, tokens.Source);
 
