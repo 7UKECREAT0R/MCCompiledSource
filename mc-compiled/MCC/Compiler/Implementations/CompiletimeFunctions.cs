@@ -23,6 +23,7 @@ namespace mc_compiled.MCC.Compiler.Implementations
                     // special
                     new FunctionGlyphE0(),
                     new FunctionGlyphE1(),
+                    new FunctionGetValueByName(),
 
                     // compile-time functions
                     new FunctionMinCompiletime(),
