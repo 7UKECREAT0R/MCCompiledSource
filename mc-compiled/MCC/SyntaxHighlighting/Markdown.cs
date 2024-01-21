@@ -33,9 +33,9 @@ Starts and ends with brackets, holding code inside:
         /// </summary>
         /// <param name="directive"></param>
         /// <returns></returns>
-        public string DescribeDirective(Directive directive)
+        private static string DescribeDirective(Directive directive)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine($"#### {directive.description} `{directive.identifier}`");
             sb.AppendLine(directive.documentation);
 
@@ -79,7 +79,8 @@ Starts and ends with brackets, holding code inside:
                     var docs = Activator.CreateInstance(type, true) as IDocumented;
                     string documentString = docs?.GetDocumentation() ?? throw new Exception($"Could not create instance of type {type.Name}. as IDocumented.");
                     writer.WriteLine($"- `{typeID}` {documentString}");
-                } catch(Exception)
+                }
+                catch(Exception)
                 {
                     Console.WriteLine("FOR TYPE: " + type.Name);
                     throw;
@@ -98,7 +99,7 @@ Starts and ends with brackets, holding code inside:
 
             foreach (string category in Syntax.categories.Keys)
             {
-                List<string> list = new List<string>();
+                var list = new List<string>();
                 sortedDirectives[category] = list;
             }
 

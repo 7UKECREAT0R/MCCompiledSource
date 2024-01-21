@@ -92,6 +92,7 @@
     <Compile Include="Commands\Selectors\SelectorUtils.cs" />
     <Compile Include="Commands\Selectors\Tag.cs" />
     <Compile Include="Commands\Selectors\TransformResult.cs" />
+    <Compile Include="Compiler\TemporaryFilesManager.cs" />
     <Compile Include="MCC\Attributes\AttributeAuto.cs" />
     <Compile Include="MCC\Attributes\AttributeBind.cs" />
     <Compile Include="MCC\Attributes\AttributeDelay.cs" />
@@ -105,6 +106,7 @@
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsMinMax.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionSqrtCompiletime.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsTrig.cs" />
+    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionGetValueByName.cs" />
     <Compile Include="MCC\Compiler\MolangBindings.cs" />
     <Compile Include="MCC\Compiler\Clarifier.cs" />
     <Compile Include="MCC\Compiler\Implementations\IFunctionProvider.cs" />
@@ -199,7 +201,6 @@
     <Compile Include="Modding\Behaviors\Lists\EntityFilters.cs" />
     <Compile Include="Modding\Behaviors\Lists\EntityProperties.cs" />
     <Compile Include="Modding\Behaviors\MolangValue.cs" />
-    <Compile Include="Modding\DefaultPackManager.cs" />
     <Compile Include="Modding\FormatVersion.cs" />
     <Compile Include="Modding\IAddonFile.cs" />
     <Compile Include="Modding\Behaviors\LootTable.cs" />
@@ -271,6 +272,8 @@
     <Content Include="definitions.def">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="update-regolith-filter.bat" />
+    <Content Include="update-website.bat" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

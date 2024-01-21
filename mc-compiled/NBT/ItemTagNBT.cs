@@ -6,7 +6,7 @@ namespace mc_compiled.NBT
     public struct ItemTagNBT
     {
         public int damage;
-        public EnchantNBT[] ench;
+        public EnchantNBT[] enchantment;
         public ItemLockMode lockMode;
         public bool keepOnDeath;
         public string displayName;
@@ -15,10 +15,10 @@ namespace mc_compiled.NBT
         public ItemTagBookData? bookData;
         public ItemTagCustomColor? customColor;
 
-        public ItemTagNBT(int damage, EnchantNBT[] ench, ItemLockMode lockMode, bool keepOnDeath, string displayName, string[] lore)
+        public ItemTagNBT(int damage, EnchantNBT[] enchantment, ItemLockMode lockMode, bool keepOnDeath, string displayName, string[] lore)
         {
             this.damage = damage;
-            this.ench = ench;
+            this.enchantment = enchantment;
             this.lockMode = lockMode;
             this.keepOnDeath = keepOnDeath;
             this.displayName = displayName;
@@ -29,24 +29,26 @@ namespace mc_compiled.NBT
         }
         public NBTCompound ToNBT()
         {
-            List<NBTNode> nodes = new List<NBTNode>();
-            nodes.Add(new NBTInt() { name = "Damage", value = damage });
-
-            if (ench != null && ench.Length > 0)
+            var nodes = new List<NBTNode>
             {
-                nodes.Add(new NBTInt() { name = "RepairCost", value = ench.Length });
+                new NBTInt() { name = "Damage", value = damage }
+            };
+
+            if (enchantment != null && enchantment.Length > 0)
+            {
+                nodes.Add(new NBTInt() { name = "RepairCost", value = enchantment.Length });
                 nodes.Add(new NBTList()
                 {
                     name = "ench",
                     listType = TAG.Compound,
-                    values = (from e in ench select e.ToNBT()).ToArray()
+                    values = (from e in enchantment select e.ToNBT()).ToArray<NBTNode>()
                 });
             }
 
             // All display related stuff.
             if (displayName != null || lore != null)
             {
-                List<NBTNode> displayValues = new List<NBTNode>();
+                var displayValues = new List<NBTNode>();
 
                 // Display Name
                 if (displayName != null)
@@ -62,7 +64,7 @@ namespace mc_compiled.NBT
                         {
                             name = null,
                             value = str
-                        }).ToArray()
+                        }).ToArray<NBTNode>()
                     });
 
                 displayValues.Add(new NBTEnd());
@@ -129,7 +131,8 @@ namespace mc_compiled.NBT
 
         public NBTList GetPagesNBT()
         {
-            NBTCompound[] compounds = new NBTCompound[pages.Length];
+            var compounds = new NBTNode[pages.Length];
+            
             for (int i = 0; i < pages.Length; i++)
             {
                 compounds[i] = new NBTCompound()

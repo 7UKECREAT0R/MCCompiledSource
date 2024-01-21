@@ -11,7 +11,7 @@ namespace mc_compiled.NBT
         public EnchantNBT(EnchantmentEntry fromEnchantment)
         {
             Definitions defs = Definitions.GLOBAL_DEFS;
-            id = short.Parse(defs.defs["ENCHANT:" + fromEnchantment.IDAsLookup]);
+            id = short.Parse(defs.defs["ENCHANT:" + fromEnchantment.IdAsLookup]);
             level = (short)fromEnchantment.level;
         }
         public NBTCompound ToNBT()

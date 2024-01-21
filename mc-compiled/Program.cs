@@ -645,7 +645,7 @@ namespace mc_compiled
                 Console.WriteLine("Writing files...");
                 executor.project.WriteAllFiles();
 
-                Console.WriteLine($"Completed.");
+                Console.WriteLine("Completed.");
 
                 if (!NO_PAUSE)
                     Console.ReadLine();

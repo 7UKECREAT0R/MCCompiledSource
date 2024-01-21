@@ -2,15 +2,12 @@
 
 namespace mc_compiled.Commands.Native
 {
-    public struct EnchantmentEntry
+    public readonly struct EnchantmentEntry
     {
         public readonly string id;
         public readonly int level;
 
-        public string IDAsLookup
-        {
-            get => id.Replace('_', ' ').ToUpper();
-        }
+        public string IdAsLookup => id.Replace('_', ' ').ToUpper();
 
         public EnchantmentEntry(string id, int level)
         {
@@ -23,18 +20,20 @@ namespace mc_compiled.Commands.Native
             this.level = level;
         }
 
+        private bool Equals(EnchantmentEntry other)
+        {
+            return id == other.id && level == other.level;
+        }
         public override bool Equals(object obj)
         {
-            return obj is EnchantmentEntry entry &&
-                   id == entry.id &&
-                   level == entry.level;
+            return obj is EnchantmentEntry other && Equals(other);
         }
         public override int GetHashCode()
         {
-            int hashCode = 192898493;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(id);
-            hashCode = hashCode * -1521134295 + level.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                return ((id != null ? id.GetHashCode() : 0) * 397) ^ level;
+            }
         }
     }
 }

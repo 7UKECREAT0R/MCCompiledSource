@@ -706,14 +706,13 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         void Lint(string code, WebSocketPackage package)
         {
-            Executor executor = null;
             try
             {
                 Program.DEBUG = debug;
                 Program.PrepareToCompile();
                 Token[] tokens = new Tokenizer(code).Tokenize();
                 Statement[] statements = Assembler.AssembleTokens(tokens);
-                executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", outputBehaviorPack,
+                var executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", outputBehaviorPack,
                     outputResourcePack);
                 executor.Linter();
                 executor.Execute();

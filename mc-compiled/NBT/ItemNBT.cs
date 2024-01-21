@@ -26,7 +26,7 @@ namespace mc_compiled.NBT
             tag.lore = fromStack.lore;
             tag.damage = fromStack.damage;
             if (fromStack.enchantments != null)
-                tag.ench = (from e in fromStack.enchantments select new EnchantNBT(e)).ToArray();
+                tag.enchantment = (from e in fromStack.enchantments select new EnchantNBT(e)).ToArray();
             tag.keepOnDeath = fromStack.keep;
             tag.lockMode = fromStack.lockMode;
 

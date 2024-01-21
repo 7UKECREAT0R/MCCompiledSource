@@ -252,11 +252,13 @@ namespace mc_compiled.MCC.Compiler
             else
                 ApplyComparisonToSolo(chunks, callingStatement, executor, cancel);
         }
+
         /// <summary>
         /// Run this ComparisonSet and run a command if it evaluates true.
         /// </summary>
-        /// <param name="executor"></param>
-        /// <param name="callingStatement"></param>
+        /// <param name="command">The command to run.</param>
+        /// <param name="executor">The executor to run the command.</param>
+        /// <param name="callingStatement">The calling statement.</param>
         public void RunCommand(string command, Executor executor, Statement callingStatement)
         {
             if (this.IsEmpty)
@@ -265,13 +267,10 @@ namespace mc_compiled.MCC.Compiler
             var commands = new List<string>();
             var chunks = new List<Subcommand>();
 
-            bool cancel = false;
             foreach (Comparison comparison in this)
             {
-                IEnumerable<string> partCommands = comparison.GetCommands(executor, callingStatement, false, out bool cancel0);
-                Subcommand[] localChunks = comparison.GetExecuteChunks(executor, callingStatement, false, out bool cancel1);
-
-                cancel |= cancel0 | cancel1;
+                IEnumerable<string> partCommands = comparison.GetCommands(executor, callingStatement, false, out bool _);
+                Subcommand[] localChunks = comparison.GetExecuteChunks(executor, callingStatement, false, out bool _);
 
                 if (partCommands != null)
                     commands.AddRange(partCommands);

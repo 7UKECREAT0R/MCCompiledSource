@@ -41,8 +41,6 @@ namespace mc_compiled.MCC.Compiler
                     return CreateIndexer(literal, forExceptions);
                 case TokenMultiply _:
                     return new TokenIndexerAsterisk(token.lineNumber);
-                case TokenUnresolvedPPV unresolvedPPV:
-                    return new TokenIndexerUnresolvedPPV(unresolvedPPV, token.lineNumber);
             }
             
             if(forExceptions == null)
@@ -69,6 +67,8 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenIndexerString(stringLiteral, lineNumber);
                 case TokenSelectorLiteral selectorLiteral:
                     return new TokenIndexerSelector(selectorLiteral, lineNumber);
+                case TokenRangeLiteral rangeLiteral:
+                    return new TokenIndexerRange(rangeLiteral, lineNumber);
             }
 
             if (forExceptions == null)
@@ -87,70 +87,50 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
-    /// An indexer using an unresolved PPV.
-    /// </summary>
-    public sealed class TokenIndexerUnresolvedPPV : TokenIndexer
-    {
-        public override string AsString() => $"[{token}]";
-
-        public TokenUnresolvedPPV token;
-        public TokenIndexerUnresolvedPPV(TokenUnresolvedPPV token, int lineNumber) : base(lineNumber)
-        {
-            this.token = token;
-        }
-        public override Token GetIndexerToken() => token;
-
-        /// <summary>
-        /// Resolve the PPV inside this indexer and remap to the right indexer.
-        /// </summary>
-        /// <returns>The indexer wrapping the newly resolved PPV.</returns>
-        /// <exception cref="StatementException" />
-        public TokenIndexer Resolve(Executor executor, Statement runningStatement)
-        {
-            // resolve the contained PPV.
-            TokenLiteral[] resolvedValues = executor.ResolvePPV(token, runningStatement);
-
-            // ResolvePPV returns null/empty if it can't resolve.
-            if (resolvedValues == null || resolvedValues.Length < 1)
-                throw new StatementException(runningStatement, $"Preprocessor variable '{token.word}' either doesn't exist or didn't have a valid value.");
-
-            // only need the first value, since indexers can only hold one.
-            TokenLiteral _value = resolvedValues[0];
-
-            // return one of the primary allowed indexer types.
-            return CreateIndexer(_value, runningStatement);
-        }
-    }
-    /// <summary>
     /// An indexer giving an integer. Defaulted to this class with the value 0 when [] is given to the tokenizer.
     /// </summary>
     public sealed class TokenIndexerInteger : TokenIndexer
     {
         public override string AsString() => $"[{token.number}]";
 
-        public TokenIntegerLiteral token;
+        public readonly TokenIntegerLiteral token;
         public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(lineNumber)
         {
             this.token = token;
         }
         public override Token GetIndexerToken() => token;
-
-        internal Exception GetIndexOutOfBounds(int min, int max, Statement thrower) =>
+        internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower) =>
             new StatementException(thrower, $"Index {token.number} was out of bounds. Min: {min}, Max: {max}");
     }
     /// <summary>
-    /// An indexer giving an integer.
+    /// An indexer giving a string.
     /// </summary>
     public sealed class TokenIndexerString : TokenIndexer
     {
         public override string AsString() => $"[\"{token.text}\"]";
 
-        public TokenStringLiteral token;
+        public readonly TokenStringLiteral token;
         public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(lineNumber)
         {
             this.token = token;
         }
         public override Token GetIndexerToken() => token;
+    }
+    /// <summary>
+    /// An indexer indicating a range value.
+    /// </summary>
+    public sealed class TokenIndexerRange : TokenIndexer
+    {
+        public override string AsString() => $"[\"{token.range.ToString()}\"]";
+
+        public readonly TokenRangeLiteral token;
+        public TokenIndexerRange(TokenRangeLiteral token, int lineNumber) : base(lineNumber)
+        {
+            this.token = token;
+        }
+        public override Token GetIndexerToken() => token;
+        internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower) =>
+            new StatementException(thrower, $"Range {token.range.ToString()} was out of bounds. Min: {min}, Max: {max}");
     }
     /// <summary>
     /// An indexer giving a selector.

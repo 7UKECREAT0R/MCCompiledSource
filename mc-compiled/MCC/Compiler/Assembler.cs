@@ -10,9 +10,9 @@ namespace mc_compiled.MCC.Compiler
     {
         public static Statement[] AssembleTokens(Token[] tokens)
         {
-            List<Statement> statements = new List<Statement>();
-            List<Token> buffer = new List<Token>();
-            Stack<StatementOpenBlock> blocks = new Stack<StatementOpenBlock>();
+            var statements = new List<Statement>();
+            var buffer = new List<Token>();
+            var blocks = new Stack<StatementOpenBlock>();
 
             // used for exceptions
             int highestLevelOpenerCount = 0;
@@ -20,6 +20,7 @@ namespace mc_compiled.MCC.Compiler
 
             // assemble all lines via TryAssembleLine()
             int i = -1;
+            Statement assembledStatement;
             while(++i < tokens.Length)
             {
                 Token current = tokens[i];
@@ -28,71 +29,76 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (buffer.Count > 0)
                     {
-                        Statement assembledStatement = TryAssembleLine(buffer.ToArray());
+                        assembledStatement = TryAssembleLine(buffer.ToArray());
                         statements.Add(assembledStatement);
                         buffer.Clear();
                     }
-                    if (current is TokenOpenBlock)
+                    switch (current)
                     {
-                        StatementOpenBlock block = new StatementOpenBlock(statements.Count + 1, null);
-                        block.SetSource(new[] { current.lineNumber }, "{");
-
-                        statements.Add(block);
-                        blocks.Push(block);
-
-                        // Track highest level opening bracket 
-                        int count = blocks.Count;
-                        if(count >= highestLevelOpenerCount)
+                        case TokenOpenBlock _:
                         {
-                            highestLevelOpenerCount = count;
-                            highestLevelOpener = block;
-                        }
-                        continue;
-                    }
-                    else if (current is TokenCloseBlock)
-                    {
-                        StatementCloseBlock closer = new StatementCloseBlock();
-                        closer.SetSource(new[] { current.lineNumber }, "}");
+                            var block = new StatementOpenBlock(statements.Count + 1, null);
+                            block.SetSource(new[] { current.lineNumber }, "{");
 
-                        if (blocks.Count == 0)
+                            statements.Add(block);
+                            blocks.Push(block);
+
+                            // Track highest level opening bracket 
+                            int count = blocks.Count;
+                            if(count >= highestLevelOpenerCount)
+                            {
+                                highestLevelOpenerCount = count;
+                                highestLevelOpener = block;
+                            }
+                            continue;
+                        }
+                        case TokenCloseBlock _:
                         {
-                            throw new TokenizerException("Unused closing bracket.", new[] { current.lineNumber });
+                            var closer = new StatementCloseBlock();
+                            closer.SetSource(new[] { current.lineNumber }, "}");
+
+                            if (blocks.Count == 0)
+                            {
+                                throw new TokenizerException("Unused closing bracket.", new[] { current.lineNumber });
+                            }
+
+                            StatementOpenBlock opener = blocks.Pop();
+                            int statementCountRaw = statements.Count - opener.statementsInside;
+                            int statementCount = statements
+                                .Skip(opener.statementsInside)
+                                .Count(s => !(s is StatementComment));
+
+                            opener.statementsInside = statementCountRaw;
+                            opener.meaningfulStatementsInside = statementCount;
+
+                            // pointers
+                            opener.closer = closer;
+                            closer.opener = opener;
+
+                            statements.Add(closer);
+                            continue;
                         }
-
-                        StatementOpenBlock opener = blocks.Pop();
-                        int statementCountRaw = statements.Count - opener.statementsInside;
-                        int statementCount = statements
-                            .Skip(opener.statementsInside)
-                            .Count(s => !(s is StatementComment));
-
-                        opener.statementsInside = statementCountRaw;
-                        opener.meaningfulStatementsInside = statementCount;
-
-                        // pointers
-                        opener.closer = closer;
-                        closer.opener = opener;
-
-                        statements.Add(closer);
-                        continue;
+                        default:
+                            continue;
                     }
-                    continue;
-                } else
-                    buffer.Add(current);
+                }
+                buffer.Add(current);
             }
 
             if(blocks.Count > 0)
-                throw new TokenizerException("No closing bracket for opening bracket.", highestLevelOpener.Lines);
+                throw new TokenizerException("No closing bracket for opening bracket.", highestLevelOpener?.Lines ?? new[] {-1});
 
-            if (buffer.Count > 0)
-            {
-                Statement assembledStatement = TryAssembleLine(buffer.ToArray());
-                statements.Add(assembledStatement);
-                buffer.Clear();
-            }
+            if (buffer.Count <= 0)
+                return statements.ToArray();
+            
+            assembledStatement = TryAssembleLine(buffer.ToArray());
+            statements.Add(assembledStatement);
+            buffer.Clear();
 
             return statements.ToArray();
         }
-        public static Statement TryAssembleLine(Token[] line, bool includeSource = true)
+
+        private static Statement TryAssembleLine(Token[] line, bool includeSource = true)
         {
             Token firstToken = line[0];
 

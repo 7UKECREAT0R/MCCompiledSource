@@ -125,7 +125,7 @@ namespace mc_compiled.Compiler
         public static byte[] GetFileBytes(string file)
         {
             string path = Path.Combine(TEMP_FOLDER_PATH, file);
-            return File.ReadAllBytes(file);
+            return File.ReadAllBytes(path);
         }
         /// <summary>
         /// Retrieves the content of a file in the temp directory.
@@ -135,7 +135,7 @@ namespace mc_compiled.Compiler
         public static string GetFileText(string file)
         {
             string path = Path.Combine(TEMP_FOLDER_PATH, file);
-            return File.ReadAllText(file);
+            return File.ReadAllText(path);
         }
         /// <summary>
         /// Retrieves all the lines in the specified file in the temp directory.
@@ -145,7 +145,7 @@ namespace mc_compiled.Compiler
         public static string[] GetFileLines(string file)
         {
             string path = Path.Combine(TEMP_FOLDER_PATH, file);
-            return File.ReadAllLines(file);
+            return File.ReadAllLines(path);
         }
         /// <summary>
         /// Checks if the specified file exists in the temp folder location.
@@ -156,6 +156,15 @@ namespace mc_compiled.Compiler
         {
             string path = Path.Combine(TEMP_FOLDER_PATH, file);
             return File.Exists(path);
+        }
+        /// <summary>
+        /// Returns where the given file is in the temp folder.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static string ResolveFile(string file)
+        {
+            return Path.Combine(TEMP_FOLDER_PATH, file);
         }
         /// <summary>
         /// Writes the given contents to a file in the temp folder with the specified file name.

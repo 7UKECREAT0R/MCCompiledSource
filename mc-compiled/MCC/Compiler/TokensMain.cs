@@ -2,6 +2,7 @@
 using mc_compiled.MCC.Functions;
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using mc_compiled.MCC.Attributes;
 
 namespace mc_compiled.MCC.Compiler
@@ -106,33 +107,6 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
-    /// Represents a likely preprocessor variable that needs to be resolved.
-    /// </summary>
-    public sealed class TokenUnresolvedPPV : TokenIdentifier, IIndexable
-    {
-        public override string AsString() => $"{word}";
-
-        public TokenUnresolvedPPV(string word, int lineNumber) : base(word, lineNumber) { }
-
-        /// <summary>
-        /// Index this unresolved PPV, essentially resolving it in a different way.
-        /// The squasher internally detects when 1+ indexers proceed an unresolved PPV, ignoring it for this purpose.
-        /// </summary>
-        /// <param name="indexer">The indexer to resolve this PPV.</param>
-        /// <param name="forExceptions">The statement to blame when everything goes wrong. Also holds the executor.</param>
-        /// <returns></returns>
-        public Token Index(TokenIndexer indexer, Statement forExceptions)
-        {
-            Executor executor = forExceptions.executor;
-            Token resolved = executor.ResolvePPVIndex(this, indexer, forExceptions);
-
-            if (resolved == null)
-                throw new StatementException(forExceptions, $"Couldn't index PPV '{word}' using indexer {indexer.AsString()}.");
-
-            return resolved;
-        }
-    }
-    /// <summary>
     /// Represents a selector that needs to be resolved within the active context, rather than statically.
     /// </summary>
     public sealed class TokenUnresolvedSelector : Token
@@ -208,6 +182,9 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public string ClarifierStr => value.clarifier.CurrentString;
 
+        [UsedImplicitly]
+        private TokenIdentifierValue() : base(null, -1) {} // if you remove this method the markdown exporter will blow up because it uses Activator and needs this
+        
         public TokenIdentifierValue(string word, ScoreboardValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
@@ -243,8 +220,36 @@ namespace mc_compiled.MCC.Compiler
                     throw indexer.GetException(this, forExceptions);
             }
         }
-
         public string GetDocumentation() => "The name of a runtime value that was defined using the `define` command.";
+    }
+
+    public sealed class TokenIdentifierPreprocessor : TokenIdentifier, IIndexable, IDocumented
+    {
+        public readonly PreprocessorVariable variable;
+
+        [UsedImplicitly]
+        private TokenIdentifierPreprocessor() : base(null, -1) {} // if you remove this method the markdown exporter will blow up because it uses Activator and needs this
+
+        public TokenIdentifierPreprocessor(string word, PreprocessorVariable variable, int lineNumber) : base(word,
+            lineNumber)
+        {
+            this.variable = variable;
+        }
+
+        public Token Index(TokenIndexer indexer, Statement forExceptions)
+        {
+            if (!(indexer is TokenIndexerInteger integer))
+                throw indexer.GetException(this, forExceptions);
+
+            int input = integer.token.number;
+            int length = variable.Length;
+
+            if (input < 0 || input >= length)
+                throw integer.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
+            
+            return variable[input];
+        }
+        public string GetDocumentation() => "The name of a preprocessor variable that was defined using the `$var`, `$json`, or other command.";
     }
     /// <summary>
     /// Represents a reference to a user-defined macro.

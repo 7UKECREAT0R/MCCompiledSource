@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
 
@@ -14,39 +15,17 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Tokenizer
     {
-        public const string DEFS_FILE = "definitions.def";
-        public readonly Definitions defs;
         public static int CURRENT_LINE = 1;
+        private static readonly char[] TOKENIZER_IGNORE_CHARS = { ' ', '\t', ',' };
+        private static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
+        private static readonly char[] LETTERS = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
+        private static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:.".ToCharArray();
+        private static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
+        private static bool IsIgnored(char c) => TOKENIZER_IGNORE_CHARS.Any(test => test == c);
 
-        public static Dictionary<string, TokenDefinition> keywordLookup = new Dictionary<string, TokenDefinition>();
-        public static List<string> guessedValues = new List<string>();
-        public static List<string> guessedPPValues = new List<string>();
-
-        static readonly char[] TOKENIZER_IGNORE_CHARS = new char[] { ' ', '\t', ',' };
-        static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
-        static readonly char[] LETTERS = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
-        static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:.".ToCharArray();
-        static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
-        public static bool IsIgnored(char c) => TOKENIZER_IGNORE_CHARS.Any(test => test == c);
-        public static string StripForPack(string str)
-        {
-            return new string(str.ToLower().Where(c => BP_RP_IDENTIFIER_CHARS.Contains(c)).ToArray());
-        }
-
-        readonly char[] content;
-        readonly StringBuilder sb;
+        private readonly char[] content;
+        private readonly StringBuilder sb;
         private int index; // the index of the reader
-
-        /// <summary>
-        /// Splits by space but preserves arguments encapsulated with quotation marks.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public static string[] GetArguments(string input)
-        {
-            return Regex.Matches(input, @"[\""].+?[\""]|[^ ]+")
-                .Cast<Match>().Select(match => match.Value).ToArray();
-        }
 
         /// <summary>
         /// Create a new Tokenizer, optionally running cleanups and the definitions.def parser over it.
@@ -58,8 +37,8 @@ namespace mc_compiled.MCC.Compiler
         {
             if (useDefinitions)
             {
-                this.defs = Definitions.GLOBAL_DEFS;
-                content = this.defs.ReplaceDefinitions(content);
+                Definitions defs = Definitions.GLOBAL_DEFS;
+                content = defs.ReplaceDefinitions(content);
             }
 
             if (stripCarriageReturns)
@@ -91,19 +70,19 @@ namespace mc_compiled.MCC.Compiler
             return new Tokenizer(content).Tokenize();
         }
 
-        bool HasNext
+        private bool HasNext
         {
             get => index < content.Length;
         }
-        char Peek() => content[index];
-        char Peek(int amount)
+        private char Peek() => content[index];
+        private char Peek(int amount)
         {
             if (index + amount >= content.Length)
                 return '\0';
             return content[index + amount];
         }
-        char NextChar() => content[index++];
-        void FlushIgnoredCharacters()
+        private char NextChar() => content[index++];
+        private void FlushIgnoredCharacters()
         {
             while (HasNext && IsIgnored(Peek()))
                 NextChar();
@@ -143,7 +122,7 @@ namespace mc_compiled.MCC.Compiler
         /// Read the next valid identifier.
         /// </summary>
         /// <returns></returns>
-        public Token NextToken()
+        private Token NextToken()
         {
             FlushIgnoredCharacters();
             sb.Clear();
@@ -166,135 +145,118 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenOpenBlock(CURRENT_LINE);
                 case '}':
                     return new TokenCloseBlock(CURRENT_LINE);
-                case '\r':
-                default:
-                    break;
             }
 
-            if (firstChar == '[')
+            switch (firstChar)
             {
-                if(secondChar == ']')
+                case '[' when secondChar == ']':
                 {
                     // default to '[0]', or first object
                     NextChar();
-                    TokenIntegerLiteral zero = new TokenIntegerLiteral(0, IntMultiplier.none, CURRENT_LINE);
+                    var zero = new TokenIntegerLiteral(0, IntMultiplier.none, CURRENT_LINE);
                     return new TokenIndexerInteger(zero, CURRENT_LINE);
                 }
-
                 // get the inside token
-                Token inside = NextToken();
-
-                // throw if no closing bracket
-                if(!HasNext || Peek() != ']')
-                    throw new TokenizerException("No closing bracket ']' found for indexer.", new[] { CURRENT_LINE });
-
-                // consume closing bracket
-                NextChar();
-
-                // return the right indexer to wrap it
-                return TokenIndexer.CreateIndexer(inside);
-            }
-            if(firstChar == '@')
-            {
-                Selector.Core core;
-
-                switch (char.ToUpper(secondChar))
+                case '[':
                 {
-                    case 'P':
-                        NextChar();
-                        core = Selector.Core.p;
-                        break;
-                    case 'S':
-                        NextChar();
-                        core = Selector.Core.s;
-                        break;
-                    case 'A':
-                        NextChar();
-                        core = Selector.Core.a;
-                        break;
-                    case 'E':
-                        NextChar();
-                        core = Selector.Core.e;
-                        break;
-                    case 'I':
-                        NextChar();
-                        while (HasNext && LETTERS.Contains(Peek()))
-                            NextChar();
-                        core = Selector.Core.initiator;
-                        break;
-                    default:
-                        if(HasNext)
-                            throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @i/@initiator");
-                        else
-                            throw new TokenizerException("Invalid selector '(end-of-file)'. Valid options: @p, @s, @a, @e, or @i/@initiator");
+                    Token inside = NextToken();
+
+                    // throw if no closing bracket
+                    if(!HasNext || Peek() != ']')
+                        throw new TokenizerException("No closing bracket ']' found for indexer.", new[] { CURRENT_LINE });
+
+                    // consume closing bracket
+                    NextChar();
+
+                    // return the right indexer to wrap it
+                    return TokenIndexer.CreateIndexer(inside);
                 }
-                if (HasNext && Peek() == '[')
-                    return NextSelectorLiteral(core);
-                else
-                    return new TokenSelectorLiteral(core, CURRENT_LINE);
-            }
-            
-            // comment
-            if(firstChar == '/' && secondChar == '/')
-            {
-                NextChar();
-                while (HasNext && Peek() != '\n')
-                    sb.Append(NextChar());
-
-                string str = sb.ToString().Trim();
-                return new TokenComment(str, CURRENT_LINE);
-            }
-            /* multiline comment, just like this */
-            if (firstChar == '/' && secondChar == '*')
-            {
-                int startLine = CURRENT_LINE;
-
-                NextChar();
-                while (HasNext)
+                case '@':
                 {
-                    char next = NextChar();
-                    if (next == '\n')
-                        CURRENT_LINE++;
-                    if (next == '*' && HasNext && Peek() == '/')
+                    Selector.Core core;
+
+                    switch (char.ToUpper(secondChar))
                     {
-                        NextChar();
-                        break;
+                        case 'P':
+                            NextChar();
+                            core = Selector.Core.p;
+                            break;
+                        case 'S':
+                            NextChar();
+                            core = Selector.Core.s;
+                            break;
+                        case 'A':
+                            NextChar();
+                            core = Selector.Core.a;
+                            break;
+                        case 'E':
+                            NextChar();
+                            core = Selector.Core.e;
+                            break;
+                        case 'I':
+                            NextChar();
+                            while (HasNext && LETTERS.Contains(Peek()))
+                                NextChar();
+                            core = Selector.Core.initiator;
+                            break;
+                        default:
+                            if(HasNext)
+                                throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @i/@initiator");
+                            throw new TokenizerException("Invalid selector '(end-of-file)'. Valid options: @p, @s, @a, @e, or @i/@initiator");
                     }
-                    sb.Append(next);
+                    if (HasNext && Peek() == '[')
+                        return NextSelectorLiteral(core);
+                    
+                    return new TokenSelectorLiteral(core, CURRENT_LINE);
                 }
-
-                string str = sb.ToString();
-                return new TokenComment(str, startLine);
-            }
-
-            // equality/assignment
-            if (firstChar == '=')
-            {
-                if(secondChar == '=')
+                // comment
+                case '/' when secondChar == '/':
                 {
                     NextChar();
-                    return new TokenEquality(CURRENT_LINE);
+                    while (HasNext && Peek() != '\n')
+                        sb.Append(NextChar());
+
+                    string str = sb.ToString().Trim();
+                    return new TokenComment(str, CURRENT_LINE);
                 }
-                return new TokenAssignment(CURRENT_LINE);
-            }
+                /* multiline comment, just like this */
+                case '/' when secondChar == '*':
+                {
+                    int startLine = CURRENT_LINE;
 
-            // inequality
-            if(firstChar == '!' && secondChar == '=')
-            {
-                NextChar();
-                return new TokenInequality(CURRENT_LINE);
-            }
+                    NextChar();
+                    while (HasNext)
+                    {
+                        char next = NextChar();
+                        if (next == '\n')
+                            CURRENT_LINE++;
+                        if (next == '*' && HasNext && Peek() == '/')
+                        {
+                            NextChar(); // skip the '/'
+                            break;
+                        }
+                        sb.Append(next);
+                    }
 
-            // range operator
-            if(firstChar == '.' && secondChar == '.')
-            {
-                NextChar();
-                return new TokenRangeDots(CURRENT_LINE);
-            }
-            // range inverter (probably)
-            if(firstChar == '!')
-            {
-                if(secondChar == '.' || char.IsDigit(secondChar))
+                    string str = sb.ToString();
+                    return new TokenComment(str, startLine);
+                }
+                // equality/assignment
+                case '=' when secondChar == '=':
+                    NextChar();
+                    return new TokenEquality(CURRENT_LINE);
+                case '=':
+                    return new TokenAssignment(CURRENT_LINE);
+                // inequality
+                case '!' when secondChar == '=':
+                    NextChar();
+                    return new TokenInequality(CURRENT_LINE);
+                // range operator
+                case '.' when secondChar == '.':
+                    NextChar();
+                    return new TokenRangeDots(CURRENT_LINE);
+                // range inverter (probably)
+                case '!' when secondChar == '.' || char.IsDigit(secondChar):
                     return new TokenRangeInvert(CURRENT_LINE);
             }
 
@@ -308,11 +270,12 @@ namespace mc_compiled.MCC.Compiler
                 NextChar();
                 return new TokenSwapAssignment(CURRENT_LINE);
             }
-            else if (ARITHMATIC_CHARS.Contains(firstChar))
+
+            if (ARITHMATIC_CHARS.Contains(firstChar))
             {
                 bool assignment = secondChar == '=';
                 if (assignment) NextChar();
-                return ArithmaticIdentifier(firstChar, assignment);
+                return ArithmeticIdentifier(firstChar, assignment);
             }
 
             // comparison
@@ -324,40 +287,37 @@ namespace mc_compiled.MCC.Compiler
                 return CompareIdentifier(lessThan, orEqual);
             }
 
-            // coordinate literals
-            if(firstChar == '~')
+            switch (firstChar)
             {
-                if (char.IsDigit(secondChar) || (secondChar == '-' & char.IsDigit(Peek(1))))
+                // coordinate literals
+                case '~' when char.IsDigit(secondChar) || (secondChar == '-' & char.IsDigit(Peek(1))):
                 {
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
                     string str = '~' + number.AsString();
-                    return new TokenCoordinateLiteral(Coord.Parse(str).Value, CURRENT_LINE);
+                    return new TokenCoordinateLiteral(Coord.Parse(str) ?? Coord.zero, CURRENT_LINE);
                 }
-                return new TokenCoordinateLiteral(new Coord(0, false, true, false), CURRENT_LINE);
-            }
-            if (firstChar == '^')
-            {
-                if (char.IsDigit(secondChar) || (secondChar == '-' & char.IsDigit(Peek(1))))
+                case '~':
+                    return new TokenCoordinateLiteral(new Coord(0, false, true, false), CURRENT_LINE);
+                case '^' when char.IsDigit(secondChar) || (secondChar == '-' & char.IsDigit(Peek(1))):
                 {
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
                     string str = '^' + number.AsString();
-                    return new TokenCoordinateLiteral(Coord.Parse(str).Value, CURRENT_LINE);
+                    return new TokenCoordinateLiteral(Coord.Parse(str) ?? Coord.zero, CURRENT_LINE);
                 }
-                return new TokenCoordinateLiteral(new Coord(0, false, false, true), CURRENT_LINE);
-            }
-
-            // check for string literal
-            if (firstChar == '"' || firstChar == '\'')
-            {
-                // empty string
-                if(secondChar == firstChar)
+                case '^':
+                    return new TokenCoordinateLiteral(new Coord(0, false, false, true), CURRENT_LINE);
+                // check for string literal
+                case '"':
+                case '\'':
                 {
+                    if (secondChar != firstChar)
+                        return NextStringIdentifier(firstChar);
+                    // empty string
                     NextChar();
                     return new TokenStringLiteral("", CURRENT_LINE);
                 }
-                return NextStringIdentifier(firstChar);
             }
 
             // not any hardcoded known symbols.
@@ -372,37 +332,22 @@ namespace mc_compiled.MCC.Compiler
                     break;
             }
 
-            string word = sb.ToString();
+            string word = sb.ToString().ToUpper();
 
             switch (word)
             {
-                case "true":
-                case "True":
                 case "TRUE":
                     return new TokenBooleanLiteral(true, CURRENT_LINE);
-                case "false":
-                case "False":
                 case "FALSE":
                     return new TokenBooleanLiteral(false, CURRENT_LINE);
-                case "null":
-                case "Null":
                 case "NULL":
                     return new TokenNullLiteral(CURRENT_LINE);
-                case "and":
-                case "And":
                 case "AND":
                     return new TokenAnd(CURRENT_LINE);
-                case "or":
-                case "Or":
                 case "OR":
                     return new TokenOr(CURRENT_LINE);
-                case "not":
-                case "Not":
                 case "NOT":
                     return new TokenNot(CURRENT_LINE);
-
-                default:
-                    break;
             }
 
             // check for probable builder field
@@ -424,20 +369,22 @@ namespace mc_compiled.MCC.Compiler
 
             return new TokenIdentifier(word, CURRENT_LINE);
         }
-
-        public TokenNumberLiteral NextNumberIdentifier(char first, bool rangeSecondArg = false)
+        private TokenNumberLiteral NextNumberIdentifier(char first)
         {
+            bool inDecimalPart = false;
             sb.Append(first);
-            IntMultiplier multiplier = IntMultiplier.none;
+            var multiplier = IntMultiplier.none;
 
-            char c;
             while (HasNext)
             {
-                c = Peek();
+                char c = Peek();
 
                 if (c == '.' && char.IsDigit(Peek(1)))
                 {
+                    if (inDecimalPart)
+                        break;
                     sb.Append(NextChar());
+                    inDecimalPart = true;
                     continue;
                 }
 
@@ -445,12 +392,12 @@ namespace mc_compiled.MCC.Compiler
                 {
                     foreach (IntMultiplier im in TokenIntegerLiteral.ALL_MULTIPLIERS)
                     {
-                        if (c == im.ToString()[0])
-                        {
-                            NextChar();
-                            multiplier = im;
-                            break;
-                        }
+                        if (c != im.ToString()[0])
+                            continue;
+                        
+                        NextChar();
+                        multiplier = im;
+                        break;
                     }
                     break;
                 }
@@ -462,18 +409,13 @@ namespace mc_compiled.MCC.Compiler
 
             if (int.TryParse(str, out int i))
                 return new TokenIntegerLiteral(i * (int)multiplier, multiplier, CURRENT_LINE);
-            else
-            {
-                if (float.TryParse(str, out float f))
-                {
-                    f *= (int)multiplier;
-                    return new TokenDecimalLiteral(f, CURRENT_LINE);
-                }
-                else
-                    throw new TokenizerException("Couldn't parse literal: " + str);
-            }
+            if (!float.TryParse(str, out float f))
+                throw new TokenizerException("Couldn't parse literal: " + str);
+            
+            f *= (int)multiplier;
+            return new TokenDecimalLiteral(f, CURRENT_LINE);
         }
-        public TokenStringLiteral NextStringIdentifier(char closer)
+        private TokenStringLiteral NextStringIdentifier(char closer)
         {
             bool escaped = false;
             sb.Clear();
@@ -502,7 +444,7 @@ namespace mc_compiled.MCC.Compiler
 
             return new TokenStringLiteral(sb.ToString(), CURRENT_LINE);
         }
-        public Token NextSelectorLiteral(Selector.Core core)
+        private Token NextSelectorLiteral(Selector.Core core)
         {
             if (Peek() == '[')
                 NextChar();
@@ -523,8 +465,8 @@ namespace mc_compiled.MCC.Compiler
                 }
                 if (c == '\\')
                     escaped = true;
-
-                sb.Append(c);
+                else
+                    sb.Append(c);
 
                 // bracket handling
                 if (!inQuotes)
@@ -538,7 +480,7 @@ namespace mc_compiled.MCC.Compiler
                             break;
                     }
                 }
-                else if (c == '"')
+                if (c == '"')
                     inQuotes = !inQuotes;
             }
 
@@ -548,53 +490,52 @@ namespace mc_compiled.MCC.Compiler
             {
                 return new TokenUnresolvedSelector(new UnresolvedSelector(core, str), CURRENT_LINE);
             }
-            else
-            {
-                Selector selector = Selector.Parse(core, str);
-                return new TokenSelectorLiteral(selector, CURRENT_LINE);
-            }
+
+            Selector selector = Selector.Parse(core, str);
+            return new TokenSelectorLiteral(selector, CURRENT_LINE);
         }
-        public TokenArithmetic ArithmaticIdentifier(char a, bool assignment)
+        
+        [PublicAPI]
+        public static TokenCompare CompareIdentifier(bool lessThan, bool orEqual)
+        {
+            if (lessThan)
+            {
+                return orEqual ?
+                    new TokenLessThanEqual(CURRENT_LINE) :
+                    (TokenCompare)new TokenLessThan(CURRENT_LINE);
+            }
+
+            return orEqual ?
+                new TokenGreaterThanEqual(CURRENT_LINE) :
+                (TokenCompare)new TokenGreaterThan(CURRENT_LINE);
+        }
+        [PublicAPI]
+        public static TokenArithmetic ArithmeticIdentifier(char a, bool assignment)
         {
             switch (a)
             {
                 case '+':
                     return assignment ?
-                        (TokenArithmetic)new TokenAddAssignment(CURRENT_LINE) :
+                        new TokenAddAssignment(CURRENT_LINE) :
                         (TokenArithmetic)new TokenAdd(CURRENT_LINE);
                 case '-':
                     return assignment ?
-                        (TokenArithmetic)new TokenSubtractAssignment(CURRENT_LINE) :
+                        new TokenSubtractAssignment(CURRENT_LINE) :
                         (TokenArithmetic)new TokenSubtract(CURRENT_LINE);
                 case '*':
                     return assignment ?
-                        (TokenArithmetic)new TokenMultiplyAssignment(CURRENT_LINE) :
+                        new TokenMultiplyAssignment(CURRENT_LINE) :
                         (TokenArithmetic)new TokenMultiply(CURRENT_LINE);
                 case '/':
                     return assignment ?
-                        (TokenArithmetic)new TokenDivideAssignment(CURRENT_LINE) :
+                        new TokenDivideAssignment(CURRENT_LINE) :
                         (TokenArithmetic)new TokenDivide(CURRENT_LINE);
                 case '%':
                     return assignment ?
-                        (TokenArithmetic)new TokenModuloAssignment(CURRENT_LINE) :
+                        new TokenModuloAssignment(CURRENT_LINE) :
                         (TokenArithmetic)new TokenModulo(CURRENT_LINE);
                 default:
                     throw new TokenizerException("Couldn't parse identifier?");
-            }
-        }
-        public TokenCompare CompareIdentifier(bool lessThan, bool orEqual)
-        {
-            if (lessThan)
-            {
-                return orEqual ?
-                    (TokenCompare)new TokenLessThanEqual(CURRENT_LINE) :
-                    (TokenCompare)new TokenLessThan(CURRENT_LINE);
-            }
-            else
-            {
-                return orEqual ?
-                    (TokenCompare)new TokenGreaterThanEqual(CURRENT_LINE) :
-                    (TokenCompare)new TokenGreaterThan(CURRENT_LINE);
             }
         }
     }
@@ -604,7 +545,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class TokenizerException : Exception
     {
-        public int[] lines;
+        public readonly int[] lines;
         public TokenizerException(string message, int[] lines) : base(message)
         {
             this.lines = lines;

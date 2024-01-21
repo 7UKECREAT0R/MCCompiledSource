@@ -1,6 +1,8 @@
-﻿using mc_compiled.NBT;
+﻿using System;
+using mc_compiled.NBT;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace mc_compiled.Commands.Native
 {
@@ -24,6 +26,7 @@ namespace mc_compiled.Commands.Native
         public ItemTagBookData? bookData;
         public ItemTagCustomColor? customColor;
 
+        [PublicAPI]
         public ItemStack(string id, int count = 1, int damage = 0, string displayName = null, string[] lore = null, EnchantmentEntry[] enchantments = null,
             bool keep = false, string[] canPlaceOn = null, string[] canDestroy = null, ItemLockMode lockMode = ItemLockMode.NONE)
         {
@@ -47,24 +50,39 @@ namespace mc_compiled.Commands.Native
             customColor = null;
         }
 
-        /// <summary>
-        /// Generate a unique identifier for this item stack.
-        /// </summary>
-        /// <returns></returns>
+        public bool Equals(ItemStack other)
+        {
+            return id == other.id && count == other.count && damage == other.damage &&
+                   displayName == other.displayName && Equals(lore, other.lore) &&
+                   Equals(enchantments, other.enchantments) && keep == other.keep &&
+                   Equals(canPlaceOn, other.canPlaceOn) && Equals(canDestroy, other.canDestroy) &&
+                   lockMode == other.lockMode && Nullable.Equals(bookData, other.bookData) &&
+                   Nullable.Equals(customColor, other.customColor);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ItemStack other && Equals(other);
+        }
+
         public override int GetHashCode()
         {
-            int hashCode = -1625500939;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(id);
-            hashCode = hashCode * -1521134295 + count.GetHashCode();
-            hashCode = hashCode * -1521134295 + damage.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(displayName);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string[]>.Default.GetHashCode(lore);
-            hashCode = hashCode * -1521134295 + EqualityComparer<EnchantmentEntry[]>.Default.GetHashCode(enchantments);
-            hashCode = hashCode * -1521134295 + keep.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string[]>.Default.GetHashCode(canPlaceOn);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string[]>.Default.GetHashCode(canDestroy);
-            hashCode = hashCode * -1521134295 + lockMode.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                int hashCode = (id != null ? id.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ count;
+                hashCode = (hashCode * 397) ^ damage;
+                hashCode = (hashCode * 397) ^ (displayName != null ? displayName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (lore != null ? lore.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (enchantments != null ? enchantments.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ keep.GetHashCode();
+                hashCode = (hashCode * 397) ^ (canPlaceOn != null ? canPlaceOn.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (canDestroy != null ? canDestroy.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int) lockMode;
+                hashCode = (hashCode * 397) ^ bookData.GetHashCode();
+                hashCode = (hashCode * 397) ^ customColor.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }

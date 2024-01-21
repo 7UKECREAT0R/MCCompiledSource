@@ -6,7 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using mc_compiled.Commands;
+using mc_compiled.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
+using mc_compiled.MCC.Scheduling;
+using mc_compiled.MCC.Scheduling.Implementations;
 
 namespace mc_compiled.MCC
 {
@@ -18,10 +21,8 @@ namespace mc_compiled.MCC
         /// <summary>
         /// An identifier used in this project's entities/assets.
         /// </summary>
-        private string Identifier
-        {
-            get => name.ToLower().Replace(' ', '_').Trim();
-        }
+        private string Identifier => name.ToLower().Replace(' ', '_').Trim();
+
         /// <summary>
         /// Namespace an identifier for this project.
         /// <code>this.Identifier + ':' + name</code>
@@ -31,12 +32,10 @@ namespace mc_compiled.MCC
         public string Namespace(string name) =>
             Identifier + ':' + name;
 
-        internal readonly string name;
-        internal string description = "placeholder";
-
-        readonly Executor parentExecutor;
-        readonly OutputRegistry registry;
-        readonly List<IAddonFile> files;
+        private readonly string name;
+        private readonly Executor parentExecutor;
+        private readonly OutputRegistry registry;
+        private readonly List<IAddonFile> files;
         private Feature features;
         internal bool linting;
 
@@ -46,6 +45,7 @@ namespace mc_compiled.MCC
         /// <param name="name">The name of the project.</param>
         /// <param name="bpBase">e.g: development_behavior_packs/project_name/</param>
         /// <param name="rpBase">e.g: development_resource_packs/project_name/</param>
+        /// <param name="parent">The parent executor.</param>
         internal ProjectManager(string name, string bpBase, string rpBase, Executor parent)
         {
             this.parentExecutor = parent;
@@ -58,10 +58,9 @@ namespace mc_compiled.MCC
         /// Returns this project manager after setting it to lint mode, lowering memory usage
         /// </summary>
         /// <returns></returns>
-        internal ProjectManager Linter()
+        internal void Linter()
         {
-            this.linting = true;
-            return this;
+            linting = true;
         }
 
         /// <summary>
@@ -70,8 +69,8 @@ namespace mc_compiled.MCC
         private void CreateUninstallFile()
         {
             var file = new CommandFile(true, "uninstall");
+            AddFile(file);
             
-            this.AddFile(file);
             file.Add("# Created by the 'uninstall' feature. Uninstalls the addon from the world.");
             file.Add("");
             
@@ -129,6 +128,46 @@ namespace mc_compiled.MCC
             }
         }
 
+        private void CreateAutoInitFile()
+        {
+            const string TEMP_FILE = "projectVersion_";
+            const string CURRENT_VERSION = "__currentVersion";
+            string tempFile = TEMP_FILE + Identifier + ".bin";
+            int version = 0;
+
+            // file I/O; slowdown is probably pretty bad here
+            {
+                if (TemporaryFilesManager.HasFile(tempFile))
+                {
+                    byte[] contents = TemporaryFilesManager.GetFileBytes(tempFile);
+
+                    if (contents.Length < 4)
+                        Executor.Warn("Auto-Init project version file was corrupted or modified. Defaulting to 0.");
+                    else
+                        version = BitConverter.ToInt32(contents, 0);
+                }
+
+                version += 1;
+                TemporaryFilesManager.WriteFile(tempFile, BitConverter.GetBytes(version));
+            }
+
+            var file = new CommandFile(true, "_autoinit");
+            AddFile(file);
+            
+            file.Add("# Created by the 'autoinit' feature. Checks for new versions and auto-initializes in new worlds.");
+            var value = new ScoreboardValue(CURRENT_VERSION, true, Typedef.INTEGER, null, parentExecutor.scoreboard);
+            
+            file.Add(value.CommandsDefine());
+            file.Add(value.CommandsInit());
+            file.Add(Command.Execute().IfScore(value, new Range(version, true))
+                .Run(Command.Function(parentExecutor.InitFile)));
+            parentExecutor.InitFile.Add(Command.ScoreboardSet(value, version));
+            
+            // schedule file to run every tick.
+            TickScheduler scheduler = parentExecutor.GetScheduler();
+            scheduler.ScheduleTask(new ScheduledRepeatEveryTick(file));
+        }
+
         /// <summary>
         /// Removes any files that duplicate/would overwrite this file.
         /// </summary>
@@ -169,7 +208,7 @@ namespace mc_compiled.MCC
         /// Attempts to add a file to this project, skipping the operation entirely if it's null.
         /// </summary>
         /// <param name="file">The file to be added to the project.</param>
-        internal void TryAddFile(IAddonFile file)
+        private void TryAddFile(IAddonFile file)
         {
             if (file == null)
                 return;
@@ -211,6 +250,8 @@ namespace mc_compiled.MCC
             // uninstall feature
             if(HasFeature(Feature.UNINSTALL))
                 CreateUninstallFile();
+            if (HasFeature(Feature.AUTOINIT))
+                CreateAutoInitFile();
 
             // manifests
             ApplyManifests();
@@ -218,6 +259,14 @@ namespace mc_compiled.MCC
             // actual writing
             foreach (IAddonFile file in files)
             {
+                if (file is CommandFile cmd)
+                {
+                    // file only contains comments
+                    bool prerequisite = !cmd.IsInUse || ReferenceEquals(cmd, parentExecutor.HeadFile);
+                    if (prerequisite && cmd.commands.TrueForAll(c => c.StartsWith("#")))
+                        continue;
+                }
+                
                 // log the write to console
                 if(Program.DEBUG && file.GetOutputFile() != null)
                 {

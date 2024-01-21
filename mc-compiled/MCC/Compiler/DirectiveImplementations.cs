@@ -337,6 +337,36 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, "Preprocessor variable '" + aName + "' does not exist.");
         }
         [UsedImplicitly]
+        public static void _append(Executor executor, Statement tokens)
+        {
+            string ppvName = tokens.Next<TokenIdentifier>().word;
+
+            if (!executor.TryGetPPV(ppvName, out PreprocessorVariable modify))
+                throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{ppvName}'.");
+
+            dynamic[] items = FetchPPVOrDynamics(executor, tokens, true);
+
+            if (items.Length == 1)
+                modify.Append(items[0]);
+            else
+                modify.AppendRange(items);
+        }
+        [UsedImplicitly]
+        public static void _prepend(Executor executor, Statement tokens)
+        {
+            string ppvName = tokens.Next<TokenIdentifier>().word;
+            
+            if (!executor.TryGetPPV(ppvName, out PreprocessorVariable modify))
+                throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{ppvName}'.");
+
+            dynamic[] items = FetchPPVOrDynamics(executor, tokens, true);
+            
+            if (items.Length == 1)
+                modify.Prepend(items[0]);
+            else
+                modify.PrependRange(items);
+        }
+        [UsedImplicitly]
         public static void _if(Executor executor, Statement tokens)
         {
             dynamic[] tokensA = FetchPPVOrDynamics(executor, tokens, true);
@@ -1036,14 +1066,6 @@ namespace mc_compiled.MCC.Compiler
         {
             string output = tokens.Next<TokenIdentifier>().word;
             
-            if(tokens.NextIs<TokenStringLiteral>(false))
-            {
-                // String
-                string inputString = tokens.Next<TokenStringLiteral>().text;
-                executor.SetPPV(output, inputString.Length);
-                return;
-            }
-
             if(tokens.NextIs<TokenJSONLiteral>())
             {
                 // JSON Array
@@ -1472,15 +1494,12 @@ namespace mc_compiled.MCC.Compiler
                 {
                     case "KEEP":
                         keep = true;
-                        needsStructure = true;
                         break;
                     case "LOCKINVENTORY":
                         lockInventory = true;
-                        needsStructure = true;
                         break;
                     case "LOCKSLOT":
                         lockSlot = true;
-                        needsStructure = true;
                         break;
                     case "CANPLACEON":
                         canPlaceOn.Add(tokens.Next<TokenStringLiteral>());
@@ -1583,8 +1602,10 @@ namespace mc_compiled.MCC.Compiler
 
                 string cmd = Command.StructureLoad(file.CommandReference, Coord.here, Coord.here, Coord.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
-                if (player.NonSelf)
-                    cmd = Command.Execute().As(player).AtSelf().Run(cmd);
+
+                cmd = player.NonSelf ?
+                    Command.Execute().As(player).AtSelf().Run(cmd) :
+                    Command.Execute().AtSelf().Run(cmd);
                 
                 executor.AddCommand(cmd);
                 return;

@@ -155,7 +155,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
             keywords = new[] {
                 // features
                 new Keyword("dummies", "Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world."),
-                new Keyword("gametest", "Feature: Gametest Integration (not implemented)"),
+                new Keyword("autoinit", "Feature: Runs the initialization file automatically in new worlds, and every time a new build is compiled. Requires a check-function to be run every tick."),
                 new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
                 new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project."),
                 new Keyword("tests", "Feature: Enables the ability to use the 'test' command, which creates tests that are run on '/function test'. Use the 'assert' command to test various parts of your code."),

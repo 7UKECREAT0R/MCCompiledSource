@@ -13,12 +13,45 @@ namespace mc_compiled.MCC.Compiler
     public static class PreprocessorUtils
     {
         /// <summary>
+        /// Determines whether the given JToken can be unwrapped to a C# object or surrounded with a literal.
+        /// </summary>
+        /// <param name="token">The JToken to check.</param>
+        /// <returns>Returns true if the JToken can be unwrapped, false otherwise.</returns>
+        public static bool CanTokenBeUnwrapped(JToken token)
+        {
+            switch (token.Type)
+            {
+                case JTokenType.Array:
+                case JTokenType.Object:
+                case JTokenType.Integer:
+                case JTokenType.Float:
+                case JTokenType.String:
+                case JTokenType.Boolean:
+                case JTokenType.Date:
+                case JTokenType.Guid:
+                case JTokenType.Uri:
+                case JTokenType.TimeSpan:
+                    return true;
+                case JTokenType.None:
+                case JTokenType.Constructor:
+                case JTokenType.Property:
+                case JTokenType.Comment:
+                case JTokenType.Null:
+                case JTokenType.Undefined:
+                case JTokenType.Raw:
+                case JTokenType.Bytes:
+                default:
+                    return false;
+            }
+        }
+        
+        /// <summary>
         /// Returns if a JToken is a base type that can be converted into a non-json literal, outputting that token if true.
         /// </summary>
         /// <param name="token">The input token to check.</param>
         /// <param name="lineNumber">The line number to associate with the output literal, if created.</param>
         /// <param name="output">The output if this method returns true.</param>
-        /// <returns></returns>
+        /// <returns>A boolean value indicating if the conversion was successful.</returns>
         public static bool TryGetLiteral(JToken token, int lineNumber, out TokenLiteral output)
         {
             switch (token.Type)
@@ -158,7 +191,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public static IEnumerable<string> ParseAccessor(string tree)
         {
-            char[] SEPARATORS = { '.', '/' };
+            char[] SEPARATORS = { '.', '/', '\\' };
             return tree.Split(SEPARATORS);
         }
     }

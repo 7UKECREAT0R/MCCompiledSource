@@ -40,6 +40,10 @@ Commands that allow the user to do things at compile time. Preprocessor commands
 #### Add to Preprocessor Variable `$add`
 Adds two preprocessor variables/values together, changing only the first one. A += B
 - `$add` `<id: variable>` `<object: values>`
+#### Append to Preprocessor Variable `$append`
+Adds the given item(s) to the end of the given preprocessor variable, or contents of another preprocessor variable if specified.
+- `$append` `<id: to modify>` `<object: items>`
+- `$append` `<id: to modify>` `<id: items>`
 #### Decrement Preprocessor Variable `$dec`
 Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.
 - `$dec` `<id: variable>`
@@ -61,6 +65,7 @@ Increments the given preprocessor variable by one. If multiple values are held, 
 #### Iterate Preprocessor Array `$iterate`
 Runs the following statement/code-block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.
 - `$iterate` `<id: variable>` `<id: current>`
+- `$iterate` `<json: array or object>` `<id: current>`
 #### Log to Console `$log`
 Sends a message to stdout with a line terminator at the end.
 - `$log` `<*: message>`
@@ -70,6 +75,9 @@ Divides two preprocessor variables/values from each other, setting only the firs
 #### Multiply with Preprocessor Variable `$mul`
 Multiplies two preprocessor variables/values together, changing only the first one. A *= B
 - `$mul` `<id: variable>` `<object: values>`
+#### Prepend to Preprocessor Variable `$prepend`
+Adds the given item(s) to the start of the given preprocessor variable.
+- `$prepend` `<id: to modify>` `<object: items>`
 #### Preprocessor Array Mean `$mean`
 Averages all values in the given preprocessor variable together into one value and stores it in a result variable.
 - `$mean` `<id: result>` `[id: variable]`
@@ -97,7 +105,7 @@ Compares a preprocessor variable and another value/variable. If the source varia
 - `$if` `<object: a>` `<compare: comparison>` `<id: b>`
 - `$if` `<id: a>` `<compare: comparison>` `<id: b>`
 #### Preprocessor Length `$len`
-If a preprocessor variable ID is given, the number of elements it holds is gotten. If a JSON array is given, the number of elements is gotten. If a string is given, the number of characters is gotten.
+If a preprocessor variable identifier or JSON array is specified, the number of elements it holds is gotten. If a string is given, its length is gotten.
 - `$len` `<id: result>` `<id: variable>`
 - `$len` `<id: result>` `<json: array>`
 - `$len` `<id: result>` `<string: text>`
@@ -375,8 +383,8 @@ Extended language features can be enabled through the `feature` `<id: feature na
 
 #### `feature` `dummies`
 Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world.
-#### `feature` `gametest`
-Feature: Gametest Integration (not implemented)
+#### `feature` `autoinit`
+Feature: Runs the initialization file automatically in new worlds, and every time a new build is compiled. Requires a check-function to be run every tick.
 #### `feature` `exploders`
 Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command.
 #### `feature` `uninstall`

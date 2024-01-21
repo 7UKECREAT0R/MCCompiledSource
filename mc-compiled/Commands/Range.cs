@@ -1,4 +1,6 @@
-﻿namespace mc_compiled.Commands
+﻿using System;
+
+namespace mc_compiled.Commands
 {
     /// <summary>
     /// Represents a range value in selector options. Examples:
@@ -6,19 +8,24 @@
     /// </summary>
     public struct Range
     {
+        /// <summary>
+        /// A range which matches only 0.
+        /// </summary>
         public static readonly Range zero = new Range(0, false);
+        /// <summary>
+        /// A range which matches everything but 0.
+        /// </summary>
+        public static readonly Range notZero = new Range(0, true);
 
         public bool invert, single;
         public int? min;
         public int? max;
 
-        public bool IsUnbounded
-        {
-            get => invert || !min.HasValue || !max.HasValue;
-        }
+        public bool IsUnbounded => invert || !min.HasValue || !max.HasValue;
 
         public Range(int? min, int? max, bool not = false)
         {
+            // ReSharper disable once MergeSequentialChecks
             if (min != null && max != null && min > max)
             {
                 this.max = min;
@@ -64,15 +71,15 @@
             if (string.IsNullOrEmpty(str))
                 return null;
 
-            bool not;
-            if ((not = str.StartsWith("!")))
+            bool not = str.StartsWith("!");
+            if (not)
                 str = str.Substring(1);
 
             if (str.Contains(".."))
             {
-                int index = str.IndexOf("..");
+                int index = str.IndexOf("..", StringComparison.Ordinal);
                 if (index == 0) // ..10
-                    return new Range(null, int.Parse(str.Substring(index + 2)), not);
+                    return new Range(null, int.Parse(str.Substring(2)), not);
                 if (index + 2 >= str.Length) // 10..
                     return new Range(int.Parse(str.Substring(0, index)), null, not);
 

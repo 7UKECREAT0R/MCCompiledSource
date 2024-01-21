@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Permissions;
 using System.Windows.Forms;
+using JetBrains.Annotations;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 
@@ -282,7 +283,8 @@ namespace mc_compiled.MCC.Compiler
         public readonly string text;
 
         public override string AsString() => '"' + text + '"';
-        internal TokenStringLiteral() : base(-1) { }
+        [UsedImplicitly]
+        private TokenStringLiteral() : base(-1) { }
         public TokenStringLiteral(string text, int lineNumber) : base(lineNumber)
         {
             this.text = text;
@@ -466,16 +468,37 @@ namespace mc_compiled.MCC.Compiler
 
         public Token Index(TokenIndexer indexer, Statement forExceptions)
         {
-            if (!(indexer is TokenIndexerInteger integer))
-                throw indexer.GetException(this, forExceptions);
-            
-            int value = integer.token.number;
-            int length = text.Length;
-            if (value >= length || value < 0)
-                throw integer.GetIndexOutOfBounds(0, length - 1, forExceptions);
+            switch (indexer)
+            {
+                case TokenIndexerInteger integer:
+                {
+                    int value = integer.token.number;
+                    int length = text.Length;
+                    if (value >= length || value < 0)
+                        throw integer.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
 
-            string newString = text[value].ToString();
-            return new TokenStringLiteral(newString, lineNumber);
+                    string newString = text[value].ToString();
+                    return new TokenStringLiteral(newString, lineNumber);
+                }
+                case TokenIndexerRange range:
+                {
+                    Range value = range.token.range;
+                    int length = text.Length;
+                
+                    if (value.min.HasValue && value.min < 0)
+                        throw range.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
+                    if (value.max.HasValue && value.max >= length)
+                        throw range.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
+
+                    int start = value.min ?? 0;
+                    int end = value.max ?? (length - 1);
+
+                    string newString = text.Substring(start, end + 1);
+                    return new TokenStringLiteral(newString, lineNumber);
+                }
+                default:
+                    throw indexer.GetException(this, forExceptions);
+            }
         }
 
         public string GetDocumentation() => "A block of text on a single line, surrounded with either 'single quotes' or \"double quotes.\"";
@@ -1012,18 +1035,25 @@ namespace mc_compiled.MCC.Compiler
                 case TokenIndexerInteger integer:
                 {
                     int value = integer.token.number;
-                    if (value > 1 || value < 0)
-                        throw integer.GetIndexOutOfBounds(0, 2, forExceptions);
+                    if (value > 2 || value < 0)
+                        throw integer.GetIndexOutOfBoundsException(0, 2, forExceptions);
 
                     // if its a single number both should return the same value
                     if(range.single)
                         return new TokenIntegerLiteral(range.min ?? 0, IntMultiplier.none, lineNumber);
 
-                    // fetch min/max for 0/1
-                    if (value == 0)
-                        return new TokenIntegerLiteral(range.min ?? 0, IntMultiplier.none, lineNumber);
-                    else
-                        return new TokenIntegerLiteral(range.max ?? 0, IntMultiplier.none, lineNumber);
+                    switch (value)
+                    {
+                        // fetch min/max for 0/1
+                        case 0:
+                            return new TokenIntegerLiteral(range.min ?? 0, IntMultiplier.none, lineNumber);
+                        case 1:
+                            return new TokenIntegerLiteral(range.max ?? 0, IntMultiplier.none, lineNumber);
+                        case 2:
+                            return new TokenBooleanLiteral(range.invert, lineNumber);
+                        default:
+                            throw new Exception($"Invalid indexer for range: '{value}'");
+                    }
                 }
                 case TokenIndexerString indexerString:
                 {
@@ -1032,14 +1062,13 @@ namespace mc_compiled.MCC.Compiler
                     {
                         case "MIN":
                         case "MINIMUM":
-                        case "X":
-                        case "A":
                             return new TokenIntegerLiteral(range.min ?? 0, IntMultiplier.none, lineNumber);
                         case "MAX":
                         case "MAXIMUM":
-                        case "Y":
-                        case "B":
                             return new TokenIntegerLiteral(range.max ?? 0, IntMultiplier.none, lineNumber);
+                        case "INVERTED":
+                        case "INVERT":
+                            return new TokenBooleanLiteral(range.invert, lineNumber);
                         default:
                             throw new Exception($"Invalid indexer for range: '{input}'");
                     }
@@ -1254,7 +1283,7 @@ namespace mc_compiled.MCC.Compiler
                     int len = array.Count;
 
                     if (value >= len || value < 0)
-                        throw integer.GetIndexOutOfBounds(0, len - 1, forExceptions);
+                        throw integer.GetIndexOutOfBoundsException(0, len - 1, forExceptions);
 
                     JToken indexedItem = array[value];
                     if(PreprocessorUtils.TryGetLiteral(indexedItem, lineNumber, out TokenLiteral output))

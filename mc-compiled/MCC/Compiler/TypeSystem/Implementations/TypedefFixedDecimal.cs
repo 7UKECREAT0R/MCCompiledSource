@@ -3,6 +3,8 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 {
@@ -157,9 +159,9 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
             manager.DefineMany(whole, part, temporary, tempBase);
 
-            string[] commands = new[]
+            string[] commands =
             {
-                Command.ScoreboardSet(tempBase, (int)Math.Pow(10, precision)),
+                Command.ScoreboardSet(tempBase, (int) Math.Pow(10, precision)),
                 Command.ScoreboardOpSet(temporary, value),
                 Command.ScoreboardOpDiv(temporary, tempBase),
                 Command.ScoreboardOpSet(whole, temporary),
@@ -167,17 +169,57 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 Command.ScoreboardOpSet(part, value),
                 Command.ScoreboardOpSub(part, temporary),
                 Command.ScoreboardSet(temporary, -1),
-                Command.Execute().IfScore(part, new Range(null, -1)).Run(Command.ScoreboardOpMul(part, temporary))
+                Command.Execute().IfScore(part, new Range(null, -1)).Run(Command.ScoreboardOpMul(part, temporary)) // whole already is negative, no need to change it.
             };
-
-            var terms = new JSONRawTerm[]
+            
+            // precision is two or more, need to create conditional terms for the 0's.
+            var conditionalTerms = new List<ConditionalTerm>();
+            var zeroBuilder = new StringBuilder();
+            int lowerBound = 1;
+            int upperBound = 9;
+            
+            // create case for part == 0
+            conditionalTerms.Add(
+                new ConditionalTerm(
+                    new JSONRawTerm[] { new JSONScore(clarifier.CurrentString, part.InternalName) },
+                    ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, Range.zero),
+                    false)
+            );
+            
+            for (int i = precision - 1; i >= 0; i--)
             {
-                new JSONScore(clarifier.CurrentString, whole.InternalName),
-                new JSONText("."),
-                new JSONScore(clarifier.CurrentString, part.InternalName)
-            };
+                var range = new Range(lowerBound, upperBound);
+                ConditionalTerm term;
+                if (i == 0)
+                {
+                    // include i number of zeros
+                    zeroBuilder.Append('0', i);
+                    term = new ConditionalTerm(new JSONRawTerm[]
+                    {
+                        new JSONText(zeroBuilder.ToString()),
+                        new JSONScore(clarifier.CurrentString, part.InternalName)
+                    }, ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
+                    zeroBuilder.Clear();
+                }
+                else
+                {
+                    // include no zeros
+                    term = new ConditionalTerm(new JSONRawTerm[]
+                    {
+                        new JSONScore(clarifier.CurrentString, part.InternalName)
+                    }, ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
+                }
+                conditionalTerms.Add(term);
+                
+                // raise bound to requiring one less 0
+                lowerBound *= 10;
+                upperBound *= 10;
+            }
 
-            return new Tuple<string[], JSONRawTerm[]>(commands, terms);
+            return new Tuple<string[], JSONRawTerm[]>(commands, new JSONRawTerm[]
+            {
+                new JSONVariant(conditionalTerms)
+            });
         }
         internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
             TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement)

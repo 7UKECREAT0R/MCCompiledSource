@@ -1,12 +1,12 @@
 const mccompiled = {
 	operators: [ `<`, `>`, `{`, `}`, `=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `!` ],
 	selectors: [ `@e`, `@a`, `@s`, `@p`, `@i`, `@initiator` ],
-	preprocessor: [ `$add`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
+	preprocessor: [ `$add`, `$append`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$prepend`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
 	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
 	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto` ],
 	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
-	options: [ `dummies`, `gametest`, `exploders`, `uninstall`, `tests`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
+	options: [ `dummies`, `autoinit`, `exploders`, `uninstall`, `tests`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
         root: [
             [ /@?[a-zA-Z$][\w]*/, {
@@ -128,6 +128,10 @@ const mcc_preprocessor = [
 		docs: `Adds two preprocessor variables/values together, changing only the first one. A += B`
 	},
 	{
+		word: `$append`,
+		docs: `Adds the given item(s) to the end of the given preprocessor variable, or contents of another preprocessor variable if specified.`
+	},
+	{
 		word: `$assert`,
 		docs: `Asserts that the input comparison is true, and throws a compiler error if not.`
 	},
@@ -169,7 +173,7 @@ const mcc_preprocessor = [
 	},
 	{
 		word: `$len`,
-		docs: `If a preprocessor variable ID is given, the number of elements it holds is gotten. If a JSON array is given, the number of elements is gotten. If a string is given, the number of characters is gotten.`
+		docs: `If a preprocessor variable identifier or JSON array is specified, the number of elements it holds is gotten. If a string is given, its length is gotten.`
 	},
 	{
 		word: `$log`,
@@ -198,6 +202,10 @@ const mcc_preprocessor = [
 	{
 		word: `$pow`,
 		docs: `Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B`
+	},
+	{
+		word: `$prepend`,
+		docs: `Adds the given item(s) to the start of the given preprocessor variable.`
 	},
 	{
 		word: `$repeat`,
@@ -538,8 +546,8 @@ const mcc_options = [
 		docs: `Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world.`
 	},
 	{
-		word: `gametest`,
-		docs: `Feature: Gametest Integration (not implemented)`
+		word: `autoinit`,
+		docs: `Feature: Runs the initialization file automatically in new worlds, and every time a new build is compiled. Requires a check-function to be run every tick.`
 	},
 	{
 		word: `exploders`,

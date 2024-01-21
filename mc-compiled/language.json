@@ -13,19 +13,19 @@
     "DUMMIES": {
       "description": "Dummy Entities",
       "details": "Allows the creation of dummy entity behavior/resource files, as well as placing them in the world.",
-      "min-version": 1.1,
+      "min-version": 1.10,
       "value": 1
     },
-    "GAMETEST": {
-      "description": "Gametest Integration",
-      "details": "todo",
-      "min-version": 9999,
+    "AUTOINIT": {
+      "description": "Auto-Initialization",
+      "details": "Runs the initialization file automatically in new worlds, and every time a new build is compiled. Requires a check-function to be run every tick.",
+      "min-version": 1.16,
       "value": 2
     },
     "EXPLODE": {
       "description": "Exploding Entities",
       "details": "Allows the creation of exploder entity behavior/resource files. Allows the use of the explode command by generating presets for the entity.",
-      "min-version": 1.1,
+      "min-version": 1.10,
       "value": 4
     },
     "UNINSTALL": {
@@ -164,6 +164,28 @@
       "function": "_swap",
       "patterns": [
         [ "id:a", "id:b" ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
+    },
+    "$append": {
+      "description": "Append to Preprocessor Variable",
+      "details": "Adds the given item(s) to the end of the given preprocessor variable, or contents of another preprocessor variable if specified.",
+      "category": "preprocessor",
+      "function": "_append",
+      "patterns": [
+        [ "id:to modify", "object:items" ],
+        [ "id:to modify", "id:other" ]
+      ],
+      "attributes": [ "DONT_DECORATE" ]
+    },
+    "$prepend": {
+      "description": "Prepend to Preprocessor Variable",
+      "details": "Adds the given item(s) to the start of the given preprocessor variable.",
+      "category": "preprocessor",
+      "function": "_prepend",
+      "patterns": [
+        [ "id:to modify", "object:items" ],
+        [ "id:to modify", "id:other" ]
       ],
       "attributes": [ "DONT_DECORATE" ]
     },
@@ -336,19 +358,19 @@
       "category": "preprocessor",
       "function": "_iterate",
       "patterns": [
-        [ "id:variable", "id:current" ]
+        [ "id:variable", "id:current" ],
+        [ "json:array or object", "id:current"]
       ],
       "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },
     "$len": {
       "description": "Preprocessor Length",
-      "details": "If a preprocessor variable ID is given, the number of elements it holds is gotten. If a JSON array is given, the number of elements is gotten. If a string is given, the number of characters is gotten.",
+      "details": "If a preprocessor variable identifier or JSON array is specified, the number of elements it holds is gotten. If a string is given, its length is gotten.",
       "category": "preprocessor",
       "function": "_len",
       "patterns": [
         [ "id:result", "id:variable" ],
-        [ "id:result", "json:array" ],
-        [ "id:result", "string:text" ]
+        [ "id:result", "json:array" ]
       ],
       "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },
@@ -417,7 +439,7 @@
       "patterns": [
         [ "*:args" ]
       ],
-      "attributes": [ "DOCUMENTABLE" ]
+      "attributes": [ "DOCUMENTABLE", "DONT_DECORATE" ]
     },
     "init": {
       "description": "Initialize Variable",

@@ -15,6 +15,8 @@ using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
 using System.Diagnostics;
+using System.Linq.Expressions;
+using mc_compiled.Compiler;
 using mc_compiled.MCC.Functions.Types;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -28,7 +30,7 @@ namespace mc_compiled.MCC.Compiler
         private const string _FSTRING_SELECTOR = @"@(?:[spaeri]|initiator)(?:\[.+\])?";
         private const string _FSTRING_VARIABLE = @"[\w\d_\-:]+";
         private static readonly Regex PPV_FMT = new Regex(@"\\*\$[\w\d]+");
-        
+
         public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
         public const double MCC_VERSION = 1.16;                 // _compiler
@@ -612,11 +614,11 @@ namespace mc_compiled.MCC.Compiler
                 else
                 {
                     string pathString = toLocate.GetOutputLocation().ToString();
-                    DefaultPackManager.PackType packType = DefaultPackManager.PackType.BehaviorPack;
+                    TemporaryFilesManager.PackType packType = TemporaryFilesManager.PackType.BehaviorPack;
 
                     if(pathString.StartsWith("r_"))
                     {
-                        packType = DefaultPackManager.PackType.ResourcePack;
+                        packType = TemporaryFilesManager.PackType.ResourcePack;
                         pathString = pathString.Substring(2);
                     }
                     if (pathString.StartsWith("b_"))
@@ -633,7 +635,7 @@ namespace mc_compiled.MCC.Compiler
                     }
                     filePath[paths.Length] = toLocate.GetOutputFile(); // last index
 
-                    string downloadedFile = DefaultPackManager.Get(packType, filePath);
+                    string downloadedFile = TemporaryFilesManager.Get(packType, filePath);
                     root = this.LoadJSONFile(downloadedFile, outputFileHash, null);
                 }
             }
@@ -904,13 +906,13 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         private void SetCompilerPPVs()
         {
-            ppv["_minecraft"] = new PreprocessorVariable("_minecraft", MINECRAFT_VERSION);
-            ppv["_compiler"] = new PreprocessorVariable("_compiler", MCC_VERSION);
-            ppv["_realtime"] = new PreprocessorVariable("_realtime", DateTime.Now.ToShortTimeString());
-            ppv["_realdate"] = new PreprocessorVariable("_realdate", DateTime.Now.ToShortDateString());
-            ppv["_timeformat"] = new PreprocessorVariable("_timeformat", TimeFormat.Default.ToString());
-            ppv["_true"] = new PreprocessorVariable("_true", "true");
-            ppv["_false"] = new PreprocessorVariable("_false", "false");
+            ppv["_minecraft"] = new PreprocessorVariable(MINECRAFT_VERSION);
+            ppv["_compiler"] = new PreprocessorVariable(MCC_VERSION);
+            ppv["_realtime"] = new PreprocessorVariable(DateTime.Now.ToShortTimeString());
+            ppv["_realdate"] = new PreprocessorVariable(DateTime.Now.ToShortDateString());
+            ppv["_timeformat"] = new PreprocessorVariable(TimeFormat.Default.ToString());
+            ppv["_true"] = new PreprocessorVariable("true");
+            ppv["_false"] = new PreprocessorVariable("false");
         }
         /// <summary>
         /// Run this executor start to finish.
@@ -952,7 +954,7 @@ namespace mc_compiled.MCC.Compiler
             while (currentFiles.Any())
                 PopFile();
 
-            PopInitFile();
+            FinalizeInitFile();
         }
         /// <summary>
         /// Temporarily run another subsection of statements then resume this executor.
@@ -1066,8 +1068,8 @@ namespace mc_compiled.MCC.Compiler
         /// Get the current file that should be written to.
         /// </summary>
         public CommandFile CurrentFile => currentFiles.Peek();
-        private CommandFile HeadFile { get; set; }
-        private CommandFile InitFile { get; set; }
+        internal CommandFile HeadFile { get; private set; }
+        internal CommandFile InitFile { get; private set; }
         private CommandFile TestsFile { get; set; }
 
         /// <summary>
@@ -1311,21 +1313,39 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public bool TryGetPPV(string name, out PreprocessorVariable value)
         {
-            if (name.StartsWith("$"))
+            if (string.IsNullOrEmpty(name))
+                throw new Exception("Tried to get PPV with empty name.");
+            if (name[0] == '$')
                 name = name.Substring(1);
+            
             return ppv.TryGetValue(name, out value);
         }
 
         /// <summary>
+        /// Set or create a preprocessor variable copied from an existing one.
+        /// </summary>
+        /// <param name="name">The name of the preprocessor variable to set or create.</param>
+        /// <param name="values">The values to set for the preprocessor variable.</param>
+        public void SetPPVCopy(string name, PreprocessorVariable values)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new Exception("Tried to set PPV with empty name.");
+            if (name[0] == '$')
+                name = name.Substring(1);
+            ppv[name] = values.Clone();
+        }
+        /// <summary>
         /// Set or create a preprocessor variable.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="values"></param>
+        /// <param name="name">The name of the preprocessor variable.</param>
+        /// <param name="values">The values to set for the preprocessor variable.</param>
         public void SetPPV(string name, params dynamic[] values)
         {
-            if (ppv.TryGetValue(name, out PreprocessorVariable existing))
-                existing.SetAll(values);
-            ppv[name] = new PreprocessorVariable(name, values);
+            if (string.IsNullOrEmpty(name))
+                throw new Exception("Tried to set PPV with empty name.");
+            if (name[0] == '$')
+                name = name.Substring(1);
+            ppv[name] = new PreprocessorVariable(values);
         }
 
         /// <summary>
@@ -1429,47 +1449,43 @@ namespace mc_compiled.MCC.Compiler
             int line = unresolved.lineNumber;
             string word = unresolved.word;
 
-            if(TryGetPPV(word, out PreprocessorVariable values))
+            if (!TryGetPPV(word, out PreprocessorVariable values))
+                throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
+            
+            int length = values.Length;
+            if(length > 1)
             {
-                int length = values.Length;
-                if(length > 1)
-                {
-                    // simply pull from the index.
-                    if (indexer is TokenIndexerInteger integer)
-                    {
-                        int index = integer.token.number;
-                        if (index >= length || index < 0)
-                            throw integer.GetIndexOutOfBounds(0, length - 1, thrower);
+                // simply pull from the index.
+                if (!(indexer is TokenIndexerInteger integer))
+                    throw indexer.GetException(unresolved, thrower);
+                
+                int index = integer.token.number;
+                if (index >= length || index < 0)
+                    throw integer.GetIndexOutOfBoundsException(0, length - 1, thrower);
 
-                        dynamic indexedDynamic = values[index];
-                        TokenLiteral indexedLiteral = PreprocessorUtils.DynamicToLiteral(indexedDynamic, line);
+                dynamic indexedDynamic = values[index];
+                TokenLiteral indexedLiteral = PreprocessorUtils.DynamicToLiteral(indexedDynamic, line);
 
-                        if (indexedLiteral == null)
-                            throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + indexedDynamic.ToString());
+                if (indexedLiteral == null)
+                    throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + indexedDynamic.ToString());
 
-                        return indexedLiteral;
-                    }
-                    else
-                        throw indexer.GetException(unresolved, thrower);
-                }
-
-                // pull first (single) value.
-                dynamic singleDynamic = values[0];
-                TokenLiteral singleLiteral = PreprocessorUtils.DynamicToLiteral(singleDynamic, line);
-
-                if(singleLiteral == null)
-                    throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + singleDynamic.ToString());
-
-                // check that it's actually indexable.
-                if(!(singleLiteral is IIndexable singleIndexable))
-                    throw new StatementException(thrower, "Couldn't index token: " + singleLiteral.ToString());
-
-                // index it!
-                Token final = singleIndexable.Index(indexer, thrower);
-                return final;
+                return indexedLiteral;
             }
 
-            throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
+            // pull first (single) value.
+            dynamic singleDynamic = values[0];
+            TokenLiteral singleLiteral = PreprocessorUtils.DynamicToLiteral(singleDynamic, line);
+
+            if(singleLiteral == null)
+                throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + singleDynamic.ToString());
+
+            // check that it's actually indexable.
+            if(!(singleLiteral is IIndexable singleIndexable))
+                throw new StatementException(thrower, "Couldn't index token: " + singleLiteral.ToString());
+
+            // index it!
+            Token final = singleIndexable.Index(indexer, thrower);
+            return final;
         }
 
         public void PushFile(CommandFile file) =>
@@ -1514,31 +1530,30 @@ namespace mc_compiled.MCC.Compiler
 
             project.AddFile(file);
         }
-        public void PopInitFile()
+        private void FinalizeInitFile()
         {
             CommandFile file = InitFile;
-            InitFile = null;
 
             if (TestsFile != null)
             {
+                TestsFile.AddTop("");
                 TestsFile.AddTop(Command.Function(file));
                 TestsFile.AddTop("# Run the initialization file to make sure any needed data is there.");
-
             }
 
-            if (initCommands.Count > 0)
+            if (initCommands.Count <= 0)
+                return;
+            
+            file.AddTop("");
+            file.AddTop(initCommands);
+
+            if (Program.DECORATE)
             {
-                file.AddTop("");
-                file.AddTop(initCommands);
-
-                if (Program.DECORATE)
-                {
-                    file.AddTop("# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having strange issues, re-running this may fix it.");
-                    file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
-                }
-
-                project.AddFile(file);
+                file.AddTop("# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having strange issues, re-running this may fix it.");
+                file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
             }
+
+            project.AddFile(file);
         }
 
         private static readonly Dictionary<int, int> generatedNames = new Dictionary<int, int>();

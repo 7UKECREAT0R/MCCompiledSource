@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 
@@ -7,7 +8,7 @@ namespace mc_compiled.Commands
 {
     public static class CommandEnumParser
     {
-        static Dictionary<string, ParsedEnumValue> parser = new Dictionary<string, ParsedEnumValue>();
+        static readonly Dictionary<string, ParsedEnumValue> parser = new Dictionary<string, ParsedEnumValue>(StringComparer.OrdinalIgnoreCase);
 
         public static bool TryParse(string input, out ParsedEnumValue result) =>
             parser.TryGetValue(input.ToUpper(), out result);
@@ -38,6 +39,7 @@ namespace mc_compiled.Commands
             foreach(Type thisEnum in allEnums)
                 thisEnum.GetCustomAttributes(); // calls their constructors
 
+            // ReSharper disable once InvertIf
             if (Program.DEBUG)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
@@ -46,7 +48,7 @@ namespace mc_compiled.Commands
             }
         }
     }
-    public struct ParsedEnumValue
+    public readonly struct ParsedEnumValue
     {
         public readonly Type enumType;
         public readonly object value;
@@ -66,23 +68,26 @@ namespace mc_compiled.Commands
             string src = typeof(T).Name;
             return enumType.Name.Equals(src);
         }
+        
         /// <summary>
         /// Requires this enum value to be of a certain type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="MCC.Compiler.StatementException">If the given enum is not of a certain type.</exception>
+        // ReSharper disable once PureAttributeOnVoidMethod
+        [Pure]
         public void RequireType<T>(MCC.Compiler.Statement thrower) where T: Enum
         {
-            if (!IsType<T>())
-            {
-                string reqEnumName = typeof(T).Name;
-                throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {enumType.Name}.");
-            }
+            if (IsType<T>())
+                return;
+            
+            string reqEnumName = typeof(T).Name;
+            throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {enumType.Name}.");
         }
     }
 
-    [System.AttributeUsage(AttributeTargets.Enum, Inherited = false, AllowMultiple = false)]
-    sealed class EnumParsableAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Enum)]
+    internal sealed class EnumParsableAttribute : Attribute
     {
         public EnumParsableAttribute(Type type)
         {
@@ -93,15 +98,15 @@ namespace mc_compiled.Commands
             foreach(object value in array)
             {
                 string key = value.ToString();
-                ParsedEnumValue finalValue = new ParsedEnumValue(type, value);
+                var finalValue = new ParsedEnumValue(type, value);
                 CommandEnumParser.Put(key, finalValue);
 
-                if(key.Contains("_"))
-                {
-                    // Might use a dot.
-                    finalValue = new ParsedEnumValue(type, value);
-                    CommandEnumParser.Put(key.Replace('_', '.'), finalValue);
-                }
+                if (!key.Contains("_"))
+                    continue;
+                
+                // Might use a dot.
+                finalValue = new ParsedEnumValue(type, value);
+                CommandEnumParser.Put(key.Replace('_', '.'), finalValue);
             }
         }
     }

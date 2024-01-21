@@ -10,24 +10,18 @@ namespace mc_compiled.MCC
         /// <summary>
         /// All features available for enabling.
         /// </summary>
-        internal static IEnumerable<Feature> FEATURE_LIST = ((Feature[])Enum.GetValues(typeof(Feature))).Where(f => f != 0);
+        internal static readonly IEnumerable<Feature> FEATURE_LIST = ((Feature[])Enum.GetValues(typeof(Feature))).Where(f => f != 0);
 
         /// <summary>
         /// Dictionary of features and their actions to perform on an executor when enabled.
         /// </summary>
-        internal static Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
+        private static readonly Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
         {
             {
                 Feature.DUMMIES, (executor) =>
                 {
                     executor.entities.dummies.AddEntityToProject();
-                    executor.SetPPV("null", new object[] { executor.entities.dummies.dummyType });
-                }
-            },
-            {
-                Feature.GAMETEST, (executor) =>
-                {
-                    Executor.Warn("gametest integration doesn't currently do anything.");
+                    executor.SetPPV("null", executor.entities.dummies.dummyType);
                 }
             },
             {
@@ -37,13 +31,10 @@ namespace mc_compiled.MCC
                 }
             },
             {
-                Feature.UNINSTALL, (executor) => { }
-            },
-            {
                 Feature.TESTS, (executor) => executor.CreateTestsFile()
             }
         };
-
+        
         /// <summary>
         /// Called when a feature is enabled so that its enable action can run.
         /// </summary>
