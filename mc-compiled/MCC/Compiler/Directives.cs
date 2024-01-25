@@ -2,9 +2,11 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -111,204 +113,35 @@ namespace mc_compiled.MCC.Compiler
     /// Attributes used to modify how directive statements behave.
     /// </summary>
     [Flags]
-    public enum DirectiveAttribute : int
+    [UsedImplicitly]
+    public enum DirectiveAttribute
     {
-        DONT_EXPAND_PPV = 1 << 0,       // Won't expand any explicit PPV identifiers. Used in $macro to allow passing in parameters.
+        DONT_DEREFERENCE = 1 << 0,       // Won't expand any explicit PPV identifiers. Used in $macro to allow passing in parameters.
         DONT_FLATTEN_ARRAYS = 1 << 1,   // Won't attempt to flatten JSON arrays to their root values.
         DONT_RESOLVE_STRINGS = 1 << 2,  // Won't resolve PPV entries in string parameters.
-        USES_FSTRING = 1 << 3,          // Reserved.
+        USES_FSTRING = 1 << 3,          // Indicates support for format-strings.
         INVERTS_COMPARISON = 1 << 4,    // Inverts a comparison that was previously run on this scope. Used by ELSE and ELIF.
         DONT_DECORATE = 1 << 5,         // Won't decorate this directive in the compiled file when decoration is enabled.
         DOCUMENTABLE = 1 << 6,          // This directive is documentable by placing a comment before it.
     }
     public static class Directives
     {
-        // old hardcoded directives. uses language.json now
-        /*
-        public static List<Directive> REGISTRY = new List<Directive>(new[]
-        {
-            new Directive(DirectiveImplementations._var, "$var", "Set Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._inc, "$inc", "Increment Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._dec, "$dec", "Decrement Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._add, "$add", "Add to Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._sub, "$sub", "Subtract from Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._mul, "$mul", "Multiply with Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._div, "$div", "Divide Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._mod, "$mod", "Modulo Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._pow, "$pow", "Exponentiate Preprocessor Variable",
-                new TypePattern(typeof(TokenIdentifier), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._swap, "$swap", "Swap Preprocessor Variables",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._if, "$if", "Preprocessor If",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenCompare), typeof(IObjectable))),
-            new Directive(DirectiveImplementations._else, "$else", "Preprocessor Else"),
-            new Directive(DirectiveImplementations._repeat, "$repeat", "Preprocessor Repeat",
-                new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifier>()),
-            new Directive(DirectiveImplementations._log, "$log", "Preprocessor Log to Console",
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations._macro, "$macro", "Define/Call Preprocessor Macro",
-                new TypePattern(typeof(TokenIdentifier)))
-                .WithAttribute(DirectiveAttribute.DONT_EXPAND_PPV),
-            new Directive(DirectiveImplementations._include, "$include", "Include other File",
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations._strfriendly, "$strfriendly", "Preprocessor String Friendly Name",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._strupper, "$strupper", "Preprocessor String Uppercase",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._strlower, "$strlower", "Preprocessor String Lowercase",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._sum, "$sum", "Preprocessor Array Sum",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._median, "$median", "Preprocessor Get Median",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._mean, "$mean", "Preprocessor Get Mean",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._iterate, "$iterate", "Iterate Preprocessor Array",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._get, "$get", "Preprocessor Get at Index",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._len, "$len", "Preprocessor Get Array Length",
-                new TypePattern( typeof(TokenIdentifier),  typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations._json, "$json", "Preprocessor Load JSON Value",
-                new TypePattern(typeof(TokenStringLiteral), typeof(TokenIdentifier), typeof(TokenStringLiteral))),
+        private static readonly Dictionary<string, DirectiveAttribute> attributeLookup;
+        private static readonly Dictionary<string, Directive> directiveLookup;
 
-            new Directive(DirectiveImplementations.mc, "mc", "Minecraft Command",
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.select, "select", "Select Target",
-                new TypePattern(typeof(TokenSelectorLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.globalprint, "globalprint", "Global Print",
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.print, "print", "Print to Selected Entity",
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.define, "define", "Define Variable",
-                new TypePattern(typeof(TokenStringLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.init, "init", "Initialize Variable to 0",
-                new TypePattern(typeof(TokenIdentifierValue)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.@if, "if", "If Directive",
-                new TypePattern(typeof(TokenIdentifierValue)),
-                new TypePattern(typeof(TokenIdentifierValue), typeof(TokenCompare), typeof(Token)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifierValue)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifierValue), typeof(TokenCompare), typeof(Token)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenStringLiteral)).Optional<TokenIntegerLiteral>(),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>(),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifierEnum)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>(),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenStringLiteral)).Optional<TokenIntegerLiteral>(),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>(),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenStringLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenIdentifierEnum)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIdentifier), typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>(),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral))),
-            new Directive(DirectiveImplementations.@else, "else", "Else Directive"),
-            new Directive(DirectiveImplementations.give, "give", "Give Item to Selected",
-                new TypePattern(typeof(TokenStringLiteral)).Optional<TokenIntegerLiteral>().Optional<TokenIntegerLiteral>()),
-            new Directive(DirectiveImplementations.tp, "tp", "Teleport Selected Entity",
-                new TypePattern(typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)),
-                new TypePattern(typeof(TokenSelectorLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.tphere, "tphere", "Teleport Entity to Selected",
-                new TypePattern(typeof(TokenSelectorLiteral)).Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>(),
-                new TypePattern(typeof(TokenStringLiteral)).Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>()),
-            new Directive(DirectiveImplementations.move, "move", "Move Selected Entity",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenNumberLiteral))),
-            new Directive(DirectiveImplementations.face, "face", "Face Selected Entity",
-                new TypePattern(typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)),
-                new TypePattern(typeof(TokenSelectorLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.facehere, "facehere", "Face Entity Towards Selected",
-                new TypePattern(typeof(TokenSelectorLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.rotate, "rotate", "Rotate Selected Entity",
-                new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIntegerLiteral>()),
-            new Directive(DirectiveImplementations.block, "block", "Place Block",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)).Optional<TokenIntegerLiteral>(),
-                new TypePattern(typeof(TokenStringLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)).Optional<TokenIntegerLiteral>()),
-            new Directive(DirectiveImplementations.fill, "fill", "Fill Region of Blocks",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)),
-                new TypePattern(typeof(TokenStringLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral))),
-            new Directive(DirectiveImplementations.scatter, "scatter", "Scatter Region with Random Blocks",
-                new TypePattern(typeof(TokenStringLiteral), typeof(TokenIntegerLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral),typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)).Optional<TokenStringLiteral>()),
-            new Directive(DirectiveImplementations.replace, "replace", "Replace Region of Blocks",
-                new TypePattern(typeof(TokenStringLiteral)).Optional<TokenIntegerLiteral>().And<TokenCoordinateLiteral>().And<TokenCoordinateLiteral>().And<TokenCoordinateLiteral>().And<TokenCoordinateLiteral>().And<TokenCoordinateLiteral>().And<TokenCoordinateLiteral>().And<TokenStringLiteral>().Optional<TokenIntegerLiteral>()),
-            new Directive(DirectiveImplementations.kill, "kill", "Kill Selected Entity",
-                new TypePattern().Optional<TokenSelectorLiteral>(),
-                new TypePattern().Optional<TokenStringLiteral>()),
-            new Directive(DirectiveImplementations.remove, "remove", "Remove Selected Entity",
-                new TypePattern().Optional<TokenSelectorLiteral>(),
-                new TypePattern().Optional<TokenStringLiteral>()),
-            new Directive(DirectiveImplementations.globaltitle, "globaltitle", "Show Global Title",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.title, "title", "Show Title",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.globalactionbar, "globalactionbar", "Show Global Action Bar",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.actionbar, "actionbar", "Show Action Bar",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral), typeof(TokenIntegerLiteral)),
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.say, "say", "Say As Selected Entity",
-                new TypePattern(typeof(TokenStringLiteral))),
-            new Directive(DirectiveImplementations.halt, "halt", "Halt Execution"),
-            new Directive(DirectiveImplementations.damage, "damage", "Damage Selected Entity",
-                new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifierEnum>().Optional<TokenSelectorLiteral>(),
-                new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifierEnum>().Optional<TokenStringLiteral>(),
-                new TypePattern(typeof(TokenIntegerLiteral)).Optional<TokenIdentifierEnum>().Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>()),
-            new Directive(DirectiveImplementations.@null, "null", "Null Action",
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral), typeof(TokenCoordinateLiteral)).Optional<TokenCoordinateLiteral>().Optional<TokenCoordinateLiteral>(),
-                new TypePattern(typeof(TokenIdentifier), typeof(TokenStringLiteral)),
-                new TypePattern(typeof(TokenIdentifier))),
+        public static List<Directive> REGISTRY = new List<Directive>();
+        public static IEnumerable<Directive> PreprocessorDirectives => REGISTRY.Where(directive => directive.identifier[0] == '$');
+        public static IEnumerable<Directive> RegularDirectives => REGISTRY.Where(directive => directive.identifier[0] != '$');
 
-            new Directive(DirectiveImplementations.intent, "intent", "Allow Intent",
-                new TypePattern(typeof(TokenIdentifier))),
-            new Directive(DirectiveImplementations.function, "function", "Define Function"),
-            new Directive(DirectiveImplementations.@return, "return", "Set Return Value",
-                new TypePattern(typeof(TokenIdentifierValue)),
-                new TypePattern(typeof(TokenLiteral))),
-            new Directive(DirectiveImplementations.@struct, "struct", "Define Struct",
-                new TypePattern(typeof(TokenIdentifier))),
-        });
-        */
-
-        public static Dictionary<string, DirectiveAttribute> attributeLookup;
         static Directives()
         {
             attributeLookup = new Dictionary<string, DirectiveAttribute>();
+            directiveLookup = new Dictionary<string, Directive>();
 
             foreach(object attrib in Enum.GetValues(typeof(DirectiveAttribute)))
                 attributeLookup[attrib.ToString()] = (DirectiveAttribute)attrib;
         }
-
-        public static List<Directive> REGISTRY = new List<Directive>();
-        static readonly Dictionary<string, Directive> directiveLookup = new Dictionary<string, Directive>();
-
-        public static IEnumerable<Directive> PreprocessorDirectives
-        {
-            get => REGISTRY.Where(directive => directive.identifier[0] == '$');
-        }
-        public static IEnumerable<Directive> RegularDirectives
-        {
-            get => REGISTRY.Where(directive => directive.identifier[0] != '$');
-        }
-
+        
         /// <summary>
         /// Query for a directive that matches this token contents. Case insensitive.
         /// </summary>
@@ -323,8 +156,8 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Add a directive to the registry and the lookup dictionary.
         /// </summary>
-        /// <param name="directive"></param>
-        public static void RegisterDirective(Directive directive)
+        /// <param name="directive">The directive to add.</param>
+        private static void RegisterDirective(Directive directive)
         {
             REGISTRY.Add(directive);
 
@@ -334,7 +167,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Sorts all the directives by name.
         /// </summary>
-        public static void SortDirectives()
+        private static void SortDirectives()
         {
             REGISTRY = REGISTRY.OrderBy(directive => directive.identifier).ToList();
         }
@@ -342,16 +175,18 @@ namespace mc_compiled.MCC.Compiler
         public static void LoadFromLanguage(bool debug)
         {
             string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Debug.Assert(assemblyDir != null, nameof(assemblyDir) + " was null");
+            
             string path = Path.Combine(assemblyDir, Executor.LANGUAGE_FILE);
 
             if (!File.Exists(path))
             {
-                ConsoleColor errprevious = Console.ForegroundColor;
+                ConsoleColor oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("WARNING: Missing language.json file at '{0}'. Execution cannot continue.", path);
-                Console.ForegroundColor = errprevious;
+                Console.ForegroundColor = oldColor;
                 Console.ReadLine();
-                throw new Exception("missing language.json");
+                throw new Exception("Missing file 'language.json' in executable directory.");
             }
 
             if(debug)
@@ -361,21 +196,21 @@ namespace mc_compiled.MCC.Compiler
             JObject json = JObject.Parse(_json);
             ReadJSON(json);
 
-            if (debug)
+            if (!debug)
+                return;
+            
+            Console.WriteLine("Parsed {0} directives from language.json:", REGISTRY.Count);
+            foreach (Directive directive in REGISTRY)
             {
-                Console.WriteLine("Parsed {0} directives from language.json:", REGISTRY.Count);
-                foreach (Directive directive in REGISTRY)
+                if (directive.enumValue.HasValue)
                 {
-                    if (directive.enumValue.HasValue)
-                    {
-                        var oldColor = Console.ForegroundColor;
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        string className = directive.enumValue.Value.enumType.Name;
-                        Console.WriteLine($"\t\tOverlaps with {className}.{directive.identifier}:");
-                        Console.ForegroundColor = oldColor;
-                    }
-                    Console.WriteLine("\t{0}", directive.ToString());
+                    ConsoleColor oldColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    string className = directive.enumValue.Value.enumType.Name;
+                    Console.WriteLine($"\t\tOverlaps with {className}.{directive.identifier}:");
+                    Console.ForegroundColor = oldColor;
                 }
+                Console.WriteLine("\t{0}", directive);
             }
         }
 
@@ -383,25 +218,30 @@ namespace mc_compiled.MCC.Compiler
         /// Read all directives from the language.json root object.
         /// </summary>
         /// <param name="root">The root object of the language.json file.</param>
-        public static void ReadJSON(JObject root)
+        private static void ReadJSON(JObject root)
         {
             const string IDENTIFIER_PREFIX = "mc_compiled.MCC.Compiler.";
 
             // read type mappings
-            Dictionary<string, NamedType> mappings = new Dictionary<string, NamedType>();
-            var mappingsJSON = root["mappings"] as JObject;
-            var properties = mappingsJSON.Properties();
-            foreach (var field in mappingsJSON.Properties())
+            var mappings = new Dictionary<string, NamedType>();
+            var mappingsToken = root["mappings"] as JObject;
+
+            Debug.Assert(mappingsToken != null, "language.json/mappings was null.");
+            
+            IEnumerable<JProperty> properties = mappingsToken.Properties();
+            foreach (JProperty field in properties)
             {
                 string key = field.Name;
-                Type value = Type.GetType(IDENTIFIER_PREFIX + field.Value.ToString(), true, false);
+                var value = Type.GetType(IDENTIFIER_PREFIX + field.Value, true, false);
                 mappings[key] = new NamedType(value, key);
             }
             Syntax.mappings = mappings;
 
             // read categories
-            Dictionary<string, string> categories = new Dictionary<string, string>();
-            foreach(var property in (root["categories"] as JObject))
+            var categories = new Dictionary<string, string>();
+            JToken categoriesToken = root["categories"];
+            Debug.Assert(categoriesToken != null, "language.json/categories was null.");
+            foreach(KeyValuePair<string, JToken> property in (JObject)categoriesToken)
             {
                 string name = property.Key;
                 string description = property.Value.ToString();
@@ -414,39 +254,62 @@ namespace mc_compiled.MCC.Compiler
 
             // parse directives
             var allDirectivesJSON = root["directives"] as JObject;
-            foreach(var directiveJSON in allDirectivesJSON)
+            Debug.Assert(allDirectivesJSON != null, "language.json/directives was null.");
+            
+            foreach(KeyValuePair<string, JToken> directiveJSON in allDirectivesJSON)
             {
                 string identifier = directiveJSON.Key;
-                JObject body = directiveJSON.Value as JObject;
-
+                var body = (JObject)directiveJSON.Value;
+                
                 string[] aliases = null;
-                if(body.ContainsKey("aliases"))
-                    aliases = (body["aliases"] as JArray).Select(t => t.ToString()).ToArray();
 
-                string description = body["description"].Value<string>();
-                string category = body["category"].Value<string>();
+                if (body.TryGetValue("aliases", out JToken aliasesToken))
+                {
+                    Debug.Assert(aliasesToken != null, $"language.json/directives/{identifier}/aliases was null.");
+                    Debug.Assert(aliasesToken is JArray, $"language.json/directives/{identifier}/aliases was not an array.");
+                    aliases = ((JArray)aliasesToken).Select(t => t.ToString()).ToArray();
+                }
+
+                JToken descriptionToken = body["description"];
+                Debug.Assert(descriptionToken != null, $"language.json/directives/{identifier}/description was null.");
+                string description = descriptionToken.Value<string>();
+                
+                JToken categoryToken = body["category"];
+                Debug.Assert(categoryToken != null, $"language.json/directives/{identifier}/category was null.");
+                string category = categoryToken.Value<string>();
 
                 string documentation = null;
-                if(body.ContainsKey("details"))
-                    documentation = body["details"].Value<string>();
+                if (body.TryGetValue("details", out JToken detailsToken))
+                {
+                    Debug.Assert(detailsToken != null, $"language.json/directives/{identifier}/details was null.");
+                    documentation = detailsToken.Value<string>();
+                }
 
                 string _function = identifier;
-                if (body.ContainsKey("function"))
-                    _function = body["function"].Value<string>();
+                if (body.TryGetValue("function", out JToken functionToken))
+                {
+                    Debug.Assert(functionToken != null, $"language.json/directives/{identifier}/function was null.");
+                    _function = functionToken.Value<string>();
+                }
 
                 // collect all patterns
-                List<TypePattern> patterns = new List<TypePattern>();
-                if(body.ContainsKey("patterns"))
+                var patterns = new List<TypePattern>();
+                if(body.TryGetValue("patterns", out JToken patternsToken))
                 {
-                    IEnumerable<JArray> patternsJSON = (body["patterns"] as JArray)
-                        .Select(token => token as JArray);
+                    Debug.Assert(patternsToken is JArray, $"language.json/directives/{identifier}/patterns was not an array.");
+                    IEnumerable<JArray> patternsJSON = ((JArray)patternsToken)
+                        .Select(token =>
+                        {
+                            Debug.Assert(token is JArray, $"language.json/directives/{identifier}/patterns contained an item that was not an array.");
+                            return (JArray)token;
+                        });
 
                     foreach(JArray patternJSON in patternsJSON)
                     {
                         string[] args = patternJSON.Select
                             (jt => jt.Value<string>()).ToArray();
 
-                        TypePattern pattern = new TypePattern();
+                        var pattern = new TypePattern();
 
                         for (int i = 0; i < args.Length; i++)
                         {
@@ -487,28 +350,37 @@ namespace mc_compiled.MCC.Compiler
 
 
                 // find call function
-                var info = impls.GetMethod(_function, new[] {
+                MethodInfo info = impls.GetMethod(_function, new[] {
                     typeof(Executor),
                     typeof(Statement)
                 });
-
+                
+                Debug.Assert(info != null, $"Missing implementation for: DirectiveImplementations.{_function}(executor, statement)");
+                
                 // create delegate
-                // if this is erroring, a language.json directive is missing its associated method
-                var function = (Directive.DirectiveImpl)Delegate.CreateDelegate
-                    (typeof(Directive.DirectiveImpl), info);
+                var function = (Directive.DirectiveImpl)Delegate
+                    .CreateDelegate(typeof(Directive.DirectiveImpl), info);
 
                 // construct directive
-                Directive directive = new Directive(function, identifier,
+                var directive = new Directive(function, identifier,
                     aliases, description, documentation, category, patterns.ToArray());
 
                 // attributes, if any
-                if(body.ContainsKey("attributes"))
+                if(body.TryGetValue("attributes", out JToken attributesToken))
                 {
-                    JArray array = body["attributes"] as JArray;
+                    Debug.Assert(aliasesToken != null, $"language.json/directives/{identifier}/attributes was null.");
+                    Debug.Assert(aliasesToken is JArray, $"language.json/directives/{identifier}/attributes was not an array.");
+
+                    var array = (JArray)attributesToken;
                     IEnumerable<string> strings = array
                         .Select(jt => jt.Value<string>());
                     DirectiveAttribute[] attributes = strings
-                        .Select(str => attributeLookup[str])
+                        .Select(str =>
+                        {
+                            if (!attributeLookup.TryGetValue(str, out DirectiveAttribute a))
+                                Debug.Assert(false, $"In language.json/directives/{identifier}/attributes: Attribute '{str}' is not a valid attribute.");
+                            return a;
+                        })
                         .ToArray();
                     directive.WithAttributes(attributes);
                 }
@@ -517,7 +389,6 @@ namespace mc_compiled.MCC.Compiler
             }
 
             SortDirectives();
-            return;
         }
     }
 }
