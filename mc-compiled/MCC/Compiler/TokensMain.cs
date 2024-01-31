@@ -52,7 +52,7 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a comment that was made using two slashes.
     /// </summary>
-    public sealed class TokenComment : Token, IInformationless
+    public sealed class TokenComment : Token, IUselessInformation
     {
         public readonly string contents;
 
@@ -113,7 +113,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public override string AsString() => $"{unresolvedSelector}";
 
-        public UnresolvedSelector unresolvedSelector;
+        private readonly UnresolvedSelector unresolvedSelector;
         public TokenUnresolvedSelector(UnresolvedSelector unresolvedSelector, int lineNumber) : base(lineNumber)
         {
             this.unresolvedSelector = unresolvedSelector;
@@ -225,13 +225,12 @@ namespace mc_compiled.MCC.Compiler
 
     public sealed class TokenIdentifierPreprocessor : TokenIdentifier, IIndexable, IDocumented
     {
-        public readonly PreprocessorVariable variable;
+        internal readonly PreprocessorVariable variable;
 
         [UsedImplicitly]
         private TokenIdentifierPreprocessor() : base(null, -1) {} // if you remove this method the markdown exporter will blow up because it uses Activator and needs this
 
-        public TokenIdentifierPreprocessor(string word, PreprocessorVariable variable, int lineNumber) : base(word,
-            lineNumber)
+        public TokenIdentifierPreprocessor(string word, PreprocessorVariable variable, int lineNumber) : base(word, lineNumber)
         {
             this.variable = variable;
         }
@@ -246,8 +245,24 @@ namespace mc_compiled.MCC.Compiler
 
             if (input < 0 || input >= length)
                 throw integer.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
-            
-            return variable[input];
+
+            dynamic result = variable[input];
+
+            if (result == null)
+                throw new StatementException(forExceptions, "Preprocessor variable contained an unexpecteed null value. Report this as a github issue or in the Discord.");
+
+            switch (result)
+            {
+                case TokenLiteral literal:
+                    return literal;
+                case TokenIdentifier identifier:
+                    return identifier;
+                default:
+                    TokenLiteral newLiteral = PreprocessorUtils.DynamicToLiteral(result, lineNumber);
+                    if (newLiteral == null)
+                        throw new StatementException(forExceptions, "Preprocessor variable contained an unexpected type that could not be converted to a TokenLiteral (sparse support?). Type: " + result.GetType().FullName);
+                    return newLiteral;
+            }
         }
         public string GetDocumentation() => "The name of a preprocessor variable that was defined using the `$var`, `$json`, or other command.";
     }

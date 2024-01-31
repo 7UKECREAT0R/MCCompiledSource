@@ -503,6 +503,64 @@ namespace mc_compiled.MCC.Compiler
 
         public string GetDocumentation() => "A block of text on a single line, surrounded with either 'single quotes' or \"double quotes.\"";
     }
+    /// <summary>
+    /// Represents a block state that has been explicitly specified.
+    /// </summary>
+    public sealed class TokenBlockStateLiteral : TokenLiteral
+    {
+        public override string AsString() => $"\"{FieldName}\"={FieldValue}";
+        public override string ToString() => $"\"{FieldName}\"={FieldValue}";
+
+        public string FieldName { get; }
+        public TokenLiteral FieldValue { get; }
+
+        public TokenBlockStateLiteral(string fieldName, TokenLiteral fieldValue, int lineNumber) : base(lineNumber)
+        {
+            FieldName = fieldName;
+            FieldValue = fieldValue;
+        }
+        
+        public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
+        {
+            throw new StatementException(tokens, "Value type cannot be inferred from a block-state entry.");
+        }
+        public override TokenLiteral AddWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral SubWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+
+        }
+        public override TokenLiteral MulWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+
+        }
+        public override TokenLiteral DivWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        public override TokenLiteral ModWithOther(TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+
+        }
+        public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
+        {
+            throw new TokenException(this, "Invalid literal operation.");
+        }
+        
+        public override Typedef GetTypedef()
+        {
+            return null;
+        }
+        public override TokenLiteral Clone()
+        {
+            return new TokenBlockStateLiteral(FieldName, FieldValue, lineNumber);
+        }
+    }
     public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor, IDocumented
     {
         public readonly bool boolean;

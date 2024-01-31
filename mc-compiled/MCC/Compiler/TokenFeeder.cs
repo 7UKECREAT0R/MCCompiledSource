@@ -173,7 +173,7 @@ namespace mc_compiled.MCC.Compiler
                 return Array.Empty<Token>();
 
             return tokens.Skip(currentToken)
-                .Where(t => !(t is IInformationless))
+                .Where(t => !(t is IUselessInformation))
                 .ToArray();
         }
 
@@ -181,6 +181,6 @@ namespace mc_compiled.MCC.Compiler
         /// Returns the number of remaining tokens in this feeder, excluding comments.
         /// </summary>
         public int RemainingTokens => tokens.Skip(currentToken)
-            .Count(t => !(t is IInformationless));
+            .Count(t => !(t is IUselessInformation));
     }
 }

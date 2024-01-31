@@ -161,24 +161,24 @@ namespace mc_compiled.MCC.Compiler
         {
             switch (value)
             {
-                case int _:
-                    return new TokenIntegerLiteral(value, IntMultiplier.none, line);
-                case float _:
-                    return new TokenDecimalLiteral(value, line);
-                case bool _:
-                    return new TokenBooleanLiteral(value, line);
-                case string _:
-                    return new TokenStringLiteral(value, line);
-                case Coord _:
-                    return new TokenCoordinateLiteral(value, line);
-                case Selector _:
-                    return new TokenSelectorLiteral(value, line);
-                case Range _:
-                    return new TokenRangeLiteral(value, line);
-                case JToken _:
-                    return new TokenJSONLiteral(value, line);
-                case IAttribute _:
-                    return new TokenAttribute(value, line);
+                case int integer:
+                    return new TokenIntegerLiteral(integer, IntMultiplier.none, line);
+                case float number:
+                    return new TokenDecimalLiteral(number, line);
+                case bool boolean:
+                    return new TokenBooleanLiteral(boolean, line);
+                case string text:
+                    return new TokenStringLiteral(text, line);
+                case Coord coordinate:
+                    return new TokenCoordinateLiteral(coordinate, line);
+                case Selector selector:
+                    return new TokenSelectorLiteral(selector, line);
+                case Range range:
+                    return new TokenRangeLiteral(range, line);
+                case JToken json:
+                    return new TokenJSONLiteral(json, line);
+                case IAttribute attribute:
+                    return new TokenAttribute(attribute, line);
                 default:
                     return null;
             }

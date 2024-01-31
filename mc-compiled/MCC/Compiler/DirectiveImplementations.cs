@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Media;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
@@ -657,11 +658,11 @@ namespace mc_compiled.MCC.Compiler
                 if (!tokens.HasNext)
                     throw new StatementException(tokens, "Missing argument '" + argNames[i] + "' in macro call.");
 
-                if (tokens.NextIs<TokenUnresolvedPPV>())
+                if (tokens.NextIs<TokenIdentifierPreprocessor>())
                 {
                     // ReSharper disable once RedundantEnumerableCastCall
                     args[i] = executor
-                        .ResolvePPV(tokens.Next<TokenUnresolvedPPV>(), tokens)
+                        .ResolvePPV(tokens.Next<TokenIdentifierPreprocessor>(), tokens)
                         .Cast<dynamic>()
                         .ToArray();
                     continue;
@@ -1292,7 +1293,7 @@ namespace mc_compiled.MCC.Compiler
 
             while (tokens.HasNext)
             {
-                if (tokens.NextIs<IInformationless>())
+                if (tokens.NextIs<IUselessInformation>())
                     continue;
 
                 ScoreboardValue value = tokens.Next<TokenIdentifierValue>().value;
@@ -2270,11 +2271,14 @@ namespace mc_compiled.MCC.Compiler
 
                     break;
                 }
+                case "REMOVEALL":
+                    executor.AddCommand(executor.entities.dummies.DestroyAll(tag));
+                    break;
                 case "REMOVE":
                     executor.AddCommand(executor.entities.dummies.Destroy(name, false, tag));
                     break;
                 default:
-                    throw new StatementException(tokens, $"Invalid mode for dummy command: {word}. Valid options are CREATE, SINGLE, or REMOVE");
+                    throw new StatementException(tokens, $"Invalid mode for dummy command: {word}. Valid options are CREATE, SINGLE, REMOVEALL or REMOVE");
             }
         }
         [UsedImplicitly]
@@ -2632,15 +2636,6 @@ namespace mc_compiled.MCC.Compiler
             // pull attributes
             var attributes = new List<IAttribute>();
 
-            void FindAttributes()
-            {
-                while (tokens.NextIs<TokenAttribute>())
-                {
-                    var _attribute = tokens.Next<TokenAttribute>();
-                    attributes.Add(_attribute.attribute);
-                }
-            }
-
             FindAttributes();
 
             // normal definition
@@ -2754,6 +2749,17 @@ namespace mc_compiled.MCC.Compiler
             }
             else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");
+
+            return;
+
+            void FindAttributes()
+            {
+                while (tokens.NextIs<TokenAttribute>())
+                {
+                    var _attribute = tokens.Next<TokenAttribute>();
+                    attributes.Add(_attribute.attribute);
+                }
+            }
         }
         [UsedImplicitly]
         public static void test(Executor executor, Statement tokens)

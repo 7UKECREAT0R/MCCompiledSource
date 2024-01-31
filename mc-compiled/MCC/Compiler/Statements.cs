@@ -44,21 +44,15 @@ namespace mc_compiled.MCC.Compiler
         public readonly string comment;
         public override bool Skip => true;
 
-        public StatementComment(string comment) : base(new Token[0], true)
+        public StatementComment(string comment) : base(Array.Empty<Token>(), true)
         {
             this.comment = comment;
             DecorateInSource = false;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
-        public override string ToString()
-        {
-            return $"[COMMENT] {comment}";
-        }
+        public override string ToString() => $"[COMMENT] {comment}";
+        protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
 
-        protected override TypePattern[] GetValidPatterns()
-        {
-            return new TypePattern[0];
-        }
         protected override void Run(Executor executor)
         {
             if (!Program.DECORATE)
@@ -66,9 +60,9 @@ namespace mc_compiled.MCC.Compiler
 
             // peek at the next to determine if this comment will be used as documentation or not.
             Statement next = executor.Peek();
-            if(next is StatementDirective sd)
+            if(next is StatementDirective statementDirective)
             {
-                if (sd.HasAttribute(DirectiveAttribute.DOCUMENTABLE))
+                if (statementDirective.HasAttribute(DirectiveAttribute.DOCUMENTABLE))
                     return; // this is a documentation string.
             }
 
@@ -86,7 +80,11 @@ namespace mc_compiled.MCC.Compiler
                     file.Add("");
             }
 
-            var chunks = str.Trim().Split('\n').Select(line => "# " + line.Trim());
+            IEnumerable<string> chunks = str
+                .Trim()
+                .Split('\n')
+                .Select(line => "# " + line.Trim());
+            
             str = string.Join(Environment.NewLine, chunks);
             file.Add(str);
         }

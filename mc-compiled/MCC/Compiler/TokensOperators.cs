@@ -1,5 +1,8 @@
 ﻿using mc_compiled.Commands;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -17,36 +20,70 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class TokenIndexer : Token
     {
-        public override string AsString() => $"[]";
-        public TokenIndexer(int lineNumber) : base(lineNumber) { }
+        public readonly Token[] innerTokens;
+        public override string AsString() => $"[{string.Join(", ", innerTokens.Select(t => t.AsString()))}]";
+        protected TokenIndexer(IEnumerable<Token> innerTokens, int lineNumber) : base(lineNumber)
+        {
+            this.innerTokens = innerTokens.ToArray();
+        }
+        protected TokenIndexer(Token[] innerTokens, int lineNumber) : base(lineNumber)
+        {
+            this.innerTokens = innerTokens;
+        }
+        protected TokenIndexer(Token innerToken, int lineNumber) : base(lineNumber)
+        {
+            innerTokens = new[] { innerToken };
+        }
 
         /// <summary>
-        /// Get the token inside this indexer.
+        /// Get the primary token inside this indexer, or null if there is no primary token.
         /// </summary>
         /// <returns></returns>
-        public abstract Token GetIndexerToken();
+        public abstract Token GetPrimaryToken();
+
+        /// <summary>
+        /// Determines whether the indexer actually indexes/scope something. Block states do not index things.
+        /// </summary>
+        /// <returns>Returns true if the indexer actually indexes/scope something; otherwise, false.</returns>
+        public abstract bool ActuallyIndexes();
 
         /// <summary>
         /// Creates an indexer based on the type of token given.
         /// Throws a exception if there's no valid indexer for the given token.
         /// </summary>
-        /// <param name="token">The token to wrap in an indexer.</param>
+        /// <param name="tokens">The tokens to create the indexer for.</param>
         /// <param name="forExceptions">Statement that would be considered the one throwing this exception. If null, will throw a tokenizer exception.</param>
         /// <returns></returns>
-        public static TokenIndexer CreateIndexer(Token token, Statement forExceptions = null)
+        public static TokenIndexer CreateIndexer(Token[] tokens, Statement forExceptions = null)
         {
-            switch (token)
+            switch (tokens.Length)
             {
-                case TokenLiteral literal:
-                    return CreateIndexer(literal, forExceptions);
-                case TokenMultiply _:
-                    return new TokenIndexerAsterisk(token.lineNumber);
+                case 0:
+                    return new TokenIndexerUnknown(Array.Empty<Token>(), forExceptions?.Lines[0] ?? -1);
+                case 1:
+                {
+                    Token token = tokens[0];
+
+                    switch (token)
+                    {
+                        case TokenLiteral literal:
+                            return CreateIndexerSingle(literal, forExceptions);
+                        case TokenMultiply _:
+                            return new TokenIndexerAsterisk(token.lineNumber);
+                    }
+                    break;
+                }
+            }
+
+            // block states?
+            if (tokens.All(token => token is TokenBlockStateLiteral))
+            {
+                return new TokenIndexerBlockStates(tokens.Cast<TokenBlockStateLiteral>().ToArray(),
+                    forExceptions?.Lines[0] ?? tokens[0].lineNumber);
             }
             
-            if(forExceptions == null)
-                throw new TokenizerException($"Cannot index/scope with a token: " + token.DebugString(), new[] { token.lineNumber });
-            
-            throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + token.DebugString());
+            // no clue, return TokenIndexerUnknown containing the tokens
+            return new TokenIndexerUnknown(tokens, forExceptions?.Lines[0] ?? tokens[0].lineNumber);
         }
         /// <summary>
         /// Creates an indexer based on the type of literal given.
@@ -55,7 +92,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="literal">The literal to wrap in an indexer.</param>
         /// <param name="forExceptions">Statement that would be considered the one throwing this exception. If null, will throw a tokenizer exception.</param>
         /// <returns></returns>
-        protected static TokenIndexer CreateIndexer(TokenLiteral literal, Statement forExceptions = null)
+        // ReSharper disable once SuggestBaseTypeForParameter
+        private static TokenIndexer CreateIndexerSingle(TokenLiteral literal, Statement forExceptions = null)
         {
             int lineNumber = literal.lineNumber;
 
@@ -69,6 +107,8 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenIndexerSelector(selectorLiteral, lineNumber);
                 case TokenRangeLiteral rangeLiteral:
                     return new TokenIndexerRange(rangeLiteral, lineNumber);
+                case TokenBlockStateLiteral blockStateLiteral:
+                    return new TokenIndexerBlockStates(new[] {blockStateLiteral}, lineNumber);
             }
 
             if (forExceptions == null)
@@ -86,6 +126,16 @@ namespace mc_compiled.MCC.Compiler
             return new StatementException(thrower, $"Cannot index '{callerName}' using indexer: {AsString()}");
         }
     }
+
+    /// <summary>
+    /// Represents an unknown token indexer with some arbitrary number of tokens in it.
+    /// </summary>
+    public sealed class TokenIndexerUnknown : TokenIndexer
+    {
+        public TokenIndexerUnknown(Token[] innerTokens, int lineNumber) : base(innerTokens, lineNumber) {}
+        public override Token GetPrimaryToken() => null;
+        public override bool ActuallyIndexes() => false;
+    }
     /// <summary>
     /// An indexer giving an integer. Defaulted to this class with the value 0 when [] is given to the tokenizer.
     /// </summary>
@@ -94,11 +144,13 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => $"[{token.number}]";
 
         public readonly TokenIntegerLiteral token;
-        public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(lineNumber)
+        public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetIndexerToken() => token;
+        public override Token GetPrimaryToken() => token;
+        public override bool ActuallyIndexes() => true;
+        
         internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower) =>
             new StatementException(thrower, $"Index {token.number} was out of bounds. Min: {min}, Max: {max}");
     }
@@ -110,11 +162,12 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => $"[\"{token.text}\"]";
 
         public readonly TokenStringLiteral token;
-        public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(lineNumber)
+        public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetIndexerToken() => token;
+        public override Token GetPrimaryToken() => token;
+        public override bool ActuallyIndexes() => true;
     }
     /// <summary>
     /// An indexer indicating a range value.
@@ -124,13 +177,32 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => $"[\"{token.range.ToString()}\"]";
 
         public readonly TokenRangeLiteral token;
-        public TokenIndexerRange(TokenRangeLiteral token, int lineNumber) : base(lineNumber)
+        public TokenIndexerRange(TokenRangeLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetIndexerToken() => token;
+        public override Token GetPrimaryToken() => token;
+        public override bool ActuallyIndexes() => true;
+
         internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower) =>
             new StatementException(thrower, $"Range {token.range.ToString()} was out of bounds. Min: {min}, Max: {max}");
+    }
+    /// <summary>
+    /// An indexer indicating a set of block states.
+    /// </summary>
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+    public sealed class TokenIndexerBlockStates : TokenIndexer
+    {
+        public override string AsString() => $"[{string.Join(", ", blockStates.Select(bs => bs.AsString()))}]";
+
+        public readonly List<TokenBlockStateLiteral> blockStates;
+        public TokenIndexerBlockStates(IEnumerable<TokenBlockStateLiteral> addStates, int lineNumber) : base(addStates, lineNumber)
+        {
+            blockStates = new List<TokenBlockStateLiteral>();
+            blockStates.AddRange(addStates);
+        }
+        public override Token GetPrimaryToken() => null;
+        public override bool ActuallyIndexes() => false;
     }
     /// <summary>
     /// An indexer giving a selector.
@@ -140,11 +212,12 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => $"[{token.selector}]";
 
         public readonly TokenSelectorLiteral token;
-        public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(lineNumber)
+        public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetIndexerToken() => token;
+        public override Token GetPrimaryToken() => token;
+        public override bool ActuallyIndexes() => true;
     }
     /// <summary>
     /// An indexer for a single asterisk character (*).
@@ -152,9 +225,10 @@ namespace mc_compiled.MCC.Compiler
     public sealed class TokenIndexerAsterisk : TokenIndexer
     {
         public override string AsString() => "*";
-        public TokenIndexerAsterisk(int lineNumber) : base(lineNumber) { }
-
-        public override Token GetIndexerToken() => new TokenMultiply(lineNumber);
+        public TokenIndexerAsterisk(int lineNumber) : base(new TokenMultiply(lineNumber), lineNumber) { }
+        
+        public override Token GetPrimaryToken() => new TokenMultiply(lineNumber);
+        public override bool ActuallyIndexes() => true;
     }
     
 
@@ -175,7 +249,6 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => "<? bracket open>";
         public TokenOpenBracket(int lineNumber) : base(lineNumber) { }
     }
-
     /// <summary>
     /// Represents a closing bracket, extends TokenBracket.
     /// </summary>
@@ -183,6 +256,25 @@ namespace mc_compiled.MCC.Compiler
     {
         public override string AsString() => "<? bracket close>";
         public TokenCloseBracket(int lineNumber) : base(lineNumber) { }
+    }
+    /// <summary>
+    /// Represents an opening bracket which groups tokens, extends TokenOpenBracket.
+    /// </summary>
+    public abstract class TokenOpenGroupingBracket : TokenOpenBracket
+    {
+        public abstract bool IsAssociated(TokenBracket bracket);
+        
+        public bool hasBeenSquashed = false; // used to prevent function squashing from recursively running forever
+        public override string AsString() => "<? grouping bracket open>";
+        public TokenOpenGroupingBracket(int lineNumber) : base(lineNumber) { }
+    }
+    /// <summary>
+    /// Represents a closing bracket which groups tokens, extends TokenCloseBracket.
+    /// </summary>
+    public abstract class TokenCloseGroupingBracket : TokenCloseBracket
+    {
+        public override string AsString() => "<? grouping bracket close>";
+        public TokenCloseGroupingBracket(int lineNumber) : base(lineNumber) { }
     }
 
     /// <summary>
@@ -299,18 +391,36 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Used to indicate when a token holds no useful information for the compiler e.g., a comment.
     /// </summary>
-    public interface IInformationless { }
+    public interface IUselessInformation { }
 
-    public sealed class TokenOpenParenthesis : TokenOpenBracket
+    public sealed class TokenOpenParenthesis : TokenOpenGroupingBracket
     {
-        public bool hasBeenSquashed = false; // used to prevent function squashing from recursing infinitely
         public override string AsString() => "(";
+        public override bool IsAssociated(TokenBracket bracket)
+        {
+            return bracket is TokenOpenParenthesis || bracket is TokenCloseParenthesis;
+        }
+
         public TokenOpenParenthesis(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenCloseParenthesis : TokenOpenBracket
+    public sealed class TokenCloseParenthesis : TokenCloseGroupingBracket
     {
         public override string AsString() => ")";
         public TokenCloseParenthesis(int lineNumber) : base(lineNumber) { }
+    }
+    public sealed class TokenOpenIndexer : TokenOpenGroupingBracket
+    {
+        public override string AsString() => "[";
+        public override bool IsAssociated(TokenBracket bracket)
+        {
+            return bracket is TokenOpenIndexer || bracket is TokenCloseIndexer;
+        }
+        public TokenOpenIndexer(int lineNumber) : base(lineNumber) { }
+    }
+    public sealed class TokenCloseIndexer : TokenCloseGroupingBracket
+    {
+        public override string AsString() => "]";
+        public TokenCloseIndexer(int lineNumber) : base(lineNumber) { }
     }
     public sealed class TokenOpenBlock : TokenOpenBracket, ITerminating
     {
@@ -343,16 +453,16 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// An AND/OR identifier. Continues a selector transformation.
     /// </summary>
-    public abstract class TokenContinue : TokenOperator
+    public abstract class TokenContinueCompareChain : TokenOperator
     {
-        public TokenContinue(int lineNumber) : base(lineNumber) { }
+        public TokenContinueCompareChain(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenAnd : TokenContinue
+    public sealed class TokenAnd : TokenContinueCompareChain
     {
         public override string AsString() => "and";
         public TokenAnd(int lineNumber) : base(lineNumber) { }
     }
-    public sealed class TokenOr : TokenContinue
+    public sealed class TokenOr : TokenContinueCompareChain
     {
         public override string AsString() => "or";
         public TokenOr(int lineNumber) : base(lineNumber) { }
@@ -361,6 +471,11 @@ namespace mc_compiled.MCC.Compiler
     {
         public override string AsString() => "not";
         public TokenNot(int lineNumber) : base(lineNumber) { }
+    }
+    public sealed class TokenDeref : TokenOperator
+    {
+        public override string AsString() => "$";
+        public TokenDeref(int lineNumber) : base(lineNumber) { }
     }
     public sealed class TokenAssignment : TokenOperator, IAssignment
     {

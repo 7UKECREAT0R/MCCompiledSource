@@ -95,7 +95,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         private void ProcessDeferredActions()
         {
-            while(this.deferredActions.Any())
+            while(deferredActions.Any())
             {
                 Action<Executor> action = this.deferredActions.Pop();
                 action.Invoke(this);
@@ -134,7 +134,7 @@ namespace mc_compiled.MCC.Compiler
             this.entities = new EntityManager(this);
 
             definedStdFiles = new List<int>();
-            ppv = new Dictionary<string, PreprocessorVariable>();
+            ppv = new Dictionary<string, PreprocessorVariable>(StringComparer.OrdinalIgnoreCase);
             macros = new List<Macro>();
             definedTags = new HashSet<string>();
             definedReturnedTypes = new HashSet<Typedef>();
@@ -686,7 +686,7 @@ namespace mc_compiled.MCC.Compiler
             if (last is StatementComment comment)
             {
                 hadDocumentation = true;
-                return comment.comment;
+                return ResolveString(comment.comment);
             }
 
             hadDocumentation = false;
@@ -1406,14 +1406,10 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="thrower">The statement that would be the cause of the error, if any.</param>
         /// <returns></returns>
         /// <exception cref="StatementException"></exception>
-        public TokenLiteral[] ResolvePPV(TokenUnresolvedPPV unresolved, Statement thrower)
+        public TokenLiteral[] ResolvePPV(TokenIdentifierPreprocessor unresolved, Statement thrower)
         {
             int line = unresolved.lineNumber;
-            string word = unresolved.word;
-
-            if (!TryGetPPV(word, out PreprocessorVariable values))
-                throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
-            
+            PreprocessorVariable values = unresolved.variable;
             var literals = new TokenLiteral[values.Length];
             
             for (int i = 0; i < values.Length; i++)
@@ -1429,63 +1425,12 @@ namespace mc_compiled.MCC.Compiler
                 TokenLiteral wrapped = PreprocessorUtils.DynamicToLiteral(value, line);
 
                 if (wrapped == null)
-                    throw new StatementException(thrower, $"Found unexpected value in PPV '{word}': {value.ToString()}");
+                    throw new StatementException(thrower, $"Found unexpected value in PPV '{unresolved.word}': {value.ToString()}");
 
                 literals[i] = wrapped;
             }
             return literals;
 
-        }
-        /// <summary>
-        /// Resolves a PPV using an indexer rather than a general expansion.
-        /// </summary>
-        /// <param name="unresolved">The unresolved PPV to index from.</param>
-        /// <param name="indexer">The indexer to index with.</param>
-        /// <param name="thrower">The statement that would be the cause of the error, if any.</param>
-        /// <returns>The resolved token from the indexer.</returns>
-        /// <exception cref="StatementException"></exception>
-        public Token ResolvePPVIndex(TokenUnresolvedPPV unresolved, TokenIndexer indexer, Statement thrower)
-        {
-            int line = unresolved.lineNumber;
-            string word = unresolved.word;
-
-            if (!TryGetPPV(word, out PreprocessorVariable values))
-                throw new StatementException(thrower, $"Unknown preprocessor variable '{word}'.");
-            
-            int length = values.Length;
-            if(length > 1)
-            {
-                // simply pull from the index.
-                if (!(indexer is TokenIndexerInteger integer))
-                    throw indexer.GetException(unresolved, thrower);
-                
-                int index = integer.token.number;
-                if (index >= length || index < 0)
-                    throw integer.GetIndexOutOfBoundsException(0, length - 1, thrower);
-
-                dynamic indexedDynamic = values[index];
-                TokenLiteral indexedLiteral = PreprocessorUtils.DynamicToLiteral(indexedDynamic, line);
-
-                if (indexedLiteral == null)
-                    throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + indexedDynamic.ToString());
-
-                return indexedLiteral;
-            }
-
-            // pull first (single) value.
-            dynamic singleDynamic = values[0];
-            TokenLiteral singleLiteral = PreprocessorUtils.DynamicToLiteral(singleDynamic, line);
-
-            if(singleLiteral == null)
-                throw new StatementException(thrower, "Preprocessor variable's indexed data couldn't be wrapped: " + singleDynamic.ToString());
-
-            // check that it's actually indexable.
-            if(!(singleLiteral is IIndexable singleIndexable))
-                throw new StatementException(thrower, "Couldn't index token: " + singleLiteral.ToString());
-
-            // index it!
-            Token final = singleIndexable.Index(indexer, thrower);
-            return final;
         }
 
         public void PushFile(CommandFile file) =>
@@ -1503,7 +1448,8 @@ namespace mc_compiled.MCC.Compiler
                 Statement creationStatement = func.creationStatement;
                 throw new StatementException(creationStatement, $"Test '{func.name}' does not contain any assert statements, and thus will always pass.");
             }
-            else if(file.IsTest) // test is valid
+
+            if(file.IsTest) // test is valid
             {
                 // test related stuff
                 int testId = ++testCount;
@@ -1517,7 +1463,7 @@ namespace mc_compiled.MCC.Compiler
                 tests.Add("");
             }
 
-            if (object.ReferenceEquals(file, InitFile))
+            if (ReferenceEquals(file, InitFile))
                 return; // do not write the init file until the whole program is finished.
 
             // file is empty, so it causes minecraft errors if we don't do this

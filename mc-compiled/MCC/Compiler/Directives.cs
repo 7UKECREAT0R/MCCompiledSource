@@ -368,8 +368,8 @@ namespace mc_compiled.MCC.Compiler
                 // attributes, if any
                 if(body.TryGetValue("attributes", out JToken attributesToken))
                 {
-                    Debug.Assert(aliasesToken != null, $"language.json/directives/{identifier}/attributes was null.");
-                    Debug.Assert(aliasesToken is JArray, $"language.json/directives/{identifier}/attributes was not an array.");
+                    Debug.Assert(attributesToken != null, $"language.json/directives/{identifier}/attributes was null.");
+                    Debug.Assert(attributesToken is JArray, $"language.json/directives/{identifier}/attributes was not an array.");
 
                     var array = (JArray)attributesToken;
                     IEnumerable<string> strings = array

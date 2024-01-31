@@ -97,14 +97,30 @@ namespace mc_compiled.MCC.Compiler
             CURRENT_LINE = 1;
             index = 0;
 
-            List<Token> all = new List<Token>();
+            var all = new List<Token>();
 
-            Token identifier;
+            Token token;
             bool lastWasNewline = false;
 
-            while ((identifier = NextToken()) != null)
+            while ((token = NextToken()) != null)
             {
-                if (identifier is TokenNewline)
+                if (token is TokenIdentifier id)
+                {
+                    // split the deref token, it wasn't a directive
+                    string word = id.word;
+                    if (word[0] == '$')
+                    {
+                        if(word.Length == 1)
+                            token = new TokenDeref(CURRENT_LINE);
+                        else
+                        {
+                            all.Add(new TokenDeref(CURRENT_LINE));
+                            token = new TokenIdentifier(word.Substring(1), CURRENT_LINE);
+                        }
+                    }
+                }
+                
+                if (token is TokenNewline)
                 {
                     if (lastWasNewline)
                         continue;
@@ -113,7 +129,7 @@ namespace mc_compiled.MCC.Compiler
                 else
                     lastWasNewline = false;
 
-                all.Add(identifier);
+                all.Add(token);
             }
 
             return all.ToArray();
@@ -145,32 +161,14 @@ namespace mc_compiled.MCC.Compiler
                     return new TokenOpenBlock(CURRENT_LINE);
                 case '}':
                     return new TokenCloseBlock(CURRENT_LINE);
+                case '[':
+                    return new TokenOpenIndexer(CURRENT_LINE);
+                case ']':
+                    return new TokenCloseIndexer(CURRENT_LINE);
             }
 
             switch (firstChar)
             {
-                case '[' when secondChar == ']':
-                {
-                    // default to '[0]', or first object
-                    NextChar();
-                    var zero = new TokenIntegerLiteral(0, IntMultiplier.none, CURRENT_LINE);
-                    return new TokenIndexerInteger(zero, CURRENT_LINE);
-                }
-                // get the inside token
-                case '[':
-                {
-                    Token inside = NextToken();
-
-                    // throw if no closing bracket
-                    if(!HasNext || Peek() != ']')
-                        throw new TokenizerException("No closing bracket ']' found for indexer.", new[] { CURRENT_LINE });
-
-                    // consume closing bracket
-                    NextChar();
-
-                    // return the right indexer to wrap it
-                    return TokenIndexer.CreateIndexer(inside);
-                }
                 case '@':
                 {
                     Selector.Core core;
@@ -362,11 +360,7 @@ namespace mc_compiled.MCC.Compiler
             // check for enum constant
             if (CommandEnumParser.TryParse(word, out ParsedEnumValue enumValue))
                 return new TokenIdentifierEnum(word, enumValue, CURRENT_LINE);
-
-            // unresolved
-            if (word.StartsWith("$"))
-                return new TokenUnresolvedPPV(word, CURRENT_LINE);
-
+            
             return new TokenIdentifier(word, CURRENT_LINE);
         }
         private TokenNumberLiteral NextNumberIdentifier(char first)
