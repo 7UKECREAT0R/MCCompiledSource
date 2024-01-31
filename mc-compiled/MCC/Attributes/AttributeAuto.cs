@@ -39,6 +39,10 @@ namespace mc_compiled.MCC.Attributes
         
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
         {
+            // cannot add if function has parameters.
+            if (function.ParameterCount > 0)
+                throw new StatementException(causingStatement, "Cannot apply attribute 'auto' to a function with parameters.");
+            
             if (tickDelay < 2)
                 task = new ScheduledRepeatEveryTick(function.file);
             else
