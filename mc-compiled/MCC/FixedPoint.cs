@@ -8,15 +8,20 @@ namespace mc_compiled.MCC
     public static class FixedPoint
     {
         /// <summary>
-        /// Convert this float to a fixed point number with a set precision.
+        /// Convert this decimal to a fixed point number with a set precision.
         /// </summary>
-        /// <param name="number"></param>
-        /// <param name="precision"></param>
+        /// <param name="number">The number to convert.</param>
+        /// <param name="precision">The target precision.</param>
         /// <returns></returns>
-        public static int ToFixedPoint(this float number, int precision)
+        public static int ToFixedPoint(this decimal number, byte precision)
         {
-            return (int)Math.Floor(number * (float)Math.Pow(10, precision));
+            long powerOfTen = 1;
+            for (int i = 0; i < precision; i++)
+                powerOfTen *= 10;
+            
+            return (int)decimal.Floor(number * powerOfTen);
         }
+        
         /// <summary>
         /// Raises this integer to a power of 10 that represents this fixed point number.
         /// </summary>
@@ -25,17 +30,21 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public static int ToFixedPoint(this int integer, int precision)
         {
-            return integer * (int)Math.Pow(10, precision);
+            long powerOfTen = 1;
+            for (int i = 0; i < precision; i++)
+                powerOfTen *= 10;
+            
+            return integer * (int)powerOfTen;
         }
+        
         /// <summary>
-        /// Get the level of precision needed to represent this float.
+        /// Get the level of precision needed to represent this decimal value.<br />
+        /// <br />
+        /// Equivalent to:
+        ///     <code>decimal.GetBits(number)[3] >> 16</code>
         /// </summary>
-        /// <param name="number"></param>
+        /// <param name="number">The number to get the precision of.</param>
         /// <returns></returns>
-        public static int GetPrecision(this float number)
-        {
-            string str = number.ToString();
-            return str.Length - str.IndexOf('.') - 1;
-        }
+        public static int GetPrecision(this decimal number) => decimal.GetBits(number)[3] >> 16;
     }
 }
