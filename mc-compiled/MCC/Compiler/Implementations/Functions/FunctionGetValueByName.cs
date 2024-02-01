@@ -7,7 +7,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
     internal class FunctionGetValueByName : CompiletimeFunction
     {
-        public FunctionGetValueByName() : base("getValueByName", "retrieveValueByNameStr", "value", "Gets and returns the value with the given name. Works same as specifying the identifier of a value.")
+        public FunctionGetValueByName() : base("getValue", "retrieveValueByName", "value", "Gets and returns the value with the given name. Works same as specifying the identifier of a value.")
         {
             this.AddParameter(
                 new CompiletimeFunctionParameter<TokenStringLiteral>("name")

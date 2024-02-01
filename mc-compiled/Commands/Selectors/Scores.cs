@@ -60,14 +60,17 @@ namespace mc_compiled.Commands.Selectors
             return scores;
         }
 
+        public bool Equals(Scores other)
+        {
+            return Equals(checks, other.checks);
+        }
         public override bool Equals(object obj)
         {
-            return obj is Scores scores &&
-                   EqualityComparer<List<ScoresEntry>>.Default.Equals(checks, scores.checks);
+            return obj is Scores other && Equals(other);
         }
         public override int GetHashCode()
         {
-            return -1001038788 + EqualityComparer<List<ScoresEntry>>.Default.GetHashCode(checks);
+            return checks != null ? checks.GetHashCode() : 0;
         }
 
         public static Scores operator +(Scores a, Scores other)
@@ -89,18 +92,20 @@ namespace mc_compiled.Commands.Selectors
             this.value = value;
         }
 
+        public bool Equals(ScoresEntry other)
+        {
+            return name == other.name && value.Equals(other.value);
+        }
         public override bool Equals(object obj)
         {
-            return obj is ScoresEntry entry &&
-                name.GetHashCode() == entry.name.GetHashCode() &&
-                EqualityComparer<Range>.Default.Equals(value, entry.value);
+            return obj is ScoresEntry other && Equals(other);
         }
         public override int GetHashCode()
         {
-            int hashCode = 1477024672;
-            hashCode = hashCode * -1521134295 + name.GetHashCode();
-            hashCode = hashCode * -1521134295 + value.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                return ((name != null ? name.GetHashCode() : 0) * 397) ^ value.GetHashCode();
+            }
         }
 
         public override string ToString()

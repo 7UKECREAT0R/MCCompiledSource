@@ -121,7 +121,7 @@ namespace mc_compiled.Commands
             if (b.single)
                 return a + b.min.Value;
 
-            Range copy = new Range(a);
+            var copy = new Range(a);
             if (copy.single)
                 copy.min += b.min;
             else
@@ -137,7 +137,7 @@ namespace mc_compiled.Commands
             if (b.single)
                 return a - b.min.Value;
 
-            Range copy = new Range(a);
+            var copy = new Range(a);
             if (copy.single)
                 copy.min -= b.min;
             else
@@ -153,7 +153,7 @@ namespace mc_compiled.Commands
             if (b.single)
                 return a * b.min.Value;
 
-            Range copy = new Range(a);
+            var copy = new Range(a);
             if (copy.single)
                 copy.min *= b.min;
             else
@@ -169,7 +169,7 @@ namespace mc_compiled.Commands
             if (b.single)
                 return a / b.min.Value;
 
-            Range copy = new Range(a);
+            var copy = new Range(a);
             if (copy.single)
                 copy.min /= b.min;
             else
@@ -185,7 +185,7 @@ namespace mc_compiled.Commands
             if (b.single)
                 return a % b.min.Value;
 
-            Range copy = new Range(a);
+            var copy = new Range(a);
             if (copy.single)
                 copy.min %= b.min;
             else
@@ -232,7 +232,7 @@ namespace mc_compiled.Commands
 
         public static Range operator +(Range a, int number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min += number;
 
             if(!copy.single)
@@ -242,7 +242,7 @@ namespace mc_compiled.Commands
         }
         public static Range operator -(Range a, int number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min -= number;
 
             if (!copy.single)
@@ -252,7 +252,7 @@ namespace mc_compiled.Commands
         }
         public static Range operator *(Range a, int number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min *= number;
 
             if (!copy.single)
@@ -262,7 +262,7 @@ namespace mc_compiled.Commands
         }
         public static Range operator /(Range a, int number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min /= number;
 
             if (!copy.single)
@@ -272,7 +272,7 @@ namespace mc_compiled.Commands
         }
         public static Range operator %(Range a, int number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min %= number;
 
             if (!copy.single)
@@ -325,9 +325,9 @@ namespace mc_compiled.Commands
                 return number < a.min || number > a.max;
         }
 
-        public static Range operator +(Range a, float number)
+        public static Range operator +(Range a, decimal number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min += (int)number;
 
             if (!copy.single)
@@ -335,9 +335,9 @@ namespace mc_compiled.Commands
 
             return copy;
         }
-        public static Range operator -(Range a, float number)
+        public static Range operator -(Range a, decimal number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min -= (int)number;
 
             if (!copy.single)
@@ -345,9 +345,9 @@ namespace mc_compiled.Commands
 
             return copy;
         }
-        public static Range operator *(Range a, float number)
+        public static Range operator *(Range a, decimal number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min *= (int)number;
 
             if (!copy.single)
@@ -355,9 +355,9 @@ namespace mc_compiled.Commands
 
             return copy;
         }
-        public static Range operator /(Range a, float number)
+        public static Range operator /(Range a, decimal number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min /= (int)number;
 
             if (!copy.single)
@@ -365,9 +365,9 @@ namespace mc_compiled.Commands
 
             return copy;
         }
-        public static Range operator %(Range a, float number)
+        public static Range operator %(Range a, decimal number)
         {
-            Range copy = new Range(a);
+            var copy = new Range(a);
             copy.min %= (int)number;
 
             if (!copy.single)
@@ -375,75 +375,63 @@ namespace mc_compiled.Commands
 
             return copy;
         }
-        public static bool operator <(Range a, float number)
+        public static bool operator <(Range a, decimal number)
         {
             if (a.invert)
                 return !(a.min < number);
-            else
-                return a.min < number;
+            return a.min < number;
         }
-        public static bool operator >(Range a, float number)
+        public static bool operator >(Range a, decimal number)
         {
             if (a.invert)
                 return !(a.min > number);
-            else
-                return a.min > number;
+            return a.min > number;
         }
-        public static bool operator ==(Range a, float number)
+        public static bool operator ==(Range a, decimal number)
         {
             if (a.single)
             {
                 if (a.invert)
                     return a.min != number;
-                else
-                    return a.min == number;
+                return a.min == number;
             }
 
             if (a.invert)
                 return number < a.min || number > a.max;
-            else
-                return number >= a.min && number <= a.max;
+            return number >= a.min && number <= a.max;
         }
-        public static bool operator !=(Range a, float number)
+        public static bool operator !=(Range a, decimal number)
         {
             if (a.single)
             {
                 if (a.invert)
                     return a.min == number;
-                else
-                    return a.min != number;
+                return a.min != number;
             }
 
             if (a.invert)
                 return number >= a.min && number <= a.max;
-            else
-                return number < a.min || number > a.max;
+            return number < a.min || number > a.max;
         }
 
+        public bool Equals(Range other)
+        {
+            return invert == other.invert && single == other.single && min == other.min && max == other.max;
+        }
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType())
-                return false;
-
-            if (obj is Range)
-                return this == (Range)obj;
-            if (obj is int)
-                return this == (int)obj;
-            if (obj is float)
-                return this == (float)obj;
-
-
-            return base.Equals(obj);
+            return obj is Range other && Equals(other);
         }
-
         public override int GetHashCode()
         {
-            int hashCode = 1030738394;
-            hashCode = hashCode * -1521134295 + invert.GetHashCode();
-            hashCode = hashCode * -1521134295 + single.GetHashCode();
-            hashCode = hashCode * -1521134295 + min.GetHashCode();
-            hashCode = hashCode * -1521134295 + max.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                int hashCode = invert.GetHashCode();
+                hashCode = (hashCode * 397) ^ single.GetHashCode();
+                hashCode = (hashCode * 397) ^ min.GetHashCode();
+                hashCode = (hashCode * 397) ^ max.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }

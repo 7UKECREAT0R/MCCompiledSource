@@ -212,9 +212,9 @@ namespace mc_compiled.Commands
         public static string ClearSpawnPoint(string target) =>
             $"clearspawnpoint {target}";
 
-        public static string Clone(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, Coord dstX, Coord dstY, Coord dstZ) =>
+        public static string Clone(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, Coordinate dstX, Coordinate dstY, Coordinate dstZ) =>
             $"clone {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ}";
-        public static string Clone(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, Coord dstX, Coord dstY, Coord dstZ, bool copyAir, CloneMode mode) =>
+        public static string Clone(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, Coordinate dstX, Coordinate dstY, Coordinate dstZ, bool copyAir, CloneMode mode) =>
             $"clone {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ} " + (copyAir ? "replace" : "masked") + $" {mode}";
 
         public static string ConnectWSServer(string serverUri) =>
@@ -269,15 +269,15 @@ namespace mc_compiled.Commands
 
         public static ExecuteBuilder Execute() => new ExecuteBuilder();
 
-        public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block) =>
+        public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, string block) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()}";
-        public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data) =>
+        public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, string block, int data) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} []";
-        public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, OldHandling fillMode) =>
+        public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, string block, int data, OldHandling fillMode) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} [] {fillMode}";
-        public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, string replaceBlock) =>
+        public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, string block, int data, string replaceBlock) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} [] replace {replaceBlock.AsCommandParameter()} -1";
-        public static string Fill(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string block, int data, string replaceBlock, int replaceData) =>
+        public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, string block, int data, string replaceBlock, int replaceData) =>
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameter()} [] replace {replaceBlock.AsCommandParameter()} {replaceData}";
 
         public static string FogPush(string target, string fogId, string userProvidedId) =>
@@ -335,11 +335,11 @@ namespace mc_compiled.Commands
         public static string Locate(string structureType) =>
             $"locate {structureType}";
 
-        public static string LootTable(Coord x, Coord y, Coord z, LootTable table) =>
+        public static string LootTable(Coordinate x, Coordinate y, Coordinate z, LootTable table) =>
             $"loot spawn {x} {y} {z} loot {table.CommandPath}";
-        public static string LootTable(Coord x, Coord y, Coord z, string table) =>
+        public static string LootTable(Coordinate x, Coordinate y, Coordinate z, string table) =>
             $"loot spawn {x} {y} {z} loot {table}";
-        public static string LootEntity(Coord x, Coord y, Coord z, string entity) =>
+        public static string LootEntity(Coordinate x, Coordinate y, Coordinate z, string entity) =>
             $"loot spawn {x} {y} {z} kill {entity}";
 
         public static string Me(string text) =>
@@ -373,7 +373,7 @@ namespace mc_compiled.Commands
         public static string Op(string target) =>
             $"op {target}";
 
-        public static string Particle(string effect, Coord x, Coord y, Coord z) =>
+        public static string Particle(string effect, Coordinate x, Coordinate y, Coordinate z) =>
             $"particle {effect} {x} {y} {z}";
 
         public static string PlayAnimation(string target, string animation) =>
@@ -391,13 +391,13 @@ namespace mc_compiled.Commands
             $"playsound {sound}";
         public static string PlaySound(string sound, string target) =>
             $"playsound {sound} {target}";
-        public static string PlaySound(string sound, string target, Coord x, Coord y, Coord z) =>
+        public static string PlaySound(string sound, string target, Coordinate x, Coordinate y, Coordinate z) =>
             $"playsound {sound} {target} {x} {y} {z}";
-        public static string PlaySound(string sound, string target, Coord x, Coord y, Coord z, float volume) =>
+        public static string PlaySound(string sound, string target, Coordinate x, Coordinate y, Coordinate z, float volume) =>
             $"playsound {sound} {target} {x} {y} {z} {volume}";
-        public static string PlaySound(string sound, string target, Coord x, Coord y, Coord z, float volume, float pitch) =>
+        public static string PlaySound(string sound, string target, Coordinate x, Coordinate y, Coordinate z, float volume, float pitch) =>
             $"playsound {sound} {target} {x} {y} {z} {volume} {pitch}";
-        public static string PlaySound(string sound, string target, Coord x, Coord y, Coord z, float volume, float pitch, float minVolume) =>
+        public static string PlaySound(string sound, string target, Coordinate x, Coordinate y, Coordinate z, float volume, float pitch, float minVolume) =>
             $"playsound {sound} {target} {x} {y} {z} {volume} {pitch} {minVolume}";
         public static string PlaySound(string sound, string target, float volume) =>
             $"playsound {sound} {target} ~ ~ ~ {volume}";
@@ -409,13 +409,13 @@ namespace mc_compiled.Commands
         public static string Reload() =>
             $"reload";
 
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item) =>
+        public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling, string item) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item}";
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item, int amount) =>
+        public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling, string item, int amount) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount}";
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item, int amount, int data) =>
+        public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling, string item, int amount, int data) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount} {data}";
-        public static string ReplaceItemBlock(Coord x, Coord y, Coord z, int slot, OldHandling handling, string item, int amount, int data, string json) =>
+        public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling, string item, int amount, int data, string json) =>
             $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount} {data} {json}";
 
         public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling, string item) =>
@@ -454,9 +454,9 @@ namespace mc_compiled.Commands
         public static string Say(string message) =>
             $"say {message}";
 
-        public static string ScheduleAreaLoaded(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, string function) =>
+        public static string ScheduleAreaLoaded(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, string function) =>
             $"schedule on_area_loaded add {x1} {y1} {z1} {x2} {y2} {z2}";
-        public static string ScheduleAreaLoaded(Coord x, Coord y, Coord z, int radius, string function) =>
+        public static string ScheduleAreaLoaded(Coordinate x, Coordinate y, Coordinate z, int radius, string function) =>
             $"schedule on_area_loaded add circle {x} {y} {z} {radius} {function}";
         public static string ScheduleAreaLoaded(string tickingArea, string function) =>
             $"schedule on_area_loaded add tickingarea {tickingArea} {function}";
@@ -544,27 +544,27 @@ namespace mc_compiled.Commands
         public static string ScoreboardOpMax(ScoreboardValue a, ScoreboardValue b) =>
             $"scoreboard players operation {a.clarifier.CurrentString} {a.InternalName.AsCommandParameter()} > {b.clarifier.CurrentString} {b.InternalName.AsCommandParameter()}";
 
-        public static string SetBlock(Coord x, Coord y, Coord z, string block) =>
+        public static string SetBlock(Coordinate x, Coordinate y, Coordinate z, string block) =>
             $"setblock {x} {y} {z} {block}";
-        public static string SetBlock(Coord x, Coord y, Coord z, string block, int data) =>
+        public static string SetBlock(Coordinate x, Coordinate y, Coordinate z, string block, int data) =>
             $"setblock {x} {y} {z} {block} []";
-        public static string SetBlock(Coord x, Coord y, Coord z, string block, int data, OldHandling handling) =>
+        public static string SetBlock(Coordinate x, Coordinate y, Coordinate z, string block, int data, OldHandling handling) =>
             $"setblock {x} {y} {z} {block} [] {handling}";
 
         public static string SetMaxPlayers(int max) =>
             $"setmaxplayers {max}";
 
-        public static string SetWorldSpawn(Coord x, Coord y, Coord z) =>
+        public static string SetWorldSpawn(Coordinate x, Coordinate y, Coordinate z) =>
             $"setworldspawn {x} {y} {z}";
 
         public static string Spawnpoint() =>
             $"spawnpoint";
         public static string Spawnpoint(string target) =>
             $"spawnpoint {target}";
-        public static string Spawnpoint(string target, Coord x, Coord y, Coord z) =>
+        public static string Spawnpoint(string target, Coordinate x, Coordinate y, Coordinate z) =>
             $"spawnpoint {target} {x} {y} {z}";
 
-        public static string SpreadPlayers(Coord x, Coord z, float spreadDistance, float maxRange, string targets) =>
+        public static string SpreadPlayers(Coordinate x, Coordinate z, float spreadDistance, float maxRange, string targets) =>
             $"spreadplayers {x} {z} {spreadDistance} {maxRange} {targets.AsCommandParameter()}";
 
         public static string Stop() =>
@@ -575,15 +575,15 @@ namespace mc_compiled.Commands
         public static string StopSound(string target, string sound) =>
             $"stopsound {target} {sound}";
 
-        public static string StructureSaveDisk(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2) =>
+        public static string StructureSaveDisk(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2) =>
             $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} disk";
-        public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2) =>
+        public static string StructureSaveMemory(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2) =>
             $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} memory";
-        public static string StructureSaveDisk(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
+        public static string StructureSaveDisk(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, bool includeEntities, bool includeBlocks = true) =>
             $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} disk {includeBlocks.ToString().ToLower()}";
-        public static string StructureSaveMemory(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, bool includeEntities, bool includeBlocks = true) =>
+        public static string StructureSaveMemory(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, bool includeEntities, bool includeBlocks = true) =>
             $"structure save {name.AsCommandParameter()} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks.ToString().ToLower()}";
-        public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
+        public static string StructureLoad(string name, Coordinate x, Coordinate y, Coordinate z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true, bool waterLogged = false, float integrity = 100, string seed = null)
         {
             if (seed == null)
@@ -591,7 +591,7 @@ namespace mc_compiled.Commands
 
             return $"structure load {name.AsCommandParameter()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
         }
-        public static string StructureLoad(string name, Coord x, Coord y, Coord z, StructureRotation rotation = StructureRotation._0_degrees,
+        public static string StructureLoad(string name, Coordinate x, Coordinate y, Coordinate z, StructureRotation rotation = StructureRotation._0_degrees,
                 StructureMirror flip = StructureMirror.none, StructureAnimationMode animation = StructureAnimationMode.layer_by_layer,
                 float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, bool waterLogged = false, float integrity = 100, string seed = null)
         {
@@ -605,13 +605,13 @@ namespace mc_compiled.Commands
 
         public static string Summon(string entity) =>
             $"summon {entity}";
-        public static string Summon(string entity, Coord x, Coord y, Coord z) =>
+        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z) =>
             $"summon {entity} {x} {y} {z}";
-        public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag) =>
+        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, string nameTag) =>
             $"summon {entity} {nameTag.AsCommandParameter()} {x} {y} {z}";
-        public static string Summon(string entity, Coord x, Coord y, Coord z, string nameTag, string spawnEvent) =>
+        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, string nameTag, string spawnEvent) =>
             $"summon {entity} {x} {y} {z} {spawnEvent} {nameTag.AsCommandParameter()}";
-        public static string SummonWithEvent(string entity, Coord x, Coord y, Coord z, string spawnEvent) =>
+        public static string SummonWithEvent(string entity, Coordinate x, Coordinate y, Coordinate z, string spawnEvent) =>
             $"summon {entity} {x} {y} {z} {spawnEvent}";
 
         public static string Tag(string targets, string tag) =>
@@ -625,21 +625,21 @@ namespace mc_compiled.Commands
             $"tp @s {otherEntity} {checkForBlocks.ToString().ToLower()}";
         public static string Teleport(string target, string otherEntity, bool checkForBlocks = false) =>
             $"tp {target} {otherEntity} {checkForBlocks.ToString().ToLower()}";
-        public static string Teleport(Coord x, Coord y, Coord z, bool checkForBlocks = false) =>
+        public static string Teleport(Coordinate x, Coordinate y, Coordinate z, bool checkForBlocks = false) =>
             $"tp {x} {y} {z} {checkForBlocks.ToString().ToLower()}";
-        public static string Teleport(Coord x, Coord y, Coord z, Coord yRot, Coord xRot, bool checkForBlocks = false) =>
+        public static string Teleport(Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, bool checkForBlocks = false) =>
             $"tp {x} {y} {z} {yRot} {xRot} {checkForBlocks.ToString().ToLower()}";
-        public static string Teleport(string target, Coord x, Coord y, Coord z, bool checkForBlocks = false) =>
+        public static string Teleport(string target, Coordinate x, Coordinate y, Coordinate z, bool checkForBlocks = false) =>
             $"tp {target} {x} {y} {z} {checkForBlocks.ToString().ToLower()}";
-        public static string Teleport(string target, Coord x, Coord y, Coord z, Coord yRot, Coord xRot, bool checkForBlocks = false) =>
+        public static string Teleport(string target, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, bool checkForBlocks = false) =>
             $"tp {target} {x} {y} {z} {yRot} {xRot} {checkForBlocks.ToString().ToLower()}";
-        public static string TeleportFacing(Coord x, Coord y, Coord z, Coord facingX, Coord facingY, Coord facingZ, bool checkForBlocks = false) =>
+        public static string TeleportFacing(Coordinate x, Coordinate y, Coordinate z, Coordinate facingX, Coordinate facingY, Coordinate facingZ, bool checkForBlocks = false) =>
             $"tp {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks.ToString().ToLower()}";
-        public static string TeleportFacing(Coord x, Coord y, Coord z, string facingEntity, bool checkForBlocks = false) =>
+        public static string TeleportFacing(Coordinate x, Coordinate y, Coordinate z, string facingEntity, bool checkForBlocks = false) =>
             $"tp {x} {y} {z} facing {facingEntity} {checkForBlocks.ToString().ToLower()}";
-        public static string TeleportFacing(string target, Coord x, Coord y, Coord z, Coord facingX, Coord facingY, Coord facingZ, bool checkForBlocks = false) =>
+        public static string TeleportFacing(string target, Coordinate x, Coordinate y, Coordinate z, Coordinate facingX, Coordinate facingY, Coordinate facingZ, bool checkForBlocks = false) =>
             $"tp {target} {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks.ToString().ToLower()}";
-        public static string TeleportFacing(string target, Coord x, Coord y, Coord z, string facingEntity, bool checkForBlocks = false) =>
+        public static string TeleportFacing(string target, Coordinate x, Coordinate y, Coordinate z, string facingEntity, bool checkForBlocks = false) =>
             $"tp {target} {x} {y} {z} facing {facingEntity} {checkForBlocks.ToString().ToLower()}";
 
         public static string Tellraw(string jsonMessage) =>
@@ -655,23 +655,23 @@ namespace mc_compiled.Commands
         public static string TestFor(string targets) =>
             $"testfor {targets}";
 
-        public static string TestForBlock(Coord x, Coord y, Coord z, string block) =>
+        public static string TestForBlock(Coordinate x, Coordinate y, Coordinate z, string block) =>
             $"testforblock {x} {y} {z} {block}";
-        public static string TestForBlock(Coord x, Coord y, Coord z, string block, int data) =>
+        public static string TestForBlock(Coordinate x, Coordinate y, Coordinate z, string block, int data) =>
             $"testforblock {x} {y} {z} {block} []";
 
-        public static string TestForBlocks(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, Coord dstX, Coord dstY, Coord dstZ) =>
+        public static string TestForBlocks(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, Coordinate dstX, Coordinate dstY, Coordinate dstZ) =>
             $"testforblocks {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ}";
-        public static string TestForBlocksMasked(Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2, Coord dstX, Coord dstY, Coord dstZ) =>
+        public static string TestForBlocksMasked(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2, Coordinate dstX, Coordinate dstY, Coordinate dstZ) =>
             $"testforblocks {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ} masked";
 
-        public static string TickingAreaAdd(string name, Coord x1, Coord y1, Coord z1, Coord x2, Coord y2, Coord z2) =>
+        public static string TickingAreaAdd(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2) =>
             $"tickingarea add {x1} {y1} {z1} {x2} {y2} {z2} {name.AsCommandParameter()}";
-        public static string TickingAreaAdd(string name, Coord x1, Coord y1, Coord z1, int radius) =>
+        public static string TickingAreaAdd(string name, Coordinate x1, Coordinate y1, Coordinate z1, int radius) =>
             $"tickingarea add circle {x1} {y1} {z1} {radius} {name.AsCommandParameter()}";
         public static string TickingAreaRemove(string name) =>
             $"tickingarea remove {name.AsCommandParameter()}";
-        public static string TickingAreaRemove(Coord x1, Coord y1, Coord z1) =>
+        public static string TickingAreaRemove(Coordinate x1, Coordinate y1, Coordinate z1) =>
             $"tickingarea remove {x1} {y1} {z1}";
         public static string TickingAreaRemoveAll() =>
             $"tickingarea remove_all";

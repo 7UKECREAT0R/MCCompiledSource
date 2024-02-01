@@ -214,7 +214,7 @@
     <Compile Include="Modding\Resources\Localization\LocaleDefinition.cs" />
     <Compile Include="Modding\StructureFile.cs" />
     <Compile Include="Commands\Selectors\BlockCheck.cs" />
-    <Compile Include="Commands\Coord.cs" />
+    <Compile Include="Commands\Coordinate.cs" />
     <Compile Include="Commands\Native\Block.cs" />
     <Compile Include="Commands\Native\ItemStack.cs" />
     <Compile Include="Commands\Range.cs" />

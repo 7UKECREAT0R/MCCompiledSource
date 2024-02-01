@@ -20,8 +20,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            float number = ((this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenNumberLiteral).GetNumber();
-            float result = (float)Math.Round(number, MidpointRounding.AwayFromZero);
+            decimal number = ((TokenNumberLiteral)((CompiletimeFunctionParameter)Parameters[0]).CurrentValue).GetNumber();
+            decimal result = decimal.Round(number, MidpointRounding.AwayFromZero);
 
             return new TokenDecimalLiteral(result, statement.Lines[0]);
         }
@@ -36,33 +36,33 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            ScoreboardValue input = (this.parameters[0] as RuntimeFunctionParameterDynamic).RuntimeDestination;
+            ScoreboardValue input = ((RuntimeFunctionParameterDynamic)parameters[0]).RuntimeDestination;
             int precision = ((FixedDecimalData)input.data).precision;
-            int coeff = (int)Math.Pow(10, precision);
+            int coefficient = (int)Math.Pow(10, precision);
 
             string temp1Name = this.CreateUniqueTempValueName(uniqueIdentifier);
             string temp2Name = this.CreateUniqueTempValueName(uniqueIdentifier);
-            ScoreboardValue temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
-            ScoreboardValue temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
+            var temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
+            var temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
             executor.scoreboard.Add(temp1);
             executor.scoreboard.Add(temp2);
             executor.AddCommandsInit(temp1.CommandsDefine());
             executor.AddCommandsInit(temp2.CommandsDefine());
 
-            this.TryReturnValue(input, executor, statement, out resultValue);
+            TryReturnValue(input, executor, statement, out resultValue);
 
             // do everything in the return value
-            output.Add(Command.ScoreboardSet(temp1, coeff));
+            output.Add(Command.ScoreboardSet(temp1, coefficient));
             output.Add(Command.ScoreboardOpSet(temp2, input));
             output.Add(Command.ScoreboardOpMod(temp2, temp1));
 
             // needs branch for logic
-            CommandFile roundUp = new CommandFile(output.IsInUse, output.name + "roundUp", output.folder);
+            var roundUp = new CommandFile(output.IsInUse, output.name + "roundUp", output.folder);
             executor.AddExtraFile(roundUp);
             if (Program.DECORATE)
                 roundUp.AddTrace(output, statement.Lines[0]);
             roundUp.Add(Command.ScoreboardOpSub(resultValue, temp2));
-            roundUp.Add(Command.ScoreboardAdd(resultValue, coeff));
+            roundUp.Add(Command.ScoreboardAdd(resultValue, coefficient));
 
             // if mod is 500 or more, round up
             output.Add(Command.Execute().IfScore(temp2, new Range(500, null)).Run(Command.Function(roundUp)));
@@ -81,8 +81,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            float number = ((this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenNumberLiteral).GetNumber();
-            float result = (float)Math.Floor(number);
+            decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) Parameters[0]).CurrentValue).GetNumber();
+            decimal result = decimal.Floor(number);
 
             return new TokenDecimalLiteral(result, statement.Lines[0]);
         }
@@ -97,14 +97,14 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            ScoreboardValue input = (this.parameters[0] as RuntimeFunctionParameterDynamic).RuntimeDestination;
+            ScoreboardValue input = ((RuntimeFunctionParameterDynamic) parameters[0]).RuntimeDestination;
             int precision = ((FixedDecimalData)input.data).precision;
-            int coeff = (int)Math.Pow(10, precision);
+            int coefficient = (int)Math.Pow(10, precision);
 
             string temp1Name = this.CreateUniqueTempValueName(uniqueIdentifier);
             string temp2Name = this.CreateUniqueTempValueName(uniqueIdentifier);
-            ScoreboardValue temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
-            ScoreboardValue temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
+            var temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
+            var temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
             executor.scoreboard.Add(temp1);
             executor.scoreboard.Add(temp2);
             executor.AddCommandsInit(temp1.CommandsDefine());
@@ -113,7 +113,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             this.TryReturnValue(input, executor, statement, out resultValue);
 
             // do everything in the return value
-            output.Add(Command.ScoreboardSet(temp1, coeff));
+            output.Add(Command.ScoreboardSet(temp1, coefficient));
             output.Add(Command.ScoreboardOpSet(temp2, input));
             output.Add(Command.ScoreboardOpMod(temp2, temp1));
             output.Add(Command.ScoreboardOpSub(resultValue, temp2));
@@ -130,8 +130,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            float number = ((this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenNumberLiteral).GetNumber();
-            float result = (float)Math.Ceiling(number);
+            decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) Parameters[0]).CurrentValue).GetNumber();
+            decimal result = decimal.Ceiling(number);
 
             return new TokenDecimalLiteral(result, statement.Lines[0]);
         }
@@ -146,14 +146,14 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            ScoreboardValue input = (this.parameters[0] as RuntimeFunctionParameterDynamic).RuntimeDestination;
+            ScoreboardValue input = ((RuntimeFunctionParameterDynamic) parameters[0]).RuntimeDestination;
             int precision = ((FixedDecimalData)input.data).precision;
-            int coeff = (int)Math.Pow(10, precision);
+            int coefficient = (int)Math.Pow(10, precision);
 
             string temp1Name = this.CreateUniqueTempValueName(uniqueIdentifier);
             string temp2Name = this.CreateUniqueTempValueName(uniqueIdentifier);
-            ScoreboardValue temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
-            ScoreboardValue temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
+            var temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
+            var temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
             executor.scoreboard.Add(temp1);
             executor.scoreboard.Add(temp2);
             executor.AddCommandsInit(temp1.CommandsDefine());
@@ -162,12 +162,12 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             this.TryReturnValue(input, executor, statement, out resultValue);
 
             // do everything in the return value
-            output.Add(Command.ScoreboardSet(temp1, coeff));
+            output.Add(Command.ScoreboardSet(temp1, coefficient));
             output.Add(Command.ScoreboardOpSet(temp2, input));
             output.Add(Command.ScoreboardOpMod(temp2, temp1));
 
             // needs branch for logic
-            CommandFile roundUp = new CommandFile(output.IsInUse, output.name + "roundUp", output.folder);
+            var roundUp = new CommandFile(output.IsInUse, output.name + "roundUp", output.folder);
             executor.AddExtraFile(roundUp);
             if (Program.DECORATE)
                 roundUp.AddTrace(output, statement.Lines[0]);

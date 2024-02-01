@@ -24,19 +24,23 @@
                 string a = chunk.Substring(0, index).Trim().ToUpper();
                 string b = chunk.Substring(index + 1).Trim();
 
-                if (a.Equals("C"))
-                {
-                    endCount = int.Parse(b);
-                    break;
-                }
+                if (!a.Equals("C"))
+                    continue;
+                
+                endCount = int.Parse(b);
+                break;
             }
 
             return new Count(endCount);
         }
 
+        public bool Equals(Count other)
+        {
+            return count == other.count;
+        }
         public override bool Equals(object obj)
         {
-            return obj is Count count && this.count == count.count;
+            return obj is Count other && Equals(other);
         }
         public override int GetHashCode()
         {

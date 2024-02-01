@@ -250,7 +250,7 @@
       "patterns": [
         [ "id:name" ]
       ],
-      "attributes": [ "DONT_EXPAND_PPV", "DONT_DECORATE", "DOCUMENTABLE" ]
+      "attributes": [ "DONT_DEREFERENCE", "DONT_DECORATE", "DOCUMENTABLE" ]
     },
     "$include": {
       "description": "Include File",
@@ -370,7 +370,8 @@
       "function": "_len",
       "patterns": [
         [ "id:result", "id:variable" ],
-        [ "id:result", "json:array" ]
+        [ "id:result", "json:array" ],
+        [ "id:result", "string:text" ]
       ],
       "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },
@@ -725,6 +726,7 @@
       "patterns": [
         [ "id:create", "string:name", "?string:tag", "?coord:x", "?coord:y", "?coord:x" ],
         [ "id:single", "string:name", "?string:tag", "?coord:x", "?coord:y", "?coord:x" ],
+        [ "id:removeall", "?string:tag" ],
         [ "id:remove", "string:name", "?string:tag" ]
       ]
     },
@@ -743,7 +745,7 @@
       "category": "features",
       "features": 4,
       "patterns": [
-        [ "?coord:x", "?coord:y", "?coord:z", "?int:power", "?int:delay", "?id:causes fire", "?id:breaks blocks" ]
+        [ "?coord:x", "?coord:y", "?coord:z", "?int:power", "?int:delay", "?bool:causes fire", "?bool:breaks blocks" ]
       ]
     },
     "feature": {

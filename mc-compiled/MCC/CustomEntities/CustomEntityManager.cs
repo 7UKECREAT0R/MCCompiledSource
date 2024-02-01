@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System.Collections.Generic;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 
 namespace mc_compiled.MCC.CustomEntities
@@ -8,7 +9,7 @@ namespace mc_compiled.MCC.CustomEntities
     /// </summary>
     internal abstract class CustomEntityManager : ISelectorProvider
     {
-        internal readonly Executor parent;
+        private readonly Executor parent;
         internal bool createdEntityFiles;
 
         internal CustomEntityManager(Executor parent)
@@ -22,10 +23,9 @@ namespace mc_compiled.MCC.CustomEntities
 
             parent.AddExtraFiles(CreateEntityFiles());
             createdEntityFiles = true;
-            return;
         }
 
-        internal abstract IAddonFile[] CreateEntityFiles();
+        protected abstract IEnumerable<IAddonFile> CreateEntityFiles();
         public abstract bool HasEntity(string name);
         public abstract bool Search(string name, out Commands.Selectors.Selector selector);
     }

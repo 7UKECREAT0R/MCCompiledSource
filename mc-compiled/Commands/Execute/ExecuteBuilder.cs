@@ -148,7 +148,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder FacingEntity(Selector entity, AnchorPosition anchor = AnchorPosition.feet)
         {
-            subcommands.Add(new SubcommandFacing(true, entity, anchor, Coord.zero, Coord.zero, Coord.zero));
+            subcommands.Add(new SubcommandFacing(true, entity, anchor, Coordinate.zero, Coordinate.zero, Coordinate.zero));
             return this;
         }
         /// <summary>
@@ -158,7 +158,7 @@ namespace mc_compiled.Commands.Execute
         /// <param name="y"></param>
         /// <param name="z"></param>
         /// <returns></returns>
-        public ExecuteBuilder Facing(Coord x, Coord y, Coord z)
+        public ExecuteBuilder Facing(Coordinate x, Coordinate y, Coordinate z)
         {
             subcommands.Add(new SubcommandFacing(false, null, AnchorPosition.feet, x, y, z));
             return this;
@@ -182,7 +182,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder PositionedAs(Selector entity)
         {
-            subcommands.Add(new SubcommandPositioned(true, entity, Coord.zero, Coord.zero, Coord.zero));
+            subcommands.Add(new SubcommandPositioned(true, entity, Coordinate.zero, Coordinate.zero, Coordinate.zero));
             return this;
         }
         /// <summary>
@@ -192,7 +192,7 @@ namespace mc_compiled.Commands.Execute
         /// <param name="y"></param>
         /// <param name="z"></param>
         /// <returns></returns>
-        public ExecuteBuilder Positioned(Coord x, Coord y, Coord z)
+        public ExecuteBuilder Positioned(Coordinate x, Coordinate y, Coordinate z)
         {
             subcommands.Add(new SubcommandPositioned(false, null, x, y, z));
             return this;
@@ -205,7 +205,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder RotatedAs(Selector entity)
         {
-            subcommands.Add(new SubcommandRotated(true, entity, Coord.zero, Coord.zero));
+            subcommands.Add(new SubcommandRotated(true, entity, Coordinate.zero, Coordinate.zero));
             return this;
         }
         /// <summary>
@@ -214,7 +214,7 @@ namespace mc_compiled.Commands.Execute
         /// <param name="yaw"></param>
         /// <param name="pitch"></param>
         /// <returns></returns>
-        public ExecuteBuilder Rotated(Coord yaw, Coord pitch)
+        public ExecuteBuilder Rotated(Coordinate yaw, Coordinate pitch)
         {
             subcommands.Add(new SubcommandRotated(false, null, yaw, pitch));
             return this;
@@ -280,7 +280,7 @@ namespace mc_compiled.Commands.Execute
         /// <param name="block"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public ExecuteBuilder IfBlock(Coord x, Coord y, Coord z, string block, int? data = null)
+        public ExecuteBuilder IfBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data = null)
         {
             subcommands.Add(new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, data)));
             return this;
@@ -300,9 +300,9 @@ namespace mc_compiled.Commands.Execute
         /// <param name="scanMode"></param>
         /// <returns></returns>
         public ExecuteBuilder IfBlocks(
-            Coord beginX, Coord beginY, Coord beginZ,
-            Coord endX, Coord endY, Coord endZ,
-            Coord destX, Coord destY, Coord destZ,
+            Coordinate beginX, Coordinate beginY, Coordinate beginZ,
+            Coordinate endX, Coordinate endY, Coordinate endZ,
+            Coordinate destX, Coordinate destY, Coordinate destZ,
             BlocksScanMode scanMode = BlocksScanMode.all)
         {
             subcommands.Add(new SubcommandIf(ConditionalSubcommandBlocks.New
@@ -361,7 +361,7 @@ namespace mc_compiled.Commands.Execute
         /// <param name="block"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public ExecuteBuilder UnlessBlock(Coord x, Coord y, Coord z, string block, int? data = null)
+        public ExecuteBuilder UnlessBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data = null)
         {
             subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, data)));
             return this;
@@ -381,9 +381,9 @@ namespace mc_compiled.Commands.Execute
         /// <param name="scanMode"></param>
         /// <returns></returns>
         public ExecuteBuilder UnlessBlocks(
-            Coord beginX, Coord beginY, Coord beginZ,
-            Coord endX, Coord endY, Coord endZ,
-            Coord destX, Coord destY, Coord destZ,
+            Coordinate beginX, Coordinate beginY, Coordinate beginZ,
+            Coordinate endX, Coordinate endY, Coordinate endZ,
+            Coordinate destX, Coordinate destY, Coordinate destZ,
             BlocksScanMode scanMode = BlocksScanMode.all)
         {
             subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlocks.New

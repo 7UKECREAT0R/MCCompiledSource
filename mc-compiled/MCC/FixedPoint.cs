@@ -28,7 +28,7 @@ namespace mc_compiled.MCC
         /// <param name="integer"></param>
         /// <param name="precision"></param>
         /// <returns></returns>
-        public static int ToFixedPoint(this int integer, int precision)
+        public static int ToFixedPoint(this int integer, byte precision)
         {
             long powerOfTen = 1;
             for (int i = 0; i < precision; i++)
@@ -45,6 +45,6 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="number">The number to get the precision of.</param>
         /// <returns></returns>
-        public static int GetPrecision(this decimal number) => decimal.GetBits(number)[3] >> 16;
+        public static byte GetPrecision(this decimal number) => (byte)(decimal.GetBits(number)[3] >> 16);
     }
 }

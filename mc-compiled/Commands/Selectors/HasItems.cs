@@ -7,7 +7,7 @@ namespace mc_compiled.Commands.Selectors
 {
     public struct HasItems
     {
-        public static readonly Regex MATCHER = new Regex(@"hasitem=\[?([\w\d=,.{}]+)\]?");
+        private static readonly Regex MATCHER = new Regex(@"hasitem=\[?([\w\d=,.{}]+)\]?");
         public List<HasItemEntry> entries;
 
         public HasItems(params HasItemEntry[] start)
@@ -33,9 +33,7 @@ namespace mc_compiled.Commands.Selectors
         {
             return $"execute {selector}[{GetSection()}] ~~~ scoreboard players set @s {objective} 1";
         }
-
-
-
+        
         public static HasItems Parse(string fullSelector)
         {
             if (!MATCHER.IsMatch(fullSelector))
@@ -106,19 +104,22 @@ namespace mc_compiled.Commands.Selectors
             return hasitem;
         }
 
+        public bool Equals(HasItems other)
+        {
+            return Equals(entries, other.entries);
+        }
         public override bool Equals(object obj)
         {
-            return obj is HasItems items &&
-                   EqualityComparer<List<HasItemEntry>>.Default.Equals(entries, items.entries);
+            return obj is HasItems other && Equals(other);
         }
         public override int GetHashCode()
         {
-            return 1381410795 + EqualityComparer<List<HasItemEntry>>.Default.GetHashCode(entries);
+            return entries != null ? entries.GetHashCode() : 0;
         }
 
         public static HasItems operator +(HasItems a, HasItems other)
         {
-            HasItems clone = (HasItems)a.MemberwiseClone();
+            var clone = (HasItems)a.MemberwiseClone();
             clone.entries = new List<HasItemEntry>(a.entries);
             clone.entries.AddRange(other.entries);
             return clone;

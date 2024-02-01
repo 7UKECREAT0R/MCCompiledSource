@@ -10,23 +10,23 @@ namespace mc_compiled.Commands.Selectors
         /// </summary>
         public bool present;
 
-        public Coord x, y, z;
+        public Coordinate x, y, z;
         public string block;
         public int? data;
 
         public BlockCheck(string x, string y, string z, string block = "air", string data = null)
         {
             present = true;
-            this.x = Coord.Parse(x).GetValueOrDefault();
-            this.y = Coord.Parse(y).GetValueOrDefault();
-            this.z = Coord.Parse(z).GetValueOrDefault();
+            this.x = Coordinate.Parse(x).GetValueOrDefault();
+            this.y = Coordinate.Parse(y).GetValueOrDefault();
+            this.z = Coordinate.Parse(z).GetValueOrDefault();
             this.block = block;
             if (data == null || data.Equals("0") || string.IsNullOrEmpty(data))
                 this.data = null;
             else
                 this.data = int.Parse(data);
         }
-        public BlockCheck(Coord x, Coord y, Coord z, string block = "air", int? data = null)
+        public BlockCheck(Coordinate x, Coordinate y, Coordinate z, string block = "air", int? data = null)
         {
             present = true;
             this.x = x;
@@ -62,9 +62,9 @@ namespace mc_compiled.Commands.Selectors
         {
             return obj is BlockCheck check &&
                    present == check.present &&
-                   EqualityComparer<Coord>.Default.Equals(x, check.x) &&
-                   EqualityComparer<Coord>.Default.Equals(y, check.y) &&
-                   EqualityComparer<Coord>.Default.Equals(z, check.z) &&
+                   EqualityComparer<Coordinate>.Default.Equals(x, check.x) &&
+                   EqualityComparer<Coordinate>.Default.Equals(y, check.y) &&
+                   EqualityComparer<Coordinate>.Default.Equals(z, check.z) &&
                    block == check.block &&
                    data == check.data;
         }

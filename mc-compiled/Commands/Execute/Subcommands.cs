@@ -180,10 +180,10 @@ namespace mc_compiled.Commands.Execute
         internal Selector entity;
         internal AnchorPosition anchor;
 
-        internal Coord x, y, z;
+        internal Coordinate x, y, z;
 
         internal SubcommandFacing() { }
-        internal SubcommandFacing(bool isEntity, Selector entity, AnchorPosition anchor, Coord x, Coord y, Coord z)
+        internal SubcommandFacing(bool isEntity, Selector entity, AnchorPosition anchor, Coordinate x, Coordinate y, Coordinate z)
         {
             this.isEntity = isEntity;
             this.entity = entity;
@@ -274,10 +274,10 @@ namespace mc_compiled.Commands.Execute
     {
         private bool asEntity;
         private Selector entity;
-        private Coord x, y, z;
+        private Coordinate x, y, z;
 
         internal SubcommandPositioned() { }
-        internal SubcommandPositioned(bool asEntity, Selector entity, Coord x, Coord y, Coord z)
+        internal SubcommandPositioned(bool asEntity, Selector entity, Coordinate x, Coordinate y, Coordinate z)
         {
             this.asEntity = asEntity;
             this.entity = entity;
@@ -329,10 +329,10 @@ namespace mc_compiled.Commands.Execute
     {
         private bool asEntity;
         private Selector entity;
-        private Coord yaw, pitch;
+        private Coordinate yaw, pitch;
 
         internal SubcommandRotated() { }
-        internal SubcommandRotated(bool asEntity, Selector entity, Coord yaw, Coord pitch)
+        internal SubcommandRotated(bool asEntity, Selector entity, Coordinate yaw, Coordinate pitch)
         {
             this.asEntity = asEntity;
             this.entity = entity;

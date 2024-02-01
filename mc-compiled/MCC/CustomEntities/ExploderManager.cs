@@ -12,14 +12,13 @@ namespace mc_compiled.MCC.CustomEntities
         /// <summary>
         /// Get the name of the component group of an explosion happening in <b>delay</b> ticks.
         /// </summary>
-        /// <param name="delay"></param>
         /// <returns></returns>
         public static string GroupExplode(int power, int delayTicks, bool causesFire, bool breaksBlocks) =>
             $"properties_{power}_{delayTicks}_{(causesFire?"fire":"nofire")}_{(breaksBlocks?"break":"nobreak")}";
+
         /// <summary>
         /// Get the name of the event for an explosion happening in <b>delay</b> ticks.
         /// </summary>
-        /// <param name="delay"></param>
         /// <returns></returns>
         public static string EventExplode(int power, int delayTicks, bool causesFire, bool breaksBlocks) =>
             $"explode_{power}_{delayTicks}_{(causesFire ? "fire" : "nofire")}_{(breaksBlocks ? "break" : "nobreak")}";
@@ -27,30 +26,29 @@ namespace mc_compiled.MCC.CustomEntities
         /// <summary>
         /// Get the name of the component group of an explosion happening in <b>delay</b> ticks.
         /// </summary>
-        /// <param name="delay"></param>
         /// <returns></returns>
-        public static string GroupExplode(ExploderPreset preset) =>
+        private static string GroupExplode(ExploderPreset preset) =>
             $"properties_{preset.power}_{preset.delay}_{(preset.fire ? "fire" : "nofire")}_{(preset.breaks ? "break" : "nobreak")}";
+
         /// <summary>
         /// Get the name of the event for an explosion happening in <b>delay</b> ticks.
         /// </summary>
-        /// <param name="delay"></param>
         /// <returns></returns>
-        public static string EventExplode(ExploderPreset preset) =>
+        private static string EventExplode(ExploderPreset preset) =>
             $"explode_{preset.power}_{preset.delay}_{(preset.fire ? "fire" : "nofire")}_{(preset.breaks ? "break" : "nobreak")}";
 
         /// <summary>
         /// The explosion presets that have been defined in the entity file. (component groups/events).
         /// </summary>
-        HashSet<ExploderPreset> definedPresets;
+        private readonly HashSet<ExploderPreset> definedPresets;
         /// <summary>
         /// The files used to modify the explosion entity.
         /// </summary>
-        ExploderFiles files;
+        private ExploderFiles files;
         /// <summary>
         /// The identifier for the exploder entity.
         /// </summary>
-        public readonly string exploderType;
+        private readonly string exploderType;
 
         internal ExploderManager(Compiler.Executor executor) : base(executor)
         {
@@ -59,7 +57,7 @@ namespace mc_compiled.MCC.CustomEntities
             exploderType = executor.project.Namespace("exploder");
         }
 
-        internal override IAddonFile[] CreateEntityFiles()
+        protected override IEnumerable<IAddonFile> CreateEntityFiles()
         {
             files = EntityBehavior.CreateExploder(exploderType);
             return files.AddonFiles;
@@ -76,7 +74,7 @@ namespace mc_compiled.MCC.CustomEntities
         /// </summary>
         /// <param name="entry"></param>
         /// <returns></returns>
-        public string GetPreset(ExploderPreset entry)
+        private string GetPreset(ExploderPreset entry)
         {
             if (definedPresets.Contains(entry))
                 return EventExplode(entry);
@@ -109,7 +107,7 @@ namespace mc_compiled.MCC.CustomEntities
         /// Register a preset in the entity file if needed. Returns the command to summon an explosion with a set of properties.
         /// </summary>
         /// <returns></returns>
-        public string CreateExplosion(Coord x, Coord y, Coord z, int power = 3, int delay = 0, bool fire = false, bool breaksBlocks = true)
+        public string CreateExplosion(Coordinate x, Coordinate y, Coordinate z, int power = 3, int delay = 0, bool fire = false, bool breaksBlocks = true)
         {
             // Register the preset if needed and get the event name to trigger it.
             string eventName = GetPreset(power, delay, fire, breaksBlocks);
@@ -120,16 +118,16 @@ namespace mc_compiled.MCC.CustomEntities
     }
     public struct ExploderFiles
     {
-        internal List<Modding.Behaviors.EntityComponentGroup> groups;
-        internal List<Modding.Behaviors.EntityEventHandler> events;
+        internal List<EntityComponentGroup> groups;
+        internal List<EntityEventHandler> events;
 
-        public Modding.Behaviors.EntityBehavior behavior;
+        public EntityBehavior behavior;
         public Modding.Resources.EntityResource resources;
         public Modding.Resources.EntityGeometry geometry;
 
         public IAddonFile[] AddonFiles
         {
-            get => new Modding.IAddonFile[]
+            get => new IAddonFile[]
             {
                 behavior, resources, geometry,
             };
@@ -142,7 +140,7 @@ namespace mc_compiled.MCC.CustomEntities
             this.power = power;
             this.delay = delay;
             this.fire = fire;
-            this.breaks = breaksBlocks;
+            breaks = breaksBlocks;
         }
 
         public readonly int power;
@@ -150,29 +148,24 @@ namespace mc_compiled.MCC.CustomEntities
         public readonly bool fire;
         public readonly bool breaks;
 
-        public bool Equals(int power, int delay, bool fire, bool breaksBlocks)
+        public bool Equals(ExploderPreset other)
         {
-            return this.power == power &&
-                this.delay == delay &&
-                this.fire == fire &&
-                this.breaks == breaksBlocks;
+            return power == other.power && delay == other.delay && fire == other.fire && breaks == other.breaks;
         }
         public override bool Equals(object obj)
         {
-            return obj is ExploderPreset entry &&
-                   power == entry.power &&
-                   delay == entry.delay &&
-                   fire == entry.fire &&
-                   breaks == entry.breaks;
+            return obj is ExploderPreset other && Equals(other);
         }
         public override int GetHashCode()
         {
-            int hashCode = 230165662;
-            hashCode = hashCode * -1521134295 + power.GetHashCode();
-            hashCode = hashCode * -1521134295 + delay.GetHashCode();
-            hashCode = hashCode * -1521134295 + fire.GetHashCode();
-            hashCode = hashCode * -1521134295 + breaks.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                int hashCode = power;
+                hashCode = (hashCode * 397) ^ delay;
+                hashCode = (hashCode * 397) ^ fire.GetHashCode();
+                hashCode = (hashCode * 397) ^ breaks.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }

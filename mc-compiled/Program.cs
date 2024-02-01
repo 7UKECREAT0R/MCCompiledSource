@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using mc_compiled.Compiler;
+
 // ReSharper disable CommentTypo
 
 namespace mc_compiled
@@ -123,6 +125,12 @@ namespace mc_compiled
                         Console.WriteLine("MCCompiled Version " + Executor.MCC_VERSION);
                         Console.WriteLine("Andrew L. Criswell II, 2023");
                         return;
+                    case "--CLEAR_CACHE":
+                    case "-CC":
+                        Console.WriteLine("Clearing temporary cache...");
+                        TemporaryFilesManager.ClearCache();
+                        Console.WriteLine("Successfully cleared temporary cache.");
+                        return;
                     case "--PROJECT":
                     case "-P":
                         projectName = args[++i];
@@ -136,300 +144,226 @@ namespace mc_compiled
 
             string fileUpper = files[0].ToUpper();
 
-            if (fileUpper.Equals("--SYNTAX"))
+            switch (fileUpper)
             {
-                string _target = (args.Length == 1) ? null : args[1];
-
-                if (_target == "*")
+                case "--SYNTAX":
                 {
-                    ConsoleColor color = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("Exporting all output targets...");
+                    string _target = (args.Length == 1) ? null : args[1];
+
+                    if (_target == "*")
+                    {
+                        ConsoleColor color = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("Exporting all output targets...");
+                        Console.ForegroundColor = ConsoleColor.White;
+
+                        foreach (KeyValuePair<string, SyntaxTarget> st in Syntax.syntaxTargets)
+                        {
+                            string stOutput = st.Value.GetFile();
+                            Console.WriteLine("\tExporting syntax file for target '{0}'... ({1})", st.Key, stOutput);
+
+                            using (FileStream outputStream = File.Open(stOutput, FileMode.Create))
+                            using (TextWriter writer = new StreamWriter(outputStream))
+                            {
+                                st.Value.Write(writer);
+                            }
+                        }
+
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Completed exporting for {0} output targets.", Syntax.syntaxTargets.Count);
+                        Console.ForegroundColor = color;
+                        return;
+                    }
+
+                    SyntaxTarget target = null;
+                    if (_target != null)
+                    {
+                        Console.WriteLine("Looking up target {0}...", _target);
+                        target = Syntax.syntaxTargets[_target];
+                    }
+
+                    if (target == null)
+                    {
+                        Console.WriteLine("Syntax Targets");
+                        Console.WriteLine("\t*: All available output targets individually.");
+                        foreach (KeyValuePair<string, SyntaxTarget> t in Syntax.syntaxTargets)
+                            Console.WriteLine("\t{0}: {1}", t.Key, t.Value.Describe());
+                        return;
+                    }
+
+                    string outputFile = target.GetFile();
+
+                    using (FileStream outputStream = File.Open(outputFile, FileMode.Create))
+                    using (TextWriter writer = new StreamWriter(outputStream))
+                    {
+                        ConsoleColor color = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("Exporting syntax file for target '{0}'...", _target);
+                        target.Write(writer);
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Completed. Output file: {0}", outputFile);
+                        Console.ForegroundColor = color;
+                    }
+                    return;
+                }
+                case "--SERVER":
+                {
+                    _ = new Definitions(debug);
+                    string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
+                    obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
+                    orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
+                    NO_PAUSE = true;
+
+                    DEBUG = debug;
+                    using (var server = new MCCServer(orp, obp))
+                    {
+                        server.StartServer();
+                    }
+
+                    return;
+                }
+                case "--PROTOCOL":
+                {
+                    var config = new RegistryConfiguration();
+                    config.Install();
+                    return;
+                }
+                case "--PROTOCOL_REMOVE":
+                {
+                    var config = new RegistryConfiguration();
+                    config.Uninstall();
+                    return;
+                }
+                case "--INFO":
+                    Console.WriteLine("V{0}", Executor.MCC_VERSION);
+                    Console.WriteLine("L{0}", System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    return;
+                case "--FROMPROTOCOL":
+                {
+                    // check for existing MCCompiled processes.
+                    Process[] mccProcesses = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
+                    if (mccProcesses.Length > 1)
+                        return;
+
+                    // okay... step up to the job.
+                    _ = new Definitions(debug);
+                    string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
+                    obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
+                    orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
+                    DECORATE = false;
+                    NO_PAUSE = true;
+                    DEBUG = debug;
+                    using (var server = new MCCServer(orp, obp))
+                    {
+                        server.StartServer();
+                    }
+                    return;
+                }
+                case "--JSONBUILDER":
+                {
+                    _ = new Definitions(debug);
+                    var builder = new RawTextJsonBuilder();
+                    builder.ConsoleInterface();
+                    return;
+                }
+                case "--EMPTYSTRUCTURE":
+                {
+                    int size = int.Parse(args[1]);
+
+                    StructureFile empty = new StructureFile("empty", null, new StructureNBT()
+                    {
+                        entities = new EntityListNBT(Array.Empty<EntityNBT>()),
+                        worldOrigin = new VectorIntNBT(0, 0, 0),
+                        size = new VectorIntNBT(size, size, size),
+                        palette = new PaletteNBT(
+                            new PaletteEntryNBT("air")
+                        ),
+                        indices = new BlockIndicesNBT(new int[size, size, size])
+                    });
+
+                    File.WriteAllBytes("empty.mcstructure", empty.GetOutputData());
+                    Console.WriteLine("Wrote empty structure to empty.mcstructure");
+                    return;
+                }
+                case "--TESTLOOT":
+                {
+                    _ = new Definitions(debug);
+                    var table = new LootTable("test");
+                    table.pools.Add(new LootPool(6, new[]
+                    {
+                        new LootEntry(LootEntry.EntryType.item, "minecraft:iron_sword")
+                            .WithFunction(new LootFunctionEnchant(new EnchantmentEntry("sharpness", 20)))
+                            .WithFunction(new LootFunctionDurability(0.5f))
+                            .WithFunction(new LootFunctionName("§lSuper Sword"))
+                            .WithFunction(new LootFunctionLore(
+                                "§cHi! This is a line of lore.",
+                                "§6Here's another line.")),
+                        new LootEntry(LootEntry.EntryType.item, "minecraft:book")
+                            .WithFunction(new LootFunctionBook("Test Book", "lukecreator",
+                                "yo welcome to the first page!\nSecond line.",
+                                "Second page!")),
+                        new LootEntry(LootEntry.EntryType.item, "minecraft:leather_chestplate")
+                            .WithFunction(new LootFunctionName("Random Enchant"))
+                            .WithFunction(new LootFunctionRandomEnchant(true))
+                            .WithFunction(new LootFunctionRandomDye()),
+                        new LootEntry(LootEntry.EntryType.item, "minecraft:leather_leggings")
+                            .WithFunction(new LootFunctionName("Simulated Enchant"))
+                            .WithFunction(new LootFunctionSimulateEnchant(20, 40)),
+                        new LootEntry(LootEntry.EntryType.item, "minecraft:leather_boots")
+                            .WithFunction(new LootFunctionName("Gear Enchant"))
+                            .WithFunction(new LootFunctionRandomEnchantGear(1.0f)),
+                        new LootEntry(LootEntry.EntryType.item, "minecraft:cooked_beef")
+                            .WithFunction(new LootFunctionCount(2, 64))
+                    }));
+
+                    File.WriteAllBytes("testloot.json", table.GetOutputData());
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Written test table to 'testloot.json'");
                     Console.ForegroundColor = ConsoleColor.White;
+                    return;
+                }
+                case "--MANIFEST":
+                {
+                    string rest = string.Join(" ", args).Substring(11);
+                    Manifest manifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), rest, "TODO set description")
+                        .WithModule(Manifest.Module.BehaviorData(rest));
+                    File.WriteAllBytes("manifest.json", manifest.GetOutputData());
+                    Console.WriteLine("Wrote a new 'manifest.json' to current directory.");
+                    return;
+                }
+                case "--SEARCH":
+                {
+                    REGOLITH = false;
+                    search = true;
+                    NO_PAUSE = true;
+                    files = GetMCCFilesInDirectory();
 
-                    foreach (KeyValuePair<string, SyntaxTarget> st in Syntax.syntaxTargets)
+                    if (files.Length == 0)
                     {
-                        string stOutput = st.Value.GetFile();
-                        Console.WriteLine("\tExporting syntax file for target '{0}'... ({1})", st.Key, stOutput);
-
-                        using (FileStream outputStream = File.Open(stOutput, FileMode.Create))
-                        using (TextWriter writer = new StreamWriter(outputStream))
-                        {
-                            st.Value.Write(writer);
-                        }
+                        Console.Error.WriteLine("No MCC files found.");
+                        return;
                     }
 
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Completed exporting for {0} output targets.", Syntax.syntaxTargets.Count);
-                    Console.ForegroundColor = color;
-                    return;
+                    break;
                 }
-
-                SyntaxTarget target = null;
-                if (_target != null)
+                case "--REGOLITH":
                 {
-                    Console.WriteLine("Looking up target {0}...", _target);
-                    target = Syntax.syntaxTargets[_target];
-                }
+                    obp = "BP";
+                    orp = "RP";
+                    REGOLITH = true;
+                    search = true;
+                    NO_PAUSE = true;
+                    files = GetMCCFilesInDirectory();
 
-                if (target == null)
-                {
-                    Console.WriteLine("Syntax Targets");
-                    Console.WriteLine("\t*: All available output targets individually.");
-                    foreach (KeyValuePair<string, SyntaxTarget> t in Syntax.syntaxTargets)
-                        Console.WriteLine("\t{0}: {1}", t.Key, t.Value.Describe());
-                    return;
-                }
-
-                string outputFile = target.GetFile();
-
-                using (FileStream outputStream = File.Open(outputFile, FileMode.Create))
-                using (TextWriter writer = new StreamWriter(outputStream))
-                {
-                    ConsoleColor color = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("Exporting syntax file for target '{0}'...", _target);
-                    target.Write(writer);
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Completed. Output file: {0}", outputFile);
-                    Console.ForegroundColor = color;
-                }
-                return;
-            }
-            if (fileUpper.Equals("--SERVER"))
-            {
-                _ = new Definitions(debug);
-                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
-                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
-                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
-                NO_PAUSE = true;
-
-                DEBUG = debug;
-                using (MCCServer server = new MCCServer(orp, obp))
-                {
-                    server.StartServer();
-                }
-
-                return;
-            }
-            if (fileUpper.Equals("--PROTOCOL"))
-            {
-                var config = new RegistryConfiguration();
-                config.Install();
-                return;
-            }
-            if (fileUpper.Equals("--PROTOCOL_REMOVE"))
-            {
-                var config = new RegistryConfiguration();
-                config.Uninstall();
-                return;
-            }
-            if (fileUpper.Equals("--INFO"))
-            {
-                Console.WriteLine("V{0}", Executor.MCC_VERSION);
-                Console.WriteLine("L{0}", System.Reflection.Assembly.GetExecutingAssembly().Location);
-                return;
-            }
-            if (fileUpper.Equals("--FROMPROTOCOL"))
-            {
-                // check for existing MCCompiled processes.
-                Process[] mccProcesses = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
-                if (mccProcesses.Length > 1)
-                    return;
-
-                // okay... step up to the job.
-                _ = new Definitions(debug);
-                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
-                obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
-                orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
-                DECORATE = false;
-                NO_PAUSE = true;
-                DEBUG = debug;
-                using (var server = new MCCServer(orp, obp))
-                {
-                    server.StartServer();
-                }
-                return;
-            }
-            if (fileUpper.Equals("--JSONBUILDER"))
-            {
-                _ = new Definitions(debug);
-                var builder = new RawTextJsonBuilder();
-                builder.ConsoleInterface();
-                return;
-            }
-            if (fileUpper.Equals("--EMPTYSTRUCTURE"))
-            {
-                int size = int.Parse(args[1]);
-
-                StructureFile empty = new StructureFile("empty", null, new StructureNBT()
-                {
-                    entities = new EntityListNBT(Array.Empty<EntityNBT>()),
-                    worldOrigin = new VectorIntNBT(0, 0, 0),
-                    size = new VectorIntNBT(size, size, size),
-                    palette = new PaletteNBT(
-                        new PaletteEntryNBT("air")
-                    ),
-                    indices = new BlockIndicesNBT(new int[size, size, size])
-                });
-
-                File.WriteAllBytes("empty.mcstructure", empty.GetOutputData());
-                Console.WriteLine("Wrote empty structure to empty.mcstructure");
-                return;
-            }
-            if (fileUpper.Equals("--TESTITEMS"))
-            {
-                _ = new Definitions(debug);
-                /*ItemStack item = new ItemStack()
-                {
-                    id = "minecraft:stick",
-                    count = 1,
-                    displayName = "§bSuper Stick",
-                    lore = new string[]
+                    if (files.Length == 0)
                     {
-                        "This is the super stick.",
-                        "§lHe knok bak"
-                    },
-                    enchantments = new EnchantmentEntry[]
-                    {
-                        new EnchantmentEntry(Commands.Enchantment.knockback, 50)
+                        Console.Error.WriteLine("No MCC files found. Skipping filter.");
+                        return;
                     }
-                };
-                StructureNBT nbt = StructureNBT.SingleItem(item);
-                StructureFile itemFile = new StructureFile("stick", "tests", nbt);
-                File.WriteAllBytes("testitem0.mcstructure", itemFile.GetOutputData());*/
 
-                var empty = new StructureFile("empty", null, new StructureNBT()
-                {
-                    entities = new EntityListNBT(Array.Empty<EntityNBT>()),
-                    worldOrigin = new VectorIntNBT(0, 0, 0),
-                    size = new VectorIntNBT(100, 100, 100),
-                    palette = new PaletteNBT(
-                        new PaletteEntryNBT("air")
-                    ),
-                    indices = new BlockIndicesNBT(new int[100, 100, 100])
-                });
-
-
-                /*item = new ItemStack()
-                {
-                    id = "minecraft:written_book",
-                    count = 1,
-                    bookData = new ItemTagBookData()
-                    {
-                        author = "lukecreator",
-                        title = "The MCCompiled Wiki",
-                        pages = new string[]
-                        {
-                            "AAAAAPErheikuhrfewughreeeee\n\n-end of page 1",
-                            "WHWWwhoooahhhhahhh mc compiled whw\n\n-end of page 2",
-                            "The End"
-                        }
-                    }
-                };
-                nbt = StructureNBT.SingleItem(item);
-                itemFile = new StructureFile("testitem", "tests", nbt);*/
-                File.WriteAllBytes("test.mcstructure", empty.GetOutputData());
-
-                /*item = new ItemStack()
-                {
-                    id = "minecraft:leather_chestplate",
-                    count = 1,
-                    enchantments = new EnchantmentEntry[]
-                    {
-                        new EnchantmentEntry(Commands.Enchantment.protection, 20)
-                    },
-                    customColor = new ItemTagCustomColor()
-                    {
-                        r = 255,
-                        g = 0,
-                        b = 0
-                    }
-                };
-                nbt = StructureNBT.SingleItem(item);
-                itemFile = new StructureFile("testitem", "tests", nbt);
-                File.WriteAllBytes("testitem2.mcstructure", itemFile.GetOutputData());*/
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Written test items to 'test.mcstructure'");
-                Console.ForegroundColor = ConsoleColor.White;
-                return;
-            }
-            if (fileUpper.Equals("--TESTLOOT"))
-            {
-                _ = new Definitions(debug);
-                var table = new LootTable("test");
-                table.pools.Add(new LootPool(6, new LootEntry[]
-                {
-                    new LootEntry(LootEntry.EntryType.item, "minecraft:iron_sword")
-                        .WithFunction(new LootFunctionEnchant(new EnchantmentEntry("sharpness", 20)))
-                        .WithFunction(new LootFunctionDurability(0.5f))
-                        .WithFunction(new LootFunctionName("§lSuper Sword"))
-                        .WithFunction(new LootFunctionLore(
-                            "§cHi! This is a line of lore.",
-                            "§6Here's another line.")),
-                    new LootEntry(LootEntry.EntryType.item, "minecraft:book")
-                        .WithFunction(new LootFunctionBook("Test Book", "lukecreator",
-                            "yo welcome to the first page!\nSecond line.",
-                            "Second page!")),
-                    new LootEntry(LootEntry.EntryType.item, "minecraft:leather_chestplate")
-                        .WithFunction(new LootFunctionName("Random Enchant"))
-                        .WithFunction(new LootFunctionRandomEnchant(true))
-                        .WithFunction(new LootFunctionRandomDye()),
-                    new LootEntry(LootEntry.EntryType.item, "minecraft:leather_leggings")
-                        .WithFunction(new LootFunctionName("Simulated Enchant"))
-                        .WithFunction(new LootFunctionSimulateEnchant(20, 40)),
-                    new LootEntry(LootEntry.EntryType.item, "minecraft:leather_boots")
-                        .WithFunction(new LootFunctionName("Gear Enchant"))
-                        .WithFunction(new LootFunctionRandomEnchantGear(1.0f)),
-                    new LootEntry(LootEntry.EntryType.item, "minecraft:cooked_beef")
-                        .WithFunction(new LootFunctionCount(2, 64))
-                }));
-
-                File.WriteAllBytes("testloot.json", table.GetOutputData());
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Written test table to 'testloot.json'");
-                Console.ForegroundColor = ConsoleColor.White;
-                return;
-            }
-            if (fileUpper.Equals("--MANIFEST"))
-            {
-                string rest = string.Join(" ", args).Substring(11);
-                Manifest manifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), rest, "TODO set description")
-                    .WithModule(Manifest.Module.BehaviorData(rest));
-                File.WriteAllBytes("manifest.json", manifest.GetOutputData());
-                Console.WriteLine("Wrote a new 'manifest.json' to current directory.");
-                return;
-            }
-
-            if (fileUpper.Equals("--SEARCH"))
-            {
-                REGOLITH = false;
-                search = true;
-                NO_PAUSE = true;
-                files = GetMCCFilesInDirectory();
-
-                if (files.Length == 0)
-                {
-                    Console.Error.WriteLine("No MCC files found.");
-                    return;
-                }
-            }
-            if (fileUpper.Equals("--REGOLITH"))
-            {
-                obp = "BP";
-                orp = "RP";
-                REGOLITH = true;
-                search = true;
-                NO_PAUSE = true;
-                files = GetMCCFilesInDirectory();
-
-                if (files.Length == 0)
-                {
-                    Console.Error.WriteLine("No MCC files found. Skipping filter.");
-                    return;
+                    break;
                 }
             }
 
@@ -554,8 +488,7 @@ namespace mc_compiled
             DirectiveImplementations.ResetState();
         }
 
-        private static readonly string[] CLEAN_FILTERS = new[]
-        {
+        private static readonly string[] CLEAN_FILTERS = {
             "*.mcstructure",
             "*.mcfunction"
         };

@@ -293,19 +293,19 @@ namespace mc_compiled.MCC.Compiler
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
                     string str = '~' + number.AsString();
-                    return new TokenCoordinateLiteral(Coord.Parse(str) ?? Coord.zero, CURRENT_LINE);
+                    return new TokenCoordinateLiteral(Coordinate.Parse(str) ?? Coordinate.zero, CURRENT_LINE);
                 }
                 case '~':
-                    return new TokenCoordinateLiteral(new Coord(0, false, true, false), CURRENT_LINE);
+                    return new TokenCoordinateLiteral(new Coordinate(0, false, true, false), CURRENT_LINE);
                 case '^' when char.IsDigit(secondChar) || (secondChar == '-' & char.IsDigit(Peek(1))):
                 {
                     NextChar();
                     TokenNumberLiteral number = NextNumberIdentifier(secondChar);
                     string str = '^' + number.AsString();
-                    return new TokenCoordinateLiteral(Coord.Parse(str) ?? Coord.zero, CURRENT_LINE);
+                    return new TokenCoordinateLiteral(Coordinate.Parse(str) ?? Coordinate.zero, CURRENT_LINE);
                 }
                 case '^':
-                    return new TokenCoordinateLiteral(new Coord(0, false, false, true), CURRENT_LINE);
+                    return new TokenCoordinateLiteral(new Coordinate(0, false, false, true), CURRENT_LINE);
                 // check for string literal
                 case '"':
                 case '\'':
@@ -330,9 +330,9 @@ namespace mc_compiled.MCC.Compiler
                     break;
             }
 
-            string word = sb.ToString().ToUpper();
+            string word = sb.ToString();
 
-            switch (word)
+            switch (word.ToUpper())
             {
                 case "TRUE":
                     return new TokenBooleanLiteral(true, CURRENT_LINE);
@@ -403,11 +403,11 @@ namespace mc_compiled.MCC.Compiler
 
             if (int.TryParse(str, out int i))
                 return new TokenIntegerLiteral(i * (int)multiplier, multiplier, CURRENT_LINE);
-            if (!float.TryParse(str, out float f))
+            if (!decimal.TryParse(str, out decimal d))
                 throw new TokenizerException("Couldn't parse literal: " + str);
             
-            f *= (int)multiplier;
-            return new TokenDecimalLiteral(f, CURRENT_LINE);
+            d *= (int)multiplier;
+            return new TokenDecimalLiteral(d, CURRENT_LINE);
         }
         private TokenStringLiteral NextStringIdentifier(char closer)
         {

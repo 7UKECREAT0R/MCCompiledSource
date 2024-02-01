@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace mc_compiled.Commands.Selectors
 {
@@ -7,11 +8,11 @@ namespace mc_compiled.Commands.Selectors
     /// </summary>
     public struct Area
     {
-        public Coord? x, y, z;
+        public Coordinate? x, y, z;
         public float? radiusMin, radiusMax;
         public int? volumeX, volumeY, volumeZ;
 
-        public Area(Coord? x, Coord? y, Coord? z, float? radiusMin = null,
+        public Area(Coordinate? x, Coordinate? y, Coordinate? z, float? radiusMin = null,
             float? radiusMax = null, int? volumeX = null, int? volumeY = null, int? volumeZ = null)
         {
             this.x = x;
@@ -28,11 +29,11 @@ namespace mc_compiled.Commands.Selectors
         /// <summary>
         /// Parse an area from traditional minecraft input.
         /// </summary>
-        /// <param name="str"></param>
+        /// <param name="chunks"></param>
         /// <returns></returns>
         public static Area Parse(string[] chunks)
         {
-            Coord?
+            Coordinate?
                 x = null,
                 y = null,
                 z = null;
@@ -55,13 +56,13 @@ namespace mc_compiled.Commands.Selectors
                 switch(a)
                 {
                     case "X":
-                        x = Coord.Parse(b);
+                        x = Coordinate.Parse(b);
                         break;
                     case "Y":
-                        y = Coord.Parse(b);
+                        y = Coordinate.Parse(b);
                         break;
                     case "Z":
-                        z = Coord.Parse(b);
+                        z = Coordinate.Parse(b);
                         break;
                     case "RM":
                         if (float.TryParse(b, out float rm))
@@ -130,30 +131,30 @@ namespace mc_compiled.Commands.Selectors
             return parts.ToArray();
         }
 
+        public bool Equals(Area other)
+        {
+            return Nullable.Equals(x, other.x) && Nullable.Equals(y, other.y) && Nullable.Equals(z, other.z) &&
+                   Nullable.Equals(radiusMin, other.radiusMin) && Nullable.Equals(radiusMax, other.radiusMax) &&
+                   volumeX == other.volumeX && volumeY == other.volumeY && volumeZ == other.volumeZ;
+        }
         public override bool Equals(object obj)
         {
-            return obj is Area area &&
-                   EqualityComparer<Coord?>.Default.Equals(x, area.x) &&
-                   EqualityComparer<Coord?>.Default.Equals(y, area.y) &&
-                   EqualityComparer<Coord?>.Default.Equals(z, area.z) &&
-                   radiusMin == area.radiusMin &&
-                   radiusMax == area.radiusMax &&
-                   volumeX == area.volumeX &&
-                   volumeY == area.volumeY &&
-                   volumeZ == area.volumeZ;
+            return obj is Area other && Equals(other);
         }
         public override int GetHashCode()
         {
-            int hashCode = -114996346;
-            hashCode = hashCode * -1521134295 + x.GetHashCode();
-            hashCode = hashCode * -1521134295 + y.GetHashCode();
-            hashCode = hashCode * -1521134295 + z.GetHashCode();
-            hashCode = hashCode * -1521134295 + radiusMin.GetHashCode();
-            hashCode = hashCode * -1521134295 + radiusMax.GetHashCode();
-            hashCode = hashCode * -1521134295 + volumeX.GetHashCode();
-            hashCode = hashCode * -1521134295 + volumeY.GetHashCode();
-            hashCode = hashCode * -1521134295 + volumeZ.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                int hashCode = x.GetHashCode();
+                hashCode = (hashCode * 397) ^ y.GetHashCode();
+                hashCode = (hashCode * 397) ^ z.GetHashCode();
+                hashCode = (hashCode * 397) ^ radiusMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ radiusMax.GetHashCode();
+                hashCode = (hashCode * 397) ^ volumeX.GetHashCode();
+                hashCode = (hashCode * 397) ^ volumeY.GetHashCode();
+                hashCode = (hashCode * 397) ^ volumeZ.GetHashCode();
+                return hashCode;
+            }
         }
 
         public static Area operator +(Area a, Area other)

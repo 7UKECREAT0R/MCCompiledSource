@@ -63,7 +63,7 @@ namespace mc_compiled.MCC
         /// <summary>
         /// The clarifier that this scoreboard value uses.
         /// </summary>
-        public Clarifier clarifier { get; private set; }
+        public Clarifier clarifier { get; }
         /// <summary>
         /// The internal name that represents the scoreboard objective in the compiled result.
         /// </summary>
@@ -192,8 +192,9 @@ namespace mc_compiled.MCC
 
             return clone;
         }
+
         /// <summary>
-        /// Perform a fully implemented deep clone of this scoreboard value. Use <see cref="Clone(mc_compiled.MCC.Compiler.Statement,mc_compiled.MCC.Compiler.TypeSystem.Typedef,mc_compiled.MCC.Compiler.Clarifier,object,string,string)"/>
+        /// Perform a fully implemented deep clone of this scoreboard value. Use <see cref="Clone(mc_compiled.MCC.Compiler.Statement,mc_compiled.MCC.Compiler.TypeSystem.Typedef,mc_compiled.MCC.Compiler.Clarifier,mc_compiled.MCC.Compiler.TypeSystem.ITypeStructure,string,string)"/>
         /// to change readonly fields where needed.
         /// </summary>
         /// <returns></returns>
@@ -221,26 +222,15 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public static ScoreboardValue AsReturnValue(TokenLiteral literal, ScoreboardManager sb, Statement forExceptions)
         {
-            switch (literal)
-            {
-                case TokenStringLiteral _:
-                    throw new StatementException(forExceptions, "Cannot return a string.");
-                case TokenSelectorLiteral _:
-                    throw new StatementException(forExceptions, "Cannot return a selector.");
-                case TokenIntegerLiteral _:
-                    return new ScoreboardValue(RETURN_NAME, true, Typedef.INTEGER, sb);
-                case TokenBooleanLiteral _:
-                    return new ScoreboardValue(RETURN_NAME, true, Typedef.BOOLEAN, sb);
-                case TokenDecimalLiteral decimalLiteral:
-                {
-                    float number = decimalLiteral.number;
-                    int precision = number.GetPrecision();
-                    var data = new FixedDecimalData(precision);
-                    return new ScoreboardValue(RETURN_NAME, true, Typedef.FIXED_DECIMAL, data, sb);
-                }
-                default:
-                    throw new StatementException(forExceptions, "Cannot return this literal.");
-            }
+            Typedef type = literal.GetTypedef();
+            if(type == null)
+                throw new StatementException(forExceptions, $"Cannot return literal: {literal.AsString()}");
+
+            var returnValue = new ScoreboardValue(RETURN_NAME, true, type, sb);
+            if (type.CanAcceptLiteralForData(literal))
+                returnValue.data = type.AcceptLiteral(literal);
+
+            return returnValue;
         }
 
         /// <summary>
@@ -259,7 +249,7 @@ namespace mc_compiled.MCC
                 sb.Append(' ');
             }
 
-            sb.Append(type.TypeKeyword);
+            sb.Append(type.TypeKeyword.ToLower());
             return sb.ToString();
         }
 
@@ -272,15 +262,17 @@ namespace mc_compiled.MCC
             return type.GetObjectives(this);
         }
         
+        // Do not Care
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             unchecked
             {
                 int hashCode = InternalName.GetHashCode();
                 hashCode += (int)type.TypeEnum;
-
-                if (this.data != null)
-                    hashCode ^= this.data.TypeHashCode();
+                
+                if (data != null)
+                    hashCode ^= data.TypeHashCode();
 
                 return hashCode;
             }

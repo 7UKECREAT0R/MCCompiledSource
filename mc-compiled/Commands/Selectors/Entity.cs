@@ -12,30 +12,17 @@ namespace mc_compiled.Commands.Selectors
 
         public List<string> families;   // The family(s) this entity is in.
 
-        public int?
-            rotXMin,
-            rotXMax;
-        public int?
-            rotYMin,
-            rotYMax;
+        private int? rotXMin;
+        private int? rotXMax;
+        private int? rotYMin;
+        private int? rotYMax;
 
-        public Entity(string name, string type, string[] families,
+        public Entity(string name, string type, IEnumerable<string> families,
             int? rotXMin = null, int? rotXMax = null, int? rotYMin = null, int? rotYMax = null)
         {
             this.name = name;
             this.type = type;
             this.families = new List<string>(families);
-            this.rotXMin = rotXMin;
-            this.rotXMax = rotXMax;
-            this.rotYMin = rotYMin;
-            this.rotYMax = rotYMax;
-        }
-        public Entity(string name, string type, List<string> families,
-            int? rotXMin = null, int? rotXMax = null, int? rotYMin = null, int? rotYMax = null)
-        {
-            this.name = name;
-            this.type = type;
-            this.families = families;
             this.rotXMin = rotXMin;
             this.rotXMax = rotXMax;
             this.rotYMin = rotYMin;
@@ -92,28 +79,27 @@ namespace mc_compiled.Commands.Selectors
                 rotXMin, rotXMax, rotYMin, rotYMax);
         }
 
+        public bool Equals(Entity other)
+        {
+            return name == other.name && type == other.type && Equals(families, other.families) && rotXMin == other.rotXMin && rotXMax == other.rotXMax && rotYMin == other.rotYMin && rotYMax == other.rotYMax;
+        }
         public override bool Equals(object obj)
         {
-            return obj is Entity entity &&
-                   name == entity.name &&
-                   type == entity.type &&
-                   EqualityComparer<List<string>>.Default.Equals(families, entity.families) &&
-                   rotXMin == entity.rotXMin &&
-                   rotXMax == entity.rotXMax &&
-                   rotYMin == entity.rotYMin &&
-                   rotYMax == entity.rotYMax;
+            return obj is Entity other && Equals(other);
         }
         public override int GetHashCode()
         {
-            int hashCode = 996224562;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(type);
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<string>>.Default.GetHashCode(families);
-            hashCode = hashCode * -1521134295 + rotXMin.GetHashCode();
-            hashCode = hashCode * -1521134295 + rotXMax.GetHashCode();
-            hashCode = hashCode * -1521134295 + rotYMin.GetHashCode();
-            hashCode = hashCode * -1521134295 + rotYMax.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                int hashCode = (name != null ? name.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (type != null ? type.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (families != null ? families.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ rotXMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ rotXMax.GetHashCode();
+                hashCode = (hashCode * 397) ^ rotYMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ rotYMax.GetHashCode();
+                return hashCode;
+            }
         }
 
         public string[] GetSections()

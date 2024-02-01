@@ -173,26 +173,26 @@ namespace mc_compiled.MCC.Compiler
         }
         public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
         {
-            if (other is TokenNumberLiteral numberLiteral)
+            if (!(other is TokenNumberLiteral numberLiteral))
+                throw new TokenException(this, DEFAULT_ERROR);
+            
+            decimal number = numberLiteral.GetNumber();
+            switch (cType)
             {
-                float number = numberLiteral.GetNumber();
-                switch (cType)
-                {
-                    case TokenCompare.Type.EQUAL:
-                        return 0.0f == number;
-                    case TokenCompare.Type.NOT_EQUAL:
-                        return 0.0f != number;
-                    case TokenCompare.Type.LESS:
-                        return 0.0f < number;
-                    case TokenCompare.Type.LESS_OR_EQUAL:
-                        return 0.0f <= number;
-                    case TokenCompare.Type.GREATER:
-                        return 0.0f > number;
-                    case TokenCompare.Type.GREATER_OR_EQUAL:
-                        return 0.0f >= number;
-                    default:
-                        break;
-                }
+                case TokenCompare.Type.EQUAL:
+                    return decimal.Zero == number;
+                case TokenCompare.Type.NOT_EQUAL:
+                    return decimal.Zero != number;
+                case TokenCompare.Type.LESS:
+                    return decimal.Zero < number;
+                case TokenCompare.Type.LESS_OR_EQUAL:
+                    return decimal.Zero <= number;
+                case TokenCompare.Type.GREATER:
+                    return decimal.Zero > number;
+                case TokenCompare.Type.GREATER_OR_EQUAL:
+                    return decimal.Zero >= number;
+                default:
+                    break;
             }
 
             throw new TokenException(this, DEFAULT_ERROR);
@@ -273,7 +273,7 @@ namespace mc_compiled.MCC.Compiler
         /// Get the number stored in this literal.
         /// </summary>
         /// <returns></returns>
-        public abstract float GetNumber();
+        public abstract decimal GetNumber();
         public abstract object GetValue();
 
         public override Typedef GetTypedef() => Typedef.INTEGER;
@@ -335,8 +335,8 @@ namespace mc_compiled.MCC.Compiler
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float number = literal.GetNumber();
-            int length = (int)Math.Round(text.Length * number);
+            decimal number = literal.GetNumber();
+            int length = (int)decimal.Round(text.Length * number);
 
             int sample = 0;
             char[] characters = new char[length];
@@ -355,8 +355,8 @@ namespace mc_compiled.MCC.Compiler
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float number = literal.GetNumber();
-            int length = (int)Math.Round(text.Length / number);
+            decimal number = literal.GetNumber();
+            int length = (int)decimal.Round(text.Length / number);
 
             return new TokenStringLiteral(text.Substring(0, length), lineNumber);
 
@@ -573,9 +573,9 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral Clone() => new TokenBooleanLiteral(boolean, lineNumber);
         public override string ToString() => boolean.ToString();
         public override object GetValue() => boolean;
-        public override float GetNumber()
+        public override decimal GetNumber()
         {
-            return boolean ? 1f : 0f;
+            return boolean ? 1M : 0M;
         }
 
         public static implicit operator bool(TokenBooleanLiteral literal) => literal.boolean;
@@ -616,22 +616,22 @@ namespace mc_compiled.MCC.Compiler
 
     public class TokenCoordinateLiteral : TokenNumberLiteral, IDocumented
     {
-        private readonly Coord coordinate;
+        private readonly Coordinate coordinate;
         
         public override string AsString() => coordinate.ToString();
         public override string ToString() => coordinate.ToString();
         internal TokenCoordinateLiteral() : base(-1) { }
-        public TokenCoordinateLiteral(Coord coordinate, int lineNumber) : base(lineNumber)
+        public TokenCoordinateLiteral(Coordinate coordinate, int lineNumber) : base(lineNumber)
         {
             this.coordinate = coordinate;
         }
-        public override TokenLiteral Clone() => new TokenCoordinateLiteral(new Coord(coordinate), lineNumber);
-        public override float GetNumber()
+        public override TokenLiteral Clone() => new TokenCoordinateLiteral(new Coordinate(coordinate), lineNumber);
+        public override decimal GetNumber()
         {
-            if (coordinate.isFloat)
-                return coordinate.valuef;
+            if (coordinate.isDecimal)
+                return coordinate.valueDecimal;
             else
-                return coordinate.valuei;
+                return coordinate.valueInteger;
         }
         public override object GetValue() => coordinate;
         public override Typedef GetTypedef() => null;
@@ -640,33 +640,31 @@ namespace mc_compiled.MCC.Compiler
             throw new StatementException(tokens, $"Cannot create a value to hold the literal '{AsString()}'");
         }
 
-        public static implicit operator Coord(TokenCoordinateLiteral literal) => literal.coordinate;
-        public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valuei;
-        public static implicit operator float(TokenCoordinateLiteral literal) => literal.coordinate.valuef;
+        public static implicit operator Coordinate(TokenCoordinateLiteral literal) => literal.coordinate;
+        public static implicit operator int(TokenCoordinateLiteral literal) => literal.coordinate.valueInteger;
+        public static implicit operator decimal(TokenCoordinateLiteral literal) => literal.coordinate.valueDecimal;
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
-            if(other is TokenNumberLiteral literal)
-            {
-                float number = literal.GetNumber();
-                Coord coord = new Coord(coordinate);
-                coord.valuef += number;
-                coord.valuei = (int)Math.Round(coord.valuef);
-                return new TokenCoordinateLiteral(coord, lineNumber);
-            }
-
-            throw new TokenException(this, "Invalid literal operation.");
+            if (!(other is TokenNumberLiteral literal))
+                throw new TokenException(this, "Invalid literal operation.");
+            
+            decimal number = literal.GetNumber();
+            var coordinate = new Coordinate(this.coordinate);
+            coordinate.valueDecimal += number;
+            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
+            return new TokenCoordinateLiteral(coordinate, lineNumber);
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float number = literal.GetNumber();
-            var coord = new Coord(coordinate);
-            coord.valuef -= number;
-            coord.valuei = (int)Math.Round(coord.valuef);
-            return new TokenCoordinateLiteral(coord, lineNumber);
+            decimal number = literal.GetNumber();
+            var coordinate = new Coordinate(this.coordinate);
+            coordinate.valueDecimal -= number;
+            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
+            return new TokenCoordinateLiteral(coordinate, lineNumber);
 
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
@@ -674,11 +672,11 @@ namespace mc_compiled.MCC.Compiler
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float number = literal.GetNumber();
-            var coord = new Coord(coordinate);
-            coord.valuef *= number;
-            coord.valuei = (int)Math.Round(coord.valuef);
-            return new TokenCoordinateLiteral(coord, lineNumber);
+            decimal number = literal.GetNumber();
+            var coordinate = new Coordinate(this.coordinate);
+            coordinate.valueDecimal *= number;
+            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
+            return new TokenCoordinateLiteral(coordinate, lineNumber);
 
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
@@ -686,11 +684,11 @@ namespace mc_compiled.MCC.Compiler
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float number = literal.GetNumber();
-            var coord = new Coord(coordinate);
-            coord.valuef /= number;
-            coord.valuei = (int)Math.Round(coord.valuef);
-            return new TokenCoordinateLiteral(coord, lineNumber);
+            decimal number = literal.GetNumber();
+            var coordinate = new Coordinate(this.coordinate);
+            coordinate.valueDecimal /= number;
+            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
+            return new TokenCoordinateLiteral(coordinate, lineNumber);
 
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
@@ -698,17 +696,17 @@ namespace mc_compiled.MCC.Compiler
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float number = literal.GetNumber();
-            var coord = new Coord(coordinate);
-            coord.valuef %= number;
-            coord.valuei = (int)Math.Round(coord.valuef);
-            return new TokenCoordinateLiteral(coord, lineNumber);
+            decimal number = literal.GetNumber();
+            var coordinate = new Coordinate(this.coordinate);
+            coordinate.valueDecimal %= number;
+            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
+            return new TokenCoordinateLiteral(coordinate, lineNumber);
 
         }
         public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
         {
-            float a = coordinate.valuef;
-            float b;
+            decimal a = coordinate.valueDecimal;
+            decimal b;
 
             switch (other)
             {
@@ -721,14 +719,13 @@ namespace mc_compiled.MCC.Compiler
                 default:
                     throw new NotImplementedException("TokenCoordinateLiteral being compared to " + other.GetType().Name);
             }
-
-            const float TOLERANCE = 0.0001f;
+            
             switch (cType)
             {
                 case TokenCompare.Type.EQUAL:
-                    return Math.Abs(a - b) < TOLERANCE;
+                    return a == b;
                 case TokenCompare.Type.NOT_EQUAL:
-                    return Math.Abs(a - b) > TOLERANCE;
+                    return a != b;
                 case TokenCompare.Type.LESS:
                     return a < b;
                 case TokenCompare.Type.LESS_OR_EQUAL:
@@ -744,11 +741,15 @@ namespace mc_compiled.MCC.Compiler
 
         public string GetDocumentation() => "A Minecraft coordinate value that can optionally be both relative and facing offset, like ~10, 40, or ^5.";
     }
-    public enum IntMultiplier : int
+    public enum IntMultiplier
     {
+        [UsedImplicitly]
         none = 1,
+        [UsedImplicitly]
         s = 20,
+        [UsedImplicitly]
         m = 1200,
+        [UsedImplicitly]
         h = 72000
     }
     public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
@@ -784,9 +785,10 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public override string AsString() => number.ToString();
+        [UsedImplicitly]
         public TokenIntegerLiteral() : base() { }
         public TokenIntegerLiteral(int number, IntMultiplier multiplier, int lineNumber) :
-            base(new Coord(number, false, false, false), lineNumber)
+            base(new Coordinate(number, false, false, false), lineNumber)
         {
             this.number = number;
             this.multiplier = multiplier;
@@ -794,7 +796,7 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral Clone() => new TokenIntegerLiteral(number, multiplier, lineNumber);
         public override string ToString() => number.ToString();
         public override object GetValue() => number;
-        public override float GetNumber()
+        public override decimal GetNumber()
         {
             return number;
         }
@@ -818,9 +820,9 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
-                    value += number;
-                    return new TokenDecimalLiteral(value, lineNumber);
+                    int i = number;
+                    i += (int)literal.number;
+                    return new TokenIntegerLiteral(i, IntMultiplier.none, lineNumber);
                 }
                 default:
                     throw new TokenException(this, "Invalid literal operation.");
@@ -837,9 +839,9 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
-                    value -= number;
-                    return new TokenDecimalLiteral(value, lineNumber);
+                    int i = number;
+                    i -= (int)literal.number;
+                    return new TokenIntegerLiteral(i, IntMultiplier.none, lineNumber);
                 }
                 default:
                     throw new TokenException(this, "Invalid literal operation.");
@@ -856,9 +858,9 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
-                    value *= number;
-                    return new TokenDecimalLiteral(value, lineNumber);
+                    int i = number;
+                    i *= (int)literal.number;
+                    return new TokenIntegerLiteral(i, IntMultiplier.none, lineNumber);
                 }
                 default:
                     throw new TokenException(this, "Invalid literal operation.");
@@ -875,9 +877,9 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
-                    value /= number;
-                    return new TokenDecimalLiteral(value, lineNumber);
+                    int i = number;
+                    i /= (int)literal.number;
+                    return new TokenIntegerLiteral(i, IntMultiplier.none, lineNumber);
                 }
                 default:
                     throw new TokenException(this, "Invalid literal operation.");
@@ -894,9 +896,9 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
-                    value %= number;
-                    return new TokenDecimalLiteral(value, lineNumber);
+                    int i = number;
+                    i %= (int)literal.number;
+                    return new TokenIntegerLiteral(i, IntMultiplier.none, lineNumber);
                 }
                 default:
                     throw new TokenException(this, "Invalid literal operation.");
@@ -939,7 +941,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
+                    decimal value = literal.number;
                     return new TokenRangeLiteral(range + value, lineNumber);
                 }
                 default:
@@ -962,7 +964,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
+                    decimal value = literal.number;
                     return new TokenRangeLiteral(range - value, lineNumber);
                 }
                 default:
@@ -985,7 +987,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
+                    decimal value = literal.number;
                     return new TokenRangeLiteral(range * value, lineNumber);
                 }
                 default:
@@ -1008,7 +1010,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
+                    decimal value = literal.number;
                     return new TokenRangeLiteral(range / value, lineNumber);
                 }
                 default:
@@ -1031,7 +1033,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case TokenDecimalLiteral literal:
                 {
-                    float value = literal.number;
+                    decimal value = literal.number;
                     return new TokenRangeLiteral(range % value, lineNumber);
                 }
                 default:
@@ -1140,22 +1142,22 @@ namespace mc_compiled.MCC.Compiler
     }
     public sealed class TokenDecimalLiteral : TokenCoordinateLiteral
     {
-        public readonly float number;
+        public readonly decimal number;
         public override string AsString() => number.ToString();
-        public TokenDecimalLiteral(float number, int lineNumber) :
-            base(new Coord(number, true, false, false), lineNumber)
+        public TokenDecimalLiteral(decimal number, int lineNumber) :
+            base(new Coordinate(number, true, false, false), lineNumber)
         {
             this.number = number;
         }
         public override TokenLiteral Clone() => new TokenDecimalLiteral(number, lineNumber);
         public override string ToString() => number.ToString();
         public override object GetValue() => number;
-        public override float GetNumber()
+        public override decimal GetNumber()
         {
             return number;
         }
 
-        public static implicit operator float(TokenDecimalLiteral literal) => literal.number;
+        public static implicit operator decimal(TokenDecimalLiteral literal) => literal.number;
 
         public override Typedef GetTypedef() => Typedef.FIXED_DECIMAL;
         public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
@@ -1169,40 +1171,40 @@ namespace mc_compiled.MCC.Compiler
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float f = literal.GetNumber();
-            return new TokenDecimalLiteral(number + f, lineNumber);
+            decimal d = literal.GetNumber();
+            return new TokenDecimalLiteral(number + d, lineNumber);
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float f = literal.GetNumber();
-            return new TokenDecimalLiteral(number - f, lineNumber);
+            decimal d = literal.GetNumber();
+            return new TokenDecimalLiteral(number - d, lineNumber);
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float f = literal.GetNumber();
-            return new TokenDecimalLiteral(number * f, lineNumber);
+            decimal d = literal.GetNumber();
+            return new TokenDecimalLiteral(number * d, lineNumber);
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float f = literal.GetNumber();
-            return new TokenDecimalLiteral(number / f, lineNumber);
+            decimal d = literal.GetNumber();
+            return new TokenDecimalLiteral(number / d, lineNumber);
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
             if (!(other is TokenNumberLiteral literal))
                 throw new TokenException(this, "Invalid literal operation.");
             
-            float f = literal.GetNumber();
-            return new TokenDecimalLiteral(number % f, lineNumber);
+            decimal d = literal.GetNumber();
+            return new TokenDecimalLiteral(number % d, lineNumber);
         }
     }
 
@@ -1332,11 +1334,11 @@ namespace mc_compiled.MCC.Compiler
         {
             switch (indexer)
             {
-                case TokenIndexerInteger integer when !(token is JArray):
+                case TokenIndexerInteger _ when !(token is JArray):
                     throw new StatementException(forExceptions, "JSON type cannot be indexed using a number: " + token.Type);
                 case TokenIndexerInteger integer:
                 {
-                    JArray array = (JArray)token;
+                    var array = (JArray)token;
                     int value = integer.token.number;
                     int len = array.Count;
 
@@ -1346,14 +1348,13 @@ namespace mc_compiled.MCC.Compiler
                     JToken indexedItem = array[value];
                     if(PreprocessorUtils.TryGetLiteral(indexedItem, lineNumber, out TokenLiteral output))
                         return output;
-                    else
-                        throw new StatementException(forExceptions, "Couldn't load JSON value: " + indexedItem.ToString());
+                    throw new StatementException(forExceptions, "Couldn't load JSON value: " + indexedItem);
                 }
-                case TokenIndexerString @string when !(token is JObject):
+                case TokenIndexerString _ when !(token is JObject):
                     throw new StatementException(forExceptions, "JSON type cannot be indexed using a string: " + token.Type);
                 case TokenIndexerString @string:
                 {
-                    JObject json = (JObject)token;
+                    var json = (JObject)token;
                     string word = @string.token.text;
 
                     JToken gottenToken = json[word];
@@ -1363,8 +1364,7 @@ namespace mc_compiled.MCC.Compiler
 
                     if (PreprocessorUtils.TryGetLiteral(gottenToken, lineNumber, out TokenLiteral output))
                         return output;
-                    else
-                        throw new StatementException(forExceptions, "Couldn't load JSON value: " + gottenToken.ToString());
+                    throw new StatementException(forExceptions, "Couldn't load JSON value: " + gottenToken);
                 }
                 default:
                     throw indexer.GetException(this, forExceptions);

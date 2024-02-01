@@ -18,7 +18,8 @@ namespace mc_compiled.Commands.Selectors
             e,          // All entities
             initiator   // Initiator of Dialogue Button
         }
-        public static Core ParseCore(string core)
+
+        private static Core ParseCore(string core)
         {
             string originalCore = core;
             if (core.StartsWith("@"))
@@ -74,10 +75,7 @@ namespace mc_compiled.Commands.Selectors
         /// <summary>
         /// Returns if this selector needs to be aligned before executing locally on this entity.
         /// </summary>
-        public bool NonSelf
-        {
-            get => core != Core.s && core != Core.initiator;
-        }
+        public bool NonSelf => core != Core.s && core != Core.initiator;
 
         public static readonly Selector NEAREST_PLAYER = new Selector(Core.p);
         public static readonly Selector SELF = new Selector(Core.s);
@@ -188,9 +186,9 @@ namespace mc_compiled.Commands.Selectors
         }
 
         public Core core;
-        public Coord offsetX = Coord.here;
-        public Coord offsetY = Coord.here;
-        public Coord offsetZ = Coord.here;
+        public Coordinate offsetX = Coordinate.here;
+        public Coordinate offsetY = Coordinate.here;
+        public Coordinate offsetZ = Coordinate.here;
 
         /// <summary>
         /// Returns if this selector has an offset that is not entirely relative-zero.
@@ -237,45 +235,43 @@ namespace mc_compiled.Commands.Selectors
             else return '@' + core.ToString();
         }
 
+        private bool Equals(Selector other)
+        {
+            return core == other.core && offsetX.Equals(other.offsetX) && offsetY.Equals(other.offsetY) &&
+                   offsetZ.Equals(other.offsetZ) && area.Equals(other.area) && scores.Equals(other.scores) &&
+                   hasItem.Equals(other.hasItem) && count.Equals(other.count) && entity.Equals(other.entity) &&
+                   player.Equals(other.player) && Equals(tags, other.tags);
+        }
         public override bool Equals(object obj)
         {
-            return obj is Selector selector &&
-                   SelectsMultiple == selector.SelectsMultiple &&
-                   NonSelf == selector.NonSelf &&
-                   core == selector.core &&
-                   EqualityComparer<Coord>.Default.Equals(offsetX, selector.offsetX) &&
-                   EqualityComparer<Coord>.Default.Equals(offsetY, selector.offsetY) &&
-                   EqualityComparer<Coord>.Default.Equals(offsetZ, selector.offsetZ) &&
-                   EqualityComparer<Area>.Default.Equals(area, selector.area) &&
-                   EqualityComparer<Scores>.Default.Equals(scores, selector.scores) &&
-                   EqualityComparer<HasItems>.Default.Equals(hasItem, selector.hasItem) &&
-                   EqualityComparer<Count>.Default.Equals(count, selector.count) &&
-                   EqualityComparer<Entity>.Default.Equals(entity, selector.entity) &&
-                   EqualityComparer<Player>.Default.Equals(player, selector.player) &&
-                   EqualityComparer<List<Tag>>.Default.Equals(tags, selector.tags);
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((Selector) obj);
         }
+
         public override int GetHashCode()
         {
-            int hashCode = 1214864800;
-            hashCode = hashCode * -1521134295 + SelectsMultiple.GetHashCode();
-            hashCode = hashCode * -1521134295 + NonSelf.GetHashCode();
-            hashCode = hashCode * -1521134295 + core.GetHashCode();
-            hashCode = hashCode * -1521134295 + offsetX.GetHashCode();
-            hashCode = hashCode * -1521134295 + offsetY.GetHashCode();
-            hashCode = hashCode * -1521134295 + offsetZ.GetHashCode();
-            hashCode = hashCode * -1521134295 + area.GetHashCode();
-            hashCode = hashCode * -1521134295 + scores.GetHashCode();
-            hashCode = hashCode * -1521134295 + hasItem.GetHashCode();
-            hashCode = hashCode * -1521134295 + count.GetHashCode();
-            hashCode = hashCode * -1521134295 + entity.GetHashCode();
-            hashCode = hashCode * -1521134295 + player.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<Tag>>.Default.GetHashCode(tags);
-            return hashCode;
+            unchecked
+            {
+                int hashCode = (int) core;
+                hashCode = (hashCode * 397) ^ offsetX.GetHashCode();
+                hashCode = (hashCode * 397) ^ offsetY.GetHashCode();
+                hashCode = (hashCode * 397) ^ offsetZ.GetHashCode();
+                hashCode = (hashCode * 397) ^ area.GetHashCode();
+                hashCode = (hashCode * 397) ^ scores.GetHashCode();
+                hashCode = (hashCode * 397) ^ hasItem.GetHashCode();
+                hashCode = (hashCode * 397) ^ count.GetHashCode();
+                hashCode = (hashCode * 397) ^ entity.GetHashCode();
+                hashCode = (hashCode * 397) ^ player.GetHashCode();
+                hashCode = (hashCode * 397) ^ (tags != null ? tags.GetHashCode() : 0);
+                return hashCode;
+            }
         }
 
         public static Selector operator +(Selector a, Selector b)
         {
-            Selector clone = (Selector)a.MemberwiseClone();
+            var clone = (Selector)a.MemberwiseClone();
 
             clone.offsetX += b.offsetX;
             clone.offsetY += b.offsetY;
@@ -309,7 +305,7 @@ namespace mc_compiled.Commands.Selectors
             if (!remainderString.StartsWith("["))
                 remainderString = '[' + remainderString;
             if (!remainderString.EndsWith("]"))
-                remainderString = remainderString + ']';
+                remainderString += ']';
 
             return $"@{core}{remainderString}";
         }

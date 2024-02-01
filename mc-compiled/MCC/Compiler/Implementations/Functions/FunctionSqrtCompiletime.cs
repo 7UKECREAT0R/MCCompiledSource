@@ -17,8 +17,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            float number = ((this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenNumberLiteral).GetNumber();
-            float result = (float)Math.Sqrt(number);
+            decimal number = ((TokenNumberLiteral)((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue).GetNumber();
+            decimal result = (decimal)(float)Math.Sqrt((double)number);
 
             return new TokenDecimalLiteral(result, statement.Lines[0]);
         }

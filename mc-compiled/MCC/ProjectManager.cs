@@ -77,7 +77,7 @@ namespace mc_compiled.MCC
             if(HasFeature(Feature.DUMMIES))
             {
                 file.Add("# Removes dummy entities from the world.");
-                file.Add(Commands.Command.Event($"@e[type={parentExecutor.entities.dummies.dummyType}]", DummyManager.DESTROY_EVENT_NAME));
+                file.Add(parentExecutor.entities.dummies.DestroyAll());
                 file.Add("");
             }
 

@@ -127,9 +127,9 @@ namespace mc_compiled.MCC.Compiler
                                 allResolved.Add(tokenIdentifier);
                             break;
                         }
-                        case TokenOpenParenthesis parenthesis:
-                            parenthesis.hasBeenSquashed = false;
-                            allResolved.Add(parenthesis);
+                        case TokenOpenGroupingBracket grouper:
+                            grouper.hasBeenSquashed = false;
+                            allResolved.Add(grouper);
                             break;
                         default:
                             allResolved.Add(unresolved);
@@ -259,19 +259,19 @@ namespace mc_compiled.MCC.Compiler
             // squash any indexing brackets into single semantically evaluated tokens.
             SquashIndexers(tokens);
 
-            // run indexers[...]
-            SquashIndexing(tokens);
             // run $dereferences
             SquashDereferences(tokens, executor);
             // run functions(...)
             SquashFunctions(tokens, executor);
+            // run indexers[...]
+            SquashIndexing(tokens);
             // run multiplication/division/modulo
             Squash<TokenArithmeticFirst>(tokens, executor);
             // run addition/subtraction
             Squash<TokenArithmeticSecond>(tokens, executor);
         }
 
-        private static void SquashSpecial(List<Token> tokens)
+        private void SquashSpecial(List<Token> tokens)
         {
             // going over it backwards for merging any particular tokens
             for (int i = tokens.Count - 1; i >= 0; i--)
@@ -301,7 +301,7 @@ namespace mc_compiled.MCC.Compiler
                             replacementLocation = -1;
                             replacementLength = numberMax.HasValue ? 3 : 2;
                             int numberMin = back1Literal;
-                            Range range = new Range(numberMin, numberMax, false);
+                            var range = new Range(numberMin, numberMax, false);
                             replacement = new TokenRangeLiteral(range, token.lineNumber);
                         }
                         else
@@ -341,8 +341,7 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 // flatten JArrays, as long as !DONT_FLATTEN_ARRAYS
-                // no, dont do this idk why this was here. it's an undocumented inconsistency (?)
-                /*if(!HasAttribute(DirectiveAttribute.DONT_FLATTEN_ARRAYS) && token is TokenJSONLiteral _json)
+                if(!HasAttribute(DirectiveAttribute.DONT_FLATTEN_ARRAYS) && token is TokenJSONLiteral _json)
                 {
                     JToken json = _json.token;
                     if(json is JArray jsonArray)
@@ -360,7 +359,7 @@ namespace mc_compiled.MCC.Compiler
                         tokens.InsertRange(i, replace);
                         i += replace.Count;
                     }
-                }*/
+                }
 
                 continue;
 

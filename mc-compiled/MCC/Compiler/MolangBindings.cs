@@ -23,7 +23,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public readonly string molangQuery;      // The Molang query to use for this binding.
-        public readonly string[] targetFiles;    // The files that are targetted, by default, for this binding. Nullable.
+        public readonly string[] targetFiles;    // The files that are targeted, by default, for this binding. Nullable.
         public readonly string description;      // A description of the query, used for documentation.
 
         /// <summary>
@@ -195,21 +195,21 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
 
             for (int i = 0; i < numberOfStates; i++)
             {
-                float currentValue = min + Lerp(((float)i) * normalizedStep);
+                float currentValue = min + Lerp(i * normalizedStep);
                 float lowerBound = currentValue - (normalizedStep / 2);
                 float upperBound = currentValue + (normalizedStep / 2);
 
                 string stateName = "state_" + i;
 
-                ControllerState state = new ControllerState()
+                var state = new ControllerState()
                 {
                     name = stateName,
 
                     onEntryCommands = value.AssignLiteral(
-                        new TokenDecimalLiteral(currentValue, callingStatement.Lines[0]), callingStatement
+                        new TokenDecimalLiteral((decimal)currentValue, callingStatement.Lines[0]), callingStatement
                     ).Select(Command.ForJSON).ToArray(),
 
-                    transitions = new ControllerState.Transition[]
+                    transitions = new[]
                     {
                         new ControllerState.Transition(director,
                             (MolangValue)$"{this.molangQuery} < {lowerBound} && {this.molangQuery} >= {upperBound}")

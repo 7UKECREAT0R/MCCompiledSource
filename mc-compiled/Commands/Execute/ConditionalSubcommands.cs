@@ -6,12 +6,12 @@ namespace mc_compiled.Commands.Execute
 {
     internal class ConditionalSubcommandBlock : ConditionalSubcommand
     {
-        internal Coord x, y, z;
+        internal Coordinate x, y, z;
         internal string block;
         internal int? data = null;
 
         public ConditionalSubcommandBlock() { }
-        private ConditionalSubcommandBlock(Coord x, Coord y, Coord z, string block, int? data)
+        private ConditionalSubcommandBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data)
         {
             this.x = x;
             this.y = y;
@@ -29,7 +29,7 @@ namespace mc_compiled.Commands.Execute
         /// <param name="block"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        internal static ConditionalSubcommandBlock New(Coord x, Coord y, Coord z, string block, int? data = null)
+        internal static ConditionalSubcommandBlock New(Coordinate x, Coordinate y, Coordinate z, string block, int? data = null)
         {
             return new ConditionalSubcommandBlock(x, y, z, block, data);
         }
@@ -65,16 +65,16 @@ namespace mc_compiled.Commands.Execute
     }
     internal class ConditionalSubcommandBlocks : ConditionalSubcommand
     {
-        internal Coord beginX, beginY, beginZ;
-        internal Coord endX, endY, endZ;
-        internal Coord destX, destY, destZ;
+        internal Coordinate beginX, beginY, beginZ;
+        internal Coordinate endX, endY, endZ;
+        internal Coordinate destX, destY, destZ;
         internal BlocksScanMode scanMode;
 
         public ConditionalSubcommandBlocks() { }
         private ConditionalSubcommandBlocks(
-            Coord beginX, Coord beginY, Coord beginZ,
-            Coord endX, Coord endY, Coord endZ,
-            Coord destX, Coord destY, Coord destZ,
+            Coordinate beginX, Coordinate beginY, Coordinate beginZ,
+            Coordinate endX, Coordinate endY, Coordinate endZ,
+            Coordinate destX, Coordinate destY, Coordinate destZ,
             BlocksScanMode scanMode)
         {
             this.beginX = beginX;
@@ -104,9 +104,9 @@ namespace mc_compiled.Commands.Execute
         /// <param name="scanMode"></param>
         /// <returns></returns>
         internal static ConditionalSubcommandBlocks New(
-            Coord beginX, Coord beginY, Coord beginZ,
-            Coord endX, Coord endY, Coord endZ,
-            Coord destX, Coord destY, Coord destZ,
+            Coordinate beginX, Coordinate beginY, Coordinate beginZ,
+            Coordinate endX, Coordinate endY, Coordinate endZ,
+            Coordinate destX, Coordinate destY, Coordinate destZ,
             BlocksScanMode scanMode)
         {
             return new ConditionalSubcommandBlocks(beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode);

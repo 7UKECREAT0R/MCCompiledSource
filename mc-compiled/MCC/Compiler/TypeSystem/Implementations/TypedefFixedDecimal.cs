@@ -10,9 +10,9 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 {
     public readonly struct FixedDecimalData : ITypeStructure
     {
-        public readonly int precision;
+        public readonly byte precision;
 
-        internal FixedDecimalData(int precision)
+        internal FixedDecimalData(byte precision)
         {
             this.precision = precision;
         }
@@ -20,6 +20,22 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         {
             return new FixedDecimalData(precision);
         }
+
+
+        /// <summary>
+        /// Throws an exception if the given precision is out of bounds.
+        /// </summary>
+        /// <param name="precision">The precision to check.</param>
+        /// <param name="callingStatement">The calling statement.</param>
+        /// <exception cref="StatementException">Thrown if the precision is too high or too low.</exception>
+        internal static void ThrowIfOutOfBounds(int precision, Statement callingStatement)
+        {
+            if (precision > byte.MaxValue)
+                throw new StatementException(callingStatement, $"Precision {precision} was too high to store internally. Is this intentional?");
+            if(precision < byte.MinValue)
+                throw new StatementException(callingStatement, $"Precision {precision} was too low to store internally. Is this intentional?");
+        }
+        
         public int TypeHashCode()
         {
             return precision.GetHashCode();
@@ -47,7 +63,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         public override ITypeStructure AcceptPattern(Statement statement)
         {
             int precision = statement.Next<TokenNumberLiteral>().GetNumberInt();
-            return new FixedDecimalData(precision);
+            return new FixedDecimalData((byte)precision);
         }
 
         public override bool CanAcceptLiteralForData(TokenLiteral literal)
@@ -186,6 +202,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     false)
             );
             
+            // i represents the number of zeros to add.
+            // as the lower/upper bounds increase, the number of zeros needed decrease.
             for (int i = precision - 1; i >= 0; i--)
             {
                 var range = new Range(lowerBound, upperBound);
@@ -196,7 +214,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     zeroBuilder.Append('0', i);
                     term = new ConditionalTerm(new JSONRawTerm[]
                     {
-                        new JSONText(zeroBuilder.ToString()),
+                        new JSONScore(clarifier.CurrentString, whole.InternalName),
+                        new JSONText("." + zeroBuilder),
                         new JSONScore(clarifier.CurrentString, part.InternalName)
                     }, ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
                     zeroBuilder.Clear();
@@ -206,6 +225,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     // include no zeros
                     term = new ConditionalTerm(new JSONRawTerm[]
                     {
+                        new JSONScore(clarifier.CurrentString, whole.InternalName),
+                        new JSONText("."),
                         new JSONScore(clarifier.CurrentString, part.InternalName)
                     }, ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
                 }
@@ -227,8 +248,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             if(!(literal is TokenNumberLiteral numberLiteral))
                 throw LiteralConversionError(self, literal, callingStatement);
 
-            float _number = numberLiteral.GetNumber();
-            int precision = ((FixedDecimalData)self.data).precision;
+            decimal _number = numberLiteral.GetNumber();
+            byte precision = ((FixedDecimalData)self.data).precision;
             int number = _number.ToFixedPoint(precision);
 
             return new Tuple<string[], ConditionalSubcommandScore[]>(
@@ -245,7 +266,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             if (literal is TokenNullLiteral)
                 return new[] { Command.ScoreboardSet(self, 0) };
 
-            int precision = ((FixedDecimalData)self.data).precision;
+            byte precision = ((FixedDecimalData)self.data).precision;
 
             switch (literal)
             {
@@ -259,7 +280,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 }
                 case TokenNumberLiteral number:
                 {
-                    float f = number.GetNumber();
+                    decimal f = number.GetNumber();
                     return new[]
                     {
                         Command.ScoreboardSet(self, f.ToFixedPoint(precision))
@@ -275,7 +296,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             if (literal is TokenNullLiteral)
                 return Array.Empty<string>();
 
-            int precision = ((FixedDecimalData)self.data).precision;
+            byte precision = ((FixedDecimalData)self.data).precision;
 
             switch (literal)
             {
@@ -289,7 +310,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 }
                 case TokenNumberLiteral number:
                 {
-                    float f = number.GetNumber();
+                    decimal f = number.GetNumber();
                     return new[]
                     {
                         Command.ScoreboardAdd(self, f.ToFixedPoint(precision))
@@ -305,7 +326,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             if (literal is TokenNullLiteral)
                 return Array.Empty<string>();
 
-            int precision = ((FixedDecimalData)self.data).precision;
+            byte precision = ((FixedDecimalData)self.data).precision;
 
             switch (literal)
             {
@@ -319,7 +340,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                 }
                 case TokenNumberLiteral number:
                 {
-                    float f = number.GetNumber();
+                    decimal f = number.GetNumber();
                     return new[]
                     {
                         Command.ScoreboardSubtract(self, f.ToFixedPoint(precision))

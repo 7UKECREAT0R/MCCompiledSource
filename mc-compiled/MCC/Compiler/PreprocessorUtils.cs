@@ -65,7 +65,7 @@ namespace mc_compiled.MCC.Compiler
                     output = new TokenIntegerLiteral(token.Value<int>(), IntMultiplier.none, lineNumber);
                     return true;
                 case JTokenType.Float:
-                    output = new TokenDecimalLiteral(token.Value<float>(), lineNumber);
+                    output = new TokenDecimalLiteral(decimal.Parse(token.ToString()), lineNumber);
                     return true;
                 case JTokenType.String:
                     output = new TokenStringLiteral(token.Value<string>(), lineNumber);
@@ -163,13 +163,13 @@ namespace mc_compiled.MCC.Compiler
             {
                 case int integer:
                     return new TokenIntegerLiteral(integer, IntMultiplier.none, line);
-                case float number:
+                case decimal number:
                     return new TokenDecimalLiteral(number, line);
                 case bool boolean:
                     return new TokenBooleanLiteral(boolean, line);
                 case string text:
                     return new TokenStringLiteral(text, line);
-                case Coord coordinate:
+                case Coordinate coordinate:
                     return new TokenCoordinateLiteral(coordinate, line);
                 case Selector selector:
                     return new TokenSelectorLiteral(selector, line);

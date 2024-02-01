@@ -1,27 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace mc_compiled.Commands.Selectors
 {
     /// <summary>
     /// Represents a selector option that limits from a tag.
     /// </summary>
-    public struct Tag
+    public readonly struct Tag
     {
-        public bool not;
-        public string tagName;  // Can be null
+        private readonly bool not;
+        private readonly string tagName;  // Can be null
 
+        [PublicAPI]
         public Tag(string tagName, bool not)
         {
             this.not = not;
             this.tagName = tagName;
         }
+        [PublicAPI]
         public Tag(string tagName)
         {
             not = tagName.StartsWith("!");
-            if (not)
-                this.tagName = tagName.Substring(1);
-            else this.tagName = tagName;
+            this.tagName = not ? tagName.Substring(1) : tagName;
         }
 
         /// <summary>
@@ -39,13 +40,12 @@ namespace mc_compiled.Commands.Selectors
             if(str.Length == 0)
                 return new Tag("", false);
 
-            if (str.StartsWith("!"))
-                if (str.Length == 1)
-                    return new Tag("", true);
-                else
-                    return new Tag(str.Substring(1), true);
-            else
+            if (!str.StartsWith("!"))
                 return new Tag(str, false);
+            if (str.Length == 1)
+                return new Tag("", true);
+            
+            return new Tag(str.Substring(1), true);
         }
 
         public string GetSection()
@@ -53,22 +53,24 @@ namespace mc_compiled.Commands.Selectors
             string s = tagName ?? "";
             if (not)
                 return "tag=!" + s;
-            else
-                return "tag=" + s;
+            return "tag=" + s;
         }
 
+        private bool Equals(Tag other)
+        {
+            return not == other.not && tagName == other.tagName;
+        }
         public override bool Equals(object obj)
         {
-            return obj is Tag tag &&
-                   not == tag.not &&
-                   tagName == tag.tagName;
+            return obj is Tag other && Equals(other);
         }
+
         public override int GetHashCode()
         {
-            int hashCode = 1337537810;
-            hashCode = hashCode * -1521134295 + not.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(tagName);
-            return hashCode;
+            unchecked
+            {
+                return (not.GetHashCode() * 397) ^ (tagName != null ? tagName.GetHashCode() : 0);
+            }
         }
     }
 }

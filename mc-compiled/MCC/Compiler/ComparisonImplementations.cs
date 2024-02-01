@@ -511,13 +511,13 @@ namespace mc_compiled.MCC.Compiler
     }
     public class ComparisonBlock : Comparison
     {
-        readonly Coord x;
-        readonly Coord y;
-        readonly Coord z;
+        readonly Coordinate x;
+        readonly Coordinate y;
+        readonly Coordinate z;
         readonly string block;
         readonly int? data;
 
-        public ComparisonBlock(Coord x, Coord y, Coord z, string block, int? data, bool invert) : base(invert)
+        public ComparisonBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data, bool invert) : base(invert)
         {
             this.x = x;
             this.y = y;
@@ -572,13 +572,13 @@ namespace mc_compiled.MCC.Compiler
     }
     public class ComparisonBlocks : Comparison
     {
-        readonly Coord beginX, beginY, beginZ;
-        readonly Coord endX, endY, endZ;
-        readonly Coord destX, destY, destZ;
+        readonly Coordinate beginX, beginY, beginZ;
+        readonly Coordinate endX, endY, endZ;
+        readonly Coordinate destX, destY, destZ;
         readonly BlocksScanMode scanMode;
 
-        public ComparisonBlocks(Coord beginX, Coord beginY, Coord beginZ, Coord endX, Coord endY, Coord endZ,
-            Coord destX, Coord destY, Coord destZ, BlocksScanMode scanMode, bool invert) : base(invert)
+        public ComparisonBlocks(Coordinate beginX, Coordinate beginY, Coordinate beginZ, Coordinate endX, Coordinate endY, Coordinate endZ,
+            Coordinate destX, Coordinate destY, Coordinate destZ, BlocksScanMode scanMode, bool invert) : base(invert)
         {
             this.beginX = beginX;
             this.beginY = beginY;

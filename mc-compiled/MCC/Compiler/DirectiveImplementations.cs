@@ -304,9 +304,14 @@ namespace mc_compiled.MCC.Compiler
                 bIndex %= b.Length;
                 dynamic bValue = b[bIndex++];
                 
+                if (!(bValue is int count))
+                    throw new StatementException(tokens, "Can only exponentiate using an integer value.");
+                
                 try
                 {
-                    result[aIndex] = Math.Pow(aValue, bValue);
+                    result[aIndex] = aValue;
+                    for (int x = 1; x < count; x++)
+                        result[aIndex] *= aValue;
                 }
                 catch (RuntimeBinderException)
                 {
@@ -522,7 +527,7 @@ namespace mc_compiled.MCC.Compiler
                                 throw new ArgumentOutOfRangeException();
                         }
                     }
-                    catch (Exception)
+                    catch (RuntimeBinderException)
                     {
                         throw new StatementException(tokens, "Could not compare those two types.");
                     }
@@ -751,7 +756,7 @@ namespace mc_compiled.MCC.Compiler
             string input = tokens.NextIs<TokenIdentifier>(false) ?
                 tokens.Next<TokenIdentifier>().word :
                 output;
-
+            
             if (executor.TryGetPPV(input, out PreprocessorVariable value))
             {
                 dynamic[] results = new dynamic[value.Length];
@@ -759,16 +764,42 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (!(value[r] is string str))
                         continue;
-                    string[] parts = str.Split('_', '-', ' ');
-                    for (int i = 0; i < parts.Length; i++)
+                    
+                    string[] words = str.Split('_', '-', ' ');
+                    
+                    for (int i = 0; i < words.Length; i++)
                     {
-                        char[] part = parts[i].ToCharArray();
-                        for (int c = 0; c < part.Length; c++)
-                            part[c] = (c == 0) ? char.ToUpper(part[c]) : char.ToLower(part[c]);
-                        parts[i] = new string(part);
-                    }
-                    results[r] = string.Join(" ", parts);
+                        string word = words[i];
 
+                        // edge case: if word starts with capital and ends with lowercase, it's already fine
+                        if (char.IsUpper(word[0]) && char.IsLower(word[word.Length - 1]))
+                            continue;
+                        
+                        // edge case: short words should not be capitalized
+                        if (word.Length <= 3)
+                        {
+                            words[i] = word.ToLower();
+                            continue;
+                        }
+
+                        bool doUpperCase = true;
+                        char[] chars = word.ToCharArray()
+                            .Select((c, index) =>
+                            {
+                                // don't do anything if it's not a letter
+                                if (!char.IsLetter(c))
+                                    return c;
+                                // lower-case letter
+                                if (!doUpperCase)
+                                    return char.ToLower(c);
+                                // upper-case letter (first letter character)
+                                doUpperCase = false;
+                                return char.ToUpper(c);
+                            }).ToArray();
+                        
+                        words[i] = new string(chars);
+                    }
+                    results[r] = string.Join(" ", words);
                 }
                 executor.SetPPV(output, results);
             }
@@ -1067,9 +1098,9 @@ namespace mc_compiled.MCC.Compiler
         {
             string output = tokens.Next<TokenIdentifier>().word;
             
+            // JSON Array
             if(tokens.NextIs<TokenJSONLiteral>())
             {
-                // JSON Array
                 JToken inputJSON = tokens.Next<TokenJSONLiteral>();
 
                 if (!(inputJSON is JArray array))
@@ -1079,6 +1110,14 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
+            // String Literal
+            if (tokens.NextIs<TokenStringLiteral>(false))
+            {
+                string inputString = tokens.Next<TokenStringLiteral>();
+                executor.SetPPV(output, inputString.Length);
+                return;
+            }
+            
             // Preprocessor Variable
             string input = tokens.Next<TokenIdentifier>().word;
 
@@ -1089,6 +1128,8 @@ namespace mc_compiled.MCC.Compiler
             }
             else
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
+            
+            
         }
         [UsedImplicitly]
         public static void _json(Executor executor, Statement tokens)
@@ -1601,7 +1642,7 @@ namespace mc_compiled.MCC.Compiler
                     Executor.MCC_GENERATED_FOLDER, StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
 
-                string cmd = Command.StructureLoad(file.CommandReference, Coord.here, Coord.here, Coord.here,
+                string cmd = Command.StructureLoad(file.CommandReference, Coordinate.here, Coordinate.here, Coordinate.here,
                     StructureRotation._0_degrees, StructureMirror.none, true, false);
 
                 cmd = player.NonSelf ?
@@ -1651,9 +1692,9 @@ namespace mc_compiled.MCC.Compiler
             }
             void ParseArgs(string selector)
             {
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate x = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate y = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate z = tokens.Next<TokenCoordinateLiteral>();
 
                 if(tokens.NextIs<TokenIdentifier>())
                 {
@@ -1663,9 +1704,9 @@ namespace mc_compiled.MCC.Compiler
                     {
                         if (tokens.NextIs<TokenCoordinateLiteral>())
                         {
-                            Coord fx = tokens.Next<TokenCoordinateLiteral>();
-                            Coord fy = tokens.Next<TokenCoordinateLiteral>();
-                            Coord fz = tokens.Next<TokenCoordinateLiteral>();
+                            Coordinate fx = tokens.Next<TokenCoordinateLiteral>();
+                            Coordinate fy = tokens.Next<TokenCoordinateLiteral>();
+                            Coordinate fz = tokens.Next<TokenCoordinateLiteral>();
                             executor.AddCommand(Command.TeleportFacing(selector, x, y, z, fx, fy, fz, GetCheckForBlocks()));
                         }
                         else if (tokens.NextIs<TokenSelectorLiteral>())
@@ -1677,8 +1718,8 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else if (tokens.NextIs<TokenCoordinateLiteral>())
                 {
-                    Coord ry = tokens.Next<TokenCoordinateLiteral>();
-                    Coord rx = tokens.Next<TokenCoordinateLiteral>();
+                    Coordinate ry = tokens.Next<TokenCoordinateLiteral>();
+                    Coordinate rx = tokens.Next<TokenCoordinateLiteral>();
                     executor.AddCommand(Command.Teleport(selector, x, y, z, ry, rx, GetCheckForBlocks()));
                 }
                 else
@@ -1708,37 +1749,37 @@ namespace mc_compiled.MCC.Compiler
             Selector selector = tokens.Next<TokenSelectorLiteral>();
 
             string direction = tokens.Next<TokenIdentifier>().word;
-            float amount = tokens.Next<TokenNumberLiteral>().GetNumber();
+            decimal amount = tokens.Next<TokenNumberLiteral>().GetNumber();
 
             bool checkForBlocks = false;
             if (tokens.NextIs<TokenBooleanLiteral>())
                 checkForBlocks = tokens.Next<TokenBooleanLiteral>();
 
-            Coord x = Coord.herefacing;
-            Coord y = Coord.herefacing;
-            Coord z = Coord.herefacing;
+            Coordinate x = Coordinate.facingHere;
+            Coordinate y = Coordinate.facingHere;
+            Coordinate z = Coordinate.facingHere;
 
             switch (direction.ToUpper())
             {
                 case "LEFT":
-                    x = new Coord(amount, true, false, true);
+                    x = new Coordinate(amount, true, false, true);
                     break;
                 case "RIGHT":
-                    x = new Coord(-amount, true, false, true);
+                    x = new Coordinate(-amount, true, false, true);
                     break;
                 case "UP":
-                    y = new Coord(amount, true, false, true);
+                    y = new Coordinate(amount, true, false, true);
                     break;
                 case "DOWN":
-                    y = new Coord(-amount, true, false, true);
+                    y = new Coordinate(-amount, true, false, true);
                     break;
                 case "FORWARD":
                 case "FORWARDS":
-                    z = new Coord(amount, true, false, true);
+                    z = new Coordinate(amount, true, false, true);
                     break;
                 case "BACKWARD":
                 case "BACKWARDS":
-                    z = new Coord(-amount, true, false, true);
+                    z = new Coordinate(-amount, true, false, true);
                     break;
             }
 
@@ -1752,15 +1793,15 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 var other = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coord.here, Coord.here, Coord.here, other.ToString()));
+                executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coordinate.here, Coordinate.here, Coordinate.here, other.ToString()));
             }
             else
             {
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate x = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate y = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate z = tokens.Next<TokenCoordinateLiteral>();
 
-                executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coord.here, Coord.here, Coord.here, x, y, z));
+                executor.AddCommand(Command.TeleportFacing(selector.ToString(), Coordinate.here, Coordinate.here, Coordinate.here, x, y, z));
             }
         }
         [UsedImplicitly]
@@ -1769,28 +1810,28 @@ namespace mc_compiled.MCC.Compiler
             Selector selector = tokens.Next<TokenSelectorLiteral>();
 
             var number = tokens.Next<TokenNumberLiteral>();
-            Coord rx = Coord.here;
+            Coordinate rx = Coordinate.here;
 
-            Coord ry = number is TokenDecimalLiteral ?
-                new Coord(number.GetNumber(), true, true, false) :
-                new Coord(number.GetNumberInt(), false, true, false);
+            Coordinate ry = number is TokenDecimalLiteral ?
+                new Coordinate(number.GetNumber(), true, true, false) :
+                new Coordinate(number.GetNumberInt(), false, true, false);
 
             if (tokens.HasNext && tokens.NextIs<TokenNumberLiteral>())
             {
                 number = tokens.Next<TokenNumberLiteral>();
                 rx = number is TokenDecimalLiteral ?
-                    new Coord(number.GetNumber(), true, true, false) :
-                    new Coord(number.GetNumberInt(), false, true, false);
+                    new Coordinate(number.GetNumber(), true, true, false) :
+                    new Coordinate(number.GetNumberInt(), false, true, false);
             }
 
-            executor.AddCommand(Command.Teleport(selector.ToString(), Coord.here, Coord.here, Coord.here, ry, rx));
+            executor.AddCommand(Command.Teleport(selector.ToString(), Coordinate.here, Coordinate.here, Coordinate.here, ry, rx));
         }
         [UsedImplicitly]
         public static void setblock(Executor executor, Statement tokens)
         {
-            Coord x = tokens.Next<TokenCoordinateLiteral>();
-            Coord y = tokens.Next<TokenCoordinateLiteral>();
-            Coord z = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z = tokens.Next<TokenCoordinateLiteral>();
             string block = tokens.Next<TokenStringLiteral>();
             var handling = OldHandling.replace;
 
@@ -1820,12 +1861,12 @@ namespace mc_compiled.MCC.Compiler
             }
 
             string block = tokens.Next<TokenStringLiteral>();
-            Coord x1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord y1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord z1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord x2 = tokens.Next<TokenCoordinateLiteral>();
-            Coord y2 = tokens.Next<TokenCoordinateLiteral>();
-            Coord z2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z2 = tokens.Next<TokenCoordinateLiteral>();
 
             int data = 0;
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
@@ -1838,14 +1879,14 @@ namespace mc_compiled.MCC.Compiler
         {
             string block = tokens.Next<TokenStringLiteral>();
             int percent = tokens.Next<TokenIntegerLiteral>();
-            Coord x1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord y1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord z1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord x2 = tokens.Next<TokenCoordinateLiteral>();
-            Coord y2 = tokens.Next<TokenCoordinateLiteral>();
-            Coord z2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z2 = tokens.Next<TokenCoordinateLiteral>();
 
-            if (!Coord.SizeKnown(x1, y1, z1, x2, y2, z2))
+            if (!Coordinate.SizeKnown(x1, y1, z1, x2, y2, z2))
                 throw new StatementException(tokens, "Scatter command requires all coordinate arguments to be relative or exact. (the size needs to be known at compile time.)");
 
             string seed = null;
@@ -1853,9 +1894,9 @@ namespace mc_compiled.MCC.Compiler
                 seed = tokens.Next<TokenStringLiteral>();
 
             // generate a structure file for this zone.
-            long sizeX = Math.Abs(x2.valuei - x1.valuei) + 1;
-            long sizeY = Math.Abs(y2.valuei - y1.valuei) + 1;
-            long sizeZ = Math.Abs(z2.valuei - z1.valuei) + 1;
+            long sizeX = Math.Abs(x2.valueInteger - x1.valueInteger) + 1;
+            long sizeY = Math.Abs(y2.valueInteger - y1.valueInteger) + 1;
+            long sizeZ = Math.Abs(z2.valueInteger - z1.valueInteger) + 1;
             long totalBlocks = sizeX * sizeY * sizeZ;
 
             if (totalBlocks > 1_000_000)
@@ -1886,9 +1927,9 @@ namespace mc_compiled.MCC.Compiler
                 Executor.MCC_GENERATED_FOLDER, structure);
             executor.project.WriteSingleFile(file);
 
-            Coord minX = Coord.Min(x1, x2);
-            Coord minY = Coord.Min(y1, y2);
-            Coord minZ = Coord.Min(z1, z2);
+            Coordinate minX = Coordinate.Min(x1, x2);
+            Coordinate minY = Coordinate.Min(y1, y2);
+            Coordinate minZ = Coordinate.Min(z1, z2);
 
             if (seed == null)
             {
@@ -1909,12 +1950,12 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIntegerLiteral>())
                 srcData = tokens.Next<TokenIntegerLiteral>();
 
-            Coord x1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord y1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord z1 = tokens.Next<TokenCoordinateLiteral>();
-            Coord x2 = tokens.Next<TokenCoordinateLiteral>();
-            Coord y2 = tokens.Next<TokenCoordinateLiteral>();
-            Coord z2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z2 = tokens.Next<TokenCoordinateLiteral>();
 
             string dst = tokens.Next<TokenStringLiteral>();
             int dstData = -1;
@@ -1939,7 +1980,7 @@ namespace mc_compiled.MCC.Compiler
             var file = new CommandFile(true, "silent_remove", Executor.MCC_GENERATED_FOLDER);
 
             file.Add(new[] {
-                Command.Teleport(Coord.here, new Coord(-99999, false, true, false), Coord.here),
+                Command.Teleport(Coordinate.here, new Coordinate(-99999, false, true, false), Coordinate.here),
                 Command.Kill()
             });
 
@@ -2151,9 +2192,9 @@ namespace mc_compiled.MCC.Compiler
             else if(tokens.NextIs<TokenCoordinateLiteral>())
             {
                 // spawn dummy entity
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate x = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate y = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate z = tokens.Next<TokenCoordinateLiteral>();
 
                 executor.RequireFeature(tokens, Feature.DUMMIES);
                 const string damagerEntity = "_dmg_from";
@@ -2203,9 +2244,9 @@ namespace mc_compiled.MCC.Compiler
             {
                 case "CREATE":
                 {
-                    Coord x = Coord.here;
-                    Coord y = Coord.here;
-                    Coord z = Coord.here;
+                    Coordinate x = Coordinate.here;
+                    Coordinate y = Coordinate.here;
+                    Coordinate z = Coordinate.here;
 
                     if (tokens.NextIs<TokenCoordinateLiteral>())
                         x = tokens.Next<TokenCoordinateLiteral>();
@@ -2236,9 +2277,9 @@ namespace mc_compiled.MCC.Compiler
                 }
                 case "SINGLE":
                 {
-                    Coord x = Coord.here;
-                    Coord y = Coord.here;
-                    Coord z = Coord.here;
+                    Coordinate x = Coordinate.here;
+                    Coordinate y = Coordinate.here;
+                    Coordinate z = Coordinate.here;
 
                     if (tokens.NextIs<TokenCoordinateLiteral>())
                         x = tokens.Next<TokenCoordinateLiteral>();
@@ -2305,7 +2346,7 @@ namespace mc_compiled.MCC.Compiler
         {
             executor.RequireFeature(tokens, Feature.EXPLODERS);
 
-            Coord x, y, z;
+            Coordinate x, y, z;
 
             if(tokens.NextIs<TokenCoordinateLiteral>())
             {
@@ -2315,9 +2356,9 @@ namespace mc_compiled.MCC.Compiler
             } 
             else
             {
-                x = Coord.here;
-                y = Coord.here;
-                z = Coord.here;
+                x = Coordinate.here;
+                y = Coordinate.here;
+                z = Coordinate.here;
             }
 
             int power, delay;
@@ -2461,9 +2502,9 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            Coord x = tokens.Next<TokenCoordinateLiteral>();
-            Coord y = tokens.Next<TokenCoordinateLiteral>();
-            Coord z = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z = tokens.Next<TokenCoordinateLiteral>();
 
             if(!tokens.NextIs<TokenNumberLiteral>())
             {
@@ -2471,24 +2512,24 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            float volume = tokens.Next<TokenNumberLiteral>().GetNumber();
+            decimal volume = tokens.Next<TokenNumberLiteral>().GetNumber();
 
             if (!tokens.NextIs<TokenNumberLiteral>())
             {
-                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, volume));
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume));
                 return;
             }
 
-            float pitch = tokens.Next<TokenNumberLiteral>().GetNumber();
+            decimal pitch = tokens.Next<TokenNumberLiteral>().GetNumber();
 
             if (!tokens.NextIs<TokenNumberLiteral>())
             {
-                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, volume, pitch));
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume, (float)pitch));
                 return;
             }
 
-            float minVolume = tokens.Next<TokenNumberLiteral>().GetNumber();
-            executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, volume, pitch, minVolume));
+            decimal minVolume = tokens.Next<TokenNumberLiteral>().GetNumber();
+            executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume, (float)pitch, (float)minVolume));
         }
         [UsedImplicitly]
         public static void particle(Executor executor, Statement tokens)
@@ -2497,15 +2538,15 @@ namespace mc_compiled.MCC.Compiler
 
             if(tokens.NextIs<TokenCoordinateLiteral>())
             {
-                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate x = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate y = tokens.Next<TokenCoordinateLiteral>();
+                Coordinate z = tokens.Next<TokenCoordinateLiteral>();
                 executor.AddCommand(Command.Particle(particleId, x, y, z));
                 return;
             }
 
             executor.AddCommand(Command.Particle(particleId,
-                Coord.here, Coord.here, Coord.here));
+                Coordinate.here, Coordinate.here, Coordinate.here));
         }
         
         [UsedImplicitly]
@@ -2842,9 +2883,9 @@ namespace mc_compiled.MCC.Compiler
         {
             var selector = tokens.Next<TokenSelectorLiteral>();
             
-            Coord x = Coord.here,
-                  y = Coord.here,
-                  z = Coord.here;
+            Coordinate x = Coordinate.here,
+                  y = Coordinate.here,
+                  z = Coordinate.here;
 
             if(tokens.NextIs<TokenIdentifier>(false))
             {

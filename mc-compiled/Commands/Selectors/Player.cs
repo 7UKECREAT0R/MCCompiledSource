@@ -7,15 +7,12 @@ namespace mc_compiled.Commands.Selectors
     /// </summary>
     public struct Player
     {
-        public GameMode?
-            gamemode;
-        public bool
-            gamemodeNot;
-        public int?
-            levelMin,
-            levelMax;
+        private GameMode? gamemode;
+        private bool gamemodeNot;
+        private int? levelMin;
+        private int? levelMax;
 
-        public Player(GameMode? gamemode, int? levelMin = null, int? levelMax = null)
+        private Player(GameMode? gamemode, int? levelMin = null, int? levelMax = null)
         {
             gamemodeNot = false;
             this.gamemode = gamemode;
@@ -56,11 +53,6 @@ namespace mc_compiled.Commands.Selectors
             return new Player(gamemode, levelMin, levelMax);
         }
 
-        public void InsertGameMode(GameMode? mode, bool not)
-        {
-            gamemodeNot = not;
-            gamemode = mode;
-        }
         public static GameMode? ParseGameMode(string str)
         {
             switch (str.ToUpper())
@@ -84,7 +76,7 @@ namespace mc_compiled.Commands.Selectors
 
         public string[] GetSections()
         {
-            List<string> strings = new List<string>();
+            var strings = new List<string>();
             if (gamemode.HasValue)
                 strings.Add("m=" + (gamemodeNot?"!":"") + ((int)gamemode.Value));
             if (levelMin.HasValue)
@@ -102,22 +94,26 @@ namespace mc_compiled.Commands.Selectors
             return $"execute {selector}[{tags}] ~~~ scoreboard players set @s {objective} 1";
         }
 
+        public bool Equals(Player other)
+        {
+            return gamemode == other.gamemode && gamemodeNot == other.gamemodeNot && levelMin == other.levelMin &&
+                   levelMax == other.levelMax;
+        }
         public override bool Equals(object obj)
         {
-            return obj is Player player &&
-                   gamemode == player.gamemode &&
-                   gamemodeNot == player.gamemodeNot &&
-                   levelMin == player.levelMin &&
-                   levelMax == player.levelMax;
+            return obj is Player other && Equals(other);
         }
+        
         public override int GetHashCode()
         {
-            int hashCode = -1365695287;
-            hashCode = hashCode * -1521134295 + gamemode.GetHashCode();
-            hashCode = hashCode * -1521134295 + gamemodeNot.GetHashCode();
-            hashCode = hashCode * -1521134295 + levelMin.GetHashCode();
-            hashCode = hashCode * -1521134295 + levelMax.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                int hashCode = gamemode.GetHashCode();
+                hashCode = (hashCode * 397) ^ gamemodeNot.GetHashCode();
+                hashCode = (hashCode * 397) ^ levelMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ levelMax.GetHashCode();
+                return hashCode;
+            }
         }
 
         public static Player operator +(Player a, Player other)

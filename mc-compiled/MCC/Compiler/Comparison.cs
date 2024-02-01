@@ -127,9 +127,9 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // ComparisonBlock
                                 // if block <x, y, z> <block> [data]
-                                Coord x = tokens.Next<TokenCoordinateLiteral>();
-                                Coord y = tokens.Next<TokenCoordinateLiteral>();
-                                Coord z = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate x = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate y = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate z = tokens.Next<TokenCoordinateLiteral>();
                                 string block = tokens.Next<TokenStringLiteral>();
 
                                 int? data = null;
@@ -146,15 +146,15 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // ComparisonBlocks
                                 // if blocks <start x, y, z> <end x, y, z> <dest x, y, z> <ScanMode>
-                                Coord startX = tokens.Next<TokenCoordinateLiteral>();
-                                Coord startY = tokens.Next<TokenCoordinateLiteral>();
-                                Coord startZ = tokens.Next<TokenCoordinateLiteral>();
-                                Coord endX = tokens.Next<TokenCoordinateLiteral>();
-                                Coord endY = tokens.Next<TokenCoordinateLiteral>();
-                                Coord endZ = tokens.Next<TokenCoordinateLiteral>();
-                                Coord destX = tokens.Next<TokenCoordinateLiteral>();
-                                Coord destY = tokens.Next<TokenCoordinateLiteral>();
-                                Coord destZ = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate startX = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate startY = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate startZ = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate endX = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate endY = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate endZ = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate destX = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate destY = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate destZ = tokens.Next<TokenCoordinateLiteral>();
 
                                 var scanMode = BlocksScanMode.all;
                                 if(tokens.NextIs<TokenIdentifierEnum>())

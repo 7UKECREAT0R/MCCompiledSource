@@ -21,7 +21,7 @@ namespace mc_compiled.MCC
                 Feature.DUMMIES, (executor) =>
                 {
                     executor.entities.dummies.AddEntityToProject();
-                    executor.SetPPV("null", executor.entities.dummies.dummyType);
+                    executor.SetPPV("dummy", executor.entities.dummies.dummyType);
                 }
             },
             {

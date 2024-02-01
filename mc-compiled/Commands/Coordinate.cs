@@ -5,42 +5,42 @@ namespace mc_compiled.Commands
     /// <summary>
     /// An integer or float with the option of being relative or facing offset.
     /// </summary>
-    public struct Coordinate
+    public struct Coordinate : IComparable<Coordinate>
     {
         public static readonly Coordinate zero = new Coordinate(0, false, false, false);
         public static readonly Coordinate here = new Coordinate(0, false, true, false);
         public static readonly Coordinate facingHere = new Coordinate(0, false, false, true);
 
-        public float valueFloat;
+        public decimal valueDecimal;
         public int valueInteger;
 
-        public readonly bool isFloat;
+        public readonly bool isDecimal;
         private readonly bool isRelative;
         private readonly bool isFacingOffset;
 
         public static implicit operator Coordinate(int convert) => new Coordinate(convert, false, false, false);
-        public static implicit operator Coordinate(float convert) => new Coordinate(convert, true, false, false);
-        public Coordinate(float value, bool isFloat, bool isRelative, bool isFacingOffset)
+        public static implicit operator Coordinate(decimal convert) => new Coordinate(convert, true, false, false);
+        public Coordinate(decimal value, bool isDecimal, bool isRelative, bool isFacingOffset)
         {
-            valueFloat = value;
+            valueDecimal = value;
             valueInteger = (int)Math.Round(value);
-            this.isFloat = isFloat;
+            this.isDecimal = isDecimal;
             this.isRelative = isRelative;
             this.isFacingOffset = isFacingOffset;
         }
-        public Coordinate(int value, bool isFloat, bool isRelative, bool isFacingOffset)
+        public Coordinate(int value, bool isDecimal, bool isRelative, bool isFacingOffset)
         {
-            valueFloat = value;
+            valueDecimal = value;
             valueInteger = value;
-            this.isFloat = isFloat;
+            this.isDecimal = isDecimal;
             this.isRelative = isRelative;
             this.isFacingOffset = isFacingOffset;
         }
         public Coordinate(Coordinate other)
         {
-            valueFloat = other.valueFloat;
+            valueDecimal = other.valueDecimal;
             valueInteger = other.valueInteger;
-            isFloat = other.isFloat;
+            isDecimal = other.isDecimal;
             isRelative = other.isRelative;
             isFacingOffset = other.isFacingOffset;
         }
@@ -57,19 +57,22 @@ namespace mc_compiled.Commands
 
             str = str.Trim();
 
-            bool rel, off;
+            bool relative = str.StartsWith("~");
+            bool lookOffset = str.StartsWith("^");
+            
             str = str.TrimEnd('f');
-            if ((rel = str.StartsWith("~")))
+            
+            if (relative)
                 str = str.Substring(1);
-            if ((off = str.StartsWith("^")))
+            if (lookOffset)
                 str = str.Substring(1);
 
             if (int.TryParse(str, out int i))
-                return new Coordinate(i, false, rel, off);
-            else if (float.TryParse(str, out float f))
-                return new Coordinate(f, true, rel, off);
-            else
-                return new Coordinate(0, false, rel, off); // default to 0
+                return new Coordinate(i, false, relative, lookOffset);
+            if (decimal.TryParse(str, out decimal d))
+                return new Coordinate(d, true, relative, lookOffset);
+            
+            return new Coordinate(0, false, relative, lookOffset);
         }
         /// <summary>
         /// Determine if the size of these corner points can be determined at compile-time
@@ -98,26 +101,10 @@ namespace mc_compiled.Commands
             string s;
             bool anyRelative = isRelative | isFacingOffset;
 
-            if (isFloat)
-                s = (valueFloat == 0f && anyRelative) ? "" : valueFloat.ToString();
+            if (isDecimal)
+                s = (valueDecimal == decimal.Zero && anyRelative) ? "" : valueDecimal.ToString();
             else
                 s = (valueInteger == 0 && anyRelative) ? "" : valueInteger.ToString();
-
-            if (isRelative)
-                return '~' + s;
-            if (isFacingOffset)
-                return '^' + s;
-
-            return s;
-        }
-        /// <summary>
-        /// Get a Minecraft-command supported string for this coordinate, optionally requesting that the 
-        /// </summary>
-        /// <param name="requestInteger"></param>
-        /// <returns></returns>
-        public string ToString(bool requestInteger)
-        {
-            string s = (requestInteger ? valueInteger : isFloat ? valueFloat : valueInteger).ToString();
 
             if (isRelative)
                 return '~' + s;
@@ -135,11 +122,9 @@ namespace mc_compiled.Commands
         /// <returns></returns>
         public static Coordinate Min(Coordinate a, Coordinate b)
         {
-            if (a.valueFloat < b.valueFloat)
+            if (a <= b)
                 return a;
-            if (a.valueFloat > b.valueFloat)
-                return b;
-            return a; // default
+            return b;
         }
         /// <summary>
         /// Return the larger of the two coords.
@@ -149,11 +134,9 @@ namespace mc_compiled.Commands
         /// <returns></returns>
         public static Coordinate Max(Coordinate a, Coordinate b)
         {
-            if (a.valueFloat < b.valueFloat)
-                return b;
-            if (a.valueFloat > b.valueFloat)
+            if (a >= b)
                 return a;
-            return a; // default
+            return b;
         }
 
         /// <summary>
@@ -164,130 +147,199 @@ namespace mc_compiled.Commands
             get
             {
                 if (isRelative || isFacingOffset)
-                    return isFloat ? valueFloat != 0f : valueInteger != 0;
+                    return isDecimal ? valueDecimal != decimal.Zero : valueInteger != 0;
 
                 return true;
             }
         }
         public override bool Equals(object obj)
         {
-            return obj is Coordinate coord &&
-                   valueFloat == coord.valueFloat &&
-                   valueInteger == coord.valueInteger &&
-                   isFloat == coord.isFloat &&
-                   isRelative == coord.isRelative &&
-                   isFacingOffset == coord.isFacingOffset;
+            return obj is Coordinate coordinate &&
+                   valueDecimal == coordinate.valueDecimal &&
+                   valueInteger == coordinate.valueInteger &&
+                   isDecimal == coordinate.isDecimal &&
+                   isRelative == coordinate.isRelative &&
+                   isFacingOffset == coordinate.isFacingOffset;
         }
-
         public override int GetHashCode()
         {
             int hashCode = 1648134579;
-            hashCode = hashCode * -1521134295 + valueFloat.GetHashCode();
+            hashCode = hashCode * -1521134295 + valueDecimal.GetHashCode();
             hashCode = hashCode * -1521134295 + valueInteger.GetHashCode();
-            hashCode = hashCode * -1521134295 + isFloat.GetHashCode();
+            hashCode = hashCode * -1521134295 + isDecimal.GetHashCode();
             hashCode = hashCode * -1521134295 + isRelative.GetHashCode();
             hashCode = hashCode * -1521134295 + isFacingOffset.GetHashCode();
             return hashCode;
         }
-
+        public int CompareTo(Coordinate other)
+        {
+            if (!isDecimal && !other.isDecimal)
+                return valueInteger.CompareTo(other.valueInteger);
+            return valueDecimal.CompareTo(other.valueDecimal);
+        }
+        
+        public static bool operator ==(Coordinate a, Coordinate b)
+        {
+            return a.Equals(b);
+        }
+        public static bool operator !=(Coordinate a, Coordinate b)
+        {
+            return !a.Equals(b);
+        }
+        public static bool operator <=(Coordinate a, Coordinate b)
+        {
+            return a < b || a == b;
+        }
+        public static bool operator >=(Coordinate a, Coordinate b)
+        {
+            return a > b || a == b;
+        }
+        public static bool operator <(Coordinate a, Coordinate b)
+        {
+            if (!a.isDecimal && !b.isDecimal)
+                return a.valueInteger < b.valueInteger;
+            return a.valueDecimal < b.valueDecimal;
+        }
+        public static bool operator >(Coordinate a, Coordinate b)
+        {
+            if (!a.isDecimal && !b.isDecimal)
+                return a.valueInteger > b.valueInteger;
+            return a.valueDecimal > b.valueDecimal;
+        }
+        public static bool operator ==(Coordinate a, int b)
+        {
+            return a.valueInteger == b;
+        }
+        public static bool operator !=(Coordinate a, int b)
+        {
+            return a.valueInteger != b;
+        }
+        public static bool operator <=(Coordinate a, int b)
+        {
+            return a < b || a == b;
+        }
+        public static bool operator >=(Coordinate a, int b)
+        {
+            return a > b || a == b;
+        }
+        public static bool operator <(Coordinate a, int b)
+        {
+            return a.valueInteger < b;
+        }
+        public static bool operator >(Coordinate a, int b)
+        {
+            return a.valueInteger < b;
+        }
+        public static bool operator ==(Coordinate a, decimal b)
+        {
+            return a.valueDecimal == b;
+        }
+        public static bool operator !=(Coordinate a, decimal b)
+        {
+            return a.valueDecimal != b;
+        }
+        public static bool operator <=(Coordinate a, decimal b)
+        {
+            return a < b || a == b;
+        }
+        public static bool operator >=(Coordinate a, decimal b)
+        {
+            return a > b || a == b;
+        }
+        public static bool operator <(Coordinate a, decimal b)
+        {
+            return a.valueDecimal < b;
+        }
+        public static bool operator >(Coordinate a, decimal b)
+        {
+            return a.valueDecimal < b;
+        }
+        
         public static Coordinate operator -(Coordinate a)
         {
             a.valueInteger *= -1;
-            a.valueFloat *= -1f;
+            a.valueDecimal *= decimal.MinusOne;
             return a;
         }
-
         public static Coordinate operator +(Coordinate a, Coordinate b)
         {
-            if (a.isFloat || b.isFloat)
-                return new Coordinate(a.valueFloat + b.valueFloat, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger + b.valueInteger, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal || b.isDecimal)
+                return new Coordinate(a.valueDecimal + b.valueDecimal, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger + b.valueInteger, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator -(Coordinate a, Coordinate b)
         {
-            if (a.isFloat || b.isFloat)
-                return new Coordinate(a.valueFloat - b.valueFloat, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger - b.valueInteger, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal || b.isDecimal)
+                return new Coordinate(a.valueDecimal - b.valueDecimal, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger - b.valueInteger, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator *(Coordinate a, Coordinate b)
         {
-            if (a.isFloat || b.isFloat)
-                return new Coordinate(a.valueFloat * b.valueFloat, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger * b.valueInteger, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal || b.isDecimal)
+                return new Coordinate(a.valueDecimal * b.valueDecimal, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger * b.valueInteger, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator /(Coordinate a, Coordinate b)
         {
-            if (a.isFloat || b.isFloat)
-                return new Coordinate(a.valueFloat / b.valueFloat, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger / b.valueInteger, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal || b.isDecimal)
+                return new Coordinate(a.valueDecimal / b.valueDecimal, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger / b.valueInteger, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator %(Coordinate a, Coordinate b)
         {
-            if (a.isFloat || b.isFloat)
-                return new Coordinate(a.valueFloat % b.valueFloat, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger % b.valueInteger, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal || b.isDecimal)
+                return new Coordinate(a.valueDecimal % b.valueDecimal, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger % b.valueInteger, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator +(Coordinate a, int b)
         {
-            if (a.isFloat)
-                return new Coordinate(a.valueFloat + b, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger + b, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal)
+                return new Coordinate(a.valueDecimal + b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger + b, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator -(Coordinate a, int b)
         {
-            if (a.isFloat)
-                return new Coordinate(a.valueFloat - b, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger - b, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal)
+                return new Coordinate(a.valueDecimal - b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger - b, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator *(Coordinate a, int b)
         {
-            if (a.isFloat)
-                return new Coordinate(a.valueFloat * b, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger * b, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal)
+                return new Coordinate(a.valueDecimal * b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger * b, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator /(Coordinate a, int b)
         {
-            if (a.isFloat)
-                return new Coordinate(a.valueFloat / b, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger / b, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal)
+                return new Coordinate(a.valueDecimal / b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger / b, false, a.isRelative, a.isFacingOffset);
         }
         public static Coordinate operator %(Coordinate a, int b)
         {
-            if (a.isFloat)
-                return new Coordinate(a.valueFloat % b, true, a.isRelative, a.isFacingOffset);
-            else
-                return new Coordinate(a.valueInteger % b, false, a.isRelative, a.isFacingOffset);
+            if (a.isDecimal)
+                return new Coordinate(a.valueDecimal % b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueInteger % b, false, a.isRelative, a.isFacingOffset);
         }
-        public static Coordinate operator +(Coordinate a, float b)
+        public static Coordinate operator +(Coordinate a, decimal b)
         {
-            return new Coordinate(a.valueFloat + b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueDecimal + b, true, a.isRelative, a.isFacingOffset);
         }
-        public static Coordinate operator -(Coordinate a, float b)
+        public static Coordinate operator -(Coordinate a, decimal b)
         {
-            return new Coordinate(a.valueFloat - b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueDecimal - b, true, a.isRelative, a.isFacingOffset);
         }
-        public static Coordinate operator *(Coordinate a, float b)
+        public static Coordinate operator *(Coordinate a, decimal b)
         {
-            return new Coordinate(a.valueFloat * b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueDecimal * b, true, a.isRelative, a.isFacingOffset);
         }
-        public static Coordinate operator /(Coordinate a, float b)
+        public static Coordinate operator /(Coordinate a, decimal b)
         {
-            return new Coordinate(a.valueFloat / b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueDecimal / b, true, a.isRelative, a.isFacingOffset);
         }
-        public static Coordinate operator %(Coordinate a, float b)
+        public static Coordinate operator %(Coordinate a, decimal b)
         {
-            return new Coordinate(a.valueFloat % b, true, a.isRelative, a.isFacingOffset);
+            return new Coordinate(a.valueDecimal % b, true, a.isRelative, a.isFacingOffset);
         }
-
-
     }
 }
