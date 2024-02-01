@@ -191,25 +191,30 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             // precision is two or more, need to create conditional terms for the 0's.
             var conditionalTerms = new List<ConditionalTerm>();
             var zeroBuilder = new StringBuilder();
-            int lowerBound = 1;
+            int lowerBound = 0;
             int upperBound = 9;
-            
-            // create case for part == 0
-            conditionalTerms.Add(
-                new ConditionalTerm(
-                    new JSONRawTerm[] { new JSONScore(clarifier.CurrentString, part.InternalName) },
-                    ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, Range.zero),
-                    false)
-            );
             
             // i represents the number of zeros to add.
             // as the lower/upper bounds increase, the number of zeros needed decrease.
             for (int i = precision - 1; i >= 0; i--)
             {
-                var range = new Range(lowerBound, upperBound);
                 ConditionalTerm term;
                 if (i == 0)
                 {
+                    var range = new Range(lowerBound, null);
+
+                    // include no zeros
+                    term = new ConditionalTerm(new JSONRawTerm[]
+                    {
+                        new JSONScore(clarifier.CurrentString, whole.InternalName),
+                        new JSONText("."),
+                        new JSONScore(clarifier.CurrentString, part.InternalName)
+                    }, ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
+                }
+                else
+                {
+                    var range = new Range(lowerBound, upperBound);
+
                     // include i number of zeros
                     zeroBuilder.Append('0', i);
                     term = new ConditionalTerm(new JSONRawTerm[]
@@ -220,19 +225,11 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
                     }, ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
                     zeroBuilder.Clear();
                 }
-                else
-                {
-                    // include no zeros
-                    term = new ConditionalTerm(new JSONRawTerm[]
-                    {
-                        new JSONScore(clarifier.CurrentString, whole.InternalName),
-                        new JSONText("."),
-                        new JSONScore(clarifier.CurrentString, part.InternalName)
-                    }, ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
-                }
                 conditionalTerms.Add(term);
                 
                 // raise bound to requiring one less 0
+                if (lowerBound == 0)
+                    lowerBound = 1;
                 lowerBound *= 10;
                 upperBound *= 10;
             }

@@ -459,8 +459,18 @@ namespace mc_compiled.MCC.Compiler
             return ActiveLocale.file.Add(entry, overwrite, merge);
         }
 
-        public void UnreachableCode() =>
-            unreachableCode = 1;
+        /// <summary>
+        /// Marks all files on the file stack as containing an assertion.
+        /// </summary>
+        public void MarkAssertionOnFileStack()
+        {
+            foreach (CommandFile file in currentFiles)
+                file.MarkAssertion();
+        }
+        /// <summary>
+        /// Tells the executor that the next line in the current block is be unreachable.
+        /// </summary>
+        public void UnreachableCode() => unreachableCode = 1;
         /// <summary>
         /// Throw a StatementException if a feature is not enabled.
         /// </summary>

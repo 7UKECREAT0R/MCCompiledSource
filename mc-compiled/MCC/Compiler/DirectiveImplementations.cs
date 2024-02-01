@@ -1461,7 +1461,7 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void assert(Executor executor, Statement tokens)
         {
-            executor.CurrentFile.MarkAssertion();
+            executor.MarkAssertionOnFileStack();
 
             ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
             set.InvertAll(true);
@@ -2152,19 +2152,18 @@ namespace mc_compiled.MCC.Compiler
         {
             string command = halt_command(executor);
             executor.AddCommand(command);
+            executor.UnreachableCode();
         }
         private static string halt_command(Executor executor)
         {
             var file = new CommandFile(true, "halt_execution", Executor.MCC_GENERATED_FOLDER);
 
-            if (!executor.HasSTDFile(file))
-            {
-                // recursively call self until function command limit reached
-                file.Add(Command.Function(file));
-                executor.DefineSTDFile(file);
-            }
-
-            executor.UnreachableCode();
+            if (executor.HasSTDFile(file))
+                return Command.Function(file);
+            
+            // recursively call self until function command limit reached
+            file.Add(Command.Function(file));
+            executor.DefineSTDFile(file);
             return Command.Function(file);
         }
         
