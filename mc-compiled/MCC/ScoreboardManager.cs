@@ -206,8 +206,6 @@ namespace mc_compiled.MCC
         /// <param name="value"></param>
         public void Add(ScoreboardValue value)
         {
-            if (values.Contains(value))
-                return;
             values.Add(value);
         }
         /// <summary>

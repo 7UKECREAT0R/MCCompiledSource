@@ -127,7 +127,7 @@ namespace mc_compiled.Modding.Resources.Localization
         {
             file = file.Replace(Environment.NewLine, "\n");
             string[] lines = file.Split('\n');
-            List<LangEntry> entries = new List<LangEntry>(lines.Length);
+            var entries = new List<LangEntry>(lines.Length);
 
             foreach (string line in lines)
             {
@@ -145,7 +145,7 @@ namespace mc_compiled.Modding.Resources.Localization
                         continue;
                     }
 
-                    string comment = new string(line.Substring(2).SkipWhile(c => char.IsWhiteSpace(c)).ToArray());
+                    string comment = new string(line.Substring(2).SkipWhile(char.IsWhiteSpace).ToArray());
                     entries.Add(LangEntry.Comment(comment));
                     continue;
                 }
@@ -164,12 +164,11 @@ namespace mc_compiled.Modding.Resources.Localization
                 if (key.StartsWith(Executor.MCC_TRANSLATE_PREFIX))
                     continue; // don't load generated keys, they need to be thrown out for this build.
 
-                LangEntry entry = LangEntry.Create(key, value);
+                var entry = LangEntry.Create(key, value);
                 entries.Add(entry);
-                continue;
             }
 
-            Lang lang = new Lang(locale, entries.ToArray());
+            var lang = new Lang(locale, entries.ToArray());
             return lang;
         }
 
@@ -250,17 +249,21 @@ namespace mc_compiled.Modding.Resources.Localization
             this.lines.Insert(this.headerIndex, langEntry);
             return langEntry;
         }
+
         /// <summary>
         /// Adds a collection of LangEntries to this Lang file under the MCCompiled header.
         /// </summary>
-        /// <param name="langEntry">The entry to add.</param>
+        /// <param name="langEntry">The entries to add.</param>
         /// <param name="overwrite">If entries with conflicting keys should be overwritten.</param>
+        /// <param name="merge">If entries should be merged.</param>
+        /// <returns>The added LangEntries.</returns>
         internal LangEntry[] AddRange(IEnumerable<LangEntry> langEntry, bool overwrite, bool merge)
         {
-            LangEntry[] entries = new LangEntry[langEntry.Count()];
+            IEnumerable<LangEntry> inputEntries = langEntry as LangEntry[] ?? langEntry.ToArray();
+            var entries = new LangEntry[inputEntries.Count()];
             int i = 0;
 
-            foreach (LangEntry entry in langEntry)
+            foreach (LangEntry entry in inputEntries)
                 entries[i++] = Add(entry, overwrite, merge);
 
             return entries;

@@ -43,7 +43,7 @@ Adds two preprocessor variables/values together, changing only the first one. A 
 #### Append to Preprocessor Variable `$append`
 Adds the given item(s) to the end of the given preprocessor variable, or contents of another preprocessor variable if specified.
 - `$append` `<id: to modify>` `<object: items>`
-- `$append` `<id: to modify>` `<id: items>`
+- `$append` `<id: to modify>` `<id: other>`
 #### Decrement Preprocessor Variable `$dec`
 Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.
 - `$dec` `<id: variable>`
@@ -78,6 +78,7 @@ Multiplies two preprocessor variables/values together, changing only the first o
 #### Prepend to Preprocessor Variable `$prepend`
 Adds the given item(s) to the start of the given preprocessor variable.
 - `$prepend` `<id: to modify>` `<object: items>`
+- `$prepend` `<id: to modify>` `<id: other>`
 #### Preprocessor Array Mean `$mean`
 Averages all values in the given preprocessor variable together into one value and stores it in a result variable.
 - `$mean` `<id: result>` `[id: variable]`
@@ -359,7 +360,7 @@ Commands related to the optionally enable-able features in the language.
 
 #### Create Explosion `explode`
 Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.
-- `explode` `[coord: x]` `[coord: y]` `[coord: z]` `[int: power]` `[int: delay]` `[id: causes fire]` `[id: breaks blocks]`
+- `explode` `[coord: x]` `[coord: y]` `[coord: z]` `[int: power]` `[int: delay]` `[bool: causes fire]` `[bool: breaks blocks]`
 #### Enable Feature `feature`
 Enables a feature to be used for this project, generating any of the necessary files.
 - `feature` `<id: feature name>`
@@ -367,6 +368,7 @@ Enables a feature to be used for this project, generating any of the necessary f
 Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.
 - `dummy` `<id: create>` `<string: name>` `[string: tag]` `[coord: x]` `[coord: y]` `[coord: x]`
 - `dummy` `<id: single>` `<string: name>` `[string: tag]` `[coord: x]` `[coord: y]` `[coord: x]`
+- `dummy` `<id: removeall>` `[string: tag]`
 - `dummy` `<id: remove>` `<string: name>` `[string: tag]`
 ---
 ## Category: other

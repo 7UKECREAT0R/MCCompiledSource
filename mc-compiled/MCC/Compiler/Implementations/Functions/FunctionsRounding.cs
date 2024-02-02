@@ -39,6 +39,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             ScoreboardValue input = ((RuntimeFunctionParameterDynamic)parameters[0]).RuntimeDestination;
             int precision = ((FixedDecimalData)input.data).precision;
             int coefficient = (int)Math.Pow(10, precision);
+            int half = coefficient / 2;
 
             string temp1Name = this.CreateUniqueTempValueName(uniqueIdentifier);
             string temp2Name = this.CreateUniqueTempValueName(uniqueIdentifier);
@@ -49,7 +50,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             executor.AddCommandsInit(temp1.CommandsDefine());
             executor.AddCommandsInit(temp2.CommandsDefine());
 
-            TryReturnValue(input, executor, statement, out resultValue);
+            output.Add(TryReturnValue(input, executor, statement, out resultValue));
 
             // do everything in the return value
             output.Add(Command.ScoreboardSet(temp1, coefficient));
@@ -64,10 +65,10 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             roundUp.Add(Command.ScoreboardOpSub(resultValue, temp2));
             roundUp.Add(Command.ScoreboardAdd(resultValue, coefficient));
 
-            // if mod is 500 or more, round up
-            output.Add(Command.Execute().IfScore(temp2, new Range(500, null)).Run(Command.Function(roundUp)));
+            // if mod is half or more, round up
+            output.Add(Command.Execute().IfScore(temp2, new Range(half, null)).Run(Command.Function(roundUp)));
             // else, just subtract mod
-            output.Add(Command.Execute().IfScore(temp2, new Range(null, 499)).Run(Command.ScoreboardOpSub(resultValue, temp2)));
+            output.Add(Command.Execute().IfScore(temp2, new Range(null, half - 1)).Run(Command.ScoreboardOpSub(resultValue, temp2)));
         }
     }
 
@@ -110,7 +111,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             executor.AddCommandsInit(temp1.CommandsDefine());
             executor.AddCommandsInit(temp2.CommandsDefine());
 
-            this.TryReturnValue(input, executor, statement, out resultValue);
+            output.Add(TryReturnValue(input, executor, statement, out resultValue));
 
             // do everything in the return value
             output.Add(Command.ScoreboardSet(temp1, coefficient));
@@ -141,7 +142,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         public FunctionCeilingRuntime() : base("ceiling", "runtimeCeiling", "decimal ?", "Rounds up the given value to the nearest integer.")
         {
             this.AddParameter(
-                new RuntimeFunctionParameterDynamic(this, "number", "runtime_floor_num").WithAcceptedTypes(Typedef.FIXED_DECIMAL)
+                new RuntimeFunctionParameterDynamic(this, "number", "runtime_ceil_num").WithAcceptedTypes(Typedef.FIXED_DECIMAL)
             );
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
@@ -159,7 +160,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             executor.AddCommandsInit(temp1.CommandsDefine());
             executor.AddCommandsInit(temp2.CommandsDefine());
 
-            this.TryReturnValue(input, executor, statement, out resultValue);
+            output.Add(TryReturnValue(input, executor, statement, out resultValue));
 
             // do everything in the return value
             output.Add(Command.ScoreboardSet(temp1, coefficient));

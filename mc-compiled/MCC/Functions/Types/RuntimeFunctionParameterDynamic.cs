@@ -97,6 +97,7 @@ namespace mc_compiled.MCC.Functions.Types
 
             // value now holds the destination variable
             this.RuntimeDestination = value;
+            executor.scoreboard.Add(value);
 
             // register the value in the init function
             executor.AddCommandsInit(value.CommandsDefine());

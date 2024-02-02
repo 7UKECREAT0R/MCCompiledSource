@@ -1471,7 +1471,8 @@ namespace mc_compiled.MCC.Compiler
 
             // construct assertion failed message based on all values in this comparison set
             const string red = "§c";
-            file.Add(Command.Tellraw(new RawTextJsonBuilder().AddTerm(new JSONText(red + "Assertion failed! " + set.GetDescription())).BuildString()));
+            file.Add(Command.Tellraw(new RawTextJsonBuilder().AddTerm(new JSONText(
+                $"{red}Assertion failed! {set.GetDescription()} ({tokens.Source.Trim()})")).BuildString()));
             foreach(ScoreboardValue value in values)
             {
                 file.Add(Command.Tellraw("@s",
