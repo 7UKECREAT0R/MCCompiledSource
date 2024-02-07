@@ -20,14 +20,14 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         internal readonly List<string> commands = new List<string>();
         
-        private bool isInUse = false;
-        private bool isTest = false;
-        private bool hasAssertions = false;
+        private bool isInUse;
+        private bool isTest;
+        private bool hasAssertions;
         
         internal bool IsInUse
         {
             get => isInUse;
-            set
+            private set
             {
                 // update all calls to also be in use.
                 if(value)
@@ -54,17 +54,11 @@ namespace mc_compiled.MCC.Compiler
         }
         
         public readonly RuntimeFunction runtimeFunction;
-        public bool IsUserFunction
-        {
-            get => runtimeFunction != null;
-        }
+        public bool IsUserFunction => runtimeFunction != null;
+        public int Length => commands.Count;
         public bool IsRootFile
         {
             get; private set;
-        }
-        public int Length
-        {
-            get => commands.Count;
         }
 
         public string CommandReference
@@ -89,7 +83,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         internal string folder;
-        internal readonly string name;
+        internal string name;
         private bool _doNotWrite;
 
         /// <summary>

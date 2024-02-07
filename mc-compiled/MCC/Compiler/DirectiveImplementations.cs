@@ -2792,6 +2792,11 @@ namespace mc_compiled.MCC.Compiler
             bool cancelRegistry = false;
             if (executor.functions.TryGetFunctions(actualName, out Function[] existingFunctions))
             {
+                // this is likely an overload of another function, change the file name
+                string newName = Executor.GetNextGeneratedName(function.file.name + "_overload");
+                function.file.name = newName;
+                function.name = newName;
+                
                 // loop through all functions and see if one matches parameters
                 foreach (Function existingFunction in existingFunctions)
                 {
@@ -2838,7 +2843,11 @@ namespace mc_compiled.MCC.Compiler
                     }
                     
                     // neither function is partial, this is just an overlap.
-                    throw new StatementException(tokens, "Function '" + functionName + "' already exists.");
+                    if (function.ParameterCount != 0)
+                        throw new StatementException(tokens,
+                            $"Function '{functionName}' already exists with these parameter types.");
+                    throw new StatementException(tokens,
+                        $"Function '{functionName}' already exists without parameters.");
                 }
             }
 
