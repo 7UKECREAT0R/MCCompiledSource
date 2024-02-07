@@ -94,14 +94,7 @@ namespace mc_compiled.Modding.Resources
         {
             this.name = name;
             this.category = category;
-            this.sounds = sounds;
-
-            for (int i = 0; i < sounds.Length; i++)
-            {
-                string sound = this.sounds[i];
-                if (!sound.StartsWith("sounds/"))
-                    this.sounds[i] = "sounds/" + Path.GetFileNameWithoutExtension(fileName);
-            }
+            this.sounds = sounds.Select(file => file.Replace(Path.DirectorySeparatorChar, '/')).ToArray();
         }
         /// <summary>
         /// Parses a sound definition from a JSON object.

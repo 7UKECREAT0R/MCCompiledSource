@@ -17,14 +17,14 @@ namespace mc_compiled.Modding
         public CopyFile(string sourceFile, OutputLocation outputLocation, string outputFile)
         {
             outputDirectoryExtra = Path.GetDirectoryName(sourceFile);
+            this.sourceFile = sourceFile;
+            this.outputLocation = outputLocation;
+            this.outputFile = outputFile;
+            
             if (string.IsNullOrEmpty(outputDirectoryExtra))
                 outputDirectoryExtra = null;
             else
                 this.outputFile = Path.GetFileName(sourceFile);
-            
-            this.sourceFile = sourceFile;
-            this.outputLocation = outputLocation;
-            this.outputFile = outputFile;
         }
 
         private bool Equals(CopyFile other)

@@ -16,6 +16,7 @@ using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using mc_compiled.Compiler;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding.Resources;
@@ -484,16 +485,51 @@ namespace mc_compiled.MCC.Compiler
             AddExtraFile(soundDefinitions);
             return soundDefinitions;
         }
+
+        [CanBeNull, Pure]
+        private static string GetPathRelativeToWorkingDirectory(string file, string _workingDirectory)
+        {
+            string _fullFile = Path.GetFullPath(file);
+            var fullFile = new Uri(_fullFile);
+            var workingDirectory = new Uri(_workingDirectory);
+
+            if (!workingDirectory.IsBaseOf(fullFile))
+                return null;
+            
+            string relative = workingDirectory.MakeRelativeUri(fullFile).ToString();
+            relative = relative.Replace('/', Path.DirectorySeparatorChar);
+
+            int indexOfSlash = relative.IndexOf(Path.DirectorySeparatorChar);
+            if (indexOfSlash != -1)
+                relative = relative.Substring(indexOfSlash + 1);
+
+            if (!relative.Contains(Path.DirectorySeparatorChar))
+                return null;
+            
+            return relative;
+        }
         public SoundDefinition AddNewSoundDefinition(string soundFile, SoundCategory category, Statement callingStatement)
         {
+            // check if soundFile is contained somewhere within the working directory
+            string workingDirectory = Environment.CurrentDirectory;
+            string relativePath = GetPathRelativeToWorkingDirectory(soundFile, workingDirectory);
+            
+            var soundFolder = new StringBuilder("sounds" + Path.DirectorySeparatorChar);
+            if (relativePath != null)
+            {
+                soundFolder.Append(Path.GetDirectoryName(relativePath));
+                soundFolder.Append(Path.DirectorySeparatorChar);
+            }
+            soundFolder.Append(Path.GetFileNameWithoutExtension(soundFile));
+
             string fileName = Path.GetFileName(soundFile);
             string soundName = project.Identifier + '.' + Path.GetFileNameWithoutExtension(soundFile);
             
             // create CopyFile so that the sound file can be copied during file writing
-            var copyFile = new CopyFile(soundFile, OutputLocation.r_SOUNDS, fileName);
+            var copyFile = new CopyFile(soundFile, OutputLocation.r_SOUNDS, relativePath ?? fileName);
             AddExtraFile(copyFile);
             
-            var soundDefinition = new SoundDefinition(soundName, fileName, category, "sounds/" + Path.GetFileNameWithoutExtension(soundFile));
+            var soundDefinition = new SoundDefinition(soundName, fileName, category, soundFolder.ToString());
             
             SoundDefinitions soundDefinitions = GetSoundDefinitions(callingStatement);
             soundDefinitions.AddSoundDefinition(soundDefinition);
