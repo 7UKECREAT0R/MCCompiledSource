@@ -42,7 +42,14 @@ namespace mc_compiled.MCC.Attributes.Implementations
            .WithCallAction((parameters, executor, statement) => new AttributeExtern());
 
         /// <summary>
-        /// Makes the attached function extern.
+        /// Makes the attached function partial.
+        /// </summary>
+        public static readonly AttributeFunction PARTIAL = new AttributeFunction("partial", "partial",
+                "Makes a function partial, allowing it to be re-defined , appending to any previous code in it. When re-declaring a function, the partial attribute must be used in both.")
+            .WithCallAction((parameters, executor, statement) => new AttributePartial());
+        
+        /// <summary>
+        /// Makes the attached function export always, even if unused.
         /// </summary>
         public static readonly AttributeFunction EXPORT = new AttributeFunction("export", "export",
                 "Marks a function for export, meaning it will be outputted regardless of if it is used or not.")
@@ -97,7 +104,8 @@ namespace mc_compiled.MCC.Attributes.Implementations
             EXTERN,
             EXPORT,
             BIND,
-            AUTO
+            AUTO,
+            PARTIAL
         };
     }
 }

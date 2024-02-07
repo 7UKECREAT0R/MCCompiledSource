@@ -84,7 +84,10 @@ namespace mc_compiled.MCC.Functions
             functions.Add(function);
             functionRegistry[name] = functions;
         }
-
+        /// <summary>
+        /// Registers a test function.
+        /// </summary>
+        /// <param name="function">The test function to register.</param>
         internal void RegisterTest(TestFunction function)
         {
             this.tests.Add(function);

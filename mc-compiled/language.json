@@ -54,13 +54,13 @@
     "not": "TokenNot"
   },
   "categories": {
-    "preprocessor": "Commands that allow the user to do things at compile time. Preprocessor commands generally start with a $ and are highlighted differently than regular commands.",
-    "text": "Commands which display text to players through FStrings, or manipulate text otherwise.",
+    "preprocessor": "Commands that allow the user to do things at compile time. Preprocessor commands generally start with a `$` and are highlighted differently than regular commands.",
+    "text": "Commands which display text to players through format-strings, or manipulate text otherwise.",
     "entities": "Commands which manipulate, spawn, and transform entities in various ways.",
     "blocks": "Commands which interact with the Minecraft world's blocks.",
     "items": "Commands relating to entity/player items and inventories.",
     "cosmetic": "Commands that add visual and auditory appeal to the user's code.",
-    "values": "Commands tied directly to values. Values can be used in if-statements, FStrings, and many other places.",
+    "values": "Commands tied directly to values. Values can be used in if-statements, format-strings, and many other places.",
     "logic": "Commands which handle logic and code flow. The butter for all the bread (code).",
     "debug": "Commands related to testing, debugging and all-around solidifying code.",
     "features": "Commands related to the optionally enable-able features in the language.",
@@ -69,6 +69,7 @@
   "directives": {
     "$var": {
       "description": "Set Preprocessor Variable",
+      "wiki_link": "Preprocessor.md",
       "details": "Sets a preprocessor variable to the value(s) provided.",
       "category": "preprocessor",
       "function": "_var",
@@ -79,6 +80,7 @@
     },
     "$inc": {
       "description": "Increment Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#inc-dec",
       "details": "Increments the given preprocessor variable by one. If multiple values are held, they are all incremented.",
       "category": "preprocessor",
       "function": "_inc",
@@ -89,6 +91,7 @@
     },
     "$dec": {
       "description": "Decrement Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#inc-dec",
       "details": "Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.",
       "category": "preprocessor",
       "function": "_dec",
@@ -99,6 +102,7 @@
     },
     "$add": {
       "description": "Add to Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
       "details": "Adds two preprocessor variables/values together, changing only the first one. A += B",
       "category": "preprocessor",
       "function": "_add",
@@ -109,6 +113,7 @@
     },
     "$sub": {
       "description": "Subtract from Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
       "details": "Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B",
       "category": "preprocessor",
       "function": "_sub",
@@ -119,6 +124,7 @@
     },
     "$mul": {
       "description": "Multiply with Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
       "details": "Multiplies two preprocessor variables/values together, changing only the first one. A *= B",
       "category": "preprocessor",
       "function": "_mul",
@@ -129,6 +135,7 @@
     },
     "$div": {
       "description": "Divide Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
       "details": "Divides two preprocessor variables/values from each other, changing only the first one. A /= B",
       "category": "preprocessor",
       "function": "_div",
@@ -139,6 +146,7 @@
     },
     "$mod": {
       "description": "Modulo Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
       "details": "Divides two preprocessor variables/values from each other, setting only the first one to the remainder of the operation. A %= B",
       "category": "preprocessor",
       "function": "_mod",
@@ -149,6 +157,7 @@
     },
     "$pow": {
       "description": "Exponentiate Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
       "details": "Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B",
       "category": "preprocessor",
       "function": "_pow",
@@ -159,6 +168,7 @@
     },
     "$swap": {
       "description": "Swap Preprocessor Variables",
+      "wiki_link": "Simple-Variable-Commands.md#other-variable-operations",
       "details": "Swaps the values of two preprocessor variables",
       "category": "preprocessor",
       "function": "_swap",
@@ -169,6 +179,7 @@
     },
     "$append": {
       "description": "Append to Preprocessor Variable",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
       "details": "Adds the given item(s) to the end of the given preprocessor variable, or contents of another preprocessor variable if specified.",
       "category": "preprocessor",
       "function": "_append",
@@ -180,6 +191,7 @@
     },
     "$prepend": {
       "description": "Prepend to Preprocessor Variable",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
       "details": "Adds the given item(s) to the start of the given preprocessor variable.",
       "category": "preprocessor",
       "function": "_prepend",
@@ -191,6 +203,7 @@
     },
     "$if": {
       "description": "Preprocessor If",
+      "wiki_link": "Comparison-compile-time.md#using-if",
       "details": "Compares a preprocessor variable and another value/variable. If the source variable contains multiple values, they all must match the condition.",
       "category": "preprocessor",
       "function": "_if",
@@ -204,6 +217,7 @@
     },
     "$else": {
       "description": "Preprocessor Else",
+      "wiki_link": "Comparison-compile-time.md#using-else",
       "details": "Directly inverts the result of the last $if call at this level in scope.",
       "category": "preprocessor",
       "function": "_else",
@@ -211,6 +225,7 @@
     },
     "$assert": {
       "description": "Preprocessor Assertion",
+      "wiki_link": "Debugging.md#assertions",
       "details": "Asserts that the input comparison is true, and throws a compiler error if not.",
       "category": "debug",
       "function": "_assert",
@@ -224,6 +239,7 @@
     },
     "$repeat": {
       "description": "Preprocessor Repeat",
+      "wiki_link": "Compile-Time-Repeating-and-Iteration.md#repeat_number",
       "details": "Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.",
       "category": "preprocessor",
       "function": "_repeat",
@@ -234,6 +250,7 @@
     },
     "$log": {
       "description": "Log to Console",
+      "wiki_link": "Debugging.md#logging",
       "details": "Sends a message to stdout with a line terminator at the end.",
       "category": "preprocessor",
       "function": "_log",
@@ -244,6 +261,7 @@
     },
     "$macro": {
       "description": "Define/Call Macro",
+      "wiki_link": "Macros.md#defining-a-macro",
       "details": "If a code-block follows this call, it is treated as a definition. Arguments are passed in as preprocessor variables. If no code-block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.",
       "category": "preprocessor",
       "function": "_macro",
@@ -254,6 +272,7 @@
     },
     "$include": {
       "description": "Include File",
+      "wiki_link": "Including-Other-Files.md",
       "details": "Places the contents of the given file in replacement for this statement. Not intended for production use yet.",
       "category": "preprocessor",
       "function": "_include",
@@ -264,6 +283,7 @@
     },
     "$strfriendly": {
       "description": "Preprocessor String Friendly Name",
+      "wiki_link": "Advanced-Variable-Commands.md#string-manipulation",
       "details": "Convert the given preprocessor variable value(s) to a string in 'Title Case'.",
       "category": "preprocessor",
       "function": "_strfriendly",
@@ -274,6 +294,7 @@
     },
     "$strupper": {
       "description": "Preprocessor String Uppercase",
+      "wiki_link": "Advanced-Variable-Commands.md#string-manipulation",
       "details": "Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.",
       "category": "preprocessor",
       "function": "_strupper",
@@ -284,6 +305,7 @@
     },
     "$strlower": {
       "description": "Preprocessor String Lowercase",
+      "wiki_link": "Advanced-Variable-Commands.md#string-manipulation",
       "details": "Convert the given preprocessor variable value(s) to a string in 'lowercase'.",
       "category": "preprocessor",
       "function": "_strlower",
@@ -294,6 +316,7 @@
     },
     "$sum": {
       "description": "Preprocessor Array Sum",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
       "details": "Adds all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "category": "preprocessor",
       "function": "_sum",
@@ -304,6 +327,7 @@
     },
     "$median": {
       "description": "Preprocessor Array Median",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
       "details": "Gets the middle value/average of the two middle values and stores it in a result variable.",
       "category": "preprocessor",
       "function": "_median",
@@ -314,6 +338,7 @@
     },
     "$mean": {
       "description": "Preprocessor Array Mean",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
       "details": "Averages all values in the given preprocessor variable together into one value and stores it in a result variable.",
       "category": "preprocessor",
       "function": "_mean",
@@ -324,6 +349,7 @@
     },
     "$sort": {
       "description": "Preprocessor Array Sort",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
       "details": "Sorts the order of the values in the given preprocessor variable either 'ascending' or 'descending'. Values must be comparable.",
       "category": "preprocessor",
       "function": "_sort",
@@ -334,6 +360,7 @@
     },
     "$reverse": {
       "description": "Preprocessor Reverse",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
       "details": "Reverses the order of the values in the given preprocessor variable.",
       "category": "preprocessor",
       "function": "_reverse",
@@ -344,7 +371,8 @@
     },
     "$unique": {
       "description": "Preprocessor Array Unique",
-      "details": "Flattens the given preprocessor array to unique values.",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
+      "details": "Flattens the given preprocessor array to only unique values.",
       "category": "preprocessor",
       "function": "_unique",
       "patterns": [
@@ -365,6 +393,7 @@
     },
     "$len": {
       "description": "Preprocessor Length",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
       "details": "If a preprocessor variable identifier or JSON array is specified, the number of elements it holds is gotten. If a string is given, its length is gotten.",
       "category": "preprocessor",
       "function": "_len",
@@ -377,6 +406,7 @@
     },
     "$json": {
       "description": "Preprocessor Load JSON Value",
+      "wiki_link": "JSON-Processing.md",
       "details": "Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.",
       "category": "preprocessor",
       "function": "_json",
@@ -388,6 +418,7 @@
     },
     "$call": {
       "description": "Preprocessor Call Function",
+      "wiki_link": "Metaprogramming.md#calling",
       "details": "Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.",
       "category": "preprocessor",
       "function": "_call",
@@ -407,7 +438,8 @@
     },
     "globalprint": {
       "description": "Print to All Players",
-      "details": "Prints a chat message to all players in the game. Supports format strings.",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Prints a chat message to all players in the game. Supports format-strings.",
       "category": "text",
       "patterns": [
         [ "string:text" ]
@@ -416,7 +448,8 @@
     },
     "print": {
       "description": "Print to Player",
-      "details": "Prints a chat message to the executing player, or to the given one if specified. Supports format strings.",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Prints a chat message to the executing player, or to the given one if specified. Supports format-strings.",
       "category": "text",
       "patterns": [
         [ "selector:entity", "string:text" ],
@@ -426,7 +459,8 @@
     },
     "lang": {
       "description": "Set Active Language",
-      "details": "Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including FStrings.",
+      "wiki_link": "Localization.md",
+      "details": "Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including format-strings.",
       "category": "text",
       "patterns": [
         [ "id:locale" ]
@@ -435,6 +469,7 @@
     },
     "define": {
       "description": "Define Variable",
+      "wiki_link": "Values.md#defining-values",
       "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
       "category": "values",
       "patterns": [
@@ -444,6 +479,7 @@
     },
     "init": {
       "description": "Initialize Variable",
+      "wiki_link": "Values.md#initializing-values",
       "aliases": [ "initialize" ],
       "details": "Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]`",
       "category": "values",
@@ -454,6 +490,7 @@
     },
     "if": {
       "description": "If Statement",
+      "wiki_link": "Comparison.md",
       "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.",
       "category": "logic",
       "patterns": [
@@ -479,13 +516,15 @@
     },
     "else": {
       "description": "Else Statement",
+      "wiki_link": "Comparison.md#else",
       "details": "Inverts the comparison given by the previous if-statement at this scope level.",
       "category": "logic",
       "attributes": [ "INVERTS_COMPARISON" ]
     },
     "assert": {
       "description": "Assert Statement",
-      "details": "Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).",
+      "wiki_link": "Testing.md#writing-a-test",
+      "details": "Asserts that the given condition evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).",
       "category": "debug",
       "patterns": [
         [ "not:not", "value:boolean" ],
@@ -510,14 +549,17 @@
     },
     "throw": {
       "description": "Throw Error",
-      "details": "Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format strings.",
+      "wiki_link": "Debugging.md#throwing-errors",
+      "details": "Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format-strings.",
       "category": "debug",
       "patterns": [
         [ "string:error" ]
-      ]
+      ],
+      "attributes": [ "USES_FSTRING" ]
     },
     "give": {
       "description": "Give Item",
+      "wiki_link": "Giving-Items.md",
       "details": "Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.",
       "category": "items",
       "patterns": [
@@ -586,6 +628,7 @@
     },
     "scatter": {
       "description": "Scatter Blocks in Region",
+      "wiki_link": "Scatter.md",
       "details": "Randomly scatters blocks throughout a region with a certain percentage.",
       "category": "blocks",
       "patterns": [
@@ -610,7 +653,7 @@
     },
     "remove": {
       "description": "Remove Entity",
-      "details": "Teleports the given entities deep into the void, causing a silent death.",
+      "details": "Teleports the given entities deep into the void, causing a silent death. Looking to rewrite this in the future to generate entity code for real removal.",
       "category": "entities",
       "patterns": [
         [ "?selector:target" ]
@@ -626,7 +669,8 @@
     },
     "globaltitle": {
       "description": "Show Title to All Players",
-      "details": "Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format strings.",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format-strings.",
       "category": "text",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
@@ -637,7 +681,8 @@
     },
     "title": {
       "description": "Show Title",
-      "details": "Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format strings.",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format-strings.",
       "category": "text",
       "patterns": [
         [ "selector:target", "id:times", "int:fade in", "int:stay", "int:fade out" ],
@@ -651,7 +696,8 @@
     },
     "globalactionbar": {
       "description": "Show Actionbar to All Players",
-      "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format strings.",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format-strings.",
       "category": "text",
       "patterns": [
         [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
@@ -661,7 +707,8 @@
     },
     "actionbar": {
       "description": "Show Actionbar",
-      "details": "Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format strings.",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format-strings.",
       "category": "text",
       "patterns": [
         [ "selector:target", "string:text" ],
@@ -679,6 +726,7 @@
     },
     "halt": {
       "description": "Halt Execution",
+      "wiki_link": "Debugging.md#halting-code",
       "details": "Ends the execution of the code entirely by hitting the function command limit.",
       "category": "logic"
     },
@@ -707,7 +755,7 @@
       "details": "Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.",
       "category": "cosmetic",
       "patterns": [
-        [ "string:sound", "?selector:filter", "?coord:x", "?coord:y", "?coord:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
+        [ "string:sound", "selector:who", "?coord:x", "?coord:y", "?coord:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
       ]
     },
     "particle": {
@@ -720,6 +768,7 @@
     },
     "dummy": {
       "description": "Manage Dummy Entities",
+      "wiki_link": "Optional-Features.md#dummies",
       "details": "Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.",
       "category": "features",
       "features": 1,
@@ -736,11 +785,11 @@
       "category": "entities",
       "patterns": [
         [ "selector:target", "id:mode", "string:name" ]
-
       ]
     },
     "explode": {
       "description": "Create Explosion",
+      "wiki_link": "Optional-Features.md#exploders",
       "details": "Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.",
       "category": "features",
       "features": 4,
@@ -750,6 +799,7 @@
     },
     "feature": {
       "description": "Enable Feature",
+      "wiki_link": "Optional-Features.md",
       "details": "Enables a feature to be used for this project, generating any of the necessary files.",
       "category": "features",
       "patterns": [
@@ -759,6 +809,7 @@
     },
     "function": {
       "description": "Define Function",
+      "wiki_link": "Functions.md#defining-functions",
       "aliases": [ "fn" ],
       "details": "Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`",
       "category": "logic",
@@ -769,6 +820,7 @@
     },
     "test": {
       "description": "Define Test",
+      "wiki_link": "Testing.md#writing-a-test",
       "details": "Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.",
       "category": "debug",
       "patterns": [
@@ -778,6 +830,7 @@
     },
     "return": {
       "description": "Set Return Value",
+      "wiki_link": "Functions.md#return-values",
       "details": "Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.",
       "category": "logic",
       "patterns": [

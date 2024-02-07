@@ -24,14 +24,15 @@ namespace mc_compiled.MCC.Compiler
 
 
         private static short nextIndex = 0;
-        public Directive(DirectiveImpl call, string identifier, string[] aliases, string description, string documentation, string category, params TypePattern[] patterns)
+        public Directive(DirectiveImpl call, string identifier, string[] aliases, string description, string documentation, string wikiLink, string category, params TypePattern[] patterns)
         {
-            index = nextIndex++;
+            nextIndex++;
             this.call = call;
             this.identifier = identifier;
             this.aliases = aliases;
             this.description = description;
             this.documentation = documentation;
+            this.wikiLink = wikiLink;
             this.category = category;
             this.patterns = patterns;
 
@@ -95,11 +96,11 @@ namespace mc_compiled.MCC.Compiler
         // In the case this happens, it can use this field to help convert itself.
         public readonly Commands.ParsedEnumValue? enumValue;
 
-        public readonly short index;
         public readonly string identifier;
         public readonly string[] aliases;
         public readonly string description;
         public readonly string documentation;
+        public readonly string wikiLink;
         public readonly string category;
         public readonly DirectiveImpl call;
         public readonly TypePattern[] patterns;
@@ -278,6 +279,11 @@ namespace mc_compiled.MCC.Compiler
                 Debug.Assert(categoryToken != null, $"language.json/directives/{identifier}/category was null.");
                 string category = categoryToken.Value<string>();
 
+                string wikiLink = null;
+                JToken _wikiLink = body["wiki_link"];
+                if (_wikiLink != null)
+                    wikiLink = _wikiLink.Value<string>();
+                
                 string documentation = null;
                 if (body.TryGetValue("details", out JToken detailsToken))
                 {
@@ -362,8 +368,8 @@ namespace mc_compiled.MCC.Compiler
                     .CreateDelegate(typeof(Directive.DirectiveImpl), info);
 
                 // construct directive
-                var directive = new Directive(function, identifier,
-                    aliases, description, documentation, category, patterns.ToArray());
+                var directive = new Directive(function, identifier, aliases, description,
+                    documentation, wikiLink, category, patterns.ToArray());
 
                 // attributes, if any
                 if(body.TryGetValue("attributes", out JToken attributesToken))

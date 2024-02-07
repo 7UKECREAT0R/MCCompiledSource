@@ -1,5 +1,6 @@
 ﻿using mc_compiled.MCC.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC.Functions.Types
@@ -35,7 +36,7 @@ namespace mc_compiled.MCC.Functions.Types
 
                         if (sbType == null)
                             return ParameterFit.No;
-                        if (sbType != sbDestType)
+                        if (!Equals(sbType, sbDestType))
                             return ParameterFit.WithConversion;
 
                         return ParameterFit.Yes;
@@ -96,10 +97,23 @@ namespace mc_compiled.MCC.Functions.Types
             string type = this.RuntimeDestination.type.TypeKeyword;
             return $"[{type} {name}]";
         }
+
+        protected bool Equals(RuntimeFunctionParameter other)
+        {
+            return Equals(RuntimeDestination, other.RuntimeDestination);
+        }
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((RuntimeFunctionParameter) obj);
+        }
+
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")] // DNC
         public override int GetHashCode()
         {
-            return this.name.GetHashCode() ^
-                this.RuntimeDestination.GetHashCode();
+            return (RuntimeDestination != null ? RuntimeDestination.GetHashCode() : 0);
         }
     }
 }

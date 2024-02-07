@@ -155,7 +155,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public string ToMarkdownDocumentation()
         {
-            return '`' + string.Join("` `", pattern.Select(multitype => multitype.ToString())) + '`';
+            return string.Join(" ", pattern.Select(multiType => multiType.ToString()));
         }
     }
     /// <summary>

@@ -21,7 +21,7 @@ namespace mc_compiled.MCC
         /// <summary>
         /// An identifier used in this project's entities/assets.
         /// </summary>
-        private string Identifier => name.ToLower().Replace(' ', '_').Trim();
+        public string Identifier => name.ToLower().Replace(' ', '_').Trim();
 
         /// <summary>
         /// Namespace an identifier for this project.
@@ -35,6 +35,7 @@ namespace mc_compiled.MCC
         private readonly string name;
         private readonly Executor parentExecutor;
         private readonly OutputRegistry registry;
+        private readonly HashSet<CopyFile> copyFiles;
         private readonly List<IAddonFile> files;
         private Feature features;
         internal bool linting;
@@ -49,8 +50,10 @@ namespace mc_compiled.MCC
         internal ProjectManager(string name, string bpBase, string rpBase, Executor parent)
         {
             this.parentExecutor = parent;
+            
             this.name = name;
             registry = new OutputRegistry(bpBase, rpBase);
+            copyFiles = new HashSet<CopyFile>();
             files = new List<IAddonFile>();
             features = 0;
         }
@@ -219,8 +222,18 @@ namespace mc_compiled.MCC
         /// Adds a file to this project.
         /// </summary>
         /// <param name="file"></param>
-        internal void AddFile(IAddonFile file) =>
+        internal void AddFile(IAddonFile file)
+        {
+            if (file is CopyFile copyFile)
+            {
+                if (copyFiles.Add(copyFile))
+                    files.Add(file);
+                return;
+            }
+
             files.Add(file);
+        }
+
         /// <summary>
         /// Adds a collection of files to this project.
         /// </summary>
@@ -430,6 +443,14 @@ namespace mc_compiled.MCC
             if(!string.IsNullOrWhiteSpace(directory)) // folder directly at the root (e.g., manifest)
                 Directory.CreateDirectory(directory);
 
+            // if CopyFile, just copy the file directly
+            if (file is CopyFile copyFile)
+            {
+                string source = copyFile.sourceFile;
+                File.Copy(source, output, true);
+                return;
+            }
+            
             // write it
             File.WriteAllBytes(output, file.GetOutputData());
         }

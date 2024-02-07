@@ -14,10 +14,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
 using mc_compiled.Compiler;
+using mc_compiled.Modding.Resources;
 using Microsoft.CSharp.RuntimeBinder;
 // ReSharper disable IdentifierTypo
 
@@ -1482,7 +1484,7 @@ namespace mc_compiled.MCC.Compiler
                     )
                 .BuildString()));
             }
-            file.Add(halt_command(executor));
+            file.Add(GenerateHaltCommand(executor));
 
             executor.AddExtraFile(file);
             set.RunCommand(Command.Function(file), executor, tokens);
@@ -1495,7 +1497,7 @@ namespace mc_compiled.MCC.Compiler
             string[] commands = Executor.ResolveRawText(json, "tellraw @s ");
 
             executor.AddCommandsClean(commands, "throwError", $"Called in a throw command located in {executor.CurrentFile.CommandReference} line {executor.NextLineNumber}");
-            executor.AddCommand(halt_command(executor));
+            executor.AddCommand(GenerateHaltCommand(executor));
         }
         [UsedImplicitly]
         public static void give(Executor executor, Statement tokens)
@@ -1904,7 +1906,7 @@ namespace mc_compiled.MCC.Compiler
                 Executor.Warn("Warning: Scatter zone is " + totalBlocks + " blocks. This could cause extreme performance problems or the command may not even work at all.", tokens);
 
             if (executor.linting)
-                return; // no need to run all that where it isn't even going to be used...
+                return; // no need to run allat when it isn't even going to be used...
 
             int[,,] blocks = new int[sizeX, sizeY, sizeZ];
             for (int x = 0; x < sizeX; x++)
@@ -2151,11 +2153,11 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void halt(Executor executor, Statement tokens)
         {
-            string command = halt_command(executor);
+            string command = GenerateHaltCommand(executor);
             executor.AddCommand(command);
             executor.UnreachableCode();
         }
-        private static string halt_command(Executor executor)
+        private static string GenerateHaltCommand(Executor executor)
         {
             var file = new CommandFile(true, "halt_execution", Executor.MCC_GENERATED_FOLDER);
 
@@ -2487,17 +2489,11 @@ namespace mc_compiled.MCC.Compiler
         public static void playsound(Executor executor, Statement tokens)
         {
             string soundId = tokens.Next<TokenStringLiteral>();
-
-            if (!tokens.HasNext)
-            {
-                executor.AddCommand(Command.PlaySound(soundId));
-                return;
-            }
-
             Selector filter = tokens.Next<TokenSelectorLiteral>();
 
             if(!tokens.NextIs<TokenCoordinateLiteral>())
             {
+                soundId = ProcessSoundIdAsFile(SoundCategory.ui);
                 executor.AddCommand(Command.PlaySound(soundId, filter.ToString()));
                 return;
             }
@@ -2505,6 +2501,7 @@ namespace mc_compiled.MCC.Compiler
             Coordinate x = tokens.Next<TokenCoordinateLiteral>();
             Coordinate y = tokens.Next<TokenCoordinateLiteral>();
             Coordinate z = tokens.Next<TokenCoordinateLiteral>();
+            soundId = ProcessSoundIdAsFile(SoundCategory.player);
 
             if(!tokens.NextIs<TokenNumberLiteral>())
             {
@@ -2530,6 +2527,36 @@ namespace mc_compiled.MCC.Compiler
 
             decimal minVolume = tokens.Next<TokenNumberLiteral>().GetNumber();
             executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume, (float)pitch, (float)minVolume));
+            
+            return;
+
+            string ProcessSoundIdAsFile(SoundCategory category)
+            {
+                string extension = Path.GetExtension(soundId);
+                
+                if (string.IsNullOrEmpty(extension))
+                    return soundId;
+
+                switch (extension.ToUpper())
+                {
+                    case ".WAV":
+                    case ".OGG":
+                    case ".FSB":
+                        break;
+                    default:
+                        return soundId;
+                }
+                
+                // this is an audio file.
+                executor.RequireFeature(tokens, Feature.AUDIOFILES);
+
+                if (!File.Exists(soundId))
+                    throw new StatementException(tokens, $"Audio file '{soundId}' not found.");
+
+                SoundDefinition definition = executor.AddNewSoundDefinition(soundId, category, tokens);
+                return definition.CommandReference;
+
+            }
         }
         [UsedImplicitly]
         public static void particle(Executor executor, Statement tokens)
@@ -2759,19 +2786,79 @@ namespace mc_compiled.MCC.Compiler
             // folders, if specified via dots
             if (usesFolders)
                 function.file.Folders = folders;
+            
+            
+            // check for duplicates and try to extend partial function
+            bool cancelRegistry = false;
+            if (executor.functions.TryGetFunctions(actualName, out Function[] existingFunctions))
+            {
+                // loop through all functions and see if one matches parameters
+                foreach (Function existingFunction in existingFunctions)
+                {
+                    if (!(existingFunction is RuntimeFunction currentFunction))
+                        continue;
+                    if (currentFunction.ParameterCount != function.ParameterCount)
+                        continue;
 
-            // register it with the compiler
-            executor.functions.RegisterFunction(function);
+                    bool allParametersMatch = true;
+                    for (int i = 0; i < function.ParameterCount; i++)
+                    {
+                        var parameterSource = (RuntimeFunctionParameter)function.Parameters[i];
+                        var parameterOther = (RuntimeFunctionParameter)currentFunction.Parameters[i];
+                        ScoreboardManager.ValueType typeSource = parameterSource.RuntimeDestination.type.TypeEnum;
+                        ScoreboardManager.ValueType typeOther = parameterOther.RuntimeDestination.type.TypeEnum;
 
-            // get the function's parameters
-            IEnumerable<ScoreboardValue> allRuntimeDestinations = function.Parameters
-                .Where(p => p is RuntimeFunctionParameter)
-                .Select(p => ((RuntimeFunctionParameter)p).RuntimeDestination);
+                        // ReSharper disable once InvertIf
+                        // only care about the type of the parameter, not the name
+                        if (typeSource != typeOther)
+                        {
+                            allParametersMatch = false;
+                            break;
+                        }
+                    }
 
-            // ...and define them
-            foreach(ScoreboardValue runtimeDestination in allRuntimeDestinations)
-                executor.AddCommandsInit(runtimeDestination.CommandsDefine());
+                    if (!allParametersMatch)
+                        continue;
+                    
+                    // check if both are defined as partial
+                    bool sourceIsPartial = function.HasAttribute<AttributePartial>();
+                    bool otherIsPartial = currentFunction.HasAttribute<AttributePartial>();
+                    if (sourceIsPartial && otherIsPartial)
+                    {
+                        function = currentFunction;
+                        cancelRegistry = true;
+                        break;
+                    }
+                    if (sourceIsPartial || otherIsPartial)
+                    {
+                        // one of them is partial, yet the other is not.
+                        throw sourceIsPartial ?
+                            new StatementException(tokens, $"Function '{functionName}' already exists; it was not originally defined as partial, so it cannot be extended."):
+                            new StatementException(tokens, $"Function '{functionName}' already exists; were you intending to use the 'partial' attribute to extend it?");
+                    }
+                    
+                    // neither function is partial, this is just an overlap.
+                    throw new StatementException(tokens, "Function '" + functionName + "' already exists.");
+                }
+            }
 
+            if (!cancelRegistry)
+            {
+                // register it with the compiler
+                executor.functions.RegisterFunction(function);
+
+                // get the function's parameters
+                IEnumerable<ScoreboardValue> allRuntimeDestinations = function.Parameters
+                    .Where(p => p is RuntimeFunctionParameter)
+                    .Select(p => ((RuntimeFunctionParameter)p).RuntimeDestination);
+
+                // ...and define them
+                executor.scoreboard.DefineMany(allRuntimeDestinations);
+            }
+
+            if (function == null)
+                throw new StatementException(tokens, "No other partial function matched this partial function (?)");
+            
             if (executor.NextIs<StatementOpenBlock>())
             {
                 if (function.isExtern)

@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using mc_compiled.Compiler;
 using mc_compiled.MCC.Functions.Types;
+using mc_compiled.Modding.Resources;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace mc_compiled.MCC.Compiler
@@ -409,6 +410,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         private LanguageManager languageManager;
+        private SoundDefinitions soundDefinitions;
 
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
@@ -458,7 +460,46 @@ namespace mc_compiled.MCC.Compiler
             var entry = LangEntry.Create(key, value);
             return ActiveLocale.file.Add(entry, overwrite, merge);
         }
+        /// <summary>
+        /// Gets the sound definitions file, reading it from the existing RP if it exists.
+        /// </summary>
+        public SoundDefinitions GetSoundDefinitions(Statement callingStatement)
+        {
+            if (soundDefinitions != null)
+                return soundDefinitions;
 
+            string file = project.GetOutputFileLocationFull(OutputLocation.r_SOUNDS, SoundDefinitions.FILE);
+
+            if (File.Exists(file))
+            {
+                if (!(LoadJSONFile(file, callingStatement) is JObject jObject))
+                    throw new StatementException(callingStatement, $"File RP/sounds/{SoundDefinitions.FILE} was not a JSON Object.");
+                
+                soundDefinitions = SoundDefinitions.Parse(jObject, callingStatement);
+                AddExtraFile(soundDefinitions);
+                return soundDefinitions;
+            }
+
+            soundDefinitions = new SoundDefinitions(FormatVersion.r_SOUNDS.ToString());
+            AddExtraFile(soundDefinitions);
+            return soundDefinitions;
+        }
+        public SoundDefinition AddNewSoundDefinition(string soundFile, SoundCategory category, Statement callingStatement)
+        {
+            string fileName = Path.GetFileName(soundFile);
+            string soundName = project.Identifier + '.' + Path.GetFileNameWithoutExtension(soundFile);
+            
+            // create CopyFile so that the sound file can be copied during file writing
+            var copyFile = new CopyFile(soundFile, OutputLocation.r_SOUNDS, fileName);
+            AddExtraFile(copyFile);
+            
+            var soundDefinition = new SoundDefinition(soundName, fileName, category, "sounds/" + Path.GetFileNameWithoutExtension(soundFile));
+            
+            SoundDefinitions soundDefinitions = GetSoundDefinitions(callingStatement);
+            soundDefinitions.AddSoundDefinition(soundDefinition);
+            return soundDefinition;
+        }
+        
         /// <summary>
         /// Marks all files on the file stack as containing an assertion.
         /// </summary>

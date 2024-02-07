@@ -159,6 +159,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("exploders", "Feature: Create exploder entity behavior/resource files and allow them to be created through the 'explode' command."),
                 new Keyword("uninstall", "Feature: Create an function named 'uninstall' to remove all tags/scoreboards/etc made by this project."),
                 new Keyword("tests", "Feature: Enables the ability to use the 'test' command, which creates tests that are run on '/function test'. Use the 'assert' command to test various parts of your code."),
+                new Keyword("audiofiles", "Feature: Enables support for 'playsound' command to accept audio files."),
                 //new Keyword("identify", "Feature: Give each player a unique ID, allowing them to be identified by the 'id' variable (integer)."),
                 
                 // directions

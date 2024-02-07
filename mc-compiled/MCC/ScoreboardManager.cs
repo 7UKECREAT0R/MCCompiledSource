@@ -167,6 +167,14 @@ namespace mc_compiled.MCC
         /// <param name="values">The values to define.</param>
         public void DefineMany(params ScoreboardValue[] values)
         {
+            DefineMany((IEnumerable<ScoreboardValue>)values);
+        }
+        /// <summary>
+        /// Define all of the given non-null scoreboard values if they haven't already. Place in the 'init' file.
+        /// </summary>
+        /// <param name="values">The values to define.</param>
+        public void DefineMany(IEnumerable<ScoreboardValue> values)
+        {
             foreach(ScoreboardValue value in values)
             {
                 if (value == null)

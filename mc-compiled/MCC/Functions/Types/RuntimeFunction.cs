@@ -21,8 +21,8 @@ namespace mc_compiled.MCC.Functions.Types
         private ScoreboardValue returnValue;
 
         public readonly bool isCompilerGenerated;
-        protected readonly List<RuntimeFunctionParameter> parameters;
-        protected readonly List<IAttribute> attributes;
+        private readonly List<RuntimeFunctionParameter> parameters;
+        private readonly List<IAttribute> attributes;
 
         public bool isExtern;               // created outside of MCCompiled, assume parameter names are as-listed.
         public readonly string aliasedName; // user-facing name (keyword)
@@ -42,6 +42,7 @@ namespace mc_compiled.MCC.Functions.Types
 
             this.file = new CommandFile(false, name, null, this);
             this.returnValue = null;
+            
 
             if (attributes == null)
                 attributes = Array.Empty<IAttribute>();
@@ -63,6 +64,15 @@ namespace mc_compiled.MCC.Functions.Types
 
             foreach (IAttribute attribute in attributes)
                 attribute.OnAddedFunction(this, callingStatement);
+        }
+        /// <summary>
+        /// Checks if the <see cref="RuntimeFunction"/> has an attribute of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of attribute.</typeparam>
+        /// <returns>True if the <see cref="RuntimeFunction"/> has an attribute of type <typeparamref name="T"/>, otherwise false.</returns>
+        public bool HasAttribute<T>() where T : IAttribute
+        {
+            return attributes.Any(a => a is T);
         }
 
         /// <summary>

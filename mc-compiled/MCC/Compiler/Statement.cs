@@ -140,7 +140,6 @@ namespace mc_compiled.MCC.Compiler
             }
 
             SquashAll(allResolved, executor);
-            SquashSpecial(allResolved); // ranges and JArray flattening
 
             tokens = allResolved.ToArray();
             patterns = GetValidPatterns();
@@ -661,7 +660,6 @@ namespace mc_compiled.MCC.Compiler
                 // i gets incremented next iteration
                 // NOTE: the reason it restarts from the beginning is just for stability. it doesn't have any real purpose
                 i = startAt - 1;
-                break;
             }
         }
         private void SquashDereferences(List<Token> tokens, Executor executor)

@@ -99,6 +99,7 @@
     <Compile Include="MCC\Attributes\AttributeExport.cs" />
     <Compile Include="MCC\Attributes\AttributeExtern.cs" />
     <Compile Include="MCC\Attributes\AttributeGlobal.cs" />
+    <Compile Include="MCC\Attributes\AttributePartial.cs" />
     <Compile Include="MCC\Attributes\Implementations\AttributeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\CompiletimeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionGlyphs.cs" />
@@ -201,6 +202,7 @@
     <Compile Include="Modding\Behaviors\Lists\EntityFilters.cs" />
     <Compile Include="Modding\Behaviors\Lists\EntityProperties.cs" />
     <Compile Include="Modding\Behaviors\MolangValue.cs" />
+    <Compile Include="Modding\CopyFile.cs" />
     <Compile Include="Modding\FormatVersion.cs" />
     <Compile Include="Modding\IAddonFile.cs" />
     <Compile Include="Modding\Behaviors\LootTable.cs" />
@@ -212,6 +214,7 @@
     <Compile Include="Modding\Resources\Localization\LangEntry.cs" />
     <Compile Include="Modding\Resources\Localization\LanguageManager.cs" />
     <Compile Include="Modding\Resources\Localization\LocaleDefinition.cs" />
+    <Compile Include="Modding\Resources\SoundDefinitions.cs" />
     <Compile Include="Modding\StructureFile.cs" />
     <Compile Include="Commands\Selectors\BlockCheck.cs" />
     <Compile Include="Commands\Coordinate.cs" />

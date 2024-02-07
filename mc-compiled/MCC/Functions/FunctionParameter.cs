@@ -8,11 +8,11 @@ namespace mc_compiled.MCC.Functions
     /// </summary>
     public abstract class FunctionParameter
     {
-        public string name;                 // the name of this parameter
+        public readonly string name;        // the name of this parameter
         public readonly bool optional;      // if this parameter can be skipped.
         public readonly Token defaultValue;
 
-        public FunctionParameter(string name, Token defaultValue)
+        protected FunctionParameter(string name, Token defaultValue)
         {
             this.name = name;
             this.optional = defaultValue != null;

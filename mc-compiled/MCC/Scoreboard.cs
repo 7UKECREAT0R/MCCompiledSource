@@ -262,6 +262,23 @@ namespace mc_compiled.MCC
             return type.GetObjectives(this);
         }
         
+        private bool Equals(ScoreboardValue other)
+        {
+            if (!internalName.Equals(other.internalName))
+                return false; // name was not equal
+            if (type.TypeEnum != other.type.TypeEnum)
+                return false; // type was not equal
+            if ((data == null) == (other.data == null))
+                return false; // data null state is not equal
+            if (data != null && !data.Equals(other.data))
+                return false; // data was not equal
+
+            return true;
+        }
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is ScoreboardValue other && Equals(other);
+        }
         // Do not Care
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()

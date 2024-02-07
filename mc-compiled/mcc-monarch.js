@@ -4,9 +4,9 @@ const mccompiled = {
 	preprocessor: [ `$add`, `$append`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$prepend`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
 	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
-	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto` ],
+	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto`, `partial` ],
 	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
-	options: [ `dummies`, `autoinit`, `exploders`, `uninstall`, `tests`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
+	options: [ `dummies`, `autoinit`, `exploders`, `uninstall`, `tests`, `audiofiles`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
         root: [
             [ /@?[a-zA-Z$][\w]*/, {
@@ -245,7 +245,7 @@ const mcc_preprocessor = [
 	},
 	{
 		word: `$unique`,
-		docs: `Flattens the given preprocessor array to unique values.`
+		docs: `Flattens the given preprocessor array to only unique values.`
 	},
 	{
 		word: `$var`,
@@ -255,11 +255,11 @@ const mcc_preprocessor = [
 const mcc_commands = [
 	{
 		word: `actionbar`,
-		docs: `Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format strings.`
+		docs: `Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format-strings.`
 	},
 	{
 		word: `assert`,
-		docs: `Asserts that the given condititon evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).`
+		docs: `Asserts that the given condition evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).`
 	},
 	{
 		word: `clear`,
@@ -327,15 +327,15 @@ const mcc_commands = [
 	},
 	{
 		word: `globalactionbar`,
-		docs: `Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format strings.`
+		docs: `Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format-strings.`
 	},
 	{
 		word: `globalprint`,
-		docs: `Prints a chat message to all players in the game. Supports format strings.`
+		docs: `Prints a chat message to all players in the game. Supports format-strings.`
 	},
 	{
 		word: `globaltitle`,
-		docs: `Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format strings.`
+		docs: `Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format-strings.`
 	},
 	{
 		word: `halt`,
@@ -359,7 +359,7 @@ const mcc_commands = [
 	},
 	{
 		word: `lang`,
-		docs: `Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including FStrings.`
+		docs: `Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including format-strings.`
 	},
 	{
 		word: `mc`,
@@ -387,11 +387,11 @@ const mcc_commands = [
 	},
 	{
 		word: `print`,
-		docs: `Prints a chat message to the executing player, or to the given one if specified. Supports format strings.`
+		docs: `Prints a chat message to the executing player, or to the given one if specified. Supports format-strings.`
 	},
 	{
 		word: `remove`,
-		docs: `Teleports the given entities deep into the void, causing a silent death.`
+		docs: `Teleports the given entities deep into the void, causing a silent death. Looking to rewrite this in the future to generate entity code for real removal.`
 	},
 	{
 		word: `replace`,
@@ -427,11 +427,11 @@ const mcc_commands = [
 	},
 	{
 		word: `throw`,
-		docs: `Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format strings.`
+		docs: `Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format-strings.`
 	},
 	{
 		word: `title`,
-		docs: `Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format strings.`
+		docs: `Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format-strings.`
 	},
 	{
 		word: `tp`,
@@ -517,6 +517,10 @@ const mcc_types = [
 		word: `auto`,
 		docs: `Makes a function run every tick (via tick.json), or if specified, some other interval.`
 	},
+	{
+		word: `partial`,
+		docs: `Makes a function partial, allowing it to be re-defined , appending to any previous code in it. When re-declaring a function, the partial attribute must be used in both.`
+	},
 ]
 const mcc_comparisons = [
 	{
@@ -560,6 +564,10 @@ const mcc_options = [
 	{
 		word: `tests`,
 		docs: `Feature: Enables the ability to use the 'test' command, which creates tests that are run on '/function test'. Use the 'assert' command to test various parts of your code.`
+	},
+	{
+		word: `audiofiles`,
+		docs: `Feature: Enables support for 'playsound' command to accept audio files.`
 	},
 	{
 		word: `up`,

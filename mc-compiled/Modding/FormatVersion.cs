@@ -12,6 +12,7 @@ namespace mc_compiled.Modding
         public static readonly FormatVersion r_PARTICLE = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion r_RENDER_CONTROLLER = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion r_PARTICLES = new FormatVersion(1, 10, 0);
+        public static readonly FormatVersion r_SOUNDS = new FormatVersion(1, 18, 10);
         public static readonly FormatVersion b_ANIMATION_CONTROLLER = new FormatVersion(1, 10, 0);
         public static readonly FormatVersion b_ENTITY = new FormatVersion(1, 16, 0);
         public static readonly FormatVersion b_ITEM = new FormatVersion(1, 10);

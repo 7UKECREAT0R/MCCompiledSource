@@ -12,5 +12,6 @@ namespace mc_compiled.MCC
         EXPLODERS = 1 << 2,     // Exploder Entities
         UNINSTALL = 1 << 3,     // Uninstall Script,
         TESTS = 1 << 4,         // Automated Tests
+        AUDIOFILES = 1 << 5,   // `playsound` Audio File Support
     }
 }
