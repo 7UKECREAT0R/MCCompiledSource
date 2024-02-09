@@ -144,7 +144,7 @@ namespace mc_compiled.Json
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
         {
-            return new[] { this };
+            return new JSONRawTerm[] { this };
         }
     }
     /// <summary>
@@ -172,7 +172,7 @@ namespace mc_compiled.Json
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
         {
-            return new[] { this };
+            return new JSONRawTerm[] { this };
         }
     }
     /// <summary>
@@ -180,34 +180,53 @@ namespace mc_compiled.Json
     /// </summary>
     public class JSONTranslate : JSONRawTerm
     {
-        string translationKey;
-        List<RawTextJsonBuilder> with;
+        private readonly string translationKey;
+
+        private bool withUsesStr;
+        private readonly List<string> withStr;
+        private readonly List<RawTextJsonBuilder> with;
 
         public JSONTranslate(string translationKey)
         {
             this.translationKey = EscapeString(translationKey);
+            this.withStr = new List<string>();
             this.with = new List<RawTextJsonBuilder>();
         }
         public JSONTranslate With(params RawTextJsonBuilder[] jsonTerms)
         {
+            this.withUsesStr = false;
             this.with.AddRange(jsonTerms);
+            return this;
+        }
+        public JSONTranslate With(params string[] strings)
+        {
+            this.withUsesStr = true;
+            this.withStr.AddRange(strings);
             return this;
         }
 
         public override JObject Build()
         {
-            if(with.Any())
+            if (!with.Any() && !withStr.Any())
+                return new JObject()
+                {
+                    ["translate"] = translationKey
+                };
+            
+            if (withUsesStr)
             {
                 return new JObject()
                 {
                     ["translate"] = translationKey,
-                    ["with"] = new JArray(from subtext in with select subtext.Build())
+                    ["with"] = new JArray(withStr.ToArray().Cast<object>())
                 };
+                
             }
 
             return new JObject()
             {
-                ["translate"] = translationKey
+                ["translate"] = translationKey,
+                ["with"] = new JArray(from subtext in with select subtext.Build())
             };
         }
         public override string PreviewString()
@@ -217,7 +236,7 @@ namespace mc_compiled.Json
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
         {
-            return new[] { this };
+            return new JSONRawTerm[] { this };
         }
     }
     /// <summary>

@@ -17,24 +17,29 @@ namespace mc_compiled.Modding
         public static readonly FormatVersion b_ENTITY = new FormatVersion(1, 16, 0);
         public static readonly FormatVersion b_ITEM = new FormatVersion(1, 10);
         public static readonly FormatVersion b_RECIPE = new FormatVersion(1, 16);
-        public static readonly FormatVersion b_SPAWNRULE = new FormatVersion(1, 8, 0);
+        public static readonly FormatVersion b_SPAWN_RULE = new FormatVersion(1, 8, 0);
         public static readonly FormatVersion b_DIALOGUE = new FormatVersion(1, 17, 0);
 
-        public readonly int release, major;
-        public readonly int? minor;
-        public FormatVersion(int release, int major, int? minor = null)
+        private readonly int release;
+        private readonly int major;
+        private readonly int? minor;
+
+        private FormatVersion(int release, int major, int? minor = null)
         {
             this.release = release;
             this.major = major;
             this.minor = minor;
         }
-        public FormatVersion(string version)
+        public static FormatVersion Parse(string version)
         {
             string[] parts = version.Split('.');
 
             if (parts.Length < 2)
                 throw new Exception("Format version was missing information.");
 
+            int release, major;
+            int? minor;
+            
             if (parts.Length == 2)
             {
                 release = int.Parse(parts[0]);
@@ -46,6 +51,11 @@ namespace mc_compiled.Modding
                 major = int.Parse(parts[1]);
                 minor = int.Parse(parts[2]);
             }
+            
+            if (parts.Length > 3 || release < 1 || major < 0 || minor < 0)
+                throw new Exception($"Format version '{version}' malformed.");
+            
+            return new FormatVersion(release, major, minor);
         }
 
         /// <summary>

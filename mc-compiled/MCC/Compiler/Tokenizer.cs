@@ -409,24 +409,30 @@ namespace mc_compiled.MCC.Compiler
             d *= (int)multiplier;
             return new TokenDecimalLiteral(d, CURRENT_LINE);
         }
+        /// <summary>
+        /// Returns the next string literal, ending with the given closing character. Backslashes are only omitted
+        /// when one's used to escape the closer character.
+        /// </summary>
+        /// <param name="closer"></param>
+        /// <returns></returns>
         private TokenStringLiteral NextStringIdentifier(char closer)
         {
-            bool escaped = false;
             sb.Clear();
 
             while (HasNext)
             {
                 char c = NextChar();
-
-                if(escaped)
-                {
-                    escaped = false;
-                    sb.Append(c);
-                    continue;
-                }
+                
                 if(c == '\\')
                 {
-                    escaped = true;
+                    char next = Peek();
+                    if (next == closer)
+                    {
+                        next = NextChar();
+                        sb.Append(next);
+                        continue;
+                    }
+                    sb.Append(c);
                     continue;
                 }
 

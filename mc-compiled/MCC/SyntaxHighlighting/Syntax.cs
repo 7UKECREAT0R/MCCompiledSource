@@ -188,20 +188,27 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("hollow", "Hollow the area, only filling the outer edges with the block. To keep inside contents, use 'outline'."),
                 new Keyword("outline", "Outline the area, only filling the outer edges with the block. To remove inside contents, use 'hollow'."),
                 new Keyword("keep", "Keep any existing blocks/items, and only fill where air is present."),
-
-                // item options
+                new Keyword("new", "Create a new dialogue scene with the given name."),
+                new Keyword("open", "Open an existing dialogue through the given NPC, for the given player(s)."),
+                new Keyword("change", "Change the dialogue that shows up when an NPC is interacted with (for specific players if specified)"),
+                
+                // builder fields
                 new Keyword("lockinventory", "Lock the item in the player's inventory."),
                 new Keyword("lockslot", "Lock the item in the slot which it is placed in."),
                 new Keyword("canplaceon:", "Specifies a block the item can be placed on."),
                 new Keyword("candestroy:", "Specifies a block the item can destroy."),
                 new Keyword("enchant:", "Give a leveled enchantment to this item. No limits."),
-                new Keyword("name:", "Give the item a display name."),
+                new Keyword("name:", "Item display name OR dialogue NPC name."),
                 new Keyword("lore:", "Give the item a line of lore. Multiple of these can be used to add more lines."),
                 new Keyword("author:", "If this item is a 'written_book', set the name of the author."),
                 new Keyword("title:", "If this item is a 'written_book', set its title."),
                 new Keyword("page:", "If this item is a 'written_book', add a page to it.  Multiple of these can be used to add more pages."),
                 new Keyword("dye:", "If this item is a piece of leather armor, set its color to an RGB value."),
-
+                new Keyword("text:", "The text, aka the contents of the dialogue."),
+                new Keyword("button:", "Adds a button to the dialogue which runs code when clicked."),
+                new Keyword("onOpen:", "Specifies the code to run every time this dialogue is opened."),
+                new Keyword("onClose:", "Specifies the code to run every time this dialogue is closed."),
+                
                 // execute subcommands
                 new Keyword("align", "Execute subcommand: Runs aligned to the given axes."),
                 new Keyword("anchored", "Execute subcommand: Runs anchored to the executing entities eyes or feet."),

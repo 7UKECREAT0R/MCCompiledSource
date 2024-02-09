@@ -2948,16 +2948,24 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         public bool neverDespawn;
         public int tickRadius;
-        public float distanceToPlayers; // only if neverDespawn == false
+        public float distanceToPlayers; // only assigned if neverDespawn == false
 
         public override string GetIdentifier() =>
             "minecraft:tick_world";
         public override JObject _GetValue()
         {
+            if (neverDespawn)
+            {
+                return new JObject()
+                {
+                    ["never_despawn"] = true,
+                    ["radius"] = tickRadius
+                };
+            }
             return new JObject()
             {
                 ["distance_to_players"] = distanceToPlayers,
-                ["never_Despawn"] = neverDespawn,
+                ["never_despawn"] = false,
                 ["radius"] = tickRadius
             };
         }

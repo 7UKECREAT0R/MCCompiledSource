@@ -2,11 +2,11 @@ const mccompiled = {
 	operators: [ `<`, `>`, `{`, `}`, `=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `!` ],
 	selectors: [ `@e`, `@a`, `@s`, `@p`, `@i`, `@initiator` ],
 	preprocessor: [ `$add`, `$append`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$prepend`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
-	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport` ],
+	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dialogue`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
 	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto`, `partial` ],
 	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
-	options: [ `dummies`, `autoinit`, `exploders`, `uninstall`, `tests`, `audiofiles`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
+	options: [ `dummies`, `autoinit`, `exploders`, `uninstall`, `tests`, `audiofiles`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `new`, `open`, `change`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `text:`, `button:`, `onOpen:`, `onClose:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
         root: [
             [ /@?[a-zA-Z$][\w]*/, {
@@ -272,6 +272,10 @@ const mcc_commands = [
 	{
 		word: `define`,
 		docs: `Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.`
+	},
+	{
+		word: `dialogue`,
+		docs: `If followed by a block, defines a new dialogue scene with the given name.`
 	},
 	{
 		word: `dummy`,
@@ -646,6 +650,18 @@ const mcc_options = [
 		docs: `Keep any existing blocks/items, and only fill where air is present.`
 	},
 	{
+		word: `new`,
+		docs: `Create a new dialogue scene with the given name.`
+	},
+	{
+		word: `open`,
+		docs: `Open an existing dialogue through the given NPC, for the given player(s).`
+	},
+	{
+		word: `change`,
+		docs: `Change the dialogue that shows up when an NPC is interacted with (for specific players if specified)`
+	},
+	{
 		word: `lockinventory`,
 		docs: `Lock the item in the player's inventory.`
 	},
@@ -667,7 +683,7 @@ const mcc_options = [
 	},
 	{
 		word: `name:`,
-		docs: `Give the item a display name.`
+		docs: `Item display name OR dialogue NPC name.`
 	},
 	{
 		word: `lore:`,
@@ -688,6 +704,22 @@ const mcc_options = [
 	{
 		word: `dye:`,
 		docs: `If this item is a piece of leather armor, set its color to an RGB value.`
+	},
+	{
+		word: `text:`,
+		docs: `The text, aka the contents of the dialogue.`
+	},
+	{
+		word: `button:`,
+		docs: `Adds a button to the dialogue which runs code when clicked.`
+	},
+	{
+		word: `onOpen:`,
+		docs: `Specifies the code to run every time this dialogue is opened.`
+	},
+	{
+		word: `onClose:`,
+		docs: `Specifies the code to run every time this dialogue is closed.`
 	},
 	{
 		word: `align`,

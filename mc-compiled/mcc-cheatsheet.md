@@ -229,6 +229,12 @@ Commands which display text to players through format-strings, or manipulate tex
 - `title <id: subtitle> <string: text>`
 - `title <string: text>`
 
+Define/Open Dialogue
+: If followed by a block, defines a new dialogue scene with the given name.
+- `dialogue <id: new> <string: scene tag>`
+- `dialogue <id: open> <selector: npc> <selector: player> [string: scene tag]`
+- `dialogue <id: change> <selector: npc> <string: scene tag> [selector: player]`
+
 Say
 : Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.
 - `say <string: message>`

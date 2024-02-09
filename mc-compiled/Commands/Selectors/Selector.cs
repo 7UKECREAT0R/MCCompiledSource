@@ -76,7 +76,21 @@ namespace mc_compiled.Commands.Selectors
         /// Returns if this selector needs to be aligned before executing locally on this entity.
         /// </summary>
         public bool NonSelf => core != Core.s && core != Core.initiator;
-
+        /// <summary>
+        /// Returns if this selector selects ANY entities that are not players.
+        /// </summary>
+        public bool NonPlayers
+        {
+            get
+            {
+                if (core != Core.e)
+                    return false;
+                if (entity.type != null && entity.type.Contains("player"))
+                    return false;
+                return true;
+            }
+        }
+        
         public static readonly Selector NEAREST_PLAYER = new Selector(Core.p);
         public static readonly Selector SELF = new Selector(Core.s);
         public static readonly Selector ALL_PLAYERS = new Selector(Core.a);

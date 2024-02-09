@@ -30,7 +30,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         public const string WEBSOCKET_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-        public static readonly Encoding ENCODING = Encoding.ASCII;
+        public static readonly Encoding ENCODING = Encoding.UTF8;
        
         internal bool debug;
         private readonly MCCServerProject project;
@@ -205,7 +205,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                     if (length > 0)
                     {
-                        // get the numbr of requested bytes by the frame header.
+                        // get the number of requested bytes by the frame header.
                         content = new byte[length];
                         bytesRead = 0;
 
@@ -385,7 +385,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             if (frame.opcode == WebSocketOpCode.TEXT)
             {
                 // get the text
-                string text = Encoding.UTF8.GetString(frame.data);
+                string text = ENCODING.GetString(frame.data);
 
                 // this is probably JSON
                 if (text.StartsWith("{") && text.EndsWith("}"))
@@ -540,11 +540,11 @@ namespace mc_compiled.MCC.ServerWebSocket
 
             if (action.Equals("save"))
             {
-                Thread thread = new Thread(() =>
+                var thread = new Thread(() =>
                 {
                     string encodedCode = json["code"].Value<string>();
                     string code = encodedCode.Base64Decode();
-                    JObject metadata = json["meta"] as JObject;
+                    var metadata = json["meta"] as JObject;
 
                     if (!project.hasFile)
                     {
@@ -559,10 +559,10 @@ namespace mc_compiled.MCC.ServerWebSocket
                     string file = project.File;
                     string fileName = Path.GetFileName(file);
 
-                    if (System.IO.File.Exists(file))
-                        System.IO.File.Delete(file);
+                    if (File.Exists(file))
+                        File.Delete(file);
 
-                    using (var stream = System.IO.File.OpenWrite(file))
+                    using (FileStream stream = File.OpenWrite(file))
                     {
                         bool hasMetadata = metadata != null;
                         bool hasProperties = project.properties.Any();
@@ -570,8 +570,8 @@ namespace mc_compiled.MCC.ServerWebSocket
                         if(hasMetadata || hasProperties)
                         {
                             // get bytes for the metadata header and footer
-                            byte[] header = Encoding.UTF8.GetBytes(META_HEADER + '\n');
-                            byte[] footer = Encoding.UTF8.GetBytes(META_FOOTER + '\n');
+                            byte[] header = ENCODING.GetBytes(META_HEADER + '\n');
+                            byte[] footer = ENCODING.GetBytes(META_FOOTER + '\n');
 
                             // start by writing the header
                             stream.Write(header, 0, header.Length);
@@ -580,14 +580,14 @@ namespace mc_compiled.MCC.ServerWebSocket
                             {
                                 string block = metadata.ToString(Newtonsoft.Json.Formatting.None).Base64Encode();
                                 string blockString = META_FIELD_METADATA + block + '\n';
-                                byte[] blockBytes = Encoding.UTF8.GetBytes(blockString);
+                                byte[] blockBytes = ENCODING.GetBytes(blockString);
                                 stream.Write(blockBytes, 0, blockBytes.Length);
                             }
                             if(hasProperties)
                             {
                                 string block = project.PropertiesBase64;
                                 string blockString = META_FIELD_PROPERTIES + block + '\n';
-                                byte[] blockBytes = Encoding.UTF8.GetBytes(blockString);
+                                byte[] blockBytes = ENCODING.GetBytes(blockString);
                                 stream.Write(blockBytes, 0, blockBytes.Length);
                             }
 
@@ -595,7 +595,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                             stream.Write(footer, 0, footer.Length);
                         }
 
-                        byte[] bytes = Encoding.UTF8.GetBytes(code);
+                        byte[] bytes = ENCODING.GetBytes(code);
                         stream.Write(bytes, 0, bytes.Length);
                         stream.Flush();
                     }
@@ -622,77 +622,77 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                     string file = project.File;
 
-                    if (System.IO.File.Exists(file))
+                    if (!File.Exists(file))
+                        return;
+                    
+                    string code = File.ReadAllText(file, ENCODING);
+                    JObject metadata = new JObject();
+
+                    if(code.StartsWith(META_HEADER))
                     {
-                        string code = System.IO.File.ReadAllText(file);
-                        JObject metadata = new JObject();
+                        // begin reading metadata.
+                        StringReader reader = new StringReader(code);
+                        _ = reader.ReadLine(); // skip the header
+                        code = "";
 
-                        if(code.StartsWith(META_HEADER))
+                        // read until encountering a footer.
+                        string line;
+                        while((line = reader.ReadLine()) != META_FOOTER)
                         {
-                            // begin reading metadata.
-                            StringReader reader = new StringReader(code);
-                            _ = reader.ReadLine(); // skip the header
-                            code = "";
-
-                            // read until encountering a footer.
-                            string line;
-                            while((line = reader.ReadLine()) != META_FOOTER)
+                            if(line.StartsWith(META_FIELD_METADATA))
                             {
-                                if(line.StartsWith(META_FIELD_METADATA))
-                                {
-                                    string dataBlock = line.Substring(META_FIELD_METADATA.Length);
-                                    metadata = JObject.Parse(dataBlock.Base64Decode());
-                                } else if(line.StartsWith(META_FIELD_PROPERTIES))
-                                {
-                                    string dataBlock = line.Substring(META_FIELD_PROPERTIES.Length);
-                                    project.PropertiesBase64 = dataBlock;
-                                } else
-                                {
-                                    var oldColor = Console.ForegroundColor;
-                                    Console.ForegroundColor = ConsoleColor.Yellow;
-                                    Console.WriteLine($"Malformed metadata in file \"{file}\". Treating as beginning of code.");
-                                    Console.ForegroundColor = oldColor;
-                                    code = line + '\n';
-                                    break;
-                                }
+                                string dataBlock = line.Substring(META_FIELD_METADATA.Length);
+                                metadata = JObject.Parse(dataBlock.Base64Decode());
+                            } else if(line.StartsWith(META_FIELD_PROPERTIES))
+                            {
+                                string dataBlock = line.Substring(META_FIELD_PROPERTIES.Length);
+                                project.PropertiesBase64 = dataBlock;
+                            } else
+                            {
+                                var oldColor = Console.ForegroundColor;
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine($"Malformed metadata in file \"{file}\". Treating as beginning of code.");
+                                Console.ForegroundColor = oldColor;
+                                code = line + '\n';
+                                break;
                             }
-
-                            // the code is the rest of the segment without the metadata.
-                            code += reader.ReadToEnd();
-
-                            reader.Close();
-                            reader.Dispose();
                         }
 
-                        JObject send = new JObject()
-                        {
-                            ["action"] = "postload",
-                            ["code"] = code.Base64Encode(),
-                            ["meta"] = metadata
-                        };
-                        package.SendFrame(WebSocketFrame.JSON(send));
+                        // the code is the rest of the segment without the metadata.
+                        code += reader.ReadToEnd();
 
-
-                        JArray _properties = new JArray(
-                            project.properties.Select(kv => new JObject()
-                            {
-                                ["name"] = kv.Key.Base64Encode(),
-                                ["value"] = kv.Value.Base64Encode()
-                            })
-                        );
-                        JObject properties = new JObject()
-                        {
-                            ["action"] = "properties",
-                            ["properties"] = _properties
-                        };
-                        package.SendFrame(WebSocketFrame.JSON(properties));
-
-                        Lint(code, package);
-
-                        if (debug)
-                            Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata.ToString());
-                        return;
+                        reader.Close();
+                        reader.Dispose();
                     }
+
+                    JObject send = new JObject()
+                    {
+                        ["action"] = "postload",
+                        ["code"] = code.Base64Encode(),
+                        ["meta"] = metadata
+                    };
+                    package.SendFrame(WebSocketFrame.JSON(send));
+
+
+                    JArray _properties = new JArray(
+                        project.properties.Select(kv => new JObject()
+                        {
+                            ["name"] = kv.Key.Base64Encode(),
+                            ["value"] = kv.Value.Base64Encode()
+                        })
+                    );
+                    JObject properties = new JObject()
+                    {
+                        ["action"] = "properties",
+                        ["properties"] = _properties
+                    };
+                    package.SendFrame(WebSocketFrame.JSON(properties));
+
+                    Lint(code, package);
+
+                    if (debug)
+                        Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata.ToString());
+                    return;
                 });
 
                 thread.SetApartmentState(ApartmentState.STA);

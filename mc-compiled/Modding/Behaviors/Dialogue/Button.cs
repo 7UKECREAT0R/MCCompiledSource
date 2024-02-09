@@ -1,4 +1,6 @@
-﻿using mc_compiled.Json;
+﻿using System;
+using System.Linq;
+using mc_compiled.Json;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors.Dialogue
@@ -60,7 +62,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             return new JObject()
             {
                 ["name"] = _name.Build(),
-                ["commands"] = new JArray(commands ?? new string[0])
+                ["commands"] = new JArray(commands?.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd) ?? Array.Empty<string>())
             };
         }
     }

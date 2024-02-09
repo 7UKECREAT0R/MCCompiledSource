@@ -10,10 +10,10 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
     /// </summary>
     public class Scene
     {
-        public string sceneTag;
+        public readonly string sceneTag;
         private RawTextJsonBuilder _npcName;
         private RawTextJsonBuilder _text;
-        private List<Button> buttons;
+        private readonly List<Button> buttons;
 
         public string[] openCommands;
         public string[] closeCommands;
@@ -23,13 +23,18 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             this.sceneTag = sceneTag;
             this.buttons = new List<Button>();
         }
-
+        public string CommandReference => sceneTag;
+        
         public Scene AddButton(Button button)
         {
             this.buttons.Add(button);
             return this;
         }
         public Scene AddButtons(params Button[] buttons)
+        {
+            return AddButtons((IEnumerable<Button>) buttons);
+        }
+        public Scene AddButtons(IEnumerable<Button> buttons)
         {
             this.buttons.AddRange(buttons);
             return this;
@@ -54,7 +59,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             set
             {
                 _npcName = new RawTextJsonBuilder();
-                _npcName.AddTerm(new JSONText(value));
+                _npcName.AddTerm(new JSONTranslate(value).With("\n"));
             }
         }
         /// <summary>
@@ -105,7 +110,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             set
             {
                 _text = new RawTextJsonBuilder();
-                _text.AddTerm(new JSONText(value));
+                _text.AddTerm(new JSONTranslate(value).With("\n"));
             }
         }
         /// <summary>
@@ -137,9 +142,9 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             }
         }
 
-        public JObject Build()
+        public JObject ToJSON()
         {
-            JObject json = new JObject()
+            var json = new JObject()
             {
                 ["scene_tag"] = sceneTag,
                 ["npc_name"] = _npcName?.Build(),
@@ -148,10 +153,10 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             };
 
             if (openCommands != null && openCommands.Length > 0)
-                json["on_open_commands"] = new JArray(openCommands);
+                json["on_open_commands"] = new JArray(openCommands.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd));
 
             if (closeCommands != null && closeCommands.Length > 0)
-                json["on_close_commands"] = new JArray(closeCommands);
+                json["on_close_commands"] = new JArray(closeCommands.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd));
 
             return json;
         }

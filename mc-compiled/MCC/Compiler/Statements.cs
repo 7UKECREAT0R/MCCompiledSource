@@ -424,7 +424,7 @@ namespace mc_compiled.MCC.Compiler
 
         public Token[] GetTokens() => tokens;
 
-        protected override TypePattern[] GetValidPatterns() { return new TypePattern[0]; } // always valid
+        protected override TypePattern[] GetValidPatterns() { return Array.Empty<TypePattern>(); } // always valid
         protected override void Run(Executor executor) { } // no operation
     }
 

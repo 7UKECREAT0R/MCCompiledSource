@@ -1,5 +1,5 @@
 {
-  "version": 1.16,
+  "version": 1.17,
   "preprocessor_variables": [
     "_compiler",
     "_minecraft",
@@ -33,6 +33,12 @@
       "details": "Creates a function that will 'uninstall' the addon from the world; removes tags, scoreboard objectives, dummy entities, etc.",
       "min-version": 1.12,
       "value": 8
+    },
+    "AUDIOFILES": {
+      "description": "Audio Files",
+      "details": "Enables support for the 'playsound' command to accept audio files. Definitions will be automatically created and files will be copied to their resulting locations.",
+      "min-version": 1.17,
+      "value": 16
     }
   },
   "mappings": {
@@ -836,6 +842,16 @@
       "patterns": [
         [ "value:variable" ],
         [ "any:return value" ]
+      ]
+    },
+    "dialogue": {
+      "description": "Define/Open Dialogue",
+      "details": "If followed by a block, defines a new dialogue scene with the given name.",
+      "category": "text",
+      "patterns": [
+        [ "id:new", "string:scene tag" ],
+        [ "id:open", "selector:npc", "selector:player", "?string:scene tag" ],
+        [ "id:change", "selector:npc", "string:scene tag", "?selector:player" ]
       ]
     },
     "for": {

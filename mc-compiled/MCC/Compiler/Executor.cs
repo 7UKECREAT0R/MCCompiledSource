@@ -19,6 +19,7 @@ using System.Linq.Expressions;
 using JetBrains.Annotations;
 using mc_compiled.Compiler;
 using mc_compiled.MCC.Functions.Types;
+using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -35,7 +36,7 @@ namespace mc_compiled.MCC.Compiler
 
         public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
-        public const double MCC_VERSION = 1.16;                 // _compiler
+        public const decimal MCC_VERSION = 1.17M;                 // _compiler
         public static string MINECRAFT_VERSION = "0.00.000";    // _minecraft
         public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
         public const string MCC_TESTS_FOLDER = "tests";         // folder that generated tests go into
@@ -412,7 +413,8 @@ namespace mc_compiled.MCC.Compiler
 
         private LanguageManager languageManager;
         private SoundDefinitions soundDefinitions;
-
+        private DialogueManager dialogueDefinitions;
+        
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
         /// </summary>
@@ -486,6 +488,12 @@ namespace mc_compiled.MCC.Compiler
             return soundDefinitions;
         }
 
+        /// <summary>
+        /// Get the path of a file relative to the working directory.
+        /// </summary>
+        /// <param name="file">The file path.</param>
+        /// <param name="_workingDirectory">The working directory path.</param>
+        /// <returns>The relative path of the file, or null if the file is not contained within the working directory.</returns>
         [CanBeNull, Pure]
         private static string GetPathRelativeToWorkingDirectory(string file, string _workingDirectory)
         {
@@ -508,6 +516,14 @@ namespace mc_compiled.MCC.Compiler
             
             return relative;
         }
+
+        /// <summary>
+        /// Adds a new sound definition to the project.
+        /// </summary>
+        /// <param name="soundFile">The path to the sound file to be added.</param>
+        /// <param name="category">The category of the sound.</param>
+        /// <param name="callingStatement">The calling statement that is adding the sound definition.</param>
+        /// <returns>A new <see cref="SoundDefinition"/> object representing the added sound definition.</returns>
         public SoundDefinition AddNewSoundDefinition(string soundFile, SoundCategory category, Statement callingStatement)
         {
             // check if soundFile is contained somewhere within the working directory
@@ -534,6 +550,19 @@ namespace mc_compiled.MCC.Compiler
             SoundDefinitions soundDefinitions = GetSoundDefinitions(callingStatement);
             soundDefinitions.AddSoundDefinition(soundDefinition);
             return soundDefinition;
+        }
+        /// <summary>
+        /// Gets the instance of Dialogue registry.
+        /// </summary>
+        /// <returns>The Dialogue registry instance.</returns>
+        public DialogueManager GetDialogueRegistry()
+        {
+            if (dialogueDefinitions != null)
+                return dialogueDefinitions;
+
+            dialogueDefinitions = new DialogueManager(MCC_GENERATED_FOLDER);
+            AddExtraFile(dialogueDefinitions);
+            return dialogueDefinitions;
         }
         
         /// <summary>
@@ -921,7 +950,7 @@ namespace mc_compiled.MCC.Compiler
             if(NextIsBuilder())
             {
                 // reassigns the field in the caller's code
-                tokens = Next<StatementUnknown>();
+                tokens = Next<StatementUnknown>().ClonePrepare(this);
                 builderField = tokens.Next<TokenBuilderIdentifier>();
                 return true;
             }
@@ -1475,6 +1504,7 @@ namespace mc_compiled.MCC.Compiler
                 }
 
                 string ppvName = text.Substring(lastIndex + 1);
+                
                 if (!TryGetPPV(ppvName, out PreprocessorVariable values))
                     continue; // no ppv named that
 
@@ -1522,6 +1552,11 @@ namespace mc_compiled.MCC.Compiler
 
         public void PushFile(CommandFile file) =>
             currentFiles.Push(file);
+        public void PopFileDiscard()
+        {
+            unreachableCode = -1;
+            _ = currentFiles.Pop();
+        }
         public void PopFile()
         {
             unreachableCode = -1;

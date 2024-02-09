@@ -11,9 +11,8 @@ namespace mc_compiled.Json
     /// </summary>
     public class RawTextJsonBuilder
     {
-        List<JSONRawTerm> terms;
-
-        string copiedString = null;
+        private readonly List<JSONRawTerm> terms;
+        private string copiedString;
 
         public RawTextJsonBuilder()
         {
@@ -26,10 +25,9 @@ namespace mc_compiled.Json
             if (copy != null)
                 terms.AddRange(copy.terms);
         }
-        public RawTextJsonBuilder ClearTerms()
+        public void ClearTerms()
         {
             terms.Clear();
-            return this;
         }
         public RawTextJsonBuilder AddTerm(JSONRawTerm term)
         {
@@ -46,7 +44,7 @@ namespace mc_compiled.Json
             this.terms.AddRange(terms);
             return this;
         }
-        public string BuildPreviewString()
+        private string BuildPreviewString()
         {
             return string.Join(" ", from term in terms select term.PreviewString());
         }
@@ -59,9 +57,9 @@ namespace mc_compiled.Json
         {
             JObject[] objects = (from term in terms select term.Build()).ToArray();
 
-            return new JObject()
+            return new JObject
             {
-                ["rawtext"] = new JArray(objects)
+                ["rawtext"] = new JArray(objects.Cast<object>())
             };
         }
         /// <summary>

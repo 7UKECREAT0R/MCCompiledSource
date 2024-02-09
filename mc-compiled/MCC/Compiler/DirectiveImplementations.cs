@@ -19,6 +19,7 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
 using mc_compiled.Compiler;
+using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
 using Microsoft.CSharp.RuntimeBinder;
 // ReSharper disable IdentifierTypo
@@ -749,7 +750,12 @@ namespace mc_compiled.MCC.Compiler
                 Console.WriteLine();
             }
 
+            
+            string previousDirectory = Environment.CurrentDirectory;
+            Environment.CurrentDirectory = Path.GetDirectoryName(file) ?? previousDirectory;
+            
             executor.ExecuteSubsection(statements);
+            Environment.CurrentDirectory = previousDirectory;
         }
         [UsedImplicitly]
         public static void _strfriendly(Executor executor, Statement tokens)
@@ -1273,9 +1279,6 @@ namespace mc_compiled.MCC.Compiler
             if (Program.DEBUG)
                 Console.WriteLine("Set locale to '{0}'", locale);
             
-            if (executor.linting)
-                return; // due to no project being given in linting operations, it's not necessary.
-
             const bool DEFAULT_MERGE = true;
 
             // create preprocessor variable if it doesn't exist.
@@ -2972,6 +2975,197 @@ namespace mc_compiled.MCC.Compiler
             {
                 var token = tokens.Next<TokenLiteral>();
                 activeFunction.TryReturnValue(token, tokens, executor);
+            }
+        }
+        [UsedImplicitly]
+        public static void dialogue(Executor executor, Statement tokens)
+        {
+            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            DialogueManager dialogueRegistry = executor.GetDialogueRegistry();
+
+            switch (word)
+            {
+                case "OPEN":
+                {
+                    Selector npc = tokens.Next<TokenSelectorLiteral>();
+                    Selector players = tokens.Next<TokenSelectorLiteral>();
+
+                    if (!npc.NonPlayers)
+                        throw new StatementException(tokens, $"Selector '{npc}' will never target an NPC.");
+                    if (players.NonPlayers)
+                        throw new StatementException(tokens, $"Selector '{players}' may target non-players.");
+                    
+                    if (tokens.NextIs<TokenStringLiteral>(false))
+                    {
+                        string sceneTag = tokens.Next<TokenStringLiteral>();
+                        executor.AddCommand(dialogueRegistry.TryGetScene(sceneTag, out Scene scene)
+                            ? Command.DialogueOpen(npc.ToString(), players.ToString(), scene)
+                            : Command.DialogueOpen(npc.ToString(), players.ToString(), sceneTag));
+                        break;
+                    }
+                    
+                    executor.AddCommand(Command.DialogueOpen(npc.ToString(), players.ToString()));
+                    break;
+                }
+                case "CHANGE":
+                {
+                    Selector npc = tokens.Next<TokenSelectorLiteral>();
+                    
+                    string sceneTag = tokens.Next<TokenStringLiteral>();
+                    
+                    if (!npc.NonPlayers)
+                        throw new StatementException(tokens, $"Selector '{npc}' will never target an NPC.");
+
+                    if (tokens.NextIs<TokenSelectorLiteral>())
+                    {
+                        Selector players = tokens.Next<TokenSelectorLiteral>();
+
+                        if (players.NonPlayers)
+                            throw new StatementException(tokens, $"Selector '{players}' may target non-players.");
+                        
+                        executor.AddCommand(Command.DialogueChange(npc.ToString(), sceneTag, players.ToString()));
+                        break;
+                    }
+                    
+                    executor.AddCommand(Command.DialogueChange(npc.ToString(), sceneTag));
+                    break;
+                }
+                case "NEW":
+                {
+                    string newSceneTag = tokens.Next<TokenStringLiteral>();
+                    if (dialogueRegistry.TryGetScene(newSceneTag, out _))
+                        throw new StatementException(tokens, $"Dialogue scene '{newSceneTag}' already exists.");
+                    if (!executor.NextIs<StatementOpenBlock>())
+                        throw new StatementException(tokens, "Dialogue definition must be followed by a block containing the fields for the dialogue.");
+
+                    Statement[] statements = executor.NextExecutionSet();
+                    string npcName = null;
+                    string text = null;
+                    string[] onOpen = null;
+                    string[] onClose = null;
+                    var buttons = new List<Button>();
+
+                    for (int i = 0; i < statements.Length; i++)
+                    {
+                        Statement current = statements[i];
+
+                        if (current is StatementUnknown unknown)
+                        {
+                            if (!unknown.NextIs<TokenBuilderIdentifier>())
+                                throw new StatementException(tokens, $"Unexpected field in dialogue definition: {unknown}");
+                            unknown = (StatementUnknown)unknown.ClonePrepare(executor);
+                            string builderField = unknown.Next<TokenBuilderIdentifier>().BuilderField;
+
+                            switch (builderField)
+                            {
+                                case "NAME":
+                                    npcName = unknown.Next<TokenStringLiteral>();
+                                    break;
+                                case "TEXT":
+                                    text = unknown.Next<TokenStringLiteral>();
+                                    break;
+                                case "BUTTON":
+                                    string buttonText = unknown.Next<TokenStringLiteral>();
+                                    string[] buttonCommands = BuildCommandsFromNextExecutionSet();
+                                    var newButton = new Button(buttonCommands);
+
+                                    if (executor.HasLocale)
+                                    {
+                                        string langEntryName = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".button");
+                                        langEntryName = executor.SetLocaleEntry(langEntryName, buttonText, tokens, true).key;
+                                        newButton.NameTranslate = langEntryName;
+                                    }
+                                    else
+                                        newButton.NameString = buttonText;
+                                    
+                                    buttons.Add(newButton);
+                                    break;
+                                case "ONOPEN":
+                                    onOpen = BuildCommandsFromNextExecutionSet();
+                                    break;
+                                case "ONCLOSE":
+                                    onClose = BuildCommandsFromNextExecutionSet();
+                                    break;
+                            }
+                        }
+
+                        continue;
+
+                        string[] BuildCommandsFromNextExecutionSet()
+                        {
+                            i += 1;
+                            if (i >= statements.Length)
+                                return Array.Empty<string>();
+
+                            Statement firstStatement = statements[i];
+                            
+                            if (!(firstStatement is StatementOpenBlock openBlock))
+                                return Array.Empty<string>();
+                            
+                            // skip open block
+                            i += 1;
+                                
+                            // pull statements inside into their own array
+                            int insideCount = openBlock.statementsInside;
+                            if (insideCount < 1)
+                                return Array.Empty<string>();
+                                
+                            var inside = new Statement[insideCount];
+                            for (int j = 0; j < insideCount; j++)
+                                inside[j] = statements[i + j];
+                                
+                            // skip close block
+                            i += 1;
+                            
+                            // turn decoration off.
+                            bool oldDecorate = Program.DECORATE;
+                            Program.DECORATE = false;
+                            
+                            // create virtual file to hold commands inside code
+                            var tempFile = new CommandFile(true, "temp");
+                            executor.PushFile(tempFile);
+                            executor.ExecuteSubsection(inside);
+                            executor.PopFileDiscard();
+
+                            Program.DECORATE = oldDecorate;
+                            return tempFile.commands.ToArray();
+                        }
+                    }
+
+                    if (npcName == null)
+                        throw new StatementException(tokens, "Field 'name' must be specified.");
+                    if (text == null)
+                        throw new StatementException(tokens, "Field 'text' must be specified.");
+
+                    Scene newScene = new Scene(newSceneTag)
+                    {
+                        openCommands = onOpen,
+                        closeCommands = onClose
+                    }.AddButtons(buttons);
+                    
+                    if (executor.HasLocale)
+                    {
+                        string npcNameTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".name");
+                        npcNameTranslationKey = executor.SetLocaleEntry(npcNameTranslationKey, npcName.Replace("\\n", "%1"), tokens, true).key;
+                        newScene.NPCNameTranslate = npcNameTranslationKey;
+                    }
+                    else
+                        newScene.NPCNameString = npcName;
+                    
+                    if (executor.HasLocale || text.Contains("\\n"))
+                    {
+                        if (!executor.HasLocale)
+                            throw new StatementException(tokens, "Use of '\\n' in dialogue texts requires localization to be enabled.");
+                        string textTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".text");
+                        textTranslationKey = executor.SetLocaleEntry(textTranslationKey, text.Replace("\\n", "%1"), tokens, true).key;
+                        newScene.TextTranslate = textTranslationKey;
+                    }
+                    else
+                        newScene.TextString = text;
+
+                    dialogueRegistry.AddScene(newScene);
+                    break;
+                }
             }
         }
         [UsedImplicitly]

@@ -132,7 +132,7 @@ namespace mc_compiled.MCC.Compiler
         private string builderField;
 
         /// <summary>
-        /// This builder field converted to full upper-case.
+        /// This builder field converted to full upper-case, not containing the colon.
         /// </summary>
         public string BuilderField
         {

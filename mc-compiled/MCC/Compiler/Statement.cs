@@ -664,7 +664,6 @@ namespace mc_compiled.MCC.Compiler
         }
         private void SquashDereferences(List<Token> tokens, Executor executor)
         {
-            
             int tokensLength = tokens.Count;
             int i;
 
@@ -679,9 +678,9 @@ namespace mc_compiled.MCC.Compiler
                 Token nextToken = tokens[i + 1];
                 if (!(nextToken is TokenIdentifierPreprocessor preprocessorToken))
                     throw new StatementException(this, $"Cannot derefrence token: {nextToken.AsString()}");
-
+                
                 PreprocessorVariable ppv = preprocessorToken.variable;
-                int insertCount = ppv.Length;
+                int insertCount = ppv.Length - 1;
                 int line = Lines?[0] ?? 0;
                 
                 // check to see if every item in the ppv can be dereferenced, and wrap it in a literal
@@ -696,6 +695,7 @@ namespace mc_compiled.MCC.Compiler
 
                 // remove i and i+1 from the tokens
                 tokens.RemoveRange(i, 2);
+                tokensLength -= (1 - insertCount); // length reduced by one (deref removed), but went up by insertCount
                 
                 // insert the tokens and step forward past them, if needed.
                 tokens.InsertRange(i, wrappedLiterals);
