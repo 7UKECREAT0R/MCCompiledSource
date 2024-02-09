@@ -114,9 +114,9 @@ namespace mc_compiled.MCC.CustomEntities
             existingDummies.Add(name);
 
             if (!forTagging)
-                return Command.Summon(dummyType, x, y, z, name);
+                return Command.Summon(dummyType, x, y, z, Coordinate.here, Coordinate.here, name);
             
-            return Command.Summon(dummyType, x, y, z, name, TAGGABLE_EVENT_ADD_NAME);
+            return Command.Summon(dummyType, x, y, z, Coordinate.here,Coordinate.here, name, TAGGABLE_EVENT_ADD_NAME);
         }
 
         /// <summary>

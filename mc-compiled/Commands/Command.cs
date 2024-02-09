@@ -607,12 +607,14 @@ namespace mc_compiled.Commands
             $"summon {entity}";
         public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z) =>
             $"summon {entity} {x} {y} {z}";
-        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, string nameTag) =>
-            $"summon {entity} {nameTag.AsCommandParameter()} {x} {y} {z}";
-        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, string nameTag, string spawnEvent) =>
-            $"summon {entity} {x} {y} {z} {spawnEvent} {nameTag.AsCommandParameter()}";
-        public static string SummonWithEvent(string entity, Coordinate x, Coordinate y, Coordinate z, string spawnEvent) =>
-            $"summon {entity} {x} {y} {z} {spawnEvent}";
+        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot) =>
+            $"summon {entity} {x} {y} {z} {yRot} {xRot}";
+        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, string nameTag) =>
+            $"summon {entity} {nameTag.AsCommandParameter()} {x} {y} {z} {yRot} {xRot}";
+        public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, string nameTag, string spawnEvent) =>
+            $"summon {entity} {x} {y} {z} {yRot} {xRot} {spawnEvent} {nameTag.AsCommandParameter()}";
+        public static string SummonWithEvent(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, string spawnEvent) =>
+            $"summon {entity} {x} {y} {z} {yRot} {xRot} {spawnEvent}";
 
         public static string Tag(string targets, string tag) =>
             $"tag {targets.AsCommandParameter()} add {tag.AsCommandParameter()}";

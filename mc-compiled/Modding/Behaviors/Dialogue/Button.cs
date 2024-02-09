@@ -26,7 +26,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             set
             {
                 _name = new RawTextJsonBuilder();
-                _name.AddTerm(new JSONText(value));
+                _name.AddTerm(new JSONTranslate(value));
             }
         }
         public JSONRawTerm[] Name

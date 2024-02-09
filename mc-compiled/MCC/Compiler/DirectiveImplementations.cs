@@ -3010,7 +3010,6 @@ namespace mc_compiled.MCC.Compiler
                 case "CHANGE":
                 {
                     Selector npc = tokens.Next<TokenSelectorLiteral>();
-                    
                     string sceneTag = tokens.Next<TokenStringLiteral>();
                     
                     if (!npc.NonPlayers)

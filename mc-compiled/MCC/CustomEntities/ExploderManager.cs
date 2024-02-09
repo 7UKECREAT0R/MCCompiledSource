@@ -113,7 +113,7 @@ namespace mc_compiled.MCC.CustomEntities
             string eventName = GetPreset(power, delay, fire, breaksBlocks);
 
             // Simple summon command!
-            return Command.SummonWithEvent(exploderType, x, y, z, eventName);
+            return Command.SummonWithEvent(exploderType, x, y, z, Coordinate.here, Coordinate.here, eventName);
         }
     }
     public struct ExploderFiles
