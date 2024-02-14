@@ -610,7 +610,7 @@ namespace mc_compiled.Commands
         public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot) =>
             $"summon {entity} {x} {y} {z} {yRot} {xRot}";
         public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, string nameTag) =>
-            $"summon {entity} {nameTag.AsCommandParameter()} {x} {y} {z} {yRot} {xRot}";
+            $"summon {entity} {x} {y} {z} {yRot} {xRot} none {nameTag.AsCommandParameter()}";
         public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, string nameTag, string spawnEvent) =>
             $"summon {entity} {x} {y} {z} {yRot} {xRot} {spawnEvent} {nameTag.AsCommandParameter()}";
         public static string SummonWithEvent(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot, string spawnEvent) =>

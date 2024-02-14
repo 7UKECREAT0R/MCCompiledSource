@@ -1,4 +1,5 @@
 This file contains all of the definitions that are used inside the langauge itself. These can be modified or added to as much as you want as long as the format is followed. To use one of these, simply type "[category: query]" anywhere in your code,
+This file contains all of the definitions that are used inside the langauge itself. These can be modified or added to as much as you want as long as the format is followed. To use one of these, simply type "[category: query]" anywhere in your code,
 	For example; [wool: LIGHT GREEN] [MOB: Enderman] [Entity: arrow]
 
 Constants are case insensitive snippets which aim to simplify and standardize Minecraft naming protocol along with defining commonly used constants and unnamed IDs. Constants can use spaces in both their category and definition names, increasing code readability and simplicity. They also future proof code for any future changes to object names.
@@ -188,6 +189,8 @@ CATEGORY COLOR AND CHATCOLOR AND CHAT COLOR
 	DARK GREEN IS §2
 	DARKAQUA IS §3
 	DARK AQUA IS §3
+    DARKCYAN IS §3
+    DARK CYAN IS §3
 	DARKRED IS §4
 	DARK RED IS §4
 	DARKPURPLE IS §5

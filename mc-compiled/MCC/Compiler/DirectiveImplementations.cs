@@ -20,6 +20,7 @@ using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
 using mc_compiled.Compiler;
 using mc_compiled.Modding.Behaviors.Dialogue;
+using mc_compiled.Modding.Behaviors.Lists;
 using mc_compiled.Modding.Resources;
 using Microsoft.CSharp.RuntimeBinder;
 // ReSharper disable IdentifierTypo
@@ -2497,14 +2498,14 @@ namespace mc_compiled.MCC.Compiler
             if(!tokens.NextIs<TokenCoordinateLiteral>())
             {
                 soundId = ProcessSoundIdAsFile(SoundCategory.ui);
-                executor.AddCommand(Command.PlaySound(soundId, filter.ToString()));
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), Coordinate.here, Coordinate.here, Coordinate.here, 1.0f, 1.0f, 1.0f));
                 return;
             }
 
             Coordinate x = tokens.Next<TokenCoordinateLiteral>();
             Coordinate y = tokens.Next<TokenCoordinateLiteral>();
             Coordinate z = tokens.Next<TokenCoordinateLiteral>();
-            soundId = ProcessSoundIdAsFile(SoundCategory.player);
+            soundId = ProcessSoundIdAsFile(SoundCategory.ui /*SoundCategory.player*/);
 
             if(!tokens.NextIs<TokenNumberLiteral>())
             {
@@ -2555,7 +2556,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if (!File.Exists(soundId))
                     throw new StatementException(tokens, $"Audio file '{soundId}' not found.");
-
+                
                 SoundDefinition definition = executor.AddNewSoundDefinition(soundId, category, tokens);
                 return definition.CommandReference;
 
@@ -2769,6 +2770,10 @@ namespace mc_compiled.MCC.Compiler
                 isAddedToExecutor = true
             };
             
+            // folders, if specified via dots
+            if (usesFolders)
+                function.file.Folders = folders;
+            
             function.AddParameters(parameters);
             function.SignalToAttributes(tokens);
 
@@ -2786,11 +2791,6 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            // folders, if specified via dots
-            if (usesFolders)
-                function.file.Folders = folders;
-            
-            
             // check for duplicates and try to extend partial function
             bool cancelRegistry = false;
             if (executor.functions.TryGetFunctions(actualName, out Function[] existingFunctions))
@@ -3066,13 +3066,18 @@ namespace mc_compiled.MCC.Compiler
                                 case "BUTTON":
                                     string buttonText = unknown.Next<TokenStringLiteral>();
                                     string[] buttonCommands = BuildCommandsFromNextExecutionSet();
+                                    buttonCommands = CompressCommandsToFile(buttonCommands, $"scene{newSceneTag}_press",
+                                        $"Called when the button '{buttonText}' is pressed by a player in the dialogue '{newSceneTag}'. @s refers to the player, not the NPC.");
                                     var newButton = new Button(buttonCommands);
 
                                     if (executor.HasLocale)
                                     {
                                         string langEntryName = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".button");
-                                        langEntryName = executor.SetLocaleEntry(langEntryName, buttonText, tokens, true).key;
-                                        newButton.NameTranslate = langEntryName;
+                                        langEntryName = executor.SetLocaleEntry(langEntryName, buttonText, tokens, true)?.key;
+                                        if (langEntryName == null)
+                                            newButton.NameString = buttonText;
+                                        else
+                                            newButton.NameTranslate = langEntryName;
                                     }
                                     else
                                         newButton.NameString = buttonText;
@@ -3138,15 +3143,19 @@ namespace mc_compiled.MCC.Compiler
 
                     Scene newScene = new Scene(newSceneTag)
                     {
-                        openCommands = onOpen,
-                        closeCommands = onClose
+                        openCommands = CompressCommandsToFile(onOpen, $"scene{newSceneTag}_open", $"Called when the dialogue '{newSceneTag}' is opened by a player. @s refers to the player, not the NPC."),
+                        closeCommands = CompressCommandsToFile(onClose, $"scene{newSceneTag}_close", $"Called when the dialogue '{newSceneTag}' is closed by a player. @s refers to the player, not the NPC.")
                     }.AddButtons(buttons);
                     
                     if (executor.HasLocale)
                     {
                         string npcNameTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".name");
-                        npcNameTranslationKey = executor.SetLocaleEntry(npcNameTranslationKey, npcName.Replace("\\n", "%1"), tokens, true).key;
-                        newScene.NPCNameTranslate = npcNameTranslationKey;
+                        string npcNameEscapedNewlines = npcName.Replace("\\n", "%1");
+                        npcNameTranslationKey = executor.SetLocaleEntry(npcNameTranslationKey, npcNameEscapedNewlines, tokens, true)?.key;
+                        if (npcNameTranslationKey == null)
+                            newScene.NPCNameString = npcNameEscapedNewlines;
+                        else
+                            newScene.NPCNameTranslate = npcNameTranslationKey;
                     }
                     else
                         newScene.NPCNameString = npcName;
@@ -3156,8 +3165,12 @@ namespace mc_compiled.MCC.Compiler
                         if (!executor.HasLocale)
                             throw new StatementException(tokens, "Use of '\\n' in dialogue texts requires localization to be enabled.");
                         string textTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".text");
-                        textTranslationKey = executor.SetLocaleEntry(textTranslationKey, text.Replace("\\n", "%1"), tokens, true).key;
-                        newScene.TextTranslate = textTranslationKey;
+                        string textEscapedNewlines = text.Replace("\\n", "%1");
+                        textTranslationKey = executor.SetLocaleEntry(textTranslationKey, textEscapedNewlines, tokens, true)?.key;
+                        if (textTranslationKey == null)
+                            newScene.TextString = textEscapedNewlines;
+                        else
+                            newScene.TextTranslate = textTranslationKey;
                     }
                     else
                         newScene.TextString = text;
@@ -3165,6 +3178,40 @@ namespace mc_compiled.MCC.Compiler
                     dialogueRegistry.AddScene(newScene);
                     break;
                 }
+            }
+
+            return;
+
+            string[] CompressCommandsToFile(string[] commands, string fileName, string decoratorDescription)
+            {
+                if (commands == null)
+                    return null;
+                if (commands.Length < 2)
+                {
+                    for (int i = 0; i < commands.Length; i++)
+                        commands[i] = Command.Execute()
+                            .As(Selector.INVOKER)
+                            .AtSelf()
+                            .Run(commands[i]);
+                    return commands;
+                }
+
+                CommandFile file = Executor.GetNextGeneratedFile(fileName);
+                executor.AddExtraFile(file);
+
+                if (Program.DECORATE)
+                {
+                    file.Add("# " + decoratorDescription);
+                    file.Add("");
+                }
+                file.Add(commands);
+                return new[]
+                {
+                    Command.Execute()
+                        .As(Selector.INVOKER)
+                        .AtSelf()
+                        .Run(Command.Function(file.CommandReference))
+                };
             }
         }
         [UsedImplicitly]

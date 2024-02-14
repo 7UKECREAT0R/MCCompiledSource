@@ -75,8 +75,9 @@ namespace mc_compiled.Json
             if (!hasLeadingWhitespace && !hasTrailingWhitespace)
             {
                 string _key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
-                _key = executor.SetLocaleEntry(_key, text, forExceptions, true).key;
-                return new JSONRawTerm[] { new JSONTranslate(_key) };
+                _key = executor.SetLocaleEntry(_key, text, forExceptions, true)?.key;
+                
+                return new[] { _key == null ? (JSONRawTerm)new JSONText(text) : (JSONRawTerm)new JSONTranslate(_key) };
             }
 
             int indices = 1 + (hasLeadingWhitespace ? 1 : 0) + (hasTrailingWhitespace ? 1 : 0);
@@ -103,8 +104,12 @@ namespace mc_compiled.Json
 
             // finally, the translated part.
             string key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
-            key = executor.SetLocaleEntry(key, textCopy, forExceptions, true).key;
-            output[index] = new JSONTranslate(key);
+            key = executor.SetLocaleEntry(key, textCopy, forExceptions, true)?.key;
+
+            if (key == null)
+                output[index] = new JSONText(textCopy);
+            else
+                output[index] = new JSONTranslate(key);
 
             // done
             return output;

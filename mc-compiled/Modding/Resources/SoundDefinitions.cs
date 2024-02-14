@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
 using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
 
@@ -67,6 +68,28 @@ namespace mc_compiled.Modding.Resources
                 ["format_version"] = formatVersion,
                 ["sound_definitions"] = defs
             };
+        }
+
+        /// <summary>
+        /// Attempts to retrieve a sound definition from the `SoundDefinitions` class.
+        /// </summary>
+        /// <param name="key">The key of the sound definition to retrieve.</param>
+        /// <param name="soundDefinition">When this method returns, contains the sound definition associated with the specified key, if the key was found; otherwise, null.</param>
+        /// <returns>true if the sound definition was found; otherwise, false.</returns>
+        public bool TryGetSoundDefinition(string key, out SoundDefinition soundDefinition)
+        {
+            return soundDefinitions.TryGetValue(key, out soundDefinition);
+        }
+        /// <summary>
+        /// Retrieves a sound definition by its key.
+        /// </summary>
+        /// <param name="key">The key of the sound definition to retrieve.</param>
+        /// <returns>The sound definition corresponding to the specified key.</returns>
+        public SoundDefinition GetSoundDefinition(string key)
+        {
+            if (!soundDefinitions.ContainsKey(key))
+                throw new KeyNotFoundException($"The key {key} does not exist in the sound definitions.");
+            return soundDefinitions[key];
         }
         
         public string CommandReference => throw new NotImplementedException();
@@ -135,11 +158,18 @@ namespace mc_compiled.Modding.Resources
         }
         public JProperty ToJSON()
         {
-            return new JProperty(name, new JObject
+            var jObject = new JObject
             {
                 ["category"] = category.ToString(),
                 ["sounds"] = new JArray(sounds.Cast<object>().ToArray())
-            });
+            };
+
+            if (category == SoundCategory.ui)
+            {
+                jObject["min_distance"] = 999999f;
+            }
+            
+            return new JProperty(name, jObject);
         }
 
         private readonly string name;
@@ -147,6 +177,7 @@ namespace mc_compiled.Modding.Resources
         private readonly string[] sounds;
     }
     
+    [EnumParsable(typeof(SoundCategory))]
     public enum SoundCategory
     {
         [UsedImplicitly] ambient,

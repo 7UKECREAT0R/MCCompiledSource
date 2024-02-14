@@ -82,6 +82,8 @@
     <Compile Include="Commands\Execute\ExecuteBuilder.cs" />
     <Compile Include="Commands\Execute\Subcommand.cs" />
     <Compile Include="Commands\Execute\Subcommands.cs" />
+    <Compile Include="Commands\Native\BlockState.cs" />
+    <Compile Include="Commands\Native\BlockStates.cs" />
     <Compile Include="Commands\Selectors\Area.cs" />
     <Compile Include="Commands\Selectors\Count.cs" />
     <Compile Include="Commands\Selectors\Entity.cs" />

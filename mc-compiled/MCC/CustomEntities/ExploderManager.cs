@@ -133,7 +133,7 @@ namespace mc_compiled.MCC.CustomEntities
             };
         }
     }
-    public struct ExploderPreset
+    public readonly struct ExploderPreset
     {
         public ExploderPreset(int power, int delay, bool fire, bool breaksBlocks)
         {
@@ -148,7 +148,7 @@ namespace mc_compiled.MCC.CustomEntities
         public readonly bool fire;
         public readonly bool breaks;
 
-        public bool Equals(ExploderPreset other)
+        private bool Equals(ExploderPreset other)
         {
             return power == other.power && delay == other.delay && fire == other.fire && breaks == other.breaks;
         }

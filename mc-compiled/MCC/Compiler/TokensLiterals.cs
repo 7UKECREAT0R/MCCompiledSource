@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Security.Permissions;
 using System.Windows.Forms;
 using JetBrains.Annotations;
+using mc_compiled.Commands.Native;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 
@@ -508,16 +509,18 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenBlockStateLiteral : TokenLiteral
     {
-        public override string AsString() => $"\"{FieldName}\"={FieldValue}";
-        public override string ToString() => $"\"{FieldName}\"={FieldValue}";
+        public override string AsString() => blockState.ToString();
+        public override string ToString() => blockState.ToString();
 
-        public string FieldName { get; }
-        public TokenLiteral FieldValue { get; }
+        private readonly BlockState blockState;
 
         public TokenBlockStateLiteral(string fieldName, TokenLiteral fieldValue, int lineNumber) : base(lineNumber)
         {
-            FieldName = fieldName;
-            FieldValue = fieldValue;
+            blockState = BlockState.FromLiteral(fieldName, fieldValue);
+        }
+        private TokenBlockStateLiteral(BlockState blockState, int lineNumber) : base(lineNumber)
+        {
+            this.blockState = blockState;
         }
         
         public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
@@ -531,12 +534,10 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
             throw new TokenException(this, "Invalid literal operation.");
-
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
             throw new TokenException(this, "Invalid literal operation.");
-
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
@@ -545,7 +546,6 @@ namespace mc_compiled.MCC.Compiler
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
             throw new TokenException(this, "Invalid literal operation.");
-
         }
         public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
         {
@@ -558,7 +558,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral Clone()
         {
-            return new TokenBlockStateLiteral(FieldName, FieldValue, lineNumber);
+            return new TokenBlockStateLiteral(blockState, lineNumber);
         }
     }
     public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor, IDocumented

@@ -16,7 +16,8 @@ namespace mc_compiled.Commands.Selectors
             s,          // Self
             a,          // All players
             e,          // All entities
-            initiator   // Initiator of Dialogue Button
+            r,          // Random entity
+            initiator,  // as dialogue initiator - not usable in regular code
         }
 
         private static Core ParseCore(string core)
@@ -53,8 +54,8 @@ namespace mc_compiled.Commands.Selectors
                     return Core.a;
                 case 'E':
                     return Core.e;
-                case 'I':
-                    return Core.e;
+                case 'R':
+                    return Core.r;
                 default:
                     throw new FormatException($"Cannot parse selector \"{core}\"");
             }
@@ -68,14 +69,14 @@ namespace mc_compiled.Commands.Selectors
             get {
                 if (count.count == 1)
                     return false;
-                return core != Core.s && core != Core.p && core != Core.initiator;
+                return core != Core.s && core != Core.p && core != Core.r;
             }
         }
 
         /// <summary>
         /// Returns if this selector needs to be aligned before executing locally on this entity.
         /// </summary>
-        public bool NonSelf => core != Core.s && core != Core.initiator;
+        public bool NonSelf => core != Core.s;
         /// <summary>
         /// Returns if this selector selects ANY entities that are not players.
         /// </summary>
@@ -83,7 +84,7 @@ namespace mc_compiled.Commands.Selectors
         {
             get
             {
-                if (core != Core.e)
+                if (core != Core.e && core != Core.r)
                     return false;
                 if (entity.type != null && entity.type.Contains("player"))
                     return false;
@@ -91,11 +92,11 @@ namespace mc_compiled.Commands.Selectors
             }
         }
         
+        public static readonly Selector INVOKER = new Selector(Core.initiator);
         public static readonly Selector NEAREST_PLAYER = new Selector(Core.p);
         public static readonly Selector SELF = new Selector(Core.s);
         public static readonly Selector ALL_PLAYERS = new Selector(Core.a);
         public static readonly Selector ALL_ENTITIES = new Selector(Core.e);
-        public static readonly Selector INITIATOR = new Selector(Core.initiator);
 
         public Selector()
         {
@@ -200,9 +201,9 @@ namespace mc_compiled.Commands.Selectors
         }
 
         public Core core;
-        public Coordinate offsetX = Coordinate.here;
-        public Coordinate offsetY = Coordinate.here;
-        public Coordinate offsetZ = Coordinate.here;
+        private Coordinate offsetX = Coordinate.here;
+        private Coordinate offsetY = Coordinate.here;
+        private Coordinate offsetZ = Coordinate.here;
 
         /// <summary>
         /// Returns if this selector has an offset that is not entirely relative-zero.
@@ -268,7 +269,7 @@ namespace mc_compiled.Commands.Selectors
         {
             unchecked
             {
-                int hashCode = (int) core;
+                int hashCode = (int)core;
                 hashCode = (hashCode * 397) ^ offsetX.GetHashCode();
                 hashCode = (hashCode * 397) ^ offsetY.GetHashCode();
                 hashCode = (hashCode * 397) ^ offsetZ.GetHashCode();

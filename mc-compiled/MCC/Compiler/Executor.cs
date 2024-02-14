@@ -446,10 +446,16 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="value"></param>
         /// <param name="forExceptions"></param>
         /// <param name="overwrite"></param>
-        /// <returns>The entry that *should* be used, in the case that a merge occurred.</returns>
+        /// <returns>The entry that *should* be used, in the case that a merge occurred. If null is returned, then translation should not be used for this input string at all.</returns>
         /// <exception cref="StatementException"></exception>
-        public LangEntry SetLocaleEntry(string key, string value, Statement forExceptions, bool overwrite)
+        public LangEntry? SetLocaleEntry(string key, string value, Statement forExceptions, bool overwrite)
         {
+            // null cases
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+            if (!value.Any(char.IsLetter))
+                return null;
+            
             if (!HasLocale)
                 throw new StatementException(forExceptions, "No language has been set to write to. See the 'lang' command.");
 
@@ -518,7 +524,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Adds a new sound definition to the project.
+        /// Adds a new sound definition to the project, or returns an existing one if it already exists.
         /// </summary>
         /// <param name="soundFile">The path to the sound file to be added.</param>
         /// <param name="category">The category of the sound.</param>
@@ -544,10 +550,13 @@ namespace mc_compiled.MCC.Compiler
             // create CopyFile so that the sound file can be copied during file writing
             var copyFile = new CopyFile(soundFile, OutputLocation.r_SOUNDS, relativePath ?? fileName);
             AddExtraFile(copyFile);
-            
+
+            SoundDefinitions soundDefinitions = GetSoundDefinitions(callingStatement);
             var soundDefinition = new SoundDefinition(soundName, fileName, category, soundFolder.ToString());
             
-            SoundDefinitions soundDefinitions = GetSoundDefinitions(callingStatement);
+            if (soundDefinitions.TryGetSoundDefinition(soundDefinition.CommandReference, out SoundDefinition existing))
+                return existing;
+            
             soundDefinitions.AddSoundDefinition(soundDefinition);
             return soundDefinition;
         }

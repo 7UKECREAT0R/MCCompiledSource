@@ -20,7 +20,7 @@ namespace mc_compiled.MCC.Compiler
         private static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
         private static readonly char[] LETTERS = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
         private static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:.".ToCharArray();
-        private static readonly char[] ARITHMATIC_CHARS = "+-*/%".ToCharArray();
+        private static readonly char[] ARITHMETIC_CHARS = "+-*/%".ToCharArray();
         private static bool IsIgnored(char c) => TOKENIZER_IGNORE_CHARS.Any(test => test == c);
 
         private readonly char[] content;
@@ -191,16 +191,14 @@ namespace mc_compiled.MCC.Compiler
                             NextChar();
                             core = Selector.Core.e;
                             break;
-                        case 'I':
+                        case 'R':
                             NextChar();
-                            while (HasNext && LETTERS.Contains(Peek()))
-                                NextChar();
-                            core = Selector.Core.initiator;
+                            core = Selector.Core.r;
                             break;
                         default:
                             if(HasNext)
-                                throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @i/@initiator");
-                            throw new TokenizerException("Invalid selector '(end-of-file)'. Valid options: @p, @s, @a, @e, or @i/@initiator");
+                                throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @r");
+                            throw new TokenizerException("Invalid selector '(end-of-file)'. Valid options: @p, @s, @a, @e, or @r");
                     }
                     if (HasNext && Peek() == '[')
                         return NextSelectorLiteral(core);
@@ -269,7 +267,7 @@ namespace mc_compiled.MCC.Compiler
                 return new TokenSwapAssignment(CURRENT_LINE);
             }
 
-            if (ARITHMATIC_CHARS.Contains(firstChar))
+            if (ARITHMETIC_CHARS.Contains(firstChar))
             {
                 bool assignment = secondChar == '=';
                 if (assignment) NextChar();

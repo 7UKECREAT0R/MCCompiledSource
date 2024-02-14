@@ -760,7 +760,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     throw;
                 if (debug)
                 {
-                    Console.WriteLine("\tFatal Error:\n\n" + exc.ToString());
+                    Console.WriteLine("\tFatal Error:\n\n" + exc);
                     Console.WriteLine(exc.ToString());
                 }
                 string json = ErrorStructure.Wrap(exc, new[] { 0 }).ToJSON();

@@ -67,7 +67,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 
         internal static Dictionary<string, string> categories;  // set when processing language.json
         internal static Dictionary<string, NamedType> mappings; // set when processing language.json
-
+        
         public static readonly Keywords operators = new Keywords()
         {
             KeywordsUndocumented = new[] { "<", ">", "{", "}", "=", "(", ")", "+", "-", "*", "/", "%", "!" },
@@ -80,32 +80,23 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("@a", "References all players in the world."),
                 new Keyword("@s", "References the executing entity/player."),
                 new Keyword("@p", "References the nearest player."),
-                new Keyword("@i", "References the initiator, if this was run from dialogue."),
-                new Keyword("@initiator", "References the initiator, if this was run from dialogue.")
+                new Keyword("@r", "References a random entity.")
             },
             style = new Highlight(255, 79, 79, HighlightStyle.BOLD)
         };
-        public static Keywords preprocessor
-        {
-            get
+        public static Keywords preprocessor =>
+            new Keywords() {
+                keywords = KeywordsFromDirectives(Directives.PreprocessorDirectives),
+                style = new Highlight(11, 164, 221, HighlightStyle.NONE)
+            };
+
+        public static Keywords commands =>
+            new Keywords()
             {
-                return new Keywords() {
-                    keywords = KeywordsFromDirectives(MCC.Compiler.Directives.PreprocessorDirectives),
-                    style = new Highlight(11, 164, 221, HighlightStyle.NONE)
-                };
-            }
-        }
-        public static Keywords commands
-        {
-            get
-            {
-                return new Keywords()
-                {
-                    keywords = KeywordsFromDirectives(MCC.Compiler.Directives.RegularDirectives),
-                    style = new Highlight(238, 91, 175, HighlightStyle.NONE)
-                };
-            }
-        }
+                keywords = KeywordsFromDirectives(Directives.RegularDirectives),
+                style = new Highlight(238, 91, 175, HighlightStyle.NONE)
+            };
+
         public static readonly Keywords literals = new Keywords()
         {
             keywords = new Keyword[]
