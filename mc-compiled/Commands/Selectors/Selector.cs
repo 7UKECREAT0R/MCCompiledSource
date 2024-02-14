@@ -35,9 +35,11 @@ namespace mc_compiled.Commands.Selectors
                     return Core.a;
                 case "E":
                     return Core.e;
+                case "R":
+                    return Core.r;
                 case "INITIATOR":
                 case "I":
-                    return Core.e;
+                    throw new FormatException($"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue.");
                 default:
                     throw new FormatException($"Cannot parse selector \"{originalCore}\"");
             }
@@ -56,6 +58,8 @@ namespace mc_compiled.Commands.Selectors
                     return Core.e;
                 case 'R':
                     return Core.r;
+                case 'I':
+                    throw new FormatException($"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue.");
                 default:
                     throw new FormatException($"Cannot parse selector \"{core}\"");
             }

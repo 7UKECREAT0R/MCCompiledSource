@@ -195,6 +195,8 @@ namespace mc_compiled.MCC.Compiler
                             NextChar();
                             core = Selector.Core.r;
                             break;
+                        case 'I':
+                            throw new TokenizerException($"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue.");
                         default:
                             if(HasNext)
                                 throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @r");
