@@ -65,8 +65,8 @@ namespace mc_compiled.MCC.Attributes
                 JToken entityRoot = executor.Fetch(givenEntity, callingStatement);
 
                 // create animation controller for driving the variable
-                string driverName = value.Name.ToLower() + "_driver_" + value.Name.GetHashCode();
-                string scriptName = value.Name.ToLower() + "_controller_" + value.Name.GetHashCode();
+                string driverName = value.Name.ToLower() + "_driver_" + value.Name.GetHashCode().ToString().Replace('-', '0');
+                string scriptName = value.Name.ToLower() + "_controller_" + value.Name.GetHashCode().ToString().Replace('-', '0');
 
                 var driver = new AnimationController(driverName);
                 executor.AddExtraFile(driver);

@@ -19,14 +19,14 @@ namespace mc_compiled.MCC.Scheduling.Implementations
         
         public ScheduledRepeat(CommandFile function, int delay) : base(MASTER_FUNCTION)
         {
-            counterName = SCOREBOARD_PREFIX + function.CommandReference.GetHashCode();
+            counterName = SCOREBOARD_PREFIX + function.CommandReferenceHash;
             this.function = function;
             this.delay = delay;
         }
 
         public override void Setup(TickScheduler scheduler, Executor executor)
         {
-            string subfunctionName = SUBFUNCTION_PREFIX + function.CommandReference.GetHashCode();
+            string subfunctionName = SUBFUNCTION_PREFIX + function.CommandReferenceHash;
             thisFunction = new CommandFile(true, subfunctionName, TickScheduler.FOLDER);
             executor.AddExtraFile(thisFunction);
 

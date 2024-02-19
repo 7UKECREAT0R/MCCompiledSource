@@ -532,7 +532,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public static string DepthEncode(string prefix, int depth, Selector selector)
         {
-            return prefix + depth + '_' + selector.GetHashCode().ToString();
+            return prefix + depth + '_' + selector.GetHashCode().ToString().Replace('-', '0');;
         }
         public Comparison(bool invert)
         {

@@ -739,7 +739,7 @@ namespace mc_compiled.MCC.Compiler
                 else
                 {
                     string pathString = toLocate.GetOutputLocation().ToString();
-                    TemporaryFilesManager.PackType packType = TemporaryFilesManager.PackType.BehaviorPack;
+                    var packType = TemporaryFilesManager.PackType.BehaviorPack;
 
                     if(pathString.StartsWith("r_"))
                     {

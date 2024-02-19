@@ -73,7 +73,7 @@ namespace mc_compiled.MCC.Functions.Types
                             data = type.AcceptLiteral(literal);
 
                         value = new ScoreboardValue(name, true, type, data, executor.scoreboard);
-                        string suffix = (parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '_');
+                        string suffix = (parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '0');
                         value.InternalName = value.InternalName + suffix;
 
                         commandBuffer.AddRange(value.AssignLiteral(literal, callingStatement));
@@ -85,7 +85,7 @@ namespace mc_compiled.MCC.Functions.Types
                             newClarifier: Clarifier.Global(),
                             newInternalName: name,
                             newName: name);
-                        string suffix = (parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '_');
+                        string suffix = (parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '0');
                         value.InternalName = value.InternalName + suffix;
 
                         commandBuffer.AddRange(value.Assign(_value.value, callingStatement));
@@ -109,7 +109,7 @@ namespace mc_compiled.MCC.Functions.Types
         }
         public override int GetHashCode()
         {
-            return this.name.GetHashCode();
+            return name.GetHashCode();
         }
     }
 }

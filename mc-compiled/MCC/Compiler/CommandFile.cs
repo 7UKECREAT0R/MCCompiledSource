@@ -71,6 +71,21 @@ namespace mc_compiled.MCC.Compiler
                 return folder + '/' + name;
             }
         }
+
+        public string CommandReferenceHash
+        {
+            get
+            {
+                int hash = GetHashCode();
+                
+                if (hash >= 0)
+                    return hash.ToString();
+                
+                hash *= -1;
+                return "0" + hash;
+
+            }
+        }
         public string[] Folders
         {
             set

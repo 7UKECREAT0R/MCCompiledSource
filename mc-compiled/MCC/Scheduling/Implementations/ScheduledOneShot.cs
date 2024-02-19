@@ -45,7 +45,7 @@ namespace mc_compiled.MCC.Scheduling.Implementations
         }
         public override void Setup(TickScheduler scheduler, Executor executor)
         {
-            string scoreboardName = FUNCTION + "_timer_" + GetHashCode();
+            string scoreboardName = FUNCTION + "_timer_" + GetHashCode().ToString().Replace('-', '0');
             trigger = new ScoreboardValue(scoreboardName, global, Typedef.INTEGER, executor.scoreboard);
             executor.AddCommandsInit(trigger.CommandsDefine());
             if(global)
@@ -55,7 +55,7 @@ namespace mc_compiled.MCC.Scheduling.Implementations
                 callCommand = commands[0];
             else
             {
-                string callFunctionName = FUNCTION + "_invoke_" + GetHashCode();
+                string callFunctionName = FUNCTION + "_invoke_" + GetHashCode().ToString().Replace('-', '0');
                 var file = new CommandFile(true, callFunctionName, TickScheduler.FOLDER);
                 executor.AddExtraFile(file);
                 callCommand = Command.Function(file);
