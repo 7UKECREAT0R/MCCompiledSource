@@ -124,14 +124,31 @@ namespace mc_compiled.MCC.Compiler
             if (bType == SideType.Unknown)
                 throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {b.AsString()}");
 
-            var localComparison = this.comparison;
-            if (inverted)
+            TokenCompare.Type localComparison = comparison;
+            if (inverted) // invert if needed, but only in the local scope
                 localComparison = localComparison.InvertComparison();
 
             if (aType == SideType.Variable && bType == SideType.Variable)
             {
                 ScoreboardValue a = ((TokenIdentifierValue) this.a).value;
                 ScoreboardValue b = ((TokenIdentifierValue) this.b).value;
+
+                if (a.InternalName.Equals(b.InternalName) && a.clarifier.Equals(b.clarifier))
+                {
+                    switch (localComparison)
+                    {
+                        case TokenCompare.Type.NOT_EQUAL:
+                        case TokenCompare.Type.LESS:
+                        case TokenCompare.Type.GREATER:
+                            throw new StatementException(callingStatement, "Expression will always be false.");
+                        case TokenCompare.Type.EQUAL:
+                        case TokenCompare.Type.LESS_OR_EQUAL:
+                        case TokenCompare.Type.GREATER_OR_EQUAL:
+                        default:
+                            throw new StatementException(callingStatement, "Expression will always be true.");
+                    }
+                }
+                
                 var commands = new List<string>();
 
                 if (willBeInverted)
@@ -203,7 +220,7 @@ namespace mc_compiled.MCC.Compiler
                     return commands;
                 }
 
-                return this.entries.Item1;
+                return entries.Item1;
             }
 
             return null;
@@ -278,18 +295,18 @@ namespace mc_compiled.MCC.Compiler
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             if (aType == SideType.Variable && bType != SideType.Variable)
-                return new[] { (a as TokenIdentifierValue).value };
+                return new[] { ((TokenIdentifierValue) a).value };
             if (aType != SideType.Variable && bType == SideType.Variable)
-                return new[] { (b as TokenIdentifierValue).value };
+                return new[] { ((TokenIdentifierValue) b).value };
             if (aType == SideType.Variable && bType == SideType.Variable)
-                return new[] { (a as TokenIdentifierValue).value, (b as TokenIdentifierValue).value };
+                return new[] { ((TokenIdentifierValue) a).value, ((TokenIdentifierValue) b).value };
 
             return Array.Empty<ScoreboardValue>();
         }
     }
     public class ComparisonSelector : Comparison
     {
-        private const string ERROR_MESSAGE = "[if <selector>] format should only use @s selectors. Use [if any <selector>] to more concisely show checking for any selector match.";
+        private const string ERROR_MESSAGE = "'if <selector>' format should only use @s selectors. Use 'if any <selector>' to more concisely show checking for any selector match.";
         private readonly Selector selector;
         private ScoreboardValue temp;
 
@@ -356,7 +373,8 @@ namespace mc_compiled.MCC.Compiler
         {
             get => goalType == SideType.Variable;
         }
-        void FindGoalType()
+
+        private void FindGoalType()
         {
             if (goalCount is TokenIdentifierValue)
                 goalType = SideType.Variable;
@@ -374,12 +392,72 @@ namespace mc_compiled.MCC.Compiler
             FindGoalType();
         }
 
-        ScoreboardValue temp;
+        private ScoreboardValue temp;
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             if (goalType == SideType.Unknown)
                 throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {goalCount.AsString()}");
+            
+            // compile-time validation
+            if (goalType == SideType.Constant)
+            {
+                int constant = ((TokenNumberLiteral)goalCount).GetNumberInt();
 
+                if (constant == 0 && comparison == TokenCompare.Type.LESS)
+                    throw new StatementException(callingStatement, "Expression will always be false.");
+                if (constant < 0)
+                {
+                    // we know that the count will always be 0 or greater, so use that for inference
+                    switch (comparison)
+                    {
+                        case TokenCompare.Type.EQUAL:
+                        case TokenCompare.Type.NOT_EQUAL:
+                        case TokenCompare.Type.LESS:
+                        case TokenCompare.Type.LESS_OR_EQUAL:
+                            throw new StatementException(callingStatement, "Expression will always be false.");
+                        case TokenCompare.Type.GREATER:
+                        case TokenCompare.Type.GREATER_OR_EQUAL:
+                        default:
+                            throw new StatementException(callingStatement, "Expression will always be true.");
+                    }
+                }
+
+                if (selector.count.HasCount)
+                {
+                    // we know the MAX selector count and target count and can perform a static comparison
+                    int maxSelected = selector.count.count;
+                    
+                    // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+                    switch (comparison)
+                    {
+                        case TokenCompare.Type.EQUAL:
+                            if(constant > maxSelected)
+                                throw new StatementException(callingStatement, "Expression will always be false.");
+                            break;
+                        case TokenCompare.Type.NOT_EQUAL:
+                            if(constant > maxSelected)
+                                throw new StatementException(callingStatement, "Expression will always be true.");
+                            break;
+                        case TokenCompare.Type.LESS:
+                            if (constant > maxSelected)
+                                throw new StatementException(callingStatement, "Expression will always be true.");
+                            break;
+                        case TokenCompare.Type.LESS_OR_EQUAL:
+                            if (constant >= maxSelected)
+                                throw new StatementException(callingStatement, "Expression will always be true.");
+                            break;
+                        case TokenCompare.Type.GREATER_OR_EQUAL:
+                            if (constant > maxSelected)
+                                throw new StatementException(callingStatement, "Expression will always be false.");
+                            break;
+                        case TokenCompare.Type.GREATER:
+                            if (constant >= maxSelected)
+                                throw new StatementException(callingStatement, "Expression will always be false.");
+                            break;
+                    }
+                }
+            }
+            
             // count number of entities
             var commands = new List<string>();
 
@@ -464,7 +542,7 @@ namespace mc_compiled.MCC.Compiler
             }
         }
 
-        ScoreboardValue temp;
+        private ScoreboardValue temp;
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             if (!willBeInverted)
@@ -511,11 +589,11 @@ namespace mc_compiled.MCC.Compiler
     }
     public class ComparisonBlock : Comparison
     {
-        readonly Coordinate x;
-        readonly Coordinate y;
-        readonly Coordinate z;
-        readonly string block;
-        readonly int? data;
+        private readonly Coordinate x;
+        private readonly Coordinate y;
+        private readonly Coordinate z;
+        private readonly string block;
+        private readonly int? data;
 
         public ComparisonBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data, bool invert) : base(invert)
         {
@@ -526,7 +604,7 @@ namespace mc_compiled.MCC.Compiler
             this.data = data;
         }
 
-        ScoreboardValue temp;
+        private ScoreboardValue temp;
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             if (!willBeInverted)
@@ -572,10 +650,10 @@ namespace mc_compiled.MCC.Compiler
     }
     public class ComparisonBlocks : Comparison
     {
-        readonly Coordinate beginX, beginY, beginZ;
-        readonly Coordinate endX, endY, endZ;
-        readonly Coordinate destX, destY, destZ;
-        readonly BlocksScanMode scanMode;
+        private readonly Coordinate beginX, beginY, beginZ;
+        private readonly Coordinate endX, endY, endZ;
+        private readonly Coordinate destX, destY, destZ;
+        private readonly BlocksScanMode scanMode;
 
         public ComparisonBlocks(Coordinate beginX, Coordinate beginY, Coordinate beginZ, Coordinate endX, Coordinate endY, Coordinate endZ,
             Coordinate destX, Coordinate destY, Coordinate destZ, BlocksScanMode scanMode, bool invert) : base(invert)
@@ -592,7 +670,7 @@ namespace mc_compiled.MCC.Compiler
             this.scanMode = scanMode;
         }
 
-        ScoreboardValue temp;
+        private ScoreboardValue temp;
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             if (!willBeInverted)

@@ -82,14 +82,60 @@ namespace mc_compiled.Commands
         /// <returns></returns>
         public static bool SizeKnown(params Coordinate[] coords)
         {
+            if (coords.Length == 0)
+                return true;
+
+            bool relative = coords[0].isRelative;
+            
             for(int i = 1; i < coords.Length; i++)
             {
-                Coordinate a = coords[i - 1];
-                Coordinate b = coords[i];
-                if (a.isRelative != b.isRelative)
+                Coordinate a = coords[i];
+                if (a.isRelative != relative)
                     return false;
             }
+            
             return true;
+        }
+
+        /// <summary>
+        /// Calculates the volume of a shape defined by two sets of coordinates.
+        /// </summary>
+        /// <param name="x1">The x-coordinate of the first point.</param>
+        /// <param name="y1">The y-coordinate of the first point.</param>
+        /// <param name="z1">The z-coordinate of the first point.</param>
+        /// <param name="x2">The x-coordinate of the second point.</param>
+        /// <param name="y2">The y-coordinate of the second point.</param>
+        /// <param name="z2">The z-coordinate of the second point.</param>
+        /// <returns>The volume of the shape.</returns>
+        public static long GetVolume(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2,
+            Coordinate z2)
+        {
+            (int, int, int) tuple = GetSize(x1, y1, z1, x2, y2, z2);
+            return tuple.Item1 * (long)tuple.Item2 * tuple.Item3;
+        }
+        public static long GetVolume((int, int, int) tuple)
+        {
+            return tuple.Item1 * (long)tuple.Item2 * tuple.Item3;
+        }
+        /// <summary>
+        /// Gets the size of a coordinate in each dimension.
+        /// </summary>
+        /// <param name="x1">The first x-coordinate.</param>
+        /// <param name="y1">The first y-coordinate.</param>
+        /// <param name="z1">The first z-coordinate.</param>
+        /// <param name="x2">The second x-coordinate.</param>
+        /// <param name="y2">The second y-coordinate.</param>
+        /// <param name="z2">The second z-coordinate.</param>
+        /// <returns>
+        /// The size of the coordinate in each dimension as a tuple (sizeX, sizeY, sizeZ).
+        /// </returns>
+        public static (int, int, int) GetSize(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2)
+        {
+            int sizeX = Math.Abs(x2.valueInteger - x1.valueInteger);
+            int sizeY = Math.Abs(y2.valueInteger - y1.valueInteger);
+            int sizeZ = Math.Abs(z2.valueInteger - z1.valueInteger);
+
+            return (sizeX, sizeY, sizeZ);
         }
 
         /// <summary>

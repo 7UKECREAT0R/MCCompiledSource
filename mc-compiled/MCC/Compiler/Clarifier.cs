@@ -14,7 +14,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public class Clarifier
     {
-        public const string DEFAULT_CLARIFIER = "@s";
+        private const string DEFAULT_CLARIFIER = "@s";
 
         private bool global;
 
@@ -25,12 +25,12 @@ namespace mc_compiled.MCC.Compiler
         public Clarifier(bool global)
         {
             this.global = global;
-            this.Reset();
+            Reset();
         }
         public Clarifier(bool global, string currentString)
         {
             this.global = global;
-            this.CurrentString = currentString;
+            CurrentString = currentString;
         }
         /// <summary>
         /// Return a deep clone of this clarifier.
@@ -38,7 +38,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Clarifier Clone()
         {
-            return new Clarifier(this.global, this.CurrentString);
+            return new Clarifier(global, CurrentString);
         }
 
         public static Clarifier Local() => new Clarifier(false);
@@ -52,13 +52,13 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>This object for chaining.</returns>
         public void SetGlobal(bool newGlobal)
         {
-            this.global = newGlobal;
-            this.Reset();
+            global = newGlobal;
+            Reset();
         }
         public void CopyFrom(Clarifier other)
         {
-            this.global = other.global;
-            this.CurrentString = other.CurrentString;
+            global = other.global;
+            CurrentString = other.CurrentString;
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace mc_compiled.MCC.Compiler
         public void SetSelector(Selector selector)
         {
             string str = selector.ToString();
-            this.CurrentString = str;
+            CurrentString = str;
         }
         /// <summary>
         /// Sets the clarifier to a specific string.
@@ -99,7 +99,26 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="str">The string.</param>
         public void SetString(string str)
         {
-            this.CurrentString = str;
+            CurrentString = str;
+        }
+
+        private bool Equals(Clarifier other)
+        {
+            return global == other.global && CurrentString == other.CurrentString;
+        }
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Clarifier) obj);
+        }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (global.GetHashCode() * 397) ^ (CurrentString != null ? CurrentString.GetHashCode() : 0);
+            }
         }
     }
 }

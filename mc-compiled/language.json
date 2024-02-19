@@ -628,8 +628,7 @@
       "details": "Fills blocks in a specific region, optionally using a replace mode.",
       "category": "blocks",
       "patterns": [
-        [ "id:fill mode", "string:block", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2" ],
-        [ "string:block", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2" ]
+        [ "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "string:block", "?enum:fill mode", "?int:data" ]
       ]
     },
     "scatter": {

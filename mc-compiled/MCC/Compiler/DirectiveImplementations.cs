@@ -1265,6 +1265,9 @@ namespace mc_compiled.MCC.Compiler
             Selector player = tokens.NextIs<TokenSelectorLiteral>(false) ?
                 tokens.Next<TokenSelectorLiteral>() : Selector.SELF;
 
+            if (player.AnyNonPlayers)
+                throw new StatementException(tokens, $"The selector {player} will never target any players.");
+            
             string str = tokens.Next<TokenStringLiteral>();
             List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
             string[] commands = Executor.ResolveRawText(terms, $"tellraw {player} ");
@@ -1530,7 +1533,9 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIntegerLiteral>())
             {
                 count = tokens.Next<TokenIntegerLiteral>();
-
+                if (count < 1)
+                    throw new StatementException(tokens, "Item count cannot be less than 1.");
+                
                 if (tokens.NextIs<TokenIntegerLiteral>())
                     data = tokens.Next<TokenIntegerLiteral>();
             }
@@ -1561,6 +1566,8 @@ namespace mc_compiled.MCC.Compiler
                         parsedEnchantment.RequireType<Enchantment>(tokens);
                         var enchantment = (Enchantment)parsedEnchantment.value;
                         int level = tokens.Next<TokenIntegerLiteral>();
+                        if (level < 1)
+                            throw new StatementException(tokens, "Enchantment level cannot be less than 1.");
                         enchants.Add(new Tuple<Enchantment, int>(enchantment, level));
                         needsStructure = true;
                         break;
@@ -1690,14 +1697,27 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void tp(Executor executor, Statement tokens)
         {
-            bool GetCheckForBlocks()
+            if(tokens.NextIs<TokenCoordinateLiteral>())
             {
-                if (tokens.NextIs<TokenBooleanLiteral>())
-                    return tokens.Next<TokenBooleanLiteral>();
-                else
-                    return false;
+                ParseArgs(Selector.SELF);
+                return;
             }
-            void ParseArgs(string selector)
+
+            Selector entity = tokens.Next<TokenSelectorLiteral>();
+
+            if (tokens.NextIs<TokenSelectorLiteral>())
+            {
+                Selector selector = tokens.Next<TokenSelectorLiteral>().selector;
+                if (selector.SelectsMultiple)
+                    throw new StatementException(tokens, $"Selector '{selector}' may target more than one entity.");
+                executor.AddCommand(Command.Teleport(entity.ToString(), selector.ToString(), GetCheckForBlocks()));
+                return;
+            }
+
+            ParseArgs(entity);
+            return;
+
+            void ParseArgs(Selector selector)
             {
                 Coordinate x = tokens.Next<TokenCoordinateLiteral>();
                 Coordinate y = tokens.Next<TokenCoordinateLiteral>();
@@ -1714,12 +1734,12 @@ namespace mc_compiled.MCC.Compiler
                             Coordinate fx = tokens.Next<TokenCoordinateLiteral>();
                             Coordinate fy = tokens.Next<TokenCoordinateLiteral>();
                             Coordinate fz = tokens.Next<TokenCoordinateLiteral>();
-                            executor.AddCommand(Command.TeleportFacing(selector, x, y, z, fx, fy, fz, GetCheckForBlocks()));
+                            executor.AddCommand(Command.TeleportFacing(selector.ToString(), x, y, z, fx, fy, fz, GetCheckForBlocks()));
                         }
                         else if (tokens.NextIs<TokenSelectorLiteral>())
                         {
                             Selector facingEntity = tokens.Next<TokenSelectorLiteral>().selector;
-                            executor.AddCommand(Command.TeleportFacing(selector, x, y, z, facingEntity.ToString(), GetCheckForBlocks()));
+                            executor.AddCommand(Command.TeleportFacing(selector.ToString(), x, y, z, facingEntity.ToString(), GetCheckForBlocks()));
                         }
                     }
                 }
@@ -1727,28 +1747,18 @@ namespace mc_compiled.MCC.Compiler
                 {
                     Coordinate ry = tokens.Next<TokenCoordinateLiteral>();
                     Coordinate rx = tokens.Next<TokenCoordinateLiteral>();
-                    executor.AddCommand(Command.Teleport(selector, x, y, z, ry, rx, GetCheckForBlocks()));
+                    executor.AddCommand(Command.Teleport(selector.ToString(), x, y, z, ry, rx, GetCheckForBlocks()));
                 }
                 else
-                    executor.AddCommand(Command.Teleport(selector, x, y, z, GetCheckForBlocks()));
+                    executor.AddCommand(Command.Teleport(selector.ToString(), x, y, z, GetCheckForBlocks()));
             }
 
-            if(tokens.NextIs<TokenCoordinateLiteral>())
+            bool GetCheckForBlocks()
             {
-                ParseArgs(Selector.SELF.ToString());
-                return;
+                if (tokens.NextIs<TokenBooleanLiteral>())
+                    return tokens.Next<TokenBooleanLiteral>();
+                return false;
             }
-
-            Selector entity = tokens.Next<TokenSelectorLiteral>();
-
-            if (tokens.NextIs<TokenSelectorLiteral>())
-            {
-                var selector = tokens.Next<TokenSelectorLiteral>();
-                executor.AddCommand(Command.Teleport(entity.ToString(), selector.selector.ToString(), GetCheckForBlocks()));
-                return;
-            }
-
-            ParseArgs(entity.ToString());
         }
         [UsedImplicitly]
         public static void move(Executor executor, Statement tokens)
@@ -1858,6 +1868,20 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void fill(Executor executor, Statement tokens)
         {
+            Coordinate x1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z1 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate x2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate y2 = tokens.Next<TokenCoordinateLiteral>();
+            Coordinate z2 = tokens.Next<TokenCoordinateLiteral>();
+            if (x1 > x2)
+                (x2, x1) = (x1, x2);
+            if (y1 > y2)
+                (y2, y1) = (y1, y2);
+            if (z1 > z2)
+                (z2, z1) = (z1, z2);
+            
+            string block = tokens.Next<TokenStringLiteral>();
             var handling = OldHandling.replace;
 
             if (tokens.NextIs<TokenIdentifierEnum>())
@@ -1866,19 +1890,11 @@ namespace mc_compiled.MCC.Compiler
                 enumValue.RequireType<OldHandling>(tokens);
                 handling = (OldHandling)enumValue.value;
             }
-
-            string block = tokens.Next<TokenStringLiteral>();
-            Coordinate x1 = tokens.Next<TokenCoordinateLiteral>();
-            Coordinate y1 = tokens.Next<TokenCoordinateLiteral>();
-            Coordinate z1 = tokens.Next<TokenCoordinateLiteral>();
-            Coordinate x2 = tokens.Next<TokenCoordinateLiteral>();
-            Coordinate y2 = tokens.Next<TokenCoordinateLiteral>();
-            Coordinate z2 = tokens.Next<TokenCoordinateLiteral>();
-
+            
             int data = 0;
             if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>())
                 data = tokens.Next<TokenIntegerLiteral>();
-
+            
             executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, block, data, handling));
         }
         [UsedImplicitly]
@@ -1894,7 +1910,7 @@ namespace mc_compiled.MCC.Compiler
             Coordinate z2 = tokens.Next<TokenCoordinateLiteral>();
 
             if (!Coordinate.SizeKnown(x1, y1, z1, x2, y2, z2))
-                throw new StatementException(tokens, "Scatter command requires all coordinate arguments to be relative or exact. (the size needs to be known at compile time.)");
+                throw new StatementException(tokens, "Scatter command requires all coordinate arguments to be relative or static. (the size needs to be known at compile time.)");
 
             string seed = null;
             if (tokens.HasNext && tokens.NextIs<TokenStringLiteral>())
@@ -2055,7 +2071,10 @@ namespace mc_compiled.MCC.Compiler
             Selector player = tokens.NextIs<TokenSelectorLiteral>(false) ?
                 tokens.Next<TokenSelectorLiteral>() :
                 Selector.SELF;
-
+            
+            if (player.AnyNonPlayers)
+                throw new StatementException(tokens, $"The selector {player} will never target any players.");
+            
             if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string word = tokens.Next<TokenIdentifier>().word.ToUpper();
@@ -2134,6 +2153,9 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenSelectorLiteral>() :
                 Selector.SELF;
 
+            if (player.AnyNonPlayers)
+                throw new StatementException(tokens, $"The selector {player} will never target any players.");
+            
             if (tokens.NextIs<TokenStringLiteral>())
             {
                 string str = tokens.Next<TokenStringLiteral>();
@@ -2180,6 +2202,9 @@ namespace mc_compiled.MCC.Compiler
             Selector target = tokens.Next<TokenSelectorLiteral>();
 
             int damage = tokens.Next<TokenIntegerLiteral>();
+            if (damage < 0)
+                throw new StatementException(tokens, "Damage amount cannot be less than 0.");
+            
             var cause = DamageCause.all;
             Selector blame = null;
 
@@ -2334,18 +2359,24 @@ namespace mc_compiled.MCC.Compiler
             string selected = tokens.Next<TokenSelectorLiteral>().selector.ToString();
             string word = tokens.Next<TokenIdentifier>().word.ToUpper();
 
-            if (word.Equals("ADD"))
+            switch (word)
             {
-                string tag = tokens.Next<TokenStringLiteral>();
-                executor.definedTags.Add(tag);
-                executor.AddCommand(Command.Tag(selected, tag));
-            } else if (word.Equals("REMOVE"))
-            {
-                string tag = tokens.Next<TokenStringLiteral>();
-                executor.AddCommand(Command.TagRemove(selected, tag));
+                case "ADD":
+                {
+                    string tag = tokens.Next<TokenStringLiteral>();
+                    executor.definedTags.Add(tag);
+                    executor.AddCommand(Command.Tag(selected, tag));
+                    break;
+                }
+                case "REMOVE":
+                {
+                    string tag = tokens.Next<TokenStringLiteral>();
+                    executor.AddCommand(Command.TagRemove(selected, tag));
+                    break;
+                }
+                default:
+                    throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE");
             }
-            else
-                throw new StatementException(tokens, $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE");
         }
         [UsedImplicitly]
         public static void explode(Executor executor, Statement tokens)
@@ -2374,10 +2405,12 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIntegerLiteral>())
             {
                 power = tokens.Next<TokenIntegerLiteral>();
-
-                delay = tokens.NextIs<TokenIntegerLiteral>() ?
-                    tokens.Next<TokenIntegerLiteral>() :
-                    0;
+                if (power < 0)
+                    throw new StatementException(tokens, "Explosion power cannot be less than 0.");
+                
+                delay = tokens.NextIs<TokenIntegerLiteral>() ? tokens.Next<TokenIntegerLiteral>() : 0;
+                if (delay < 0)
+                    throw new StatementException(tokens, "Explosion delay cannot be less than 0.");
             }
             else
             {
@@ -2423,6 +2456,8 @@ namespace mc_compiled.MCC.Compiler
                         if (tokens.NextIs<TokenIntegerLiteral>())
                         {
                             int maxCount = tokens.Next<TokenIntegerLiteral>();
+                            if (maxCount < 0)
+                                throw new StatementException(tokens, "Max-count cannot be less than 0.");
                             command = Command.Clear(selector, item, data, maxCount);
                         }
                         else
@@ -2455,8 +2490,7 @@ namespace mc_compiled.MCC.Compiler
 
                 if(word.StartsWith("C"))
                     throw new StatementException(tokens, "Invalid option for effect command. (did you mean 'clear'?)");
-                else
-                    throw new StatementException(tokens, "Invalid option for effect command.");
+                throw new StatementException(tokens, "Invalid option for effect command.");
             }
 
             string command;
@@ -2468,10 +2502,14 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIntegerLiteral>())
             {
                 int seconds = tokens.Next<TokenIntegerLiteral>().Scaled(IntMultiplier.s);
-
+                if (seconds < 0)
+                    throw new StatementException(tokens, "Effect time cannot be less than 0.");
+                
                 if (tokens.NextIs<TokenIntegerLiteral>())
                 {
                     int amplifier = tokens.Next<TokenIntegerLiteral>();
+                    if (amplifier < 0)
+                        throw new StatementException(tokens, "Effect amplifier cannot be less than 0.");
 
                     if(tokens.NextIs<TokenBooleanLiteral>())
                     {
@@ -2494,21 +2532,31 @@ namespace mc_compiled.MCC.Compiler
         {
             string soundId = tokens.Next<TokenStringLiteral>();
             Selector filter = tokens.Next<TokenSelectorLiteral>();
+            bool wasSoundFile;
 
+            if (filter.AnyNonPlayers)
+                throw new StatementException(tokens, $"The selector {filter} will never target any players.");
+            
             if(!tokens.NextIs<TokenCoordinateLiteral>())
             {
-                soundId = ProcessSoundIdAsFile(SoundCategory.ui);
-                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), Coordinate.here, Coordinate.here, Coordinate.here, 1.0f, 1.0f, 1.0f));
+                soundId = ProcessSoundIdAsFile(SoundCategory.ui, out wasSoundFile);
+                
+                executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), Coordinate.here, Coordinate.here, Coordinate.here,
+                    wasSoundFile ? 10_000f : 1.0f,
+                    1.0f,
+                    wasSoundFile ? 10_000f : 1.0f));
                 return;
             }
 
             Coordinate x = tokens.Next<TokenCoordinateLiteral>();
             Coordinate y = tokens.Next<TokenCoordinateLiteral>();
             Coordinate z = tokens.Next<TokenCoordinateLiteral>();
-            soundId = ProcessSoundIdAsFile(SoundCategory.ui /*SoundCategory.player*/);
+            soundId = ProcessSoundIdAsFile(SoundCategory.ui, out wasSoundFile);
 
             if(!tokens.NextIs<TokenNumberLiteral>())
             {
+                if (wasSoundFile)
+                    executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, 10_000f, 1.0f, 10_000f));
                 executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z));
                 return;
             }
@@ -2517,6 +2565,8 @@ namespace mc_compiled.MCC.Compiler
 
             if (!tokens.NextIs<TokenNumberLiteral>())
             {
+                if (wasSoundFile)
+                    executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume, 1.0f, 10_000f));
                 executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume));
                 return;
             }
@@ -2525,6 +2575,8 @@ namespace mc_compiled.MCC.Compiler
 
             if (!tokens.NextIs<TokenNumberLiteral>())
             {
+                if (wasSoundFile)
+                    executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume, (float)pitch, 10_000f));
                 executor.AddCommand(Command.PlaySound(soundId, filter.ToString(), x, y, z, (float)volume, (float)pitch));
                 return;
             }
@@ -2534,13 +2586,16 @@ namespace mc_compiled.MCC.Compiler
             
             return;
 
-            string ProcessSoundIdAsFile(SoundCategory category)
+            string ProcessSoundIdAsFile(SoundCategory category, out bool valid)
             {
                 string extension = Path.GetExtension(soundId);
-                
-                if (string.IsNullOrEmpty(extension))
-                    return soundId;
 
+                if (string.IsNullOrEmpty(extension))
+                {
+                    valid = false;
+                    return soundId;
+                }
+                
                 switch (extension.ToUpper())
                 {
                     case ".WAV":
@@ -2548,6 +2603,7 @@ namespace mc_compiled.MCC.Compiler
                     case ".FSB":
                         break;
                     default:
+                        valid = false;
                         return soundId;
                 }
                 
@@ -2558,6 +2614,7 @@ namespace mc_compiled.MCC.Compiler
                     throw new StatementException(tokens, $"Audio file '{soundId}' not found.");
                 
                 SoundDefinition definition = executor.AddNewSoundDefinition(soundId, category, tokens);
+                valid = true;
                 return definition.CommandReference;
 
             }
@@ -2990,9 +3047,9 @@ namespace mc_compiled.MCC.Compiler
                     Selector npc = tokens.Next<TokenSelectorLiteral>();
                     Selector players = tokens.Next<TokenSelectorLiteral>();
 
-                    if (!npc.NonPlayers)
+                    if (!npc.AnyNonPlayers)
                         throw new StatementException(tokens, $"Selector '{npc}' will never target an NPC.");
-                    if (players.NonPlayers)
+                    if (players.AnyNonPlayers)
                         throw new StatementException(tokens, $"Selector '{players}' may target non-players.");
                     
                     if (tokens.NextIs<TokenStringLiteral>(false))
@@ -3012,14 +3069,14 @@ namespace mc_compiled.MCC.Compiler
                     Selector npc = tokens.Next<TokenSelectorLiteral>();
                     string sceneTag = tokens.Next<TokenStringLiteral>();
                     
-                    if (!npc.NonPlayers)
+                    if (!npc.AnyNonPlayers)
                         throw new StatementException(tokens, $"Selector '{npc}' will never target an NPC.");
 
                     if (tokens.NextIs<TokenSelectorLiteral>())
                     {
                         Selector players = tokens.Next<TokenSelectorLiteral>();
 
-                        if (players.NonPlayers)
+                        if (players.AnyNonPlayers)
                             throw new StatementException(tokens, $"Selector '{players}' may target non-players.");
                         
                         executor.AddCommand(Command.DialogueChange(npc.ToString(), sceneTag, players.ToString()));

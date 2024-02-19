@@ -26,7 +26,8 @@
 
                 if (!a.Equals("C"))
                     continue;
-                
+                if (string.IsNullOrWhiteSpace(b))
+                    continue;
                 endCount = int.Parse(b);
                 break;
             }
@@ -47,6 +48,7 @@
             return count;
         }
 
+        public bool HasCount => count != NONE;
         public string GetSection()
         {
             if (count == NONE)

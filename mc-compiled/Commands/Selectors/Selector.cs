@@ -84,7 +84,7 @@ namespace mc_compiled.Commands.Selectors
         /// <summary>
         /// Returns if this selector selects ANY entities that are not players.
         /// </summary>
-        public bool NonPlayers
+        public bool AnyNonPlayers
         {
             get
             {
@@ -92,7 +92,25 @@ namespace mc_compiled.Commands.Selectors
                     return false;
                 if (entity.type != null && entity.type.Contains("player"))
                     return false;
+                if (entity.families != null && entity.families.Any(f => f.Contains("player")))
+                    return false;
                 return true;
+            }
+        }
+        /// <summary>
+        /// Returns if this selector selects ONLY entities that are not players.
+        /// </summary>
+        public bool AllNonPlayers
+        {
+            get
+            {
+                if (core == Core.a || core == Core.s || core == Core.p)
+                    return false;
+                if (entity.type != null && !entity.type.Contains("player"))
+                    return true;
+                if (entity.families != null && entity.families.Any(f => !f.Contains("player")))
+                    return true;
+                return false;
             }
         }
         
