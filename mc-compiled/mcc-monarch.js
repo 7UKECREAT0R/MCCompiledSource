@@ -1,6 +1,6 @@
 const mccompiled = {
 	operators: [ `<`, `>`, `{`, `}`, `=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `!` ],
-	selectors: [ `@e`, `@a`, `@s`, `@p`, `@i`, `@initiator` ],
+	selectors: [ `@e`, `@a`, `@s`, `@p`, `@r` ],
 	preprocessor: [ `$add`, `$append`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$prepend`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
 	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dialogue`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
@@ -45,55 +45,55 @@ const mccompiled = {
 const mcc_operators = [
 	{
 		word: `<`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `>`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `{`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `}`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `=`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `(`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `)`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `+`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `-`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `*`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `/`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `%`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 	{
 		word: `!`,
-		docs: 'No documentation available for v1.16.'
+		docs: 'No documentation available for v1.17.'
 	},
 ]
 const mcc_selectors = [
@@ -114,12 +114,8 @@ const mcc_selectors = [
 		docs: `References the nearest player.`
 	},
 	{
-		word: `@i`,
-		docs: `References the initiator, if this was run from dialogue.`
-	},
-	{
-		word: `@initiator`,
-		docs: `References the initiator, if this was run from dialogue.`
+		word: `@r`,
+		docs: `References a random entity.`
 	},
 ]
 const mcc_preprocessor = [
