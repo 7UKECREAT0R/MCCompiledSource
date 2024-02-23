@@ -19,10 +19,8 @@ namespace mc_compiled.Modding.Resources.Localization
         private List<LangEntry> lines;
 
         /// <summary>
-        /// 
+        /// A .lang file.
         /// </summary>
-        /// <param name="localeName"></param>
-        /// <param name="lines"></param>
         internal Lang(string localeName, LangEntry[] lines = null)
         {
             this.localeName = localeName;
@@ -39,7 +37,7 @@ namespace mc_compiled.Modding.Resources.Localization
         /// </summary>
         /// <param name="locale"></param>
         /// <param name="lines"></param>
-        internal Lang(LocaleDefinition locale, LangEntry[] lines = null)
+        private Lang(LocaleDefinition locale, LangEntry[] lines = null)
         {
             this.localeName = locale.locale;
             this.locale = locale;
@@ -215,7 +213,7 @@ namespace mc_compiled.Modding.Resources.Localization
                     .FindIndex(e =>
                         !e.isComment &&
                         !e.isEmpty &&
-                        e.key.Equals(keyToFind, StringComparison.OrdinalIgnoreCase));
+                        e.key.Equals(keyToFind));
 
                 if(merge)
                 {
@@ -248,7 +246,34 @@ namespace mc_compiled.Modding.Resources.Localization
             this.lines.Insert(this.headerIndex, langEntry);
             return langEntry;
         }
-
+        /// <summary>
+        /// Returns the index of the first occurrence of a specified key in the Lang lines.
+        /// </summary>
+        /// <param name="key">The key to locate in the Lang file.</param>
+        /// <returns>The zero-based index of the first occurrence of the specified key, if found; otherwise, -1.</returns>
+        internal int IndexOf(string key)
+        {
+            return this.lines.FindIndex(entry => entry.key?.Equals(key) ?? false);
+        }
+        /// <summary>
+        /// Sets the language entry at the specified index.
+        /// </summary>
+        /// <param name="index">The index of the language entry to set.</param>
+        /// <param name="entry">The new language entry.</param>
+        internal void SetAtIndex(int index, LangEntry entry)
+        {
+            this.lines[index] = entry;
+        }
+        /// <summary>
+        /// Inserts a language entry at the specified index.
+        /// </summary>
+        /// <param name="index">The index at which to insert the language entry.</param>
+        /// <param name="entry">The language entry to insert.</param>
+        internal void InsertAtIndex(int index, LangEntry entry)
+        {
+            this.lines.Insert(index, entry);
+        }
+        
         /// <summary>
         /// Adds a collection of LangEntries to this Lang file under the MCCompiled header.
         /// </summary>

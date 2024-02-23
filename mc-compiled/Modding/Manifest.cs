@@ -61,11 +61,11 @@ namespace mc_compiled.Modding
 
         public Guid? dependsOn;
         public Guid uuid;
+        internal string name;
+        internal string description;
 
         private readonly int formatVersion;
         private readonly List<Module> modules;
-        private readonly string name;
-        private readonly string description;
         private readonly int[] version;
         private readonly int[] minEngineVersion;
 
@@ -122,7 +122,7 @@ namespace mc_compiled.Modding
             this.modules.Add(module);
             return this;
         }
-
+        
         public string CommandReference => throw new NotImplementedException();
 
         public byte[] GetOutputData() =>

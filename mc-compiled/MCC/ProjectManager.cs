@@ -38,6 +38,9 @@ namespace mc_compiled.MCC
         private Feature features;
         internal bool linting;
 
+        internal Manifest behaviorManifest;
+        internal Manifest resourceManifest;
+
         /// <summary>
         /// Create a new ProjectManager with default description.
         /// </summary>
@@ -54,6 +57,9 @@ namespace mc_compiled.MCC
             this.copyFiles = new HashSet<CopyFile>();
             this.files = new List<IAddonFile>();
             this.features = 0;
+            
+            // get manifests
+            ProcessManifests();
         }
         /// <summary>
         /// Returns this project manager after setting it to lint mode, lowering memory usage
@@ -261,10 +267,7 @@ namespace mc_compiled.MCC
                 CreateUninstallFile();
             if (HasFeature(Feature.AUTOINIT))
                 CreateAutoInitFile();
-
-            // manifests
-            ApplyManifests();
-
+            
             // actual writing
             foreach (IAddonFile file in this.files)
             {
@@ -294,7 +297,7 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Ensures the manifests are present, linked, and are correctly set up. Adds them to the <see cref="files"/> list.
         /// </summary>
-        private void ApplyManifests()
+        private void ProcessManifests()
         {
             string behaviorManifestLocation = Path.Combine(this.registry.bpBase, "manifest.json");
             string resourceManifestLocation = Path.Combine(this.registry.rpBase, "manifest.json");
@@ -303,21 +306,18 @@ namespace mc_compiled.MCC
             bool needsBehaviorManifest = !hasBehaviorManifest & this.files.Any(file => file.GetOutputLocation().IsBehavior());
             bool needsResourceManifest = !hasResourceManifest & this.files.Any(file => !file.GetOutputLocation().IsBehavior());
             
-            Manifest behaviorManifest = null;
-            Manifest resourceManifest = null;
-
             // create/load behavior manifest
             if (hasBehaviorManifest)
             {
                 string data = File.ReadAllText(behaviorManifestLocation);
-                behaviorManifest = new Manifest(data, OutputLocation.b_ROOT);
+                this.behaviorManifest = new Manifest(data, OutputLocation.b_ROOT);
             }
             else
             {
                 if (needsBehaviorManifest)
                 {
                     string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
-                    behaviorManifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), this.name, projectDescription)
+                    this.behaviorManifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), this.name, projectDescription)
                         .WithModule(Manifest.Module.BehaviorData());
                 }
             }
@@ -326,27 +326,28 @@ namespace mc_compiled.MCC
             if (hasResourceManifest)
             {
                 string data = File.ReadAllText(resourceManifestLocation);
-                resourceManifest = new Manifest(data, OutputLocation.r_ROOT);
+                this.resourceManifest = new Manifest(data, OutputLocation.r_ROOT);
             }
             else
             {
                 if (needsResourceManifest)
                 {
-                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project - Resources";
-                    resourceManifest = new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), this.name, projectDescription)
+                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
+                    this.resourceManifest = new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), this.name, projectDescription)
                         .WithModule(Manifest.Module.ResourceData());
                 }
             }
 
-            // link dependencies
-            if (resourceManifest != null && behaviorManifest != null)
+            // link dependencies if both packs exist
+            if (this.resourceManifest != null && this.behaviorManifest != null)
             {
-                behaviorManifest.dependsOn = resourceManifest.uuid;
-                resourceManifest.dependsOn = behaviorManifest.uuid;
+                this.behaviorManifest.dependsOn = this.resourceManifest.uuid;
+                this.resourceManifest.dependsOn = this.behaviorManifest.uuid;
             }
 
-            TryAddFile(behaviorManifest);
-            TryAddFile(resourceManifest);
+            // add to output.
+            TryAddFile(this.behaviorManifest);
+            TryAddFile(this.resourceManifest);
         }
 
         /// <summary>
@@ -470,7 +471,7 @@ namespace mc_compiled.MCC
     {
         internal readonly string bpBase; // e.g: development_behavior_packs/project_name/
         internal readonly string rpBase; // e.g: development_resource_packs/project_name/
-        readonly Dictionary<OutputLocation, string> registry;
+        private readonly Dictionary<OutputLocation, string> registry;
 
         internal OutputRegistry(string bpBase, string rpBase)
         {

@@ -423,6 +423,53 @@ namespace mc_compiled.MCC.Compiler
         public bool HasLocale => this.ActiveLocale != null;
 
         /// <summary>
+        /// Called when localization is enabled for a new locale.
+        /// </summary>
+        /// <param name="langFile">The lang file to hold the localization for this new locale.</param>
+        private void OnLocalizationEnabled(Lang langFile)
+        {
+            const string packName = "pack.name";
+            const string packDescription = "pack.description";
+
+            if (this.project.behaviorManifest != null)
+                TryLocalizeManifestFile(this.project.behaviorManifest);
+            if (this.project.resourceManifest != null)
+                TryLocalizeManifestFile(this.project.resourceManifest);
+            
+            return;
+
+            void TryLocalizeManifestFile(Manifest manifest)
+            {
+                if (!manifest.description.Equals(packDescription))
+                {
+                    string oldDescription = manifest.description;
+                    manifest.description = packDescription;
+                    
+                    var entry = LangEntry.Create(packDescription, oldDescription);
+                    
+                    int indexOfExisting = langFile.IndexOf(packDescription);
+                    if (indexOfExisting == -1)
+                        langFile.InsertAtIndex(0, entry);
+                    else
+                        langFile.SetAtIndex(indexOfExisting, entry);
+                }
+                // ReSharper disable once InvertIf
+                if (!manifest.name.Equals(packName))
+                {
+                    string oldName = manifest.name;
+                    manifest.name = packName;
+                    
+                    var entry = LangEntry.Create(packName, oldName);
+                    
+                    int indexOfExisting = langFile.IndexOf(packName);
+                    if (indexOfExisting == -1)
+                        langFile.InsertAtIndex(0, entry);
+                    else
+                        langFile.SetAtIndex(indexOfExisting, entry);
+                }
+            }
+        }
+        /// <summary>
         /// Sets the active locale that FString data will be sent to.
         /// </summary>
         /// <param name="locale"></param>
@@ -435,6 +482,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             this.ActiveLocale = this.languageManager.DefineLocale(locale);
+            OnLocalizationEnabled(this.ActiveLocale.file);
         }
         /// <summary>
         /// Sets a locale entry in the associated .lang file. Throws a <see cref="StatementException"/> if no locale has been set yet via <see cref="SetLocale(string)"/>.
