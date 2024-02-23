@@ -53,7 +53,7 @@
     "bool": "TokenBooleanLiteral",
     "selector": "TokenSelectorLiteral",
     "value": "TokenIdentifierValue",
-    "coord": "TokenCoordinateLiteral",
+    "coordinate": "TokenCoordinateLiteral",
     "enum": "TokenIdentifierEnum",
     "range": "TokenRangeLiteral",
     "json": "TokenJSONLiteral",
@@ -508,16 +508,16 @@
         [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
         [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
         [ "id:any", "selector:filter" ],
-        [ "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
-        [ "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ],
+        [ "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
+        [ "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ],
         [ "not:not", "value:score", "compare:comparison", "value:other" ],
         [ "not:not", "value:score", "compare:comparison", "any:other" ],
         [ "not:not", "selector:check for match" ],
         [ "not:not", "id:count", "selector:entities", "compare:comparison", "value:amount" ],
         [ "not:not", "id:count", "selector:entities", "compare:comparison", "number:amount" ],
         [ "not:not", "id:any", "selector:filter" ],
-        [ "not:not", "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
-        [ "not:not", "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ]
+        [ "not:not", "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
+        [ "not:not", "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ]
       ]
     },
     "else": {
@@ -541,16 +541,16 @@
         [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
         [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
         [ "id:any", "selector:filter" ],
-        [ "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
-        [ "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ],
+        [ "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
+        [ "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ],
         [ "not:not", "value:score", "compare:comparison", "value:other" ],
         [ "not:not", "value:score", "compare:comparison", "any:other" ],
         [ "not:not", "selector:check for match" ],
         [ "not:not", "id:count", "selector:entities", "compare:comparison", "value:amount" ],
         [ "not:not", "id:count", "selector:entities", "compare:comparison", "number:amount" ],
         [ "not:not", "id:any", "selector:filter" ],
-        [ "not:not", "id:block", "coord:x", "coord:y", "coord:z", "string:block", "?int:data" ],
-        [ "not:not", "id:blocks", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "coord:x destination", "coord:y destination", "coord:z destination" ]
+        [ "not:not", "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
+        [ "not:not", "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ]
       ]
     },
     "throw": {
@@ -578,14 +578,14 @@
       "details": "Teleports the executing/given entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "category": "entities",
       "patterns": [
-        [ "coord:x", "coord:y", "coord:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "coord:x", "coord:y", "coord:z", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ],
-        [ "selector:source", "coord:x", "coord:y", "coord:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "selector:source", "coord:x", "coord:y", "coord:z", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ],
+        [ "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
+        [ "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ],
+        [ "selector:source", "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
+        [ "selector:source", "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ],
         [ "selector:source", "selector:other", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "selector:source", "selector:other", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ],
+        [ "selector:source", "selector:other", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ],
         [ "selector:source", "string:other", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "selector:source", "string:other", "?id:facing", "?coord:facing x", "?coord:facing y", "?coord:facing z", "?bool:check for blocks" ]
+        [ "selector:source", "string:other", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ]
       ]
     },
     "move": {
@@ -602,7 +602,7 @@
       "details": "Faces the given entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "category": "entities",
       "patterns": [
-        [ "selector:source", "coord:x", "coord:y", "coord:z" ],
+        [ "selector:source", "coordinate:x", "coordinate:y", "coordinate:z" ],
         [ "selector:source", "selector:other" ],
         [ "selector:source", "string:other" ]
       ]
@@ -620,7 +620,7 @@
       "details": "Sets the block at a specific position, optionally using a replace mode.",
       "category": "blocks",
       "patterns": [
-        [ "coord:x", "coord:y", "coord:z", "string:block", "?int:data", "?id:replace mode" ]
+        [ "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data", "?id:replace mode" ]
       ]
     },
     "fill": {
@@ -628,7 +628,7 @@
       "details": "Fills blocks in a specific region, optionally using a replace mode.",
       "category": "blocks",
       "patterns": [
-        [ "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "string:block", "?enum:fill mode", "?int:data" ]
+        [ "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "string:block", "?enum:fill mode", "?int:data" ]
       ]
     },
     "scatter": {
@@ -637,7 +637,7 @@
       "details": "Randomly scatters blocks throughout a region with a certain percentage.",
       "category": "blocks",
       "patterns": [
-        [ "string:block", "int:percent", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "?string:seed" ]
+        [ "string:block", "int:percent", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "?string:seed" ]
       ]
     },
     "replace": {
@@ -645,7 +645,7 @@
       "details": "Replaces all source blocks with a result block in a specific region.",
       "category": "blocks",
       "patterns": [
-        [ "string:source block", "?int:data", "coord:x1", "coord:y1", "coord:z1", "coord:x2", "coord:y2", "coord:z2", "string:result block", "?int:data" ]
+        [ "string:source block", "?int:data", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "string:result block", "?int:data" ]
       ]
     },
     "kill": {
@@ -705,7 +705,6 @@
       "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format-strings.",
       "category": "text",
       "patterns": [
-        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
         [ "string:text" ]
       ],
       "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
@@ -716,7 +715,6 @@
       "details": "Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format-strings.",
       "category": "text",
       "patterns": [
-        [ "selector:target", "string:text" ],
         [ "string:text" ]
       ],
       "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
@@ -743,7 +741,7 @@
         [ "selector:target", "int:amount", "?enum:damage cause" ],
         [ "selector:target", "int:amount", "?enum:damage cause", "selector:blame" ],
         [ "selector:target", "int:amount", "?enum:damage cause", "string:blame" ],
-        [ "selector:target", "int:amount", "?enum:damage cause", "coord:from x", "coord:from y", "coord: from z" ]
+        [ "selector:target", "int:amount", "?enum:damage cause", "coordinate:from x", "coordinate:from y", "coordinate: from z" ]
       ]
     },
     "effect": {
@@ -757,10 +755,11 @@
     },
     "playsound": {
       "description": "Play Sound",
+      "wiki_link": "Playsound.md",
       "details": "Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.",
       "category": "cosmetic",
       "patterns": [
-        [ "string:sound", "selector:who", "?coord:x", "?coord:y", "?coord:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
+        [ "string:sound", "selector:who", "?coordinate:x", "?coordinate:y", "?coordinate:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
       ]
     },
     "particle": {
@@ -768,7 +767,7 @@
       "details": "Spawns a particle effect in the world.",
       "category": "cosmetic",
       "patterns": [
-        [ "string:effect", "?coord:x", "?coord:y", "?coord:z" ]
+        [ "string:effect", "?coordinate:x", "?coordinate:y", "?coordinate:z" ]
       ]
     },
     "dummy": {
@@ -778,8 +777,8 @@
       "category": "features",
       "features": 1,
       "patterns": [
-        [ "id:create", "string:name", "?string:tag", "?coord:x", "?coord:y", "?coord:x" ],
-        [ "id:single", "string:name", "?string:tag", "?coord:x", "?coord:y", "?coord:x" ],
+        [ "id:create", "string:name", "?string:tag", "?coordinate:x", "?coordinate:y", "?coordinate:x" ],
+        [ "id:single", "string:name", "?string:tag", "?coordinate:x", "?coordinate:y", "?coordinate:x" ],
         [ "id:removeall", "?string:tag" ],
         [ "id:remove", "string:name", "?string:tag" ]
       ]
@@ -799,7 +798,7 @@
       "category": "features",
       "features": 4,
       "patterns": [
-        [ "?coord:x", "?coord:y", "?coord:z", "?int:power", "?int:delay", "?bool:causes fire", "?bool:breaks blocks" ]
+        [ "?coordinate:x", "?coordinate:y", "?coordinate:z", "?int:power", "?int:delay", "?bool:causes fire", "?bool:breaks blocks" ]
       ]
     },
     "feature": {
@@ -845,6 +844,7 @@
     },
     "dialogue": {
       "description": "Define/Open Dialogue",
+      "wiki_link": "Dialogue.md",
       "details": "If followed by a block, defines a new dialogue scene with the given name.",
       "category": "text",
       "patterns": [
@@ -858,6 +858,7 @@
       "details": "Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>`",
       "category": "logic",
       "patterns": [
+        [ "selector:entities", "id:at", "coordinate:x", "coordinate:y", "coordinate:z" ],
         [ "selector:entities" ]
       ]
     },

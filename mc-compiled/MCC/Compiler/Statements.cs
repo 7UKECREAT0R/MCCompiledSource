@@ -220,15 +220,15 @@ namespace mc_compiled.MCC.Compiler
         }
         protected override void Run(Executor executor)
         {
-            var value = Next<TokenIdentifierValue>();
-            var assignment = Next<IAssignment>();
+            var value = Next<TokenIdentifierValue>("left");
+            var assignment = Next<IAssignment>("assignment operator");
 
             if (!this.HasNext)
                 throw new StatementException(this, "Nothing on right-hand side of assignment.");
 
             if (NextIs<TokenIdentifierValue>())
             {
-                var next = Next<TokenIdentifierValue>();
+                var next = Next<TokenIdentifierValue>(null);
                 CommandFile file = executor.CurrentFile;
 
                 if (assignment is TokenArithmetic arithmetic)
@@ -249,7 +249,7 @@ namespace mc_compiled.MCC.Compiler
             }
             else if (NextIs<TokenLiteral>())
             {
-                var next = Next<TokenLiteral>();
+                var next = Next<TokenLiteral>(null);
                 CommandFile file = executor.CurrentFile;
 
                 if (assignment is TokenArithmetic arithmetic)
@@ -315,11 +315,11 @@ namespace mc_compiled.MCC.Compiler
         {
             if (!NextIs<TokenIdentifierFunction>())
             {
-                var id = Next<TokenIdentifier>();
+                var id = Next<TokenIdentifier>("function name");
                 throw new StatementException(this, $"Unresolved function name \"{id.word}\". Is it spelled right & defined somewhere above this line?");
             }
 
-            var value = Next<TokenIdentifierFunction>();
+            var value = Next<TokenIdentifierFunction>(null);
 
             if (NextIs<TokenOpenParenthesis>())
                 Next();

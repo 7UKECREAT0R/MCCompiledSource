@@ -61,7 +61,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         public override TypePattern SpecifyPattern => new TypePattern(new NamedType(typeof(TokenIntegerLiteral), "precision"));
         public override ITypeStructure AcceptPattern(Statement statement)
         {
-            int precision = statement.Next<TokenNumberLiteral>().GetNumberInt();
+            int precision = statement.Next<TokenNumberLiteral>("precision").GetNumberInt();
             return new FixedDecimalData((byte)precision);
         }
 

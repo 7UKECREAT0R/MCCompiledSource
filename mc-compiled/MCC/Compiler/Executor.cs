@@ -948,7 +948,7 @@ namespace mc_compiled.MCC.Compiler
             // next in statement?
             if (tokens.NextIs<TokenBuilderIdentifier>())
             {
-                builderField = tokens.Next<TokenBuilderIdentifier>();
+                builderField = tokens.Next<TokenBuilderIdentifier>(null);
                 return true;
             }
 
@@ -957,7 +957,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 // reassigns the field in the caller's code
                 tokens = Next<StatementUnknown>().ClonePrepare(this);
-                builderField = tokens.Next<TokenBuilderIdentifier>();
+                builderField = tokens.Next<TokenBuilderIdentifier>(null);
                 return true;
             }
 

@@ -66,7 +66,7 @@ namespace mc_compiled.MCC.Compiler
                         // if <score> <operator> <value>
                         if (tokens.NextIs<TokenCompare>())
                         {
-                            TokenCompare.Type comparison = tokens.Next<TokenCompare>().GetCompareType();
+                            TokenCompare.Type comparison = tokens.Next<TokenCompare>("comparison operator").GetCompareType();
                             Token b = tokens.Next();
                             var field = new ComparisonValue(identifierValue, comparison, b, invertNext);
                             invertNext = false;
@@ -101,8 +101,8 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // ComparisonCount
                                 // if count <@selector> <operator> <value>
-                                var selector = tokens.Next<TokenSelectorLiteral>();
-                                var comparison = tokens.Next<TokenCompare>();
+                                var selector = tokens.Next<TokenSelectorLiteral>("selector");
+                                var comparison = tokens.Next<TokenCompare>("comparison operator");
                                 Token b = tokens.Next();
 
                                 var count = new ComparisonCount(selector,
@@ -116,7 +116,7 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // ComparisonAny
                                 // if any <@selector>
-                                var selector = tokens.Next<TokenSelectorLiteral>();
+                                var selector = tokens.Next<TokenSelectorLiteral>("selector");
                                 var any = new ComparisonAny(selector, invertNext);
 
                                 invertNext = false;
@@ -127,14 +127,14 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // ComparisonBlock
                                 // if block <x, y, z> <block> [data]
-                                Coordinate x = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate y = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate z = tokens.Next<TokenCoordinateLiteral>();
-                                string block = tokens.Next<TokenStringLiteral>();
+                                Coordinate x = tokens.Next<TokenCoordinateLiteral>("x");
+                                Coordinate y = tokens.Next<TokenCoordinateLiteral>("y");
+                                Coordinate z = tokens.Next<TokenCoordinateLiteral>("z");
+                                string block = tokens.Next<TokenStringLiteral>("block");
 
                                 int? data = null;
                                 if (tokens.NextIs<TokenIntegerLiteral>())
-                                    data = tokens.Next<TokenIntegerLiteral>();
+                                    data = tokens.Next<TokenIntegerLiteral>("data");
 
                                 var blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
 
@@ -146,20 +146,20 @@ namespace mc_compiled.MCC.Compiler
                             {
                                 // ComparisonBlocks
                                 // if blocks <start x, y, z> <end x, y, z> <dest x, y, z> <ScanMode>
-                                Coordinate startX = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate startY = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate startZ = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate endX = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate endY = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate endZ = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate destX = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate destY = tokens.Next<TokenCoordinateLiteral>();
-                                Coordinate destZ = tokens.Next<TokenCoordinateLiteral>();
+                                Coordinate startX = tokens.Next<TokenCoordinateLiteral>("start x");
+                                Coordinate startY = tokens.Next<TokenCoordinateLiteral>("start y");
+                                Coordinate startZ = tokens.Next<TokenCoordinateLiteral>("start z");
+                                Coordinate endX = tokens.Next<TokenCoordinateLiteral>("end x");
+                                Coordinate endY = tokens.Next<TokenCoordinateLiteral>("end y");
+                                Coordinate endZ = tokens.Next<TokenCoordinateLiteral>("end z");
+                                Coordinate destX = tokens.Next<TokenCoordinateLiteral>("destination x");
+                                Coordinate destY = tokens.Next<TokenCoordinateLiteral>("destination y");
+                                Coordinate destZ = tokens.Next<TokenCoordinateLiteral>("destination z");
 
                                 var scanMode = BlocksScanMode.all;
                                 if(tokens.NextIs<TokenIdentifierEnum>())
                                 {
-                                    ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>().value;
+                                    ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>("scan mode").value;
                                     parsed.RequireType<BlocksScanMode>(tokens);
                                     scanMode = (BlocksScanMode)parsed.value;
                                 }

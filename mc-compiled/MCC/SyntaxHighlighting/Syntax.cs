@@ -99,7 +99,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 
         public static readonly Keywords literals = new Keywords()
         {
-            keywords = new Keyword[]
+            keywords = new[]
             {
                 new Keyword("true", "A boolean value representing true/yes."),
                 new Keyword("false", "A boolean value representing false/no."),
@@ -172,6 +172,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("spectator", "Spectator mode. (spectator)"),
 
                 // various command options
+                new Keyword("removeall", "Used with the 'dummy' command. Subcommand, removes all dummies, optionally with the given tag."),
                 new Keyword("times", "Specifies the fade-in/stay/fade-out times this text will show for."),
                 new Keyword("subtitle", "Sets the subtitle for the next title shown."),
                 new Keyword("destroy", "Destroy any existing blocks as if broken by a player."),

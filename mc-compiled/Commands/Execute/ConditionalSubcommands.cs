@@ -1,4 +1,5 @@
-﻿using mc_compiled.Commands.Selectors;
+﻿using System;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 
@@ -47,12 +48,13 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            this.x = tokens.Next<TokenCoordinateLiteral>();
-            this.y = tokens.Next<TokenCoordinateLiteral>();
-            this.z = tokens.Next<TokenCoordinateLiteral>();
-            this.block = tokens.Next<TokenStringLiteral>();
+            this.x = tokens.Next<TokenCoordinateLiteral>("x");
+            this.y = tokens.Next<TokenCoordinateLiteral>("y");
+            this.z = tokens.Next<TokenCoordinateLiteral>("z");
+            this.block = tokens.Next<TokenStringLiteral>("block");
 
-            if(tokens.NextIs<TokenIntegerLiteral>()) this.data = tokens.Next<TokenIntegerLiteral>();
+            if(tokens.NextIs<TokenIntegerLiteral>())
+                this.data = tokens.Next<TokenIntegerLiteral>(null);
         }
         public override string ToMinecraft()
         {
@@ -132,19 +134,19 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            this.beginX = tokens.Next<TokenCoordinateLiteral>();
-            this.beginY = tokens.Next<TokenCoordinateLiteral>();
-            this.beginZ = tokens.Next<TokenCoordinateLiteral>();
+            this.beginX = tokens.Next<TokenCoordinateLiteral>("start X");
+            this.beginY = tokens.Next<TokenCoordinateLiteral>("start Y");
+            this.beginZ = tokens.Next<TokenCoordinateLiteral>("start Z");
 
-            this.endX = tokens.Next<TokenCoordinateLiteral>();
-            this.endY = tokens.Next<TokenCoordinateLiteral>();
-            this.endZ = tokens.Next<TokenCoordinateLiteral>();
+            this.endX = tokens.Next<TokenCoordinateLiteral>("end X");
+            this.endY = tokens.Next<TokenCoordinateLiteral>("end Y");
+            this.endZ = tokens.Next<TokenCoordinateLiteral>("end Z");
             
-            this.destX = tokens.Next<TokenCoordinateLiteral>();
-            this.destY = tokens.Next<TokenCoordinateLiteral>();
-            this.destZ = tokens.Next<TokenCoordinateLiteral>();
+            this.destX = tokens.Next<TokenCoordinateLiteral>("destination X");
+            this.destY = tokens.Next<TokenCoordinateLiteral>("destination Y");
+            this.destZ = tokens.Next<TokenCoordinateLiteral>("destination Z");
 
-            ParsedEnumValue parsedEnum = tokens.Next<TokenIdentifierEnum>().value;
+            ParsedEnumValue parsedEnum = tokens.Next<TokenIdentifierEnum>("scan mode").value;
             parsedEnum.RequireType<BlocksScanMode>(tokens);
             this.scanMode = (BlocksScanMode)parsedEnum.value;
         }
@@ -182,7 +184,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            this.entity = tokens.Next<TokenSelectorLiteral>();
+            this.entity = tokens.Next<TokenSelectorLiteral>("entity");
         }
         public override string ToMinecraft() => $"entity {this.entity}";
     }
@@ -190,12 +192,12 @@ namespace mc_compiled.Commands.Execute
     {
         internal bool comparesRange;
 
-        internal bool SourceIsGlobal => this.sourceSelector.Equals(Executor.FAKEPLAYER_NAME);
+        private bool SourceIsGlobal => this.sourceSelector.Equals(Executor.FAKEPLAYER_NAME);
         internal Clarifier SourceClarifier => new Clarifier(this.SourceIsGlobal, this.sourceSelector);
         
         // The reason this isn't a ScoreboardValue is because sometimes the user
         // uses a different selector and it's not worth cloning it.
-        internal string sourceSelector;
+        private readonly string sourceSelector;
         internal string sourceValue;
 
         // if comparesRange
@@ -203,10 +205,10 @@ namespace mc_compiled.Commands.Execute
 
         // if !comparesRange
         internal TokenCompare.Type comparisonType;
-        
-        internal bool OtherIsGlobal => this.otherSelector.Equals(Executor.FAKEPLAYER_NAME);
+
+        private bool OtherIsGlobal => this.otherSelector.Equals(Executor.FAKEPLAYER_NAME);
         internal Clarifier OtherClarifier => new Clarifier(this.OtherIsGlobal, this.otherSelector);
-        internal string otherSelector;
+        private readonly string otherSelector;
         internal string otherValue;
 
         public ConditionalSubcommandScore() { }
@@ -265,22 +267,27 @@ namespace mc_compiled.Commands.Execute
         {
             return new ConditionalSubcommandScore(false, source, Range.zero, type, other);
         }
+
         /// <summary>
         /// Create a ConditionalSubcommandScore that compares a scoreboard value with a range.
         /// </summary>
-        /// <param name="source">The first value.</param>
+        /// <param name="selector">The selector for the objective to compare.</param>
+        /// <param name="objective">The objective name to compare.</param>
         /// <param name="range">The range to compare against.</param>
         /// <returns></returns>
         internal static ConditionalSubcommandScore New(string selector, string objective, Range range)
         {
             return new ConditionalSubcommandScore(true, selector, objective, range, 0, null, null);
         }
+
         /// <summary>
         /// Create a ConditionalSubcommandScore that compares a scoreboard value with another scoreboard value.
         /// </summary>
-        /// <param name="source">The first value.</param>
+        /// <param name="sourceSelector">The selector to use for the first value.</param>
+        /// <param name="sourceObjective">The first value.</param>
         /// <param name="type">The comparison type/operator used.</param>
-        /// <param name="other">The other value.</param>
+        /// <param name="otherSelector">The selector to use for the other value.</param>
+        /// <param name="otherObjective">The other value.</param>
         /// <returns></returns>
         internal static ConditionalSubcommandScore New(string sourceSelector, string sourceObjective, TokenCompare.Type type, string otherSelector, string otherObjective)
         {
@@ -305,22 +312,29 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            this.sourceValue = tokens.Next<TokenIdentifierValue>().value.InternalName;
+            this.sourceValue = tokens.Next<TokenIdentifierValue>("source").value.InternalName;
 
             // thisScore == otherScore
             if(tokens.NextIs<TokenCompare>(false))
             {
                 this.comparesRange = false;
-                this.comparisonType = tokens.Next<TokenCompare>().GetCompareType();
-                this.otherValue = tokens.Next<TokenIdentifierValue>().value.InternalName;
+                this.comparisonType = tokens.Next<TokenCompare>("comparison operator").GetCompareType();
+                this.otherValue = tokens.Next<TokenIdentifierValue>("other").value.InternalName;
                 return;
             }
 
-            // thisScore matches 1..10
-            tokens.Next(); // skip "matches"
+            // not a valid comparison operator, check it.
+            string middleWord = tokens.Next<TokenIdentifier>("comparison operator").word;
+            if (!middleWord.Equals("matches", StringComparison.OrdinalIgnoreCase))
+            {
+                if (middleWord.StartsWith("m", StringComparison.OrdinalIgnoreCase))
+                    throw new StatementException(tokens, $"Unknown comparison operator: {middleWord}. Did you mean 'matches'?");
+                throw new StatementException(tokens, $"Unknown comparison operator: {middleWord}.");
+            }
 
+            // thisScore matches 1..10
             this.comparesRange = true;
-            this.range = tokens.Next<TokenRangeLiteral>().range;
+            this.range = tokens.Next<TokenRangeLiteral>("range").range;
         }
         public override string ToMinecraft()
         {

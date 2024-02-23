@@ -35,7 +35,7 @@ selector
 value
 : The name of a runtime value that was defined using the `define` command.
 
-coord
+coordinate
 : A Minecraft coordinate value that can optionally be both relative and facing offset, like ~10, 40, or ^5.
 
 enum
@@ -191,6 +191,12 @@ Iterate Preprocessor Array
 ### Category: text
 Commands which display text to players through format-strings, or manipulate text otherwise.
 
+[Define/Open Dialogue](Dialogue.md)
+: If followed by a block, defines a new dialogue scene with the given name.
+- `dialogue <id: new> <string: scene tag>`
+- `dialogue <id: open> <selector: npc> <selector: player> [string: scene tag]`
+- `dialogue <id: change> <selector: npc> <string: scene tag> [selector: player]`
+
 [Print to All Players](Text-Commands.md#commands)
 : Prints a chat message to all players in the game. Supports format-strings.
 - `globalprint <string: text>`
@@ -206,12 +212,10 @@ Commands which display text to players through format-strings, or manipulate tex
 
 [Show Actionbar to All Players](Text-Commands.md#commands)
 : Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format-strings.
-- `globalactionbar <id: times> <int: fade in> <int: stay> <int: fade out>`
 - `globalactionbar <string: text>`
 
 [Show Actionbar](Text-Commands.md#commands)
 : Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format-strings.
-- `actionbar <selector: target> <string: text>`
 - `actionbar <string: text>`
 
 [Show Title to All Players](Text-Commands.md#commands)
@@ -229,12 +233,6 @@ Commands which display text to players through format-strings, or manipulate tex
 - `title <id: subtitle> <string: text>`
 - `title <string: text>`
 
-Define/Open Dialogue
-: If followed by a block, defines a new dialogue scene with the given name.
-- `dialogue <id: new> <string: scene tag>`
-- `dialogue <id: open> <selector: npc> <selector: player> [string: scene tag]`
-- `dialogue <id: change> <selector: npc> <string: scene tag> [selector: player]`
-
 Say
 : Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.
 - `say <string: message>`
@@ -248,11 +246,11 @@ Damage Entity
 - `damage <selector: target> <int: amount> [enum: damage cause]`
 - `damage <selector: target> <int: amount> [enum: damage cause] <selector: blame>`
 - `damage <selector: target> <int: amount> [enum: damage cause] <string: blame>`
-- `damage <selector: target> <int: amount> [enum: damage cause] <coord: from x> <coord: from y> <coord:  from z>`
+- `damage <selector: target> <int: amount> [enum: damage cause] <coordinate: from x> <coordinate: from y> <coordinate:  from z>`
 
 Face Towards...
 : Faces the given entities towards a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).
-- `face <selector: source> <coord: x> <coord: y> <coord: z>`
+- `face <selector: source> <coordinate: x> <coordinate: y> <coordinate: z>`
 - `face <selector: source> <selector: other>`
 - `face <selector: source> <string: other>`
 
@@ -283,14 +281,14 @@ Tag Entity
 
 Teleport Entity
 : Teleports the executing/given entities to a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).
-- `tp <coord: x> <coord: y> <coord: z> [id: facing] [selector: face entity] [bool: check for blocks]`
-- `tp <coord: x> <coord: y> <coord: z> [id: facing] [coord: facing x] [coord: facing y] [coord: facing z] [bool: check for blocks]`
-- `tp <selector: source> <coord: x> <coord: y> <coord: z> [id: facing] [selector: face entity] [bool: check for blocks]`
-- `tp <selector: source> <coord: x> <coord: y> <coord: z> [id: facing] [coord: facing x] [coord: facing y] [coord: facing z] [bool: check for blocks]`
+- `tp <coordinate: x> <coordinate: y> <coordinate: z> [id: facing] [selector: face entity] [bool: check for blocks]`
+- `tp <coordinate: x> <coordinate: y> <coordinate: z> [id: facing] [coordinate: facing x] [coordinate: facing y] [coordinate: facing z] [bool: check for blocks]`
+- `tp <selector: source> <coordinate: x> <coordinate: y> <coordinate: z> [id: facing] [selector: face entity] [bool: check for blocks]`
+- `tp <selector: source> <coordinate: x> <coordinate: y> <coordinate: z> [id: facing] [coordinate: facing x] [coordinate: facing y] [coordinate: facing z] [bool: check for blocks]`
 - `tp <selector: source> <selector: other> [id: facing] [selector: face entity] [bool: check for blocks]`
-- `tp <selector: source> <selector: other> [id: facing] [coord: facing x] [coord: facing y] [coord: facing z] [bool: check for blocks]`
+- `tp <selector: source> <selector: other> [id: facing] [coordinate: facing x] [coordinate: facing y] [coordinate: facing z] [bool: check for blocks]`
 - `tp <selector: source> <string: other> [id: facing] [selector: face entity] [bool: check for blocks]`
-- `tp <selector: source> <string: other> [id: facing] [coord: facing x] [coord: facing y] [coord: facing z] [bool: check for blocks]`
+- `tp <selector: source> <string: other> [id: facing] [coordinate: facing x] [coordinate: facing y] [coordinate: facing z] [bool: check for blocks]`
 
 
 ### Category: blocks
@@ -298,20 +296,19 @@ Commands which interact with the Minecraft world's blocks.
 
 [Scatter Blocks in Region](Scatter.md)
 : Randomly scatters blocks throughout a region with a certain percentage.
-- `scatter <string: block> <int: percent> <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2> [string: seed]`
+- `scatter <string: block> <int: percent> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> [string: seed]`
 
 Fill Region
 : Fills blocks in a specific region, optionally using a replace mode.
-- `fill <id: fill mode> <string: block> <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2>`
-- `fill <string: block> <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2>`
+- `fill <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <string: block> [enum: fill mode] [int: data]`
 
 Replace in Region
 : Replaces all source blocks with a result block in a specific region.
-- `replace <string: source block> [int: data] <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2> <string: result block> [int: data]`
+- `replace <string: source block> [int: data] <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <string: result block> [int: data]`
 
 Set Block
 : Sets the block at a specific position, optionally using a replace mode.
-- `setblock <coord: x> <coord: y> <coord: z> <string: block> [int: data] [id: replace mode]`
+- `setblock <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data] [id: replace mode]`
 
 
 ### Category: items
@@ -329,13 +326,13 @@ Clear Entity
 ### Category: cosmetic
 Commands that add visual and auditory appeal to the user's code.
 
-Play Sound
+[Play Sound](Playsound.md)
 : Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.
-- `playsound <string: sound> <selector: who> [coord: x] [coord: y] [coord: z] [number: volume] [number: pitch] [number: minimum volume]`
+- `playsound <string: sound> <selector: who> [coordinate: x] [coordinate: y] [coordinate: z] [number: volume] [number: pitch] [number: minimum volume]`
 
 Spawn Particle
 : Spawns a particle effect in the world.
-- `particle <string: effect> [coord: x] [coord: y] [coord: z]`
+- `particle <string: effect> [coordinate: x] [coordinate: y] [coordinate: z]`
 
 
 ### Category: values
@@ -373,16 +370,16 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 - `if <id: count> <selector: entities> <compare: comparison> <value: amount>`
 - `if <id: count> <selector: entities> <compare: comparison> <number: amount>`
 - `if <id: any> <selector: filter>`
-- `if <id: block> <coord: x> <coord: y> <coord: z> <string: block> [int: data]`
-- `if <id: blocks> <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2> <coord: x destination> <coord: y destination> <coord: z destination>`
+- `if <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
+- `if <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
 - `if <not: not> <value: score> <compare: comparison> <value: other>`
 - `if <not: not> <value: score> <compare: comparison> <any: other>`
 - `if <not: not> <selector: check for match>`
 - `if <not: not> <id: count> <selector: entities> <compare: comparison> <value: amount>`
 - `if <not: not> <id: count> <selector: entities> <compare: comparison> <number: amount>`
 - `if <not: not> <id: any> <selector: filter>`
-- `if <not: not> <id: block> <coord: x> <coord: y> <coord: z> <string: block> [int: data]`
-- `if <not: not> <id: blocks> <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2> <coord: x destination> <coord: y destination> <coord: z destination>`
+- `if <not: not> <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
+- `if <not: not> <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
 
 [Set Return Value](Functions.md#return-values)
 : Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.
@@ -395,6 +392,7 @@ Execute
 
 For Each Entity
 : Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>`
+- `for <selector: entities> <id: at> <coordinate: x> <coordinate: y> <coordinate: z>`
 - `for <selector: entities>`
 
 
@@ -411,16 +409,16 @@ Commands related to testing, debugging and all-around solidifying code.
 - `assert <id: count> <selector: entities> <compare: comparison> <value: amount>`
 - `assert <id: count> <selector: entities> <compare: comparison> <number: amount>`
 - `assert <id: any> <selector: filter>`
-- `assert <id: block> <coord: x> <coord: y> <coord: z> <string: block> [int: data]`
-- `assert <id: blocks> <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2> <coord: x destination> <coord: y destination> <coord: z destination>`
+- `assert <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
+- `assert <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
 - `assert <not: not> <value: score> <compare: comparison> <value: other>`
 - `assert <not: not> <value: score> <compare: comparison> <any: other>`
 - `assert <not: not> <selector: check for match>`
 - `assert <not: not> <id: count> <selector: entities> <compare: comparison> <value: amount>`
 - `assert <not: not> <id: count> <selector: entities> <compare: comparison> <number: amount>`
 - `assert <not: not> <id: any> <selector: filter>`
-- `assert <not: not> <id: block> <coord: x> <coord: y> <coord: z> <string: block> [int: data]`
-- `assert <not: not> <id: blocks> <coord: x1> <coord: y1> <coord: z1> <coord: x2> <coord: y2> <coord: z2> <coord: x destination> <coord: y destination> <coord: z destination>`
+- `assert <not: not> <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
+- `assert <not: not> <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
 
 [Define Test](Testing.md#writing-a-test)
 : Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.
@@ -443,7 +441,7 @@ Commands related to the optionally enable-able features in the language.
 
 [Create Explosion](Optional-Features.md#exploders)
 : Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.
-- `explode [coord: x] [coord: y] [coord: z] [int: power] [int: delay] [bool: causes fire] [bool: breaks blocks]`
+- `explode [coordinate: x] [coordinate: y] [coordinate: z] [int: power] [int: delay] [bool: causes fire] [bool: breaks blocks]`
 
 [Enable Feature](Optional-Features.md)
 : Enables a feature to be used for this project, generating any of the necessary files.
@@ -451,8 +449,8 @@ Commands related to the optionally enable-able features in the language.
 
 [Manage Dummy Entities](Optional-Features.md#dummies)
 : Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.
-- `dummy <id: create> <string: name> [string: tag] [coord: x] [coord: y] [coord: x]`
-- `dummy <id: single> <string: name> [string: tag] [coord: x] [coord: y] [coord: x]`
+- `dummy <id: create> <string: name> [string: tag] [coordinate: x] [coordinate: y] [coordinate: x]`
+- `dummy <id: single> <string: name> [string: tag] [coordinate: x] [coordinate: y] [coordinate: x]`
 - `dummy <id: removeall> [string: tag]`
 - `dummy <id: remove> <string: name> [string: tag]`
 

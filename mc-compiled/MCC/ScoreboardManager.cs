@@ -229,8 +229,8 @@ namespace mc_compiled.MCC
         /// This method automatically performs type inference if possible.
         /// </summary>
         /// <param name="tokens"></param>
-        /// <returns></returns>=
-        internal ValueDefinition GetNextValueDefinition(Statement tokens)
+        /// <returns></returns>
+        internal static ValueDefinition GetNextValueDefinition(Statement tokens)
         {
             var attributes = new List<IAttribute>();
 
@@ -242,7 +242,7 @@ namespace mc_compiled.MCC
 
             if (tokens.NextIs<TokenIdentifier>())
             {
-                var identifier = tokens.Next<TokenIdentifier>();
+                var identifier = tokens.Next<TokenIdentifier>(null);
                 string typeWord = identifier.word.ToUpper();
                 Typedef[] types = Typedef.ALL_TYPES;
 
@@ -277,7 +277,7 @@ namespace mc_compiled.MCC
             {
                 if (!tokens.NextIs<TokenStringLiteral>())
                     throw new StatementException(tokens, "No name specified after type.");
-                name = tokens.Next<TokenStringLiteral>();
+                name = tokens.Next<TokenStringLiteral>(null);
             }
 
             // the default value to set it to.
@@ -306,7 +306,7 @@ namespace mc_compiled.MCC
             {
                 while (tokens.NextIs<TokenAttribute>())
                 {
-                    var _attribute = tokens.Next<TokenAttribute>();
+                    var _attribute = tokens.Next<TokenAttribute>(null);
                     attributes.Add(_attribute.attribute);
                 }
             }

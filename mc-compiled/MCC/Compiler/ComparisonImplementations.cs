@@ -33,8 +33,8 @@ namespace mc_compiled.MCC.Compiler
 
         public override string GetDescription() =>
             this.inverted ?
-            $"not {this.score.Name}.":
-            $"{this.score.Name}.";
+            $"not {this.score.Name}":
+            $"{this.score.Name}";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             return new[] {this.score };

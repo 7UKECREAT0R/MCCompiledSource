@@ -52,7 +52,7 @@ namespace mc_compiled.Commands.Execute
         /// </summary>
         /// <param name="axes"></param>
         /// <returns></returns>
-        internal static string FromAxes(Axes axes)
+        private static string FromAxes(Axes axes)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -66,7 +66,7 @@ namespace mc_compiled.Commands.Execute
             return sb.ToString();
         }
 
-        internal Axes axes { get; private set; }
+        private Axes axes { get; set; }
 
         internal SubcommandAlign() { }
         internal SubcommandAlign(Axes axes)
@@ -85,7 +85,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            TokenStringLiteral literal = tokens.Next<TokenStringLiteral>();
+            TokenStringLiteral literal = tokens.Next<TokenStringLiteral>("axes");
             string axesString = literal.text;
             this.axes = ParseAxes(axesString);
         }
@@ -93,7 +93,7 @@ namespace mc_compiled.Commands.Execute
     }
     internal class SubcommandAnchored : Subcommand
     {
-        internal AnchorPosition anchor;
+        private AnchorPosition anchor;
 
         internal SubcommandAnchored() { }
         internal SubcommandAnchored(AnchorPosition anchor)
@@ -112,7 +112,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            TokenIdentifierEnum @enum = tokens.Next<TokenIdentifierEnum>();
+            TokenIdentifierEnum @enum = tokens.Next<TokenIdentifierEnum>("anchor position");
             ParsedEnumValue parsedEnum = @enum.value;
 
             parsedEnum.RequireType<AnchorPosition>(tokens);
@@ -142,14 +142,14 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>("entity");
             this.entity = selector.selector;
         }
-        public override string ToMinecraft() => $"as {this.entity.ToString()}";
+        public override string ToMinecraft() => $"as {this.entity}";
     }
     internal class SubcommandAt : Subcommand
     {
-        internal Selector entity;
+        private Selector entity;
 
         internal SubcommandAt() { }
         internal SubcommandAt(Selector entity)
@@ -168,19 +168,20 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
+            TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>("entity");
             this.entity = selector.selector;
         }
         public override string ToMinecraft() => $"at {this.entity.ToString()}";
     }
     internal class SubcommandFacing : Subcommand
     {
-        internal bool isEntity;
+        private bool isEntity;
 
-        internal Selector entity;
-        internal AnchorPosition anchor;
-
-        internal Coordinate x, y, z;
+        private Selector entity;
+        private AnchorPosition anchor;
+        private Coordinate x;
+        private Coordinate y;
+        private Coordinate z;
 
         internal SubcommandFacing() { }
         internal SubcommandFacing(bool isEntity, Selector entity, AnchorPosition anchor, Coordinate x, Coordinate y, Coordinate z)
@@ -217,9 +218,9 @@ namespace mc_compiled.Commands.Execute
             {
                 this.isEntity = true;
 
-                this.entity = tokens.Next<TokenSelectorLiteral>();
+                this.entity = tokens.Next<TokenSelectorLiteral>("entity");
 
-                ParsedEnumValue parsedEnum = tokens.Next<TokenIdentifierEnum>().value;
+                ParsedEnumValue parsedEnum = tokens.Next<TokenIdentifierEnum>("anchor").value;
                 parsedEnum.RequireType<AnchorPosition>(tokens);
                 this.anchor = (AnchorPosition)parsedEnum.value;
                 return;
@@ -228,9 +229,9 @@ namespace mc_compiled.Commands.Execute
             // coordinate
             this.isEntity = false;
 
-            this.x = tokens.Next<TokenCoordinateLiteral>();
-            this.y = tokens.Next<TokenCoordinateLiteral>();
-            this.z = tokens.Next<TokenCoordinateLiteral>();
+            this.x = tokens.Next<TokenCoordinateLiteral>("x");
+            this.y = tokens.Next<TokenCoordinateLiteral>("y");
+            this.z = tokens.Next<TokenCoordinateLiteral>("z");
         }
         public override string ToMinecraft()
         {
@@ -261,7 +262,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            var @enum = tokens.Next<TokenIdentifierEnum>();
+            var @enum = tokens.Next<TokenIdentifierEnum>("dimension");
             ParsedEnumValue parsedEnum = @enum.value;
 
             parsedEnum.RequireType<Dimension>(tokens);
@@ -308,14 +309,14 @@ namespace mc_compiled.Commands.Execute
             if(tokens.NextIs<TokenSelectorLiteral>())
             {
                 this.asEntity = true;
-                this.entity = tokens.Next<TokenSelectorLiteral>();
+                this.entity = tokens.Next<TokenSelectorLiteral>("entity");
                 return;
             }
 
             // coords
-            this.x = tokens.Next<TokenCoordinateLiteral>();
-            this.y = tokens.Next<TokenCoordinateLiteral>();
-            this.z = tokens.Next<TokenCoordinateLiteral>();
+            this.x = tokens.Next<TokenCoordinateLiteral>("x");
+            this.y = tokens.Next<TokenCoordinateLiteral>("y");
+            this.z = tokens.Next<TokenCoordinateLiteral>("z");
         }
         public override string ToMinecraft()
         {
@@ -361,13 +362,13 @@ namespace mc_compiled.Commands.Execute
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
                 this.asEntity = true;
-                this.entity = tokens.Next<TokenSelectorLiteral>();
+                this.entity = tokens.Next<TokenSelectorLiteral>("entity");
                 return;
             }
 
             // coords
-            this.yaw = tokens.Next<TokenCoordinateLiteral>();
-            this.pitch = tokens.Next<TokenCoordinateLiteral>();
+            this.yaw = tokens.Next<TokenCoordinateLiteral>("yaw");
+            this.pitch = tokens.Next<TokenCoordinateLiteral>("pitch");
         }
         public override string ToMinecraft()
         {
@@ -379,7 +380,7 @@ namespace mc_compiled.Commands.Execute
     }
     internal class SubcommandRun : Subcommand
     {
-        internal string command;
+        private string command;
 
         /// <summary>
         /// Create a SubcommandRun with a command given.
@@ -439,7 +440,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            string word = tokens.Next<TokenIdentifier>("subcommand").word.ToUpper();
 
             // load condition
             this.condition = ConditionalSubcommand.GetConditionalSubcommandForKeyword(word, tokens);
@@ -476,7 +477,7 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            string word = tokens.Next<TokenIdentifier>().word.ToUpper();
+            string word = tokens.Next<TokenIdentifier>("subcommand").word.ToUpper();
 
             // load condition
             this.condition = ConditionalSubcommand.GetConditionalSubcommandForKeyword(word, tokens);

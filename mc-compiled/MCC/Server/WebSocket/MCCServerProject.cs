@@ -136,20 +136,22 @@ namespace mc_compiled.MCC.ServerWebSocket
                 dialog.Title = "Save project...";
                 dialog.FileName = defaultName;
 
-                using (Form zSetter = new Form() { TopMost = true, TopLevel = true })
+                using (Form zSetter = new Form())
                 {
+                    zSetter.TopMost = true;
+                    zSetter.TopLevel = true;
+                    zSetter.WindowState = FormWindowState.Minimized;
+                    zSetter.Show();
+                    
                     bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
 
-                    if (selected)
-                    {
-                        // did choose file
-                        this.File = dialog.FileName;
-                        return true;
-                    }
+                    if (!selected)
+                        return false;
+                    
+                    // did choose file
+                    this.File = dialog.FileName;
+                    return true;
                 }
-
-                // didn't choose file
-                return false;
             }
         }
         /// <summary>
@@ -167,20 +169,22 @@ namespace mc_compiled.MCC.ServerWebSocket
                 dialog.Title = "Load project...";
                 dialog.FileName = "web_project.mcc";
 
-                using (Form zSetter = new Form() { TopMost = true, TopLevel = true })
+                using (Form zSetter = new Form())
                 {
+                    zSetter.TopMost = true;
+                    zSetter.TopLevel = true;
+                    zSetter.WindowState = FormWindowState.Minimized;
+                    zSetter.Show();
+                    
                     bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
 
-                    if (selected)
-                    {
-                        // did choose file
-                        this.File = dialog.FileName;
-                        return true;
-                    }
+                    if (!selected)
+                        return false;
+                    
+                    // did choose file
+                    this.File = dialog.FileName;
+                    return true;
                 }
-
-                // didn't choose file
-                return false;
             }
         }
 

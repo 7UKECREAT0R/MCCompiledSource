@@ -29,8 +29,8 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Set the line of source this feeder relates to. Used in "errors."
         /// </summary>
-        /// <param name="line"></param>
-        /// <param name="code"></param>
+        /// <param name="lines">An array of integers representing the line numbers associated with the line.</param>
+        /// <param name="code">A string representing the source code</param>
         public void SetSource(int[] lines, string code)
         {
             this.Lines = lines;
@@ -60,12 +60,11 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Pulls the next token in the feeder.
         /// </summary>
-        /// <returns></returns>
         /// <exception cref="FeederException"></exception>
         public Token Next()
         {
             if (this.currentToken >= this.tokens.Length)
-                throw new FeederException(this, $"Token expected at end of line.");
+                throw new FeederException(this, $"Expected token at end of line.");
             return this.tokens[this.currentToken++];
         }
         /// <summary>
@@ -73,7 +72,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         /// <returns></returns>
         /// <exception cref="FeederException"></exception>
-        public Token Peek()
+        protected Token Peek()
         {
             if (this.currentToken >= this.tokens.Length)
                 throw new FeederException(this, $"Token expected at end of line.");
@@ -83,29 +82,28 @@ namespace mc_compiled.MCC.Compiler
         /// Pulls the next token in the feeder, casting it to the given type. Implements MCCompiled implicit conversions.
         /// </summary>
         /// <typeparam name="T">The type to cast.</typeparam>
+        /// <param name="parameterHint">The name of the parameter that this token will fill. Errors will display this name as a hint to the user. You may pass null to this parameter if you have checked it beforehand.</param>
         /// <returns></returns>
         /// <exception cref="FeederException"></exception>
-        public T Next<T>() where T : class
+        public T Next<T>(string parameterHint) where T : class
         {
             if (this.currentToken >= this.tokens.Length)
-                throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
+                throw new FeederException(this, $"Expected parameter '{parameterHint}' at end of line, type {typeof(T).Name}");
 
             Token token = this.tokens[this.currentToken++];
-            if (!(token is T))
-            {
-                if (token is IImplicitToken)
-                {
-                    IImplicitToken implicitToken = token as IImplicitToken;
-                    Type[] otherTypes = implicitToken.GetImplicitTypes();
+            
+            if (token is T castedToken)
+                return castedToken;
+            if (!(token is IImplicitToken implicitToken))
+                throw new FeederException(this, $"Invalid token type for parameter '{parameterHint}'. Expected {typeof(T).Name} but got {token.GetType().Name}");
 
-                    for (int i = 0; i < otherTypes.Length; i++)
-                        if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(this.executor, i) as T;
-                }
-                throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
-            }
-            else
-                return token as T;
+            Type[] otherTypes = implicitToken.GetImplicitTypes();
+
+            for (int i = 0; i < otherTypes.Length; i++)
+                if (typeof(T).IsAssignableFrom(otherTypes[i]))
+                    return implicitToken.Convert(this.executor, i) as T;
+                
+            throw new FeederException(this, $"Invalid token type for parameter '{parameterHint}'. Expected {typeof(T).Name} but got {implicitToken.GetType().Name}");
         }
         /// <summary>
         /// Peeks at the next token in the feeder, casting it to the given type. Implements MCCompiled implicit conversions.
@@ -150,17 +148,11 @@ namespace mc_compiled.MCC.Compiler
             if (token is T)
                 return true;
 
-            if (allowImplicit && token is IImplicitToken)
-            {
-                IImplicitToken implicitToken = token as IImplicitToken;
-                Type[] otherTypes = implicitToken.GetImplicitTypes();
-
-                for (int i = 0; i < otherTypes.Length; i++)
-                    if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                        return true;
-            }
-
-            return false;
+            if (!allowImplicit || !(token is IImplicitToken implicitToken))
+                return false;
+            
+            Type[] otherTypes = implicitToken.GetImplicitTypes();
+            return otherTypes.Any(t => typeof(T).IsAssignableFrom(t));
         }
 
         /// <summary>

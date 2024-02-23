@@ -105,11 +105,12 @@ namespace mc_compiled.Modding
             foreach (JObject module in modules)
                 this.modules.Add(new Module(module));
 
-            if(root.TryGetValue("dependencies", out JToken value))
-            {
-                JArray dependencies = value as JArray;
-                if (dependencies.Count > 0) this.dependsOn = Guid.Parse(dependencies[0]["uuid"].ToString());
-            }
+            if (!root.TryGetValue("dependencies", out JToken value))
+                return;
+            
+            JArray dependencies = (JArray)value;
+            if (dependencies.Count > 0)
+                this.dependsOn = Guid.Parse(dependencies[0]["uuid"].ToString());
         }
         /// <summary>
         /// Include a module in this manifest.

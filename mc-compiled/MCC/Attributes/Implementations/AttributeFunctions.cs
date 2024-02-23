@@ -72,7 +72,7 @@ namespace mc_compiled.MCC.Attributes.Implementations
 
                 while (statement.NextIs<TokenStringLiteral>())
                 {
-                    string target = statement.Next<TokenStringLiteral>();
+                    string target = statement.Next<TokenStringLiteral>("target");
 
                     int colon = target.IndexOf(':');
 

@@ -29,5 +29,5 @@ commands=actionbar assert clear damage define dialogue dummy effect else execute
 literals=true false not and null ~ ^
 types=int decimal bool time struct ppv global extern export bind auto partial
 comparisons=count any block blocks positioned
-options=dummies autoinit exploders uninstall tests audiofiles up down left right forward backward ascending descending survival creative adventure spectator times subtitle destroy replace hollow outline keep new open change lockinventory lockslot canplaceon: candestroy: enchant: name: lore: author: title: page: dye: text: button: onOpen: onClose: align anchored as at facing <<facing entity>> in positioned <<positioned as>> rotated <<rotated as>>
+options=dummies autoinit exploders uninstall tests audiofiles up down left right forward backward ascending descending survival creative adventure spectator removeall times subtitle destroy replace hollow outline keep new open change lockinventory lockslot canplaceon: candestroy: enchant: name: lore: author: title: page: dye: text: button: onOpen: onClose: align anchored as at facing <<facing entity>> in positioned <<positioned as>> rotated <<rotated as>>
 
