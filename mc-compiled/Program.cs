@@ -328,7 +328,7 @@ namespace mc_compiled
                 {
                     string rest = string.Join(" ", args).Substring(11);
                     Manifest manifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), rest, "TODO set description")
-                        .WithModule(Manifest.Module.BehaviorData(rest));
+                        .WithModule(Manifest.Module.BehaviorData());
                     File.WriteAllBytes("manifest.json", manifest.GetOutputData());
                     Console.WriteLine("Wrote a new 'manifest.json' to current directory.");
                     return;

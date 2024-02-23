@@ -16,7 +16,7 @@
 
         public override int GetHashCode()
         {
-            return locale.GetHashCode();
+            return this.locale.GetHashCode();
         }
     }
 }

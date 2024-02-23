@@ -7,14 +7,14 @@ namespace mc_compiled.NBT
     {
         public NBTNode[] values;
 
-        public NBTCompound() => tagType = TAG.Compound;
+        public NBTCompound() => this.tagType = TAG.Compound;
 
         public override void Write(BinaryWriter writer)
         {
-            if (values == null || values.Length < 1)
+            if (this.values == null || this.values.Length < 1)
                 throw new ArgumentException("No contents in NBTCompound.");
 
-            FileWriterNBT.WriteToExisting(values, writer);
+            FileWriterNBT.WriteToExisting(this.values, writer);
         }
     }
 }

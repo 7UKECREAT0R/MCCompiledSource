@@ -12,10 +12,10 @@ namespace mc_compiled.Modding
         {
             get
             {
-                if (directory == null)
-                    return name;
+                if (this.directory == null)
+                    return this.name;
 
-                return '"' + directory + '/' + name + '"';
+                return '"' + this.directory + '/' + this.name + '"';
             }
         }
 
@@ -26,12 +26,11 @@ namespace mc_compiled.Modding
             this.structure = structure;
         }
 
-        public string GetExtendedDirectory() =>
-            directory;
+        public string GetExtendedDirectory() => this.directory;
         public string GetOutputFile() =>
-            $"{name}.mcstructure";
+            $"{this.name}.mcstructure";
         public byte[] GetOutputData() =>
-            FileWriterNBT.GetBytes(structure.ToNBT());
+            FileWriterNBT.GetBytes(this.structure.ToNBT());
         public OutputLocation GetOutputLocation() =>
             OutputLocation.b_STRUCTURES;
     }

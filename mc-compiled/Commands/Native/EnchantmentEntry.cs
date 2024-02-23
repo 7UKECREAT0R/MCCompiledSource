@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace mc_compiled.Commands.Native
+﻿namespace mc_compiled.Commands.Native
 {
     public readonly struct EnchantmentEntry
     {
         public readonly string id;
         public readonly int level;
 
-        public string IdAsLookup => id.Replace('_', ' ').ToUpper();
+        public string IdAsLookup => this.id.Replace('_', ' ').ToUpper();
 
         public EnchantmentEntry(string id, int level)
         {
@@ -16,13 +14,13 @@ namespace mc_compiled.Commands.Native
         }
         public EnchantmentEntry(Enchantment enchant, int level)
         {
-            id = enchant.ToString();
+            this.id = enchant.ToString();
             this.level = level;
         }
 
         private bool Equals(EnchantmentEntry other)
         {
-            return id == other.id && level == other.level;
+            return this.id == other.id && this.level == other.level;
         }
         public override bool Equals(object obj)
         {
@@ -32,7 +30,7 @@ namespace mc_compiled.Commands.Native
         {
             unchecked
             {
-                return ((id != null ? id.GetHashCode() : 0) * 397) ^ level;
+                return ((this.id != null ? this.id.GetHashCode() : 0) * 397) ^ this.level;
             }
         }
     }

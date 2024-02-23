@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using mc_compiled.MCC.Compiler;
-using mc_compiled.MCC.Functions.Types;
-using mc_compiled.MCC.Scheduling;
-using mc_compiled.MCC.Scheduling.Implementations;
-
-namespace mc_compiled.MCC.Attributes
+﻿namespace mc_compiled.MCC.Attributes
 {
     /*public class AttributeDelay : IAttribute
     {

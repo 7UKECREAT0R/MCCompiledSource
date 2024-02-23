@@ -27,7 +27,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             get
             {
-                IEnumerable<JProperty> props = properties
+                IEnumerable<JProperty> props = this.properties
                     .Select(kv => new JProperty(kv.Key, kv.Value));
 
                 JObject json = new JObject();
@@ -63,7 +63,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <param name="value"></param>
         internal void SetProperty(string property, string value)
         {
-            properties[property] = value;
+            this.properties[property] = value;
             PropertyImplementations.TrySetProperty(property, value, this);
         }
         /// <summary>
@@ -71,7 +71,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal void ResetProperties()
         {
-            properties.Clear();
+            this.properties.Clear();
 
             // this method call sets `properties` back to what their defaults should be
             PropertyImplementations.ResetAll(this);
@@ -83,7 +83,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <returns></returns>
         internal string GetProperty(string property)
         {
-            if(properties.TryGetValue(property, out string value))
+            if(this.properties.TryGetValue(property, out string value))
                 return value;
             return null;
         }
@@ -98,7 +98,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal string File
         {
-            get => fileLocation;
+            get => this.fileLocation;
             set
             {
                 this.hasFile = value != null;

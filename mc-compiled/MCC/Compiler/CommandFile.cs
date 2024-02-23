@@ -26,17 +26,17 @@ namespace mc_compiled.MCC.Compiler
         
         internal bool IsInUse
         {
-            get => isInUse;
+            get => this.isInUse;
             private set
             {
                 // update all calls to also be in use.
                 if(value)
                 {
-                    foreach (CommandFile call in calls)
+                    foreach (CommandFile call in this.calls)
                         call.AsInUse();
                 }
 
-                isInUse = value;
+                this.isInUse = value;
             }
         }
         /// <summary>
@@ -47,15 +47,15 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         internal void RegisterCall(CommandFile file)
         {
-            if (isInUse)
+            if (this.isInUse)
                 file.AsInUse();
 
-            calls.Add(file);
+            this.calls.Add(file);
         }
         
         public readonly RuntimeFunction runtimeFunction;
-        public bool IsUserFunction => runtimeFunction != null;
-        public int Length => commands.Count;
+        public bool IsUserFunction => this.runtimeFunction != null;
+        public int Length => this.commands.Count;
         public bool IsRootFile
         {
             get; private set;
@@ -65,10 +65,10 @@ namespace mc_compiled.MCC.Compiler
         {
             get
             {
-                if (folder == null)
-                    return name;
+                if (this.folder == null)
+                    return this.name;
 
-                return folder + '/' + name;
+                return this.folder + '/' + this.name;
             }
         }
 
@@ -90,10 +90,10 @@ namespace mc_compiled.MCC.Compiler
         {
             set
             {
-                if (isTest)
-                    folder = Executor.MCC_TESTS_FOLDER + '/' + string.Join("/", value);
+                if (this.isTest)
+                    this.folder = Executor.MCC_TESTS_FOLDER + '/' + string.Join("/", value);
                 else
-                    folder = string.Join("/", value);
+                    this.folder = string.Join("/", value);
             }
         }
 
@@ -106,8 +106,8 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         internal bool DoNotWrite
         {
-            get => _doNotWrite || (!isInUse && !Program.EXPORT_ALL);
-            set => _doNotWrite = value;
+            get => this._doNotWrite || (!this.isInUse && !Program.EXPORT_ALL);
+            set => this._doNotWrite = value;
         }
 
         /// <summary>
@@ -195,25 +195,21 @@ namespace mc_compiled.MCC.Compiler
 
         public override bool Equals(object obj)
         {
-            return obj is CommandFile file &&
-                folder == file.folder &&
-                name == file.name;
+            return obj is CommandFile file && this.folder == file.folder && this.name == file.name;
         }
         public override int GetHashCode()
         {
             int hashCode = -172474549;
-            hashCode = hashCode * -1521134295 + (folder?.GetHashCode()).GetValueOrDefault(); // folder could be null
-            hashCode = hashCode * -1521134295 + name.GetHashCode();
+            hashCode = hashCode * -1521134295 + (this.folder?.GetHashCode()).GetValueOrDefault(); // folder could be null
+            hashCode = hashCode * -1521134295 + this.name.GetHashCode();
             return hashCode;
         }
 
-        public void Add(string command) =>
-            commands.Add(command);
+        public void Add(string command) => this.commands.Add(command);
         public void Add(IEnumerable<string> commands) =>
             this.commands.AddRange(commands);
 
-        public void AddTop(string command) =>
-            commands.Insert(0, command);
+        public void AddTop(string command) => this.commands.Insert(0, command);
         public void AddTop(IEnumerable<string> commands) =>
             this.commands.InsertRange(0, commands);
 
@@ -223,8 +219,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="callingFile"></param>
         internal void AddTrace(CommandFile callingFile)
         {
-            commands.Add($"# Located at {callingFile.CommandReference} line {callingFile.Length + 1}");
-            commands.Add("");
+            this.commands.Add($"# Located at {callingFile.CommandReference} line {callingFile.Length + 1}");
+            this.commands.Add("");
         }
 
         /// <summary>
@@ -235,40 +231,40 @@ namespace mc_compiled.MCC.Compiler
         internal void AddTrace(CommandFile callingFile, int line)
         {
             if (callingFile.IsRootFile)
-                commands.Add($"# Located in {callingFile.CommandReference}");
+                this.commands.Add($"# Located in {callingFile.CommandReference}");
             else
-                commands.Add($"# Located at {callingFile.CommandReference} line {line}");
+                this.commands.Add($"# Located at {callingFile.CommandReference} line {line}");
 
-            commands.Add("");
+            this.commands.Add("");
         }
 
         public string GetExtendedDirectory()
         {
-            if(DoNotWrite)
+            if(this.DoNotWrite)
                 return null;
 
             // correct path separators
-            return folder?.Replace('/', Path.DirectorySeparatorChar);
+            return this.folder?.Replace('/', Path.DirectorySeparatorChar);
         }
         public string GetExtendedDirectoryIDoNotCareIfYouDontWantToWriteIt()
         {
             // correct path separators
-            return folder?.Replace('/', Path.DirectorySeparatorChar);
+            return this.folder?.Replace('/', Path.DirectorySeparatorChar);
         }
         public string GetOutputFile()
         {
-            if (DoNotWrite)
+            if (this.DoNotWrite)
                 return null;
 
-            return $"{name}.mcfunction";
+            return $"{this.name}.mcfunction";
         }
         public string GetOutputFileIDoNotCareIfYouDontWantToWriteIt()
         {
-            return $"{name}.mcfunction";
+            return $"{this.name}.mcfunction";
         }
         public byte[] GetOutputData()
         {
-            string text = string.Join("\n", commands);
+            string text = string.Join("\n", this.commands);
             return Encoding.UTF8.GetBytes(text);
         }
         public OutputLocation GetOutputLocation() =>

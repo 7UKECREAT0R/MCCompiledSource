@@ -47,20 +47,19 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            x = tokens.Next<TokenCoordinateLiteral>();
-            y = tokens.Next<TokenCoordinateLiteral>();
-            z = tokens.Next<TokenCoordinateLiteral>();
-            block = tokens.Next<TokenStringLiteral>();
+            this.x = tokens.Next<TokenCoordinateLiteral>();
+            this.y = tokens.Next<TokenCoordinateLiteral>();
+            this.z = tokens.Next<TokenCoordinateLiteral>();
+            this.block = tokens.Next<TokenStringLiteral>();
 
-            if(tokens.NextIs<TokenIntegerLiteral>())
-                data = tokens.Next<TokenIntegerLiteral>();
+            if(tokens.NextIs<TokenIntegerLiteral>()) this.data = tokens.Next<TokenIntegerLiteral>();
         }
         public override string ToMinecraft()
         {
-            if(data.HasValue)
-                return $"block {x} {y} {z} {block} {data.Value}";
+            if(this.data.HasValue)
+                return $"block {this.x} {this.y} {this.z} {this.block} {this.data.Value}";
 
-            return $"block {x} {y} {z} {block}";
+            return $"block {this.x} {this.y} {this.z} {this.block}";
         }
     }
     internal class ConditionalSubcommandBlocks : ConditionalSubcommand
@@ -150,7 +149,7 @@ namespace mc_compiled.Commands.Execute
             this.scanMode = (BlocksScanMode)parsedEnum.value;
         }
         public override string ToMinecraft() =>
-            $"blocks {beginX} {beginY} {beginZ} {endX} {endY} {endZ} {destX} {destY} {destZ} {scanMode}";
+            $"blocks {this.beginX} {this.beginY} {this.beginZ} {this.endX} {this.endY} {this.endZ} {this.destX} {this.destY} {this.destZ} {this.scanMode}";
     }
     internal class ConditionalSubcommandEntity : ConditionalSubcommand
     {
@@ -183,16 +182,16 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            entity = tokens.Next<TokenSelectorLiteral>();
+            this.entity = tokens.Next<TokenSelectorLiteral>();
         }
-        public override string ToMinecraft() => $"entity {entity}";
+        public override string ToMinecraft() => $"entity {this.entity}";
     }
     internal class ConditionalSubcommandScore : ConditionalSubcommand
     {
         internal bool comparesRange;
 
-        internal bool SourceIsGlobal => sourceSelector.Equals(Executor.FAKEPLAYER_NAME);
-        internal Clarifier SourceClarifier => new Clarifier(SourceIsGlobal, sourceSelector);
+        internal bool SourceIsGlobal => this.sourceSelector.Equals(Executor.FAKEPLAYER_NAME);
+        internal Clarifier SourceClarifier => new Clarifier(this.SourceIsGlobal, this.sourceSelector);
         
         // The reason this isn't a ScoreboardValue is because sometimes the user
         // uses a different selector and it's not worth cloning it.
@@ -205,8 +204,8 @@ namespace mc_compiled.Commands.Execute
         // if !comparesRange
         internal TokenCompare.Type comparisonType;
         
-        internal bool OtherIsGlobal => otherSelector.Equals(Executor.FAKEPLAYER_NAME);
-        internal Clarifier OtherClarifier => new Clarifier(OtherIsGlobal, otherSelector);
+        internal bool OtherIsGlobal => this.otherSelector.Equals(Executor.FAKEPLAYER_NAME);
+        internal Clarifier OtherClarifier => new Clarifier(this.OtherIsGlobal, this.otherSelector);
         internal string otherSelector;
         internal string otherValue;
 
@@ -326,10 +325,10 @@ namespace mc_compiled.Commands.Execute
         public override string ToMinecraft()
         {
             if (this.comparesRange)
-                return $"score {sourceSelector} {sourceValue} matches {range.ToString()}";
+                return $"score {this.sourceSelector} {this.sourceValue} matches {this.range.ToString()}";
 
-            string operatorString = TokenCompare.GetMinecraftOperator(comparisonType);
-            return $"score {sourceSelector} {sourceValue} {operatorString} {otherSelector} {otherValue}";
+            string operatorString = TokenCompare.GetMinecraftOperator(this.comparisonType);
+            return $"score {this.sourceSelector} {this.sourceValue} {operatorString} {this.otherSelector} {this.otherValue}";
         }
     }
 }

@@ -5,7 +5,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -26,8 +25,8 @@ namespace mc_compiled.MCC.Compiler
             if (!waitForPatterns)
                 // ReSharper disable once VirtualMemberCallInConstructor
                 // DNC
-                patterns = GetValidPatterns();
-            DecorateInSource = true;
+                this.patterns = GetValidPatterns();
+            this.DecorateInSource = true;
         }
         /// <summary>
         /// Returns if this statement type is a directive and it has this attribute.
@@ -67,13 +66,13 @@ namespace mc_compiled.MCC.Compiler
             SetExecutor(executor);
 
             // e.g. close/open block
-            if (tokens == null)
+            if (this.tokens == null)
                 return;
 
             bool lastTokenWasDeref = false;
             bool shouldDereference = !HasAttribute(DirectiveAttribute.DONT_DEREFERENCE);
             bool resolveStrings = !HasAttribute(DirectiveAttribute.DONT_RESOLVE_STRINGS);
-            var allUnresolved = new List<Token>(tokens);
+            var allUnresolved = new List<Token>(this.tokens);
             var allResolved = new List<Token>();
 
             // now resolve tokens forward
@@ -141,8 +140,8 @@ namespace mc_compiled.MCC.Compiler
 
             SquashAll(allResolved, executor);
 
-            tokens = allResolved.ToArray();
-            patterns = GetValidPatterns();
+            this.tokens = allResolved.ToArray();
+            this.patterns = GetValidPatterns();
         }
 
         /// <summary>
@@ -150,7 +149,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void Decorate(Executor executor)
         {
-            if (!Program.DECORATE || !DecorateInSource || Source == null)
+            if (!Program.DECORATE || !this.DecorateInSource || this.Source == null)
                 return;
             if (this is StatementDirective std)
             {
@@ -172,17 +171,17 @@ namespace mc_compiled.MCC.Compiler
                     file.Add("");
             }
 
-            file.Add("# " + Source);
+            file.Add("# " + this.Source);
         }
         /// <summary>
         /// Run this statement from square one.
         /// </summary>
         public void Run0(Executor executor)
         {
-            if (patterns != null && patterns.Length > 0)
+            if (this.patterns != null && this.patterns.Length > 0)
             {
-                IEnumerable<MatchResult> results = patterns.Select(
-                    pattern => pattern.Check(tokens));
+                IEnumerable<MatchResult> results = this.patterns.Select(
+                    pattern => pattern.Check(this.tokens));
                 IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
                 
                 if(matchResults.All(result => !result.match))
@@ -194,7 +193,7 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            currentToken = 0;
+            this.currentToken = 0;
             Run(executor);
         }
         private void SquashAll(List<Token> tokens, Executor executor)
@@ -681,7 +680,7 @@ namespace mc_compiled.MCC.Compiler
                 
                 PreprocessorVariable ppv = preprocessorToken.variable;
                 int insertCount = ppv.Length - 1;
-                int line = Lines?[0] ?? 0;
+                int line = this.Lines?[0] ?? 0;
                 
                 // check to see if every item in the ppv can be dereferenced, and wrap it in a literal
                 IEnumerable<TokenLiteral> wrappedLiterals = ppv
@@ -800,9 +799,9 @@ namespace mc_compiled.MCC.Compiler
         {
             get
             {
-                if (patterns.Length < 1)
+                if (this.patterns.Length < 1)
                     return true;
-                return patterns.Any(tp => tp.Check(tokens).match);
+                return this.patterns.Any(tp => tp.Check(this.tokens).match);
             }
         }
     }
@@ -815,7 +814,7 @@ namespace mc_compiled.MCC.Compiler
         public StatementHusk(Token[] tokens) : base(tokens, true) { }
         public override string ToString()
         {
-            return $"[HUSK] {string.Join(" ", from t in tokens select t.DebugString())}";
+            return $"[HUSK] {string.Join(" ", from t in this.tokens select t.DebugString())}";
         }
         protected override void Run(Executor executor) =>
             throw new StatementException(this, "Compiler tried to run a Husk statement. Have a dev look at this.");

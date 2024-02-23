@@ -24,10 +24,10 @@
                 name = "",
                 values = new NBTNode[]
                 {
-                    new NBTByte() { name = "Count", value = count },
-                    new NBTShort() { name = "Damage", value = damage },
-                    new NBTString() { name = "Name", value = name },
-                    new NBTByte() { name = "WasPickedUp", value = (byte)(wasPickedUp ? 1 : 0) },
+                    new NBTByte() { name = "Count", value = this.count },
+                    new NBTShort() { name = "Damage", value = this.damage },
+                    new NBTString() { name = "Name", value = this.name },
+                    new NBTByte() { name = "WasPickedUp", value = (byte)(this.wasPickedUp ? 1 : 0) },
                     new NBTEnd()
                 }
             };

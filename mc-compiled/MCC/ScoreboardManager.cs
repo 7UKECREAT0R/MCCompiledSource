@@ -1,9 +1,7 @@
 ﻿using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms.VisualStyles;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC
@@ -80,30 +78,30 @@ namespace mc_compiled.MCC
             /// <returns></returns>
             internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
             {
-                ITypeStructure data = dataObject;
+                ITypeStructure data = this.dataObject;
 
                 if (data == null)
                 {
-                    if (type.SpecifyPattern != null)
+                    if (this.type.SpecifyPattern != null)
                     {
                         // check pattern
-                        MatchResult result = type.SpecifyPattern.Check(tokens);
+                        MatchResult result = this.type.SpecifyPattern.Check(tokens);
 
                         if (!result.match)
                         {
                             MultiType[] missingTokens = result.missing;
                             IEnumerable<string> missingTokensStrings = missingTokens.Select(mt => mt.ToString());
                             throw new StatementException(tokens,
-                                $"Value type \"{type.TypeKeyword}\" missing argument(s): {string.Join(", ", missingTokensStrings)}");
+                                $"Value type \"{this.type.TypeKeyword}\" missing argument(s): {string.Join(", ", missingTokensStrings)}");
                         }
 
                         // digest pattern
-                        data = type.AcceptPattern(tokens);
+                        data = this.type.AcceptPattern(tokens);
                     }
                 }
 
-                ScoreboardValue value = new ScoreboardValue(name, false, type, data, sb)
-                    .WithAttributes(attributes, tokens);
+                ScoreboardValue value = new ScoreboardValue(this.name, false, this.type, data, sb)
+                    .WithAttributes(this.attributes, tokens);
                 return value;
             }
             internal void InferType(Statement tokens)
@@ -156,8 +154,8 @@ namespace mc_compiled.MCC
         /// <param name="executor"></param>
         public ScoreboardManager(Executor executor)
         {
-            temps = new TempManager(this, executor);
-            values = new HashSet<ScoreboardValue>();
+            this.temps = new TempManager(this, executor);
+            this.values = new HashSet<ScoreboardValue>();
             this.executor = executor;
         }
 
@@ -182,12 +180,12 @@ namespace mc_compiled.MCC
 
                 string name = value.InternalName;
 
-                if (temps.DefinedTemps.Contains(name))
+                if (this.temps.DefinedTemps.Contains(name))
                     continue;
 
-                temps.DefinedTemps.Add(name);
-                temps.DefinedTempsRecord.Add(name);
-                executor.AddCommandsInit(value.CommandsDefine());
+                this.temps.DefinedTemps.Add(name);
+                this.temps.DefinedTempsRecord.Add(name);
+                this.executor.AddCommandsInit(value.CommandsDefine());
             }
         }
 
@@ -198,7 +196,7 @@ namespace mc_compiled.MCC
         /// <param name="callingStatement"></param>
         public void TryThrowForDuplicate(ScoreboardValue value, Statement callingStatement)
         {
-            ScoreboardValue find = values.FirstOrDefault(v => v.InternalName == value.InternalName);
+            ScoreboardValue find = this.values.FirstOrDefault(v => v.InternalName == value.InternalName);
 
             if (find == null)
                 return;
@@ -214,7 +212,7 @@ namespace mc_compiled.MCC
         /// <param name="value"></param>
         public void Add(ScoreboardValue value)
         {
-            values.Add(value);
+            this.values.Add(value);
         }
         /// <summary>
         /// Add a set of scoreboard values to the cache.
@@ -320,7 +318,7 @@ namespace mc_compiled.MCC
         /// <returns>True if found and output is set.</returns>
         public bool TryGetByInternalName(string internalName, out ScoreboardValue output)
         {
-            output = values.FirstOrDefault(value => value.InternalName.Equals(internalName));
+            output = this.values.FirstOrDefault(value => value.InternalName.Equals(internalName));
             return output != null;
         }
         /// <summary>
@@ -329,7 +327,7 @@ namespace mc_compiled.MCC
         /// <returns>true if found and output is set.</returns>
         public bool TryGetByUserFacingName(string name, out ScoreboardValue output)
         {
-            output = values.FirstOrDefault(value => value.Name.Equals(name));
+            output = this.values.FirstOrDefault(value => value.Name.Equals(name));
             return output != null;
         }
     }

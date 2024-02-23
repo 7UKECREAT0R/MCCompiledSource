@@ -145,7 +145,7 @@ namespace mc_compiled.MCC.Functions
                         if (parameter.optional)
                             input = parameter.defaultValue;
                         else
-                            throw new StatementException(callingStatement, $"Missing parameter '{parameter}' in '{Keyword}' call.");
+                            throw new StatementException(callingStatement, $"Missing parameter '{parameter}' in '{this.Keyword}' call.");
                     }
                     else
                         input = inputs[i];

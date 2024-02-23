@@ -15,13 +15,12 @@
 
         public NBTCompound ToNBT(string name)
         {
-            if (states == null)
-                states = new NBTNode[] { new NBTEnd() };
+            if (this.states == null) this.states = new NBTNode[] { new NBTEnd() };
 
             NBTCompound state = new NBTCompound()
             {
                 name = "states",
-                values = states
+                values = this.states
             };
 
             return new NBTCompound()
@@ -31,7 +30,7 @@
                 {
                     new NBTString() { name = "name", value = this.name },
                     state,
-                    new NBTInt() { name = "version", value = version },
+                    new NBTInt() { name = "version", value = this.version },
                     new NBTEnd()
                 }
             };

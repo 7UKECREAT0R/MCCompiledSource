@@ -16,22 +16,21 @@ namespace mc_compiled.Json
 
         public RawTextJsonBuilder()
         {
-            terms = new List<JSONRawTerm>();
+            this.terms = new List<JSONRawTerm>();
         }
         public RawTextJsonBuilder(RawTextJsonBuilder copy)
         {
-            terms = new List<JSONRawTerm>();
+            this.terms = new List<JSONRawTerm>();
 
-            if (copy != null)
-                terms.AddRange(copy.terms);
+            if (copy != null) this.terms.AddRange(copy.terms);
         }
         public void ClearTerms()
         {
-            terms.Clear();
+            this.terms.Clear();
         }
         public RawTextJsonBuilder AddTerm(JSONRawTerm term)
         {
-            terms.Add(term);
+            this.terms.Add(term);
             return this;
         }
         public RawTextJsonBuilder AddTerms(IEnumerable<JSONRawTerm> terms)
@@ -46,7 +45,7 @@ namespace mc_compiled.Json
         }
         private string BuildPreviewString()
         {
-            return string.Join(" ", from term in terms select term.PreviewString());
+            return string.Join(" ", from term in this.terms select term.PreviewString());
         }
 
         /// <summary>
@@ -55,7 +54,7 @@ namespace mc_compiled.Json
         /// <returns></returns>
         public JObject Build()
         {
-            JObject[] objects = (from term in terms select term.Build()).ToArray();
+            JObject[] objects = (from term in this.terms select term.Build()).ToArray();
 
             return new JObject
             {
@@ -87,10 +86,10 @@ namespace mc_compiled.Json
 │ [C] Copy Text                   │
 └─────────────────────────────────┘", BuildPreviewString());
 
-                if(copiedString != null)
+                if(this.copiedString != null)
                 {
-                    Console.WriteLine("Copied: " + copiedString);
-                    copiedString = null;
+                    Console.WriteLine("Copied: " + this.copiedString);
+                    this.copiedString = null;
                 }
 
                 ConsoleKeyInfo key = Console.ReadKey(true);
@@ -98,8 +97,8 @@ namespace mc_compiled.Json
                     return;
                 if(key.Key == ConsoleKey.C)
                 {
-                    copiedString = Build().ToString(Newtonsoft.Json.Formatting.None);
-                    Clipboard.SetText(copiedString);
+                    this.copiedString = Build().ToString(Newtonsoft.Json.Formatting.None);
+                    Clipboard.SetText(this.copiedString);
                     continue;
                 }
 
@@ -121,7 +120,7 @@ namespace mc_compiled.Json
                     {
                         string str = text.Substring(5);
                         str = MCC.Definitions.GLOBAL_DEFS.ReplaceDefinitions(str);
-                        terms.Add(new JSONText(str));
+                        this.terms.Add(new JSONText(str));
                         continue;
                     }
                     else if (comp.StartsWith("SCORE"))
@@ -132,26 +131,26 @@ namespace mc_compiled.Json
                         int index = epic.IndexOf(' ');
                         string objective = epic.Substring(0, index);
                         string selector = epic.Substring(index + 1);
-                        terms.Add(new JSONScore(selector, objective));
+                        this.terms.Add(new JSONScore(selector, objective));
                         continue;
                     }
                     else if (comp.StartsWith("SELECTOR"))
                     {
-                        terms.Add(new JSONSelector(text.Substring(9)));
+                        this.terms.Add(new JSONSelector(text.Substring(9)));
                         continue;
                     }
                     else if (comp.StartsWith("TRANSLATE"))
                     {
-                        terms.Add(new JSONTranslate(text.Substring(10)));
+                        this.terms.Add(new JSONTranslate(text.Substring(10)));
                         continue;
                     }
                 }
                 if (key.Key == ConsoleKey.R)
                 {
-                    int count = terms.Count;
+                    int count = this.terms.Count;
                     if (count < 1)
                         continue;
-                    terms.RemoveAt(count - 1);
+                    this.terms.RemoveAt(count - 1);
                     continue;
                 }
             }

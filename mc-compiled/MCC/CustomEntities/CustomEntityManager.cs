@@ -18,11 +18,11 @@ namespace mc_compiled.MCC.CustomEntities
         }
         internal void AddEntityToProject()
         {
-            if (createdEntityFiles)
+            if (this.createdEntityFiles)
                 return;
 
-            parent.AddExtraFiles(CreateEntityFiles());
-            createdEntityFiles = true;
+            this.parent.AddExtraFiles(CreateEntityFiles());
+            this.createdEntityFiles = true;
         }
 
         protected abstract IEnumerable<IAddonFile> CreateEntityFiles();

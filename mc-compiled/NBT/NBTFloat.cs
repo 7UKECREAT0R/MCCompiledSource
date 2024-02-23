@@ -6,11 +6,11 @@ namespace mc_compiled.NBT
     {
         public float value;
 
-        public NBTFloat() => tagType = TAG.Float;
+        public NBTFloat() => this.tagType = TAG.Float;
 
         public override void Write(BinaryWriter writer)
         {
-            writer.Write(value);
+            writer.Write(this.value);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace mc_compiled.Commands
         public int? min;
         public int? max;
 
-        public bool IsUnbounded => invert || !min.HasValue || !max.HasValue;
+        public bool IsUnbounded => this.invert || !this.min.HasValue || !this.max.HasValue;
 
         public Range(int? min, int? max, bool not = false)
         {
@@ -37,28 +37,30 @@ namespace mc_compiled.Commands
                 this.max = max;
             }
 
-            invert = not;
-            single = false;
+            this.invert = not;
+            this.single = false;
         }
         public Range(int number, bool not)
         {
-            min = number;
-            max = null;
-            single = true;
-            invert = not;
+            this.min = number;
+            this.max = null;
+            this.single = true;
+            this.invert = not;
         }
         public Range(Range other)
         {
-            invert = other.invert;
-            single = other.single;
+            this.invert = other.invert;
+            this.single = other.single;
 
             if (other.min.HasValue)
-                min = other.min.Value;
-            else min = null;
+                this.min = other.min.Value;
+            else
+                this.min = null;
 
             if (other.max.HasValue)
-                max = other.max.Value;
-            else max = null;
+                this.max = other.max.Value;
+            else
+                this.max = null;
         }
 
         /// <summary>
@@ -101,25 +103,25 @@ namespace mc_compiled.Commands
         /// <returns></returns>
         public override string ToString()
         {
-            if (single)
+            if (this.single)
             {
-                if (invert)
-                    return "!" + min;
+                if (this.invert)
+                    return "!" + this.min;
                 else
-                    return min.ToString();
+                    return this.min.ToString();
             }
             else
             {
-                return (invert ? "!" : "") +
-                    (min.HasValue ? min.Value.ToString() : "") + ".." +
-                    (max.HasValue ? max.Value.ToString() : "");
+                return (this.invert ? "!" : "") +
+                    (this.min.HasValue ? this.min.Value.ToString() : "") + ".." +
+                    (this.max.HasValue ? this.max.Value.ToString() : "");
             }
         }
 
         public static Range operator +(Range a, Range b)
         {
             if (b.single)
-                return a + b.min.Value;
+                return a + b.min.GetValueOrDefault(0);
 
             var copy = new Range(a);
             if (copy.single)
@@ -135,7 +137,7 @@ namespace mc_compiled.Commands
         public static Range operator -(Range a, Range b)
         {
             if (b.single)
-                return a - b.min.Value;
+                return a - b.min.GetValueOrDefault(0);
 
             var copy = new Range(a);
             if (copy.single)
@@ -151,7 +153,7 @@ namespace mc_compiled.Commands
         public static Range operator *(Range a, Range b)
         {
             if (b.single)
-                return a * b.min.Value;
+                return a * b.min.GetValueOrDefault(0);
 
             var copy = new Range(a);
             if (copy.single)
@@ -167,7 +169,7 @@ namespace mc_compiled.Commands
         public static Range operator /(Range a, Range b)
         {
             if (b.single)
-                return a / b.min.Value;
+                return a / b.min.GetValueOrDefault(0);
 
             var copy = new Range(a);
             if (copy.single)
@@ -183,7 +185,7 @@ namespace mc_compiled.Commands
         public static Range operator %(Range a, Range b)
         {
             if (b.single)
-                return a % b.min.Value;
+                return a % b.min.GetValueOrDefault(0);
 
             var copy = new Range(a);
             if (copy.single)
@@ -199,17 +201,17 @@ namespace mc_compiled.Commands
         public static bool operator <(Range a, Range b)
         {
             if (b.single)
-                return a < b.min.Value;
+                return a < b.min.GetValueOrDefault(0);
 
             return a.min < b.min;
         }
         public static bool operator >(Range a, Range b)
         {
             if (b.single)
-                return a < b.min.Value;
+                return a < b.min.GetValueOrDefault(0);
 
-            int maxA = a.single ? a.min.Value : a.max.Value;
-            int maxB = b.single ? b.min.Value : b.max.Value;
+            int maxA = a.single ? a.min.GetValueOrDefault(0) : a.max.GetValueOrDefault(0);
+            int maxB = b.max.GetValueOrDefault(0);
             return maxA > maxB;
         }
         public static bool operator ==(Range a, Range b)
@@ -416,7 +418,7 @@ namespace mc_compiled.Commands
 
         public bool Equals(Range other)
         {
-            return invert == other.invert && single == other.single && min == other.min && max == other.max;
+            return this.invert == other.invert && this.single == other.single && this.min == other.min && this.max == other.max;
         }
         public override bool Equals(object obj)
         {
@@ -426,10 +428,10 @@ namespace mc_compiled.Commands
         {
             unchecked
             {
-                int hashCode = invert.GetHashCode();
-                hashCode = (hashCode * 397) ^ single.GetHashCode();
-                hashCode = (hashCode * 397) ^ min.GetHashCode();
-                hashCode = (hashCode * 397) ^ max.GetHashCode();
+                int hashCode = this.invert.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.single.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.min.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.max.GetHashCode();
                 return hashCode;
             }
         }

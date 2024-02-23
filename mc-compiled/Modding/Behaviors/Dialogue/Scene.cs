@@ -23,7 +23,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             this.sceneTag = sceneTag;
             this.buttons = new List<Button>();
         }
-        public string CommandReference => sceneTag;
+        public string CommandReference => this.sceneTag;
         
         public Scene AddButton(Button button)
         {
@@ -47,8 +47,8 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             set
             {
-                _npcName = new RawTextJsonBuilder();
-                _npcName.AddTerm(new JSONText(value));
+                this._npcName = new RawTextJsonBuilder();
+                this._npcName.AddTerm(new JSONText(value));
             }
         }
         /// <summary>
@@ -58,8 +58,8 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             set
             {
-                _npcName = new RawTextJsonBuilder();
-                _npcName.AddTerm(new JSONTranslate(value).With("\n"));
+                this._npcName = new RawTextJsonBuilder();
+                this._npcName.AddTerm(new JSONTranslate(value).With("\n"));
             }
         }
         /// <summary>
@@ -69,8 +69,8 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             set
             {
-                _npcName = new RawTextJsonBuilder();
-                _npcName.AddTerms(value);
+                this._npcName = new RawTextJsonBuilder();
+                this._npcName.AddTerms(value);
             }
         }
         /// <summary>
@@ -80,14 +80,14 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             get
             {
-                if(_npcName == null)
+                if(this._npcName == null)
                 {
-                    _npcName = new RawTextJsonBuilder();
-                    return _npcName;
+                    this._npcName = new RawTextJsonBuilder();
+                    return this._npcName;
                 }
 
-                _npcName.ClearTerms();
-                return _npcName;
+                this._npcName.ClearTerms();
+                return this._npcName;
             }
         }
 
@@ -98,8 +98,8 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             set
             {
-                _text = new RawTextJsonBuilder();
-                _text.AddTerm(new JSONText(value));
+                this._text = new RawTextJsonBuilder();
+                this._text.AddTerm(new JSONText(value));
             }
         }
         /// <summary>
@@ -109,8 +109,8 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             set
             {
-                _text = new RawTextJsonBuilder();
-                _text.AddTerm(new JSONTranslate(value).With("\n"));
+                this._text = new RawTextJsonBuilder();
+                this._text.AddTerm(new JSONTranslate(value).With("\n"));
             }
         }
         /// <summary>
@@ -120,8 +120,8 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             set
             {
-                _text = new RawTextJsonBuilder();
-                _text.AddTerms(value);
+                this._text = new RawTextJsonBuilder();
+                this._text.AddTerms(value);
             }
         }
         /// <summary>
@@ -131,14 +131,14 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             get
             {
-                if (_text == null)
+                if (this._text == null)
                 {
-                    _text = new RawTextJsonBuilder();
-                    return _text;
+                    this._text = new RawTextJsonBuilder();
+                    return this._text;
                 }
 
-                _text.ClearTerms();
-                return _text;
+                this._text.ClearTerms();
+                return this._text;
             }
         }
 
@@ -146,17 +146,17 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             var json = new JObject()
             {
-                ["scene_tag"] = sceneTag,
-                ["npc_name"] = _npcName?.Build(),
-                ["text"] = _text?.Build(),
-                ["buttons"] = new JArray(from btn in buttons select btn.Build())
+                ["scene_tag"] = this.sceneTag,
+                ["npc_name"] = this._npcName?.Build(),
+                ["text"] = this._text?.Build(),
+                ["buttons"] = new JArray(from btn in this.buttons select btn.Build())
             };
 
-            if (openCommands != null && openCommands.Length > 0)
-                json["on_open_commands"] = new JArray(openCommands.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd));
+            if (this.openCommands != null && this.openCommands.Length > 0)
+                json["on_open_commands"] = new JArray(this.openCommands.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd));
 
-            if (closeCommands != null && closeCommands.Length > 0)
-                json["on_close_commands"] = new JArray(closeCommands.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd));
+            if (this.closeCommands != null && this.closeCommands.Length > 0)
+                json["on_close_commands"] = new JArray(this.closeCommands.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd));
 
             return json;
         }

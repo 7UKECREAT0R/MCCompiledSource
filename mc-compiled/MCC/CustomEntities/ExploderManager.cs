@@ -52,15 +52,15 @@ namespace mc_compiled.MCC.CustomEntities
 
         internal ExploderManager(Compiler.Executor executor) : base(executor)
         {
-            definedPresets = new HashSet<ExploderPreset>();
-            files = new ExploderFiles();
-            exploderType = executor.project.Namespace("exploder");
+            this.definedPresets = new HashSet<ExploderPreset>();
+            this.files = new ExploderFiles();
+            this.exploderType = executor.project.Namespace("exploder");
         }
 
         protected override IEnumerable<IAddonFile> CreateEntityFiles()
         {
-            files = EntityBehavior.CreateExploder(exploderType);
-            return files.AddonFiles;
+            this.files = EntityBehavior.CreateExploder(this.exploderType);
+            return this.files.AddonFiles;
         }
         public override bool HasEntity(string name) => false;
         public override bool Search(string name, out Commands.Selectors.Selector selector)
@@ -76,7 +76,7 @@ namespace mc_compiled.MCC.CustomEntities
         /// <returns></returns>
         private string GetPreset(ExploderPreset entry)
         {
-            if (definedPresets.Contains(entry))
+            if (this.definedPresets.Contains(entry))
                 return EventExplode(entry);
 
             string groupName = GroupExplode(entry);
@@ -87,9 +87,9 @@ namespace mc_compiled.MCC.CustomEntities
 
             EntityComponentGroup group = new EntityComponentGroup(groupName, new ComponentExplode(entry, true));
             EntityEventHandler entityEvent = new EntityEventHandler(eventName, action: new EventActionAddGroup(group));
-            files.groups.Add(group);
-            files.events.Add(entityEvent);
-            definedPresets.Add(entry);
+            this.files.groups.Add(group);
+            this.files.events.Add(entityEvent);
+            this.definedPresets.Add(entry);
 
             return eventName;
         }
@@ -113,7 +113,7 @@ namespace mc_compiled.MCC.CustomEntities
             string eventName = GetPreset(power, delay, fire, breaksBlocks);
 
             // Simple summon command!
-            return Command.SummonWithEvent(exploderType, x, y, z, Coordinate.here, Coordinate.here, eventName);
+            return Command.SummonWithEvent(this.exploderType, x, y, z, Coordinate.here, Coordinate.here, eventName);
         }
     }
     public struct ExploderFiles
@@ -129,7 +129,7 @@ namespace mc_compiled.MCC.CustomEntities
         {
             get => new IAddonFile[]
             {
-                behavior, resources, geometry,
+                this.behavior, this.resources, this.geometry,
             };
         }
     }
@@ -140,7 +140,7 @@ namespace mc_compiled.MCC.CustomEntities
             this.power = power;
             this.delay = delay;
             this.fire = fire;
-            breaks = breaksBlocks;
+            this.breaks = breaksBlocks;
         }
 
         public readonly int power;
@@ -150,7 +150,7 @@ namespace mc_compiled.MCC.CustomEntities
 
         private bool Equals(ExploderPreset other)
         {
-            return power == other.power && delay == other.delay && fire == other.fire && breaks == other.breaks;
+            return this.power == other.power && this.delay == other.delay && this.fire == other.fire && this.breaks == other.breaks;
         }
         public override bool Equals(object obj)
         {
@@ -160,10 +160,10 @@ namespace mc_compiled.MCC.CustomEntities
         {
             unchecked
             {
-                int hashCode = power;
-                hashCode = (hashCode * 397) ^ delay;
-                hashCode = (hashCode * 397) ^ fire.GetHashCode();
-                hashCode = (hashCode * 397) ^ breaks.GetHashCode();
+                int hashCode = this.power;
+                hashCode = (hashCode * 397) ^ this.delay;
+                hashCode = (hashCode * 397) ^ this.fire.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.breaks.GetHashCode();
                 return hashCode;
             }
         }

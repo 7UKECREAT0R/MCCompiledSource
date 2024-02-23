@@ -37,8 +37,7 @@ namespace mc_compiled.MCC.Compiler
             this.patterns = patterns;
 
             // cache if this directive overlaps an enum
-            if (Commands.CommandEnumParser.TryParse(identifier, out Commands.ParsedEnumValue result))
-                enumValue = result;
+            if (Commands.CommandEnumParser.TryParse(identifier, out Commands.ParsedEnumValue result)) this.enumValue = result;
         }
         public Directive WithAttribute(DirectiveAttribute attribute)
         {
@@ -59,28 +58,28 @@ namespace mc_compiled.MCC.Compiler
         {
             get
             {
-                if (aliases != null && aliases.Length > 0)
+                if (this.aliases != null && this.aliases.Length > 0)
                 {
-                    List<string> values = new List<string>() { identifier };
-                    values.AddRange(aliases);
+                    List<string> values = new List<string>() {this.identifier };
+                    values.AddRange(this.aliases);
                     return values.ToArray();
                 }
 
-                return new string[] { identifier };
+                return new string[] {this.identifier };
             }
         }
         public string DirectiveOverview
         {
             get
             {
-                if (aliases != null && aliases.Length > 0)
+                if (this.aliases != null && this.aliases.Length > 0)
                 {
-                    List<string> values = new List<string>() { identifier };
-                    values.AddRange(aliases);
+                    List<string> values = new List<string>() {this.identifier };
+                    values.AddRange(this.aliases);
                     return string.Join("/", values);
                 }
 
-                return identifier;
+                return this.identifier;
             }
         }
 
@@ -89,7 +88,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public bool IsPreprocessor
         {
-            get => identifier.Length > 0 ? identifier[0].Equals('$') : false;
+            get => this.identifier.Length > 0 ? this.identifier[0].Equals('$') : false;
         }
 
         // Directive might overlap an enum value.
@@ -106,9 +105,9 @@ namespace mc_compiled.MCC.Compiler
         public readonly TypePattern[] patterns;
         public DirectiveAttribute attributes;
 
-        public override int GetHashCode() => identifier.GetHashCode();
+        public override int GetHashCode() => this.identifier.GetHashCode();
         public override string ToString() =>
-            $"{DirectiveOverview} - patterns: {patterns.Length} - desc: {description}";
+            $"{this.DirectiveOverview} - patterns: {this.patterns.Length} - desc: {this.description}";
     }
     /// <summary>
     /// Attributes used to modify how directive statements behave.

@@ -24,31 +24,30 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         }
         public void WriteTabs()
         {
-            for (int i = 0; i < level; i++)
-                writer.Write('\t');
+            for (int i = 0; i < this.level; i++) this.writer.Write('\t');
         }
         public void Open(string str)
         {
             WriteTabs();
-            writer.WriteLine($"<{str}>");
-            level++;
+            this.writer.WriteLine($"<{str}>");
+            this.level++;
         }
         public void Open(string str, string parts)
         {
             WriteTabs();
-            writer.WriteLine($"<{str} {parts}>");
-            level++;
+            this.writer.WriteLine($"<{str} {parts}>");
+            this.level++;
         }
         public void Close(string str)
         {
-            level--;
+            this.level--;
             WriteTabs();
-            writer.WriteLine($"</{str}>");
+            this.writer.WriteLine($"</{str}>");
         }
         public void State(string str, string parts)
         {
             WriteTabs();
-            writer.WriteLine($"<{str} {parts} />");
+            this.writer.WriteLine($"<{str} {parts} />");
         }
         public void State(Highlight highlight, string name, string fontName)
         {
@@ -61,7 +60,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public void Content(string str, string parts, string contents)
         {
             WriteTabs();
-            writer.WriteLine($"<{str} {parts}>{EscapeXML(contents)}</{str}>");
+            this.writer.WriteLine($"<{str} {parts}>{EscapeXML(contents)}</{str}>");
         }
         public void Content(Keywords keywords, string name, bool numbered = false)
         {

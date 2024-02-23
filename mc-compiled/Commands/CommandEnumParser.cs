@@ -66,7 +66,7 @@ namespace mc_compiled.Commands
         public bool IsType<T>() where T: Enum
         {
             string src = typeof(T).Name;
-            return enumType.Name.Equals(src);
+            return this.enumType.Name.Equals(src);
         }
         
         /// <summary>
@@ -82,7 +82,7 @@ namespace mc_compiled.Commands
                 return;
             
             string reqEnumName = typeof(T).Name;
-            throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {enumType.Name}.");
+            throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {this.enumType.Name}.");
         }
     }
 

@@ -26,14 +26,14 @@
         {
             var json = new Newtonsoft.Json.Linq.JObject();
             json["test"] = GetTest();
-            json["subject"] = subject.ToString();
+            json["subject"] = this.subject.ToString();
 
             var properties = GetExtraProperties();
             if (properties != null)
                 foreach (var property in properties)
                     json[property.Name] = property.Value;
 
-            json["operator"] = check.String();
+            json["operator"] = this.check.String();
             json["value"] = GetValue().ToString();
             return json;
         }
@@ -44,7 +44,7 @@
     public abstract class BooleanFilter : Filter
     {
         public bool checkValue;
-        public override object GetValue() => checkValue;
+        public override object GetValue() => this.checkValue;
     }
 
 

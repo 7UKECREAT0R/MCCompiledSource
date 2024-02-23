@@ -24,7 +24,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             try
             {
                 RegistryKey root = Registry.ClassesRoot.OpenSubKey(SUBKEY);
-                hasBeenRegistered = root != null;
+                this.hasBeenRegistered = root != null;
             } catch(Exception e)
             {
                 ConsoleColor old = Console.ForegroundColor;
@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 }
 
                 Console.ForegroundColor = old;
-                hasBeenRegistered = false;
+                this.hasBeenRegistered = false;
                 return;
             }
         }
@@ -64,7 +64,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Set up MCCompiled {Compiler.Executor.MCC_VERSION} language server for use. Remember to run this command again if the location of this executable changes.");
                 Console.ForegroundColor = old;
-                hasBeenRegistered = true;
+                this.hasBeenRegistered = true;
             }
             catch (Exception e)
             {
@@ -96,7 +96,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Uninstalled MCCompiled {Compiler.Executor.MCC_VERSION} language server for all versions.");
                 Console.ForegroundColor = old;
-                hasBeenRegistered = true;
+                this.hasBeenRegistered = true;
             }
             catch (Exception e)
             {

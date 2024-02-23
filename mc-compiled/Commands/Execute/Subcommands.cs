@@ -117,9 +117,9 @@ namespace mc_compiled.Commands.Execute
 
             parsedEnum.RequireType<AnchorPosition>(tokens);
 
-            anchor = (AnchorPosition)parsedEnum.value;
+            this.anchor = (AnchorPosition)parsedEnum.value;
         }
-        public override string ToMinecraft() => $"anchored {anchor}";
+        public override string ToMinecraft() => $"anchored {this.anchor}";
     }
     internal class SubcommandAs : Subcommand
     {
@@ -145,7 +145,7 @@ namespace mc_compiled.Commands.Execute
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
             this.entity = selector.selector;
         }
-        public override string ToMinecraft() => $"as {entity.ToString()}";
+        public override string ToMinecraft() => $"as {this.entity.ToString()}";
     }
     internal class SubcommandAt : Subcommand
     {
@@ -171,7 +171,7 @@ namespace mc_compiled.Commands.Execute
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>();
             this.entity = selector.selector;
         }
-        public override string ToMinecraft() => $"at {entity.ToString()}";
+        public override string ToMinecraft() => $"at {this.entity.ToString()}";
     }
     internal class SubcommandFacing : Subcommand
     {
@@ -215,7 +215,7 @@ namespace mc_compiled.Commands.Execute
             // entity
             if(tokens.NextIs<TokenSelectorLiteral>())
             {
-                isEntity = true;
+                this.isEntity = true;
 
                 this.entity = tokens.Next<TokenSelectorLiteral>();
 
@@ -226,7 +226,7 @@ namespace mc_compiled.Commands.Execute
             }
 
             // coordinate
-            isEntity = false;
+            this.isEntity = false;
 
             this.x = tokens.Next<TokenCoordinateLiteral>();
             this.y = tokens.Next<TokenCoordinateLiteral>();
@@ -234,10 +234,10 @@ namespace mc_compiled.Commands.Execute
         }
         public override string ToMinecraft()
         {
-            if (isEntity)
-                return $"facing entity {entity.ToString()} {anchor}";
+            if (this.isEntity)
+                return $"facing entity {this.entity.ToString()} {this.anchor}";
 
-            return $"facing {x} {y} {z}";
+            return $"facing {this.x} {this.y} {this.z}";
         }
     }
     internal class SubcommandIn : Subcommand
@@ -266,9 +266,9 @@ namespace mc_compiled.Commands.Execute
 
             parsedEnum.RequireType<Dimension>(tokens);
 
-            dimension = (Dimension)parsedEnum.value;
+            this.dimension = (Dimension)parsedEnum.value;
         }
-        public override string ToMinecraft() => $"in {dimension}";
+        public override string ToMinecraft() => $"in {this.dimension}";
     }
     internal class SubcommandPositioned : Subcommand
     {
@@ -307,7 +307,7 @@ namespace mc_compiled.Commands.Execute
             // entity
             if(tokens.NextIs<TokenSelectorLiteral>())
             {
-                asEntity = true;
+                this.asEntity = true;
                 this.entity = tokens.Next<TokenSelectorLiteral>();
                 return;
             }
@@ -319,10 +319,10 @@ namespace mc_compiled.Commands.Execute
         }
         public override string ToMinecraft()
         {
-            if (asEntity)
-                return $"positioned as {entity.ToString()}";
+            if (this.asEntity)
+                return $"positioned as {this.entity.ToString()}";
 
-            return $"positioned {x} {y} {z}";
+            return $"positioned {this.x} {this.y} {this.z}";
         }
     }
     internal class SubcommandRotated : Subcommand
@@ -360,7 +360,7 @@ namespace mc_compiled.Commands.Execute
             // entity
             if (tokens.NextIs<TokenSelectorLiteral>())
             {
-                asEntity = true;
+                this.asEntity = true;
                 this.entity = tokens.Next<TokenSelectorLiteral>();
                 return;
             }
@@ -371,10 +371,10 @@ namespace mc_compiled.Commands.Execute
         }
         public override string ToMinecraft()
         {
-            if (asEntity)
-                return $"rotated as {entity}";
+            if (this.asEntity)
+                return $"rotated as {this.entity}";
 
-            return $"rotated {yaw} {pitch}";
+            return $"rotated {this.yaw} {this.pitch}";
         }
     }
     internal class SubcommandRun : Subcommand
@@ -407,9 +407,9 @@ namespace mc_compiled.Commands.Execute
 
         public override void FromTokens(Statement tokens)
         {
-            command = string.Join(" ", tokens.GetRemainingTokens().Select(tok => tok.ToString()));
+            this.command = string.Join(" ", tokens.GetRemainingTokens().Select(tok => tok.ToString()));
         }
-        public override string ToMinecraft() => $"run {command}";
+        public override string ToMinecraft() => $"run {this.command}";
     }
 
     internal class SubcommandIf : Subcommand
@@ -447,7 +447,7 @@ namespace mc_compiled.Commands.Execute
             // load the statement's parameters based on the following input
             this.condition.FromTokens(tokens);
         }
-        public override string ToMinecraft() => $"if {condition.ToMinecraft()}";
+        public override string ToMinecraft() => $"if {this.condition.ToMinecraft()}";
     }
     internal class SubcommandUnless : Subcommand
     {
@@ -484,6 +484,6 @@ namespace mc_compiled.Commands.Execute
             // load the statement's parameters based on the following input
             this.condition.FromTokens(tokens);
         }
-        public override string ToMinecraft() => $"unless {condition.ToMinecraft()}";
+        public override string ToMinecraft() => $"unless {this.condition.ToMinecraft()}";
     }
 }

@@ -37,7 +37,7 @@
 
         public bool Equals(Count other)
         {
-            return count == other.count;
+            return this.count == other.count;
         }
         public override bool Equals(object obj)
         {
@@ -45,15 +45,15 @@
         }
         public override int GetHashCode()
         {
-            return count;
+            return this.count;
         }
 
-        public bool HasCount => count != NONE;
+        public bool HasCount => this.count != NONE;
         public string GetSection()
         {
-            if (count == NONE)
+            if (this.count == NONE)
                 return null;
-            return "c=" + count;
+            return "c=" + this.count;
         }
         public static Count operator +(Count a, Count other)
         {

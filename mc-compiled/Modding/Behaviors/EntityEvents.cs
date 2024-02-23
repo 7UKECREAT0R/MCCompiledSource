@@ -25,16 +25,16 @@ namespace mc_compiled.Modding.Behaviors
         public JObject ToComponentJSON() =>
             new JObject()
             {
-                ["event"] = eventID,
-                ["target"] = target.ToString()
+                ["event"] = this.eventID,
+                ["target"] = this.target.ToString()
             };
         public JProperty ToDefinitionJSON()
         {
-            JProperty item = action.ToJSON();
+            JProperty item = this.action.ToJSON();
             JObject json = new JObject();
             json.Add(item);
 
-            return new JProperty(eventID, json);
+            return new JProperty(this.eventID, json);
         }
     }
     public abstract class EntityEventAction
@@ -57,7 +57,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JProperty("add", new JObject()
             {
-                ["component_groups"] = new JArray(groups)
+                ["component_groups"] = new JArray(this.groups)
             });
         }
     }
@@ -77,7 +77,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JProperty("remove", new JObject()
             {
-                ["component_groups"] = new JArray(groups)
+                ["component_groups"] = new JArray(this.groups)
             });
         }
     }
@@ -91,11 +91,11 @@ namespace mc_compiled.Modding.Behaviors
         }
         public override JProperty ToJSON()
         {
-            JObject[] objects = new JObject[actions.Count];
-            for (int i = 0; i < actions.Count; i++)
+            JObject[] objects = new JObject[this.actions.Count];
+            for (int i = 0; i < this.actions.Count; i++)
             {
                 JObject json = new JObject();
-                json.Add(actions[i].ToJSON());
+                json.Add(this.actions[i].ToJSON());
                 objects[i] = json;
             }
 

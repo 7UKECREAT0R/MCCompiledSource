@@ -45,7 +45,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Highlight stringColor = new Highlight(221, 179, 255, HighlightStyle.NONE);
         public static readonly Highlight selectorColor = new Highlight(192, 192, 192, HighlightStyle.NONE);
 
-        static Keyword[] KeywordsFromDirectives(IEnumerable<Compiler.Directive> directives)
+        static Keyword[] KeywordsFromDirectives(IEnumerable<Directive> directives)
         {
             List<Keyword> keywords = new List<Keyword>();
 
@@ -248,7 +248,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         {
             set
             {
-                keywords = value.Select(v => new Keyword()
+                this.keywords = value.Select(v => new Keyword()
                 {
                     documentation = null,
                     name = v
@@ -284,11 +284,11 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 
         public string HexWithoutHash
         {
-            get => string.Format("{0:X2}{1:X2}{2:X2}", r, g, b);
+            get => string.Format("{0:X2}{1:X2}{2:X2}", this.r, this.g, this.b);
         }
         public string HexWithHash
         {
-            get => string.Format("#{0:X2}{1:X2}{2:X2}", r, g, b);
+            get => string.Format("#{0:X2}{1:X2}{2:X2}", this.r, this.g, this.b);
         }
 
 

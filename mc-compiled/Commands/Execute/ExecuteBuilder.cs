@@ -19,7 +19,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder Clone()
         {
-            return new ExecuteBuilder().WithSubcommands(subcommands);
+            return new ExecuteBuilder().WithSubcommands(this.subcommands);
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         internal ExecuteBuilder WithSubcommand(Subcommand subcommand)
         {
-            subcommands.Add(subcommand);
+            this.subcommands.Add(subcommand);
             return this;
         }
         /// <summary>
@@ -57,8 +57,8 @@ namespace mc_compiled.Commands.Execute
         /// <param name="terminated">If the chain was terminated properly.</param>
         public string Build(out bool terminated)
         {
-            var parts = subcommands.Select(subcommand => subcommand.ToMinecraft());
-            terminated = subcommands.Last().TerminatesChain;
+            var parts = this.subcommands.Select(subcommand => subcommand.ToMinecraft());
+            terminated = this.subcommands.Last().TerminatesChain;
             return "execute " + string.Join(" ", parts);
         }
         /// <summary>
@@ -68,8 +68,8 @@ namespace mc_compiled.Commands.Execute
         /// <param name="terminated">If the chain was terminated properly.</param>
         public string BuildClean(out bool terminated)
         {
-            var parts = subcommands.Select(subcommand => subcommand.ToMinecraft());
-            terminated = subcommands.Last().TerminatesChain;
+            var parts = this.subcommands.Select(subcommand => subcommand.ToMinecraft());
+            terminated = this.subcommands.Last().TerminatesChain;
             return "execute " + string.Join(" ", parts);
         }
 
@@ -80,7 +80,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder Align(Axes axes)
         {
-            subcommands.Add(new SubcommandAlign(axes));
+            this.subcommands.Add(new SubcommandAlign(axes));
             return this;
         }
         /// <summary>
@@ -92,7 +92,7 @@ namespace mc_compiled.Commands.Execute
         public ExecuteBuilder Align(string axes)
         {
             Axes parsed = SubcommandAlign.ParseAxes(axes);
-            subcommands.Add(new SubcommandAlign(parsed));
+            this.subcommands.Add(new SubcommandAlign(parsed));
             return this;
         }
 
@@ -103,7 +103,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder Anchored(AnchorPosition anchor)
         {
-            subcommands.Add(new SubcommandAnchored(anchor));
+            this.subcommands.Add(new SubcommandAnchored(anchor));
             return this;
         }
 
@@ -114,7 +114,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder As(Selector entity)
         {
-            subcommands.Add(new SubcommandAs(entity));
+            this.subcommands.Add(new SubcommandAs(entity));
             return this;
         }
 
@@ -125,7 +125,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder At(Selector entity)
         {
-            subcommands.Add(new SubcommandAt(entity));
+            this.subcommands.Add(new SubcommandAt(entity));
             return this;
         }
         /// <summary>
@@ -135,7 +135,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder AtSelf()
         {
-            subcommands.Add(new SubcommandAt(Selector.SELF));
+            this.subcommands.Add(new SubcommandAt(Selector.SELF));
             return this;
         }
 
@@ -148,7 +148,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder FacingEntity(Selector entity, AnchorPosition anchor = AnchorPosition.feet)
         {
-            subcommands.Add(new SubcommandFacing(true, entity, anchor, Coordinate.zero, Coordinate.zero, Coordinate.zero));
+            this.subcommands.Add(new SubcommandFacing(true, entity, anchor, Coordinate.zero, Coordinate.zero, Coordinate.zero));
             return this;
         }
         /// <summary>
@@ -160,7 +160,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder Facing(Coordinate x, Coordinate y, Coordinate z)
         {
-            subcommands.Add(new SubcommandFacing(false, null, AnchorPosition.feet, x, y, z));
+            this.subcommands.Add(new SubcommandFacing(false, null, AnchorPosition.feet, x, y, z));
             return this;
         }
 
@@ -171,7 +171,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder In(Dimension dimension)
         {
-            subcommands.Add(new SubcommandIn(dimension));
+            this.subcommands.Add(new SubcommandIn(dimension));
             return this;
         }
 
@@ -182,7 +182,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder PositionedAs(Selector entity)
         {
-            subcommands.Add(new SubcommandPositioned(true, entity, Coordinate.zero, Coordinate.zero, Coordinate.zero));
+            this.subcommands.Add(new SubcommandPositioned(true, entity, Coordinate.zero, Coordinate.zero, Coordinate.zero));
             return this;
         }
         /// <summary>
@@ -194,7 +194,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder Positioned(Coordinate x, Coordinate y, Coordinate z)
         {
-            subcommands.Add(new SubcommandPositioned(false, null, x, y, z));
+            this.subcommands.Add(new SubcommandPositioned(false, null, x, y, z));
             return this;
         }
 
@@ -205,7 +205,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder RotatedAs(Selector entity)
         {
-            subcommands.Add(new SubcommandRotated(true, entity, Coordinate.zero, Coordinate.zero));
+            this.subcommands.Add(new SubcommandRotated(true, entity, Coordinate.zero, Coordinate.zero));
             return this;
         }
         /// <summary>
@@ -216,7 +216,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder Rotated(Coordinate yaw, Coordinate pitch)
         {
-            subcommands.Add(new SubcommandRotated(false, null, yaw, pitch));
+            this.subcommands.Add(new SubcommandRotated(false, null, yaw, pitch));
             return this;
         }
 
@@ -227,7 +227,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public string Run(string command)
         {
-            subcommands.Add(new SubcommandRun(command));
+            this.subcommands.Add(new SubcommandRun(command));
             return Build(out _);
         }
         /// <summary>
@@ -237,7 +237,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public string Run()
         {
-            subcommands.Add(new SubcommandRun());
+            this.subcommands.Add(new SubcommandRun());
             return Build(out _);
         }
 
@@ -250,7 +250,7 @@ namespace mc_compiled.Commands.Execute
         {
             string[] outputs = new string[commands.Length];
 
-            int workingIndex = subcommands.Count;
+            int workingIndex = this.subcommands.Count;
             bool hasCapacity = false;
 
             for(int i = 0; i < commands.Length; i++)
@@ -259,11 +259,11 @@ namespace mc_compiled.Commands.Execute
 
                 if (!hasCapacity)
                 {
-                    subcommands.Add(new SubcommandRun(command));
+                    this.subcommands.Add(new SubcommandRun(command));
                     hasCapacity = true;
                 }
                 else
-                    subcommands[workingIndex] = new SubcommandRun(command);
+                    this.subcommands[workingIndex] = new SubcommandRun(command);
 
                 outputs[i] = Build(out _);
             }
@@ -282,7 +282,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder IfBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data = null)
         {
-            subcommands.Add(new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, data)));
+            this.subcommands.Add(new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, data)));
             return this;
         }
         /// <summary>
@@ -305,7 +305,7 @@ namespace mc_compiled.Commands.Execute
             Coordinate destX, Coordinate destY, Coordinate destZ,
             BlocksScanMode scanMode = BlocksScanMode.all)
         {
-            subcommands.Add(new SubcommandIf(ConditionalSubcommandBlocks.New
+            this.subcommands.Add(new SubcommandIf(ConditionalSubcommandBlocks.New
                 (beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode)));
             return this;
         }
@@ -316,7 +316,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder IfEntity(Selector entity)
         {
-            subcommands.Add(new SubcommandIf(ConditionalSubcommandEntity.New(entity)));
+            this.subcommands.Add(new SubcommandIf(ConditionalSubcommandEntity.New(entity)));
             return this;
         }
         /// <summary>
@@ -327,7 +327,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder IfScore(ScoreboardValue source, Range range)
         {
-            subcommands.Add(new SubcommandIf(ConditionalSubcommandScore.New(source, range)));
+            this.subcommands.Add(new SubcommandIf(ConditionalSubcommandScore.New(source, range)));
             return this;
         }
         /// <summary>
@@ -347,7 +347,7 @@ namespace mc_compiled.Commands.Execute
                 return this;
             }
 
-            subcommands.Add(new SubcommandIf(ConditionalSubcommandScore.New(source, type, other)));
+            this.subcommands.Add(new SubcommandIf(ConditionalSubcommandScore.New(source, type, other)));
             return this;
         }
 
@@ -363,7 +363,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder UnlessBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data = null)
         {
-            subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, data)));
+            this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, data)));
             return this;
         }
         /// <summary>
@@ -386,7 +386,7 @@ namespace mc_compiled.Commands.Execute
             Coordinate destX, Coordinate destY, Coordinate destZ,
             BlocksScanMode scanMode = BlocksScanMode.all)
         {
-            subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlocks.New
+            this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlocks.New
                 (beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode)));
             return this;
         }
@@ -397,7 +397,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder UnlessEntity(Selector entity)
         {
-            subcommands.Add(new SubcommandUnless(ConditionalSubcommandEntity.New(entity)));
+            this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandEntity.New(entity)));
             return this;
         }
         /// <summary>
@@ -408,7 +408,7 @@ namespace mc_compiled.Commands.Execute
         /// <returns></returns>
         public ExecuteBuilder UnlessScore(ScoreboardValue source, Range range)
         {
-            subcommands.Add(new SubcommandUnless(ConditionalSubcommandScore.New(source, range)));
+            this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandScore.New(source, range)));
             return this;
         }
         /// <summary>
@@ -428,7 +428,7 @@ namespace mc_compiled.Commands.Execute
                 return this;
             }
 
-            subcommands.Add(new SubcommandUnless(ConditionalSubcommandScore.New(source, type, other)));
+            this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandScore.New(source, type, other)));
             return this;
         }
     }

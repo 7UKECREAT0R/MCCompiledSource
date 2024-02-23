@@ -24,43 +24,43 @@ namespace mc_compiled.NBT
             this.displayName = displayName;
             this.lore = lore;
 
-            bookData = null;
-            customColor = null;
+            this.bookData = null;
+            this.customColor = null;
         }
         public NBTCompound ToNBT()
         {
             var nodes = new List<NBTNode>
             {
-                new NBTInt() { name = "Damage", value = damage }
+                new NBTInt() { name = "Damage", value = this.damage }
             };
 
-            if (enchantment != null && enchantment.Length > 0)
+            if (this.enchantment != null && this.enchantment.Length > 0)
             {
-                nodes.Add(new NBTInt() { name = "RepairCost", value = enchantment.Length });
+                nodes.Add(new NBTInt() { name = "RepairCost", value = this.enchantment.Length });
                 nodes.Add(new NBTList()
                 {
                     name = "ench",
                     listType = TAG.Compound,
-                    values = (from e in enchantment select e.ToNBT()).ToArray<NBTNode>()
+                    values = (from e in this.enchantment select e.ToNBT()).ToArray<NBTNode>()
                 });
             }
 
             // All display related stuff.
-            if (displayName != null || lore != null)
+            if (this.displayName != null || this.lore != null)
             {
                 var displayValues = new List<NBTNode>();
 
                 // Display Name
-                if (displayName != null)
-                    displayValues.Add(new NBTString() { name = "Name", value = "§r§f" + displayName });
+                if (this.displayName != null)
+                    displayValues.Add(new NBTString() { name = "Name", value = "§r§f" + this.displayName });
 
                 // Lore
-                if (lore != null)
+                if (this.lore != null)
                     displayValues.Add(new NBTList()
                     {
                         listType = TAG.String,
                         name = "Lore",
-                        values = lore.Select(str => new NBTString()
+                        values = this.lore.Select(str => new NBTString()
                         {
                             name = null,
                             value = str
@@ -75,34 +75,34 @@ namespace mc_compiled.NBT
                 });
             }
 
-            if (bookData != null)
+            if (this.bookData != null)
             {
                 nodes.Add(new NBTString()
                 {
                     name = "author",
-                    value = bookData.Value.author
+                    value = this.bookData.Value.author
                 });
-                nodes.Add(bookData.Value.GetPagesNBT());
+                nodes.Add(this.bookData.Value.GetPagesNBT());
                 nodes.Add(new NBTString()
                 {
                     name = "title",
-                    value = bookData.Value.title
+                    value = this.bookData.Value.title
                 });
             }
-            if (customColor != null) {
+            if (this.customColor != null) {
                 nodes.Add(new NBTColor()
                 {
                     name = "customColor",
                     a = 255,
-                    r = customColor.Value.r,
-                    g = customColor.Value.g,
-                    b = customColor.Value.b
+                    r = this.customColor.Value.r,
+                    g = this.customColor.Value.g,
+                    b = this.customColor.Value.b
                 });
             }
 
-            if (lockMode != ItemLockMode.NONE)
-                nodes.Add(new NBTByte() { name = "minecraft:item_lock", value = (byte)lockMode });
-            if (keepOnDeath)
+            if (this.lockMode != ItemLockMode.NONE)
+                nodes.Add(new NBTByte() { name = "minecraft:item_lock", value = (byte) this.lockMode });
+            if (this.keepOnDeath)
                 nodes.Add(new NBTByte() { name = "minecraft:keep_on_death", value = 1 });
             nodes.Add(new NBTEnd());
 
@@ -131,16 +131,16 @@ namespace mc_compiled.NBT
 
         public NBTList GetPagesNBT()
         {
-            var compounds = new NBTNode[pages.Length];
+            var compounds = new NBTNode[this.pages.Length];
             
-            for (int i = 0; i < pages.Length; i++)
+            for (int i = 0; i < this.pages.Length; i++)
             {
                 compounds[i] = new NBTCompound()
                 {
                     name = null,
                     values = new NBTNode[]
                     {
-                        new NBTString() { name = "text", value = pages[i] },
+                        new NBTString() { name = "text", value = this.pages[i] },
                         new NBTEnd()
                     }
                 };

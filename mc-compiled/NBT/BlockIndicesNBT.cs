@@ -21,7 +21,7 @@ namespace mc_compiled.NBT
         /// <param name="blocks"></param>
         public BlockIndicesNBT(int[,,] blocks)
         {
-            size = new VectorIntNBT()
+            this.size = new VectorIntNBT()
             {
                 x = blocks.GetLength(0),
                 y = blocks.GetLength(1),
@@ -34,21 +34,21 @@ namespace mc_compiled.NBT
             int write = 0;
 
             // Unwrap 3D array.
-            for (int x = 0; x < size.x; x++)
-            for (int y = 0; y < size.y; y++)
-            for (int z = 0; z < size.z; z++)
+            for (int x = 0; x < this.size.x; x++)
+            for (int y = 0; y < this.size.y; y++)
+            for (int z = 0; z < this.size.z; z++)
                 unwrap[write++] = blocks[x, y, z];
 
             for (int i = 0; i < length; i++)
                 empty[i] = -1;
 
-            primaryLayer = new NBTList()
+            this.primaryLayer = new NBTList()
             {
                 name = "",
                 listType = TAG.Int,
                 values = (from convert in unwrap select new NBTInt() { name = "", value = convert }).ToArray()
             };
-            secondaryLayer = new NBTList()
+            this.secondaryLayer = new NBTList()
             {
                 name = "",
                 listType = TAG.Int,
@@ -64,8 +64,7 @@ namespace mc_compiled.NBT
                 listType = TAG.List,
                 values = new NBTList[]
                 {
-                    primaryLayer,
-                    secondaryLayer
+                    this.primaryLayer, this.secondaryLayer
                 }
             };
         }

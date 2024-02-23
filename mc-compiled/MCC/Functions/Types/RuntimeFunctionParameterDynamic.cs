@@ -1,13 +1,7 @@
 ﻿using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -46,7 +40,7 @@ namespace mc_compiled.MCC.Functions.Types
                     Typedef sbType = literal.GetTypedef();
                     if (sbType == null)
                         return ParameterFit.No;
-                    if(acceptedTypes != null && !acceptedTypes.Contains(sbType))
+                    if(this.acceptedTypes != null && !this.acceptedTypes.Contains(sbType))
                         return ParameterFit.No;
 
                     return ParameterFit.Yes;
@@ -72,8 +66,8 @@ namespace mc_compiled.MCC.Functions.Types
                         if (type.CanAcceptLiteralForData(literal))
                             data = type.AcceptLiteral(literal);
 
-                        value = new ScoreboardValue(name, true, type, data, executor.scoreboard);
-                        string suffix = (parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '0');
+                        value = new ScoreboardValue(this.name, true, type, data, executor.scoreboard);
+                        string suffix = (this.parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '0');
                         value.InternalName = value.InternalName + suffix;
 
                         commandBuffer.AddRange(value.AssignLiteral(literal, callingStatement));
@@ -83,9 +77,9 @@ namespace mc_compiled.MCC.Functions.Types
                     {
                         value = _value.value.Clone(callingStatement,
                             newClarifier: Clarifier.Global(),
-                            newInternalName: name,
-                            newName: name);
-                        string suffix = (parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '0');
+                            newInternalName: this.name,
+                            newName: this.name);
+                        string suffix = (this.parent.name.GetHashCode() ^ value.GetHashCode()).ToString().Replace('-', '0');
                         value.InternalName = value.InternalName + suffix;
 
                         commandBuffer.AddRange(value.Assign(_value.value, callingStatement));
@@ -105,11 +99,11 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override string ToString()
         {
-            return $"[T {aliasName}]";
+            return $"[T {this.aliasName}]";
         }
         public override int GetHashCode()
         {
-            return name.GetHashCode();
+            return this.name.GetHashCode();
         }
     }
 }

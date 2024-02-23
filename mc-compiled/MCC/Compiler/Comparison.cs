@@ -512,7 +512,7 @@ namespace mc_compiled.MCC.Compiler
 
         public bool IsEmpty
         {
-            get => Count == 0;
+            get => this.Count == 0;
         }
     }
 
@@ -536,8 +536,8 @@ namespace mc_compiled.MCC.Compiler
         }
         public Comparison(bool invert)
         {
-            originallyInverted = invert;
-            inverted = invert;
+            this.originallyInverted = invert;
+            this.inverted = invert;
         }
 
         /// <summary>
@@ -547,7 +547,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Toggles the inversion of this comparison.
         /// </summary>
-        public void SetInversion(bool invert) => inverted = invert ? !originallyInverted : originallyInverted;
+        public void SetInversion(bool invert) => this.inverted = invert ? !this.originallyInverted : this.originallyInverted;
 
         /// <summary>
         /// Get the commands needed, if any, to set up this comparison. May return null if no commands are needed.

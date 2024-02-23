@@ -17,7 +17,7 @@ namespace mc_compiled.NBT
             {
                 name = "entities",
                 listType = TAG.Compound,
-                values = (from entity in entities select entity.ToNBT("")).ToArray()
+                values = (from entity in this.entities select entity.ToNBT("")).ToArray()
             };
         }
     }

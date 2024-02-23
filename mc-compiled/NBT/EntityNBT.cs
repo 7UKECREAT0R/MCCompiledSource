@@ -145,100 +145,98 @@ namespace mc_compiled.NBT
         public NBTCompound ToNBT(string name)
         {
             List<NBTNode> nodes = new List<NBTNode>();
-            nodes.Add(new NBTShort() { name = "Age", value = age });
-            nodes.Add(new NBTShort() { name = "Air", value = air });
-            nodes.Add(new NBTShort() { name = "AttackTime", value = attackTime });
-            nodes.Add(new NBTFloat() { name = "BodyRot", value = bodyRot });
-            nodes.Add(new NBTInt() { name = "BreedCooldown", value = breedCooldown });
+            nodes.Add(new NBTShort() { name = "Age", value = this.age });
+            nodes.Add(new NBTShort() { name = "Air", value = this.air });
+            nodes.Add(new NBTShort() { name = "AttackTime", value = this.attackTime });
+            nodes.Add(new NBTFloat() { name = "BodyRot", value = this.bodyRot });
+            nodes.Add(new NBTInt() { name = "BreedCooldown", value = this.breedCooldown });
 
             nodes.Add(new NBTList()
             {
                 name = "Armor",
                 listType = TAG.Compound,
-                values = armor.Select(tag => tag.ToNBT()).ToArray()
+                values = this.armor.Select(tag => tag.ToNBT()).ToArray()
             });
             nodes.Add(new NBTList()
             {
                 name = "Attributes",
                 listType = TAG.Compound,
-                values = attributes.Select(attrib => attrib.ToNBT()).ToArray()
+                values = this.attributes.Select(attrib => attrib.ToNBT()).ToArray()
             });
 
-            nodes.Add(new NBTByte() { name = "Chested", value = (byte)(chested ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "Color", value = color });
-            nodes.Add(new NBTByte() { name = "Color2", value = color2 });
+            nodes.Add(new NBTByte() { name = "Chested", value = (byte)(this.chested ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "Color", value = this.color });
+            nodes.Add(new NBTByte() { name = "Color2", value = this.color2 });
 
-            if (customName != null)
+            if (this.customName != null)
             {
-                nodes.Add(new NBTString() { name = "CustomName", value = customName });
-                nodes.Add(new NBTByte() { name = "CustomNameVisible", value = (byte)(customNameVisible ? 1 : 0) });
+                nodes.Add(new NBTString() { name = "CustomName", value = this.customName });
+                nodes.Add(new NBTByte() { name = "CustomNameVisible", value = (byte)(this.customNameVisible ? 1 : 0) });
             }
 
-            nodes.Add(new NBTByte() { name = "Dead", value = (byte)(dead ? 1 : 0) });
-            nodes.Add(new NBTShort() { name = "DeathTime", value = deathTime });
-            nodes.Add(new NBTFloat() { name = "FallDistance", value = fallDistance });
-            nodes.Add(new NBTShort() { name = "HurtTime", value = hurtTime });
-            nodes.Add(new NBTInt() { name = "InLove", value = inLove });
-            nodes.Add(new NBTShort() { name = "Fire", value = fire });
-            nodes.Add(new NBTShort() { name = "Health", value = health });
-            nodes.Add(new NBTByte() { name = "Invulnerable", value = (byte)(invulnerable ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsAngry", value = (byte)(isAngry ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsAutonomous", value = (byte)(isAutonomous ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsBaby", value = (byte)(isBaby ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsEating", value = (byte)(isEating ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsGliding", value = (byte)(isGliding ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsGlobal", value = (byte)(isGlobal ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsIllagerCaptain", value = (byte)(isIllagerCaptain ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsOrphaned", value = (byte)(isOrphaned ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsOutOfControl", value = (byte)(isOutOfControl ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsRoaring", value = (byte)(isRoaring ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsScared", value = (byte)(isScared ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsStunned", value = (byte)(isStunned ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsSwimming", value = (byte)(isSwimming ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsTamed", value = (byte)(isTamed ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "IsTrusting", value = (byte)(isTrusting ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "Dead", value = (byte)(this.dead ? 1 : 0) });
+            nodes.Add(new NBTShort() { name = "DeathTime", value = this.deathTime });
+            nodes.Add(new NBTFloat() { name = "FallDistance", value = this.fallDistance });
+            nodes.Add(new NBTShort() { name = "HurtTime", value = this.hurtTime });
+            nodes.Add(new NBTInt() { name = "InLove", value = this.inLove });
+            nodes.Add(new NBTShort() { name = "Fire", value = this.fire });
+            nodes.Add(new NBTShort() { name = "Health", value = this.health });
+            nodes.Add(new NBTByte() { name = "Invulnerable", value = (byte)(this.invulnerable ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsAngry", value = (byte)(this.isAngry ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsAutonomous", value = (byte)(this.isAutonomous ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsBaby", value = (byte)(this.isBaby ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsEating", value = (byte)(this.isEating ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsGliding", value = (byte)(this.isGliding ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsGlobal", value = (byte)(this.isGlobal ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsIllagerCaptain", value = (byte)(this.isIllagerCaptain ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsOrphaned", value = (byte)(this.isOrphaned ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsOutOfControl", value = (byte)(this.isOutOfControl ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsRoaring", value = (byte)(this.isRoaring ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsScared", value = (byte)(this.isScared ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsStunned", value = (byte)(this.isStunned ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsSwimming", value = (byte)(this.isSwimming ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsTamed", value = (byte)(this.isTamed ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "IsTrusting", value = (byte)(this.isTrusting ? 1 : 0) });
             
-            if(item.HasValue)
-                nodes.Add(item.Value.ToNBT());
+            if(this.item.HasValue)
+                nodes.Add(this.item.Value.ToNBT());
 
-            nodes.Add(new NBTInt() { name = "LastDimensionId", value = lastDimensionID });
-            nodes.Add(new NBTByte() { name = "LootDropped", value = (byte)(lootDropped ? 1 : 0) });
-            nodes.Add(new NBTInt() { name = "MarkVariant", value = markVariant });
-            nodes.Add(motion.ToNBT("Motion"));
-            nodes.Add(new NBTByte() { name = "OnGround", value = (byte)(onGround ? 1 : 0) });
-            nodes.Add(new NBTLong() { name = "OwnerID", value = ownerID });
-            nodes.Add(new NBTLong() { name = "OwnerNew", value = ownerNew });
-            nodes.Add(new NBTInt() { name = "PortalCooldown", value = portalCooldown });
-            nodes.Add(pos.ToNBT("Pos"));
-            nodes.Add(rotation.ToNBT("Rotation"));
-            nodes.Add(new NBTByte() { name = "Saddled", value = (byte)(saddled ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "Sheared", value = (byte)(sheared ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "ShowBottom", value = (byte)(showBottom ? 1 : 0) });
-            nodes.Add(new NBTByte() { name = "Sitting", value = (byte)(sitting ? 1 : 0) });
-            nodes.Add(new NBTInt() { name = "SkinID", value = skinID });
-            nodes.Add(new NBTInt() { name = "Strength", value = strength });
-            nodes.Add(new NBTInt() { name = "StrengthMax", value = strengthMax });
+            nodes.Add(new NBTInt() { name = "LastDimensionId", value = this.lastDimensionID });
+            nodes.Add(new NBTByte() { name = "LootDropped", value = (byte)(this.lootDropped ? 1 : 0) });
+            nodes.Add(new NBTInt() { name = "MarkVariant", value = this.markVariant });
+            nodes.Add(this.motion.ToNBT("Motion"));
+            nodes.Add(new NBTByte() { name = "OnGround", value = (byte)(this.onGround ? 1 : 0) });
+            nodes.Add(new NBTLong() { name = "OwnerID", value = this.ownerID });
+            nodes.Add(new NBTLong() { name = "OwnerNew", value = this.ownerNew });
+            nodes.Add(new NBTInt() { name = "PortalCooldown", value = this.portalCooldown });
+            nodes.Add(this.pos.ToNBT("Pos"));
+            nodes.Add(this.rotation.ToNBT("Rotation"));
+            nodes.Add(new NBTByte() { name = "Saddled", value = (byte)(this.saddled ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "Sheared", value = (byte)(this.sheared ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "ShowBottom", value = (byte)(this.showBottom ? 1 : 0) });
+            nodes.Add(new NBTByte() { name = "Sitting", value = (byte)(this.sitting ? 1 : 0) });
+            nodes.Add(new NBTInt() { name = "SkinID", value = this.skinID });
+            nodes.Add(new NBTInt() { name = "Strength", value = this.strength });
+            nodes.Add(new NBTInt() { name = "StrengthMax", value = this.strengthMax });
 
-            if (tags == null)
-                tags = new byte[0];
-            if (definitions == null)
-                definitions = new string[0];
+            if (this.tags == null) this.tags = new byte[0];
+            if (this.definitions == null) this.definitions = new string[0];
 
             nodes.Add(new NBTList()
             {
                 name = "Tags",
                 listType = TAG.Byte,
-                values = (from t in tags select new NBTByte() { name = "", value = t }).ToArray()
+                values = (from t in this.tags select new NBTByte() { name = "", value = t }).ToArray()
             });
-            nodes.Add(new NBTLong() { name = "UniqueID", value = uniqueID });
-            nodes.Add(new NBTInt() { name = "Variant", value = variant });
+            nodes.Add(new NBTLong() { name = "UniqueID", value = this.uniqueID });
+            nodes.Add(new NBTInt() { name = "Variant", value = this.variant });
             nodes.Add(new NBTList()
             {
                 name = "definitions",
                 listType = TAG.String,
-                values = (from t in definitions select new NBTString() { name = "", value = t }).ToArray()
+                values = (from t in this.definitions select new NBTString() { name = "", value = t }).ToArray()
             });
-            nodes.Add(new NBTString() { name = "identifier", value = identifier });
+            nodes.Add(new NBTString() { name = "identifier", value = this.identifier });
             nodes.Add(new NBTEnd());
 
             return new NBTCompound()

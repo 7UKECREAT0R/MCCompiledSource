@@ -16,13 +16,12 @@ namespace mc_compiled.MCC
 
         public EntityManager(Executor executor)
         {
-            dummies = new DummyManager(executor);
-            exploders = new ExploderManager(executor);
+            this.dummies = new DummyManager(executor);
+            this.exploders = new ExploderManager(executor);
 
-            allProviders = new List<ISelectorProvider>()
+            this.allProviders = new List<ISelectorProvider>()
             {
-                dummies,
-                exploders
+                this.dummies, this.exploders
             };
         }
         /// <summary>
@@ -32,7 +31,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public bool HasEntity(string name)
         {
-            return allProviders.Any(provider =>
+            return this.allProviders.Any(provider =>
                 provider.HasEntity(name));
         }
         /// <summary>
@@ -43,7 +42,7 @@ namespace mc_compiled.MCC
         /// <returns>If the entity was found and "selector" was set.</returns>
         public bool Search(string name, out Commands.Selectors.Selector selector)
         {
-            foreach (ISelectorProvider provider in allProviders)
+            foreach (ISelectorProvider provider in this.allProviders)
             {
                 if (provider.Search(name, out selector))
                     return true;

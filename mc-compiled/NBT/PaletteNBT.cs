@@ -10,7 +10,7 @@ namespace mc_compiled.NBT
 
         public PaletteNBT(params PaletteEntryNBT[] entries)
         {
-            block_palette = entries;
+            this.block_palette = entries;
         }
         public NBTCompound ToNBT()
         {
@@ -28,7 +28,7 @@ namespace mc_compiled.NBT
                             {
                                 name = "block_palette",
                                 listType = TAG.Compound,
-                                values = (from bp in block_palette select bp.ToNBT("")).ToArray()
+                                values = (from bp in this.block_palette select bp.ToNBT("")).ToArray()
                             },
                             new NBTCompound()
                             {

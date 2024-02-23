@@ -17,11 +17,11 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             var json = new JObject()
             {
-                ["entity_type"] = entityType
+                ["entity_type"] = this.entityType
             };
 
-            if (spawnEvent != null)
-                json["spawn_event"] = spawnEvent;
+            if (this.spawnEvent != null)
+                json["spawn_event"] = this.spawnEvent;
 
             return json;
         }
@@ -37,8 +37,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["cooldown_after_being_attacked"] = cooldownAfterBeingAttacked,
-                ["duration"] = duration
+                ["cooldown_after_being_attacked"] = this.cooldownAfterBeingAttacked,
+                ["duration"] = this.duration
             };
         }
     }
@@ -55,14 +55,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             var json = new JObject()
             {
-                ["duration"] = duration
+                ["duration"] = this.duration
             };
-            if (dropItems != null)
-                json["drop_items"] = new JArray(dropItems);
-            if (feedItems != null)
-                json["feed_items"] = new JArray(feedItems);
-            if (growUpEvent != null)
-                json["grow_up"] = growUpEvent.ToComponentJSON();
+            if (this.dropItems != null)
+                json["drop_items"] = new JArray(this.dropItems);
+            if (this.feedItems != null)
+                json["feed_items"] = new JArray(this.feedItems);
+            if (this.growUpEvent != null)
+                json["grow_up"] = this.growUpEvent.ToComponentJSON();
 
             return json;
         }
@@ -86,21 +86,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["broadcast_anger"] = broadcastAnger,
-                ["broadcast_anger_on_attack"] = broadcastAngerOnAttack,
-                ["broadcast_anger_on_being_attacked"] = broadcastAngerOnBeingAttacked,
-                ["broadcast_range"] = broadcastRange,
-                ["duration"] = angerDuration,
-                ["duration_delta"] = angerDurationDelta
+                ["broadcast_anger"] = this.broadcastAnger,
+                ["broadcast_anger_on_attack"] = this.broadcastAngerOnAttack,
+                ["broadcast_anger_on_being_attacked"] = this.broadcastAngerOnBeingAttacked,
+                ["broadcast_range"] = this.broadcastRange,
+                ["duration"] = this.angerDuration,
+                ["duration_delta"] = this.angerDurationDelta
             };
-            if (angrySound != null)
-                json["angry_sound"] = angrySound;
-            if (broadcastFilters != null)
-                json["broadcast_filters"] = broadcastFilters.ToJSON();
-            if (broadcastFamilies != null)
-                json["broadcast_targets"] = new JArray(broadcastFamilies);
-            if (ignoreEntities != null)
-                json["filters"] = ignoreEntities.ToJSON();
+            if (this.angrySound != null)
+                json["angry_sound"] = this.angrySound;
+            if (this.broadcastFilters != null)
+                json["broadcast_filters"] = this.broadcastFilters.ToJSON();
+            if (this.broadcastFamilies != null)
+                json["broadcast_targets"] = new JArray(this.broadcastFamilies);
+            if (this.ignoreEntities != null)
+                json["filters"] = this.ignoreEntities.ToJSON();
 
             return json;
         }
@@ -108,7 +108,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     public class ComponentAnnotationBreakDoor : EntityComponent
     {
         public float breakTime;
-        public Commands.DifficultyMode difficulty;
+        public DifficultyMode difficulty;
 
         public override string GetIdentifier() =>
             "minecraft:annotation.break_door";
@@ -116,8 +116,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["break_time"] = breakTime,
-                ["min_difficulty"] = difficulty.ToString()
+                ["break_time"] = this.breakTime,
+                ["min_difficulty"] = this.difficulty.ToString()
             };
         }
     }
@@ -132,7 +132,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     }
     public class ComponentAreaAttack : EntityComponent
     {
-        public Commands.DamageCause? cause;
+        public DamageCause? cause;
         public FilterCollection entityFilter;
         public int damagePerTick;
         public float damageRange;
@@ -143,13 +143,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["damage_per_tick"] = damagePerTick,
-                ["damage_range"] = damageRange
+                ["damage_per_tick"] = this.damagePerTick,
+                ["damage_range"] = this.damageRange
             };
-            if (entityFilter != null)
-                json["entity_filter"] = entityFilter.ToJSON();
-            if (cause.HasValue)
-                json["cause"] = cause.Value.ToString();
+            if (this.entityFilter != null)
+                json["entity_filter"] = this.entityFilter.ToJSON();
+            if (this.cause.HasValue)
+                json["cause"] = this.cause.Value.ToString();
 
             return json;
         }
@@ -166,14 +166,15 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject();
 
-            if (minCooldownTime.HasValue)
+            if (this.minCooldownTime.HasValue)
                 json["attack_cooldown_time"] = new JArray(new float[]
-                { minCooldownTime.Value, primaryCooldownTime });
+                {
+                    this.minCooldownTime.Value, this.primaryCooldownTime });
             else
-                json["attack_cooldown_time"] = primaryCooldownTime;
+                json["attack_cooldown_time"] = this.primaryCooldownTime;
 
-            if (onCooldownComplete != null)
-                json["attack_cooldown_complete_event"] = onCooldownComplete.ToComponentJSON();
+            if (this.onCooldownComplete != null)
+                json["attack_cooldown_complete_event"] = this.onCooldownComplete.ToComponentJSON();
 
             return json;
         }
@@ -188,8 +189,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["barter_table"] = barterTable.ResourcePath,
-                ["cooldown_after_being_attacked"] = cooldownAfterBeingAttacked
+                ["barter_table"] = this.barterTable.ResourcePath,
+                ["cooldown_after_being_attacked"] = this.cooldownAfterBeingAttacked
             };
         }
     }
@@ -218,8 +219,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["block_list"] = new JArray(blockList),
-                    ["on_block_broken"] = onBlockBroken
+                    ["block_list"] = new JArray(this.blockList),
+                    ["on_block_broken"] = this.onBlockBroken
                 };
             }
         }
@@ -233,8 +234,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["sensor_radius"] = sensorRadius,
-                ["on_break"] = new JArray(pools.Select(sp => sp.ToJSON()))
+                ["sensor_radius"] = this.sensorRadius,
+                ["on_break"] = new JArray(this.pools.Select(sp => sp.ToJSON()))
             };
         }
     }
@@ -256,9 +257,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["item"] = identifier,
-                    ["damage"] = damage,
-                    ["replace_item"] = replaceItem
+                    ["item"] = this.identifier,
+                    ["damage"] = this.damage,
+                    ["replace_item"] = this.replaceItem
                 };
             }
         }
@@ -273,9 +274,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["duration"] = boostDuration,
-                ["speed_multiplier"] = speedMultiplier,
-                ["boost_items"] = new JArray(boostItems.Select(bi => bi.ToJSON()))
+                ["duration"] = this.boostDuration,
+                ["speed_multiplier"] = this.speedMultiplier,
+                ["boost_items"] = new JArray(this.boostItems.Select(bi => bi.ToJSON()))
             };
         }
     }
@@ -291,9 +292,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["hud_range"] = hudRange,
-                ["name"] = bossbarText,
-                ["should_darken_sky"] = shouldDarkenSky
+                ["hud_range"] = this.hudRange,
+                ["name"] = this.bossbarText,
+                ["should_darken_sky"] = this.shouldDarkenSky
             };
         }
     }
@@ -306,7 +307,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["breakable_blocks"] = new JArray(breakableBlocks)
+                ["breakable_blocks"] = new JArray(this.breakableBlocks)
             };
         }
     }
@@ -330,19 +331,19 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["breathes_air"] = breathesAir,
-                ["breathes_lava"] = breathesLava,
-                ["breathes_solids"] = breathesSolids,
-                ["breathes_water"] = breathesWater,
-                ["generates_bubbles"] = generatesBubbles,
-                ["inhale_time"] = inhaleTime,
-                ["suffocate_time"] = suffocateTime,
-                ["total_supply"] = totalSupply
+                ["breathes_air"] = this.breathesAir,
+                ["breathes_lava"] = this.breathesLava,
+                ["breathes_solids"] = this.breathesSolids,
+                ["breathes_water"] = this.breathesWater,
+                ["generates_bubbles"] = this.generatesBubbles,
+                ["inhale_time"] = this.inhaleTime,
+                ["suffocate_time"] = this.suffocateTime,
+                ["total_supply"] = this.totalSupply
             };
-            if (breatheBlocks != null)
-                json["breathe_blocks"] = new JArray(breatheBlocks);
-            if (nonBreatheBlocks != null)
-                json["non_breathe_blocks"] = new JArray(nonBreatheBlocks);
+            if (this.breatheBlocks != null)
+                json["breathe_blocks"] = new JArray(this.breatheBlocks);
+            if (this.nonBreatheBlocks != null)
+                json["non_breathe_blocks"] = new JArray(this.nonBreatheBlocks);
 
             return json;
         }
@@ -365,12 +366,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["baby_type"] = babyType,
-                    ["mate_type"] = mateType
+                    ["baby_type"] = this.babyType,
+                    ["mate_type"] = this.mateType
                 };
 
-                if (breedEventToCall != null)
-                    json["breed_event"] = breedEventToCall.ToComponentJSON();
+                if (this.breedEventToCall != null)
+                    json["breed_event"] = this.breedEventToCall.ToComponentJSON();
 
                 return json;
             }
@@ -391,9 +392,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["chance"] = chance,
-                    ["max_variant"] = maxVariant,
-                    ["min_variant"] = minVariant
+                    ["chance"] = this.chance,
+                    ["max_variant"] = this.maxVariant,
+                    ["min_variant"] = this.minVariant
                 };
             }
         }
@@ -413,9 +414,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["blocks"] = new JArray(nearbyBlocks),
-                    ["count"] = count,
-                    ["radius"] = radius
+                    ["blocks"] = new JArray(this.nearbyBlocks),
+                    ["count"] = this.count,
+                    ["radius"] = this.radius
                 };
             }
         }
@@ -436,9 +437,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["color"] = colorChance,
-                    ["extra_variant"] = extraVariantChance,
-                    ["variant"] = variantChance
+                    ["color"] = this.colorChance,
+                    ["extra_variant"] = this.extraVariantChance,
+                    ["variant"] = this.variantChance
                 };
             }
         }
@@ -465,28 +466,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["allow_sitting"] = canBreedWhileSitting,
-                ["blend_attributes"] = blendAttributes,
-                ["breed_cooldown"] = breedCooldown,
-                ["causes_pregnancy"] = causesPregnancy,
-                ["extra_baby_chance"] = extraBabyChance,
-                ["inherit_tamed"] = inheritTamed,
-                ["require_full_health"] = requireFullHealth,
-                ["require_tame"] = requireTamed
+                ["allow_sitting"] = this.canBreedWhileSitting,
+                ["blend_attributes"] = this.blendAttributes,
+                ["breed_cooldown"] = this.breedCooldown,
+                ["causes_pregnancy"] = this.causesPregnancy,
+                ["extra_baby_chance"] = this.extraBabyChance,
+                ["inherit_tamed"] = this.inheritTamed,
+                ["require_full_health"] = this.requireFullHealth,
+                ["require_tame"] = this.requireTamed
             };
 
-            if (breedItems != null)
-                json["breed_items"] = new JArray(breedItems);
-            if (breedsWith != null)
-                json["breeds_with"] = new JArray(breedsWith.Select(be => be.ToJSON()));
-            if (denyParents.HasValue)
-                json["deny_parents_variant"] = denyParents.Value.ToJSON();
-            if (environmentRequirements != null)
-                json["environment_requirements"] = new JArray(environmentRequirements.Select(er => er.ToJSON()));
-            if (loveFilters != null)
-                json["love_filters"] = loveFilters.ToJSON();
-            if (mutationFactor.HasValue)
-                json["mutation_factor"] = mutationFactor.Value.ToJSON();
+            if (this.breedItems != null)
+                json["breed_items"] = new JArray(this.breedItems);
+            if (this.breedsWith != null)
+                json["breeds_with"] = new JArray(this.breedsWith.Select(be => be.ToJSON()));
+            if (this.denyParents.HasValue)
+                json["deny_parents_variant"] = this.denyParents.Value.ToJSON();
+            if (this.environmentRequirements != null)
+                json["environment_requirements"] = new JArray(this.environmentRequirements.Select(er => er.ToJSON()));
+            if (this.loveFilters != null)
+                json["love_filters"] = this.loveFilters.ToJSON();
+            if (this.mutationFactor.HasValue)
+                json["mutation_factor"] = this.mutationFactor.Value.ToJSON();
 
             return json;
         }
@@ -502,8 +503,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["bribe_cooldown"] = bribeCooldown,
-                ["bribe_items"] = new JArray(bribeItems)
+                ["bribe_cooldown"] = this.bribeCooldown,
+                ["bribe_items"] = new JArray(this.bribeItems)
             };
         }
     }
@@ -523,13 +524,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["apply_gravity"] = applyGravity,
-                ["base_buoyancy"] = baseBuoyancy,
-                ["big_wave_probability"] = bigWaveProbability,
-                ["big_wave_speed"] = bigWaveSpeed,
-                ["drag_down_on_buoyancy_removed"] = dragDownOnBuoyancyRemoved,
-                ["liquid_blocks"] = new JArray(liquidBlocks),
-                ["simulate_waves"] = simulateWaves
+                ["apply_gravity"] = this.applyGravity,
+                ["base_buoyancy"] = this.baseBuoyancy,
+                ["big_wave_probability"] = this.bigWaveProbability,
+                ["big_wave_speed"] = this.bigWaveSpeed,
+                ["drag_down_on_buoyancy_removed"] = this.dragDownOnBuoyancyRemoved,
+                ["liquid_blocks"] = new JArray(this.liquidBlocks),
+                ["simulate_waves"] = this.simulateWaves
             };
         }
     }
@@ -561,20 +562,20 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["broadcast"] = broadcast,
-                ["duration"] = duration,
-                ["radius"] = radius,
+                ["broadcast"] = this.broadcast,
+                ["duration"] = this.duration,
+                ["radius"] = this.radius,
                 ["sound_interval"] = new JObject()
                 {
-                    ["range_min"] = minSoundInterval,
-                    ["range_max"] = maxSoundInterval
+                    ["range_min"] = this.minSoundInterval,
+                    ["range_max"] = this.maxSoundInterval
                 }
             };
 
-            if(celebrationTargets != null)
-                json["celebration_targets"] = celebrationTargets.ToJSON();
-            if (celebrationSound != null)
-                json["celebrate_sound"] = celebrationSound;
+            if(this.celebrationTargets != null)
+                json["celebration_targets"] = this.celebrationTargets.ToJSON();
+            if (this.celebrationSound != null)
+                json["celebrate_sound"] = this.celebrationSound;
 
             return json;
         }
@@ -591,9 +592,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["regeneration_duration"] = regenDuration,
-                ["apply_to_self"] = applyToSelf,
-                ["apply_to_family"] = applyToFamily
+                ["regeneration_duration"] = this.regenDuration,
+                ["apply_to_self"] = this.applyToSelf,
+                ["apply_to_family"] = this.applyToFamily
             };
         }
     }
@@ -624,9 +625,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["pivot"] = pivot.ToArray(),
-                    ["width"] = width,
-                    ["height"] = height
+                    ["pivot"] = this.pivot.ToArray(),
+                    ["width"] = this.width,
+                    ["height"] = this.height
                 };
             }
         }
@@ -638,7 +639,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["hitboxes"] = new JArray(hitboxes.Select(hb => hb.ToJSON()))
+                ["hitboxes"] = new JArray(this.hitboxes.Select(hb => hb.ToJSON()))
             };
         }
     }
@@ -653,8 +654,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["damage_per_hurt"] = damagePerHurt,
-                ["time_between_hurt"] = timeBetweenHurt
+                ["damage_per_hurt"] = this.damagePerHurt,
+                ["time_between_hurt"] = this.timeBetweenHurt
             };
         }
     }
@@ -662,7 +663,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         public struct Trigger
         {
-            public Commands.DamageCause cause;
+            public DamageCause cause;
             public float damageModifier;
             public float damageMultiplier;
             public bool dealsDamage;
@@ -674,27 +675,27 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["cause"] = cause.ToString(),
-                    ["damage_modifier"] = damageModifier,
-                    ["damage_multiplier"] = damageMultiplier,
-                    ["deals_damage"] = dealsDamage
+                    ["cause"] = this.cause.ToString(),
+                    ["damage_modifier"] = this.damageModifier,
+                    ["damage_multiplier"] = this.damageMultiplier,
+                    ["deals_damage"] = this.dealsDamage
                 };
 
-                if (onDamageSoundEvent != null)
-                    json["on_damage_sound_event"] = onDamageSoundEvent;
+                if (this.onDamageSoundEvent != null)
+                    json["on_damage_sound_event"] = this.onDamageSoundEvent;
 
-                bool hasFilter = onDamageFilters != null;
-                bool hasEvent = onDamage != null;
+                bool hasFilter = this.onDamageFilters != null;
+                bool hasEvent = this.onDamage != null;
 
                 if (hasFilter | hasEvent)
                 {
                     JObject child = new JObject();
                     if (hasFilter)
-                        child["filters"] = onDamageFilters.ToJSON();
+                        child["filters"] = this.onDamageFilters.ToJSON();
                     if (hasEvent)
                     {
-                        child["event"] = onDamage.eventID;
-                        child["target"] = onDamage.target.ToString();
+                        child["event"] = this.onDamage.eventID;
+                        child["target"] = this.onDamage.target.ToString();
                     }
                 }
 
@@ -709,7 +710,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["triggers"] = new JArray(triggerPool.Select(t => t.ToJSON()))
+                ["triggers"] = new JArray(this.triggerPool.Select(t => t.ToJSON()))
             };
         }
     }
@@ -734,21 +735,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["despawn_from_chance"] = despawnFromChance,
-                ["despawn_from_inactivity"] = despawnFromInactivity,
-                ["despawn_from_simulation_edge"] = despawnFromSimulationEdge,
-                ["min_range_inactivity_timer"] = inactivityTimer,
-                ["min_range_random_chance"] = randomChance,
-                ["remove_child_entities"] = removeChildEntities
+                ["despawn_from_chance"] = this.despawnFromChance,
+                ["despawn_from_inactivity"] = this.despawnFromInactivity,
+                ["despawn_from_simulation_edge"] = this.despawnFromSimulationEdge,
+                ["min_range_inactivity_timer"] = this.inactivityTimer,
+                ["min_range_random_chance"] = this.randomChance,
+                ["remove_child_entities"] = this.removeChildEntities
             };
-            if (despawnFromDistance)
+            if (this.despawnFromDistance)
                 json["despawn_from_distance"] = new JObject()
                 {
-                    ["max_distance"] = maxDistance,
-                    ["min_distance"] = minDistance
+                    ["max_distance"] = this.maxDistance,
+                    ["min_distance"] = this.minDistance
                 };
-            if (despawnRequirements != null)
-                json["filters"] = despawnRequirements.ToJSON();
+            if (this.despawnRequirements != null)
+                json["filters"] = this.despawnRequirements.ToJSON();
             return json;
         }
     }
@@ -766,16 +767,16 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["total_time"] = totalTime,
-                ["water_bottle_refill_time"] = waterBottleRefillTime
+                ["total_time"] = this.totalTime,
+                ["water_bottle_refill_time"] = this.waterBottleRefillTime
             };
 
-            if (driedOutEvent != null)
-                json["dried_out_event"] = driedOutEvent.ToComponentJSON();
-            if (recoverEvent != null)
-                json["recover_after_dried_out_event"] = recoverEvent.ToComponentJSON();
-            if (stoppedDryingEvent != null)
-                json["stopped_drying_out_event"] = stoppedDryingEvent.ToComponentJSON();
+            if (this.driedOutEvent != null)
+                json["dried_out_event"] = this.driedOutEvent.ToComponentJSON();
+            if (this.recoverEvent != null)
+                json["recover_after_dried_out_event"] = this.recoverEvent.ToComponentJSON();
+            if (this.stoppedDryingEvent != null)
+                json["stopped_drying_out_event"] = this.stoppedDryingEvent.ToComponentJSON();
 
             return json;
         }
@@ -807,21 +808,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["convert_trades_economy"] = convertTradesEconomy,
-                ["cured_discount"] = new JArray(new[] { curedDiscountMin, curedDiscountMax }),
-                ["hero_demand_discount"] = heroDemandDiscount,
-                ["max_cured_discount"] = new JArray(new[] { maxCuredDiscountLow, maxCuredDiscountHigh }),
-                ["max_nearby_cured_discount"] = maxNearbyCuredDiscount,
-                ["nearby_cured_discount"] = minNearbyCuredDiscount,
-                ["new_screen"] = newScreen,
-                ["persistTrades"] = persistTrades,
-                ["show_trade_screen"] = showTradeScreen,
-                ["table"] = tradeTable.ResourcePath,
-                ["use_legacy_price_formula"] = legacyPriceFormula
+                ["convert_trades_economy"] = this.convertTradesEconomy,
+                ["cured_discount"] = new JArray(new[] {this.curedDiscountMin, this.curedDiscountMax }),
+                ["hero_demand_discount"] = this.heroDemandDiscount,
+                ["max_cured_discount"] = new JArray(new[] {this.maxCuredDiscountLow, this.maxCuredDiscountHigh }),
+                ["max_nearby_cured_discount"] = this.maxNearbyCuredDiscount,
+                ["nearby_cured_discount"] = this.minNearbyCuredDiscount,
+                ["new_screen"] = this.newScreen,
+                ["persistTrades"] = this.persistTrades,
+                ["show_trade_screen"] = this.showTradeScreen,
+                ["table"] = this.tradeTable.ResourcePath,
+                ["use_legacy_price_formula"] = this.legacyPriceFormula
             };
 
-            if (displayName != null)
-                json["display_name"] = displayName;
+            if (this.displayName != null)
+                json["display_name"] = this.displayName;
 
             return json;
         }
@@ -843,16 +844,16 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["event"] = eventToFire.ToComponentJSON(),
-                ["maximum_count"] = maxEntities,
-                ["minimum_count"] = minEntities,
-                ["relative_range"] = relativeRange,
-                ["require_all"] = requireAllToPassFilter,
-                ["sensor_range"] = sensorRange
+                ["event"] = this.eventToFire.ToComponentJSON(),
+                ["maximum_count"] = this.maxEntities,
+                ["minimum_count"] = this.minEntities,
+                ["relative_range"] = this.relativeRange,
+                ["require_all"] = this.requireAllToPassFilter,
+                ["sensor_range"] = this.sensorRange
             };
 
-            if (filters != null)
-                json["event_filters"] = filters.ToJSON();
+            if (this.filters != null)
+                json["event_filters"] = this.filters.ToJSON();
 
             return json;
         }
@@ -874,12 +875,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["event"] = eventToFire.eventID,
-                    ["target"] = eventToFire.target.ToString()
+                    ["event"] = this.eventToFire.eventID,
+                    ["target"] = this.eventToFire.target.ToString()
                 };
 
-                if (filters != null)
-                    json["filters"] = filters.ToJSON();
+                if (this.filters != null)
+                    json["filters"] = this.filters.ToJSON();
 
                 return json;
             }
@@ -892,7 +893,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["triggers"] = new JArray(triggers.Select(t => t.ToJSON()))
+                ["triggers"] = new JArray(this.triggers.Select(t => t.ToJSON()))
             };
         }
     }
@@ -920,19 +921,19 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["slot"] = slotNumber
+                    ["slot"] = this.slotNumber
                 };
 
-                if (acceptedItems != null)
-                    json["accepted_items"] = new JArray(acceptedItems);
-                if (interactText != null)
-                    json["interact_text"] = interactText;
-                if (item != null)
-                    json["item"] = item;
-                if (onEquipEvent != null)
-                    json["on_equip"] = onEquipEvent.ToComponentJSON();
-                if (onEquipEvent != null)
-                    json["on_unequip"] = onUnequipEvent.ToComponentJSON();
+                if (this.acceptedItems != null)
+                    json["accepted_items"] = new JArray(this.acceptedItems);
+                if (this.interactText != null)
+                    json["interact_text"] = this.interactText;
+                if (this.item != null)
+                    json["item"] = this.item;
+                if (this.onEquipEvent != null)
+                    json["on_equip"] = this.onEquipEvent.ToComponentJSON();
+                if (this.onEquipEvent != null)
+                    json["on_unequip"] = this.onUnequipEvent.ToComponentJSON();
 
                 return json;
             }
@@ -944,8 +945,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public override JObject _GetValue()
         {
             JObject json = new JObject();
-            if (slots != null)
-                json["slots"] = new JArray(slots.Select(slot => slot.ToJSON()));
+            if (this.slots != null)
+                json["slots"] = new JArray(this.slots.Select(slot => slot.ToJSON()));
             return json;
         }
     }
@@ -959,10 +960,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public override JObject _GetValue()
         {
             JObject json = new JObject();
-            if (experienceOnBred != null)
-                json["on_bred"] = experienceOnBred.ToJSON();
-            if (experienceOnDeath != null)
-                json["on_death"] = experienceOnDeath.ToJSON();
+            if (this.experienceOnBred != null)
+                json["on_bred"] = this.experienceOnBred.ToJSON();
+            if (this.experienceOnDeath != null)
+                json["on_death"] = this.experienceOnDeath.ToJSON();
             return json;
         }
     }
@@ -976,12 +977,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
         public ComponentExplode(MCC.CustomEntities.ExploderPreset preset, bool fuseLit)
         {
-            breaksBlocks = preset.breaks;
-            causesFire = preset.fire;
-            power = preset.power;
-            followMobGriefingRule = false;
-            maxBlockResistance = null;
-            ConstantFuse = preset.delay / 20f;
+            this.breaksBlocks = preset.breaks;
+            this.causesFire = preset.fire;
+            this.power = preset.power;
+            this.followMobGriefingRule = false;
+            this.maxBlockResistance = null;
+            this.ConstantFuse = preset.delay / 20f;
             this.fuseLit = fuseLit;
         }
 
@@ -992,8 +993,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             set
             {
-                fuseMin = value;
-                fuseMax = value;
+                this.fuseMin = value;
+                this.fuseMax = value;
             }
         }
         public float fuseMin;
@@ -1006,21 +1007,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["breaks_blocks"] = breaksBlocks,
-                ["causes_fire"] = causesFire,
-                ["destroy_affected_by_griefing"] = followMobGriefingRule,
-                ["fire_affected_by_griefing"] = followMobGriefingRule,
-                ["fuse_lit"] = fuseLit,
-                ["power"] = power
+                ["breaks_blocks"] = this.breaksBlocks,
+                ["causes_fire"] = this.causesFire,
+                ["destroy_affected_by_griefing"] = this.followMobGriefingRule,
+                ["fire_affected_by_griefing"] = this.followMobGriefingRule,
+                ["fuse_lit"] = this.fuseLit,
+                ["power"] = this.power
             };
 
-            if(maxBlockResistance.HasValue)
-                json["max_resistance"] = maxBlockResistance.Value;
+            if(this.maxBlockResistance.HasValue)
+                json["max_resistance"] = this.maxBlockResistance.Value;
 
-            if (fuseMin == fuseMax)
-                json["fuse_length"] = fuseMin;
+            if (this.fuseMin == this.fuseMax)
+                json["fuse_length"] = this.fuseMin;
             else
-                json["fuse_length"] = new JArray(new[] { fuseMin, fuseMax });
+                json["fuse_length"] = new JArray(new[] {this.fuseMin, this.fuseMax });
 
             return json;
         }
@@ -1057,23 +1058,23 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["block_distance"] = blockDistance,
-                ["block_weight"] = blockWeight,
-                ["breach_influence"] = breachInfluence,
-                ["cohesion_threshold"] = cohesionThreshold,
-                ["goal_weight"] = goalWeight,
-                ["high_flock_limit"] = highFlockLimit,
-                ["in_water"] = inWater,
-                ["influence_radius"] = influenceRadius,
-                ["inner_cohesion_threshold"] = innerCohesionThreshold,
-                ["loner_chance"] = lonerChance,
-                ["low_flock_limit"] = lowFlockLimit,
-                ["match_variants"] = matchVariants,
-                ["max_height"] = maxHeight,
-                ["min_height"] = minHeight,
-                ["separation_threshold"] = separationThreshold,
-                ["separation_weight"] = separationWeight,
-                ["use_center_of_mass"] = useCenterOfMass
+                ["block_distance"] = this.blockDistance,
+                ["block_weight"] = this.blockWeight,
+                ["breach_influence"] = this.breachInfluence,
+                ["cohesion_threshold"] = this.cohesionThreshold,
+                ["goal_weight"] = this.goalWeight,
+                ["high_flock_limit"] = this.highFlockLimit,
+                ["in_water"] = this.inWater,
+                ["influence_radius"] = this.influenceRadius,
+                ["inner_cohesion_threshold"] = this.innerCohesionThreshold,
+                ["loner_chance"] = this.lonerChance,
+                ["low_flock_limit"] = this.lowFlockLimit,
+                ["match_variants"] = this.matchVariants,
+                ["max_height"] = this.maxHeight,
+                ["min_height"] = this.minHeight,
+                ["separation_threshold"] = this.separationThreshold,
+                ["separation_weight"] = this.separationWeight,
+                ["use_center_of_mass"] = this.useCenterOfMass
             };
         }
     }
@@ -1092,8 +1093,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["range_max"] = max,
-                    ["range_min"] = min
+                    ["range_max"] = this.max,
+                    ["range_min"] = this.min
                 };
             }
         }
@@ -1110,15 +1111,15 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["mutation_rate"] = mutationRate,
-                    ["both_allele"] = bothAllele,
-                    ["either_allele"] = eitherAllele,
-                    ["hidden_allele"] = hiddenAllele,
-                    ["main_allele"] = mainAllele
+                    ["mutation_rate"] = this.mutationRate,
+                    ["both_allele"] = this.bothAllele,
+                    ["either_allele"] = this.eitherAllele,
+                    ["hidden_allele"] = this.hiddenAllele,
+                    ["main_allele"] = this.mainAllele
                 };
 
-                if (geneBirthEvent != null)
-                    json["birth_event"] = geneBirthEvent.ToComponentJSON();
+                if (this.geneBirthEvent != null)
+                    json["birth_event"] = this.geneBirthEvent.ToComponentJSON();
 
                 return json;
             }
@@ -1133,13 +1134,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["allele_range"] = alleleRange
+                    ["allele_range"] = this.alleleRange
                 };
 
-                if (name != null)
-                    json["name"] = name;
-                if (variants != null)
-                    json["genetic_variants"] = new JArray(variants.Select(variant => variant.ToJSON()));
+                if (this.name != null)
+                    json["name"] = this.name;
+                if (this.variants != null)
+                    json["genetic_variants"] = new JArray(this.variants.Select(variant => variant.ToJSON()));
 
                 return json;
             }
@@ -1153,8 +1154,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["genes"] = new JArray(genes.Select(gene => gene.ToJSON())),
-                ["mutation_rate"] = mutationRate
+                ["genes"] = new JArray(this.genes.Select(gene => gene.ToJSON())),
+                ["mutation_rate"] = this.mutationRate
             };
         }
     }
@@ -1170,12 +1171,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject();
 
-            if (cooldown.HasValue)
-                json["cooldown"] = cooldown.Value;
-            if (acceptedItems != null)
-                json["items"] = new JArray(acceptedItems);
-            if (onGiveEvent != null)
-                json["on_give"] = onGiveEvent.ToComponentJSON();
+            if (this.cooldown.HasValue)
+                json["cooldown"] = this.cooldown.Value;
+            if (this.acceptedItems != null)
+                json["items"] = new JArray(this.acceptedItems);
+            if (this.onGiveEvent != null)
+                json["on_give"] = this.onGiveEvent.ToComponentJSON();
 
             return json;
         }
@@ -1191,8 +1192,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["radius"] = radius,
-                ["filters"] = groupTest.ToJSON()
+                ["radius"] = this.radius,
+                ["filters"] = this.groupTest.ToJSON()
             };
         }
     }
@@ -1207,8 +1208,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["chance"] = chancePerTick,
-                ["charges"] = charges
+                ["chance"] = this.chancePerTick,
+                ["charges"] = this.charges
             };
         }
     }
@@ -1228,8 +1229,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["heal_amount"] = healAmount,
-                    ["item"] = item
+                    ["heal_amount"] = this.healAmount,
+                    ["item"] = this.item
                 };
             }
         }
@@ -1244,13 +1245,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["force_use"] = forceUse
+                ["force_use"] = this.forceUse
             };
 
-            if (filters != null)
-                json["filters"] = filters.ToJSON();
-            if (items != null)
-                json["items"] = new JArray(items.Select(item => item.ToJSON()));
+            if (this.filters != null)
+                json["filters"] = this.filters.ToJSON();
+            if (this.items != null)
+                json["items"] = new JArray(this.items.Select(item => item.ToJSON()));
 
             return json;
         }
@@ -1268,11 +1269,11 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["restriction_radius"] = restrictionRadius
+                ["restriction_radius"] = this.restrictionRadius
             };
 
-            if (homeBlocks != null)
-                json["home_block_list"] = new JArray(homeBlocks);
+            if (this.homeBlocks != null)
+                json["home_block_list"] = new JArray(this.homeBlocks);
 
             return json;
         }
@@ -1282,19 +1283,19 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public struct DamageCondition
         {
             public FilterCollection filters;
-            public Commands.DamageCause cause;
+            public DamageCause cause;
             public int damagePerTick;
 
             public JObject ToJSON()
             {
                 JObject json = new JObject()
                 {
-                    ["cause"] = cause.ToString(),
-                    ["damage_per_tick"] = damagePerTick
+                    ["cause"] = this.cause.ToString(),
+                    ["damage_per_tick"] = this.damagePerTick
                 };
 
-                if (filters != null)
-                    json["filters"] = filters.ToJSON();
+                if (this.filters != null)
+                    json["filters"] = this.filters.ToJSON();
 
                 return json;
             }
@@ -1319,7 +1320,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["damage_condition"] = new JArray(conditions.Select(cond => cond.ToJSON()))
+                ["damage_condition"] = new JArray(this.conditions.Select(cond => cond.ToJSON()))
             };
         }
     }
@@ -1335,10 +1336,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject BlockStatesAsJSON()
             {
-                if (blockStates == null)
+                if (this.blockStates == null)
                     return null;
                 JObject obj = new JObject();
-                foreach (JProperty state in blockStates)
+                foreach (JProperty state in this.blockStates)
                     obj[state.Name] = state.Value;
                 return obj;
             }
@@ -1347,15 +1348,15 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 JObject json = new JObject();
 
                 JObject block = new JObject();
-                block["name"] = blockName;
-                if (blockStates != null)
+                block["name"] = this.blockName;
+                if (this.blockStates != null)
                     block["states"] = BlockStatesAsJSON();
                 json["block"] = block;
 
-                if (enteredBlockEvent != null)
-                    json["entered_block_event"] = enteredBlockEvent.ToComponentJSON();
-                if (exitedBlockEvent != null)
-                    json["exited_block_event"] = exitedBlockEvent.ToComponentJSON();
+                if (this.enteredBlockEvent != null)
+                    json["entered_block_event"] = this.enteredBlockEvent.ToComponentJSON();
+                if (this.exitedBlockEvent != null)
+                    json["exited_block_event"] = this.exitedBlockEvent.ToComponentJSON();
 
                 return json;
             }
@@ -1368,7 +1369,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["block_list"] = new JArray(blocks.Select(block => block.ToJSON()))
+                ["block_list"] = new JArray(this.blocks.Select(block => block.ToJSON()))
             };
         }
     }
@@ -1382,7 +1383,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["days_until_insomnia"] = daysUntilExperiencesInsomnia
+                ["days_until_insomnia"] = this.daysUntilExperiencesInsomnia
             };
         }
     }
@@ -1396,7 +1397,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["remove_child_entities"] = removeChildEntities
+                ["remove_child_entities"] = this.removeChildEntities
             };
         }
     }
@@ -1418,9 +1419,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["particle_offset_towards_interactor"] = offsetTowardsInteractor,
-                    ["particle_type"] = particleType,
-                    ["particle_y_offset"] = yOffset
+                    ["particle_offset_towards_interactor"] = this.offsetTowardsInteractor,
+                    ["particle_type"] = this.particleType,
+                    ["particle_y_offset"] = this.yOffset
                 };
             }
         }
@@ -1447,30 +1448,30 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["cooldown"] = cooldown,
-                ["cooldown_after_being_attacked"] = cooldownAfterBeingAttacked,
-                ["health_amount"] = healthAmount,
-                ["hurt_item"] = dealItemDamage,
-                ["swing"] = swingAnimation,
-                ["use_item"] = consumeItem
+                ["cooldown"] = this.cooldown,
+                ["cooldown_after_being_attacked"] = this.cooldownAfterBeingAttacked,
+                ["health_amount"] = this.healthAmount,
+                ["hurt_item"] = this.dealItemDamage,
+                ["swing"] = this.swingAnimation,
+                ["use_item"] = this.consumeItem
             };
 
-            if (addItems != null)
-                json["add_items"] = new JObject() { ["table"] = addItems.ResourcePath };
-            if (interactText != null)
-                json["interact_text"] = interactText;
-            if (onInteractEvent != null)
-                json["on_interact"] = onInteractEvent.ToComponentJSON();
-            if (particles.HasValue)
-                json["particle_on_start"] = particles.Value.ToJSON();
-            if (soundsToPlay != null)
-                json["play_sounds"] = new JArray(soundsToPlay);
-            if (entitiesToSpawn != null)
-                json["spawn_entities"] = new JArray(entitiesToSpawn);
-            if (spawnItems != null)
-                json["spawn_items"] = new JArray(spawnItems);
-            if (transformToItem != null)
-                json["transform_to_item"] = transformToItem;
+            if (this.addItems != null)
+                json["add_items"] = new JObject() { ["table"] = this.addItems.ResourcePath };
+            if (this.interactText != null)
+                json["interact_text"] = this.interactText;
+            if (this.onInteractEvent != null)
+                json["on_interact"] = this.onInteractEvent.ToComponentJSON();
+            if (this.particles.HasValue)
+                json["particle_on_start"] = this.particles.Value.ToJSON();
+            if (this.soundsToPlay != null)
+                json["play_sounds"] = new JArray(this.soundsToPlay);
+            if (this.entitiesToSpawn != null)
+                json["spawn_entities"] = new JArray(this.entitiesToSpawn);
+            if (this.spawnItems != null)
+                json["spawn_items"] = new JArray(this.spawnItems);
+            if (this.transformToItem != null)
+                json["transform_to_item"] = this.transformToItem;
 
             return json;
         }
@@ -1495,12 +1496,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["additional_slots_per_strength"] = additionalSlotsPerStrength,
-                ["can_be_siphoned_from"] = canBeSiphonedFrom,
-                ["container_type"] = containerType.ToString(),
-                ["inventory_size"] = inventorySize,
-                ["private"] = !dropOnDeath,
-                ["restrict_to_owner"] = restrictToOwner
+                ["additional_slots_per_strength"] = this.additionalSlotsPerStrength,
+                ["can_be_siphoned_from"] = this.canBeSiphonedFrom,
+                ["container_type"] = this.containerType.ToString(),
+                ["inventory_size"] = this.inventorySize,
+                ["private"] = !this.dropOnDeath,
+                ["restrict_to_owner"] = this.restrictToOwner
             };
         }
     }
@@ -1532,7 +1533,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["jump_power"] = jumpPower
+                ["jump_power"] = this.jumpPower
             };
         }
     }
@@ -1553,16 +1554,16 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["can_be_stolen"] = canBeStolen,
-                ["soft_distance"] = softDistance,
-                ["hard_distance"] = hardDistance,
-                ["max_distance"] = maxDistance
+                ["can_be_stolen"] = this.canBeStolen,
+                ["soft_distance"] = this.softDistance,
+                ["hard_distance"] = this.hardDistance,
+                ["max_distance"] = this.maxDistance
             };
 
-            if (onLeashEvent != null)
-                json["on_leash"] = onLeashEvent.ToComponentJSON();
-            if (onUnleashEnvent != null)
-                json["on_unleash"] = onUnleashEnvent.ToComponentJSON();
+            if (this.onLeashEvent != null)
+                json["on_leash"] = this.onLeashEvent.ToComponentJSON();
+            if (this.onUnleashEnvent != null)
+                json["on_unleash"] = this.onUnleashEnvent.ToComponentJSON();
 
             return json;
         }
@@ -1584,16 +1585,16 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["allow_invulnerable"] = allowInvulnerable,
-                ["look_cooldown"] = new JArray(new[] { lookCooldownMin, lookCooldownMax }),
-                ["search_radius"] = searchRadius,
-                ["set_target"] = attackTargets
+                ["allow_invulnerable"] = this.allowInvulnerable,
+                ["look_cooldown"] = new JArray(new[] {this.lookCooldownMin, this.lookCooldownMax }),
+                ["search_radius"] = this.searchRadius,
+                ["set_target"] = this.attackTargets
             };
 
-            if (filters != null)
-                json["filters"] = filters.ToJSON();
-            if (lookedAtEvent != null)
-                json["look_event"] = lookedAtEvent.eventID; // only accepts string :(
+            if (this.filters != null)
+                json["filters"] = this.filters.ToJSON();
+            if (this.lookedAtEvent != null)
+                json["look_event"] = this.lookedAtEvent.eventID; // only accepts string :(
 
             return json;
         }
@@ -1612,7 +1613,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public FilterCollection entityFilter;
         public float effectRange;
         public int effectTime;
-        public Commands.PotionEffect effect;
+        public PotionEffect effect;
 
         public override string GetIdentifier() =>
             "minecraft:mob_effect";
@@ -1620,13 +1621,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["effect_range"] = effectRange,
-                ["effect_time"] = effectTime,
-                ["mob_effect"] = effect.ToString()
+                ["effect_range"] = this.effectRange,
+                ["effect_time"] = this.effectTime,
+                ["mob_effect"] = this.effect.ToString()
             };
 
-            if (entityFilter != null)
-                json["entity_filter"] = entityFilter.ToJSON();
+            if (this.entityFilter != null)
+                json["entity_filter"] = this.entityFilter.ToJSON();
 
             return json;
         }
@@ -1641,7 +1642,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_turn"] = maxTurn
+                ["max_turn"] = this.maxTurn
             };
         }
     }
@@ -1655,7 +1656,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_turn"] = maxTurn
+                ["max_turn"] = this.maxTurn
             };
         }
     }
@@ -1669,7 +1670,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_turn"] = maxTurn
+                ["max_turn"] = this.maxTurn
             };
         }
     }
@@ -1683,7 +1684,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_turn"] = maxTurn
+                ["max_turn"] = this.maxTurn
             };
         }
     }
@@ -1697,7 +1698,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_turn"] = maxTurn
+                ["max_turn"] = this.maxTurn
             };
         }
     }
@@ -1713,8 +1714,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["jump_delay"] = new JArray(new[] { jumpDelayMin, jumpDelayMax }),
-                ["max_turn"] = maxTurn
+                ["jump_delay"] = new JArray(new[] {this.jumpDelayMin, this.jumpDelayMax }),
+                ["max_turn"] = this.maxTurn
             };
         }
     }
@@ -1728,7 +1729,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_turn"] = maxTurn
+                ["max_turn"] = this.maxTurn
             };
         }
     }
@@ -1744,9 +1745,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_turn"] = maxTurn,
-                ["sway_amplitude"] = swayAmplitude,
-                ["sway_frequency"] = swayFrequency
+                ["max_turn"] = this.maxTurn,
+                ["sway_amplitude"] = this.swayAmplitude,
+                ["sway_frequency"] = this.swayFrequency
             };
         }
     }
@@ -1767,19 +1768,19 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                if (specialNames.Length == 1)
+                if (this.specialNames.Length == 1)
                 {
                     return new JObject()
                     {
-                        ["name_filter"] = specialNames[0],
-                        ["on_named"] = onNamedEvent.ToComponentJSON()
+                        ["name_filter"] = this.specialNames[0],
+                        ["on_named"] = this.onNamedEvent.ToComponentJSON()
                     };
                 }
 
                 return new JObject()
                 {
-                    ["name_filter"] = new JArray(specialNames),
-                    ["on_named"] = onNamedEvent.ToComponentJSON()
+                    ["name_filter"] = new JArray(this.specialNames),
+                    ["on_named"] = this.onNamedEvent.ToComponentJSON()
                 };
             }
         }
@@ -1795,14 +1796,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["allow_name_tag_renaming"] = allowNametags,
-                ["always_show"] = alwaysShowName
+                ["allow_name_tag_renaming"] = this.allowNametags,
+                ["always_show"] = this.alwaysShowName
             };
 
-            if (onNamed != null)
-                json["default_trigger"] = onNamed.ToComponentJSON();
-            if (specialNames != null)
-                json["name_actions"] = new JArray(specialNames.Select(name => name.ToJSON()));
+            if (this.onNamed != null)
+                json["default_trigger"] = this.onNamed.ToComponentJSON();
+            if (this.specialNames != null)
+                json["name_actions"] = new JArray(this.specialNames.Select(name => name.ToJSON()));
 
             return json;
         }
@@ -1836,28 +1837,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["avoid_damage_blocks"] = avoidDamageBlocks,
-                ["avoid_portals"] = avoidPortals,
-                ["avoid_sun"] = avoidSun,
-                ["avoid_water"] = avoidWater,
-                ["can_breach"] = canBreachWater,
-                ["can_break_doors"] = canBreakDoors,
-                ["can_jump"] = canJump,
-                ["can_open_doors"] = canOpenDoors,
-                ["can_open_iron_doors"] = canOpenIronDoors,
-                ["can_pass_doors"] = canPassDoors,
-                ["can_path_from_air"] = canPathFromAir,
-                ["can_path_over_lava"] = canPathOverLava,
-                ["can_path_over_water"] = canPathOverWater,
-                ["can_sink"] = canSink,
-                ["can_swim"] = canSwim,
-                ["can_walk"] = canWalk,
-                ["can_walk_in_lava"] = canWalkInLava,
-                ["is_amphibious"] = isAmphibious
+                ["avoid_damage_blocks"] = this.avoidDamageBlocks,
+                ["avoid_portals"] = this.avoidPortals,
+                ["avoid_sun"] = this.avoidSun,
+                ["avoid_water"] = this.avoidWater,
+                ["can_breach"] = this.canBreachWater,
+                ["can_break_doors"] = this.canBreakDoors,
+                ["can_jump"] = this.canJump,
+                ["can_open_doors"] = this.canOpenDoors,
+                ["can_open_iron_doors"] = this.canOpenIronDoors,
+                ["can_pass_doors"] = this.canPassDoors,
+                ["can_path_from_air"] = this.canPathFromAir,
+                ["can_path_over_lava"] = this.canPathOverLava,
+                ["can_path_over_water"] = this.canPathOverWater,
+                ["can_sink"] = this.canSink,
+                ["can_swim"] = this.canSwim,
+                ["can_walk"] = this.canWalk,
+                ["can_walk_in_lava"] = this.canWalkInLava,
+                ["is_amphibious"] = this.isAmphibious
             };
 
-            if (blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(blocksToAvoid);
+            if (this.blocksToAvoid != null)
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
 
             return json;
         }
@@ -1891,28 +1892,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["avoid_damage_blocks"] = avoidDamageBlocks,
-                ["avoid_portals"] = avoidPortals,
-                ["avoid_sun"] = avoidSun,
-                ["avoid_water"] = avoidWater,
-                ["can_breach"] = canBreachWater,
-                ["can_break_doors"] = canBreakDoors,
-                ["can_jump"] = canJump,
-                ["can_open_doors"] = canOpenDoors,
-                ["can_open_iron_doors"] = canOpenIronDoors,
-                ["can_pass_doors"] = canPassDoors,
-                ["can_path_from_air"] = canPathFromAir,
-                ["can_path_over_lava"] = canPathOverLava,
-                ["can_path_over_water"] = canPathOverWater,
-                ["can_sink"] = canSink,
-                ["can_swim"] = canSwim,
-                ["can_walk"] = canWalk,
-                ["can_walk_in_lava"] = canWalkInLava,
-                ["is_amphibious"] = isAmphibious
+                ["avoid_damage_blocks"] = this.avoidDamageBlocks,
+                ["avoid_portals"] = this.avoidPortals,
+                ["avoid_sun"] = this.avoidSun,
+                ["avoid_water"] = this.avoidWater,
+                ["can_breach"] = this.canBreachWater,
+                ["can_break_doors"] = this.canBreakDoors,
+                ["can_jump"] = this.canJump,
+                ["can_open_doors"] = this.canOpenDoors,
+                ["can_open_iron_doors"] = this.canOpenIronDoors,
+                ["can_pass_doors"] = this.canPassDoors,
+                ["can_path_from_air"] = this.canPathFromAir,
+                ["can_path_over_lava"] = this.canPathOverLava,
+                ["can_path_over_water"] = this.canPathOverWater,
+                ["can_sink"] = this.canSink,
+                ["can_swim"] = this.canSwim,
+                ["can_walk"] = this.canWalk,
+                ["can_walk_in_lava"] = this.canWalkInLava,
+                ["is_amphibious"] = this.isAmphibious
             };
 
-            if (blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(blocksToAvoid);
+            if (this.blocksToAvoid != null)
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
 
             return json;
         }
@@ -1946,28 +1947,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["avoid_damage_blocks"] = avoidDamageBlocks,
-                ["avoid_portals"] = avoidPortals,
-                ["avoid_sun"] = avoidSun,
-                ["avoid_water"] = avoidWater,
-                ["can_breach"] = canBreachWater,
-                ["can_break_doors"] = canBreakDoors,
-                ["can_jump"] = canJump,
-                ["can_open_doors"] = canOpenDoors,
-                ["can_open_iron_doors"] = canOpenIronDoors,
-                ["can_pass_doors"] = canPassDoors,
-                ["can_path_from_air"] = canPathFromAir,
-                ["can_path_over_lava"] = canPathOverLava,
-                ["can_path_over_water"] = canPathOverWater,
-                ["can_sink"] = canSink,
-                ["can_swim"] = canSwim,
-                ["can_walk"] = canWalk,
-                ["can_walk_in_lava"] = canWalkInLava,
-                ["is_amphibious"] = isAmphibious
+                ["avoid_damage_blocks"] = this.avoidDamageBlocks,
+                ["avoid_portals"] = this.avoidPortals,
+                ["avoid_sun"] = this.avoidSun,
+                ["avoid_water"] = this.avoidWater,
+                ["can_breach"] = this.canBreachWater,
+                ["can_break_doors"] = this.canBreakDoors,
+                ["can_jump"] = this.canJump,
+                ["can_open_doors"] = this.canOpenDoors,
+                ["can_open_iron_doors"] = this.canOpenIronDoors,
+                ["can_pass_doors"] = this.canPassDoors,
+                ["can_path_from_air"] = this.canPathFromAir,
+                ["can_path_over_lava"] = this.canPathOverLava,
+                ["can_path_over_water"] = this.canPathOverWater,
+                ["can_sink"] = this.canSink,
+                ["can_swim"] = this.canSwim,
+                ["can_walk"] = this.canWalk,
+                ["can_walk_in_lava"] = this.canWalkInLava,
+                ["is_amphibious"] = this.isAmphibious
             };
 
-            if (blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(blocksToAvoid);
+            if (this.blocksToAvoid != null)
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
 
             return json;
         }
@@ -2001,28 +2002,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["avoid_damage_blocks"] = avoidDamageBlocks,
-                ["avoid_portals"] = avoidPortals,
-                ["avoid_sun"] = avoidSun,
-                ["avoid_water"] = avoidWater,
-                ["can_breach"] = canBreachWater,
-                ["can_break_doors"] = canBreakDoors,
-                ["can_jump"] = canJump,
-                ["can_open_doors"] = canOpenDoors,
-                ["can_open_iron_doors"] = canOpenIronDoors,
-                ["can_pass_doors"] = canPassDoors,
-                ["can_path_from_air"] = canPathFromAir,
-                ["can_path_over_lava"] = canPathOverLava,
-                ["can_path_over_water"] = canPathOverWater,
-                ["can_sink"] = canSink,
-                ["can_swim"] = canSwim,
-                ["can_walk"] = canWalk,
-                ["can_walk_in_lava"] = canWalkInLava,
-                ["is_amphibious"] = isAmphibious
+                ["avoid_damage_blocks"] = this.avoidDamageBlocks,
+                ["avoid_portals"] = this.avoidPortals,
+                ["avoid_sun"] = this.avoidSun,
+                ["avoid_water"] = this.avoidWater,
+                ["can_breach"] = this.canBreachWater,
+                ["can_break_doors"] = this.canBreakDoors,
+                ["can_jump"] = this.canJump,
+                ["can_open_doors"] = this.canOpenDoors,
+                ["can_open_iron_doors"] = this.canOpenIronDoors,
+                ["can_pass_doors"] = this.canPassDoors,
+                ["can_path_from_air"] = this.canPathFromAir,
+                ["can_path_over_lava"] = this.canPathOverLava,
+                ["can_path_over_water"] = this.canPathOverWater,
+                ["can_sink"] = this.canSink,
+                ["can_swim"] = this.canSwim,
+                ["can_walk"] = this.canWalk,
+                ["can_walk_in_lava"] = this.canWalkInLava,
+                ["is_amphibious"] = this.isAmphibious
             };
 
-            if (blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(blocksToAvoid);
+            if (this.blocksToAvoid != null)
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
 
             return json;
         }
@@ -2056,28 +2057,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["avoid_damage_blocks"] = avoidDamageBlocks,
-                ["avoid_portals"] = avoidPortals,
-                ["avoid_sun"] = avoidSun,
-                ["avoid_water"] = avoidWater,
-                ["can_breach"] = canBreachWater,
-                ["can_break_doors"] = canBreakDoors,
-                ["can_jump"] = canJump,
-                ["can_open_doors"] = canOpenDoors,
-                ["can_open_iron_doors"] = canOpenIronDoors,
-                ["can_pass_doors"] = canPassDoors,
-                ["can_path_from_air"] = canPathFromAir,
-                ["can_path_over_lava"] = canPathOverLava,
-                ["can_path_over_water"] = canPathOverWater,
-                ["can_sink"] = canSink,
-                ["can_swim"] = canSwim,
-                ["can_walk"] = canWalk,
-                ["can_walk_in_lava"] = canWalkInLava,
-                ["is_amphibious"] = isAmphibious
+                ["avoid_damage_blocks"] = this.avoidDamageBlocks,
+                ["avoid_portals"] = this.avoidPortals,
+                ["avoid_sun"] = this.avoidSun,
+                ["avoid_water"] = this.avoidWater,
+                ["can_breach"] = this.canBreachWater,
+                ["can_break_doors"] = this.canBreakDoors,
+                ["can_jump"] = this.canJump,
+                ["can_open_doors"] = this.canOpenDoors,
+                ["can_open_iron_doors"] = this.canOpenIronDoors,
+                ["can_pass_doors"] = this.canPassDoors,
+                ["can_path_from_air"] = this.canPathFromAir,
+                ["can_path_over_lava"] = this.canPathOverLava,
+                ["can_path_over_water"] = this.canPathOverWater,
+                ["can_sink"] = this.canSink,
+                ["can_swim"] = this.canSwim,
+                ["can_walk"] = this.canWalk,
+                ["can_walk_in_lava"] = this.canWalkInLava,
+                ["is_amphibious"] = this.isAmphibious
             };
 
-            if (blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(blocksToAvoid);
+            if (this.blocksToAvoid != null)
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
 
             return json;
         }
@@ -2111,28 +2112,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["avoid_damage_blocks"] = avoidDamageBlocks,
-                ["avoid_portals"] = avoidPortals,
-                ["avoid_sun"] = avoidSun,
-                ["avoid_water"] = avoidWater,
-                ["can_breach"] = canBreachWater,
-                ["can_break_doors"] = canBreakDoors,
-                ["can_jump"] = canJump,
-                ["can_open_doors"] = canOpenDoors,
-                ["can_open_iron_doors"] = canOpenIronDoors,
-                ["can_pass_doors"] = canPassDoors,
-                ["can_path_from_air"] = canPathFromAir,
-                ["can_path_over_lava"] = canPathOverLava,
-                ["can_path_over_water"] = canPathOverWater,
-                ["can_sink"] = canSink,
-                ["can_swim"] = canSwim,
-                ["can_walk"] = canWalk,
-                ["can_walk_in_lava"] = canWalkInLava,
-                ["is_amphibious"] = isAmphibious
+                ["avoid_damage_blocks"] = this.avoidDamageBlocks,
+                ["avoid_portals"] = this.avoidPortals,
+                ["avoid_sun"] = this.avoidSun,
+                ["avoid_water"] = this.avoidWater,
+                ["can_breach"] = this.canBreachWater,
+                ["can_break_doors"] = this.canBreakDoors,
+                ["can_jump"] = this.canJump,
+                ["can_open_doors"] = this.canOpenDoors,
+                ["can_open_iron_doors"] = this.canOpenIronDoors,
+                ["can_pass_doors"] = this.canPassDoors,
+                ["can_path_from_air"] = this.canPathFromAir,
+                ["can_path_over_lava"] = this.canPathOverLava,
+                ["can_path_over_water"] = this.canPathOverWater,
+                ["can_sink"] = this.canSink,
+                ["can_swim"] = this.canSwim,
+                ["can_walk"] = this.canWalk,
+                ["can_walk_in_lava"] = this.canWalkInLava,
+                ["is_amphibious"] = this.isAmphibious
             };
 
-            if (blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(blocksToAvoid);
+            if (this.blocksToAvoid != null)
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
 
             return json;
         }
@@ -2166,28 +2167,28 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["avoid_damage_blocks"] = avoidDamageBlocks,
-                ["avoid_portals"] = avoidPortals,
-                ["avoid_sun"] = avoidSun,
-                ["avoid_water"] = avoidWater,
-                ["can_breach"] = canBreachWater,
-                ["can_break_doors"] = canBreakDoors,
-                ["can_jump"] = canJump,
-                ["can_open_doors"] = canOpenDoors,
-                ["can_open_iron_doors"] = canOpenIronDoors,
-                ["can_pass_doors"] = canPassDoors,
-                ["can_path_from_air"] = canPathFromAir,
-                ["can_path_over_lava"] = canPathOverLava,
-                ["can_path_over_water"] = canPathOverWater,
-                ["can_sink"] = canSink,
-                ["can_swim"] = canSwim,
-                ["can_walk"] = canWalk,
-                ["can_walk_in_lava"] = canWalkInLava,
-                ["is_amphibious"] = isAmphibious
+                ["avoid_damage_blocks"] = this.avoidDamageBlocks,
+                ["avoid_portals"] = this.avoidPortals,
+                ["avoid_sun"] = this.avoidSun,
+                ["avoid_water"] = this.avoidWater,
+                ["can_breach"] = this.canBreachWater,
+                ["can_break_doors"] = this.canBreakDoors,
+                ["can_jump"] = this.canJump,
+                ["can_open_doors"] = this.canOpenDoors,
+                ["can_open_iron_doors"] = this.canOpenIronDoors,
+                ["can_pass_doors"] = this.canPassDoors,
+                ["can_path_from_air"] = this.canPathFromAir,
+                ["can_path_over_lava"] = this.canPathOverLava,
+                ["can_path_over_water"] = this.canPathOverWater,
+                ["can_sink"] = this.canSink,
+                ["can_swim"] = this.canSwim,
+                ["can_walk"] = this.canWalk,
+                ["can_walk_in_lava"] = this.canWalkInLava,
+                ["is_amphibious"] = this.isAmphibious
             };
 
-            if (blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(blocksToAvoid);
+            if (this.blocksToAvoid != null)
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
 
             return json;
         }
@@ -2215,9 +2216,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["on_close"] = stopPeekingEvent.ToComponentJSON(),
-                ["on_open"] = startPeekingEvent.ToComponentJSON(),
-                ["on_target_open"] = spottedEvent.ToComponentJSON()
+                ["on_close"] = this.stopPeekingEvent.ToComponentJSON(),
+                ["on_open"] = this.startPeekingEvent.ToComponentJSON(),
+                ["on_target_open"] = this.spottedEvent.ToComponentJSON()
             };
         }
     }
@@ -2241,8 +2242,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["has_collision"] = collision,
-                ["has_gravity"] = gravity
+                ["has_collision"] = this.collision,
+                ["has_gravity"] = this.gravity
             };
         }
     }
@@ -2262,8 +2263,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["cost"] = cost,
-                    ["blocks"] = new JArray(blocks)
+                    ["cost"] = this.cost,
+                    ["blocks"] = new JArray(this.blocks)
                 };
             }
         }
@@ -2280,13 +2281,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["default_block_cost"] = defaultBlockCost,
-                ["jump_cost"] = jumpCost,
-                ["max_fall_blocks"] = maxSafeFall
+                ["default_block_cost"] = this.defaultBlockCost,
+                ["jump_cost"] = this.jumpCost,
+                ["max_fall_blocks"] = this.maxSafeFall
             };
 
-            if (blocks != null)
-                json["preferred_path_blocks"] = new JArray(blocks.Select(b => b.ToJSON()));
+            if (this.blocks != null)
+                json["preferred_path_blocks"] = new JArray(this.blocks.Select(b => b.ToJSON()));
 
             return json;
         }
@@ -2297,7 +2298,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public string hitSound;
         public string shootSound;
         public string particle = "iconcrack";
-        public Commands.PotionEffect? dealPotionEffect;
+        public PotionEffect? dealPotionEffect;
 
         public float angleOffset;
         public float gravity;
@@ -2333,40 +2334,40 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["angle_offset"] = angleOffset,
-                ["catch_fire"] = catchFire,
-                ["crit_particle_on_hurt"] = critParticle,
-                ["destroy_on_hurt"] = destroyOnHurt,
-                ["fire_affected_by_griefing"] = followMobGriefing,
-                ["gravity"] = gravity,
-                ["homing"] = homing,
-                ["inertia"] = inertia,
-                ["is_dangerous"] = isDangerous,
-                ["knockback"] = doesKnockback,
-                ["lightning"] = strikesLightning,
-                ["liquid_inertia"] = liquidInertia,
-                ["multiple_targets"] = pierces,
-                ["offset"] = new JArray(new[] { offsetX, offsetY, offsetZ }),
-                ["on_fire_time"] = dealFireTime,
-                ["particle"] = particle,
-                ["potion_effect"] = dealPotionEffect.HasValue ? (int)dealPotionEffect.Value : -1,
-                ["power"] = power,
-                ["reflect_on_hurt"] = reflectOffHit,
-                ["semi_random_diff_damage"] = randomizeDamage,
-                ["shoot_target"] = gotoTargetOfShooter,
-                ["should_bounce"] = shouldBounce,
-                ["splash_potion"] = isSplashPotion,
-                ["splash_range"] = splashRange,
-                ["uncertainty_base"] = uncertaintyBase,
-                ["uncertainty_multiplier"] = uncertaintyMultiplier
+                ["angle_offset"] = this.angleOffset,
+                ["catch_fire"] = this.catchFire,
+                ["crit_particle_on_hurt"] = this.critParticle,
+                ["destroy_on_hurt"] = this.destroyOnHurt,
+                ["fire_affected_by_griefing"] = this.followMobGriefing,
+                ["gravity"] = this.gravity,
+                ["homing"] = this.homing,
+                ["inertia"] = this.inertia,
+                ["is_dangerous"] = this.isDangerous,
+                ["knockback"] = this.doesKnockback,
+                ["lightning"] = this.strikesLightning,
+                ["liquid_inertia"] = this.liquidInertia,
+                ["multiple_targets"] = this.pierces,
+                ["offset"] = new JArray(new[] {this.offsetX, this.offsetY, this.offsetZ }),
+                ["on_fire_time"] = this.dealFireTime,
+                ["particle"] = this.particle,
+                ["potion_effect"] = this.dealPotionEffect.HasValue ? (int) this.dealPotionEffect.Value : -1,
+                ["power"] = this.power,
+                ["reflect_on_hurt"] = this.reflectOffHit,
+                ["semi_random_diff_damage"] = this.randomizeDamage,
+                ["shoot_target"] = this.gotoTargetOfShooter,
+                ["should_bounce"] = this.shouldBounce,
+                ["splash_potion"] = this.isSplashPotion,
+                ["splash_range"] = this.splashRange,
+                ["uncertainty_base"] = this.uncertaintyBase,
+                ["uncertainty_multiplier"] = this.uncertaintyMultiplier
             };
 
-            if (immuneEntities != null)
-                json["filter"] = immuneEntities.ToJSON();
-            if (hitSound != null)
-                json["hit_sound"] = hitSound;
-            if (shootSound != null)
-                json["shoot_sound"] = shootSound;
+            if (this.immuneEntities != null)
+                json["filter"] = this.immuneEntities.ToJSON();
+            if (this.hitSound != null)
+                json["hit_sound"] = this.hitSound;
+            if (this.shootSound != null)
+                json["shoot_sound"] = this.shootSound;
 
             return json;
         }
@@ -2382,8 +2383,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["is_pushable"] = isPushableByEntity,
-                ["is_pushable_by_piston"] = isPushableByPiston
+                ["is_pushable"] = this.isPushableByEntity,
+                ["is_pushable_by_piston"] = this.isPushableByPiston
             };
         }
     }
@@ -2397,8 +2398,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public override JObject _GetValue()
         {
             JObject json = new JObject();
-            if (raidEvent != null)
-                json["triggered_event"] = raidEvent.ToComponentJSON();
+            if (this.raidEvent != null)
+                json["triggered_event"] = this.raidEvent.ToComponentJSON();
             return json;
         }
     }
@@ -2412,7 +2413,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["max_speed"] = maxSpeed
+                ["max_speed"] = this.maxSpeed
             };
         }
     }
@@ -2434,17 +2435,17 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["check_block_types"] = checkBlockTypes,
-                ["eject_on_activate"] = ejectOnActivate,
-                ["eject_on_deactivate"] = ejectOnDeactivate,
-                ["tick_command_block_on_activate"] = tickCommandBlockOnActivate,
-                ["tick_command_block_on_deactivate"] = tickCommandBlockOnDeactivate
+                ["check_block_types"] = this.checkBlockTypes,
+                ["eject_on_activate"] = this.ejectOnActivate,
+                ["eject_on_deactivate"] = this.ejectOnDeactivate,
+                ["tick_command_block_on_activate"] = this.tickCommandBlockOnActivate,
+                ["tick_command_block_on_deactivate"] = this.tickCommandBlockOnDeactivate
             };
 
-            if (onActivateEvent != null)
-                json["on_activate"] = onActivateEvent.ToComponentJSON();
-            if (onDeactivateEvent != null)
-                json["on_deactivate"] = onDeactivateEvent.ToComponentJSON();
+            if (this.onActivateEvent != null)
+                json["on_activate"] = this.onActivateEvent.ToComponentJSON();
+            if (this.onDeactivateEvent != null)
+                json["on_deactivate"] = this.onDeactivateEvent.ToComponentJSON();
 
             return json;
         }
@@ -2465,11 +2466,11 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["weight"] = weight
+                    ["weight"] = this.weight
                 };
 
-                if (value != null)
-                    json["value"] = value.ToComponentJSON();
+                if (this.value != null)
+                    json["value"] = this.value.ToComponentJSON();
 
                 return json;
             }
@@ -2483,11 +2484,11 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["knockback_strength"] = knockbackStrength
+                ["knockback_strength"] = this.knockbackStrength
             };
 
-            if (choices != null)
-                json["reaction_choices"] = new JArray(choices.Select(choice => choice.ToJSON()));
+            if (this.choices != null)
+                json["reaction_choices"] = new JArray(this.choices.Select(choice => choice.ToJSON()));
 
             return json;
         }
@@ -2506,16 +2507,16 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["min_rider_count"] = minRiderCount,
-                    ["position"] = new JArray(new[] { posX, posY, posZ }),
-                    ["rotate_rider_by"] = rotateRiderBy == null ? (JToken)0 : rotateRiderBy.ToJSON()
+                    ["min_rider_count"] = this.minRiderCount,
+                    ["position"] = new JArray(new[] {this.posX, this.posY, this.posZ }),
+                    ["rotate_rider_by"] = this.rotateRiderBy == null ? (JToken)0 : this.rotateRiderBy.ToJSON()
                 };
 
-                if (lockRiderRotation.HasValue)
-                    json["lock_rider_rotation"] = lockRiderRotation.Value;
+                if (this.lockRiderRotation.HasValue)
+                    json["lock_rider_rotation"] = this.lockRiderRotation.Value;
 
-                if (maxRiderCount.HasValue)
-                    json["max_rider_count"] = maxRiderCount.Value;
+                if (this.maxRiderCount.HasValue)
+                    json["max_rider_count"] = this.maxRiderCount.Value;
                 else
                     json["max_rider_count"] = "seat_count";
 
@@ -2540,20 +2541,20 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["controlling_seat"] = controllingSeat,
-                ["crouching_skip_interact"] = crouchingSkipInteract,
+                ["controlling_seat"] = this.controllingSeat,
+                ["crouching_skip_interact"] = this.crouchingSkipInteract,
                 ["priority"] = 0,
-                ["pull_in_entities"] = pullInEntities,
-                ["rider_can_interact"] = riderCanInteract,
-                ["seat_count"] = seatCount
+                ["pull_in_entities"] = this.pullInEntities,
+                ["rider_can_interact"] = this.riderCanInteract,
+                ["seat_count"] = this.seatCount
             };
 
-            if (allowedFamilyTypes != null)
-                json["family_types"] = new JArray(allowedFamilyTypes);
-            if (interactText != null)
-                json["interact_text"] = interactText;
-            if (seats != null)
-                json["seats"] = new JArray(seats.Select(seat => seat.ToJSON()));
+            if (this.allowedFamilyTypes != null)
+                json["family_types"] = new JArray(this.allowedFamilyTypes);
+            if (this.interactText != null)
+                json["interact_text"] = this.interactText;
+            if (this.seats != null)
+                json["seats"] = new JArray(this.seats.Select(seat => seat.ToJSON()));
 
             return json;
         }
@@ -2578,8 +2579,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["start_scale"] = startScale,
-                ["end_scale"] = endScale
+                ["start_scale"] = this.startScale,
+                ["end_scale"] = this.endScale
             };
         }
     }
@@ -2599,8 +2600,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["event"] = call.ToComponentJSON(),
-                    ["filters"] = new JArray(tests.Select(test => test.ToJSON()))
+                    ["event"] = this.call.ToComponentJSON(),
+                    ["filters"] = new JArray(this.tests.Select(test => test.ToJSON()))
                 };
             }
         }
@@ -2617,13 +2618,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["scheduled_events"] = new JArray(events.Select(e => e.ToJSON()))
+                ["scheduled_events"] = new JArray(this.events.Select(e => e.ToJSON()))
             };
 
-            if (minDelaySeconds.HasValue)
-                json["min_delay_secs"] = minDelaySeconds.Value;
-            if (maxDelaySeconds.HasValue)
-                json["max_delay_secs"] = maxDelaySeconds.Value;
+            if (this.minDelaySeconds.HasValue)
+                json["min_delay_secs"] = this.minDelaySeconds.Value;
+            if (this.maxDelaySeconds.HasValue)
+                json["max_delay_secs"] = this.maxDelaySeconds.Value;
 
             return json;
         }
@@ -2649,21 +2650,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["admire"] = admire,
-                    ["barter"] = barter,
-                    ["consume_item"] = consumeItem,
-                    ["max_amount"] = maxAmount,
-                    ["pickup_limit"] = pickupLimit,
-                    ["priority"] = priority,
-                    ["stored_in_inventory"] = storeInInventory,
-                    ["surplus_amount"] = surplusAmount,
-                    ["want_amount"] = wantAmount
+                    ["admire"] = this.admire,
+                    ["barter"] = this.barter,
+                    ["consume_item"] = this.consumeItem,
+                    ["max_amount"] = this.maxAmount,
+                    ["pickup_limit"] = this.pickupLimit,
+                    ["priority"] = this.priority,
+                    ["stored_in_inventory"] = this.storeInInventory,
+                    ["surplus_amount"] = this.surplusAmount,
+                    ["want_amount"] = this.wantAmount
                 };
 
-                if (craftInfo != null)
-                    json["craft_into"] = craftInfo;
-                if (item != null)
-                    json["item"] = item;
+                if (this.craftInfo != null)
+                    json["craft_into"] = this.craftInfo;
+                if (this.item != null)
+                    json["item"] = this.item;
 
                 return json;
             }
@@ -2682,21 +2683,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["all_items"] = allItems,
-                ["all_items_max_amount"] = allItemsMaxAmount,
-                ["all_items_surplus_amount"] = allItemsSurplusAmount,
-                ["all_items_want_amount"] = allItemsWantAmount
+                ["all_items"] = this.allItems,
+                ["all_items_max_amount"] = this.allItemsMaxAmount,
+                ["all_items_surplus_amount"] = this.allItemsSurplusAmount,
+                ["all_items_want_amount"] = this.allItemsWantAmount
             };
 
-            if (items != null)
-                json["items"] = new JArray(items.Select(item => item.ToJSON()));
+            if (this.items != null)
+                json["items"] = new JArray(this.items.Select(item => item.ToJSON()));
 
             return json;
         }
     }
     public class ComponentShooter : EntityComponent
     {
-        public Commands.PotionEffect? passEffectToProjectile;
+        public PotionEffect? passEffectToProjectile;
         public string projectileEntity;
 
         public override string GetIdentifier() =>
@@ -2705,8 +2706,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["aux_val"] = passEffectToProjectile.HasValue ? (int)passEffectToProjectile.Value : -1,
-                ["def"] = projectileEntity
+                ["aux_val"] = this.passEffectToProjectile.HasValue ? (int) this.passEffectToProjectile.Value : -1,
+                ["def"] = this.projectileEntity
             };
         }
     }
@@ -2723,10 +2724,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject();
 
-            if (sitEvent != null)
-                json["sit_event"] = sitEvent.ToComponentJSON();
-            if (standEvent != null)
-                json["stand_event"] = standEvent.ToComponentJSON();
+            if (this.sitEvent != null)
+                json["sit_event"] = this.sitEvent.ToComponentJSON();
+            if (this.standEvent != null)
+                json["stand_event"] = this.standEvent.ToComponentJSON();
 
             return json;
         }
@@ -2752,27 +2753,27 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["min_wait_time"] = minWaitTime,
-                    ["max_wait_time"] = maxWaitTime,
-                    ["num_to_spawn"] = spawnCount,
-                    ["should_leash"] = shouldLeash,
-                    ["single_use"] = singleUse
+                    ["min_wait_time"] = this.minWaitTime,
+                    ["max_wait_time"] = this.maxWaitTime,
+                    ["num_to_spawn"] = this.spawnCount,
+                    ["should_leash"] = this.shouldLeash,
+                    ["single_use"] = this.singleUse
                 };
 
-                if(spawnEntity != null)
+                if(this.spawnEntity != null)
                 {
-                    json["spawn_entity"] = spawnEntity;
-                    if (spawnMethod != null)
-                        json["spawn_method"] = spawnMethod;
+                    json["spawn_entity"] = this.spawnEntity;
+                    if (this.spawnMethod != null)
+                        json["spawn_method"] = this.spawnMethod;
                 }
-                if (spawnItem != null)
-                    json["spawn_item"] = spawnItem;
-                if (spawnSound != null)
-                    json["spawn_sound"] = spawnSound;
-                if (requirements != null)
-                    json["filters"] = requirements.ToJSON();
-                if (spawnEvent != null)
-                    json["spawn_event"] = spawnEvent.ToComponentJSON();
+                if (this.spawnItem != null)
+                    json["spawn_item"] = this.spawnItem;
+                if (this.spawnSound != null)
+                    json["spawn_sound"] = this.spawnSound;
+                if (this.requirements != null)
+                    json["filters"] = this.requirements.ToJSON();
+                if (this.spawnEvent != null)
+                    json["spawn_event"] = this.spawnEvent.ToComponentJSON();
 
                 return json;
             }
@@ -2785,7 +2786,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["entities"] = new JArray(entities.Select(entity => entity.ToJSON()))
+                ["entities"] = new JArray(this.entities.Select(entity => entity.ToJSON()))
             };
         }
     }
@@ -2801,13 +2802,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["probability"] = probability
+                ["probability"] = this.probability
             };
 
-            if (tameEvent != null)
-                json["tame_event"] = tameEvent.ToComponentJSON();
-            if (tameItems != null)
-                json["tame_items"] = new JArray(tameItems);
+            if (this.tameEvent != null)
+                json["tame_event"] = this.tameEvent.ToComponentJSON();
+            if (this.tameItems != null)
+                json["tame_items"] = new JArray(this.tameItems);
 
             return json;
         }
@@ -2826,7 +2827,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["item"] = item
+                    ["item"] = this.item
                 };
             }
         }
@@ -2844,8 +2845,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["item"] = item,
-                    ["tempter_mod"] = temperMod
+                    ["item"] = this.item,
+                    ["tempter_mod"] = this.temperMod
                 };
             }
         }
@@ -2865,21 +2866,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["attempt_temper_mod"] = attemptTemperMod,
-                ["min_temper"] = minTemper,
-                ["max_temper"] = maxTemper
+                ["attempt_temper_mod"] = this.attemptTemperMod,
+                ["min_temper"] = this.minTemper,
+                ["max_temper"] = this.maxTemper
             };
 
-            if (rejectItems != null)
-                json["auto_reject_items"] = new JArray(rejectItems.Select(item => item.ToJSON()));
-            if (feedItems != null)
-                json["feed_items"] = new JArray(feedItems.Select(item => item.ToJSON()));
-            if (tameEvent != null)
-                json["tame_event"] = tameEvent.ToComponentJSON();
-            if (feedText != null)
-                json["feed_text"] = feedText;
-            if (rideText != null)
-                json["ride_text"] = rideText;
+            if (this.rejectItems != null)
+                json["auto_reject_items"] = new JArray(this.rejectItems.Select(item => item.ToJSON()));
+            if (this.feedItems != null)
+                json["feed_items"] = new JArray(this.feedItems.Select(item => item.ToJSON()));
+            if (this.tameEvent != null)
+                json["tame_event"] = this.tameEvent.ToComponentJSON();
+            if (this.feedText != null)
+                json["feed_text"] = this.feedText;
+            if (this.rideText != null)
+                json["ride_text"] = this.rideText;
 
             return json;
         }
@@ -2900,17 +2901,17 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["inside_range"] = insideRange,
-                ["outside_range"] = outsideRange,
-                ["must_see"] = mustSee
+                ["inside_range"] = this.insideRange,
+                ["outside_range"] = this.outsideRange,
+                ["must_see"] = this.mustSee
             };
 
-            if (onInsideRangeEvent != null)
-                json["on_inside_range"] = onInsideRangeEvent.ToComponentJSON();
-            if (onOutsideRangeEvent != null)
-                json["on_outside_range"] = onOutsideRangeEvent.ToComponentJSON();
-            if (onVisionLostInsideRangeEvent != null)
-                json["on_vision_lost_inside_range"] = onVisionLostInsideRangeEvent.ToComponentJSON();
+            if (this.onInsideRangeEvent != null)
+                json["on_inside_range"] = this.onInsideRangeEvent.ToComponentJSON();
+            if (this.onOutsideRangeEvent != null)
+                json["on_outside_range"] = this.onOutsideRangeEvent.ToComponentJSON();
+            if (this.onVisionLostInsideRangeEvent != null)
+                json["on_vision_lost_inside_range"] = this.onVisionLostInsideRangeEvent.ToComponentJSON();
 
             return json;
         }
@@ -2933,14 +2934,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["dark_teleport_chance"] = darkTeleportChance,
-                ["light_teleport_chance"] = lightTeleportChance,
-                ["min_random_teleport_time"] = minRandomTeleportTime,
-                ["max_random_teleport_time"] = maxRandomTeleportTime,
-                ["random_teleport_cube"] = new JArray(new[] { cubeX, cubeY, cubeZ }),
-                ["random_teleports"] = randomTeleports,
-                ["target_distance"] = targetDistance,
-                ["target_teleport_chance"] = targetTeleportChance
+                ["dark_teleport_chance"] = this.darkTeleportChance,
+                ["light_teleport_chance"] = this.lightTeleportChance,
+                ["min_random_teleport_time"] = this.minRandomTeleportTime,
+                ["max_random_teleport_time"] = this.maxRandomTeleportTime,
+                ["random_teleport_cube"] = new JArray(new[] {this.cubeX, this.cubeY, this.cubeZ }),
+                ["random_teleports"] = this.randomTeleports,
+                ["target_distance"] = this.targetDistance,
+                ["target_teleport_chance"] = this.targetTeleportChance
             };
         }
     }
@@ -2954,19 +2955,19 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:tick_world";
         public override JObject _GetValue()
         {
-            if (neverDespawn)
+            if (this.neverDespawn)
             {
                 return new JObject()
                 {
                     ["never_despawn"] = true,
-                    ["radius"] = tickRadius
+                    ["radius"] = this.tickRadius
                 };
             }
             return new JObject()
             {
-                ["distance_to_players"] = distanceToPlayers,
+                ["distance_to_players"] = this.distanceToPlayers,
                 ["never_despawn"] = false,
-                ["radius"] = tickRadius
+                ["radius"] = this.tickRadius
             };
         }
     }
@@ -2982,8 +2983,8 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public float TimeSingle
         {
             set {
-                timeMin = value;
-                timeMax = value;
+                this.timeMin = value;
+                this.timeMax = value;
             }
         }
         public float timeMin;
@@ -2995,15 +2996,15 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["looping"] = looping,
-                ["randomInterval"] = randomInterval,
-                ["time_down_event"] = call.ToComponentJSON()
+                ["looping"] = this.looping,
+                ["randomInterval"] = this.randomInterval,
+                ["time_down_event"] = this.call.ToComponentJSON()
             };
 
-            if (timeMin == timeMax)
-                json["time"] = timeMin;
+            if (this.timeMin == this.timeMax)
+                json["time"] = this.timeMin;
             else
-                json["time"] = new JArray(new[] { timeMin, timeMax });
+                json["time"] = new JArray(new[] {this.timeMin, this.timeMax });
 
             return json;
         }
@@ -3023,14 +3024,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["table"] = table.ResourcePath,
-                ["convert_trades_economy"] = convertEconomy,
-                ["new_screen"] = newScreen,
-                ["persist_trades"] = persistTrades
+                ["table"] = this.table.ResourcePath,
+                ["convert_trades_economy"] = this.convertEconomy,
+                ["new_screen"] = this.newScreen,
+                ["persist_trades"] = this.persistTrades
             };
 
-            if (displayName != null)
-                json["display_name"] = displayName;
+            if (this.displayName != null)
+                json["display_name"] = this.displayName;
 
             return json;
         }
@@ -3047,12 +3048,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["block_type"] = block,
-                ["spawn_offset"] = new JArray(new[] { offsetX, offsetY, offsetZ })
+                ["block_type"] = this.block,
+                ["spawn_offset"] = new JArray(new[] {this.offsetX, this.offsetY, this.offsetZ })
             };
 
-            if (filters != null)
-                json["spawn_filter"] = filters.ToJSON();
+            if (this.filters != null)
+                json["spawn_filter"] = this.filters.ToJSON();
 
             return json;
         }
@@ -3070,7 +3071,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 return new JObject()
                 {
-                    ["component_groups"] = new JArray(groups.Select(group => group.name))
+                    ["component_groups"] = new JArray(this.groups.Select(group => group.name))
                 };
             }
         }
@@ -3087,15 +3088,15 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 JObject json = new JObject()
                 {
-                    ["block_assist_chance"] = blockAssistChance,
-                    ["block_chance"] = blockChance,
-                    ["block_max"] = blockMax,
-                    ["block_radius"] = blockRadius,
-                    ["value"] = value
+                    ["block_assist_chance"] = this.blockAssistChance,
+                    ["block_chance"] = this.blockChance,
+                    ["block_max"] = this.blockMax,
+                    ["block_radius"] = this.blockRadius,
+                    ["value"] = this.value
                 };
 
-                if (speedUpBlocks != null)
-                    json["block_type"] = new JArray(speedUpBlocks);
+                if (this.speedUpBlocks != null)
+                    json["block_type"] = new JArray(this.speedUpBlocks);
 
                 return json;
             }
@@ -3120,23 +3121,23 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["drop_equipment"] = dropEquipment,
-                ["drop_inventory"] = dropInventory,
-                ["keep_level"] = keepLevel,
-                ["keep_owner"] = keepOwner,
-                ["preserve_equipment"] = preserveEquipment
+                ["drop_equipment"] = this.dropEquipment,
+                ["drop_inventory"] = this.dropInventory,
+                ["keep_level"] = this.keepLevel,
+                ["keep_owner"] = this.keepOwner,
+                ["preserve_equipment"] = this.preserveEquipment
             };
 
-            if (groupsToAdd != null)
-                json["add"] = new JArray(groupsToAdd.Select(add => add.ToJSON()));
-            if (beginTransformationSound != null)
-                json["begin_transform_sound"] = beginTransformationSound;
-            if (delay.HasValue)
-                json["delay"] = delay.Value.ToJSON();
-            if (beginTransformationSound != null)
-                json["transformation_sound"] = endTransformationSound;
-            if (beginTransformationSound != null)
-                json["into"] = transformInto;
+            if (this.groupsToAdd != null)
+                json["add"] = new JArray(this.groupsToAdd.Select(add => add.ToJSON()));
+            if (this.beginTransformationSound != null)
+                json["begin_transform_sound"] = this.beginTransformationSound;
+            if (this.delay.HasValue)
+                json["delay"] = this.delay.Value.ToJSON();
+            if (this.beginTransformationSound != null)
+                json["transformation_sound"] = this.endTransformationSound;
+            if (this.beginTransformationSound != null)
+                json["into"] = this.transformInto;
 
             return json;
         }
@@ -3153,12 +3154,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             JObject json = new JObject()
             {
-                ["probability"] = probability,
-                ["trust_event"] = trustEvent.ToComponentJSON()
+                ["probability"] = this.probability,
+                ["trust_event"] = this.trustEvent.ToComponentJSON()
             };
 
-            if (trustItems != null)
-                json["trust_items"] = new JArray(trustItems);
+            if (this.trustItems != null)
+                json["trust_items"] = new JArray(this.trustItems);
 
             return json;
         }
@@ -3173,7 +3174,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             return new JObject()
             {
-                ["drag_factor"] = dragFactor
+                ["drag_factor"] = this.dragFactor
             };
         }
     }

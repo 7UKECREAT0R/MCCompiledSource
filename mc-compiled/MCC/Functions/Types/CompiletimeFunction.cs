@@ -1,5 +1,4 @@
 ﻿using mc_compiled.MCC.Compiler;
-using System;
 using System.Collections.Generic;
 
 namespace mc_compiled.MCC.Functions.Types
@@ -61,9 +60,9 @@ namespace mc_compiled.MCC.Functions.Types
             return this;
         }
 
-        public override string Keyword => aliasedName;
-        public override string Returns => returnType;
-        public override string Documentation => documentation;
+        public override string Keyword => this.aliasedName;
+        public override string Returns => this.returnType;
+        public override string Documentation => this.documentation;
         public override FunctionParameter[] Parameters => this.parameters.ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;

@@ -18,25 +18,25 @@ namespace mc_compiled.MCC.Compiler
         }
         public override bool HasAttribute(DirectiveAttribute attribute)
         {
-            if (directive == null)
+            if (this.directive == null)
                 return false;
-            return (directive.attributes & attribute) != 0;
+            return (this.directive.attributes & attribute) != 0;
         }
         public override string ToString()
         {
-            if (directive == null)
+            if (this.directive == null)
                 return $"[DIRECTIVE] [PARSING ERROR]";
 
-            return $"[DIRECTIVE] {directive.description} -> {string.Join(" ", from t in tokens select t.DebugString())}";
+            return $"[DIRECTIVE] {this.directive.description} -> {string.Join(" ", from t in this.tokens select t.DebugString())}";
         }
 
         protected override TypePattern[] GetValidPatterns()
         {
-            return directive.patterns;
+            return this.directive.patterns;
         }
         protected override void Run(Executor executor)
         {
-            directive.call(executor, this);
+            this.directive.call(executor, this);
         }
     }
     public sealed class StatementComment : Statement
@@ -47,10 +47,10 @@ namespace mc_compiled.MCC.Compiler
         public StatementComment(string comment) : base(Array.Empty<Token>(), true)
         {
             this.comment = comment;
-            DecorateInSource = false;
+            this.DecorateInSource = false;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
-        public override string ToString() => $"[COMMENT] {comment}";
+        public override string ToString() => $"[COMMENT] {this.comment}";
         protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
 
         protected override void Run(Executor executor)
@@ -66,7 +66,7 @@ namespace mc_compiled.MCC.Compiler
                     return; // this is a documentation string.
             }
 
-            string str = executor.ResolveString(comment);
+            string str = executor.ResolveString(this.comment);
 
             // find whether to add a newline or not
             CommandFile file = executor.CurrentFile;
@@ -112,10 +112,9 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public Action<Executor> CloseAction
         {
-            get => closer?.closeAction;
+            get => this.closer?.closeAction;
             set {
-                if (closer != null)
-                    closer.closeAction = value;
+                if (this.closer != null) this.closer.closeAction = value;
             }
         }
 
@@ -128,18 +127,17 @@ namespace mc_compiled.MCC.Compiler
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
-            if(meaningfulStatementsInside != statementsInside)
-                return $"[OPEN BLOCK: {meaningfulStatementsInside} STATEMENTS ({statementsInside})]";
+            if(this.meaningfulStatementsInside != this.statementsInside)
+                return $"[OPEN BLOCK: {this.meaningfulStatementsInside} STATEMENTS ({this.statementsInside})]";
             else
-                return $"[OPEN BLOCK: {statementsInside} STATEMENTS]";
+                return $"[OPEN BLOCK: {this.statementsInside} STATEMENTS]";
         }
 
         protected override TypePattern[] GetValidPatterns()
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            if (openAction != null)
-                openAction(executor);
+            if (this.openAction != null) this.openAction(executor);
             executor.depth++;
 
             if (executor.depth > Executor.MAXIMUM_DEPTH)
@@ -173,8 +171,8 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public Action<Executor> OpenAction
         {
-            get => opener?.openAction;
-            set { if(opener != null) opener.openAction = value; }
+            get => this.opener?.openAction;
+            set { if(this.opener != null) this.opener.openAction = value; }
         }
         /// <summary>
         /// The action when this closing block is called.
@@ -185,8 +183,7 @@ namespace mc_compiled.MCC.Compiler
             => new TypePattern[0];
         protected override void Run(Executor executor)
         {
-            if (closeAction != null)
-                closeAction(executor);
+            if (this.closeAction != null) this.closeAction(executor);
 
             executor.depth--;
 
@@ -209,7 +206,7 @@ namespace mc_compiled.MCC.Compiler
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
-            return $"[OPERATION] {string.Join(" ", from t in tokens select t.AsString())}";
+            return $"[OPERATION] {string.Join(" ", from t in this.tokens select t.AsString())}";
         }
 
         protected override TypePattern[] GetValidPatterns()
@@ -226,7 +223,7 @@ namespace mc_compiled.MCC.Compiler
             var value = Next<TokenIdentifierValue>();
             var assignment = Next<IAssignment>();
 
-            if (!HasNext)
+            if (!this.HasNext)
                 throw new StatementException(this, "Nothing on right-hand side of assignment.");
 
             if (NextIs<TokenIdentifierValue>())
@@ -302,7 +299,7 @@ namespace mc_compiled.MCC.Compiler
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
-            return $"[CALL FUNCTION {tokens[0]} WITH {tokens.Length - 3} PARAMETERS]";
+            return $"[CALL FUNCTION {this.tokens[0]} WITH {this.tokens.Length - 3} PARAMETERS]";
         }
 
         protected override TypePattern[] GetValidPatterns()
@@ -329,7 +326,7 @@ namespace mc_compiled.MCC.Compiler
 
             var _passIn = new List<Token>();
             int level = 1;
-            while(HasNext)
+            while(this.HasNext)
             {
                 Token nextToken = Next();
 
@@ -419,10 +416,10 @@ namespace mc_compiled.MCC.Compiler
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
-            return $"[UNKNOWN] {string.Join(" ", from t in tokens select t.AsString())}";
+            return $"[UNKNOWN] {string.Join(" ", from t in this.tokens select t.AsString())}";
         }
 
-        public Token[] GetTokens() => tokens;
+        public Token[] GetTokens() => this.tokens;
 
         protected override TypePattern[] GetValidPatterns() { return Array.Empty<TypePattern>(); } // always valid
         protected override void Run(Executor executor) { } // no operation

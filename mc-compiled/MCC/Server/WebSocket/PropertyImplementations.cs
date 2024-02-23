@@ -95,11 +95,11 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <summary>
         /// Returns the name used to invoke this <see cref="PropertyImpl"/>.
         /// </summary>
-        internal string InvokeName { get => invokeName; }
+        internal string InvokeName { get => this.invokeName; }
         /// <summary>
         /// Returns the default value that this property should be.
         /// </summary>
-        internal string DefaultValue { get => defaultValue; }
+        internal string DefaultValue { get => this.defaultValue; }
         /// <summary>
         /// Call the action on this <see cref="PropertyImpl"/> with the given value.
         /// </summary>
@@ -108,9 +108,9 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <exception cref="NullReferenceException"></exception>
         internal void Call(string value, MCCServerProject project)
         {
-            if (invokeAction == null)
+            if (this.invokeAction == null)
                 throw new NullReferenceException("Attempted to call a PropertyImpl without a valid invokeAction.");
-            invokeAction(value, project);
+            this.invokeAction(value, project);
         }
         /// <summary>
         /// Resets this PropertyImpl to its default value.
@@ -118,7 +118,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <param name="project"></param>
         internal void Reset(MCCServerProject project)
         {
-            Call(defaultValue, project);
+            Call(this.defaultValue, project);
         }
     }
 }

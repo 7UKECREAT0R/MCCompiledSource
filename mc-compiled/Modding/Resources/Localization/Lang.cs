@@ -62,7 +62,7 @@ namespace mc_compiled.Modding.Resources.Localization
             if(this.locale != null)
                 return this.locale;
 
-            this.locale = new LocaleDefinition(localeName, this);
+            this.locale = new LocaleDefinition(this.localeName, this);
             return this.locale;
         }
 
@@ -181,21 +181,20 @@ namespace mc_compiled.Modding.Resources.Localization
             if (this.headerIndex != -1)
                 return;
 
-            this.headerIndex = lines.FindIndex(entry => entry.isComment && entry.value.Equals(HEADER));
+            this.headerIndex = this.lines.FindIndex(entry => entry.isComment && entry.value.Equals(HEADER));
 
             if (this.headerIndex == -1)
             {
-                lines.Add(LangEntry.Empty());
-                lines.Add(LangEntry.Comment(HEADER));
-                this.headerIndex = lines.Count; // start inserting from the bottom of the file, under the header.
-                lines.Add(LangEntry.Empty()); // to prevent List::Insert() from throwing, since it can't insert at the end.
+                this.lines.Add(LangEntry.Empty());
+                this.lines.Add(LangEntry.Comment(HEADER));
+                this.headerIndex = this.lines.Count; // start inserting from the bottom of the file, under the header.
+                this.lines.Add(LangEntry.Empty()); // to prevent List::Insert() from throwing, since it can't insert at the end.
             } else
             {
-                headerIndex++; // after the header, not before
+                this.headerIndex++; // after the header, not before
 
                 // if EOL is right there, add an empty line.
-                if(lines.Count <= headerIndex)
-                    lines.Add(LangEntry.Empty());
+                if(this.lines.Count <= this.headerIndex) this.lines.Add(LangEntry.Empty());
             }
         }
 
@@ -212,7 +211,7 @@ namespace mc_compiled.Modding.Resources.Localization
             if(!langEntry.isEmpty && !langEntry.isComment)
             {
                 string keyToFind = langEntry.key;
-                int indexOfKey = lines
+                int indexOfKey = this.lines
                     .FindIndex(e =>
                         !e.isComment &&
                         !e.isEmpty &&
@@ -221,7 +220,7 @@ namespace mc_compiled.Modding.Resources.Localization
                 if(merge)
                 {
                     string valueToFind = langEntry.value;
-                    int indexOfValue = lines
+                    int indexOfValue = this.lines
                         .FindIndex(e =>
                             !e.isComment &&
                             !e.isEmpty &&
@@ -230,7 +229,7 @@ namespace mc_compiled.Modding.Resources.Localization
                     if(indexOfValue != -1)
                     {
                         // key with that value already exists, so use it instead.
-                        return lines[indexOfValue];
+                        return this.lines[indexOfValue];
                     }
                 }
 
@@ -238,9 +237,9 @@ namespace mc_compiled.Modding.Resources.Localization
                 {
                     // found duplicate, overwrite if the option is set.
                     if (!overwrite)
-                        return lines[indexOfKey];
+                        return this.lines[indexOfKey];
 
-                    lines[indexOfKey] = langEntry;
+                    this.lines[indexOfKey] = langEntry;
                     return langEntry;
                 }
             }
@@ -277,7 +276,7 @@ namespace mc_compiled.Modding.Resources.Localization
             string fullString = string.Join(Environment.NewLine, lines);
             return Encoding.UTF8.GetBytes(fullString);
         }
-        public string GetOutputFile() => localeName + ".lang";
+        public string GetOutputFile() => this.localeName + ".lang";
         public OutputLocation GetOutputLocation() => OutputLocation.r_TEXTS;
     }
 }

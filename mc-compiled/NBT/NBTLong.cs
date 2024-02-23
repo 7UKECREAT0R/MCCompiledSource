@@ -6,11 +6,11 @@ namespace mc_compiled.NBT
     {
         public long value;
 
-        public NBTLong() => tagType = TAG.Long;
+        public NBTLong() => this.tagType = TAG.Long;
 
         public override void Write(BinaryWriter writer)
         {
-            writer.Write(value);
+            writer.Write(this.value);
         }
     }
 }

@@ -15,55 +15,54 @@ namespace mc_compiled.NBT
 
         public ItemNBT(Commands.Native.ItemStack fromStack)
         {
-            item = fromStack.id;
-            canDestroy = fromStack.canDestroy;
-            canPlaceOn = fromStack.canPlaceOn;
-            count = (byte)fromStack.count;
-            damage = (short)fromStack.damage;
+            this.item = fromStack.id;
+            this.canDestroy = fromStack.canDestroy;
+            this.canPlaceOn = fromStack.canPlaceOn;
+            this.count = (byte)fromStack.count;
+            this.damage = (short)fromStack.damage;
 
-            tag = new ItemTagNBT();
-            tag.displayName = fromStack.displayName;
-            tag.lore = fromStack.lore;
-            tag.damage = fromStack.damage;
-            if (fromStack.enchantments != null)
-                tag.enchantment = (from e in fromStack.enchantments select new EnchantNBT(e)).ToArray();
-            tag.keepOnDeath = fromStack.keep;
-            tag.lockMode = fromStack.lockMode;
+            this.tag = new ItemTagNBT();
+            this.tag.displayName = fromStack.displayName;
+            this.tag.lore = fromStack.lore;
+            this.tag.damage = fromStack.damage;
+            if (fromStack.enchantments != null) this.tag.enchantment = (from e in fromStack.enchantments select new EnchantNBT(e)).ToArray();
+            this.tag.keepOnDeath = fromStack.keep;
+            this.tag.lockMode = fromStack.lockMode;
 
-            tag.bookData = fromStack.bookData;
-            tag.customColor = fromStack.customColor;
+            this.tag.bookData = fromStack.bookData;
+            this.tag.customColor = fromStack.customColor;
         }
         public NBTCompound ToNBT()
         {
             List<NBTNode> nodes = new List<NBTNode>();
 
-            if (canDestroy != null && canDestroy.Length > 0)
+            if (this.canDestroy != null && this.canDestroy.Length > 0)
                 nodes.Add(new NBTList() {
                     name = "CanDestroy",
                     listType = TAG.String,
-                    values = (from cd in canDestroy select new NBTString()
+                    values = (from cd in this.canDestroy select new NBTString()
                     {
                         name = "",
                         value = cd
                     }).ToArray()
                 });
-            if (canPlaceOn != null && canPlaceOn.Length > 0)
+            if (this.canPlaceOn != null && this.canPlaceOn.Length > 0)
                 nodes.Add(new NBTList()
                 {
                     name = "CanPlaceOn",
                     listType = TAG.String,
-                    values = (from cpo in canPlaceOn select new NBTString()
+                    values = (from cpo in this.canPlaceOn select new NBTString()
                     {
                         name = "",
                         value = cpo
                     }).ToArray()
                 });
 
-            nodes.Add(new NBTByte() { name = "Count", value = count });
-            nodes.Add(new NBTShort() { name = "Damage", value = damage });
-            nodes.Add(new NBTString() { name = "Name", value = item });
+            nodes.Add(new NBTByte() { name = "Count", value = this.count });
+            nodes.Add(new NBTShort() { name = "Damage", value = this.damage });
+            nodes.Add(new NBTString() { name = "Name", value = this.item });
             nodes.Add(new NBTByte() { name = "WasPickedUp", value = 0 });
-            nodes.Add(tag.ToNBT());
+            nodes.Add(this.tag.ToNBT());
             nodes.Add(new NBTEnd());
 
             return new NBTCompound()

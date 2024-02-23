@@ -8,9 +8,7 @@ using System.Linq;
 using System.Text;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
-using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
-using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 
 namespace mc_compiled.MCC
 {
@@ -69,24 +67,24 @@ namespace mc_compiled.MCC
         /// </summary>
         public string InternalName
         {
-            get => internalName;
-            internal set => internalName = value.Length > MAX_NAME_LENGTH ? StandardizedHash(value) : value;
+            get => this.internalName;
+            internal set => this.internalName = value.Length > MAX_NAME_LENGTH ? StandardizedHash(value) : value;
         }
         /// <summary>
         /// The name used to reference this variable in the user's code.
         /// </summary>
         public string Name
         {
-            get => name ?? internalName;
-            set => name = value;
+            get => this.name ?? this.internalName;
+            set => this.name = value;
         }
         /// <summary>
         /// The documentation tied to this scoreboard value. Can not return null.
         /// </summary>
         public string Documentation
         {
-            get => documentation ?? Executor.UNDOCUMENTED_TEXT;
-            set => documentation = string.IsNullOrWhiteSpace(value) ? null : value;
+            get => this.documentation ?? Executor.UNDOCUMENTED_TEXT;
+            set => this.documentation = string.IsNullOrWhiteSpace(value) ? null : value;
         }
         
         /// <summary>
@@ -95,10 +93,9 @@ namespace mc_compiled.MCC
         /// <param name="nonce">A nonce string to append to the previous name when hashing.</param>
         public void ForceHash(string nonce = "")
         {
-            if (name == null)
-                name = internalName;
+            if (this.name == null) this.name = this.internalName;
 
-            internalName = StandardizedHash(name + nonce);
+            this.internalName = StandardizedHash(this.name + nonce);
         }
         public ScoreboardValue(string name, bool global, Typedef type, ScoreboardManager manager)
         {
@@ -150,7 +147,7 @@ namespace mc_compiled.MCC
         {
             foreach (IAttribute attribute in newAttributes)
             {
-                attributes.Add(attribute);
+                this.attributes.Add(attribute);
                 attribute.OnAddedValue(this, callingStatement);
             }
             
@@ -166,7 +163,7 @@ namespace mc_compiled.MCC
         /// </returns>
         public bool HasAttribute<T>() where T : IAttribute
         {
-            return attributes.Any(attribute => attribute is T);
+            return this.attributes.Any(attribute => attribute is T);
         }
         
         /// <summary>
@@ -187,8 +184,8 @@ namespace mc_compiled.MCC
             string internalName = newInternalName ?? this.internalName;
             string name = newName ?? this.name;
 
-            var clone = new ScoreboardValue(type, clarifier, data, internalName, name, null, manager);
-            clone.WithAttributes(attributes, callingStatement);
+            var clone = new ScoreboardValue(type, clarifier, data, internalName, name, null, this.manager);
+            clone.WithAttributes(this.attributes, callingStatement);
 
             return clone;
         }
@@ -241,7 +238,7 @@ namespace mc_compiled.MCC
         {
             var sb = new StringBuilder();
 
-            foreach (string code in attributes
+            foreach (string code in this.attributes
                          .Select(attribute => attribute.GetCodeRepresentation())
                          .Where(code => code != null))
             {
@@ -249,7 +246,7 @@ namespace mc_compiled.MCC
                 sb.Append(' ');
             }
 
-            sb.Append(type.TypeKeyword.ToLower());
+            sb.Append(this.type.TypeKeyword.ToLower());
             return sb.ToString();
         }
 
@@ -259,18 +256,18 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public string[] GetObjectives()
         {
-            return type.GetObjectives(this);
+            return this.type.GetObjectives(this);
         }
         
         private bool Equals(ScoreboardValue other)
         {
-            if (!internalName.Equals(other.internalName))
+            if (!this.internalName.Equals(other.internalName))
                 return false; // name was not equal
-            if (type.TypeEnum != other.type.TypeEnum)
+            if (this.type.TypeEnum != other.type.TypeEnum)
                 return false; // type was not equal
-            if ((data == null) == (other.data == null))
+            if ((this.data == null) == (other.data == null))
                 return false; // data null state is not equal
-            if (data != null && !data.Equals(other.data))
+            if (this.data != null && !this.data.Equals(other.data))
                 return false; // data was not equal
 
             return true;
@@ -285,11 +282,11 @@ namespace mc_compiled.MCC
         {
             unchecked
             {
-                int hashCode = InternalName.GetHashCode();
-                hashCode += (int)type.TypeEnum;
+                int hashCode = this.InternalName.GetHashCode();
+                hashCode += (int) this.type.TypeEnum;
                 
-                if (data != null)
-                    hashCode ^= data.TypeHashCode();
+                if (this.data != null)
+                    hashCode ^= this.data.TypeHashCode();
 
                 return hashCode;
             }
@@ -315,7 +312,7 @@ namespace mc_compiled.MCC
         {
             if (!this.type.CanConvertTo(destination.type))
                 throw new StatementException(callingStatement,
-                    $"Could not convert value \"{Name}\" to type \"{destination.type.TypeKeyword}\"");
+                    $"Could not convert value \"{this.Name}\" to type \"{destination.type.TypeKeyword}\"");
             return this.type.ConvertTo(this, destination);
         }
         /// <summary>
@@ -361,7 +358,7 @@ namespace mc_compiled.MCC
         /// <returns>null if <see cref="Typedef.CanCompareAlone"/> is false.</returns>
         internal ConditionalSubcommandScore[] CompareAlone(bool invert)
         {
-            return type.CompareAlone(invert, this);
+            return this.type.CompareAlone(invert, this);
         }
 
         /// <summary>
@@ -375,7 +372,7 @@ namespace mc_compiled.MCC
         internal Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(TokenCompare.Type comparisonType,
             TokenLiteral literal, Statement callingStatement)
         {
-            return type.CompareToLiteral(comparisonType, this, literal, callingStatement);
+            return this.type.CompareToLiteral(comparisonType, this, literal, callingStatement);
         }
         
         /// <summary>
@@ -439,7 +436,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public IEnumerable<string> Assign(ScoreboardValue other, Statement callingStatement)
         {
-            if (this.NeedsToBeConvertedFor(other))
+            if (NeedsToBeConvertedFor(other))
                 return other.CommandsConvert(this, callingStatement);
 
             return this.type._Assign(this, other, callingStatement);
@@ -458,7 +455,7 @@ namespace mc_compiled.MCC
             var commands = new List<string>();
             ScoreboardValue b;
             
-            if (this.NeedsToBeConvertedFor(other))
+            if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
                 ScoreboardManager manager = other.manager;
@@ -487,7 +484,7 @@ namespace mc_compiled.MCC
             var commands = new List<string>();
             ScoreboardValue b;
             
-            if (this.NeedsToBeConvertedFor(other))
+            if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
                 ScoreboardManager manager = other.manager;
@@ -516,7 +513,7 @@ namespace mc_compiled.MCC
             var commands = new List<string>();
             ScoreboardValue b;
             
-            if (this.NeedsToBeConvertedFor(other))
+            if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
                 ScoreboardManager manager = other.manager;
@@ -545,7 +542,7 @@ namespace mc_compiled.MCC
             var commands = new List<string>();
             ScoreboardValue b;
             
-            if (this.NeedsToBeConvertedFor(other))
+            if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
                 ScoreboardManager manager = other.manager;
@@ -574,7 +571,7 @@ namespace mc_compiled.MCC
             var commands = new List<string>();
             ScoreboardValue b;
             
-            if (this.NeedsToBeConvertedFor(other))
+            if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
                 ScoreboardManager manager = other.manager;
@@ -602,7 +599,7 @@ namespace mc_compiled.MCC
         {
             var commands = new List<string>();
             
-            if (this.NeedsToBeConvertedFor(other))
+            if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
                 ScoreboardManager manager = other.manager;

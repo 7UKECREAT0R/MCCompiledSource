@@ -19,26 +19,26 @@ namespace mc_compiled.MCC.Attributes
             this.binding = binding;
             this.givenTargets = givenTargets;
         }
-        public string GetDebugString() => givenTargets == null ? $"bind: [{binding}]" : $"bind to ({string.Join(", ", givenTargets)}): [{binding}]";
+        public string GetDebugString() => this.givenTargets == null ? $"bind: [{this.binding}]" : $"bind to ({string.Join(", ", this.givenTargets)}): [{this.binding}]";
 
         public string GetCodeRepresentation()
         {
-            if (givenTargets == null)
-                return $"bind(\"{binding.molangQuery}\")";
-            return $"bind(\"{binding.molangQuery}\", {string.Join(", ", givenTargets.Select(t => $"\"{t}\""))})";
+            if (this.givenTargets == null)
+                return $"bind(\"{this.binding.molangQuery}\")";
+            return $"bind(\"{this.binding.molangQuery}\", {string.Join(", ", this.givenTargets.Select(t => $"\"{t}\""))})";
         }
 
         public void OnAddedValue(ScoreboardValue value, Statement callingStatement)
         {
-            switch(binding.Type)
+            switch(this.binding.Type)
             {
                 case BindingType.boolean:
                     if(value.type.TypeEnum != ScoreboardManager.ValueType.BOOL)
-                        throw new StatementException(callingStatement, $"Binding '{binding.molangQuery}' can only be applied to 'bool' values.");
+                        throw new StatementException(callingStatement, $"Binding '{this.binding.molangQuery}' can only be applied to 'bool' values.");
                     break;
                 case BindingType.integer:
                     if (value.type.TypeEnum != ScoreboardManager.ValueType.INT)
-                        throw new StatementException(callingStatement, $"Binding '{binding.molangQuery}' can only be applied to 'int' values.");
+                        throw new StatementException(callingStatement, $"Binding '{this.binding.molangQuery}' can only be applied to 'int' values.");
                     break;
                 case BindingType.floating_point:
                     // supports all values
@@ -50,10 +50,8 @@ namespace mc_compiled.MCC.Attributes
             Executor executor = callingStatement.executor;
 
             // list of targets in the format "entity_name.json"
-            string[] targets =
-                binding.targetFiles ??
-                givenTargets ??
-                throw new StatementException(callingStatement, $"Binding '{binding.molangQuery}' requires target entities to be specified.");
+            string[] targets = this.binding.targetFiles ?? this.givenTargets ??
+                throw new StatementException(callingStatement, $"Binding '{this.binding.molangQuery}' requires target entities to be specified.");
 
             if (executor.linting) // will fail if the executor is linting, because project name is not present.
                 return;

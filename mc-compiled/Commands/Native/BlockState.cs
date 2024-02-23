@@ -7,27 +7,27 @@ namespace mc_compiled.Commands.Native
     {
         internal BlockState(string fieldName, string valueAsEnum)
         {
-            FieldName = fieldName;
-            ValueAsEnum = valueAsEnum;
-            ValueType = BlockStateType.Enum;
-            ValueAsBoolean = default;
-            ValueAsInteger = default;
+            this.FieldName = fieldName;
+            this.ValueAsEnum = valueAsEnum;
+            this.ValueType = BlockStateType.Enum;
+            this.ValueAsBoolean = default;
+            this.ValueAsInteger = default;
         }
         internal BlockState(string fieldName, bool valueAsBoolean)
         {
-            FieldName = fieldName;
-            ValueAsBoolean = valueAsBoolean;
-            ValueType = BlockStateType.Boolean;
-            ValueAsEnum = null;
-            ValueAsInteger = default;
+            this.FieldName = fieldName;
+            this.ValueAsBoolean = valueAsBoolean;
+            this.ValueType = BlockStateType.Boolean;
+            this.ValueAsEnum = null;
+            this.ValueAsInteger = default;
         }
         internal BlockState(string fieldName, int valueAsInteger)
         {
-            FieldName = fieldName;
-            ValueAsInteger = valueAsInteger;
-            ValueType = BlockStateType.Integer;
-            ValueAsBoolean = default;
-            ValueAsEnum = null;
+            this.FieldName = fieldName;
+            this.ValueAsInteger = valueAsInteger;
+            this.ValueType = BlockStateType.Integer;
+            this.ValueAsBoolean = default;
+            this.ValueAsEnum = null;
         }
 
         /// <summary>
@@ -60,14 +60,14 @@ namespace mc_compiled.Commands.Native
         
         public override string ToString()
         {
-            switch (ValueType)
+            switch (this.ValueType)
             {
                 case BlockStateType.Enum:
-                    return $@"""{FieldName}""=""{ValueAsEnum}""";
+                    return $@"""{this.FieldName}""=""{this.ValueAsEnum}""";
                 case BlockStateType.Boolean:
-                    return $@"""{FieldName}""={ValueAsBoolean}";
+                    return $@"""{this.FieldName}""={this.ValueAsBoolean}";
                 case BlockStateType.Integer:
-                    return $@"""{FieldName}""={ValueAsInteger}";
+                    return $@"""{this.FieldName}""={this.ValueAsInteger}";
                 default:
                     throw new ArgumentOutOfRangeException();
             }

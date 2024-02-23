@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using mc_compiled.MCC.Compiler;
 
@@ -29,16 +28,15 @@ namespace mc_compiled.MCC.Scheduling
         /// <returns></returns>
         private CommandFile CreateOrGetCommandFile(string name, bool addToTickJSON = true)
         {
-            if (existingFiles.TryGetValue(name, out CommandFile file))
+            if (this.existingFiles.TryGetValue(name, out CommandFile file))
                 return file;
             
             // create new file
             file = new CommandFile(true, name, FOLDER);
-            executor.AddExtraFile(file);
-            existingFiles[name] = file;
+            this.executor.AddExtraFile(file);
+            this.existingFiles[name] = file;
 
-            if (addToTickJSON)
-                tickJSONEntries.Add(file.CommandReference);
+            if (addToTickJSON) this.tickJSONEntries.Add(file.CommandReference);
 
             return file;
         }
@@ -53,11 +51,11 @@ namespace mc_compiled.MCC.Scheduling
         public int ScheduleTask(ScheduledTask task)
         {
             // use index as id
-            int id = tasks.Count;
+            int id = this.tasks.Count;
             task.id = id;
 
             // setup and add
-            task.Setup(this, executor);
+            task.Setup(this, this.executor);
 
             // do commands
             string[] commands = task.PerTickCommands();
@@ -67,7 +65,7 @@ namespace mc_compiled.MCC.Scheduling
                 file.Add(commands);
             }
 
-            tasks.Add(task);
+            this.tasks.Add(task);
             return id;
         }
         internal TickScheduler(Executor executor)

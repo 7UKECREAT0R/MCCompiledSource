@@ -35,7 +35,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         /// <returns></returns>
         public string ReadStringASCII(int bytes) =>
-            Encoding.ASCII.GetString(buffer, 0, bytes);
+            Encoding.ASCII.GetString(this.buffer, 0, bytes);
         /// <summary>
         /// Sends an ASCII string to the client.
         /// </summary>
@@ -48,7 +48,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             try
             {
                 byte[] bytes = Encoding.ASCII.GetBytes(str);
-                client.Send(bytes);
+                this.client.Send(bytes);
             }
             catch (SocketException)
             {
@@ -66,7 +66,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             if (Program.DEBUG)
                 Console.WriteLine("Sending frame {0}", frame.ToString());
 
-            if (_isDisposed || client == null)
+            if (this._isDisposed || this.client == null)
             {
                 Console.WriteLine("Socket closed; Cancelled sending frame.");
                 return;
@@ -75,7 +75,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             try
             {
                 byte[] bytes = frame.GetBytes();
-                client.Send(bytes);
+                this.client.Send(bytes);
             } catch(SocketException)
             {
                 // terminate connection, client died unexpectedly
@@ -86,13 +86,13 @@ namespace mc_compiled.MCC.ServerWebSocket
         bool _isDisposed;
         public void Dispose()
         {
-            if (_isDisposed)
+            if (this._isDisposed)
                 return;
 
-            client?.Dispose();
+            this.client?.Dispose();
             this.buffer = null;
 
-            _isDisposed = true;
+            this._isDisposed = true;
         }
         /// <summary>
         /// Close the connection associated with this package and dispose this instance.
@@ -100,16 +100,16 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <param name="clientTerminated">If the client is already gone, so a CLOSE packet cannot be sent to it.</param>
         public void Close(bool clientTerminated)
         {
-            if (server == null)
+            if (this.server == null)
                 return;
-            if (client == null)
+            if (this.client == null)
                 return;
 
-            if (client != null)
+            if (this.client != null)
             {
                 if(!clientTerminated)
                     SendFrame(WebSocketFrame.Close());
-                client.Close();
+                this.client.Close();
             }
             Dispose();
         }

@@ -1,5 +1,4 @@
 ﻿using mc_compiled.Commands;
-using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
@@ -45,16 +44,16 @@ namespace mc_compiled.MCC.Functions.Types
         {
             string result;
 
-            if(tempValues.TryGetValue(uniqueIdentifier, out int temp))
+            if(this.tempValues.TryGetValue(uniqueIdentifier, out int temp))
             {
-                result = $"{name}_call{uniqueIdentifier}_{temp}";
+                result = $"{this.name}_call{uniqueIdentifier}_{temp}";
                 temp += 1;
-                tempValues[uniqueIdentifier] = temp;
+                this.tempValues[uniqueIdentifier] = temp;
             }
             else
             {
-                result = $"{name}_call{uniqueIdentifier}_0";
-                tempValues[uniqueIdentifier] = 1;
+                result = $"{this.name}_call{uniqueIdentifier}_0";
+                this.tempValues[uniqueIdentifier] = 1;
             }
 
             return result;
@@ -100,9 +99,9 @@ namespace mc_compiled.MCC.Functions.Types
             return this;
         }
 
-        public override string Keyword => aliasedName ?? name;
-        public override string Returns => returns;
-        public override string Documentation => documentation;
+        public override string Keyword => this.aliasedName ?? this.name;
+        public override string Returns => this.returns;
+        public override string Documentation => this.documentation;
         public override FunctionParameter[] Parameters => this.parameters.ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;
@@ -192,7 +191,7 @@ namespace mc_compiled.MCC.Functions.Types
             if(!this.createdVariants.TryGetValue(signature, out Tuple<CommandFile, ScoreboardValue> file))
             {
                 // this is a new combination of input types, thus the code should be re-generated.
-                CommandFile newFile = new CommandFile(true, "call" + name + '_' + signature.ToString().Replace('-', '_'), VARIANTS_FOLDER);
+                CommandFile newFile = new CommandFile(true, "call" + this.name + '_' + signature.ToString().Replace('-', '_'), VARIANTS_FOLDER);
                 executor.AddExtraFile(newFile);
 
                 if (Program.DECORATE)
@@ -220,7 +219,7 @@ namespace mc_compiled.MCC.Functions.Types
             int hash = (this.name ?? this.aliasedName).GetHashCode();
 
             // calculate hash by input parameter types
-            foreach (FunctionParameter parameter in parameters)
+            foreach (FunctionParameter parameter in this.parameters)
             {
                 if (parameter is CompiletimeFunctionParameter compiletimeFunctionParameter)
                 {

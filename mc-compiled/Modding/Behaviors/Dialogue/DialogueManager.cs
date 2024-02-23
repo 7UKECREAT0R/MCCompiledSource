@@ -40,7 +40,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         /// <returns><c>true</c> if the scene is found, <c>false</c> otherwise.</returns>
         public bool TryGetScene(string sceneTag, out Scene scene)
         {
-            return scenes.TryGetValue(sceneTag, out scene);
+            return this.scenes.TryGetValue(sceneTag, out scene);
         }
         /// <summary>
         /// Retrieves a specific scene from the Dialogue.
@@ -50,7 +50,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         [CanBeNull]
         public Scene GetScene(string sceneTag)
         {
-            return scenes.TryGetValue(sceneTag, out Scene scene) ? scene : null;
+            return this.scenes.TryGetValue(sceneTag, out Scene scene) ? scene : null;
         }
         
         private JObject ToJSON()
@@ -60,7 +60,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
                 ["format_version"] = FormatVersion.b_DIALOGUE.ToString(),
                 ["minecraft:npc_dialogue"] = new JObject
                 {
-                    ["scenes"] = new JArray(from scene in scenes select scene.Value.ToJSON())
+                    ["scenes"] = new JArray(from scene in this.scenes select scene.Value.ToJSON())
                 }
             };
         }
@@ -73,7 +73,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             string dataString = built.ToString(Newtonsoft.Json.Formatting.Indented);
             return Encoding.UTF8.GetBytes(dataString);
         }
-        public string GetOutputFile() => fileName + ".json";
+        public string GetOutputFile() => this.fileName + ".json";
         public OutputLocation GetOutputLocation() => OutputLocation.b_DIALOGUE;
     }
 }

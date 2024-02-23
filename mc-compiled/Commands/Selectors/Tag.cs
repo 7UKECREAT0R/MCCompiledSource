@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace mc_compiled.Commands.Selectors
@@ -21,8 +20,8 @@ namespace mc_compiled.Commands.Selectors
         [PublicAPI]
         public Tag(string tagName)
         {
-            not = tagName.StartsWith("!");
-            this.tagName = not ? tagName.Substring(1) : tagName;
+            this.not = tagName.StartsWith("!");
+            this.tagName = this.not ? tagName.Substring(1) : tagName;
         }
 
         /// <summary>
@@ -50,15 +49,15 @@ namespace mc_compiled.Commands.Selectors
 
         public string GetSection()
         {
-            string s = tagName ?? "";
-            if (not)
+            string s = this.tagName ?? "";
+            if (this.not)
                 return "tag=!" + s;
             return "tag=" + s;
         }
 
         private bool Equals(Tag other)
         {
-            return not == other.not && tagName == other.tagName;
+            return this.not == other.not && this.tagName == other.tagName;
         }
         public override bool Equals(object obj)
         {
@@ -69,7 +68,7 @@ namespace mc_compiled.Commands.Selectors
         {
             unchecked
             {
-                return (not.GetHashCode() * 397) ^ (tagName != null ? tagName.GetHashCode() : 0);
+                return (this.not.GetHashCode() * 397) ^ (this.tagName != null ? this.tagName.GetHashCode() : 0);
             }
         }
     }

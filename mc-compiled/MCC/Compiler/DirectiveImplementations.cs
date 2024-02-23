@@ -13,14 +13,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Media;
-using System.Windows.Media.Media3D;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
 using mc_compiled.Compiler;
 using mc_compiled.Modding.Behaviors.Dialogue;
-using mc_compiled.Modding.Behaviors.Lists;
 using mc_compiled.Modding.Resources;
 using Microsoft.CSharp.RuntimeBinder;
 // ReSharper disable IdentifierTypo

@@ -9,13 +9,13 @@ namespace mc_compiled.Modding.Behaviors
     {
         public MolangValue(string expression)
         {
-            isExpression = true;
-            _valueExpr = expression;
+            this.isExpression = true;
+            this._valueExpr = expression;
         }
         public MolangValue(float value)
         {
-            isExpression = false;
-            _valueNum = value;
+            this.isExpression = false;
+            this._valueNum = value;
         }
 
         public bool isExpression;
@@ -33,8 +33,7 @@ namespace mc_compiled.Modding.Behaviors
         /// Convert to the appropriate JSON token.
         /// </summary>
         /// <returns></returns>
-        public JToken ToJSON() =>
-            isExpression ? (JToken)_valueExpr : (JToken)_valueNum;
+        public JToken ToJSON() => this.isExpression ? (JToken) this._valueExpr : (JToken) this._valueNum;
 
         /// <summary>
         /// Convert to a string representing this expression.
@@ -42,10 +41,10 @@ namespace mc_compiled.Modding.Behaviors
         /// <returns></returns>
         public override string ToString()
         {
-            if (isExpression)
-                return _valueExpr;
+            if (this.isExpression)
+                return this._valueExpr;
 
-            return _valueNum.ToString();
+            return this._valueNum.ToString();
         }
     }
 }

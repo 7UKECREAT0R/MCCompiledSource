@@ -51,8 +51,8 @@ namespace mc_compiled.Modding
         public string CommandReference => throw new NotImplementedException();
         public string GetExtendedDirectory() => null;
 
-        public byte[] GetOutputData() => Encoding.UTF8.GetBytes(data);
-        public string GetOutputFile() => outputFile;
+        public byte[] GetOutputData() => Encoding.UTF8.GetBytes(this.data);
+        public string GetOutputFile() => this.outputFile;
 
         public OutputLocation GetOutputLocation() => OutputLocation.NONE;
     }

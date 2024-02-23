@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace mc_compiled.MCC
+﻿namespace mc_compiled.MCC
 {
     /// <summary>
     /// Provides ways of doing estimated fixed point math.

@@ -46,10 +46,10 @@ namespace mc_compiled.MCC.Compiler
         private bool _disposed = false;
         public void Dispose()
         {
-            if (_disposed)
+            if (this._disposed)
                 return;
-            
-            _disposed = true;
+
+            this._disposed = true;
             //tempManager?.Release(resultStore.type, resultStore.clarifier.IsGlobal);
         }
     }

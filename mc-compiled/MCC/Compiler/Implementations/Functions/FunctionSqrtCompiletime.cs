@@ -1,9 +1,6 @@
 ﻿using mc_compiled.MCC.Functions.Types;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
@@ -11,7 +8,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     {
         public FunctionSqrtCompiletime() : base("sqrt", "compiletimeSqrt", "decimal ?", "Calculates the square root of the given number.")
         {
-            this.AddParameter(
+            AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }

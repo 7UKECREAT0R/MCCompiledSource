@@ -19,9 +19,9 @@
                 listType = TAG.Int,
                 values = new NBTInt[]
                 {
-                    new NBTInt() { name = "", value = x },
-                    new NBTInt() { name = "", value = y },
-                    new NBTInt() { name = "", value = z }
+                    new NBTInt() { name = "", value = this.x },
+                    new NBTInt() { name = "", value = this.y },
+                    new NBTInt() { name = "", value = this.z }
                 }
             };
         }

@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using mc_compiled.MCC.Attributes.Implementations;
-using mc_compiled.MCC.Functions.Types;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {

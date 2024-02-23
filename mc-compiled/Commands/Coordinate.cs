@@ -22,27 +22,27 @@ namespace mc_compiled.Commands
         public static implicit operator Coordinate(decimal convert) => new Coordinate(convert, true, false, false);
         public Coordinate(decimal value, bool isDecimal, bool isRelative, bool isFacingOffset)
         {
-            valueDecimal = value;
-            valueInteger = (int)Math.Round(value);
+            this.valueDecimal = value;
+            this.valueInteger = (int)Math.Round(value);
             this.isDecimal = isDecimal;
             this.isRelative = isRelative;
             this.isFacingOffset = isFacingOffset;
         }
         public Coordinate(int value, bool isDecimal, bool isRelative, bool isFacingOffset)
         {
-            valueDecimal = value;
-            valueInteger = value;
+            this.valueDecimal = value;
+            this.valueInteger = value;
             this.isDecimal = isDecimal;
             this.isRelative = isRelative;
             this.isFacingOffset = isFacingOffset;
         }
         public Coordinate(Coordinate other)
         {
-            valueDecimal = other.valueDecimal;
-            valueInteger = other.valueInteger;
-            isDecimal = other.isDecimal;
-            isRelative = other.isRelative;
-            isFacingOffset = other.isFacingOffset;
+            this.valueDecimal = other.valueDecimal;
+            this.valueInteger = other.valueInteger;
+            this.isDecimal = other.isDecimal;
+            this.isRelative = other.isRelative;
+            this.isFacingOffset = other.isFacingOffset;
         }
 
         /// <summary>
@@ -145,16 +145,16 @@ namespace mc_compiled.Commands
         public override string ToString()
         {
             string s;
-            bool anyRelative = isRelative | isFacingOffset;
+            bool anyRelative = this.isRelative | this.isFacingOffset;
 
-            if (isDecimal)
-                s = (valueDecimal == decimal.Zero && anyRelative) ? "" : valueDecimal.ToString();
+            if (this.isDecimal)
+                s = (this.valueDecimal == decimal.Zero && anyRelative) ? "" : this.valueDecimal.ToString();
             else
-                s = (valueInteger == 0 && anyRelative) ? "" : valueInteger.ToString();
+                s = (this.valueInteger == 0 && anyRelative) ? "" : this.valueInteger.ToString();
 
-            if (isRelative)
+            if (this.isRelative)
                 return '~' + s;
-            if (isFacingOffset)
+            if (this.isFacingOffset)
                 return '^' + s;
 
             return s;
@@ -192,36 +192,31 @@ namespace mc_compiled.Commands
         {
             get
             {
-                if (isRelative || isFacingOffset)
-                    return isDecimal ? valueDecimal != decimal.Zero : valueInteger != 0;
+                if (this.isRelative || this.isFacingOffset)
+                    return this.isDecimal ? this.valueDecimal != decimal.Zero : this.valueInteger != 0;
 
                 return true;
             }
         }
         public override bool Equals(object obj)
         {
-            return obj is Coordinate coordinate &&
-                   valueDecimal == coordinate.valueDecimal &&
-                   valueInteger == coordinate.valueInteger &&
-                   isDecimal == coordinate.isDecimal &&
-                   isRelative == coordinate.isRelative &&
-                   isFacingOffset == coordinate.isFacingOffset;
+            return obj is Coordinate coordinate && this.valueDecimal == coordinate.valueDecimal && this.valueInteger == coordinate.valueInteger && this.isDecimal == coordinate.isDecimal && this.isRelative == coordinate.isRelative && this.isFacingOffset == coordinate.isFacingOffset;
         }
         public override int GetHashCode()
         {
             int hashCode = 1648134579;
-            hashCode = hashCode * -1521134295 + valueDecimal.GetHashCode();
-            hashCode = hashCode * -1521134295 + valueInteger.GetHashCode();
-            hashCode = hashCode * -1521134295 + isDecimal.GetHashCode();
-            hashCode = hashCode * -1521134295 + isRelative.GetHashCode();
-            hashCode = hashCode * -1521134295 + isFacingOffset.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.valueDecimal.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.valueInteger.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.isDecimal.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.isRelative.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.isFacingOffset.GetHashCode();
             return hashCode;
         }
         public int CompareTo(Coordinate other)
         {
-            if (!isDecimal && !other.isDecimal)
-                return valueInteger.CompareTo(other.valueInteger);
-            return valueDecimal.CompareTo(other.valueDecimal);
+            if (!this.isDecimal && !other.isDecimal)
+                return this.valueInteger.CompareTo(other.valueInteger);
+            return this.valueDecimal.CompareTo(other.valueDecimal);
         }
         
         public static bool operator ==(Coordinate a, Coordinate b)

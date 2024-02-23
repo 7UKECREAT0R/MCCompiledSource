@@ -73,13 +73,13 @@
                 name = "",
                 values = new NBTNode[]
                 {
-                    new NBTFloat() { name = "Base", value = baseValue },
-                    new NBTFloat() { name = "Current", value = currentValue },
-                    new NBTFloat() { name = "DefaultMax", value = defaultMax },
-                    new NBTFloat() { name = "DefaultMin", value = defaultMin },
-                    new NBTFloat() { name = "Max", value = max },
-                    new NBTFloat() { name = "Min", value = min },
-                    new NBTString() { name = "Name", value = identifier },
+                    new NBTFloat() { name = "Base", value = this.baseValue },
+                    new NBTFloat() { name = "Current", value = this.currentValue },
+                    new NBTFloat() { name = "DefaultMax", value = this.defaultMax },
+                    new NBTFloat() { name = "DefaultMin", value = this.defaultMin },
+                    new NBTFloat() { name = "Max", value = this.max },
+                    new NBTFloat() { name = "Min", value = this.min },
+                    new NBTString() { name = "Name", value = this.identifier },
                     new NBTEnd()
                 }
             };

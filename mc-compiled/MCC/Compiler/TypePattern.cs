@@ -17,7 +17,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="initial"></param>
         public TypePattern(params NamedType[] initial)
         {
-            pattern = initial.Select(type => new MultiType(false, "unknown", type)).ToList();
+            this.pattern = initial.Select(type => new MultiType(false, "unknown", type)).ToList();
         }
         /// <summary>
         /// Construct an empty TypePattern.
@@ -25,53 +25,53 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="initial"></param>
         public TypePattern()
         {
-            pattern = new List<MultiType>();
+            this.pattern = new List<MultiType>();
         }
 
         public int Count
         {
-            get => pattern.Count;
+            get => this.pattern.Count;
         }
 
         public TypePattern And(NamedType type, string argName)
         {
-            pattern.Add(new MultiType(false, argName, type));
+            this.pattern.Add(new MultiType(false, argName, type));
             return this;
         }
         public TypePattern And(NamedType type)
         {
-            pattern.Add(new MultiType(false, type.name, type));
+            this.pattern.Add(new MultiType(false, type.name, type));
             return this;
         }
         public TypePattern Optional(NamedType type, string argName)
         {
-            pattern.Add(new MultiType(true, argName, type));
+            this.pattern.Add(new MultiType(true, argName, type));
             return this;
         }
         public TypePattern Optional(NamedType type)
         {
-            pattern.Add(new MultiType(true, type.name, type));
+            this.pattern.Add(new MultiType(true, type.name, type));
             return this;
         }
 
         public TypePattern PrependAnd(NamedType type, string argName)
         {
-            _ = pattern.Prepend(new MultiType(false, argName, type));
+            _ = this.pattern.Prepend(new MultiType(false, argName, type));
             return this;
         }
         public TypePattern PrependAnd(NamedType type)
         {
-            _ = pattern.Prepend(new MultiType(false, type.name, type));
+            _ = this.pattern.Prepend(new MultiType(false, type.name, type));
             return this;
         }
         public TypePattern PrependOptional(NamedType type, string argName)
         {
-            _ = pattern.Prepend(new MultiType(true, argName, type));
+            _ = this.pattern.Prepend(new MultiType(true, argName, type));
             return this;
         }
         public TypePattern PrependOptional(NamedType type)
         {
-            _ = pattern.Prepend(new MultiType(true, type.name, type));
+            _ = this.pattern.Prepend(new MultiType(true, type.name, type));
             return this;
         }
         
@@ -93,15 +93,15 @@ namespace mc_compiled.MCC.Compiler
         public MatchResult Check(Token[] tokens)
         {
             float givenLength = (float)tokens.Length;
-            float minLength = (float)pattern.Count(mt => !mt.IsOptional);
+            float minLength = (float) this.pattern.Count(mt => !mt.IsOptional);
             if (tokens.Length < minLength)
             {
                 // return the missing tokens.
-                var missing = pattern.Skip(tokens.Length);
+                var missing = this.pattern.Skip(tokens.Length);
                 return new MatchResult(false, givenLength / minLength, missing.ToArray());
             }
 
-            int patternCount = pattern.Count;
+            int patternCount = this.pattern.Count;
             int self = 0;
             int external = 0;
 
@@ -115,12 +115,12 @@ namespace mc_compiled.MCC.Compiler
                     // not enough tokens to fit whole pattern, loop through and check if the rest are optional
                     for (; self < patternCount; self++)
                     {
-                        MultiType cur = pattern[self];
+                        MultiType cur = this.pattern[self];
                         if (!cur.IsOptional)
                         {
                             // this argument was not given and was not optional
                             int skip = self > 0 ? self - 1 : 0;
-                            var missing = pattern.Skip(skip).TakeWhile(mt => !mt.IsOptional);
+                            var missing = this.pattern.Skip(skip).TakeWhile(mt => !mt.IsOptional);
                             return new MatchResult(false, givenLength / minLength, missing.ToArray());
                         }
                     }
@@ -128,7 +128,7 @@ namespace mc_compiled.MCC.Compiler
                     return new MatchResult(true); 
                 }
 
-                MultiType mtt = pattern[self];
+                MultiType mtt = this.pattern[self];
                 Token token = tokens[external];
 
                 if (mtt.Check(token))
@@ -143,7 +143,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     // skipped/failed required parameter
                     int skip = self > 0 ? self - 1 : 0;
-                    int missing = pattern.Skip(skip).Count(mt => !mt.IsOptional);
+                    int missing = this.pattern.Skip(skip).Count(mt => !mt.IsOptional);
                     return new MatchResult(false, (patternCount - missing) / (float)patternCount, new[] { mtt });
                 }
             }
@@ -155,7 +155,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public string ToMarkdownDocumentation()
         {
-            return string.Join(" ", pattern.Select(multiType => multiType.ToString()));
+            return string.Join(" ", this.pattern.Select(multiType => multiType.ToString()));
         }
     }
     /// <summary>
@@ -235,7 +235,7 @@ namespace mc_compiled.MCC.Compiler
 
         public bool IsOptional
         {
-            get => optional;
+            get => this.optional;
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace mc_compiled.MCC.Compiler
         public bool Check(object obj)
         {
             Type type = obj.GetType();
-            if (types.Any(t => t.type.IsAssignableFrom(type)))
+            if (this.types.Any(t => t.type.IsAssignableFrom(type)))
                 return true;
 
             if(obj is IImplicitToken)
@@ -254,7 +254,7 @@ namespace mc_compiled.MCC.Compiler
                 Type[] conversion = (obj as IImplicitToken).GetImplicitTypes();
 
                 for (int i = 0; i < conversion.Length; i++)
-                    if (types.Any(t => t.type.IsAssignableFrom(conversion[i])))
+                    if (this.types.Any(t => t.type.IsAssignableFrom(conversion[i])))
                         return true;
             }
 
@@ -267,8 +267,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public override string ToString()
         {
-            char bOpen = optional ? '[' : '<';
-            char bClose = optional ? ']' : '>';
+            char bOpen = this.optional ? '[' : '<';
+            char bClose = this.optional ? ']' : '>';
             return bOpen + this.types[0].name + ": " + this.argName + bClose;
         }
     }

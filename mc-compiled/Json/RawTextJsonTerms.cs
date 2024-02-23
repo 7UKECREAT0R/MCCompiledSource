@@ -49,35 +49,35 @@ namespace mc_compiled.Json
         {
             return new JObject()
             {
-                ["text"] = text
+                ["text"] = this.text
             };
         }
         public override string PreviewString()
         {
-            return '[' + text + ']';
+            return '[' + this.text + ']';
         }
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
         {
             if (!executor.HasLocale)
-                return new JSONRawTerm[] { new JSONText(text) };
+                return new JSONRawTerm[] { new JSONText(this.text) };
 
             // find leading/trailing whitespace
-            int leadingWhitespace = text.TakeWhile(char.IsWhiteSpace).Count();
-            int trailingWhitespace = text.Reverse().TakeWhile(char.IsWhiteSpace).Count();
+            int leadingWhitespace = this.text.TakeWhile(char.IsWhiteSpace).Count();
+            int trailingWhitespace = this.text.Reverse().TakeWhile(char.IsWhiteSpace).Count();
 
             bool hasLeadingWhitespace = leadingWhitespace > 0;
             bool hasTrailingWhitespace = trailingWhitespace > 0;
 
-            string safeHashCode = text.GetHashCode().ToString().Replace('-', '_');
+            string safeHashCode = this.text.GetHashCode().ToString().Replace('-', '_');
 
             // basic string, nothing fancy here
             if (!hasLeadingWhitespace && !hasTrailingWhitespace)
             {
                 string _key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
-                _key = executor.SetLocaleEntry(_key, text, forExceptions, true)?.key;
+                _key = executor.SetLocaleEntry(_key, this.text, forExceptions, true)?.key;
                 
-                return new[] { _key == null ? (JSONRawTerm)new JSONText(text) : (JSONRawTerm)new JSONTranslate(_key) };
+                return new[] { _key == null ? (JSONRawTerm)new JSONText(this.text) : (JSONRawTerm)new JSONTranslate(_key) };
             }
 
             int indices = 1 + (hasLeadingWhitespace ? 1 : 0) + (hasTrailingWhitespace ? 1 : 0);
@@ -137,14 +137,14 @@ namespace mc_compiled.Json
             {
                 ["score"] = new JObject()
                 {
-                    ["name"] = selector,
-                    ["objective"] = objective
+                    ["name"] = this.selector,
+                    ["objective"] = this.objective
                 }
             };
         }
         public override string PreviewString()
         {
-            return "[SCORE " + objective + " OF " + selector + ']';
+            return "[SCORE " + this.objective + " OF " + this.selector + ']';
         }
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
@@ -167,12 +167,12 @@ namespace mc_compiled.Json
         {
             return new JObject()
             {
-                ["selector"] = selector.ToString()
+                ["selector"] = this.selector.ToString()
             };
         }
         public override string PreviewString()
         {
-            return '[' + selector + ']';
+            return '[' + this.selector + ']';
         }
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
@@ -212,31 +212,31 @@ namespace mc_compiled.Json
 
         public override JObject Build()
         {
-            if (!with.Any() && !withStr.Any())
+            if (!this.with.Any() && !this.withStr.Any())
                 return new JObject()
                 {
-                    ["translate"] = translationKey
+                    ["translate"] = this.translationKey
                 };
             
-            if (withUsesStr)
+            if (this.withUsesStr)
             {
                 return new JObject()
                 {
-                    ["translate"] = translationKey,
-                    ["with"] = new JArray(withStr.ToArray().Cast<object>())
+                    ["translate"] = this.translationKey,
+                    ["with"] = new JArray(this.withStr.ToArray().Cast<object>())
                 };
                 
             }
 
             return new JObject()
             {
-                ["translate"] = translationKey,
-                ["with"] = new JArray(from subtext in with select subtext.Build())
+                ["translate"] = this.translationKey,
+                ["with"] = new JArray(from subtext in this.with select subtext.Build())
             };
         }
         public override string PreviewString()
         {
-            return '[' + translationKey + ']';
+            return '[' + this.translationKey + ']';
         }
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
@@ -271,7 +271,7 @@ namespace mc_compiled.Json
 
         public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
         {
-            var newConditionals = terms.Select(term => term.Localize(executor, forExceptions));
+            var newConditionals = this.terms.Select(term => term.Localize(executor, forExceptions));
             return new[] { new JSONVariant(newConditionals.ToArray()) };
         }
     }
@@ -295,8 +295,8 @@ namespace mc_compiled.Json
         /// <returns></returns>
         internal ConditionalTerm Localize(Executor executor, Statement forExceptions)
         {
-            var localizedTerms = terms.SelectMany(term => term.Localize(executor, forExceptions));
-            return new ConditionalTerm(localizedTerms.ToArray(), condition, invert);
+            var localizedTerms = this.terms.SelectMany(term => term.Localize(executor, forExceptions));
+            return new ConditionalTerm(localizedTerms.ToArray(), this.condition, this.invert);
         }
     }
 }

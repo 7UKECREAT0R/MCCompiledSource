@@ -14,18 +14,18 @@ namespace mc_compiled.Commands.Selectors
 
         public Scores(params ScoresEntry[] start)
         {
-            checks = new List<ScoresEntry>(start);
+            this.checks = new List<ScoresEntry>(start);
         }
         public Scores(List<ScoresEntry> start)
         {
-            checks = start;
+            this.checks = start;
         }
 
         public string GetSection()
         {
-            if (checks == null || checks.Count < 1)
+            if (this.checks == null || this.checks.Count < 1)
                 return null;
-            return "scores={" + string.Join(",", (from i in checks select i.ToString())) + "}";
+            return "scores={" + string.Join(",", (from i in this.checks select i.ToString())) + "}";
         }
 
         public static Scores Parse(string fullSelector)
@@ -62,7 +62,7 @@ namespace mc_compiled.Commands.Selectors
 
         public bool Equals(Scores other)
         {
-            return Equals(checks, other.checks);
+            return Equals(this.checks, other.checks);
         }
         public override bool Equals(object obj)
         {
@@ -70,7 +70,7 @@ namespace mc_compiled.Commands.Selectors
         }
         public override int GetHashCode()
         {
-            return checks != null ? checks.GetHashCode() : 0;
+            return this.checks != null ? this.checks.GetHashCode() : 0;
         }
 
         public static Scores operator +(Scores a, Scores other)
@@ -94,7 +94,7 @@ namespace mc_compiled.Commands.Selectors
 
         public bool Equals(ScoresEntry other)
         {
-            return name == other.name && value.Equals(other.value);
+            return this.name == other.name && this.value.Equals(other.value);
         }
         public override bool Equals(object obj)
         {
@@ -104,13 +104,13 @@ namespace mc_compiled.Commands.Selectors
         {
             unchecked
             {
-                return ((name != null ? name.GetHashCode() : 0) * 397) ^ value.GetHashCode();
+                return ((this.name != null ? this.name.GetHashCode() : 0) * 397) ^ this.value.GetHashCode();
             }
         }
 
         public override string ToString()
         {
-            return name + "=" + value.ToString();
+            return this.name + "=" + this.value.ToString();
         }
 
 

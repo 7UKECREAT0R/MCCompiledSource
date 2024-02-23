@@ -14,9 +14,9 @@ namespace mc_compiled.Modding
             this.y = y;
         }
         public JProperty ToProperty(string name) =>
-            new JProperty(name, new JArray(new[] { x, y }));
+            new JProperty(name, new JArray(new[] {this.x, this.y }));
         public JArray ToArray() =>
-            new JArray(new[] { x, y });
+            new JArray(new[] {this.x, this.y });
     }
     /// <summary>
     /// A 3D offset.
@@ -31,8 +31,8 @@ namespace mc_compiled.Modding
             this.z = z;
         }
         public JProperty ToProperty(string name) =>
-            new JProperty(name, new JArray(new[] { x, y, z }));
+            new JProperty(name, new JArray(new[] {this.x, this.y, this.z }));
         public JArray ToArray() =>
-            new JArray(new[] { x, y, z });
+            new JArray(new[] {this.x, this.y, this.z });
     }
 }

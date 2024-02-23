@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using mc_compiled.Commands.Selectors;
+﻿using mc_compiled.Commands.Selectors;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -30,7 +29,7 @@ namespace mc_compiled.MCC.Compiler
         public Clarifier(bool global, string currentString)
         {
             this.global = global;
-            CurrentString = currentString;
+            this.CurrentString = currentString;
         }
         /// <summary>
         /// Return a deep clone of this clarifier.
@@ -38,7 +37,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Clarifier Clone()
         {
-            return new Clarifier(global, CurrentString);
+            return new Clarifier(this.global, this.CurrentString);
         }
 
         public static Clarifier Local() => new Clarifier(false);
@@ -52,13 +51,13 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>This object for chaining.</returns>
         public void SetGlobal(bool newGlobal)
         {
-            global = newGlobal;
+            this.global = newGlobal;
             Reset();
         }
         public void CopyFrom(Clarifier other)
         {
-            global = other.global;
-            CurrentString = other.CurrentString;
+            this.global = other.global;
+            this.CurrentString = other.CurrentString;
         }
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public bool IsGlobal
         {
-            get => global;
+            get => this.global;
             set => SetGlobal(value);
         }
         /// <summary>
@@ -81,7 +80,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         private void Reset()
         {
-            CurrentString = global ? Executor.FAKEPLAYER_NAME : DEFAULT_CLARIFIER;
+            this.CurrentString = this.global ? Executor.FAKEPLAYER_NAME : DEFAULT_CLARIFIER;
         }
 
         /// <summary>
@@ -91,7 +90,7 @@ namespace mc_compiled.MCC.Compiler
         public void SetSelector(Selector selector)
         {
             string str = selector.ToString();
-            CurrentString = str;
+            this.CurrentString = str;
         }
         /// <summary>
         /// Sets the clarifier to a specific string.
@@ -99,25 +98,25 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="str">The string.</param>
         public void SetString(string str)
         {
-            CurrentString = str;
+            this.CurrentString = str;
         }
 
         private bool Equals(Clarifier other)
         {
-            return global == other.global && CurrentString == other.CurrentString;
+            return this.global == other.global && this.CurrentString == other.CurrentString;
         }
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((Clarifier) obj);
         }
         public override int GetHashCode()
         {
             unchecked
             {
-                return (global.GetHashCode() * 397) ^ (CurrentString != null ? CurrentString.GetHashCode() : 0);
+                return (this.global.GetHashCode() * 397) ^ (this.CurrentString != null ? this.CurrentString.GetHashCode() : 0);
             }
         }
     }

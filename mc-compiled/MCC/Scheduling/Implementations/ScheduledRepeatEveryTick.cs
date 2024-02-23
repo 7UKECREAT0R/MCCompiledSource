@@ -16,7 +16,7 @@ namespace mc_compiled.MCC.Scheduling.Implementations
 
         public override void Setup(TickScheduler scheduler, Executor executor)
         {
-            scheduler.tickJSONEntries.Add(function.CommandReference);
+            scheduler.tickJSONEntries.Add(this.function.CommandReference);
         }
         public override string[] PerTickCommands() => null;
     }

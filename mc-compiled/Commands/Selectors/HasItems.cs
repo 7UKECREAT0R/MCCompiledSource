@@ -12,22 +12,22 @@ namespace mc_compiled.Commands.Selectors
 
         public HasItems(params HasItemEntry[] start)
         {
-            entries = new List<HasItemEntry>(start);
+            this.entries = new List<HasItemEntry>(start);
         }
         public HasItems(List<HasItemEntry> start)
         {
-            entries = new List<HasItemEntry>(start);
+            this.entries = new List<HasItemEntry>(start);
         }
 
         public string GetSection()
         {
-            if (entries == null || entries.Count < 1)
+            if (this.entries == null || this.entries.Count < 1)
                 return null;
 
-            if (entries.Count == 1)
-                return "hasitem=" + entries[0].ToString();
+            if (this.entries.Count == 1)
+                return "hasitem=" + this.entries[0].ToString();
             else
-                return "hasitem=[" + string.Join(",", (from e in entries select e.ToString())) + "]";
+                return "hasitem=[" + string.Join(",", (from e in this.entries select e.ToString())) + "]";
         }
         public string AsStoreIn(string selector, string objective)
         {
@@ -106,7 +106,7 @@ namespace mc_compiled.Commands.Selectors
 
         public bool Equals(HasItems other)
         {
-            return Equals(entries, other.entries);
+            return Equals(this.entries, other.entries);
         }
         public override bool Equals(object obj)
         {
@@ -114,7 +114,7 @@ namespace mc_compiled.Commands.Selectors
         }
         public override int GetHashCode()
         {
-            return entries != null ? entries.GetHashCode() : 0;
+            return this.entries != null ? this.entries.GetHashCode() : 0;
         }
 
         public static HasItems operator +(HasItems a, HasItems other)
@@ -151,44 +151,39 @@ namespace mc_compiled.Commands.Selectors
         /// </summary>
         public bool IsBare
         {
-            get => !location.HasValue && !slot.HasValue && !data.HasValue && !quantity.HasValue;
+            get => !this.location.HasValue && !this.slot.HasValue && !this.data.HasValue && !this.quantity.HasValue;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is HasItemEntry entry &&
-                   item == entry.item &&
-                   data == entry.data &&
-                   location == entry.location &&
-                   slot == entry.slot &&
-                   EqualityComparer<Range?>.Default.Equals(quantity, entry.quantity) &&
-                   IsBare == entry.IsBare;
+            return obj is HasItemEntry entry && this.item == entry.item && this.data == entry.data && this.location == entry.location && this.slot == entry.slot &&
+                   EqualityComparer<Range?>.Default.Equals(this.quantity, entry.quantity) && this.IsBare == entry.IsBare;
         }
         public override int GetHashCode()
         {
             int hashCode = 1388543879;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(item);
-            hashCode = hashCode * -1521134295 + data.GetHashCode();
-            hashCode = hashCode * -1521134295 + location.GetHashCode();
-            hashCode = hashCode * -1521134295 + slot.GetHashCode();
-            hashCode = hashCode * -1521134295 + quantity.GetHashCode();
-            hashCode = hashCode * -1521134295 + IsBare.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.item);
+            hashCode = hashCode * -1521134295 + this.data.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.location.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.slot.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.quantity.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.IsBare.GetHashCode();
             return hashCode;
         }
 
         public override string ToString()
         {
             List<string> parts = new List<string>();
-            parts.Add("item=" + item);
+            parts.Add("item=" + this.item);
 
-            if (data.HasValue)
-                parts.Add("data=" + data.Value);
-            if (location.HasValue)
-                parts.Add("location=" + location.Value.String());
-            if (slot.HasValue)
-                parts.Add("slot=" + slot.Value);
-            if (quantity.HasValue)
-                parts.Add("quantity=" + quantity.Value.ToString());
+            if (this.data.HasValue)
+                parts.Add("data=" + this.data.Value);
+            if (this.location.HasValue)
+                parts.Add("location=" + this.location.Value.String());
+            if (this.slot.HasValue)
+                parts.Add("slot=" + this.slot.Value);
+            if (this.quantity.HasValue)
+                parts.Add("quantity=" + this.quantity.Value.ToString());
 
             return $@"{{{string.Join(",", parts)}}}";
         }

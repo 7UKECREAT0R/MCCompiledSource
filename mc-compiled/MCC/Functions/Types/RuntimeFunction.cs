@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Attributes;
-using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -57,12 +56,12 @@ namespace mc_compiled.MCC.Functions.Types
         /// <exception cref="Exception">If this method has already been called once.</exception>
         internal void SignalToAttributes(Statement callingStatement)
         {
-            if (_hasSignaled)
-                throw new Exception($"Attempt to call SignalToAttributes again on function '{name}'");
+            if (this._hasSignaled)
+                throw new Exception($"Attempt to call SignalToAttributes again on function '{this.name}'");
 
-            _hasSignaled = true;
+            this._hasSignaled = true;
 
-            foreach (IAttribute attribute in attributes)
+            foreach (IAttribute attribute in this.attributes)
                 attribute.OnAddedFunction(this, callingStatement);
         }
         /// <summary>
@@ -72,7 +71,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// <returns>True if the <see cref="RuntimeFunction"/> has an attribute of type <typeparamref name="T"/>, otherwise false.</returns>
         public bool HasAttribute<T>() where T : IAttribute
         {
-            return attributes.Any(a => a is T);
+            return this.attributes.Any(a => a is T);
         }
 
         /// <summary>
@@ -115,9 +114,9 @@ namespace mc_compiled.MCC.Functions.Types
             return this;
         }
 
-        public override string Keyword => aliasedName;
-        public override string Returns => returnValue?.GetExtendedTypeKeyword();
-        public override string Documentation => documentation;
+        public override string Keyword => this.aliasedName;
+        public override string Returns => this.returnValue?.GetExtendedTypeKeyword();
+        public override string Documentation => this.documentation;
         public override FunctionParameter[] Parameters => this.parameters.Cast<FunctionParameter>().ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;
@@ -135,9 +134,9 @@ namespace mc_compiled.MCC.Functions.Types
         public void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller)
         {
             IEnumerable<string> commands;
-            if (returnValue != null && value.NeedsToBeConvertedFor(returnValue))
+            if (this.returnValue != null && value.NeedsToBeConvertedFor(this.returnValue))
             {
-                commands = value.CommandsConvert(returnValue, caller);
+                commands = value.CommandsConvert(this.returnValue, caller);
             }
             else
             {
@@ -156,10 +155,10 @@ namespace mc_compiled.MCC.Functions.Types
                 executor.definedReturnedTypes.Add(value.type);
 
                 commands = clone.Assign(value, caller);
-                returnValue = clone;
+                this.returnValue = clone;
             }
             
-            executor.AddCommands(commands, "returnValue", $"Returns the objective '{returnValue.InternalName}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
+            executor.AddCommands(commands, "returnValue", $"Returns the objective '{this.returnValue.InternalName}'. Called in a return command located in {this.file.CommandReference} line {executor.NextLineNumber}");
         }
         /// <summary>
         /// Add commands and setup scoreboard to return a value.
@@ -172,9 +171,9 @@ namespace mc_compiled.MCC.Functions.Types
         {
             IEnumerable<string> commands;
             
-            if (returnValue != null)
+            if (this.returnValue != null)
             {
-                commands = returnValue.AssignLiteral(value, caller);
+                commands = this.returnValue.AssignLiteral(value, caller);
             }
             else
             {
@@ -188,45 +187,41 @@ namespace mc_compiled.MCC.Functions.Types
                 }
 
                 commands = variable.AssignLiteral(value, caller);
-                returnValue = variable;
+                this.returnValue = variable;
             }
             
-            executor.AddCommands(commands, "returnValue", $"Returns the literal '{value}'. Called in a return command located in {file.CommandReference} line {executor.NextLineNumber}");
+            executor.AddCommands(commands, "returnValue", $"Returns the literal '{value}'. Called in a return command located in {this.file.CommandReference} line {executor.NextLineNumber}");
         }
 
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
             // add the file to the executor if it hasn't been yet.
-            if(!isAddedToExecutor && !isExtern)
+            if(!this.isAddedToExecutor && !this.isExtern)
             {
-                executor.AddExtraFile(file);
-                isAddedToExecutor = true;
+                executor.AddExtraFile(this.file);
+                this.isAddedToExecutor = true;
             }
 
-            commandBuffer.Add(Command.Function(file));
+            commandBuffer.Add(Command.Function(this.file));
 
             // apply attributes
             foreach (IAttribute attribute in this.attributes)
                 attribute.OnCalledFunction(this, commandBuffer, executor, statement);
             
             // if there's nothing to 'return', send back a null literal.
-            if (returnValue == null) 
+            if (this.returnValue == null) 
                 return new TokenNullLiteral(statement.Lines[0]);
 
             // sets a temp to the return value.
-            ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(returnValue, true);
-            commandBuffer.AddRange(returnHolder.Assign(returnValue, statement));
+            ScoreboardValue returnHolder = executor.scoreboard.temps.RequestCopy(this.returnValue, true);
+            commandBuffer.AddRange(returnHolder.Assign(this.returnValue, statement));
             return new TokenIdentifierValue(returnHolder.Name, returnHolder, statement.Lines[0]);
         }
 
-        public void AddCommand(string command) =>
-            file.Add(command);
-        public void AddCommandTop(string command) =>
-            file.AddTop(command);
-        public void AddCommands(IEnumerable<string> commands) =>
-            file.Add(commands);
-        public void AddCommandsTop(IEnumerable<string> commands) =>
-            file.AddTop(commands);
+        public void AddCommand(string command) => this.file.Add(command);
+        public void AddCommandTop(string command) => this.file.AddTop(command);
+        public void AddCommands(IEnumerable<string> commands) => this.file.Add(commands);
+        public void AddCommandsTop(IEnumerable<string> commands) => this.file.AddTop(commands);
 
         public override int GetHashCode()
         {

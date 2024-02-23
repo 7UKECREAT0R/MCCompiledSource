@@ -56,7 +56,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public bool HasOption(TimeOption option)
         {
-            return (flags & option) == option;
+            return (this.flags & option) == option;
         }
 
         /// <summary>
@@ -67,20 +67,20 @@ namespace mc_compiled.MCC.Compiler
         {
             StringBuilder sb = new StringBuilder();
 
-            if ((flags & TimeOption.h) != 0)
+            if ((this.flags & TimeOption.h) != 0)
             {
-                sb.Append('h', minimumHours);
+                sb.Append('h', this.minimumHours);
                 sb.Append(':');
             }
 
-            if ((flags & TimeOption.m) != 0)
+            if ((this.flags & TimeOption.m) != 0)
             {
-                sb.Append('m', minimumMinutes);
+                sb.Append('m', this.minimumMinutes);
                 sb.Append(":");
             }
 
-            if ((flags & TimeOption.s) != 0)
-                sb.Append('s', minimumSeconds);
+            if ((this.flags & TimeOption.s) != 0)
+                sb.Append('s', this.minimumSeconds);
 
             return sb.ToString();
         }

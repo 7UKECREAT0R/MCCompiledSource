@@ -22,9 +22,9 @@
                 listType = TAG.Float,
                 values = new NBTFloat[]
                 {
-                    new NBTFloat() { name = "", value = x },
-                    new NBTFloat() { name = "", value = y },
-                    new NBTFloat() { name = "", value = z }
+                    new NBTFloat() { name = "", value = this.x },
+                    new NBTFloat() { name = "", value = this.y },
+                    new NBTFloat() { name = "", value = this.z }
                 }
             };
         }

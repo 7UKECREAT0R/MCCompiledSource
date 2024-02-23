@@ -39,24 +39,24 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             if (format.HasOption(TimeOption.h))
             {
                 string _hours = SB_HOURS + index;
-                scoreboardHours = new ScoreboardValue(_hours, false, Typedef.INTEGER, manager);
+                scoreboardHours = new ScoreboardValue(_hours, false, INTEGER, manager);
                 scoreboardHours.clarifier.CopyFrom(value.clarifier);
             }
             if (format.HasOption(TimeOption.m))
             {
                 string _minutes = SB_MINUTES + index;
-                scoreboardMinutes = new ScoreboardValue(_minutes, false, Typedef.INTEGER,  manager);
+                scoreboardMinutes = new ScoreboardValue(_minutes, false, INTEGER,  manager);
                 scoreboardMinutes.clarifier.CopyFrom(value.clarifier);
             }
             if (format.HasOption(TimeOption.s))
             {
                 string _seconds = SB_SECONDS + index;
-                scoreboardSeconds = new ScoreboardValue(_seconds, false, Typedef.INTEGER,  manager);
+                scoreboardSeconds = new ScoreboardValue(_seconds, false, INTEGER,  manager);
                 scoreboardSeconds.clarifier.CopyFrom(value.clarifier);
             }
 
-            var temporary = new ScoreboardValue(_temporary, true, Typedef.INTEGER, manager);
-            var constant = new ScoreboardValue(_constant, true, Typedef.INTEGER,  manager);
+            var temporary = new ScoreboardValue(_temporary, true, INTEGER, manager);
+            var constant = new ScoreboardValue(_constant, true, INTEGER,  manager);
 
             manager.DefineMany(scoreboardHours, scoreboardMinutes, scoreboardSeconds, temporary, constant);
 

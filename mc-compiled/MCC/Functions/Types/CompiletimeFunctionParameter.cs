@@ -75,14 +75,14 @@ namespace mc_compiled.MCC.Functions.Types
                         continue;
 
                     var convertedCasted = conversion.Convert(executor, i) as T;
-                    CurrentValue = convertedCasted;
+                    this.CurrentValue = convertedCasted;
                 }
 
                 throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
             }
 
             T casted = token as T;
-            CurrentValue = casted;
+            this.CurrentValue = casted;
             return;
         }
 

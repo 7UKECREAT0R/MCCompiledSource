@@ -1,5 +1,4 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.Commands.Execute;
+﻿using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
 using System;
 using System.Collections.Generic;
@@ -54,7 +53,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return TypeEnum.GetHashCode();
+            return this.TypeEnum.GetHashCode();
         }
         
         /// <summary>

@@ -38,20 +38,20 @@ namespace mc_compiled.Modding.Resources.Localization
                 return actual;
 
             string fileName = locale + ".lang";
-            string path = executor.project.GetOutputFileLocationFull(OutputLocation.r_TEXTS, fileName);
+            string path = this.executor.project.GetOutputFileLocationFull(OutputLocation.r_TEXTS, fileName);
 
             Lang lang;
 
             // fetch lang file if it exists. otherwise, create one.
             if (System.IO.File.Exists(path))
             {
-                string file = executor.LoadFileString(path);
+                string file = this.executor.LoadFileString(path);
                 lang = Lang.Parse(locale, file);
             }
             else
                 lang = new Lang(locale);
 
-            executor.AddExtraFile(lang);
+            this.executor.AddExtraFile(lang);
             LocaleDefinition localeDefinition = lang.GetOrCreateLocaleDefinition();
             this.locales.Add(localeDefinition);
             return localeDefinition;
@@ -62,7 +62,7 @@ namespace mc_compiled.Modding.Resources.Localization
 
         public byte[] GetOutputData()
         {
-            JArray array = new JArray(from l in locales select l.locale);
+            JArray array = new JArray(from l in this.locales select l.locale);
             string json = array.ToString(Newtonsoft.Json.Formatting.Indented);
             return Encoding.UTF8.GetBytes(json);
         }

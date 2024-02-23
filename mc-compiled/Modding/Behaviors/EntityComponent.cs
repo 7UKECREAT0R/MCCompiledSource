@@ -24,8 +24,8 @@
         public Newtonsoft.Json.Linq.JObject GetValue()
         {
             var value = _GetValue();
-            if (priority.HasValue)
-                value["priority"] = priority.Value;
+            if (this.priority.HasValue)
+                value["priority"] = this.priority.Value;
             return value;
         }
     }

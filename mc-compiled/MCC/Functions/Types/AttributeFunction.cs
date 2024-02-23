@@ -69,9 +69,9 @@ namespace mc_compiled.MCC.Functions.Types
             return this;
         }
 
-        public override string Keyword => visualName;
+        public override string Keyword => this.visualName;
         public override string Returns => "Compiler-Defined Attribute";
-        public override string Documentation => documentation;
+        public override string Documentation => this.documentation;
         public override FunctionParameter[] Parameters => this.parameters.Cast<FunctionParameter>().ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;
@@ -84,16 +84,16 @@ namespace mc_compiled.MCC.Functions.Types
             if (this.callAction != null)
                 return base.MatchParameters(inputs, out error, out score);
             
-            error = $"Function \"{internalName}\" has no call action bound. This is a bug with the compiler.";
+            error = $"Function \"{this.internalName}\" has no call action bound. This is a bug with the compiler.";
             score = 0;
             return false;
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
             if (this.callAction == null)
-                throw new StatementException(statement, $"Function \"{internalName}\" has no call action bound. This is a bug with the compiler.");
+                throw new StatementException(statement, $"Function \"{this.internalName}\" has no call action bound. This is a bug with the compiler.");
 
-            IAttribute constructed = callAction(parameters.ToArray(), executor, statement);
+            IAttribute constructed = this.callAction(this.parameters.ToArray(), executor, statement);
             return new TokenAttribute(constructed, statement.Lines[0]);
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -52,7 +51,7 @@ namespace mc_compiled.MCC.Compiler
                     .ToCharArray();
             }
 
-            sb = new StringBuilder();
+            this.sb = new StringBuilder();
         }
 
         /// <summary>
@@ -72,19 +71,19 @@ namespace mc_compiled.MCC.Compiler
 
         private bool HasNext
         {
-            get => index < content.Length;
+            get => this.index < this.content.Length;
         }
-        private char Peek() => content[index];
+        private char Peek() => this.content[this.index];
         private char Peek(int amount)
         {
-            if (index + amount >= content.Length)
+            if (this.index + amount >= this.content.Length)
                 return '\0';
-            return content[index + amount];
+            return this.content[this.index + amount];
         }
-        private char NextChar() => content[index++];
+        private char NextChar() => this.content[this.index++];
         private void FlushIgnoredCharacters()
         {
-            while (HasNext && IsIgnored(Peek()))
+            while (this.HasNext && IsIgnored(Peek()))
                 NextChar();
         }
 
@@ -95,7 +94,7 @@ namespace mc_compiled.MCC.Compiler
         public Token[] Tokenize()
         {
             CURRENT_LINE = 1;
-            index = 0;
+            this.index = 0;
 
             var all = new List<Token>();
 
@@ -141,13 +140,13 @@ namespace mc_compiled.MCC.Compiler
         private Token NextToken()
         {
             FlushIgnoredCharacters();
-            sb.Clear();
+            this.sb.Clear();
 
-            if (!HasNext)
+            if (!this.HasNext)
                 return null; // EOF
 
             char firstChar = NextChar();
-            char secondChar = HasNext ? Peek() : '\0';
+            char secondChar = this.HasNext ? Peek() : '\0';
 
             switch (firstChar)
             {
@@ -198,11 +197,11 @@ namespace mc_compiled.MCC.Compiler
                         case 'I':
                             throw new TokenizerException($"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue.");
                         default:
-                            if(HasNext)
+                            if(this.HasNext)
                                 throw new TokenizerException("Invalid selector '" + secondChar + "'. Valid options: @p, @s, @a, @e, or @r");
                             throw new TokenizerException("Invalid selector '(end-of-file)'. Valid options: @p, @s, @a, @e, or @r");
                     }
-                    if (HasNext && Peek() == '[')
+                    if (this.HasNext && Peek() == '[')
                         return NextSelectorLiteral(core);
                     
                     return new TokenSelectorLiteral(core, CURRENT_LINE);
@@ -211,10 +210,9 @@ namespace mc_compiled.MCC.Compiler
                 case '/' when secondChar == '/':
                 {
                     NextChar();
-                    while (HasNext && Peek() != '\n')
-                        sb.Append(NextChar());
+                    while (this.HasNext && Peek() != '\n') this.sb.Append(NextChar());
 
-                    string str = sb.ToString().Trim();
+                    string str = this.sb.ToString().Trim();
                     return new TokenComment(str, CURRENT_LINE);
                 }
                 /* multiline comment, just like this */
@@ -223,20 +221,21 @@ namespace mc_compiled.MCC.Compiler
                     int startLine = CURRENT_LINE;
 
                     NextChar();
-                    while (HasNext)
+                    while (this.HasNext)
                     {
                         char next = NextChar();
                         if (next == '\n')
                             CURRENT_LINE++;
-                        if (next == '*' && HasNext && Peek() == '/')
+                        if (next == '*' && this.HasNext && Peek() == '/')
                         {
                             NextChar(); // skip the '/'
                             break;
                         }
-                        sb.Append(next);
+
+                        this.sb.Append(next);
                     }
 
-                    string str = sb.ToString();
+                    string str = this.sb.ToString();
                     return new TokenComment(str, startLine);
                 }
                 // equality/assignment
@@ -320,17 +319,17 @@ namespace mc_compiled.MCC.Compiler
 
             // not any hardcoded known symbols.
             // just read a full word.
-            sb.Append(firstChar);
-            while (HasNext)
+            this.sb.Append(firstChar);
+            while (this.HasNext)
             {
                 char next = Peek();
                 if (IDENTIFIER_CHARS.Contains(next))
-                    sb.Append(NextChar());
+                    this.sb.Append(NextChar());
                 else
                     break;
             }
 
-            string word = sb.ToString();
+            string word = this.sb.ToString();
 
             switch (word.ToUpper())
             {
@@ -366,10 +365,10 @@ namespace mc_compiled.MCC.Compiler
         private TokenNumberLiteral NextNumberIdentifier(char first)
         {
             bool inDecimalPart = false;
-            sb.Append(first);
+            this.sb.Append(first);
             var multiplier = IntMultiplier.none;
 
-            while (HasNext)
+            while (this.HasNext)
             {
                 char c = Peek();
 
@@ -377,7 +376,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (inDecimalPart)
                         break;
-                    sb.Append(NextChar());
+                    this.sb.Append(NextChar());
                     inDecimalPart = true;
                     continue;
                 }
@@ -396,10 +395,10 @@ namespace mc_compiled.MCC.Compiler
                     break;
                 }
 
-                sb.Append(NextChar());
+                this.sb.Append(NextChar());
             }
 
-            string str = sb.ToString();
+            string str = this.sb.ToString();
 
             if (int.TryParse(str, out int i))
                 return new TokenIntegerLiteral(i * (int)multiplier, multiplier, CURRENT_LINE);
@@ -417,9 +416,9 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         private TokenStringLiteral NextStringIdentifier(char closer)
         {
-            sb.Clear();
+            this.sb.Clear();
 
-            while (HasNext)
+            while (this.HasNext)
             {
                 char c = NextChar();
                 
@@ -429,20 +428,21 @@ namespace mc_compiled.MCC.Compiler
                     if (next == closer)
                     {
                         next = NextChar();
-                        sb.Append(next);
+                        this.sb.Append(next);
                         continue;
                     }
-                    sb.Append(c);
+
+                    this.sb.Append(c);
                     continue;
                 }
 
                 if (c == closer)
                     break;
 
-                sb.Append(c);
+                this.sb.Append(c);
             }
 
-            return new TokenStringLiteral(sb.ToString(), CURRENT_LINE);
+            return new TokenStringLiteral(this.sb.ToString(), CURRENT_LINE);
         }
         private Token NextSelectorLiteral(Selector.Core core)
         {
@@ -453,20 +453,20 @@ namespace mc_compiled.MCC.Compiler
             bool escaped = false;
             bool inQuotes = false;
 
-            while (HasNext)
+            while (this.HasNext)
             {
                 char c = NextChar();
                 
                 if(escaped)
                 {
                     escaped = false;
-                    sb.Append(c);
+                    this.sb.Append(c);
                     continue;
                 }
                 if (c == '\\')
                     escaped = true;
                 else
-                    sb.Append(c);
+                    this.sb.Append(c);
 
                 // bracket handling
                 if (!inQuotes)
@@ -484,7 +484,7 @@ namespace mc_compiled.MCC.Compiler
                     inQuotes = !inQuotes;
             }
 
-            string str = sb.ToString();
+            string str = this.sb.ToString();
 
             if (str.Contains("$")) // selector probably contains preprocessor stuff. use the non-optimized version.
             {

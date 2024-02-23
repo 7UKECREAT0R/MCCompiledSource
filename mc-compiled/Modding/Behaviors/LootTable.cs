@@ -21,10 +21,10 @@ namespace mc_compiled.Modding.Behaviors
         {
             get
             {
-                if (subdirectory == null)
-                    return name;
+                if (this.subdirectory == null)
+                    return this.name;
 
-                return subdirectory + '/' + name;
+                return this.subdirectory + '/' + this.name;
             }
         }
 
@@ -32,7 +32,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             this.name = name;
             this.subdirectory = subdirectory;
-            pools = new List<LootPool>();
+            this.pools = new List<LootPool>();
         }
 
         /// <summary>
@@ -58,10 +58,8 @@ namespace mc_compiled.Modding.Behaviors
             };
             return Encoding.UTF8.GetBytes(root.ToString());
         }
-        public string GetExtendedDirectory() =>
-            subdirectory;
-        public string GetOutputFile() =>
-            name + ".json";
+        public string GetExtendedDirectory() => this.subdirectory;
+        public string GetOutputFile() => this.name + ".json";
         public OutputLocation GetOutputLocation() =>
             OutputLocation.b_LOOT_TABLES;
     }
@@ -94,19 +92,18 @@ namespace mc_compiled.Modding.Behaviors
             else
                 this.entries = new List<LootEntry>(entries);
         }
-        public void AddLoot(LootEntry entry) =>
-            entries.Add(entry);
+        public void AddLoot(LootEntry entry) => this.entries.Add(entry);
 
         public JObject ToJSON()
         {
-            JArray pool = new JArray(entries.Select(entry => entry.ToJSON()));
-            if (rollsMax.HasValue) {
+            JArray pool = new JArray(this.entries.Select(entry => entry.ToJSON()));
+            if (this.rollsMax.HasValue) {
                 return new JObject()
                 {
                     ["rolls"] = new JObject()
                     {
-                        ["min"] = rollsMin,
-                        ["max"] = rollsMax.Value
+                        ["min"] = this.rollsMin,
+                        ["max"] = this.rollsMax.Value
                     },
                     ["entries"] = pool
                 };
@@ -114,7 +111,7 @@ namespace mc_compiled.Modding.Behaviors
 
             return new JObject()
             {
-                ["rolls"] = rollsMin,
+                ["rolls"] = this.rollsMin,
                 ["entries"] = pool
             };
         }
@@ -148,7 +145,7 @@ namespace mc_compiled.Modding.Behaviors
         /// <returns>this for chaining convenience.</returns>
         public LootEntry WithFunction(LootFunction function)
         {
-            functions.Add(function);
+            this.functions.Add(function);
             return this;
         }
 
@@ -156,14 +153,14 @@ namespace mc_compiled.Modding.Behaviors
         {
             JObject json = new JObject()
             {
-                ["type"] = type.ToString(),
-                ["name"] = name,
-                ["weight"] = weight
+                ["type"] = this.type.ToString(),
+                ["name"] = this.name,
+                ["weight"] = this.weight
             };
 
-            if (functions.Any())
+            if (this.functions.Any())
             {
-                JArray jsonFunctions = new JArray(functions.Select(f => f.ToJSON()));
+                JArray jsonFunctions = new JArray(this.functions.Select(f => f.ToJSON()));
                 json["functions"] = jsonFunctions;
             }
 
@@ -216,21 +213,21 @@ namespace mc_compiled.Modding.Behaviors
 
         public override JObject[] GetFunctionFields()
         {
-            if (max.HasValue)
+            if (this.max.HasValue)
             {
                 return new[] { new JObject()
                 {
                     ["count"] = new JObject()
                     {
-                        ["min"] = min,
-                        ["max"] = max.Value
+                        ["min"] = this.min,
+                        ["max"] = this.max.Value
                     }
                 } };
             } else
             {
                 return new[] { new JObject()
                 {
-                    ["count"] = min
+                    ["count"] = this.min
                 } };
             }
         }
@@ -252,7 +249,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new[] { new JObject()
             {
-                ["name"] = name
+                ["name"] = this.name
             } };
         }
         public override string GetFunctionName() =>
@@ -273,7 +270,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new[] { new JObject()
             {
-                ["lore"] = new JArray(lore)
+                ["lore"] = new JArray(this.lore)
             } };
         }
         public override string GetFunctionName() =>
@@ -303,21 +300,21 @@ namespace mc_compiled.Modding.Behaviors
 
         public override JObject[] GetFunctionFields()
         {
-            if(dataMax.HasValue)
+            if(this.dataMax.HasValue)
             {
                 return new[] { new JObject()
                 {
                     ["data"] = new JObject()
                     {
-                        ["min"] = dataMin,
-                        ["max"] = dataMax.Value
+                        ["min"] = this.dataMin,
+                        ["max"] = this.dataMax.Value
                     }
                 } };
             } else
             {
                 return new[] { new JObject()
                 {
-                    ["data"] = dataMin
+                    ["data"] = this.dataMin
                 } };
             }
         }
@@ -354,14 +351,14 @@ namespace mc_compiled.Modding.Behaviors
 
         public override JObject[] GetFunctionFields()
         {
-            if (maxDurability.HasValue)
+            if (this.maxDurability.HasValue)
             {
                 return new[] { new JObject()
                 {
                     ["damage"] = new JObject()
                     {
-                        ["min"] = minDurability,
-                        ["max"] = maxDurability.Value
+                        ["min"] = this.minDurability,
+                        ["max"] = this.maxDurability.Value
                     }
                 } };
             }
@@ -369,7 +366,7 @@ namespace mc_compiled.Modding.Behaviors
             {
                 return new[] { new JObject()
                 {
-                    ["damage"] = minDurability
+                    ["damage"] = this.minDurability
                 } };
             }
         }
@@ -406,9 +403,9 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new[]
             {
-                new JObject() { ["title"] = title },
-                new JObject() { ["author"] = author },
-                new JObject() { ["pages"] = new JArray(pages) },
+                new JObject() { ["title"] = this.title },
+                new JObject() { ["author"] = this.author },
+                new JObject() { ["pages"] = new JArray(this.pages) },
 
             };
         }
@@ -444,7 +441,7 @@ namespace mc_compiled.Modding.Behaviors
         public override JObject[] GetFunctionFields()
         {
             JArray json = new JArray();
-            enchantments.ForEach(e => json.Add(new JObject()
+            this.enchantments.ForEach(e => json.Add(new JObject()
             {
                 ["id"] = e.id,
                 ["level"] = e.level
@@ -480,11 +477,11 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new[]
             {
-                new JObject() { ["treasure"] = treasure },
+                new JObject() { ["treasure"] = this.treasure },
                 new JObject()
                 {
-                    ["min"] = minLevel,
-                    ["max"] = maxLevel
+                    ["min"] = this.minLevel,
+                    ["max"] = this.maxLevel
                 }
             };
         }
@@ -510,7 +507,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new[]
             {
-                new JObject() { ["treasure"] = treasure }
+                new JObject() { ["treasure"] = this.treasure }
             };
         }
         public override string GetFunctionName() =>
@@ -533,7 +530,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new[]
             {
-                new JObject() { ["chance"] = chance }
+                new JObject() { ["chance"] = this.chance }
             };
         }
         public override string GetFunctionName() =>

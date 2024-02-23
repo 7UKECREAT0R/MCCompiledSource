@@ -4,7 +4,6 @@ using mc_compiled.Commands.Selectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -26,18 +25,19 @@ namespace mc_compiled.MCC.Compiler
         public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             cancel = false;
-            return score.CompareAlone(this.inverted)
+            return this.score.CompareAlone(this.inverted)
                 .Select(check => new SubcommandIf(check))
                 .Cast<Subcommand>()
                 .ToArray();
         }
 
-        public override string GetDescription() => inverted ?
-            $"not {score.Name}.":
-            $"{score.Name}.";
+        public override string GetDescription() =>
+            this.inverted ?
+            $"not {this.score.Name}.":
+            $"{this.score.Name}.";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
-            return new[] { score };
+            return new[] {this.score };
         }
     }
 
@@ -55,40 +55,40 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Returns if both sides of the comparison are values.
         /// </summary>
-        private bool BothValues => aType == SideType.Variable && bType == SideType.Variable;
+        private bool BothValues => this.aType == SideType.Variable && this.bType == SideType.Variable;
         /// <summary>
         /// Returns if the sides of the comparison need to be swapped.
         /// </summary>
-        private bool RequiresSwap => aType == SideType.Constant && bType == SideType.Variable;
+        private bool RequiresSwap => this.aType == SideType.Constant && this.bType == SideType.Variable;
 
         private void FindAType()
         {
-            switch (a)
+            switch (this.a)
             {
                 case TokenIdentifierValue _:
-                    aType = SideType.Variable;
+                    this.aType = SideType.Variable;
                     break;
                 case TokenNumberLiteral _:
-                    aType = SideType.Constant;
+                    this.aType = SideType.Constant;
                     break;
                 default:
-                    aType = SideType.Unknown;
+                    this.aType = SideType.Unknown;
                     break;
             }
         }
 
         private void FindBType()
         {
-            switch (b)
+            switch (this.b)
             {
                 case TokenIdentifierValue _:
-                    bType = SideType.Variable;
+                    this.bType = SideType.Variable;
                     break;
                 case TokenNumberLiteral _:
-                    bType = SideType.Constant;
+                    this.bType = SideType.Constant;
                     break;
                 default:
-                    bType = SideType.Unknown;
+                    this.bType = SideType.Unknown;
                     break;
             }
         }
@@ -102,11 +102,11 @@ namespace mc_compiled.MCC.Compiler
             FindAType();
             FindBType();
 
-            if (!RequiresSwap)
+            if (!this.RequiresSwap)
                 return;
             
             // swap tokens for simplicity
-            (bType, aType) = (aType, bType);
+            (this.bType, this.aType) = (this.aType, this.bType);
             this.a = b;
             this.b = a;
             this.comparison = comparison.InvertDirection();
@@ -119,16 +119,16 @@ namespace mc_compiled.MCC.Compiler
         {
             cancel = false;
 
-            if (aType == SideType.Unknown)
-                throw new StatementException(callingStatement, $"Unexpected token on left-hand side of condition: {a.AsString()}");
-            if (bType == SideType.Unknown)
-                throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {b.AsString()}");
+            if (this.aType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Unexpected token on left-hand side of condition: {this.a.AsString()}");
+            if (this.bType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {this.b.AsString()}");
 
-            TokenCompare.Type localComparison = comparison;
-            if (inverted) // invert if needed, but only in the local scope
+            TokenCompare.Type localComparison = this.comparison;
+            if (this.inverted) // invert if needed, but only in the local scope
                 localComparison = localComparison.InvertComparison();
 
-            if (aType == SideType.Variable && bType == SideType.Variable)
+            if (this.aType == SideType.Variable && this.bType == SideType.Variable)
             {
                 ScoreboardValue a = ((TokenIdentifierValue) this.a).value;
                 ScoreboardValue b = ((TokenIdentifierValue) this.b).value;
@@ -153,27 +153,27 @@ namespace mc_compiled.MCC.Compiler
 
                 if (willBeInverted)
                 {
-                    temp = executor.scoreboard.temps.Request(true);
-                    commands.Add(Command.ScoreboardSet(temp, 0));
+                    this.temp = executor.scoreboard.temps.Request(true);
+                    commands.Add(Command.ScoreboardSet(this.temp, 0));
 
                     if (localComparison == TokenCompare.Type.NOT_EQUAL)
                     {
                         commands.Add(Command.Execute()
                             .UnlessScore(a, TokenCompare.Type.EQUAL, b)
-                            .Run(Command.ScoreboardSet(temp, 1)));
+                            .Run(Command.ScoreboardSet(this.temp, 1)));
                     }
                     else
                     {
                         commands.Add(Command.Execute()
                             .IfScore(a, localComparison, b)
-                            .Run(Command.ScoreboardSet(temp, 1)));
+                            .Run(Command.ScoreboardSet(this.temp, 1)));
                     }
 
                     return commands;
                 }
             }
 
-            if (aType == SideType.Variable && bType == SideType.Constant)
+            if (this.aType == SideType.Variable && this.bType == SideType.Constant)
             {
                 ScoreboardValue a = ((TokenIdentifierValue)this.a).value;
                 TokenNumberLiteral b = (TokenNumberLiteral)this.b;
@@ -182,8 +182,8 @@ namespace mc_compiled.MCC.Compiler
                 if(willBeInverted)
                 {
                     var commands = new List<string>(this.entries.Item1 ?? Array.Empty<string>());
-                    temp = executor.scoreboard.temps.Request(true);
-                    commands.Add(Command.ScoreboardSet(temp, 0));
+                    this.temp = executor.scoreboard.temps.Request(true);
+                    commands.Add(Command.ScoreboardSet(this.temp, 0));
 
                     ExecuteBuilder builder = Command.Execute();
                     foreach (ConditionalSubcommandScore entry in this.entries.Item2)
@@ -216,11 +216,11 @@ namespace mc_compiled.MCC.Compiler
 
                     }
 
-                    commands.Add(builder.Run(Command.ScoreboardSet(temp, 1)));
+                    commands.Add(builder.Run(Command.ScoreboardSet(this.temp, 1)));
                     return commands;
                 }
 
-                return entries.Item1;
+                return this.entries.Item1;
             }
 
             return null;
@@ -228,12 +228,12 @@ namespace mc_compiled.MCC.Compiler
         public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
             var localComparison = this.comparison;
-            if(inverted)
+            if(this.inverted)
                 localComparison = localComparison.InvertComparison();
 
             cancel = false;
 
-            if (BothValues)
+            if (this.BothValues)
             {
                 // "value value" comparison
                 ScoreboardValue a = ((TokenIdentifierValue) this.a).value;
@@ -242,7 +242,7 @@ namespace mc_compiled.MCC.Compiler
                 if(willBeInverted)
                 {
                     return new Subcommand[] {
-                        new SubcommandIf(ConditionalSubcommandScore.New(temp, new Range(1, false)))
+                        new SubcommandIf(ConditionalSubcommandScore.New(this.temp, new Range(1, false)))
                     };
                 }
                 else
@@ -262,12 +262,12 @@ namespace mc_compiled.MCC.Compiler
 
             }
             
-            if(aType == SideType.Variable)
+            if(this.aType == SideType.Variable)
             {
                 if (willBeInverted)
                 {
                     return new Subcommand[] {
-                        new SubcommandIf(ConditionalSubcommandScore.New(temp, new Range(1, false)))
+                        new SubcommandIf(ConditionalSubcommandScore.New(this.temp, new Range(1, false)))
                     };
                 }
                 else
@@ -289,17 +289,18 @@ namespace mc_compiled.MCC.Compiler
             return null;
         }
 
-        public override string GetDescription() => inverted?
-            $"{a.AsString()} is not {comparison.ToString().Replace("_", "").ToLower()} to {b.AsString()}":
-            $"{a.AsString()} is {comparison.ToString().Replace("_", "").ToLower()} to {b.AsString()}";
+        public override string GetDescription() =>
+            this.inverted?
+            $"{this.a.AsString()} is not {this.comparison.ToString().Replace("_", "").ToLower()} to {this.b.AsString()}":
+            $"{this.a.AsString()} is {this.comparison.ToString().Replace("_", "").ToLower()} to {this.b.AsString()}";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
-            if (aType == SideType.Variable && bType != SideType.Variable)
-                return new[] { ((TokenIdentifierValue) a).value };
-            if (aType != SideType.Variable && bType == SideType.Variable)
-                return new[] { ((TokenIdentifierValue) b).value };
-            if (aType == SideType.Variable && bType == SideType.Variable)
-                return new[] { ((TokenIdentifierValue) a).value, ((TokenIdentifierValue) b).value };
+            if (this.aType == SideType.Variable && this.bType != SideType.Variable)
+                return new[] { ((TokenIdentifierValue) this.a).value };
+            if (this.aType != SideType.Variable && this.bType == SideType.Variable)
+                return new[] { ((TokenIdentifierValue) this.b).value };
+            if (this.aType == SideType.Variable && this.bType == SideType.Variable)
+                return new[] { ((TokenIdentifierValue) this.a).value, ((TokenIdentifierValue) this.b).value };
 
             return Array.Empty<ScoreboardValue>();
         }
@@ -317,10 +318,10 @@ namespace mc_compiled.MCC.Compiler
 
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
-            if (selector.core != Selector.Core.s)
+            if (this.selector.core != Selector.Core.s)
                 throw new StatementException(callingStatement, ERROR_MESSAGE);
 
-            if (!willBeInverted && !inverted)
+            if (!willBeInverted && !this.inverted)
             {
                 cancel = false;
                 return null;
@@ -328,34 +329,35 @@ namespace mc_compiled.MCC.Compiler
 
             List<string> commands = new List<string>();
 
-            temp = executor.scoreboard.temps.Request(true);
-            commands.Add(Command.ScoreboardSet(temp, 0));
+            this.temp = executor.scoreboard.temps.Request(true);
+            commands.Add(Command.ScoreboardSet(this.temp, 0));
             commands.Add(Command.Execute()
-                .As(selector)
-                .Run(Command.ScoreboardSet(temp, 1)));
+                .As(this.selector)
+                .Run(Command.ScoreboardSet(this.temp, 1)));
 
             cancel = false;
             return commands;
         }
         public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
-            if (selector.core != Selector.Core.s)
+            if (this.selector.core != Selector.Core.s)
                 throw new StatementException(callingStatement, ERROR_MESSAGE);
 
             cancel = false;
 
-            if (willBeInverted || inverted)
+            if (willBeInverted || this.inverted)
             {
-                var range = new Range(1, inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
+                var range = new Range(1, this.inverted);
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
             }
 
-            return new Subcommand[] { new SubcommandAs(selector) };
+            return new Subcommand[] { new SubcommandAs(this.selector) };
         }
 
-        public override string GetDescription() => inverted?
-            $"{selector} does not match the executing entity":
-            $"{selector} matches the executing entity";
+        public override string GetDescription() =>
+            this.inverted?
+            $"{this.selector} does not match the executing entity":
+            $"{this.selector} matches the executing entity";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             return Array.Empty<ScoreboardValue>();
@@ -371,17 +373,17 @@ namespace mc_compiled.MCC.Compiler
 
         public bool RequiresSubtraction
         {
-            get => goalType == SideType.Variable;
+            get => this.goalType == SideType.Variable;
         }
 
         private void FindGoalType()
         {
-            if (goalCount is TokenIdentifierValue)
-                goalType = SideType.Variable;
-            else if (goalCount is TokenNumberLiteral)
-                goalType = SideType.Constant;
+            if (this.goalCount is TokenIdentifierValue)
+                this.goalType = SideType.Variable;
+            else if (this.goalCount is TokenNumberLiteral)
+                this.goalType = SideType.Constant;
             else
-                goalType = SideType.Unknown;
+                this.goalType = SideType.Unknown;
         }
         public ComparisonCount(Selector selector, TokenCompare.Type comparison, Token goalCount, bool invert) : base(invert)
         {
@@ -395,20 +397,20 @@ namespace mc_compiled.MCC.Compiler
         private ScoreboardValue temp;
         public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted, out bool cancel)
         {
-            if (goalType == SideType.Unknown)
-                throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {goalCount.AsString()}");
+            if (this.goalType == SideType.Unknown)
+                throw new StatementException(callingStatement, $"Unexpected token on right-hand side of condition: {this.goalCount.AsString()}");
             
             // compile-time validation
-            if (goalType == SideType.Constant)
+            if (this.goalType == SideType.Constant)
             {
-                int constant = ((TokenNumberLiteral)goalCount).GetNumberInt();
+                int constant = ((TokenNumberLiteral) this.goalCount).GetNumberInt();
 
-                if (constant == 0 && comparison == TokenCompare.Type.LESS)
+                if (constant == 0 && this.comparison == TokenCompare.Type.LESS)
                     throw new StatementException(callingStatement, "Expression will always be false.");
                 if (constant < 0)
                 {
                     // we know that the count will always be 0 or greater, so use that for inference
-                    switch (comparison)
+                    switch (this.comparison)
                     {
                         case TokenCompare.Type.EQUAL:
                         case TokenCompare.Type.NOT_EQUAL:
@@ -422,13 +424,13 @@ namespace mc_compiled.MCC.Compiler
                     }
                 }
 
-                if (selector.count.HasCount)
+                if (this.selector.count.HasCount)
                 {
                     // we know the MAX selector count and target count and can perform a static comparison
-                    int maxSelected = selector.count.count;
+                    int maxSelected = this.selector.count.count;
                     
                     // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-                    switch (comparison)
+                    switch (this.comparison)
                     {
                         case TokenCompare.Type.EQUAL:
                             if(constant > maxSelected)
@@ -461,11 +463,11 @@ namespace mc_compiled.MCC.Compiler
             // count number of entities
             var commands = new List<string>();
 
-            temp = executor.scoreboard.temps.Request(true);
-            commands.Add(Command.ScoreboardSet(temp, 0));
+            this.temp = executor.scoreboard.temps.Request(true);
+            commands.Add(Command.ScoreboardSet(this.temp, 0));
             commands.Add(Command.Execute()
-                .As(selector)
-                .Run(Command.ScoreboardAdd(temp, 1)));
+                .As(this.selector)
+                .Run(Command.ScoreboardAdd(this.temp, 1)));
 
             cancel = false;
             return commands;
@@ -475,13 +477,13 @@ namespace mc_compiled.MCC.Compiler
             cancel = false;
 
             var localComparison = this.comparison;
-            if (inverted)
+            if (this.inverted)
                 localComparison = localComparison.InvertComparison();
 
-            if (goalType == SideType.Variable)
+            if (this.goalType == SideType.Variable)
             {
                 ScoreboardValue b = ((TokenIdentifierValue)this.goalCount).value;
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, localComparison, b)) };
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, localComparison, b)) };
             } else
             {
                 TokenNumberLiteral _b = this.goalCount as TokenNumberLiteral;
@@ -513,17 +515,18 @@ namespace mc_compiled.MCC.Compiler
                         throw new StatementException(callingStatement, $"Unexpected comparison type: {localComparison}.");
                 }
 
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
             }
         }
 
-        public override string GetDescription() => inverted?
-            $"count of {selector} is not {comparison.ToString().Replace("_", "").ToLower()} to {goalCount.AsString()}":
-            $"count of {selector} is {comparison.ToString().Replace("_", "").ToLower()} to {goalCount.AsString()}";
+        public override string GetDescription() =>
+            this.inverted?
+            $"count of {this.selector} is not {this.comparison.ToString().Replace("_", "").ToLower()} to {this.goalCount.AsString()}":
+            $"count of {this.selector} is {this.comparison.ToString().Replace("_", "").ToLower()} to {this.goalCount.AsString()}";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
-            if (goalType == SideType.Variable)
-                return new[] { (goalCount as TokenIdentifierValue).value };
+            if (this.goalType == SideType.Variable)
+                return new[] { (this.goalCount as TokenIdentifierValue).value };
             return Array.Empty<ScoreboardValue>();
         }
     }
@@ -553,11 +556,11 @@ namespace mc_compiled.MCC.Compiler
 
             List<string> commands = new List<string>();
 
-            temp = executor.scoreboard.temps.Request(true);
-            commands.Add(Command.ScoreboardSet(temp, 0));
+            this.temp = executor.scoreboard.temps.Request(true);
+            commands.Add(Command.ScoreboardSet(this.temp, 0));
             commands.Add(Command.Execute()
-                .IfEntity(selector)
-                .Run(Command.ScoreboardSet(temp, 1)));
+                .IfEntity(this.selector)
+                .Run(Command.ScoreboardSet(this.temp, 1)));
 
             cancel = false;
             return commands;
@@ -568,20 +571,21 @@ namespace mc_compiled.MCC.Compiler
 
             if (willBeInverted)
             {
-                Range range = new Range(1, inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
+                Range range = new Range(1, this.inverted);
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
             }
 
-            if(inverted)
-                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandEntity.New(selector)) };
+            if(this.inverted)
+                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandEntity.New(this.selector)) };
             else
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandEntity.New(selector)) };
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandEntity.New(this.selector)) };
 
         }
 
-        public override string GetDescription() => inverted ?
-            $"{selector} does not match any entity":
-            $"{selector} matches any entity";
+        public override string GetDescription() =>
+            this.inverted ?
+            $"{this.selector} does not match any entity":
+            $"{this.selector} matches any entity";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             return Array.Empty<ScoreboardValue>();
@@ -615,11 +619,11 @@ namespace mc_compiled.MCC.Compiler
 
             List<string> commands = new List<string>();
 
-            temp = executor.scoreboard.temps.Request(true);
-            commands.Add(Command.ScoreboardSet(temp, 0));
+            this.temp = executor.scoreboard.temps.Request(true);
+            commands.Add(Command.ScoreboardSet(this.temp, 0));
             commands.Add(Command.Execute()
-                .IfBlock(x, y, z, block, data)
-                .Run(Command.ScoreboardSet(temp, 1)));
+                .IfBlock(this.x, this.y, this.z, this.block, this.data)
+                .Run(Command.ScoreboardSet(this.temp, 1)));
 
             cancel = false;
             return commands;
@@ -630,19 +634,20 @@ namespace mc_compiled.MCC.Compiler
 
             if(willBeInverted)
             {
-                Range range = new Range(1, inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
+                Range range = new Range(1, this.inverted);
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
             }
 
-            if (inverted)
-                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, data)) };
+            if (this.inverted)
+                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data)) };
             else
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, data)) };
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data)) };
         }
 
-        public override string GetDescription() => inverted?
-            $"block at ({x} {y} {z}) is not {block}:{data}":
-            $"block at ({x} {y} {z}) is {block}:{data}";
+        public override string GetDescription() =>
+            this.inverted?
+            $"block at ({this.x} {this.y} {this.z}) is not {this.block}:{this.data}":
+            $"block at ({this.x} {this.y} {this.z}) is {this.block}:{this.data}";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             return Array.Empty<ScoreboardValue>();
@@ -681,11 +686,11 @@ namespace mc_compiled.MCC.Compiler
 
             List<string> commands = new List<string>();
 
-            temp = executor.scoreboard.temps.Request(true);
-            commands.Add(Command.ScoreboardSet(temp, 0));
+            this.temp = executor.scoreboard.temps.Request(true);
+            commands.Add(Command.ScoreboardSet(this.temp, 0));
             commands.Add(Command.Execute()
-                .IfBlocks(beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode)
-                .Run(Command.ScoreboardSet(temp, 1)));
+                .IfBlocks(this.beginX, this.beginY, this.beginZ, this.endX, this.endY, this.endZ, this.destX, this.destY, this.destZ, this.scanMode)
+                .Run(Command.ScoreboardSet(this.temp, 1)));
 
             cancel = false;
             return commands;
@@ -696,19 +701,20 @@ namespace mc_compiled.MCC.Compiler
 
             if (willBeInverted)
             {
-                var range = new Range(1, inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(temp, range)) };
+                var range = new Range(1, this.inverted);
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
             }
 
-            if (inverted)
-                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlocks.New(beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode)) };
+            if (this.inverted)
+                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlocks.New(this.beginX, this.beginY, this.beginZ, this.endX, this.endY, this.endZ, this.destX, this.destY, this.destZ, this.scanMode)) };
             else
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlocks.New(beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode)) };
+                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlocks.New(this.beginX, this.beginY, this.beginZ, this.endX, this.endY, this.endZ, this.destX, this.destY, this.destZ, this.scanMode)) };
         }
 
-        public override string GetDescription() => inverted ?
-            $"{scanMode} blocks between ({beginX} {beginY} {beginZ}) and ({endX} {endY} {endZ}) do not match the blocks at ({destX} {destY} {destZ})" :
-            $"{scanMode} blocks between ({beginX} {beginY} {beginZ}) and ({endX} {endY} {endZ}) match the blocks at ({destX} {destY} {destZ})";
+        public override string GetDescription() =>
+            this.inverted ?
+            $"{this.scanMode} blocks between ({this.beginX} {this.beginY} {this.beginZ}) and ({this.endX} {this.endY} {this.endZ}) do not match the blocks at ({this.destX} {this.destY} {this.destZ})" :
+            $"{this.scanMode} blocks between ({this.beginX} {this.beginY} {this.beginZ}) and ({this.endX} {this.endY} {this.endZ}) match the blocks at ({this.destX} {this.destY} {this.destZ})";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             return Array.Empty<ScoreboardValue>();

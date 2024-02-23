@@ -7,13 +7,13 @@ namespace mc_compiled.NBT
         public TAG listType;
         public NBTNode[] values;
 
-        public NBTList() => tagType = TAG.List;
+        public NBTList() => this.tagType = TAG.List;
 
         public override void Write(BinaryWriter writer)
         {
-            writer.Write((byte)listType);
-            writer.Write(values.Length);
-            foreach (NBTNode node in values)
+            writer.Write((byte) this.listType);
+            writer.Write(this.values.Length);
+            foreach (NBTNode node in this.values)
                 node.Write(writer);
         }
     }

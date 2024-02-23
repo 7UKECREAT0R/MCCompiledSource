@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>An array of <see cref="ControllerState"/>s that represent this binding.</returns>
         public abstract ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState);
         public override string ToString() =>
-$"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "none" : string.Join(" ", targetFiles))} :: desc: {description}";
+$"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles == null ? "none" : string.Join(" ", this.targetFiles))} :: desc: {this.description}";
     }
     /// <summary>
     /// A definition describing how to bind to a Molang query that evaluates to a boolean.
@@ -65,7 +65,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                     },
                     transitions = new ControllerState.Transition[]
                     {
-                        new ControllerState.Transition("on", (MolangValue)molangQuery)
+                        new ControllerState.Transition("on", (MolangValue) this.molangQuery)
                     }
                 },
                 new ControllerState()
@@ -77,7 +77,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
                     },
                     transitions = new ControllerState.Transition[]
                     {
-                        new ControllerState.Transition("off", (MolangValue)$"!({molangQuery})")
+                        new ControllerState.Transition("off", (MolangValue)$"!({this.molangQuery})")
                     }
                 }
             };
@@ -93,7 +93,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
 
         public Range AsRange
         {
-            get => new Range(min, max);
+            get => new Range(this.min, this.max);
         }
 
         public MolangBindingInt(string molangQuery, string[] targetFiles, string description, int min, int max)
@@ -121,7 +121,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState)
         {
             defaultState = "direct";
-            int numberOfStates = max - min + 1;
+            int numberOfStates = this.max - this.min + 1;
             var states = new ControllerState[numberOfStates + 1]; // + 1 for the director
             var director = new ControllerState()
             {
@@ -131,7 +131,7 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
 
             for (int i = 0; i < numberOfStates; i++)
             {
-                int currentState = min + i;
+                int currentState = this.min + i;
                 string stateName = "when_" + currentState;
 
                 var state = new ControllerState()
@@ -177,8 +177,8 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
         {
             defaultState = "direct";
 
-            float distance = max - min;
-            float normalizedStep = distance / step;
+            float distance = this.max - this.min;
+            float normalizedStep = distance / this.step;
             int numberOfStates = ((int)normalizedStep); // floor
 
             var states = new ControllerState[numberOfStates + 1]; // + 1 for the director
@@ -190,12 +190,12 @@ $"Binding ({Type}): \"{molangQuery}\" :: target(s): {(targetFiles == null ? "non
 
             float Lerp(float t)
             {
-                return (1 - t) * min + t * max;
+                return (1 - t) * this.min + t * this.max;
             }
 
             for (int i = 0; i < numberOfStates; i++)
             {
-                float currentValue = min + Lerp(i * normalizedStep);
+                float currentValue = this.min + Lerp(i * normalizedStep);
                 float lowerBound = currentValue - (normalizedStep / 2);
                 float upperBound = currentValue + (normalizedStep / 2);
 

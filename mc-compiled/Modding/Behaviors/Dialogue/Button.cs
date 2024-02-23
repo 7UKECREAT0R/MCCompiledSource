@@ -17,38 +17,38 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             set
             {
-                _name = new RawTextJsonBuilder();
-                _name.AddTerm(new JSONText(value));
+                this._name = new RawTextJsonBuilder();
+                this._name.AddTerm(new JSONText(value));
             }
         }
         public string NameTranslate
         {
             set
             {
-                _name = new RawTextJsonBuilder();
-                _name.AddTerm(new JSONTranslate(value));
+                this._name = new RawTextJsonBuilder();
+                this._name.AddTerm(new JSONTranslate(value));
             }
         }
         public JSONRawTerm[] Name
         {
             set
             {
-                _name = new RawTextJsonBuilder();
-                _name.AddTerms(value);
+                this._name = new RawTextJsonBuilder();
+                this._name.AddTerms(value);
             }
         }
         public RawTextJsonBuilder NameRaw
         {
             get
             {
-                if (_name == null)
+                if (this._name == null)
                 {
-                    _name = new RawTextJsonBuilder();
-                    return _name;
+                    this._name = new RawTextJsonBuilder();
+                    return this._name;
                 }
 
-                _name.ClearTerms();
-                return _name;
+                this._name.ClearTerms();
+                return this._name;
             }
         }
 
@@ -61,8 +61,8 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         {
             return new JObject()
             {
-                ["name"] = _name.Build(),
-                ["commands"] = new JArray(commands?.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd) ?? Array.Empty<string>())
+                ["name"] = this._name.Build(),
+                ["commands"] = new JArray(this.commands?.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd) ?? Array.Empty<string>())
             };
         }
     }

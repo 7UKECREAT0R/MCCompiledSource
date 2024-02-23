@@ -30,7 +30,7 @@ namespace mc_compiled.MCC
         /// <param name="debugInfo"></param>
         public Definitions(bool debugInfo)
         {
-            defs = new Dictionary<string, string>();
+            this.defs = new Dictionary<string, string>();
             string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string path = Path.Combine(assemblyDir, FILE);
             if (!File.Exists(path))
@@ -99,7 +99,7 @@ namespace mc_compiled.MCC
                     string key;
                     
                     key = BuildKey(category, name);
-                    defs[key] = value;
+                    this.defs[key] = value;
 
                     if (debugInfo)
                         catEntries++;
@@ -107,7 +107,7 @@ namespace mc_compiled.MCC
                     foreach (string alias in categoryAliases)
                     {
                         key = BuildKey(alias, name);
-                        defs[key] = value;
+                        this.defs[key] = value;
                     }
                 }
             }
@@ -142,7 +142,7 @@ namespace mc_compiled.MCC
                 for(int i = 0; i < multi.Length; i++)
                 {
                     string key = BuildKey(category, multi[i]);
-                    if (defs.TryGetValue(key, out string replacement))
+                    if (this.defs.TryGetValue(key, out string replacement))
                         replacements[i] = replacement;
                     else
                         goto no_changes; // fight me

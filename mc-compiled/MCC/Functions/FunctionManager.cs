@@ -43,9 +43,9 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         internal void RegisterDefaultProviders()
         {
-            foreach (IFunctionProvider provider in FunctionManager.DefaultCompilerProviders)
+            foreach (IFunctionProvider provider in DefaultCompilerProviders)
             {
-                var functions = provider.ProvideFunctions(scoreboardManager);
+                var functions = provider.ProvideFunctions(this.scoreboardManager);
                 foreach (Function function in functions)
                     RegisterFunction(function);
             }
@@ -78,11 +78,11 @@ namespace mc_compiled.MCC.Functions
         /// <param name="function"></param>
         private void RegisterUnderName(string name, Function function)
         {
-            if (!functionRegistry.TryGetValue(name, out List<Function> functions))
+            if (!this.functionRegistry.TryGetValue(name, out List<Function> functions))
                 functions = new List<Function>();
 
             functions.Add(function);
-            functionRegistry[name] = functions;
+            this.functionRegistry[name] = functions;
         }
         /// <summary>
         /// Registers a test function.
@@ -102,7 +102,7 @@ namespace mc_compiled.MCC.Functions
         public IEnumerable<T> FetchAll<T>() where T: Function
         {
             return (
-                from funcList in functionRegistry.Values
+                from funcList in this.functionRegistry.Values
                 from func in funcList
                 where func is T
                 select func as T
@@ -114,7 +114,7 @@ namespace mc_compiled.MCC.Functions
         /// <returns></returns>
         public IEnumerable<Function> FetchAll()
         {
-            return functionRegistry.Values.SelectMany(item => item);
+            return this.functionRegistry.Values.SelectMany(item => item);
         }
         
         /// <summary>
@@ -125,7 +125,7 @@ namespace mc_compiled.MCC.Functions
         /// <returns></returns>
         public bool TryGetFunctions(string name, out Function[] functions)
         {
-            if(functionRegistry.TryGetValue(name, out List<Function> results))
+            if(this.functionRegistry.TryGetValue(name, out List<Function> results))
             {
                 results.Sort(FunctionComparator.Instance);
                 functions = results.ToArray();

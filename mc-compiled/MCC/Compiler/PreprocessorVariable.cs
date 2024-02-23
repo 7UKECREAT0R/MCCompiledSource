@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace mc_compiled.MCC.Compiler
@@ -22,8 +21,8 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public PreprocessorVariable Clone()
         {
-            dynamic[] clonedItems = new dynamic[Length];
-            Array.Copy(items, clonedItems, Length);
+            dynamic[] clonedItems = new dynamic[this.Length];
+            Array.Copy(this.items, clonedItems, this.Length);
             return new PreprocessorVariable(clonedItems);
         }
     }
@@ -47,8 +46,8 @@ namespace mc_compiled.MCC.Compiler
                 throw new Exception("Cannot create empty PreprocessorVariable.");
             
             this.items = items;
-            Length = items.Length;
-            Capacity = items.Length;
+            this.Length = items.Length;
+            this.Capacity = items.Length;
         }
         
         /// <summary>
@@ -59,9 +58,9 @@ namespace mc_compiled.MCC.Compiler
         /// <exception cref="IndexOutOfRangeException">Thrown when the index is out of range.</exception>
         private T Get(int index)
         {
-            if (index >= Length)
+            if (index >= this.Length)
                 throw new IndexOutOfRangeException();
-            return items[index];
+            return this.items[index];
         }
         /// <summary>
         /// Sets the value of an item at a specific index in the array.
@@ -71,9 +70,9 @@ namespace mc_compiled.MCC.Compiler
         /// <exception cref="IndexOutOfRangeException">Thrown if the index is out of range.</exception>
         private void Set(int index, T item)
         {
-            if (index >= Length)
+            if (index >= this.Length)
                 throw new IndexOutOfRangeException();
-            items[index] = item;
+            this.items[index] = item;
         }
         /// <summary>
         /// Sets all the items of the preprocessor variable with the specified items.
@@ -89,8 +88,8 @@ namespace mc_compiled.MCC.Compiler
                 throw new Exception("Cannot fill preprocessor variable with 0 items.");
 
             this.items = items;
-            Length = items.Length;
-            Capacity = items.Length;
+            this.Length = items.Length;
+            this.Capacity = items.Length;
         }
         /// <summary>
         /// Sets all the items of the preprocessor variable with the specified items.
@@ -101,19 +100,19 @@ namespace mc_compiled.MCC.Compiler
         [PublicAPI]
         public void SetAll(PreprocessorVariableRaw<T> other)
         {
-            if (other.Length <= Capacity)
+            if (other.Length <= this.Capacity)
                 CopyItemsAndSetLength(other);
             else
             {
-                items = new T[other.Length];
-                Capacity = other.Length;
+                this.items = new T[other.Length];
+                this.Capacity = other.Length;
                 CopyItemsAndSetLength(other);
             }
         }
         private void CopyItemsAndSetLength(PreprocessorVariableRaw<T> source)
         {
-            Array.Copy(source.items, items, source.Length);
-            Length = source.Length;
+            Array.Copy(source.items, this.items, source.Length);
+            this.Length = source.Length;
         }
 
         /// <summary>
@@ -122,17 +121,18 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="item">The item to be added.</param>
         public void Append(T item)
         {
-            if (Length == Capacity)
+            if (this.Length == this.Capacity)
             {
-                if (Capacity == 0)
-                    Capacity = 1;
+                if (this.Capacity == 0)
+                    this.Capacity = 1;
                 else
-                    Capacity *= 2;
+                    this.Capacity *= 2;
                 
-                Array.Resize(ref items, Capacity);
+                Array.Resize(ref this.items, this.Capacity);
             }
-            items[Length] = item;
-            Length++;
+
+            this.items[this.Length] = item;
+            this.Length++;
         }
         /// <summary>
         /// Adds an item to the start of the collection.
@@ -140,19 +140,19 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="item">The item to be added.</param>
         public void Prepend(T item)
         {
-            if (Length == Capacity)
+            if (this.Length == this.Capacity)
             {
-                if (Capacity == 0)
-                    Capacity = 1;
+                if (this.Capacity == 0)
+                    this.Capacity = 1;
                 else
-                    Capacity *= 2;
+                    this.Capacity *= 2;
                 
-                Array.Resize(ref items, Capacity);
+                Array.Resize(ref this.items, this.Capacity);
             }
             
-            Array.Copy(items, 0, items, 1, Length);
-            items[0] = item;
-            Length++;
+            Array.Copy(this.items, 0, this.items, 1, this.Length);
+            this.items[0] = item;
+            this.Length++;
         }
         
         /// <summary>
@@ -164,21 +164,19 @@ namespace mc_compiled.MCC.Compiler
         {
             T[] items = _items.ToArray();
             int length = items.Length;
-            int resultLength = Length + length;
+            int resultLength = this.Length + length;
 
-            if (resultLength > Capacity)
+            if (resultLength > this.Capacity)
             {
-                if (Capacity == 0)
-                    Capacity = 1;
+                if (this.Capacity == 0) this.Capacity = 1;
 
-                while (resultLength > Capacity)
-                    Capacity *= 2;
+                while (resultLength > this.Capacity) this.Capacity *= 2;
                 
-                Array.Resize(ref this.items, Capacity);
+                Array.Resize(ref this.items, this.Capacity);
             }
             
-            Array.Copy(items, 0, this.items, Length, length);
-            Length = resultLength;
+            Array.Copy(items, 0, this.items, this.Length, length);
+            this.Length = resultLength;
         }
         /// <summary>
         /// Prepends a collection of items to the beginning of the current collection.
@@ -189,24 +187,22 @@ namespace mc_compiled.MCC.Compiler
         {
             T[] items = _items.ToArray();
             int length = items.Length;
-            int resultLength = Length + length;
+            int resultLength = this.Length + length;
 
-            if (resultLength > Capacity)
+            if (resultLength > this.Capacity)
             {
-                if (Capacity == 0)
-                    Capacity = 1;
+                if (this.Capacity == 0) this.Capacity = 1;
 
-                while (resultLength > Capacity)
-                    Capacity *= 2;
+                while (resultLength > this.Capacity) this.Capacity *= 2;
                 
-                Array.Resize(ref this.items, Capacity);
+                Array.Resize(ref this.items, this.Capacity);
             }
             
             // move all elements right in this.items 'length'
-            Array.Copy(this.items, 0, this.items, length, Length);
+            Array.Copy(this.items, 0, this.items, length, this.Length);
             // insert items to prepend
             Array.Copy(items, 0, this.items, 0, length);
-            Length = resultLength;
+            this.Length = resultLength;
         }
 
         /// <summary>
@@ -224,9 +220,9 @@ namespace mc_compiled.MCC.Compiler
         
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < this.Length; i++)
             {
-                yield return items[i];
+                yield return this.items[i];
             }
         }
         IEnumerator IEnumerable.GetEnumerator()

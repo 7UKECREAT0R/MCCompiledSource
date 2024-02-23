@@ -62,7 +62,7 @@ namespace mc_compiled.Commands
             public IndexedTag PushTag(string tag)
             {
                 int hash = tag.GetHashCode();
-                if(tags.TryGetValue(hash, out int index))
+                if(this.tags.TryGetValue(hash, out int index))
                 {
                     IndexedTag ret = new IndexedTag()
                     {
@@ -71,11 +71,11 @@ namespace mc_compiled.Commands
                     };
 
                     index++;
-                    tags[hash] = index;
+                    this.tags[hash] = index;
                     return ret;
                 } else
                 {
-                    tags[hash] = 1;
+                    this.tags[hash] = 1;
                     return new IndexedTag()
                     {
                         name = tag,
@@ -91,8 +91,8 @@ namespace mc_compiled.Commands
             public void PopTag(IndexedTag tag)
             {
                 int hash = tag.name.GetHashCode();
-                int index = tags[hash];
-                tags[hash] = index - 1;
+                int index = this.tags[hash];
+                this.tags[hash] = index - 1;
             }
 
             /// <summary>
@@ -101,7 +101,7 @@ namespace mc_compiled.Commands
             /// <param name="entity"></param>
             /// <returns></returns>
             public string MakeInvisible(string entity) =>
-                Command.Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
+                Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
 
             /// <summary>
             /// Prepends "minecraft:" if no namespace is given.
@@ -745,7 +745,7 @@ namespace mc_compiled.Commands
         public string name;
         public int index;
 
-        public string Tag { get => name + index; }
+        public string Tag { get => this.name + this.index; }
         public static implicit operator string(IndexedTag tag) => tag.Tag;
     }
     public enum CameraShakeType

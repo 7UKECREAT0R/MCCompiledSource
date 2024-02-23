@@ -22,11 +22,11 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly Directive directive;
 
-        public override string AsString() => directive.identifier;
+        public override string AsString() => this.directive.identifier;
 
         public Type[] GetImplicitTypes()
         {
-            if(directive.enumValue.HasValue)
+            if(this.directive.enumValue.HasValue)
                 return new[] { typeof(TokenIdentifier), typeof(TokenIdentifierEnum) };
             else
                 return new[] { typeof(TokenIdentifier) };
@@ -36,10 +36,10 @@ namespace mc_compiled.MCC.Compiler
             switch(index)
             {
                 case 0:
-                    return new TokenIdentifier(directive.identifier, lineNumber);
+                    return new TokenIdentifier(this.directive.identifier, this.lineNumber);
                 case 1:
-                    Debug.Assert(directive.enumValue != null, "directive.enumValue was null");
-                    return new TokenIdentifierEnum(directive.identifier, directive.enumValue.Value, lineNumber);
+                    Debug.Assert(this.directive.enumValue != null, "directive.enumValue was null");
+                    return new TokenIdentifierEnum(this.directive.identifier, this.directive.enumValue.Value, this.lineNumber);
             }
             return null;
         }
@@ -56,7 +56,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly string contents;
 
-        public override string AsString() => "// " + contents;
+        public override string AsString() => "// " + this.contents;
         public TokenComment(string contents, int lineNumber) : base(lineNumber)
         {
             this.contents = contents;
@@ -80,12 +80,12 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public const int CONVERT_BUILDER = 1;
 
-        public override string AsString() => word;
+        public override string AsString() => this.word;
         public TokenIdentifier(string word, int lineNumber) : base(lineNumber)
         {
             this.word = word;
         }
-        public object GetValue() => word;
+        public object GetValue() => this.word;
 
         public Type[] GetImplicitTypes() =>
             new[]
@@ -98,9 +98,9 @@ namespace mc_compiled.MCC.Compiler
             switch (index)
             {
                 case CONVERT_STRING:
-                    return new TokenStringLiteral(word, lineNumber);
+                    return new TokenStringLiteral(this.word, this.lineNumber);
                 case CONVERT_BUILDER:
-                    return new TokenBuilderIdentifier(word, lineNumber);
+                    return new TokenBuilderIdentifier(this.word, this.lineNumber);
                 default:
                     return null;
             }
@@ -111,7 +111,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenUnresolvedSelector : Token
     {
-        public override string AsString() => $"{unresolvedSelector}";
+        public override string AsString() => $"{this.unresolvedSelector}";
 
         private readonly UnresolvedSelector unresolvedSelector;
         public TokenUnresolvedSelector(UnresolvedSelector unresolvedSelector, int lineNumber) : base(lineNumber)
@@ -121,7 +121,7 @@ namespace mc_compiled.MCC.Compiler
 
         public TokenSelectorLiteral Resolve(Executor executor)
         {
-            return new TokenSelectorLiteral(unresolvedSelector.Resolve(executor), lineNumber);
+            return new TokenSelectorLiteral(this.unresolvedSelector.Resolve(executor), this.lineNumber);
         }
     }
     /// <summary>
@@ -136,15 +136,15 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public string BuilderField
         {
-            get => builderField.ToUpper();
+            get => this.builderField.ToUpper();
         }
         public TokenBuilderIdentifier(string fullWord, int lineNumber) : base(fullWord, lineNumber)
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (fullWord.EndsWith(":")) // it should as long as its not implicitly converted from identifier
-                builderField = fullWord.Substring(0, fullWord.Length - 1).Trim();
+                this.builderField = fullWord.Substring(0, fullWord.Length - 1).Trim();
             else
-                builderField = fullWord.Trim();
+                this.builderField = fullWord.Trim();
         }
     }
     /// <summary>
@@ -158,7 +158,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.value = value;
         }
-        public override string AsString() => value.value.ToString();
+        public override string AsString() => this.value.value.ToString();
 
         public string GetDocumentation() => "Usually a specific keyword in a subset of possible keywords. This type is entirely context dependent.";
     }
@@ -175,12 +175,12 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the full name used to access this value.
         /// </summary>
-        public string Accessor => word;
+        public string Accessor => this.word;
 
         /// <summary>
         /// Shorthand for .value.clarifier.CurrentString();
         /// </summary>
-        public string ClarifierStr => value.clarifier.CurrentString;
+        public string ClarifierStr => this.value.clarifier.CurrentString;
 
         [UsedImplicitly]
         private TokenIdentifierValue() : base(null, -1) {} // if you remove this method the markdown exporter will blow up because it uses Activator and needs this
@@ -192,29 +192,29 @@ namespace mc_compiled.MCC.Compiler
 
         public Token Index(TokenIndexer indexer, Statement forExceptions)
         {
-            if (value.HasAttribute<AttributeGlobal>() || value.clarifier.IsGlobal)
+            if (this.value.HasAttribute<AttributeGlobal>() || this.value.clarifier.IsGlobal)
                 throw new StatementException(forExceptions, "Cannot clarify a value that is defined as global.");
             
             switch (indexer)
             {
                 case TokenIndexerString @string:
                 {
-                    ScoreboardValue clone = value.Clone(forExceptions);
+                    ScoreboardValue clone = this.value.Clone(forExceptions);
                     string fakePlayer = @string.token.text;
                     clone.clarifier.SetString(fakePlayer);
-                    return new TokenIdentifierValue(word, clone, lineNumber);
+                    return new TokenIdentifierValue(this.word, clone, this.lineNumber);
                 }
                 case TokenIndexerAsterisk _:
                 {
-                    ScoreboardValue clone = value.Clone(forExceptions);
+                    ScoreboardValue clone = this.value.Clone(forExceptions);
                     clone.clarifier.SetString("*");
-                    return new TokenIdentifierValue(word, clone, lineNumber);
+                    return new TokenIdentifierValue(this.word, clone, this.lineNumber);
                 }
                 case TokenIndexerSelector selector:
                 {
-                    ScoreboardValue clone = value.Clone(forExceptions);
+                    ScoreboardValue clone = this.value.Clone(forExceptions);
                     clone.clarifier.SetSelector(selector.token.selector);
-                    return new TokenIdentifierValue(word, clone, lineNumber);
+                    return new TokenIdentifierValue(this.word, clone, this.lineNumber);
                 }
                 default:
                     throw indexer.GetException(this, forExceptions);
@@ -241,12 +241,12 @@ namespace mc_compiled.MCC.Compiler
                 throw indexer.GetException(this, forExceptions);
 
             int input = integer.token.number;
-            int length = variable.Length;
+            int length = this.variable.Length;
 
             if (input < 0 || input >= length)
                 throw integer.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
 
-            dynamic result = variable[input];
+            dynamic result = this.variable[input];
 
             if (result == null)
                 throw new StatementException(forExceptions, "Preprocessor variable contained an unexpecteed null value. Report this as a github issue or in the Discord.");
@@ -258,7 +258,7 @@ namespace mc_compiled.MCC.Compiler
                 case TokenIdentifier identifier:
                     return identifier;
                 default:
-                    TokenLiteral newLiteral = PreprocessorUtils.DynamicToLiteral(result, lineNumber);
+                    TokenLiteral newLiteral = PreprocessorUtils.DynamicToLiteral(result, this.lineNumber);
                     if (newLiteral == null)
                         throw new StatementException(forExceptions, "Preprocessor variable contained an unexpected type that could not be converted to a TokenLiteral (sparse support?). Type: " + result.GetType().FullName);
                     return newLiteral;

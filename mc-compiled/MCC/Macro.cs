@@ -26,7 +26,7 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public bool Matches(string otherName)
         {
-            return name.ToUpper().Trim().Equals
+            return this.name.ToUpper().Trim().Equals
                 (otherName.ToUpper().Trim());
         }
     }

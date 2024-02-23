@@ -27,9 +27,9 @@ namespace mc_compiled.MCC.CustomEntities
 
         internal DummyManager(Executor parent) : base(parent)
         {
-            createdEntityFiles = false;
-            existingDummies = new HashSet<string>();
-            dummyType = parent.project.Namespace("dummy");
+            this.createdEntityFiles = false;
+            this.existingDummies = new HashSet<string>();
+            this.dummyType = parent.project.Namespace("dummy");
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace mc_compiled.MCC.CustomEntities
                     count = new Count(1),
                     entity = new Entity()
                     {
-                        type = dummyType,
+                        type = this.dummyType,
                         name = name,
                         families = new List<string> { TAGGABLE_FAMILY_NAME }
                     },
@@ -60,7 +60,7 @@ namespace mc_compiled.MCC.CustomEntities
                 count = new Count(1),
                 entity = new Entity()
                 {
-                    type = dummyType,
+                    type = this.dummyType,
                     name = name
                 }
             };
@@ -78,26 +78,26 @@ namespace mc_compiled.MCC.CustomEntities
             if (setForTagging)
             {
                 if (tag == null)
-                    return $"@e[type={dummyType},name={name},family={DummyManager.TAGGABLE_FAMILY_NAME}]";
-                return $"@e[type={dummyType},name={name},family={DummyManager.TAGGABLE_FAMILY_NAME},tag={tag}]";
+                    return $"@e[type={this.dummyType},name={name},family={TAGGABLE_FAMILY_NAME}]";
+                return $"@e[type={this.dummyType},name={name},family={TAGGABLE_FAMILY_NAME},tag={tag}]";
             }
 
             if(tag == null)
-                return $"@e[type={dummyType},name={name}]";
-            return $"@e[type={dummyType},name={name},tag={tag}]";
+                return $"@e[type={this.dummyType},name={name}]";
+            return $"@e[type={this.dummyType},name={name},tag={tag}]";
         }
         /// <summary>
         /// Get a selector to select all dummy entities.
         /// </summary>
         /// <returns></returns>
         public string GetAllStringSelector() =>
-            $"@e[type={dummyType}]";
+            $"@e[type={this.dummyType}]";
         /// <summary>
         /// Get a selector to select all dummy entities.
         /// </summary>
         /// <returns></returns>
         public string GetAllStringSelector(string tag) =>
-            $"@e[type={dummyType},tag={tag}]";
+            $"@e[type={this.dummyType},tag={tag}]";
 
         /// <summary>
         /// Create a new dummy entity.
@@ -111,12 +111,12 @@ namespace mc_compiled.MCC.CustomEntities
         public string Create(string name, bool forTagging, Coordinate x, Coordinate y, Coordinate z)
         {
             var commands = new List<string>();
-            existingDummies.Add(name);
+            this.existingDummies.Add(name);
 
             if (!forTagging)
-                return Command.Summon(dummyType, x, y, z, Coordinate.here, Coordinate.here, name);
+                return Command.Summon(this.dummyType, x, y, z, Coordinate.here, Coordinate.here, name);
             
-            return Command.Summon(dummyType, x, y, z, Coordinate.here,Coordinate.here, name, TAGGABLE_EVENT_ADD_NAME);
+            return Command.Summon(this.dummyType, x, y, z, Coordinate.here,Coordinate.here, name, TAGGABLE_EVENT_ADD_NAME);
         }
 
         /// <summary>
@@ -145,14 +145,13 @@ namespace mc_compiled.MCC.CustomEntities
 
         protected override IEnumerable<IAddonFile> CreateEntityFiles()
         {
-            dummyFiles = EntityBehavior.CreateDummy(dummyType);
-            return dummyFiles.AddonFiles;
+            this.dummyFiles = EntityBehavior.CreateDummy(this.dummyType);
+            return this.dummyFiles.AddonFiles;
         }
-        public override bool HasEntity(string entity) =>
-            existingDummies.Contains(entity);
-        public override bool Search(string name, out Commands.Selectors.Selector selector)
+        public override bool HasEntity(string entity) => this.existingDummies.Contains(entity);
+        public override bool Search(string name, out Selector selector)
         {
-            if (existingDummies.Contains(name))
+            if (this.existingDummies.Contains(name))
             {
                 selector = GetSelector(name, false);
                 return true;
@@ -164,15 +163,15 @@ namespace mc_compiled.MCC.CustomEntities
     }
     public struct DummyFiles
     {
-        public Modding.Behaviors.EntityBehavior behavior;
+        public EntityBehavior behavior;
         public Modding.Resources.EntityResource resources;
         public Modding.Resources.EntityGeometry geometry;
 
         public IAddonFile[] AddonFiles
         {
-            get => new Modding.IAddonFile[]
+            get => new IAddonFile[]
             {
-                behavior, resources, geometry, 
+                this.behavior, this.resources, this.geometry, 
             };
         }
     }

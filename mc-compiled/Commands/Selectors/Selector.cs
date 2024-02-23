@@ -71,16 +71,16 @@ namespace mc_compiled.Commands.Selectors
         public bool SelectsMultiple
         {
             get {
-                if (count.count == 1)
+                if (this.count.count == 1)
                     return false;
-                return core != Core.s && core != Core.p && core != Core.r;
+                return this.core != Core.s && this.core != Core.p && this.core != Core.r;
             }
         }
 
         /// <summary>
         /// Returns if this selector needs to be aligned before executing locally on this entity.
         /// </summary>
-        public bool NonSelf => core != Core.s;
+        public bool NonSelf => this.core != Core.s;
         /// <summary>
         /// Returns if this selector selects ANY entities that are not players.
         /// </summary>
@@ -88,11 +88,11 @@ namespace mc_compiled.Commands.Selectors
         {
             get
             {
-                if (core != Core.e && core != Core.r)
+                if (this.core != Core.e && this.core != Core.r)
                     return false;
-                if (entity.type != null && entity.type.Contains("player"))
+                if (this.entity.type != null && this.entity.type.Contains("player"))
                     return false;
-                if (entity.families != null && entity.families.Any(f => f.Contains("player")))
+                if (this.entity.families != null && this.entity.families.Any(f => f.Contains("player")))
                     return false;
                 return true;
             }
@@ -104,11 +104,11 @@ namespace mc_compiled.Commands.Selectors
         {
             get
             {
-                if (core == Core.a || core == Core.s || core == Core.p)
+                if (this.core == Core.a || this.core == Core.s || this.core == Core.p)
                     return false;
-                if (entity.type != null && !entity.type.Contains("player"))
+                if (this.entity.type != null && !this.entity.type.Contains("player"))
                     return true;
-                if (entity.families != null && entity.families.Any(f => !f.Contains("player")))
+                if (this.entity.families != null && this.entity.families.Any(f => !f.Contains("player")))
                     return true;
                 return false;
             }
@@ -122,53 +122,53 @@ namespace mc_compiled.Commands.Selectors
 
         public Selector()
         {
-            scores = new Selectors.Scores
+            this.scores = new Scores
             {
-                checks = new List<Selectors.ScoresEntry>()
+                checks = new List<ScoresEntry>()
             };
-            hasItem = new Selectors.HasItems
+            this.hasItem = new HasItems
             {
-                entries = new List<Selectors.HasItemEntry>()
+                entries = new List<HasItemEntry>()
             };
-            count = new Selectors.Count
+            this.count = new Count
             {
-                count = Selectors.Count.NONE
+                count = Count.NONE
             };
-            area = new Selectors.Area();
-            entity = new Selectors.Entity();
-            player = new Selectors.Player();
-            tags = new List<Selectors.Tag>();
+            this.area = new Area();
+            this.entity = new Entity();
+            this.player = new Player();
+            this.tags = new List<Tag>();
         }
         public Selector(Core core)
         {
             this.core = core;
-            scores = new Selectors.Scores
+            this.scores = new Scores
             {
-                checks = new List<Selectors.ScoresEntry>()
+                checks = new List<ScoresEntry>()
             };
-            hasItem = new Selectors.HasItems
+            this.hasItem = new HasItems
             {
-                entries = new List<Selectors.HasItemEntry>()
+                entries = new List<HasItemEntry>()
             };
-            count = new Selectors.Count
+            this.count = new Count
             {
-                count = Selectors.Count.NONE
+                count = Count.NONE
             };
-            area = new Selectors.Area();
-            entity = new Selectors.Entity();
-            player = new Selectors.Player();
-            tags = new List<Selectors.Tag>();
+            this.area = new Area();
+            this.entity = new Entity();
+            this.player = new Player();
+            this.tags = new List<Tag>();
         }
         public Selector(Selector copy)
         {
-            core = copy.core;
-            area = copy.area;
-            scores = new Selectors.Scores(new List<Selectors.ScoresEntry>(copy.scores.checks));
-            hasItem = new Selectors.HasItems(new List<Selectors.HasItemEntry>(copy.hasItem.entries));
-            count = copy.count;
-            entity = copy.entity;
-            player = copy.player;
-            tags = new List<Selectors.Tag>(copy.tags);
+            this.core = copy.core;
+            this.area = copy.area;
+            this.scores = new Scores(new List<ScoresEntry>(copy.scores.checks));
+            this.hasItem = new HasItems(new List<HasItemEntry>(copy.hasItem.entries));
+            this.count = copy.count;
+            this.entity = copy.entity;
+            this.player = copy.player;
+            this.tags = new List<Tag>(copy.tags);
         }
         public static Selector Parse(string str)
         {
@@ -197,12 +197,12 @@ namespace mc_compiled.Commands.Selectors
             Selector selector = new Selector()
             {
                 core = core,
-                area = Selectors.Area.Parse(chunks),
-                scores = Selectors.Scores.Parse(str),
-                hasItem = Selectors.HasItems.Parse(str),
-                count = Selectors.Count.Parse(chunks),
-                entity = Selectors.Entity.Parse(chunks),
-                player = Selectors.Player.Parse(chunks)
+                area = Area.Parse(chunks),
+                scores = Scores.Parse(str),
+                hasItem = HasItems.Parse(str),
+                count = Count.Parse(chunks),
+                entity = Entity.Parse(chunks),
+                player = Player.Parse(chunks)
             };
 
             foreach (string chunk in chunks)
@@ -215,7 +215,7 @@ namespace mc_compiled.Commands.Selectors
                 if (a.Equals("TAG"))
                 {
                     string b = chunk.Substring(index + 1).Trim();
-                    selector.tags.Add(Selectors.Tag.Parse(b));
+                    selector.tags.Add(Tag.Parse(b));
                 }
             }
 
@@ -232,16 +232,16 @@ namespace mc_compiled.Commands.Selectors
         /// </summary>
         public bool UsesOffset
         {
-            get => offsetX.HasEffect || offsetY.HasEffect || offsetZ.HasEffect;
+            get => this.offsetX.HasEffect || this.offsetY.HasEffect || this.offsetZ.HasEffect;
         }
 
-        public Selectors.Area area;         // The area where targets should be selected.
-        public Selectors.Scores scores;     // The scores that should be evaluated.
-        public Selectors.HasItems hasItem;  // The items which should be checked.
-        public Selectors.Count count;       // The limit of entities that can be selected.
-        public Selectors.Entity entity;     // The entity/player's status (name, rotation, etc.)
-        public Selectors.Player player;     // The player's specific stats (level, gamemode, etc.)
-        public List<Selectors.Tag> tags;    // The tags this entity/player has. Can have multiple.
+        public Area area;         // The area where targets should be selected.
+        public Scores scores;     // The scores that should be evaluated.
+        public HasItems hasItem;  // The items which should be checked.
+        public Count count;       // The limit of entities that can be selected.
+        public Entity entity;     // The entity/player's status (name, rotation, etc.)
+        public Player player;     // The player's specific stats (level, gamemode, etc.)
+        public List<Tag> tags;    // The tags this entity/player has. Can have multiple.
 
         /// <summary>
         /// Returns the fully qualified minecraft command selector that this represents.
@@ -251,9 +251,9 @@ namespace mc_compiled.Commands.Selectors
         {
             List<string> parts = new List<string>();
 
-            string sScores = scores.GetSection(),
-                sHasItem = hasItem.GetSection(),
-                sCount = count.GetSection();
+            string sScores = this.scores.GetSection(),
+                sHasItem = this.hasItem.GetSection(),
+                sCount = this.count.GetSection();
 
             if (sScores != null)
                 parts.Add(sScores);
@@ -262,22 +262,19 @@ namespace mc_compiled.Commands.Selectors
             if (sCount != null)
                 parts.Add(sCount);
 
-            parts.AddRange(area.GetSections());
-            parts.AddRange(entity.GetSections());
-            parts.AddRange(player.GetSections());
-            parts.AddRange(from tag in tags select tag.GetSection());
+            parts.AddRange(this.area.GetSections());
+            parts.AddRange(this.entity.GetSections());
+            parts.AddRange(this.player.GetSections());
+            parts.AddRange(from tag in this.tags select tag.GetSection());
 
             if (parts.Count > 0)
-                return '@' + core.ToString() + '[' + string.Join(",", parts) + ']';
-            else return '@' + core.ToString();
+                return '@' + this.core.ToString() + '[' + string.Join(",", parts) + ']';
+            else return '@' + this.core.ToString();
         }
 
         private bool Equals(Selector other)
         {
-            return core == other.core && offsetX.Equals(other.offsetX) && offsetY.Equals(other.offsetY) &&
-                   offsetZ.Equals(other.offsetZ) && area.Equals(other.area) && scores.Equals(other.scores) &&
-                   hasItem.Equals(other.hasItem) && count.Equals(other.count) && entity.Equals(other.entity) &&
-                   player.Equals(other.player) && Equals(tags, other.tags);
+            return this.core == other.core && this.offsetX.Equals(other.offsetX) && this.offsetY.Equals(other.offsetY) && this.offsetZ.Equals(other.offsetZ) && this.area.Equals(other.area) && this.scores.Equals(other.scores) && this.hasItem.Equals(other.hasItem) && this.count.Equals(other.count) && this.entity.Equals(other.entity) && this.player.Equals(other.player) && Equals(this.tags, other.tags);
         }
         public override bool Equals(object obj)
         {
@@ -291,17 +288,17 @@ namespace mc_compiled.Commands.Selectors
         {
             unchecked
             {
-                int hashCode = (int)core;
-                hashCode = (hashCode * 397) ^ offsetX.GetHashCode();
-                hashCode = (hashCode * 397) ^ offsetY.GetHashCode();
-                hashCode = (hashCode * 397) ^ offsetZ.GetHashCode();
-                hashCode = (hashCode * 397) ^ area.GetHashCode();
-                hashCode = (hashCode * 397) ^ scores.GetHashCode();
-                hashCode = (hashCode * 397) ^ hasItem.GetHashCode();
-                hashCode = (hashCode * 397) ^ count.GetHashCode();
-                hashCode = (hashCode * 397) ^ entity.GetHashCode();
-                hashCode = (hashCode * 397) ^ player.GetHashCode();
-                hashCode = (hashCode * 397) ^ (tags != null ? tags.GetHashCode() : 0);
+                int hashCode = (int) this.core;
+                hashCode = (hashCode * 397) ^ this.offsetX.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.offsetY.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.offsetZ.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.area.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.scores.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.hasItem.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.count.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.entity.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.player.GetHashCode();
+                hashCode = (hashCode * 397) ^ (this.tags != null ? this.tags.GetHashCode() : 0);
                 return hashCode;
             }
         }
@@ -320,7 +317,7 @@ namespace mc_compiled.Commands.Selectors
             clone.entity += b.entity;
             clone.player += b.player;
 
-            clone.tags = new List<Selectors.Tag>(a.tags.Count + b.tags.Count);
+            clone.tags = new List<Tag>(a.tags.Count + b.tags.Count);
             clone.tags.AddRange(a.tags);
             clone.tags.AddRange(b.tags);
 
@@ -339,12 +336,10 @@ namespace mc_compiled.Commands.Selectors
         }
         public override string ToString()
         {
-            if (!remainderString.StartsWith("["))
-                remainderString = '[' + remainderString;
-            if (!remainderString.EndsWith("]"))
-                remainderString += ']';
+            if (!this.remainderString.StartsWith("[")) this.remainderString = '[' + this.remainderString;
+            if (!this.remainderString.EndsWith("]")) this.remainderString += ']';
 
-            return $"@{core}{remainderString}";
+            return $"@{this.core}{this.remainderString}";
         }
 
         /// <summary>
@@ -354,8 +349,8 @@ namespace mc_compiled.Commands.Selectors
         /// <returns></returns>
         public Selector Resolve(Executor executor)
         {
-            string resolvedString = executor.ResolveString(remainderString);
-            return Selector.Parse(core, resolvedString);
+            string resolvedString = executor.ResolveString(this.remainderString);
+            return Selector.Parse(this.core, resolvedString);
         }
     }
 }

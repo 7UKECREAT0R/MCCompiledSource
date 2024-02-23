@@ -24,14 +24,14 @@ namespace mc_compiled.Modding.Behaviors
         {
             JObject json = new JObject()
             {
-                ["identifier"] = identifier,
-                ["is_spawnable"] = isSpawnable,
-                ["is_summonable"] = isSummonable,
-                ["is_experimental"] = isExperimental
+                ["identifier"] = this.identifier,
+                ["is_spawnable"] = this.isSpawnable,
+                ["is_summonable"] = this.isSummonable,
+                ["is_experimental"] = this.isExperimental
             };
 
-            if (runtimeIdentifier != null)
-                json["runtime_identifier"] = runtimeIdentifier;
+            if (this.runtimeIdentifier != null)
+                json["runtime_identifier"] = this.runtimeIdentifier;
 
             return json;
         }
@@ -41,7 +41,7 @@ namespace mc_compiled.Modding.Behaviors
         /// <returns></returns>
         public string GetEntityName()
         {
-            string stripped = identifier;
+            string stripped = this.identifier;
 
             if (stripped.EndsWith(".json"))
                 stripped = stripped.Substring(0, stripped.Length - 5);

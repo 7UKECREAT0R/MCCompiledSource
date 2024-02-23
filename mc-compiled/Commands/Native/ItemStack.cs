@@ -1,6 +1,5 @@
 ﻿using System;
 using mc_compiled.NBT;
-using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 
@@ -46,18 +45,16 @@ namespace mc_compiled.Commands.Native
             this.canDestroy = canDestroy;
             this.lockMode = lockMode;
 
-            bookData = null;
-            customColor = null;
+            this.bookData = null;
+            this.customColor = null;
         }
 
         public bool Equals(ItemStack other)
         {
-            return id == other.id && count == other.count && damage == other.damage &&
-                   displayName == other.displayName && Equals(lore, other.lore) &&
-                   Equals(enchantments, other.enchantments) && keep == other.keep &&
-                   Equals(canPlaceOn, other.canPlaceOn) && Equals(canDestroy, other.canDestroy) &&
-                   lockMode == other.lockMode && Nullable.Equals(bookData, other.bookData) &&
-                   Nullable.Equals(customColor, other.customColor);
+            return this.id == other.id && this.count == other.count && this.damage == other.damage && this.displayName == other.displayName && Equals(this.lore, other.lore) &&
+                   Equals(this.enchantments, other.enchantments) && this.keep == other.keep &&
+                   Equals(this.canPlaceOn, other.canPlaceOn) && Equals(this.canDestroy, other.canDestroy) && this.lockMode == other.lockMode && Nullable.Equals(this.bookData, other.bookData) &&
+                   Nullable.Equals(this.customColor, other.customColor);
         }
 
         public override bool Equals(object obj)
@@ -69,18 +66,18 @@ namespace mc_compiled.Commands.Native
         {
             unchecked
             {
-                int hashCode = (id != null ? id.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ count;
-                hashCode = (hashCode * 397) ^ damage;
-                hashCode = (hashCode * 397) ^ (displayName != null ? displayName.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (lore != null ? lore.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (enchantments != null ? enchantments.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ keep.GetHashCode();
-                hashCode = (hashCode * 397) ^ (canPlaceOn != null ? canPlaceOn.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (canDestroy != null ? canDestroy.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (int) lockMode;
-                hashCode = (hashCode * 397) ^ bookData.GetHashCode();
-                hashCode = (hashCode * 397) ^ customColor.GetHashCode();
+                int hashCode = (this.id != null ? this.id.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ this.count;
+                hashCode = (hashCode * 397) ^ this.damage;
+                hashCode = (hashCode * 397) ^ (this.displayName != null ? this.displayName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.lore != null ? this.lore.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.enchantments != null ? this.enchantments.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ this.keep.GetHashCode();
+                hashCode = (hashCode * 397) ^ (this.canPlaceOn != null ? this.canPlaceOn.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.canDestroy != null ? this.canDestroy.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int) this.lockMode;
+                hashCode = (hashCode * 397) ^ this.bookData.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.customColor.GetHashCode();
                 return hashCode;
             }
         }

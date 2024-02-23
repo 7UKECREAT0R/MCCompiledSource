@@ -95,25 +95,25 @@ namespace mc_compiled.MCC.Functions.Types
         public override string ToString()
         {
             string type = this.RuntimeDestination.type.TypeKeyword;
-            return $"[{type} {name}]";
+            return $"[{type} {this.name}]";
         }
 
         protected bool Equals(RuntimeFunctionParameter other)
         {
-            return Equals(RuntimeDestination, other.RuntimeDestination);
+            return Equals(this.RuntimeDestination, other.RuntimeDestination);
         }
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((RuntimeFunctionParameter) obj);
         }
 
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")] // DNC
         public override int GetHashCode()
         {
-            return (RuntimeDestination != null ? RuntimeDestination.GetHashCode() : 0);
+            return (this.RuntimeDestination != null ? this.RuntimeDestination.GetHashCode() : 0);
         }
     }
 }

@@ -12,14 +12,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public float time; // 0.0 - 1.0
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "clock_time";
-        public override object GetValue() => time;
+        public override object GetValue() => this.time;
     }
     public class FilterDistanceToNearestPlayer : Filter
     {
         public float distance;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "distance_to_nearest_player";
-        public override object GetValue() => distance;
+        public override object GetValue() => this.distance;
     }
     public class FilterHasAbility : Filter
     {
@@ -31,21 +31,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public Ability ability; // 0.0 - 1.0
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "has_ability";
-        public override object GetValue() => ability.ToString();
+        public override object GetValue() => this.ability.ToString();
     }
     public class FilterHasBiomeTag : Filter
     {
         public string biomeTag;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "has_biome_tag";
-        public override object GetValue() => biomeTag;
+        public override object GetValue() => this.biomeTag;
     }
     public class FilterHasComponent : Filter
     {
         public string componentName;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "has_component";
-        public override object GetValue() => componentName;
+        public override object GetValue() => this.componentName;
     }
     public class FilterHasContainerOpen : BooleanFilter
     {
@@ -57,7 +57,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public Commands.DamageCause damageType;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "has_damage";
-        public override object GetValue() => damageType.ToString();
+        public override object GetValue() => this.damageType.ToString();
     }
     public class FilterHasEquipment : Filter
     {
@@ -70,16 +70,16 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public Domain? itemDomain;
         public override JProperty[] GetExtraProperties()
         {
-            if (itemDomain.HasValue)
+            if (this.itemDomain.HasValue)
                 return new JProperty[]
                 {
-                    new JProperty("domain", itemDomain.ToString())
+                    new JProperty("domain", this.itemDomain.ToString())
                 };
 
             return null;
         }
         public override string GetTest() => "has_equipment";
-        public override object GetValue() => itemName;
+        public override object GetValue() => this.itemName;
     }
     public class FilterHasMobEffect : BooleanFilter
     {
@@ -91,7 +91,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public string nameTag;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "has_nametag";
-        public override object GetValue() => nameTag;
+        public override object GetValue() => this.nameTag;
     }
     public class FilterHasRangedWeapon : BooleanFilter
     {
@@ -103,7 +103,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public string tag;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "has_tag";
-        public override object GetValue() => tag;
+        public override object GetValue() => this.tag;
     }
     public class FilterHasTarget : BooleanFilter
     {
@@ -123,20 +123,20 @@ namespace mc_compiled.Modding.Behaviors.Lists
         protected int time;
         public int Time
         {
-            get => time;
+            get => this.time;
             set
             {
                 if (value > MAX_TIME)
                     value = MAX_TIME;
                 if (value < MIN_TIME)
                     value = MIN_TIME;
-                time = value;
+                this.time = value;
             }
         }
 
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "hourly_clock_time";
-        public override object GetValue() => time;
+        public override object GetValue() => this.time;
     }
     public class FilterInCaravan : BooleanFilter
     {
@@ -162,21 +162,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
     {
         public bool includeRain;
         public override JProperty[] GetExtraProperties() => null;
-        public override string GetTest() => includeRain ? "in_water_or_rain" : "in_water";
+        public override string GetTest() => this.includeRain ? "in_water_or_rain" : "in_water";
     }
     public class FilterInactivityTimer : Filter
     {
         public int inactiveFor;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "inactivity_timer";
-        public override object GetValue() => inactiveFor;
+        public override object GetValue() => this.inactiveFor;
     }
     public class FilterIsAltitude : Filter
     {
         public int yValue;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_altitude";
-        public override object GetValue() => yValue;
+        public override object GetValue() => this.yValue;
     }
     public class FilterIsAvoidingMobs : BooleanFilter
     {
@@ -188,21 +188,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public string biome;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_biome";
-        public override object GetValue() => biome;
+        public override object GetValue() => this.biome;
     }
     public class FilterIsBlock : Filter
     {
         public string blockName;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_block";
-        public override object GetValue() => blockName;
+        public override object GetValue() => this.blockName;
     }
     public class FilterIsBrightness : Filter
     {
         public float brightness; // 0.0 - 1.0
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_brightness";
-        public override object GetValue() => brightness;
+        public override object GetValue() => this.brightness;
     }
     public class FilterIsClimbing : BooleanFilter
     {
@@ -234,7 +234,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public FilterColor color;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_color";
-        public override object GetValue() => color.ToString();
+        public override object GetValue() => this.color.ToString();
     }
     public class FilterIsDaytime : BooleanFilter
     {
@@ -246,21 +246,21 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public Commands.DifficultyMode difficulty;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_difficulty";
-        public override object GetValue() => difficulty.ToString();
+        public override object GetValue() => this.difficulty.ToString();
     }
     public class FilterIsFamily : Filter
     {
         public string family;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_family";
-        public override object GetValue() => family;
+        public override object GetValue() => this.family;
     }
     public class FilterIsGameRule : Filter
     {
         public Commands.GameRule gameRule;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_game_rule";
-        public override object GetValue() => gameRule.ToString();
+        public override object GetValue() => this.gameRule.ToString();
     }
     public class FilterIsHumid : BooleanFilter
     {
@@ -292,7 +292,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public int markVariant;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_mark_variant";
-        public override object GetValue() => markVariant;
+        public override object GetValue() => this.markVariant;
     }
     public class FilterIsMoving : BooleanFilter
     {
@@ -319,7 +319,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public int skinID;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_skin_id";
-        public override object GetValue() => skinID;
+        public override object GetValue() => this.skinID;
     }
     public class FilterIsSleeping : BooleanFilter
     {
@@ -351,14 +351,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public TemperatureType type;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_temperature_type";
-        public override object GetValue() => type.ToString();
+        public override object GetValue() => this.type.ToString();
     }
     public class FilterIsTemperatureValue : Filter
     {
         public float temperature; // 0.0 - 1.0
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_temperature_value";
-        public override object GetValue() => temperature;
+        public override object GetValue() => this.temperature;
     }
     public class FilterIsUnderground : BooleanFilter
     {
@@ -375,7 +375,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public int variant;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_variant";
-        public override object GetValue() => variant;
+        public override object GetValue() => this.variant;
     }
     public class FilterIsVisible : BooleanFilter
     {
@@ -387,14 +387,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public int lightLevel;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "light_level";
-        public override object GetValue() => lightLevel;
+        public override object GetValue() => this.lightLevel;
     }
     public class FilterMoonIntensity : Filter
     {
         public float moonIntensity; // 0.0 - 1.0
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "moon_intensity";
-        public override object GetValue() => moonIntensity;
+        public override object GetValue() => this.moonIntensity;
     }
     public class FilterMoonPhase : Filter
     {
@@ -404,20 +404,20 @@ namespace mc_compiled.Modding.Behaviors.Lists
         private int moonPhase;
         public int MoonPhase
         {
-            get => moonPhase;
+            get => this.moonPhase;
             set
             {
                 if (value > MAX_PHASE)
                     value = MAX_PHASE;
                 if (value < MIN_PHASE)
                     value = MIN_PHASE;
-                moonPhase = value;
+                this.moonPhase = value;
             }
         }
 
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "moon_phase";
-        public override object GetValue() => moonPhase;
+        public override object GetValue() => this.moonPhase;
     }
     public class FilterOnGround : BooleanFilter
     {
@@ -434,14 +434,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public int randomChance; // random(0..randomChance) == 0
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "random_chance";
-        public override object GetValue() => randomChance;
+        public override object GetValue() => this.randomChance;
     }
     public class FilterRiderCount : Filter
     {
         public int count;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "rider_count";
-        public override object GetValue() => count;
+        public override object GetValue() => this.count;
     }
     public class FilterIsSurfaceMob : BooleanFilter
     {
@@ -458,7 +458,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public Commands.WeatherState weather;
         public bool atPosition;
         public override JProperty[] GetExtraProperties() => null;
-        public override string GetTest() => atPosition ? "weather_at_position" : "weather";
-        public override object GetValue() => weather.ToString();
+        public override string GetTest() => this.atPosition ? "weather_at_position" : "weather";
+        public override object GetValue() => this.weather.ToString();
     }
 }

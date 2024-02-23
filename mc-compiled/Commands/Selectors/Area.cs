@@ -104,38 +104,37 @@ namespace mc_compiled.Commands.Selectors
         public string[] GetSections()
         {
             List<string> parts = new List<string>();
-            if (x.HasValue)
+            if (this.x.HasValue)
             {
-                parts.Add("x=" + x.Value);
-                if (volumeX.HasValue)
-                    parts.Add("dx=" + volumeX.Value);
+                parts.Add("x=" + this.x.Value);
+                if (this.volumeX.HasValue)
+                    parts.Add("dx=" + this.volumeX.Value);
             }
-            if (y.HasValue)
+            if (this.y.HasValue)
             {
-                parts.Add("y=" + y.Value);
-                if (volumeY.HasValue)
-                    parts.Add("dy=" + volumeY.Value);
+                parts.Add("y=" + this.y.Value);
+                if (this.volumeY.HasValue)
+                    parts.Add("dy=" + this.volumeY.Value);
             }
-            if (z.HasValue)
+            if (this.z.HasValue)
             {
-                parts.Add("z=" + z.Value);
-                if (volumeZ.HasValue)
-                    parts.Add("dz=" + volumeZ.Value);
+                parts.Add("z=" + this.z.Value);
+                if (this.volumeZ.HasValue)
+                    parts.Add("dz=" + this.volumeZ.Value);
             }
 
-            if (radiusMin.HasValue)
-                parts.Add("rm=" + radiusMin.Value);
-            if (radiusMax.HasValue)
-                parts.Add("r=" + radiusMax.Value);
+            if (this.radiusMin.HasValue)
+                parts.Add("rm=" + this.radiusMin.Value);
+            if (this.radiusMax.HasValue)
+                parts.Add("r=" + this.radiusMax.Value);
 
             return parts.ToArray();
         }
 
         public bool Equals(Area other)
         {
-            return Nullable.Equals(x, other.x) && Nullable.Equals(y, other.y) && Nullable.Equals(z, other.z) &&
-                   Nullable.Equals(radiusMin, other.radiusMin) && Nullable.Equals(radiusMax, other.radiusMax) &&
-                   volumeX == other.volumeX && volumeY == other.volumeY && volumeZ == other.volumeZ;
+            return Nullable.Equals(this.x, other.x) && Nullable.Equals(this.y, other.y) && Nullable.Equals(this.z, other.z) &&
+                   Nullable.Equals(this.radiusMin, other.radiusMin) && Nullable.Equals(this.radiusMax, other.radiusMax) && this.volumeX == other.volumeX && this.volumeY == other.volumeY && this.volumeZ == other.volumeZ;
         }
         public override bool Equals(object obj)
         {
@@ -145,14 +144,14 @@ namespace mc_compiled.Commands.Selectors
         {
             unchecked
             {
-                int hashCode = x.GetHashCode();
-                hashCode = (hashCode * 397) ^ y.GetHashCode();
-                hashCode = (hashCode * 397) ^ z.GetHashCode();
-                hashCode = (hashCode * 397) ^ radiusMin.GetHashCode();
-                hashCode = (hashCode * 397) ^ radiusMax.GetHashCode();
-                hashCode = (hashCode * 397) ^ volumeX.GetHashCode();
-                hashCode = (hashCode * 397) ^ volumeY.GetHashCode();
-                hashCode = (hashCode * 397) ^ volumeZ.GetHashCode();
+                int hashCode = this.x.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.y.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.z.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.radiusMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.radiusMax.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.volumeX.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.volumeY.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.volumeZ.GetHashCode();
                 return hashCode;
             }
         }

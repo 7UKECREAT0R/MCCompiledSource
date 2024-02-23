@@ -13,14 +13,14 @@ namespace mc_compiled.Modding.Behaviors
 
         public JObject ToJSON()
         {
-            if (Count == 0)
+            if (this.Count == 0)
                 return new JObject();
-            if (Count == 1)
+            if (this.Count == 1)
                 return this[0].ToJSON();
 
             return new JObject()
             {
-                [merge.ToString()] = new JArray(this.Select(filter => filter.ToJSON()))
+                [this.merge.ToString()] = new JArray(this.Select(filter => filter.ToJSON()))
             };
         }
     }

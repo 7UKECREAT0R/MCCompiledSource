@@ -1,9 +1,5 @@
 ﻿using mc_compiled.MCC.Functions.Types;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
@@ -14,7 +10,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         protected FunctionGlyph(int baseCharacter, string aliasedName, string name, string documentation) : base(aliasedName, name, "string", documentation)
         {
             this.baseCharacter = baseCharacter << 8;
-            this.AddParameters(
+            AddParameters(
                 new CompiletimeFunctionParameter<TokenIntegerLiteral>("x"),
                 new CompiletimeFunctionParameter<TokenIntegerLiteral>("y", new TokenIntegerLiteral(0, IntMultiplier.none, 0))
             );
@@ -25,7 +21,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             int x = (this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenIntegerLiteral;
             int y = (this.Parameters[1] as CompiletimeFunctionParameter).CurrentValue as TokenIntegerLiteral;
             int offset = y * GLYPH_WIDTH + x;
-            char character = (char)(baseCharacter | offset);
+            char character = (char)(this.baseCharacter | offset);
             return new TokenStringLiteral(character.ToString(), statement.Lines[0]);
         }
     }

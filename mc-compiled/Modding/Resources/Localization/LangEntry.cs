@@ -32,12 +32,11 @@
             return new LangEntry(null, null, false, true);
         }
 
-        public override int GetHashCode() => key.GetHashCode();
+        public override int GetHashCode() => this.key.GetHashCode();
         public override string ToString() =>
-            isEmpty ?
-                "" :
-                isComment ?
-                    $"## {value}" :
-                    $"{key}={value}";
+            this.isEmpty ?
+                "" : this.isComment ?
+                    $"## {this.value}" :
+                    $"{this.key}={this.value}";
     }
 }

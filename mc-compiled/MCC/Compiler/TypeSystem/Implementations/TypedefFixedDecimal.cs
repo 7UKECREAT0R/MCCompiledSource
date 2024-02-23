@@ -3,7 +3,6 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
@@ -18,7 +17,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         }
         public ITypeStructure DeepClone()
         {
-            return new FixedDecimalData(precision);
+            return new FixedDecimalData(this.precision);
         }
 
 
@@ -38,7 +37,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         
         public int TypeHashCode()
         {
-            return precision.GetHashCode();
+            return this.precision.GetHashCode();
         }
     }
     internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
@@ -165,10 +164,10 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             string _temporary = SB_TEMP + index;
             string _tempBase = SB_BASE + index;
 
-            var whole = new ScoreboardValue(_whole, false, Typedef.INTEGER, manager);
-            var part = new ScoreboardValue(_part, false, Typedef.INTEGER, manager);
-            var temporary = new ScoreboardValue(_temporary, true, Typedef.INTEGER, manager);
-            var tempBase = new ScoreboardValue(_tempBase, true, Typedef.INTEGER, manager);
+            var whole = new ScoreboardValue(_whole, false, INTEGER, manager);
+            var part = new ScoreboardValue(_part, false, INTEGER, manager);
+            var temporary = new ScoreboardValue(_temporary, true, INTEGER, manager);
+            var tempBase = new ScoreboardValue(_tempBase, true, INTEGER, manager);
 
             whole.clarifier.CopyFrom(clarifier);
             part.clarifier.CopyFrom(clarifier);

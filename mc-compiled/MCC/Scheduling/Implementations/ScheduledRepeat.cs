@@ -1,5 +1,4 @@
-﻿using System;
-using mc_compiled.Commands;
+﻿using mc_compiled.Commands;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
@@ -19,28 +18,28 @@ namespace mc_compiled.MCC.Scheduling.Implementations
         
         public ScheduledRepeat(CommandFile function, int delay) : base(MASTER_FUNCTION)
         {
-            counterName = SCOREBOARD_PREFIX + function.CommandReferenceHash;
+            this.counterName = SCOREBOARD_PREFIX + function.CommandReferenceHash;
             this.function = function;
             this.delay = delay;
         }
 
         public override void Setup(TickScheduler scheduler, Executor executor)
         {
-            string subfunctionName = SUBFUNCTION_PREFIX + function.CommandReferenceHash;
-            thisFunction = new CommandFile(true, subfunctionName, TickScheduler.FOLDER);
-            executor.AddExtraFile(thisFunction);
+            string subfunctionName = SUBFUNCTION_PREFIX + this.function.CommandReferenceHash;
+            this.thisFunction = new CommandFile(true, subfunctionName, TickScheduler.FOLDER);
+            executor.AddExtraFile(this.thisFunction);
 
-            var counter = new ScoreboardValue(counterName, true, Typedef.INTEGER, executor.scoreboard);
+            var counter = new ScoreboardValue(this.counterName, true, Typedef.INTEGER, executor.scoreboard);
             executor.AddCommandsInit(counter.CommandsDefine());
-            executor.AddCommandInit(Command.ScoreboardSet(counter, delay));
-            
-            thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, null)).Run(Command.ScoreboardSubtract(counter, 1)));
-            thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, false)).Run(Command.Function(function.CommandReference)));
-            thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, false)).Run(Command.ScoreboardSet(counter, delay)));
+            executor.AddCommandInit(Command.ScoreboardSet(counter, this.delay));
+
+            this.thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, null)).Run(Command.ScoreboardSubtract(counter, 1)));
+            this.thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, false)).Run(Command.Function(this.function.CommandReference)));
+            this.thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, false)).Run(Command.ScoreboardSet(counter, this.delay)));
         }
         public override string[] PerTickCommands()
         {
-            return new[] {Command.Function(thisFunction)};
+            return new[] {Command.Function(this.thisFunction)};
         }
     }
 }

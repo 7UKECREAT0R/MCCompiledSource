@@ -14,14 +14,11 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
-using System.Diagnostics;
-using System.Linq.Expressions;
 using JetBrains.Annotations;
 using mc_compiled.Compiler;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -90,7 +87,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="action"></param>
         public void DeferAction(Action<Executor> action)
         {
-            iterationsUntilDeferProcess += 2;
+            this.iterationsUntilDeferProcess += 2;
             this.deferredActions.Push(action);
         }
         /// <summary>
@@ -98,7 +95,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         private void ProcessDeferredActions()
         {
-            while(deferredActions.Any())
+            while(this.deferredActions.Any())
             {
                 Action<Executor> action = this.deferredActions.Pop();
                 action.Invoke(this);
@@ -136,34 +133,34 @@ namespace mc_compiled.MCC.Compiler
             this.project = new ProjectManager(projectName, bpBase, rpBase, this);
             this.entities = new EntityManager(this);
 
-            definedStdFiles = new List<int>();
-            ppv = new Dictionary<string, PreprocessorVariable>(StringComparer.OrdinalIgnoreCase);
-            macros = new List<Macro>();
-            definedTags = new HashSet<string>();
-            definedReturnedTypes = new HashSet<Typedef>();
+            this.definedStdFiles = new List<int>();
+            this.ppv = new Dictionary<string, PreprocessorVariable>(StringComparer.OrdinalIgnoreCase);
+            this.macros = new List<Macro>();
+            this.definedTags = new HashSet<string>();
+            this.definedReturnedTypes = new HashSet<Typedef>();
 
             if (inputPPVs != null && inputPPVs.Count > 0)
                 foreach (Program.InputPPV ppv in inputPPVs)
                     SetPPV(ppv.name, ppv.value);
 
             // support up to MAXIMUM_SCOPE levels of scope before blowing up
-            lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
-            lastCompare = new PreviousComparisonStructure[MAXIMUM_DEPTH];
+            this.lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
+            this.lastCompare = new PreviousComparisonStructure[MAXIMUM_DEPTH];
 
-            deferredActions = new Stack<Action<Executor>>();
-            loadedFiles = new Dictionary<int, object>();
-            currentFiles = new Stack<CommandFile>();
-            prependBuffer = new StringBuilder();
-            scoreboard = new ScoreboardManager(this);
+            this.deferredActions = new Stack<Action<Executor>>();
+            this.loadedFiles = new Dictionary<int, object>();
+            this.currentFiles = new Stack<CommandFile>();
+            this.prependBuffer = new StringBuilder();
+            this.scoreboard = new ScoreboardManager(this);
 
-            functions = new FunctionManager(scoreboard);
-            functions.RegisterDefaultProviders();
+            this.functions = new FunctionManager(this.scoreboard);
+            this.functions.RegisterDefaultProviders();
             
             SetCompilerPPVs();
-            
-            InitFile = new CommandFile(true, "init"); // don't need to push it, special case
-            HeadFile = new CommandFile(true, projectName).AsRoot();
-            currentFiles.Push(HeadFile);
+
+            this.InitFile = new CommandFile(true, "init"); // don't need to push it, special case
+            this.HeadFile = new CommandFile(true, projectName).AsRoot();
+            this.currentFiles.Push(this.HeadFile);
         }
         /// <summary>
         /// Returns this executor after setting it to lint mode, lowering memory usage
@@ -171,8 +168,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         internal void Linter()
         {
-            linting = true;
-            project.Linter();
+            this.linting = true;
+            this.project.Linter();
         }
 
         /// <summary>
@@ -266,7 +263,7 @@ namespace mc_compiled.MCC.Compiler
                             }
                             case TokenIdentifierValue identifierValue:
                             {
-                                CommandFile file = CurrentFile;
+                                CommandFile file = this.CurrentFile;
 
                                 if(!identifierValue.value.clarifier.IsGlobal)
                                     advanced = true;
@@ -278,7 +275,7 @@ namespace mc_compiled.MCC.Compiler
                                 (string[] rtCommands, JSONRawTerm[] rtTerms) = value.ToRawText(ref indexCopy);
                             
                                 AddCommandsClean(rtCommands, "string" + value.InternalName,
-                                    $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {NextLineNumber}");
+                                    $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {this.NextLineNumber}");
 
                                 // localize and flatten the array.
                                 terms.AddRange(rtTerms.SelectMany(term => term.Localize(this, forExceptions)));
@@ -423,7 +420,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Returns if a locale has been set via <see cref="SetLocale(string)"/>.
         /// </summary>
-        public bool HasLocale => ActiveLocale != null;
+        public bool HasLocale => this.ActiveLocale != null;
 
         /// <summary>
         /// Sets the active locale that FString data will be sent to.
@@ -431,13 +428,13 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="locale"></param>
         public void SetLocale(string locale)
         {
-            if (languageManager == null)
+            if (this.languageManager == null)
             {
-                languageManager = new LanguageManager(this);
-                this.AddExtraFile(languageManager);
+                this.languageManager = new LanguageManager(this);
+                AddExtraFile(this.languageManager);
             }
 
-            this.ActiveLocale = languageManager.DefineLocale(locale);
+            this.ActiveLocale = this.languageManager.DefineLocale(locale);
         }
         /// <summary>
         /// Sets a locale entry in the associated .lang file. Throws a <see cref="StatementException"/> if no locale has been set yet via <see cref="SetLocale(string)"/>.
@@ -456,42 +453,42 @@ namespace mc_compiled.MCC.Compiler
             if (!value.Any(char.IsLetter))
                 return null;
             
-            if (!HasLocale)
+            if (!this.HasLocale)
                 throw new StatementException(forExceptions, "No language has been set to write to. See the 'lang' command.");
 
             bool merge;
 
-            if(ppv.TryGetValue(LanguageManager.MERGE_PPV, out PreprocessorVariable val))
+            if(this.ppv.TryGetValue(LanguageManager.MERGE_PPV, out PreprocessorVariable val))
                 merge = (bool)val[0];
             else
                 merge = false;
 
             var entry = LangEntry.Create(key, value);
-            return ActiveLocale.file.Add(entry, overwrite, merge);
+            return this.ActiveLocale.file.Add(entry, overwrite, merge);
         }
         /// <summary>
         /// Gets the sound definitions file, reading it from the existing RP if it exists.
         /// </summary>
         public SoundDefinitions GetSoundDefinitions(Statement callingStatement)
         {
-            if (soundDefinitions != null)
-                return soundDefinitions;
+            if (this.soundDefinitions != null)
+                return this.soundDefinitions;
 
-            string file = project.GetOutputFileLocationFull(OutputLocation.r_SOUNDS, SoundDefinitions.FILE);
+            string file = this.project.GetOutputFileLocationFull(OutputLocation.r_SOUNDS, SoundDefinitions.FILE);
 
             if (File.Exists(file))
             {
                 if (!(LoadJSONFile(file, callingStatement) is JObject jObject))
                     throw new StatementException(callingStatement, $"File RP/sounds/{SoundDefinitions.FILE} was not a JSON Object.");
-                
-                soundDefinitions = SoundDefinitions.Parse(jObject, callingStatement);
-                AddExtraFile(soundDefinitions);
-                return soundDefinitions;
+
+                this.soundDefinitions = SoundDefinitions.Parse(jObject, callingStatement);
+                AddExtraFile(this.soundDefinitions);
+                return this.soundDefinitions;
             }
 
-            soundDefinitions = new SoundDefinitions(FormatVersion.r_SOUNDS.ToString());
-            AddExtraFile(soundDefinitions);
-            return soundDefinitions;
+            this.soundDefinitions = new SoundDefinitions(FormatVersion.r_SOUNDS.ToString());
+            AddExtraFile(this.soundDefinitions);
+            return this.soundDefinitions;
         }
 
         /// <summary>
@@ -545,7 +542,7 @@ namespace mc_compiled.MCC.Compiler
             soundFolder.Append(Path.GetFileNameWithoutExtension(soundFile));
 
             string fileName = Path.GetFileName(soundFile);
-            string soundName = project.Identifier + '.' + Path.GetFileNameWithoutExtension(soundFile);
+            string soundName = this.project.Identifier + '.' + Path.GetFileNameWithoutExtension(soundFile);
             
             // create CopyFile so that the sound file can be copied during file writing
             var copyFile = new CopyFile(soundFile, OutputLocation.r_SOUNDS, relativePath ?? fileName);
@@ -566,12 +563,12 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>The Dialogue registry instance.</returns>
         public DialogueManager GetDialogueRegistry()
         {
-            if (dialogueDefinitions != null)
-                return dialogueDefinitions;
+            if (this.dialogueDefinitions != null)
+                return this.dialogueDefinitions;
 
-            dialogueDefinitions = new DialogueManager(MCC_GENERATED_FOLDER);
-            AddExtraFile(dialogueDefinitions);
-            return dialogueDefinitions;
+            this.dialogueDefinitions = new DialogueManager(MCC_GENERATED_FOLDER);
+            AddExtraFile(this.dialogueDefinitions);
+            return this.dialogueDefinitions;
         }
         
         /// <summary>
@@ -579,13 +576,13 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void MarkAssertionOnFileStack()
         {
-            foreach (CommandFile file in currentFiles)
+            foreach (CommandFile file in this.currentFiles)
                 file.MarkAssertion();
         }
         /// <summary>
         /// Tells the executor that the next line in the current block is be unreachable.
         /// </summary>
-        public void UnreachableCode() => unreachableCode = 1;
+        public void UnreachableCode() => this.unreachableCode = 1;
         /// <summary>
         /// Throw a StatementException if a feature is not enabled.
         /// </summary>
@@ -593,7 +590,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="feature"></param>
         internal void RequireFeature(Statement source, Feature feature)
         {
-            if (project.HasFeature(feature))
+            if (this.project.HasFeature(feature))
                 return;
 
             string name = feature.ToString();
@@ -606,12 +603,12 @@ namespace mc_compiled.MCC.Compiler
         /// <exception cref="StatementException">If the execution context is currently in an unreachable area.</exception>
         private void CheckUnreachable(Statement current)
         {
-            if (unreachableCode > 0)
-                unreachableCode--;
-            else if (unreachableCode == 0)
+            if (this.unreachableCode > 0)
+                this.unreachableCode--;
+            else if (this.unreachableCode == 0)
                 throw new StatementException(current, "Unreachable code detected.");
             else
-                unreachableCode = -1;
+                this.unreachableCode = -1;
         }
 
         /// <summary>
@@ -625,7 +622,7 @@ namespace mc_compiled.MCC.Compiler
             int hash = path.GetHashCode();
 
             // cached file, dont read again
-            if (loadedFiles.TryGetValue(hash, out object value))
+            if (this.loadedFiles.TryGetValue(hash, out object value))
             {
                 if (value is JToken token)
                     return token;
@@ -639,7 +636,7 @@ namespace mc_compiled.MCC.Compiler
 
             string contents = File.ReadAllText(path);
             JToken json = JToken.Parse(contents);
-            loadedFiles[hash] = json;
+            this.loadedFiles[hash] = json;
             return json;
         }
 
@@ -653,7 +650,7 @@ namespace mc_compiled.MCC.Compiler
         public JToken LoadJSONFile(string path, int hash, Statement callingStatement)
         {
             // cached file, dont read again
-            if (loadedFiles.TryGetValue(hash, out object value))
+            if (this.loadedFiles.TryGetValue(hash, out object value))
             {
                 if (value is JToken token)
                     return token;
@@ -667,7 +664,7 @@ namespace mc_compiled.MCC.Compiler
 
             string contents = File.ReadAllText(path);
             JToken json = JToken.Parse(contents);
-            loadedFiles[hash] = json;
+            this.loadedFiles[hash] = json;
             return json;
         }
         /// <summary>
@@ -680,12 +677,12 @@ namespace mc_compiled.MCC.Compiler
             int hash = path.GetHashCode();
 
             // cached file, dont read again
-            if (loadedFiles.TryGetValue(hash, out object value))
+            if (this.loadedFiles.TryGetValue(hash, out object value))
                 if (value is string s)
                     return s;
 
             string contents = File.ReadAllText(path);
-            loadedFiles[hash] = contents;
+            this.loadedFiles[hash] = contents;
             return contents;
         }
         /// <summary>
@@ -698,7 +695,7 @@ namespace mc_compiled.MCC.Compiler
             int hash = path.GetHashCode();
 
             // cached file, dont read again
-            if (loadedFiles.TryGetValue(hash, out object value))
+            if (this.loadedFiles.TryGetValue(hash, out object value))
             {
                 switch (value)
                 {
@@ -710,7 +707,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             byte[] contents = File.ReadAllBytes(path);
-            loadedFiles[hash] = contents;
+            this.loadedFiles[hash] = contents;
             return contents;
         }
 
@@ -734,8 +731,8 @@ namespace mc_compiled.MCC.Compiler
                 root = jValue as JToken;
             else
             {
-                if (System.IO.File.Exists(outputFile))
-                    root = this.LoadJSONFile(outputFile, callingStatement);
+                if (File.Exists(outputFile))
+                    root = LoadJSONFile(outputFile, callingStatement);
                 else
                 {
                     string pathString = toLocate.GetOutputLocation().ToString();
@@ -761,7 +758,7 @@ namespace mc_compiled.MCC.Compiler
                     filePath[paths.Length] = toLocate.GetOutputFile(); // last index
 
                     string downloadedFile = TemporaryFilesManager.Get(packType, filePath);
-                    root = this.LoadJSONFile(downloadedFile, outputFileHash, null);
+                    root = LoadJSONFile(downloadedFile, outputFileHash, null);
                 }
             }
 
@@ -774,9 +771,9 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="file">The command file to define as a standard library file.</param>
         public void DefineSTDFile(CommandFile file)
         {
-            if (definedStdFiles.Contains(file.GetHashCode()))
+            if (this.definedStdFiles.Contains(file.GetHashCode()))
                 return;
-            definedStdFiles.Add(file.GetHashCode());
+            this.definedStdFiles.Add(file.GetHashCode());
             AddExtraFile(file);
         }
 
@@ -787,13 +784,13 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>True if the CommandFile exists in the definedStdFiles list; otherwise, false.</returns>
         public bool HasSTDFile(CommandFile file)
         {
-            return definedStdFiles.Contains(file.GetHashCode());
+            return this.definedStdFiles.Contains(file.GetHashCode());
         }
 
         /// <summary>
         /// Returns if this executor has another statement available to run.
         /// </summary>
-        public bool HasNext => readIndex < statements.Length;
+        public bool HasNext => this.readIndex < this.statements.Length;
 
         /// <summary>
         /// Tries to fetch a documentation string based whether the last statement was a comment or not. Returns <see cref="Executor.UNDOCUMENTED_TEXT"/> if no documentation was supplied.
@@ -801,7 +798,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public string GetDocumentationString(out bool hadDocumentation)
         {
-            if (readIndex < 1)
+            if (this.readIndex < 1)
             {
                 hadDocumentation = false;
                 return UNDOCUMENTED_TEXT;
@@ -822,7 +819,7 @@ namespace mc_compiled.MCC.Compiler
         /// Peek at the next statement.
         /// </summary>
         /// <returns></returns>
-        public Statement Peek() => statements[readIndex];
+        public Statement Peek() => this.statements[this.readIndex];
         /// <summary>
         /// Peek at the statement N statements in front of the read index. 0: current, 1: next, etc...
         /// Does perform bounds checking, and returns null if outside bounds.
@@ -831,12 +828,12 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Statement PeekSkip(int amount)
         {
-            int index = readIndex + amount;
+            int index = this.readIndex + amount;
 
             if (index < 0)
                 return null;
-            else if (index < statements.Length)
-                return statements[index];
+            else if (index < this.statements.Length)
+                return this.statements[index];
             else
                 return null;
         }
@@ -846,8 +843,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns><b>null</b> if no statements have been gotten yet.</returns>
         public Statement PeekLast()
         {
-            if (readIndex > 1)
-                return statements[readIndex - 2];
+            if (this.readIndex > 1)
+                return this.statements[this.readIndex - 2];
 
             return null;
         }
@@ -867,15 +864,15 @@ namespace mc_compiled.MCC.Compiler
         {
             Statement statement = null;
 
-            int i = readIndex + amount;
+            int i = this.readIndex + amount;
 
-            if (i < 0 || i >= statements.Length)
+            if (i < 0 || i >= this.statements.Length)
                 return null;
 
             do
             {
-                statement = statements[i++];
-            } while ((statement == null || statement.Skip) && i < statements.Length);
+                statement = this.statements[i++];
+            } while ((statement == null || statement.Skip) && i < this.statements.Length);
 
             return statement;
         }
@@ -887,14 +884,14 @@ namespace mc_compiled.MCC.Compiler
         {
             Statement statement = null;
 
-            int i = readIndex - 1;
+            int i = this.readIndex - 1;
 
             if(i < 0)
                 return null; // no statements??
 
             do
             {
-                statement = statements[i--];
+                statement = this.statements[i--];
             } while ((statement == null || statement.Skip) && i >= 0);
 
             return statement;
@@ -904,42 +901,42 @@ namespace mc_compiled.MCC.Compiler
         /// Get the next statement to be read and then increment the read index.
         /// </summary>
         /// <returns></returns>
-        public Statement Next() => statements[readIndex++];
+        public Statement Next() => this.statements[this.readIndex++];
         /// <summary>
         /// Returns the next statement to be read as a certain type. Increments the read index.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Next<T>() where T : Statement => statements[readIndex++] as T;
+        public T Next<T>() where T : Statement => this.statements[this.readIndex++] as T;
         /// <summary>
         /// Peek at the next statement as a certain type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Peek<T>() where T : Statement => statements[readIndex] as T;
+        public T Peek<T>() where T : Statement => this.statements[this.readIndex] as T;
         /// <summary>
         /// Peek a certain number of statements into the future as a certain type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="skip"></param>
         /// <returns></returns>
-        public T Peek<T>(int skip) where T : Statement => statements[readIndex + skip] as T;
+        public T Peek<T>(int skip) where T : Statement => this.statements[this.readIndex + skip] as T;
         /// <summary>
         /// Returns if there's another statement available and it's of a certain type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public bool NextIs<T>() where T : Statement => HasNext && statements[readIndex] is T;
+        public bool NextIs<T>() where T : Statement => this.HasNext && this.statements[this.readIndex] is T;
         /// <summary>
         /// Returns if the next statement is an unknown statement with builder field(s) in it.
         /// </summary>
         /// <returns></returns>
         public bool NextIsBuilder()
         {
-            if (!HasNext)
+            if (!this.HasNext)
                 return false;
 
-            Statement _tokens = statements[readIndex];
+            Statement _tokens = this.statements[this.readIndex];
 
             if (!(_tokens is StatementUnknown tokens))
                 return false;
@@ -981,8 +978,8 @@ namespace mc_compiled.MCC.Compiler
             var ret = new Statement[amount];
 
             int write = 0;
-            for (int i = readIndex; i < statements.Length && i < readIndex + amount; i++)
-                ret[write++] = statements[i];
+            for (int i = this.readIndex; i < this.statements.Length && i < this.readIndex + amount; i++)
+                ret[write++] = this.statements[i];
 
             return ret;
         }
@@ -992,9 +989,9 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Statement[] NextExecutionSet()
         {
-            Statement current = statements[readIndex - 1];
+            Statement current = this.statements[this.readIndex - 1];
 
-            if (!HasNext)
+            if (!this.HasNext)
                 throw new StatementException(current, "Unexpected end-of-file while expecting statement/block.");
 
             if(NextIs<StatementOpenBlock>())
@@ -1002,8 +999,8 @@ namespace mc_compiled.MCC.Compiler
                 var block = Next<StatementOpenBlock>();
                 int statements = block.statementsInside;
                 Statement[] code = Peek(statements);
-                readIndex += statements;
-                readIndex++; // block closer
+                this.readIndex += statements;
+                this.readIndex++; // block closer
                 return code;
             }
 
@@ -1021,8 +1018,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         private string PopPrepend()
         {
-            string ret = prependBuffer.ToString();
-            prependBuffer.Clear();
+            string ret = this.prependBuffer.ToString();
+            this.prependBuffer.Clear();
             return ret;
         }
 
@@ -1031,28 +1028,28 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         private void SetCompilerPPVs()
         {
-            ppv["_minecraft"] = new PreprocessorVariable(MINECRAFT_VERSION);
-            ppv["_compiler"] = new PreprocessorVariable(MCC_VERSION);
-            ppv["_realtime"] = new PreprocessorVariable(DateTime.Now.ToShortTimeString());
-            ppv["_realdate"] = new PreprocessorVariable(DateTime.Now.ToShortDateString());
-            ppv["_timeformat"] = new PreprocessorVariable(TimeFormat.Default.ToString());
-            ppv["_true"] = new PreprocessorVariable("true");
-            ppv["_false"] = new PreprocessorVariable("false");
+            this.ppv["_minecraft"] = new PreprocessorVariable(MINECRAFT_VERSION);
+            this.ppv["_compiler"] = new PreprocessorVariable(MCC_VERSION);
+            this.ppv["_realtime"] = new PreprocessorVariable(DateTime.Now.ToShortTimeString());
+            this.ppv["_realdate"] = new PreprocessorVariable(DateTime.Now.ToShortDateString());
+            this.ppv["_timeformat"] = new PreprocessorVariable(TimeFormat.Default.ToString());
+            this.ppv["_true"] = new PreprocessorVariable("true");
+            this.ppv["_false"] = new PreprocessorVariable("false");
         }
         /// <summary>
         /// Run this executor start to finish.
         /// </summary>
         public void Execute()
         {
-            readIndex = 0;
+            this.readIndex = 0;
 
-            while (HasNext)
+            while (this.HasNext)
             {
                 Statement unresolved = Next();
                 unresolved.Decorate(this);
                 Statement statement = unresolved.ClonePrepare(this);
                 
-                using (scoreboard.temps.PushTempState())
+                using (this.scoreboard.temps.PushTempState())
                 {
                     statement.SetExecutor(this);
                     statement.Run0(this);
@@ -1065,10 +1062,10 @@ namespace mc_compiled.MCC.Compiler
                 CheckUnreachable(statement);
 
                 // run deferred processes
-                if(iterationsUntilDeferProcess > 0)
+                if(this.iterationsUntilDeferProcess > 0)
                 {
-                    iterationsUntilDeferProcess--;
-                    if (iterationsUntilDeferProcess == 0)
+                    this.iterationsUntilDeferProcess--;
+                    if (this.iterationsUntilDeferProcess == 0)
                         ProcessDeferredActions();
                 }
 
@@ -1076,7 +1073,7 @@ namespace mc_compiled.MCC.Compiler
                     Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement.ToString());
             }
 
-            while (currentFiles.Any())
+            while (this.currentFiles.Any())
                 PopFile();
 
             FinalizeInitFile();
@@ -1086,18 +1083,18 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void ExecuteSubsection(Statement[] section)
         {
-            Statement[] restore0 = statements;
-            int restore1 = readIndex;
+            Statement[] restore0 = this.statements;
+            int restore1 = this.readIndex;
 
-            statements = section;
-            readIndex = 0;
-            while (HasNext)
+            this.statements = section;
+            this.readIndex = 0;
+            while (this.HasNext)
             {
                 Statement unresolved = Next();
                 unresolved.Decorate(this);
                 Statement statement = unresolved.ClonePrepare(this);
 
-                using (scoreboard.temps.PushTempState())
+                using (this.scoreboard.temps.PushTempState())
                 {
                     statement.Run0(this);
                 }
@@ -1109,10 +1106,10 @@ namespace mc_compiled.MCC.Compiler
                 CheckUnreachable(statement);
 
                 // run deferred processes
-                if (iterationsUntilDeferProcess > 0)
+                if (this.iterationsUntilDeferProcess > 0)
                 {
-                    iterationsUntilDeferProcess--;
-                    if (iterationsUntilDeferProcess == 0)
+                    this.iterationsUntilDeferProcess--;
+                    if (this.iterationsUntilDeferProcess == 0)
                         ProcessDeferredActions();
                 }
 
@@ -1121,20 +1118,20 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // now its done, so restore state
-            statements = restore0;
-            readIndex = restore1;
+            this.statements = restore0;
+            this.readIndex = restore1;
         }
 
         /// <summary>
         /// Set the result of the last preprocessor-if comparison in this scope.
         /// </summary>
         /// <param name="value"></param>
-        public void SetLastIfResult(bool value) => lastPreprocessorCompare[ScopeLevel] = value;
+        public void SetLastIfResult(bool value) => this.lastPreprocessorCompare[this.ScopeLevel] = value;
         /// <summary>
         /// Get the result of the last preprocessor-if comparison in this scope.
         /// </summary>
         /// <returns></returns>
-        public bool GetLastIfResult() => lastPreprocessorCompare[ScopeLevel];
+        public bool GetLastIfResult() => this.lastPreprocessorCompare[this.ScopeLevel];
         
         /// <summary>
         /// Set the last comparison data used at the given/current scope level.
@@ -1144,9 +1141,9 @@ namespace mc_compiled.MCC.Compiler
         internal void SetLastCompare(PreviousComparisonStructure set, int? scope = null)
         {
             if (scope == null)
-                scope = ScopeLevel;
+                scope = this.ScopeLevel;
 
-            lastCompare[scope.Value] = set;
+            this.lastCompare[scope.Value] = set;
         }
         /// <summary>
         /// Get the last comparison data used at the given/current scope level.
@@ -1155,17 +1152,16 @@ namespace mc_compiled.MCC.Compiler
         internal PreviousComparisonStructure GetLastCompare(int? scope = null)
         {
             if (scope == null)
-                scope = ScopeLevel;
+                scope = this.ScopeLevel;
 
-            return lastCompare[scope.Value];
+            return this.lastCompare[scope.Value];
         }
 
         /// <summary>
         /// Register a macro to be looked up later.
         /// </summary>
         /// <param name="macro">The macro to register.</param>
-        public void RegisterMacro(Macro macro) =>
-            macros.Add(macro);
+        public void RegisterMacro(Macro macro) => this.macros.Add(macro);
         /// <summary>
         /// Look for a macro present in this project.
         /// </summary>
@@ -1173,7 +1169,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A nullable <see cref="Macro"/> which contains the found macro, if any.</returns>
         public Macro? LookupMacro(string name)
         {
-            foreach (Macro macro in macros.Where(macro => macro.Matches(name)))
+            foreach (Macro macro in this.macros.Where(macro => macro.Matches(name)))
                 return macro;
             return null;
         }
@@ -1192,7 +1188,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the current file that should be written to.
         /// </summary>
-        public CommandFile CurrentFile => currentFiles.Peek();
+        public CommandFile CurrentFile => this.currentFiles.Peek();
         internal CommandFile HeadFile { get; private set; }
         internal CommandFile InitFile { get; private set; }
         private CommandFile TestsFile { get; set; }
@@ -1200,21 +1196,21 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Get the current scope level.
         /// </summary>
-        public int ScopeLevel => currentFiles.Count - 1;
+        public int ScopeLevel => this.currentFiles.Count - 1;
         /// <summary>
         /// Get if the base file (projectName.mcfunction) is the active file.
         /// </summary>
-        public bool IsScopeBase => currentFiles.Count <= 1;
+        public bool IsScopeBase => this.currentFiles.Count <= 1;
         /// <summary>
         /// The number of the next line that will be added.
         /// </summary>
-        public int NextLineNumber => CurrentFile.Length + 1;
+        public int NextLineNumber => this.CurrentFile.Length + 1;
 
         public void CreateTestsFile()
         {
-            TestsFile = new CommandFile(true, "test");
-            AddExtraFile(TestsFile);
-            TestsFile.Add("");
+            this.TestsFile = new CommandFile(true, "test");
+            AddExtraFile(this.TestsFile);
+            this.TestsFile.Add("");
         }
         /// <summary>
         /// Add a command to the current file, with prepend buffer.
@@ -1222,12 +1218,13 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="command"></param>
         public void AddCommand(string command)
         {
-            if (linting)
+            if (this.linting)
             {
                 PopPrepend();
                 return;
             }
-            CurrentFile.Add(PopPrepend() + command);
+
+            this.CurrentFile.Add(PopPrepend() + command);
         }
         /// <summary>
         /// Add a set of commands into a new branching file unless inline is set.
@@ -1238,7 +1235,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
         public void AddCommands(IEnumerable<string> commands, string friendlyName, string friendlyDescription, bool inline = false)
         {
-            if (linting)
+            if (this.linting)
                 return;
             string[] commandsAsArray = commands as string[] ?? commands.ToArray();
             int count = commandsAsArray.Count();
@@ -1248,7 +1245,7 @@ namespace mc_compiled.MCC.Compiler
             if (inline)
             {
                 string buffer = PopPrepend();
-                CurrentFile.Add(from c in commandsAsArray select buffer + c);
+                this.CurrentFile.Add(from c in commandsAsArray select buffer + c);
                 return;
             }
 
@@ -1274,10 +1271,10 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="command"></param>
         public void AddCommandClean(string command)
         {
-            if (linting)
+            if (this.linting)
                 return;
-            string prepend = prependBuffer.ToString();
-            CurrentFile.Add(prepend + command);
+            string prepend = this.prependBuffer.ToString();
+            this.CurrentFile.Add(prepend + command);
         }
         /// <summary>
         /// Add a set of commands into a new branching file, not modifying the prepend buffer.
@@ -1289,13 +1286,13 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
         public void AddCommandsClean(IEnumerable<string> commands, string friendlyName, string friendlyDescription, bool inline = false)
         {
-            if (linting || commands == null)
+            if (this.linting || commands == null)
                 return;
-            string buffer = prependBuffer.ToString();
+            string buffer = this.prependBuffer.ToString();
 
             if (inline)
             {
-                CurrentFile.Add(commands.Select(c => buffer + c));
+                this.CurrentFile.Add(commands.Select(c => buffer + c));
                 return;
             }
 
@@ -1309,7 +1306,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            CommandFile file = Executor.GetNextGeneratedFile(friendlyName);
+            CommandFile file = GetNextGeneratedFile(friendlyName);
 
             if(friendlyDescription != null)
                 file.Add("# " + friendlyDescription);
@@ -1317,29 +1314,27 @@ namespace mc_compiled.MCC.Compiler
             file.Add(commandsAsArray);
 
             AddExtraFile(file);
-            CurrentFile.Add(buffer + Command.Function(file));
+            this.CurrentFile.Add(buffer + Command.Function(file));
         }
         /// <summary>
         /// Add a file on its own to the list.
         /// </summary>
         /// <param name="file"></param>
-        public void AddExtraFile(IAddonFile file) =>
-            project.AddFile(file);
+        public void AddExtraFile(IAddonFile file) => this.project.AddFile(file);
         /// <summary>
         /// Add a file to the list, removing any other file that has a matching name/directory.
         /// </summary>
         /// <param name="file"></param>
         public void OverwriteExtraFile(IAddonFile file)
         {
-            project.RemoveDuplicatesOf(file);
-            project.AddFile(file);
+            this.project.RemoveDuplicatesOf(file);
+            this.project.AddFile(file);
         }
         /// <summary>
         /// Add a set of files on their own to the list.
         /// </summary>
         /// <param name="files">The files to add.</param>
-        public void AddExtraFiles(IEnumerable<IAddonFile> files) =>
-            project.AddFiles(files);
+        public void AddExtraFiles(IEnumerable<IAddonFile> files) => this.project.AddFiles(files);
         /// <summary>
         /// Add a set of files on their own to the list, removing any other files that have a matching name/directory.
         /// </summary>
@@ -1364,9 +1359,9 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="command"></param>
         public void AddCommandInit(string command)
         {
-            if (linting || command == null)
+            if (this.linting || command == null)
                 return;
-            initCommands.Add(command);
+            this.initCommands.Add(command);
         }
         /// <summary>
         /// Adds a set of commands to the 'init' file. Does not affect the prepend buffer.
@@ -1374,15 +1369,15 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="commands"></param>
         public void AddCommandsInit(IEnumerable<string> commands)
         {
-            if (linting || commands == null)
+            if (this.linting || commands == null)
                 return;
             
             string[] commandsAsArray = commands as string[] ?? commands.ToArray();
             
             if (!commandsAsArray.Any())
                 return;
-            
-            initCommands.AddRange(commandsAsArray);
+
+            this.initCommands.AddRange(commandsAsArray);
         }
 
         /// <summary>
@@ -1391,13 +1386,13 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public TickScheduler GetScheduler()
         {
-            if (scheduler != null)
-                return scheduler;
+            if (this.scheduler != null)
+                return this.scheduler;
             
             // create new one
-            scheduler = new TickScheduler(this);
-            project.AddFile(scheduler);
-            return scheduler;
+            this.scheduler = new TickScheduler(this);
+            this.project.AddFile(this.scheduler);
+            return this.scheduler;
         }
 
         private TickScheduler scheduler;
@@ -1409,8 +1404,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>The old buffer's contents.</returns>
         public string SetCommandPrepend(string content)
         {
-            string oldContent = prependBuffer.ToString();
-            prependBuffer.Clear().Append(content);
+            string oldContent = this.prependBuffer.ToString();
+            this.prependBuffer.Clear().Append(content);
 
             if (string.IsNullOrEmpty(oldContent))
                 return "";
@@ -1421,14 +1416,12 @@ namespace mc_compiled.MCC.Compiler
         /// Append to the content to the prepend buffer.
         /// </summary>
         /// <param name="content"></param>
-        public void AppendCommandPrepend(string content) =>
-            prependBuffer.Append(content);
+        public void AppendCommandPrepend(string content) => this.prependBuffer.Append(content);
         /// <summary>
         /// Prepend content to the prepend buffer.
         /// </summary>
         /// <param name="content"></param>
-        public void PrependCommandPrepend(string content) =>
-            prependBuffer.Insert(0, content);
+        public void PrependCommandPrepend(string content) => this.prependBuffer.Insert(0, content);
 
         /// <summary>
         /// Try to get a preprocessor variable.
@@ -1443,7 +1436,7 @@ namespace mc_compiled.MCC.Compiler
             if (name[0] == '$')
                 name = name.Substring(1);
             
-            return ppv.TryGetValue(name, out value);
+            return this.ppv.TryGetValue(name, out value);
         }
 
         /// <summary>
@@ -1457,7 +1450,7 @@ namespace mc_compiled.MCC.Compiler
                 throw new Exception("Tried to set PPV with empty name.");
             if (name[0] == '$')
                 name = name.Substring(1);
-            ppv[name] = values.Clone();
+            this.ppv[name] = values.Clone();
         }
         /// <summary>
         /// Set or create a preprocessor variable.
@@ -1470,13 +1463,13 @@ namespace mc_compiled.MCC.Compiler
                 throw new Exception("Tried to set PPV with empty name.");
             if (name[0] == '$')
                 name = name.Substring(1);
-            ppv[name] = new PreprocessorVariable(values);
+            this.ppv[name] = new PreprocessorVariable(values);
         }
 
         /// <summary>
         /// Get the names of all registered preprocessor variables.
         /// </summary>
-        public IEnumerable<string> PPVNames => ppv.Select(p => p.Key).ToArray();
+        public IEnumerable<string> PPVNames => this.ppv.Select(p => p.Key).ToArray();
 
         /// <summary>
         /// Resolve all unescaped preprocessor variables in a string.
@@ -1485,7 +1478,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public string ResolveString(string str)
         {
-            if (ppv.Count < 1)
+            if (this.ppv.Count < 1)
                 return str;
 
             var sb = new StringBuilder(str);
@@ -1559,18 +1552,17 @@ namespace mc_compiled.MCC.Compiler
 
         }
 
-        public void PushFile(CommandFile file) =>
-            currentFiles.Push(file);
+        public void PushFile(CommandFile file) => this.currentFiles.Push(file);
         public void PopFileDiscard()
         {
-            unreachableCode = -1;
-            _ = currentFiles.Pop();
+            this.unreachableCode = -1;
+            _ = this.currentFiles.Pop();
         }
         public void PopFile()
         {
-            unreachableCode = -1;
+            this.unreachableCode = -1;
 
-            CommandFile file = currentFiles.Pop();
+            CommandFile file = this.currentFiles.Pop();
 
             if(!file.IsValidTest)
             {
@@ -1583,18 +1575,18 @@ namespace mc_compiled.MCC.Compiler
             if(file.IsTest) // test is valid
             {
                 // test related stuff
-                int testId = ++testCount;
+                int testId = ++this.testCount;
                 RuntimeFunction func = file.runtimeFunction;
                 Statement creationStatement = func.creationStatement;
 
-                CommandFile tests = TestsFile;
+                CommandFile tests = this.TestsFile;
                 tests.Add($"# Test {testId}: {func.name}, located at line {creationStatement.Lines[0]}");
                 tests.Add(Command.Function(file));
                 tests.Add(Command.Tellraw("@s", new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} ({func.name}) passed.")).BuildString()));
                 tests.Add("");
             }
 
-            if (ReferenceEquals(file, InitFile))
+            if (ReferenceEquals(file, this.InitFile))
                 return; // do not write the init file until the whole program is finished.
 
             // file is empty, so it causes minecraft errors if we don't do this
@@ -1605,24 +1597,24 @@ namespace mc_compiled.MCC.Compiler
                 file.Add("# empty file");
             }
 
-            project.AddFile(file);
+            this.project.AddFile(file);
         }
         private void FinalizeInitFile()
         {
-            CommandFile file = InitFile;
+            CommandFile file = this.InitFile;
 
-            if (TestsFile != null)
+            if (this.TestsFile != null)
             {
-                TestsFile.AddTop("");
-                TestsFile.AddTop(Command.Function(file));
-                TestsFile.AddTop("# Run the initialization file to make sure any needed data is there.");
+                this.TestsFile.AddTop("");
+                this.TestsFile.AddTop(Command.Function(file));
+                this.TestsFile.AddTop("# Run the initialization file to make sure any needed data is there.");
             }
 
-            if (initCommands.Count <= 0)
+            if (this.initCommands.Count <= 0)
                 return;
             
             file.AddTop("");
-            file.AddTop(initCommands);
+            file.AddTop(this.initCommands);
 
             if (Program.DECORATE)
             {
@@ -1630,7 +1622,7 @@ namespace mc_compiled.MCC.Compiler
                 file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
             }
 
-            project.AddFile(file);
+            this.project.AddFile(file);
         }
 
         private static readonly Dictionary<int, int> generatedNames = new Dictionary<int, int>();
@@ -1667,12 +1659,12 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public void Cleanup()
         {
-            currentFiles.Clear();
-            loadedFiles.Clear();
-            ppv.Clear();
-            definedTags.Clear();
-            scoreboard.values.Clear();
-            scoreboard.temps.Clear();
+            this.currentFiles.Clear();
+            this.loadedFiles.Clear();
+            this.ppv.Clear();
+            this.definedTags.Clear();
+            this.scoreboard.values.Clear();
+            this.scoreboard.temps.Clear();
             GC.Collect();
         }
     }

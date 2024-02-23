@@ -18,11 +18,11 @@ namespace mc_compiled.MCC.Attributes
         {
             get
             {
-                if (tickDelay % 1200 == 0)
-                    return $"{tickDelay / 1200}m";
-                if (tickDelay % 20 == 0)
-                    return $"{tickDelay / 20}s";
-                return tickDelay.ToString();
+                if (this.tickDelay % 1200 == 0)
+                    return $"{this.tickDelay / 1200}m";
+                if (this.tickDelay % 20 == 0)
+                    return $"{this.tickDelay / 20}s";
+                return this.tickDelay.ToString();
             }
         }
         internal AttributeAuto(int tickDelay)
@@ -30,8 +30,8 @@ namespace mc_compiled.MCC.Attributes
             this.tickDelay = tickDelay;
         }
         
-        public string GetDebugString() => $"auto: {tickDelay} ticks";
-        public string GetCodeRepresentation() => tickDelay < 2 ? "auto" : $"auto({TickDelayOptimized})";
+        public string GetDebugString() => $"auto: {this.tickDelay} ticks";
+        public string GetCodeRepresentation() => this.tickDelay < 2 ? "auto" : $"auto({this.TickDelayOptimized})";
 
 
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement)
@@ -43,16 +43,16 @@ namespace mc_compiled.MCC.Attributes
             if (function.ParameterCount > 0)
                 throw new StatementException(causingStatement, "Cannot apply attribute 'auto' to a function with parameters.");
             
-            if (tickDelay < 2)
-                task = new ScheduledRepeatEveryTick(function.file);
+            if (this.tickDelay < 2)
+                this.task = new ScheduledRepeatEveryTick(function.file);
             else
-                task = new ScheduledRepeat(function.file, tickDelay);
+                this.task = new ScheduledRepeat(function.file, this.tickDelay);
 
             function.file.AsInUse();
             
             Executor executor = causingStatement.executor;
             TickScheduler scheduler = executor.GetScheduler();
-            scheduler.ScheduleTask(task);
+            scheduler.ScheduleTask(this.task);
         }
 
         public void OnCalledFunction(RuntimeFunction function,

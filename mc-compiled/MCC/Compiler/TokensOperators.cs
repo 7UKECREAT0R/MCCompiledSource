@@ -21,7 +21,7 @@ namespace mc_compiled.MCC.Compiler
     public abstract class TokenIndexer : Token
     {
         public readonly Token[] innerTokens;
-        public override string AsString() => $"[{string.Join(", ", innerTokens.Select(t => t.AsString()))}]";
+        public override string AsString() => $"[{string.Join(", ", this.innerTokens.Select(t => t.AsString()))}]";
         protected TokenIndexer(IEnumerable<Token> innerTokens, int lineNumber) : base(lineNumber)
         {
             this.innerTokens = innerTokens.ToArray();
@@ -32,7 +32,7 @@ namespace mc_compiled.MCC.Compiler
         }
         protected TokenIndexer(Token innerToken, int lineNumber) : base(lineNumber)
         {
-            innerTokens = new[] { innerToken };
+            this.innerTokens = new[] { innerToken };
         }
 
         /// <summary>
@@ -141,32 +141,32 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIndexerInteger : TokenIndexer
     {
-        public override string AsString() => $"[{token.number}]";
+        public override string AsString() => $"[{this.token.number}]";
 
         public readonly TokenIntegerLiteral token;
         public TokenIndexerInteger(TokenIntegerLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetPrimaryToken() => token;
+        public override Token GetPrimaryToken() => this.token;
         public override bool ActuallyIndexes() => true;
         
         internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower) =>
-            new StatementException(thrower, $"Index {token.number} was out of bounds. Min: {min}, Max: {max}");
+            new StatementException(thrower, $"Index {this.token.number} was out of bounds. Min: {min}, Max: {max}");
     }
     /// <summary>
     /// An indexer giving a string.
     /// </summary>
     public sealed class TokenIndexerString : TokenIndexer
     {
-        public override string AsString() => $"[\"{token.text}\"]";
+        public override string AsString() => $"[\"{this.token.text}\"]";
 
         public readonly TokenStringLiteral token;
         public TokenIndexerString(TokenStringLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetPrimaryToken() => token;
+        public override Token GetPrimaryToken() => this.token;
         public override bool ActuallyIndexes() => true;
     }
     /// <summary>
@@ -174,18 +174,18 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIndexerRange : TokenIndexer
     {
-        public override string AsString() => $"[\"{token.range.ToString()}\"]";
+        public override string AsString() => $"[\"{this.token.range.ToString()}\"]";
 
         public readonly TokenRangeLiteral token;
         public TokenIndexerRange(TokenRangeLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetPrimaryToken() => token;
+        public override Token GetPrimaryToken() => this.token;
         public override bool ActuallyIndexes() => true;
 
         internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower) =>
-            new StatementException(thrower, $"Range {token.range.ToString()} was out of bounds. Min: {min}, Max: {max}");
+            new StatementException(thrower, $"Range {this.token.range.ToString()} was out of bounds. Min: {min}, Max: {max}");
     }
     /// <summary>
     /// An indexer indicating a set of block states.
@@ -193,13 +193,13 @@ namespace mc_compiled.MCC.Compiler
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public sealed class TokenIndexerBlockStates : TokenIndexer
     {
-        public override string AsString() => $"[{string.Join(", ", blockStates.Select(bs => bs.AsString()))}]";
+        public override string AsString() => $"[{string.Join(", ", this.blockStates.Select(bs => bs.AsString()))}]";
 
         public readonly List<TokenBlockStateLiteral> blockStates;
         public TokenIndexerBlockStates(IEnumerable<TokenBlockStateLiteral> addStates, int lineNumber) : base(addStates, lineNumber)
         {
-            blockStates = new List<TokenBlockStateLiteral>();
-            blockStates.AddRange(addStates);
+            this.blockStates = new List<TokenBlockStateLiteral>();
+            this.blockStates.AddRange(addStates);
         }
         public override Token GetPrimaryToken() => null;
         public override bool ActuallyIndexes() => false;
@@ -209,14 +209,14 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIndexerSelector : TokenIndexer
     {
-        public override string AsString() => $"[{token.selector}]";
+        public override string AsString() => $"[{this.token.selector}]";
 
         public readonly TokenSelectorLiteral token;
         public TokenIndexerSelector(TokenSelectorLiteral token, int lineNumber) : base(token, lineNumber)
         {
             this.token = token;
         }
-        public override Token GetPrimaryToken() => token;
+        public override Token GetPrimaryToken() => this.token;
         public override bool ActuallyIndexes() => true;
     }
     /// <summary>
@@ -227,7 +227,7 @@ namespace mc_compiled.MCC.Compiler
         public override string AsString() => "*";
         public TokenIndexerAsterisk(int lineNumber) : base(new TokenMultiply(lineNumber), lineNumber) { }
         
-        public override Token GetPrimaryToken() => new TokenMultiply(lineNumber);
+        public override Token GetPrimaryToken() => new TokenMultiply(this.lineNumber);
         public override bool ActuallyIndexes() => true;
     }
     

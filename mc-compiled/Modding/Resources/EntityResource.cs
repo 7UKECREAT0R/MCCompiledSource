@@ -13,7 +13,7 @@ namespace mc_compiled.Modding.Resources
 
         public string CommandReference
         {
-            get => description.identifier;
+            get => this.description.identifier;
         }
 
         public JObject ToJSON()
@@ -23,7 +23,7 @@ namespace mc_compiled.Modding.Resources
                 ["format_version"] = FormatVersion.r_ENTITY.ToString(),
                 ["minecraft:client_entity"] = new JObject()
                 {
-                    ["description"] = description.ToJSON()
+                    ["description"] = this.description.ToJSON()
                 }
             };
         }
@@ -36,8 +36,7 @@ namespace mc_compiled.Modding.Resources
             string str = full.ToString();
             return Encoding.UTF8.GetBytes(str);
         }
-        public string GetOutputFile() =>
-            name + ".json";
+        public string GetOutputFile() => this.name + ".json";
         public OutputLocation GetOutputLocation() =>
             OutputLocation.r_ENTITY;
     }
@@ -51,13 +50,13 @@ namespace mc_compiled.Modding.Resources
         {
             return new JObject()
             {
-                ["identifier"] = identifier,
+                ["identifier"] = this.identifier,
                 ["materials"] = new JObject()
                 {
-                    ["default"] = material
+                    ["default"] = this.material
                 },
                 ["geometry"] = new JObject() {
-                    ["default"] = geometry.identifier
+                    ["default"] = this.geometry.identifier
                 }
             };
         }

@@ -20,22 +20,22 @@ namespace mc_compiled.Modding.Behaviors
         {
             get
             {
-                if(defaultState != null)
-                    return defaultState;
+                if(this.defaultState != null)
+                    return this.defaultState;
 
-                return (states.Count > 0) ? states[0].name : null as string;
+                return (this.states.Count > 0) ? this.states[0].name : null as string;
             }
         }
 
         public string Identifier
         {
-            get => "controller.animation." + name;
+            get => "controller.animation." + this.name;
         }
 
         public AnimationController(string name)
         {
             this.name = name;
-            states = new List<ControllerState>();
+            this.states = new List<ControllerState>();
         }
         public JObject ToJSON()
         {
@@ -43,15 +43,15 @@ namespace mc_compiled.Modding.Behaviors
             baseJson["format_version"] = FormatVersion.b_ANIMATION_CONTROLLER.ToString();
 
             JObject statesJson = new JObject();
-            foreach (ControllerState state in states)
+            foreach (ControllerState state in this.states)
                 statesJson[state.name] = state.ToJSON();
 
             baseJson["animation_controllers"] = new JObject()
             {
-                [Identifier] = new JObject()
+                [this.Identifier] = new JObject()
                 {
                     ["states"] = statesJson,
-                    ["initial_state"] = DefaultState
+                    ["initial_state"] = this.DefaultState
                 }
             };
 
@@ -66,8 +66,7 @@ namespace mc_compiled.Modding.Behaviors
             string str = full.ToString();
             return Encoding.UTF8.GetBytes(str);
         }
-        public string GetOutputFile() =>
-            name + ".json";
+        public string GetOutputFile() => this.name + ".json";
         public OutputLocation GetOutputLocation() =>
             OutputLocation.b_ANIMATION_CONTROLLERS;
     }
@@ -92,7 +91,7 @@ namespace mc_compiled.Modding.Behaviors
             {
                 return new JObject()
                 {
-                    [other] = condition.ToString()
+                    [this.other] = this.condition.ToString()
                 };
             }
         }
@@ -106,12 +105,12 @@ namespace mc_compiled.Modding.Behaviors
         {
             JObject json = new JObject();
 
-            if (transitions != null)
-                json["transitions"] = new JArray(transitions.Select(t => t.ToJSON()));
-            if (onEntryCommands != null)
-                json["on_entry"] = new JArray(onEntryCommands);
-            if (onExitCommands != null)
-                json["on_exit"] = new JArray(onExitCommands);
+            if (this.transitions != null)
+                json["transitions"] = new JArray(this.transitions.Select(t => t.ToJSON()));
+            if (this.onEntryCommands != null)
+                json["on_entry"] = new JArray(this.onEntryCommands);
+            if (this.onExitCommands != null)
+                json["on_exit"] = new JArray(this.onExitCommands);
 
             return json;
         }

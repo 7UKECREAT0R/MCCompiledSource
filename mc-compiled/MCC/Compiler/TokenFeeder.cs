@@ -33,8 +33,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="code"></param>
         public void SetSource(int[] lines, string code)
         {
-            Lines = lines;
-            Source = code;
+            this.Lines = lines;
+            this.Source = code;
         }
 
         public int[] Lines
@@ -55,7 +55,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public bool HasNext
         {
-            get => currentToken < tokens.Length;
+            get => this.currentToken < this.tokens.Length;
         }
         /// <summary>
         /// Pulls the next token in the feeder.
@@ -64,9 +64,9 @@ namespace mc_compiled.MCC.Compiler
         /// <exception cref="FeederException"></exception>
         public Token Next()
         {
-            if (currentToken >= tokens.Length)
+            if (this.currentToken >= this.tokens.Length)
                 throw new FeederException(this, $"Token expected at end of line.");
-            return tokens[currentToken++];
+            return this.tokens[this.currentToken++];
         }
         /// <summary>
         /// Peeks at the next token in the feeder, but doesn't pull it.
@@ -75,9 +75,9 @@ namespace mc_compiled.MCC.Compiler
         /// <exception cref="FeederException"></exception>
         public Token Peek()
         {
-            if (currentToken >= tokens.Length)
+            if (this.currentToken >= this.tokens.Length)
                 throw new FeederException(this, $"Token expected at end of line.");
-            return tokens[currentToken];
+            return this.tokens[this.currentToken];
         }
         /// <summary>
         /// Pulls the next token in the feeder, casting it to the given type. Implements MCCompiled implicit conversions.
@@ -87,10 +87,10 @@ namespace mc_compiled.MCC.Compiler
         /// <exception cref="FeederException"></exception>
         public T Next<T>() where T : class
         {
-            if (currentToken >= tokens.Length)
+            if (this.currentToken >= this.tokens.Length)
                 throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
 
-            Token token = tokens[currentToken++];
+            Token token = this.tokens[this.currentToken++];
             if (!(token is T))
             {
                 if (token is IImplicitToken)
@@ -100,7 +100,7 @@ namespace mc_compiled.MCC.Compiler
 
                     for (int i = 0; i < otherTypes.Length; i++)
                         if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(executor, i) as T;
+                            return implicitToken.Convert(this.executor, i) as T;
                 }
                 throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType().Name}");
             }
@@ -115,9 +115,9 @@ namespace mc_compiled.MCC.Compiler
         /// <exception cref="FeederException"></exception>
         public T Peek<T>() where T : class
         {
-            if (currentToken >= tokens.Length)
+            if (this.currentToken >= this.tokens.Length)
                 throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
-            Token token = tokens[currentToken];
+            Token token = this.tokens[this.currentToken];
             if (!(token is T))
             {
                 if (token is IImplicitToken)
@@ -127,7 +127,7 @@ namespace mc_compiled.MCC.Compiler
 
                     for (int i = 0; i < otherTypes.Length; i++)
                         if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(executor, i) as T;
+                            return implicitToken.Convert(this.executor, i) as T;
                 }
                 throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType()}");
             }
@@ -142,10 +142,10 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public bool NextIs<T>(bool allowImplicit = true)
         {
-            if (!HasNext)
+            if (!this.HasNext)
                 return false;
 
-            Token token = tokens[currentToken];
+            Token token = this.tokens[this.currentToken];
 
             if (token is T)
                 return true;
@@ -169,10 +169,10 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Token[] GetRemainingTokens()
         {
-            if (tokens.Length <= currentToken)
+            if (this.tokens.Length <= this.currentToken)
                 return Array.Empty<Token>();
 
-            return tokens.Skip(currentToken)
+            return this.tokens.Skip(this.currentToken)
                 .Where(t => !(t is IUselessInformation))
                 .ToArray();
         }
@@ -180,7 +180,8 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Returns the number of remaining tokens in this feeder, excluding comments.
         /// </summary>
-        public int RemainingTokens => tokens.Skip(currentToken)
+        public int RemainingTokens =>
+            this.tokens.Skip(this.currentToken)
             .Count(t => !(t is IUselessInformation));
     }
 }

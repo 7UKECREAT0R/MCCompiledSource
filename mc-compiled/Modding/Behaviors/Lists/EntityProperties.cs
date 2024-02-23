@@ -17,9 +17,9 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["event_name"] = eventName,
-                ["range"] = range,
-                ["value"] = value
+                ["event_name"] = this.eventName,
+                ["range"] = this.range,
+                ["value"] = this.value
             };
         }
     }
@@ -61,8 +61,8 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["width"] = width,
-                ["height"] = height
+                ["width"] = this.width,
+                ["height"] = this.height
             };
         }
     }
@@ -76,7 +76,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = color
+                ["value"] = this.color
             };
         }
     }
@@ -90,7 +90,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = color
+                ["value"] = this.color
             };
         }
     }
@@ -104,7 +104,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = angle
+                ["value"] = this.angle
             };
         }
     }
@@ -118,8 +118,8 @@ namespace mc_compiled.Modding.Behaviors
             public JObject ToJSON() =>
                 new JObject()
                 {
-                    ["slot"] = slot.String(),
-                    ["drop_chance"] = dropChance
+                    ["slot"] = this.slot.String(),
+                    ["drop_chance"] = this.dropChance
                 };
         }
 
@@ -130,17 +130,17 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:equipment";
         public override JObject _GetValue()
         {
-            if (dropChances == null) {
+            if (this.dropChances == null) {
                 return new JObject()
                 {
-                    ["table"] = lootTable.ResourcePath
+                    ["table"] = this.lootTable.ResourcePath
                 };
             }
 
             return new JObject()
             {
-                ["table"] = lootTable.ResourcePath,
-                ["slot_drop_chance"] = new JArray(dropChances.Select(dc => dc.ToJSON()))
+                ["table"] = this.lootTable.ResourcePath,
+                ["slot_drop_chance"] = new JArray(this.dropChances.Select(dc => dc.ToJSON()))
             };
         }
     }
@@ -172,7 +172,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = flySpeed
+                ["value"] = this.flySpeed
             };
         }
     }
@@ -185,7 +185,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = friction
+                ["value"] = this.friction
             };
         }
     }
@@ -199,7 +199,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = groundOffset
+                ["value"] = this.groundOffset
             };
         }
     }
@@ -253,7 +253,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["interact_text"] = interactText
+                ["interact_text"] = this.interactText
             };
         }
     }
@@ -346,17 +346,17 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:item_controllable";
         public override JObject _GetValue()
         {
-            if (controlItems.Length == 1)
+            if (this.controlItems.Length == 1)
             {
                 return new JObject()
                 {
-                    ["control_items"] = controlItems[0]
+                    ["control_items"] = this.controlItems[0]
                 };
             }
 
             return new JObject
             {
-                ["control_items"] = new JArray(controlItems)
+                ["control_items"] = new JArray(this.controlItems)
             };
         }
     }
@@ -371,7 +371,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["table"] = lootTable.ResourcePath
+                ["table"] = this.lootTable.ResourcePath
             };
         }
     }
@@ -385,7 +385,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = markVariant
+                ["value"] = this.markVariant
             };
         }
     }
@@ -400,7 +400,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = value
+                ["value"] = this.value
             };
         }
     }
@@ -414,7 +414,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = scale
+                ["value"] = this.scale
             };
         }
     }
@@ -428,7 +428,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = skinID
+                ["value"] = this.skinID
             };
         }
     }
@@ -442,7 +442,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = volume
+                ["value"] = this.volume
             };
         }
     }
@@ -456,7 +456,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["family"] = new JArray(families)
+                ["family"] = new JArray(this.families)
             };
         }
     }
@@ -470,7 +470,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = variant
+                ["value"] = this.variant
             };
         }
     }
@@ -484,7 +484,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             return new JObject()
             {
-                ["value"] = speed
+                ["value"] = this.speed
             };
         }
     }

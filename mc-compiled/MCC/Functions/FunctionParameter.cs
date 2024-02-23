@@ -42,13 +42,13 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         public void SetParameterDefault(List<string> commandBuffer, Executor executor, Statement callingStatement)
         {
-            if (defaultValue == null)
-                throw new StatementException(callingStatement, $"Function parameter \"{name}\" does not have a value to default to.");
+            if (this.defaultValue == null)
+                throw new StatementException(callingStatement, $"Function parameter \"{this.name}\" does not have a value to default to.");
 
-            if (CheckInput(defaultValue) != ParameterFit.No)
-                SetParameter(defaultValue, commandBuffer, executor, callingStatement);
+            if (CheckInput(this.defaultValue) != ParameterFit.No)
+                SetParameter(this.defaultValue, commandBuffer, executor, callingStatement);
             else
-                throw new StatementException(callingStatement, $"Default value for function parameter \"{name}\" didn't fit.");
+                throw new StatementException(callingStatement, $"Default value for function parameter \"{this.name}\" didn't fit.");
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace mc_compiled.MCC.Functions
         /// <returns></returns>
         public override string ToString()
         {
-            return $"[{name}]";
+            return $"[{this.name}]";
         }
     }
     public enum ParameterFit

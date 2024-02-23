@@ -18,20 +18,17 @@
         {
             return new NBTNode[]
             {
-                new NBTInt() { name = "format_version", value = formatVersion },
-                size.ToNBT("size"),
+                new NBTInt() { name = "format_version", value = this.formatVersion }, this.size.ToNBT("size"),
                 new NBTCompound()
                 {
                     name = "structure",
                     values = new NBTNode[]
                     {
-                        indices.ToNBT(),
-                        entities.ToNBT(),
-                        palette.ToNBT(),
+                        this.indices.ToNBT(), this.entities.ToNBT(), this.palette.ToNBT(),
                         new NBTEnd()
                     }
                 },
-                worldOrigin.ToNBT("structure_world_origin"),
+                this.worldOrigin.ToNBT("structure_world_origin"),
                 new NBTEnd()
             };
         }

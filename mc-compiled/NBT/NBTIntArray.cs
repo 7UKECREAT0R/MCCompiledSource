@@ -6,12 +6,12 @@ namespace mc_compiled.NBT
     {
         public int[] values;
 
-        public NBTIntArray() => tagType = TAG.IntArray;
+        public NBTIntArray() => this.tagType = TAG.IntArray;
 
         public override void Write(BinaryWriter writer)
         {
-            writer.Write(values.Length);
-            foreach (var value in values)
+            writer.Write(this.values.Length);
+            foreach (var value in this.values)
                 writer.Write(value);
         }
     }

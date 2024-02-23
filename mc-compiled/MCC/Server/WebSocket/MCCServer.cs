@@ -43,34 +43,34 @@ namespace mc_compiled.MCC.ServerWebSocket
         private readonly List<byte[]> multiparts;
         private WebSocketFrame PopMultipart()
         {
-            if (multipartHeader == null)
+            if (this.multipartHeader == null)
                 return null;
-            if (multiparts.Count < 0)
-                return multipartHeader;
+            if (this.multiparts.Count < 0)
+                return this.multipartHeader;
 
-            long baseLength = multipartHeader.data.LongLength;
-            long length = baseLength + multiparts.Sum(array => array.LongLength);
+            long baseLength = this.multipartHeader.data.LongLength;
+            long length = baseLength + this.multiparts.Sum(array => array.LongLength);
 
             byte[] merge = new byte[length];
             long index = 0;
 
-            Array.Copy(multipartHeader.data, 0L, merge, index, baseLength);
+            Array.Copy(this.multipartHeader.data, 0L, merge, index, baseLength);
             index += baseLength;
 
-            foreach (byte[] buffer in multiparts)
+            foreach (byte[] buffer in this.multiparts)
             {
                 long bufferLength = buffer.LongLength;
                 Array.Copy(buffer, 0, merge, index, bufferLength);
                 index += bufferLength;
             }
 
-            multipartHeader.data = merge;
-            multipartHeader.fin = true;
-            multiparts.Clear();
+            this.multipartHeader.data = merge;
+            this.multipartHeader.fin = true;
+            this.multiparts.Clear();
 
             GC.Collect(); // that's a lot of bytes that just got tossed
 
-            return multipartHeader;
+            return this.multipartHeader;
         }
 
 
@@ -91,7 +91,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
             this.project = new MCCServerProject(this);
             this.ip = new IPEndPoint(IPAddress.Loopback, PORT);
-            this.socket = new Socket(ip.AddressFamily,
+            this.socket = new Socket(this.ip.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
             this.sha1 = SHA1.Create();
             this.multiparts = new List<byte[]>();
@@ -100,11 +100,11 @@ namespace mc_compiled.MCC.ServerWebSocket
         bool _isDisposed = false;
         public void Dispose()
         {
-            if (_isDisposed)
+            if (this._isDisposed)
                 return;
 
-            socket?.Dispose();
-            _isDisposed = true;
+            this.socket?.Dispose();
+            this._isDisposed = true;
         }
 
         /// <summary>
@@ -112,10 +112,10 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         public void StartServer()
         {
-            socket.Bind(ip);
-            socket.Listen(100); // 100 packet queue
+            this.socket.Bind(this.ip);
+            this.socket.Listen(100); // 100 packet queue
 
-            Console.WriteLine("Now listening for socket connection on " + ip + ".");
+            Console.WriteLine("Now listening for socket connection on " + this.ip + ".");
             Console.WriteLine("Language Server Version {0}", STANDARD_VERSION);
             Console.WriteLine("MCCompiled Version {0}", Executor.MCC_VERSION);
             
@@ -123,14 +123,14 @@ namespace mc_compiled.MCC.ServerWebSocket
             while (true)
             {
                 // reset connectionEstablished
-                connectionEstablished.Reset();
+                this.connectionEstablished.Reset();
 
                 // wait for a client to connect
                 var callback = new AsyncCallback(OnConnectionOpened);
-                socket.BeginAccept(callback, socket);
+                this.socket.BeginAccept(callback, this.socket);
 
                 // wait for connectionEstablished to be set, meaning we can now wait for the next incoming connection
-                connectionEstablished.WaitOne();
+                this.connectionEstablished.WaitOne();
             }
         }
         /// <summary>
@@ -141,13 +141,13 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             // Set connectionEstablished, which triggers the StartServer() to loop again.
             // Essentially starts waiting for another client connection after this one is established.
-            connectionEstablished.Set();
+            this.connectionEstablished.Set();
 
             // get client/server sockets
             object state = result.AsyncState;
 
             var server = (Socket)state;
-            server.ReceiveBufferSize = MCCServer.CHUNK_SIZE;
+            server.ReceiveBufferSize = CHUNK_SIZE;
 
             Socket client = server.EndAccept(result);
 
@@ -280,7 +280,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             // calculate response key
             string bigSecret = secret + WEBSOCKET_MAGIC;
             byte[] secretBytes = Encoding.ASCII.GetBytes(bigSecret);
-            byte[] secretHash = sha1.ComputeHash(secretBytes);
+            byte[] secretHash = this.sha1.ComputeHash(secretBytes);
             string acceptKey = Convert.ToBase64String(secretHash);
 
             // create response data
@@ -304,8 +304,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             package.SendFrame(WebSocketFrame.JSON(json));
 
             // send current property info
-            JArray _properties = new JArray(
-                project.properties.Select(kv => new JObject()
+            JArray _properties = new JArray(this.project.properties.Select(kv => new JObject()
                 {
                     ["name"] = kv.Key.Base64Encode(),
                     ["value"] = kv.Value.Base64Encode()
@@ -319,11 +318,11 @@ namespace mc_compiled.MCC.ServerWebSocket
             package.SendFrame(WebSocketFrame.JSON(properties));
 
             // reset the file because the client is no longer in the loop
-            string file = project.File;
+            string file = this.project.File;
             if (file != null)
             {
                 package.SendFrame(CreateNotificationFrame($"Closed file '{file}'.", "gray"));
-                project.File = null;
+                this.project.File = null;
             }
         }
 
@@ -343,28 +342,28 @@ namespace mc_compiled.MCC.ServerWebSocket
             {
                 if (frame.opcode == WebSocketOpCode.CONTINUATION)
                 {
-                    multiparts.Add(frame.data);
+                    this.multiparts.Add(frame.data);
                     return false;
                 }
                 else
                 {
-                    multipartHeader = frame;
-                    multiparts.Clear();
+                    this.multipartHeader = frame;
+                    this.multiparts.Clear();
                     return false;
                 }
             }
             else if(frame.opcode == WebSocketOpCode.CONTINUATION)
             {
                 // this is the last in the continuation sequence
-                multiparts.Add(frame.data);
+                this.multiparts.Add(frame.data);
                 frame = PopMultipart(); // merge all the data packets into one
-                multipartHeader = null;
+                this.multipartHeader = null;
 
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("multipart: fin (see below)");
             }
 
-            if (debug)
+            if (this.debug)
                 Console.WriteLine("Received {0}:\n\t{1}", frame.opcode, Encoding.UTF8.GetString(frame.data));
 
             if (frame.opcode == WebSocketOpCode.CLOSE)
@@ -450,7 +449,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             {
                 string propertyName = json["name"].ToString().Base64Decode();
                 string propertyValue = json["value"].ToString().Base64Decode();
-                project.SetProperty(propertyName, propertyValue);
+                this.project.SetProperty(propertyName, propertyValue);
             }
 
             if (action.Equals("close"))
@@ -486,10 +485,10 @@ namespace mc_compiled.MCC.ServerWebSocket
                         toOpen = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                         break;
                     case "bp":
-                        toOpen = outputBehaviorPack.Replace("?project_BP", ""); // no project
+                        toOpen = this.outputBehaviorPack.Replace("?project_BP", ""); // no project
                         break;
                     case "rp":
-                        toOpen = outputResourcePack.Replace("?project_RP", ""); // no project
+                        toOpen = this.outputResourcePack.Replace("?project_RP", ""); // no project
                         break;
                     case "install":
                         toOpen = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -498,7 +497,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                         break;
                 }
 
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("Opening folder: {0}", toOpen);
 
                 Process.Start("explorer.exe", '"' + toOpen + '"');
@@ -511,7 +510,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 string encoded = json["code"].Value<string>();
                 string code = encoded.Base64Decode();
 
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("Linting...");
 
                 Lint(code, package);
@@ -524,7 +523,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 string encodedProject = json["project"].Value<string>();
                 string project = encodedProject.Base64Decode();
 
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("Compiling project '{0}'...", project);
 
                 Compile(code, project, package);
@@ -546,9 +545,9 @@ namespace mc_compiled.MCC.ServerWebSocket
                     string code = encodedCode.Base64Decode();
                     var metadata = json["meta"] as JObject;
 
-                    if (!project.hasFile)
+                    if (!this.project.hasFile)
                     {
-                        if (!project.RunSaveFileDialog())
+                        if (!this.project.RunSaveFileDialog())
                         {
                             package.SendFrame(CreateNotificationFrame("Save cancelled by user.", "#DDDDDD"));
                             package.SendFrame(CreateBusyFrame(false));
@@ -556,7 +555,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                         }
                     }
 
-                    string file = project.File;
+                    string file = this.project.File;
                     string fileName = Path.GetFileName(file);
 
                     if (File.Exists(file))
@@ -565,7 +564,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     using (FileStream stream = File.OpenWrite(file))
                     {
                         bool hasMetadata = metadata != null;
-                        bool hasProperties = project.properties.Any();
+                        bool hasProperties = this.project.properties.Any();
 
                         if(hasMetadata || hasProperties)
                         {
@@ -585,7 +584,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                             }
                             if(hasProperties)
                             {
-                                string block = project.PropertiesBase64;
+                                string block = this.project.PropertiesBase64;
                                 string blockString = META_FIELD_PROPERTIES + block + '\n';
                                 byte[] blockBytes = ENCODING.GetBytes(blockString);
                                 stream.Write(blockBytes, 0, blockBytes.Length);
@@ -613,14 +612,14 @@ namespace mc_compiled.MCC.ServerWebSocket
             {
                 Thread thread = new Thread(() =>
                 {
-                    if (!project.RunLoadFileDialog())
+                    if (!this.project.RunLoadFileDialog())
                     {
                         package.SendFrame(CreateNotificationFrame("Load canceled by user.", "#DDDDDD"));
                         package.SendFrame(CreateBusyFrame(false));
                         return;
                     }
 
-                    string file = project.File;
+                    string file = this.project.File;
 
                     if (!File.Exists(file))
                         return;
@@ -646,7 +645,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                             } else if(line.StartsWith(META_FIELD_PROPERTIES))
                             {
                                 string dataBlock = line.Substring(META_FIELD_PROPERTIES.Length);
-                                project.PropertiesBase64 = dataBlock;
+                                this.project.PropertiesBase64 = dataBlock;
                             } else
                             {
                                 var oldColor = Console.ForegroundColor;
@@ -674,8 +673,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     package.SendFrame(WebSocketFrame.JSON(send));
 
 
-                    JArray _properties = new JArray(
-                        project.properties.Select(kv => new JObject()
+                    JArray _properties = new JArray(this.project.properties.Select(kv => new JObject()
                         {
                             ["name"] = kv.Key.Base64Encode(),
                             ["value"] = kv.Value.Base64Encode()
@@ -690,7 +688,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                     Lint(code, package);
 
-                    if (debug)
+                    if (this.debug)
                         Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata.ToString());
                     return;
                 });
@@ -708,19 +706,18 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             try
             {
-                Program.DEBUG = debug;
+                Program.DEBUG = this.debug;
                 Program.PrepareToCompile();
                 Token[] tokens = new Tokenizer(code).Tokenize();
                 Statement[] statements = Assembler.AssembleTokens(tokens);
-                var executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", outputBehaviorPack,
-                    outputResourcePack);
+                var executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", this.outputBehaviorPack, this.outputResourcePack);
                 executor.Linter();
                 executor.Execute();
 
                 // gather information.
                 LintStructure lint = LintStructure.Harvest(executor);
 
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("\tLint success. " + lint.ToString());
 
                 string json = lint.ToJSON();
@@ -735,21 +732,21 @@ namespace mc_compiled.MCC.ServerWebSocket
             }
             catch (TokenizerException exc)
             {
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("\tError. " + exc.Message);
                 string json = ErrorStructure.Wrap(exc).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
             }
             catch (StatementException exc)
             {
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("\tError. " + exc.Message);
                 string json = ErrorStructure.Wrap(exc).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
             }
             catch (FeederException exc)
             {
-                if (debug)
+                if (this.debug)
                     Console.WriteLine("\tError. " + exc.Message);
                 string json = ErrorStructure.Wrap(exc).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
@@ -758,7 +755,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             {
                 if (Debugger.IsAttached)
                     throw;
-                if (debug)
+                if (this.debug)
                 {
                     Console.WriteLine("\tFatal Error:\n\n" + exc);
                     Console.WriteLine(exc.ToString());
@@ -773,11 +770,11 @@ namespace mc_compiled.MCC.ServerWebSocket
         }
         void Compile(string code, string projectName, WebSocketPackage package)
         {
-            Program.DEBUG = debug;
+            Program.DEBUG = this.debug;
             Program.PrepareToCompile();
-            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", Array.Empty<Program.InputPPV>(), outputBehaviorPack, outputResourcePack, projectName);
+            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", Array.Empty<Program.InputPPV>(), this.outputBehaviorPack, this.outputResourcePack, projectName);
 
-            if (debug)
+            if (this.debug)
                 Console.WriteLine("Compilation Success: {0}", success);
 
             if (success)

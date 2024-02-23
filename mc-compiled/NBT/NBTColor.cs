@@ -12,22 +12,22 @@ namespace mc_compiled.NBT
         public byte g;
         public byte b;
 
-        public NBTColor() => tagType = TAG.Int;
+        public NBTColor() => this.tagType = TAG.Int;
         public NBTColor(uint decode)
         {
-            tagType = TAG.Int;
-            a = (byte)((decode & 0xFF000000) >> 24);
-            r = (byte)((decode & 0x00FF0000) >> 16);
-            g = (byte)((decode & 0x0000FF00) >> 8);
-            b = (byte)(decode & 0x000000FF);
+            this.tagType = TAG.Int;
+            this.a = (byte)((decode & 0xFF000000) >> 24);
+            this.r = (byte)((decode & 0x00FF0000) >> 16);
+            this.g = (byte)((decode & 0x0000FF00) >> 8);
+            this.b = (byte)(decode & 0x000000FF);
         }
         public override void Write(BinaryWriter writer)
         {
             uint value = 0;
-            value |= (((uint)a) << 24);
-            value |= (((uint)r) << 16);
-            value |= (((uint)g) << 8);
-            value |= b;
+            value |= (((uint) this.a) << 24);
+            value |= (((uint) this.r) << 16);
+            value |= (((uint) this.g) << 8);
+            value |= this.b;
             writer.Write(value);
         }
     }

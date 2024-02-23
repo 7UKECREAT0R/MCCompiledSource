@@ -197,8 +197,8 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         public byte[] GetBytes()
         {
-            long length = data.LongLength;
-            WebSocketByte0Info byte0Info = new WebSocketByte0Info(opcode, true);
+            long length = this.data.LongLength;
+            WebSocketByte0Info byte0Info = new WebSocketByte0Info(this.opcode, true);
             WebSocketByte1Info byte1Info = new WebSocketByte1Info(false, DeterminePayloadLength(length));
 
             if (byte1Info.extension == WebSocketPayloadLength.NORMAL)
@@ -249,18 +249,17 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         public void UnmaskData()
         {
-            if(mask != null)
+            if(this.mask != null)
             {
-                for (long i = 0; i < data.LongLength; i++)
-                    data[i] = (byte)(data[i] ^ mask[i % 4]);
+                for (long i = 0; i < this.data.LongLength; i++) this.data[i] = (byte)(this.data[i] ^ this.mask[i % 4]);
             }
         }
         public byte[] UnmaskData(byte[] data)
         {
-            if (mask != null)
+            if (this.mask != null)
             {
                 for (long i = 0; i < data.LongLength; i++)
-                    data[i] = (byte)(data[i] ^ mask[i % 4]);
+                    data[i] = (byte)(data[i] ^ this.mask[i % 4]);
             }
             return data;
         }
@@ -332,10 +331,10 @@ namespace mc_compiled.MCC.ServerWebSocket
         public override string ToString()
         {
             //string dataString = Encoding.UTF8.GetString(this.data);
-            if (fin)
-                return $"{{[FIN] {opcode}: len '{this.length}'}}";
+            if (this.fin)
+                return $"{{[FIN] {this.opcode}: len '{this.length}'}}";
             else
-                return $"{{[NOT FIN] {opcode}: len '{this.length}'}}";
+                return $"{{[NOT FIN] {this.opcode}: len '{this.length}'}}";
         }
     }
 
@@ -370,9 +369,9 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         internal byte Encode()
         {
-            byte final = fin ? (byte)1 : (byte)0;
+            byte final = this.fin ? (byte)1 : (byte)0;
             final <<= 7;
-            final |= (byte)opcode;
+            final |= (byte) this.opcode;
             return final;
         }
     }
@@ -417,9 +416,9 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         internal byte Encode()
         {
-            byte final = mask ? (byte)1 : (byte)0;
+            byte final = this.mask ? (byte)1 : (byte)0;
             final <<= 7;
-            final |= payloadLength;
+            final |= this.payloadLength;
             return final;
         }
     }

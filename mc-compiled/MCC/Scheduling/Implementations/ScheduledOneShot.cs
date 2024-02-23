@@ -30,7 +30,7 @@ namespace mc_compiled.MCC.Scheduling.Implementations
         /// <returns></returns>
         public string Run()
         {
-            return Command.ScoreboardSet(trigger, tickDelay);
+            return Command.ScoreboardSet(this.trigger, this.tickDelay);
         }
         
         public ScheduledOneShot(string[] commands, int tickDelay, bool global) : base(null)
@@ -38,7 +38,7 @@ namespace mc_compiled.MCC.Scheduling.Implementations
             Debug.Assert(commands != null, "commands was null");
             Debug.Assert(commands.Length > 0, "commands was empty");
 
-            functionName = FUNCTION;
+            this.functionName = FUNCTION;
             this.commands = commands;
             this.tickDelay = tickDelay;
             this.global = global;
@@ -46,42 +46,42 @@ namespace mc_compiled.MCC.Scheduling.Implementations
         public override void Setup(TickScheduler scheduler, Executor executor)
         {
             string scoreboardName = FUNCTION + "_timer_" + GetHashCode().ToString().Replace('-', '0');
-            trigger = new ScoreboardValue(scoreboardName, global, Typedef.INTEGER, executor.scoreboard);
-            executor.AddCommandsInit(trigger.CommandsDefine());
-            if(global)
-                executor.AddCommandInit(Command.ScoreboardSet(trigger, -1));
+            this.trigger = new ScoreboardValue(scoreboardName, this.global, Typedef.INTEGER, executor.scoreboard);
+            executor.AddCommandsInit(this.trigger.CommandsDefine());
+            if(this.global)
+                executor.AddCommandInit(Command.ScoreboardSet(this.trigger, -1));
             
-            if (commands.Length == 1)
-                callCommand = commands[0];
+            if (this.commands.Length == 1)
+                this.callCommand = this.commands[0];
             else
             {
                 string callFunctionName = FUNCTION + "_invoke_" + GetHashCode().ToString().Replace('-', '0');
                 var file = new CommandFile(true, callFunctionName, TickScheduler.FOLDER);
                 executor.AddExtraFile(file);
-                callCommand = Command.Function(file);
+                this.callCommand = Command.Function(file);
             }
         }
         public override string[] PerTickCommands()
         {
-            if (global)
+            if (this.global)
             {
                 return new[]
                 {
-                    Command.Execute().IfScore(trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(trigger, 1)),
-                    Command.Execute().IfScore(trigger, new Range(0, false)).Run(callCommand),
+                    Command.Execute().IfScore(this.trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(this.trigger, 1)),
+                    Command.Execute().IfScore(this.trigger, new Range(0, false)).Run(this.callCommand),
                 };
             }
 
             return new[]
             {
-                Command.Execute().As(Selector.ALL_ENTITIES).IfScore(trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(trigger, 1)),
-                Command.Execute().As(Selector.ALL_ENTITIES).IfScore(trigger, new Range(0, false)).Run(callCommand)
+                Command.Execute().As(Selector.ALL_ENTITIES).IfScore(this.trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(this.trigger, 1)),
+                Command.Execute().As(Selector.ALL_ENTITIES).IfScore(this.trigger, new Range(0, false)).Run(this.callCommand)
             };
         }
 
         public override int GetHashCode()
         {
-            return FUNCTION.GetHashCode() ^ ((IStructuralEquatable) commands).GetHashCode(EqualityComparer<int>.Default);
+            return FUNCTION.GetHashCode() ^ ((IStructuralEquatable) this.commands).GetHashCode(EqualityComparer<int>.Default);
         }
     }
 }

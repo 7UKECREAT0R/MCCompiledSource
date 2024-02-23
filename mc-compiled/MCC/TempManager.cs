@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Compiler.TypeSystem;
-using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 
 // ReSharper disable MemberCanBePrivate.Global
 
@@ -17,14 +16,14 @@ namespace mc_compiled.MCC
         private bool _isDisposed;
         public void Dispose()
         {
-            if (_isDisposed)
+            if (this._isDisposed)
                 return;
 
-            foreach (TempStateContract contract in Contracts.Where(contract => contract != null))
+            foreach (TempStateContract contract in this.Contracts.Where(contract => contract != null))
                 contract.Dispose();
-            
-            Contracts.Clear();
-            _isDisposed = true;
+
+            this.Contracts.Clear();
+            this._isDisposed = true;
         }
 
         // _tmp[L|G][SHORTCODE][INDEX]
@@ -120,12 +119,12 @@ namespace mc_compiled.MCC
                 newClarifier: newClarifier);
 
             // define the temp value if it hasn't yet.
-            if (!DefinedTemps.Add(clone.InternalName))
+            if (!this.DefinedTemps.Add(clone.InternalName))
                 return clone;
 
-            DefinedTempsRecord.Add(clone.InternalName);
-            executor.AddCommandsInit(clone.CommandsDefine());
-            executor.AddCommandsInit(clone.CommandsInit(toCopy.clarifier.CurrentString));
+            this.DefinedTempsRecord.Add(clone.InternalName);
+            this.executor.AddCommandsInit(clone.CommandsDefine());
+            this.executor.AddCommandsInit(clone.CommandsInit(toCopy.clarifier.CurrentString));
 
             return clone;
         }
@@ -172,14 +171,14 @@ namespace mc_compiled.MCC
 
             // create the temp value.
             string name = BuildLocalTempName(type, currentDepth);
-            var created = new ScoreboardValue(name, false, type, manager);
+            var created = new ScoreboardValue(name, false, type, this.manager);
             
             // define the temp value if it hasn't yet.
-            if(DefinedTemps.Add(name))
+            if(this.DefinedTemps.Add(name))
             {
-                DefinedTempsRecord.Add(name);
-                executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
+                this.DefinedTempsRecord.Add(name);
+                this.executor.AddCommandsInit(created.CommandsDefine());
+                this.executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -200,11 +199,11 @@ namespace mc_compiled.MCC
             ScoreboardValue created = literal.CreateValue(name, false, forExceptions);
 
             // define the temp value if it hasn't yet.
-            if (DefinedTemps.Add(name))
+            if (this.DefinedTemps.Add(name))
             {
-                DefinedTempsRecord.Add(name);
-                executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
+                this.DefinedTempsRecord.Add(name);
+                this.executor.AddCommandsInit(created.CommandsDefine());
+                this.executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -230,14 +229,14 @@ namespace mc_compiled.MCC
 
             // create the temp value.
             string name = BuildGlobalTempName(type, currentDepth);
-            var created = new ScoreboardValue(name, true, type, manager);
+            var created = new ScoreboardValue(name, true, type, this.manager);
 
             // define the temp value if it hasn't yet.
-            if (DefinedTemps.Add(name))
+            if (this.DefinedTemps.Add(name))
             {
-                DefinedTempsRecord.Add(name);
-                executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
+                this.DefinedTempsRecord.Add(name);
+                this.executor.AddCommandsInit(created.CommandsDefine());
+                this.executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -258,11 +257,11 @@ namespace mc_compiled.MCC
             ScoreboardValue created = literal.CreateValue(name, true, forExceptions);
 
             // define the temp value if it hasn't yet.
-            if (DefinedTemps.Add(name))
+            if (this.DefinedTemps.Add(name))
             {
-                DefinedTempsRecord.Add(name);
-                executor.AddCommandsInit(created.CommandsDefine());
-                executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
+                this.DefinedTempsRecord.Add(name);
+                this.executor.AddCommandsInit(created.CommandsDefine());
+                this.executor.AddCommandsInit(created.CommandsInit(created.clarifier.CurrentString));
             }
 
             // increment the currentDepth.
@@ -329,18 +328,18 @@ namespace mc_compiled.MCC
             /// </summary>
             public void Dispose()
             {
-                if (_isDisposed)
+                if (this._isDisposed)
                     throw new Exception("Temp contract was already disposed.");
 
                 // copy all attributes to the TempManager
-                parent.DefinedTemps = this.definedTempsState;
-                parent.localTemps = this.localTempState;
-                parent.globalTemps = this.globalTempState;
+                this.parent.DefinedTemps = this.definedTempsState;
+                this.parent.localTemps = this.localTempState;
+                this.parent.globalTemps = this.globalTempState;
 
                 // attempt to remove from the contract pool
-                parent.Contracts.Remove(this);
+                this.parent.Contracts.Remove(this);
 
-                _isDisposed = true;
+                this._isDisposed = true;
             }
 
             /// <summary>
@@ -360,10 +359,10 @@ namespace mc_compiled.MCC
             public override int GetHashCode()
             {
                 int hashCode = -1224315232;
-                hashCode = hashCode * -1521134295 + EqualityComparer<TempManager>.Default.GetHashCode(parent);
-                hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(definedTempsState);
-                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Typedef, int>>.Default.GetHashCode(localTempState);
-                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Typedef, int>>.Default.GetHashCode(globalTempState);
+                hashCode = hashCode * -1521134295 + EqualityComparer<TempManager>.Default.GetHashCode(this.parent);
+                hashCode = hashCode * -1521134295 + EqualityComparer<HashSet<string>>.Default.GetHashCode(this.definedTempsState);
+                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Typedef, int>>.Default.GetHashCode(this.localTempState);
+                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Typedef, int>>.Default.GetHashCode(this.globalTempState);
                 return hashCode;
             }
         }

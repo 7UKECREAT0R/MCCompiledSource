@@ -15,7 +15,7 @@ namespace mc_compiled.NBT
 
         public FileWriterNBT(string fileName)
         {
-            nodes = new List<NBTNode>();
+            this.nodes = new List<NBTNode>();
             this.fileName = fileName;
         }
         public FileWriterNBT(string fileName, List<NBTNode> nodes)
@@ -34,12 +34,12 @@ namespace mc_compiled.NBT
         /// </summary>
         public void Write()
         {
-            using (FileStream stream = File.OpenWrite(fileName))
+            using (FileStream stream = File.OpenWrite(this.fileName))
             using (BinaryWriter writer = new BinaryWriter(stream))
             {
                 NBTNode[] queue = new NBTNode[]
                 {
-                    new NBTCompound() { name = "", values = nodes.ToArray() },
+                    new NBTCompound() { name = "", values = this.nodes.ToArray() },
                     new NBTEnd()
                 };
                 WriteToExisting(queue, writer);

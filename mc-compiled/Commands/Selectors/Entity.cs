@@ -81,7 +81,7 @@ namespace mc_compiled.Commands.Selectors
 
         public bool Equals(Entity other)
         {
-            return name == other.name && type == other.type && Equals(families, other.families) && rotXMin == other.rotXMin && rotXMax == other.rotXMax && rotYMin == other.rotYMin && rotYMax == other.rotYMax;
+            return this.name == other.name && this.type == other.type && Equals(this.families, other.families) && this.rotXMin == other.rotXMin && this.rotXMax == other.rotXMax && this.rotYMin == other.rotYMin && this.rotYMax == other.rotYMax;
         }
         public override bool Equals(object obj)
         {
@@ -91,13 +91,13 @@ namespace mc_compiled.Commands.Selectors
         {
             unchecked
             {
-                int hashCode = (name != null ? name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (type != null ? type.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (families != null ? families.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ rotXMin.GetHashCode();
-                hashCode = (hashCode * 397) ^ rotXMax.GetHashCode();
-                hashCode = (hashCode * 397) ^ rotYMin.GetHashCode();
-                hashCode = (hashCode * 397) ^ rotYMax.GetHashCode();
+                int hashCode = (this.name != null ? this.name.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.type != null ? this.type.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.families != null ? this.families.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ this.rotXMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.rotXMax.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.rotYMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.rotYMax.GetHashCode();
                 return hashCode;
             }
         }
@@ -106,21 +106,21 @@ namespace mc_compiled.Commands.Selectors
         {
             List<string> parts = new List<string>();
 
-            if (name != null)
-                parts.Add("name=\"" + name + "\"");
-            if (type != null)
-                parts.Add("type=" + type);
-            if (families != null)
-                foreach (string family in families)
+            if (this.name != null)
+                parts.Add("name=\"" + this.name + "\"");
+            if (this.type != null)
+                parts.Add("type=" + this.type);
+            if (this.families != null)
+                foreach (string family in this.families)
                     parts.Add("family=" + family);
-            if (rotXMin.HasValue)
-                parts.Add("rxm=" + rotXMin.Value);
-            if (rotXMax.HasValue)
-                parts.Add("rx=" + rotXMax.Value);
-            if (rotYMin.HasValue)
-                parts.Add("rym=" + rotYMin.Value);
-            if (rotYMax.HasValue)
-                parts.Add("ry=" + rotYMax.Value);
+            if (this.rotXMin.HasValue)
+                parts.Add("rxm=" + this.rotXMin.Value);
+            if (this.rotXMax.HasValue)
+                parts.Add("rx=" + this.rotXMax.Value);
+            if (this.rotYMin.HasValue)
+                parts.Add("rym=" + this.rotYMin.Value);
+            if (this.rotYMax.HasValue)
+                parts.Add("ry=" + this.rotYMax.Value);
             return parts.ToArray();
         }
         public static Entity operator +(Entity a, Entity other)

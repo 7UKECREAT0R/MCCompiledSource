@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,12 +22,12 @@ namespace mc_compiled.Modding.Resources
 
         public void AddSoundDefinition(SoundDefinition soundDefinition)
         {
-            soundDefinitions[soundDefinition.CommandReference] = soundDefinition;
+            this.soundDefinitions[soundDefinition.CommandReference] = soundDefinition;
         }
         internal SoundDefinitions(string formatVersion, params SoundDefinition[] definitions)
         {
             this.formatVersion = formatVersion;
-            soundDefinitions = new Dictionary<string, SoundDefinition>();
+            this.soundDefinitions = new Dictionary<string, SoundDefinition>();
 
             foreach (SoundDefinition definition in definitions)
                 AddSoundDefinition(definition);
@@ -57,7 +56,7 @@ namespace mc_compiled.Modding.Resources
         private JObject ToJSON()
         {
             var defs = new JObject();
-            foreach (JProperty soundProperty in soundDefinitions
+            foreach (JProperty soundProperty in this.soundDefinitions
                          .Select(soundDefinition => soundDefinition.Value.ToJSON()))
             {
                 defs.Add(soundProperty);
@@ -65,7 +64,7 @@ namespace mc_compiled.Modding.Resources
 
             return new JObject
             {
-                ["format_version"] = formatVersion,
+                ["format_version"] = this.formatVersion,
                 ["sound_definitions"] = defs
             };
         }
@@ -78,7 +77,7 @@ namespace mc_compiled.Modding.Resources
         /// <returns>true if the sound definition was found; otherwise, false.</returns>
         public bool TryGetSoundDefinition(string key, out SoundDefinition soundDefinition)
         {
-            return soundDefinitions.TryGetValue(key, out soundDefinition);
+            return this.soundDefinitions.TryGetValue(key, out soundDefinition);
         }
         /// <summary>
         /// Retrieves a sound definition by its key.
@@ -87,9 +86,9 @@ namespace mc_compiled.Modding.Resources
         /// <returns>The sound definition corresponding to the specified key.</returns>
         public SoundDefinition GetSoundDefinition(string key)
         {
-            if (!soundDefinitions.ContainsKey(key))
+            if (!this.soundDefinitions.ContainsKey(key))
                 throw new KeyNotFoundException($"The key {key} does not exist in the sound definitions.");
-            return soundDefinitions[key];
+            return this.soundDefinitions[key];
         }
         
         public string CommandReference => throw new NotImplementedException();
@@ -108,7 +107,7 @@ namespace mc_compiled.Modding.Resources
     /// </summary>
     public class SoundDefinition
     {
-        public string CommandReference => name;
+        public string CommandReference => this.name;
 
         /// <summary>
         /// Represents a sound definition.
@@ -160,16 +159,16 @@ namespace mc_compiled.Modding.Resources
         {
             var jObject = new JObject
             {
-                ["category"] = category.ToString(),
-                ["sounds"] = new JArray(sounds.Cast<object>().ToArray())
+                ["category"] = this.category.ToString(),
+                ["sounds"] = new JArray(this.sounds.Cast<object>().ToArray())
             };
 
-            if (category == SoundCategory.ui)
+            if (this.category == SoundCategory.ui)
             {
                 jObject["min_distance"] = 999999f;
             }
             
-            return new JProperty(name, jObject);
+            return new JProperty(this.name, jObject);
         }
 
         private readonly string name;

@@ -17,8 +17,8 @@ namespace mc_compiled.Modding.Resources
         {
             this.name = name;
             this.identifier = identifier;
-            textureWidth = 16;
-            textureHeight = 16;
+            this.textureWidth = 16;
+            this.textureHeight = 16;
         }
         public JObject ToJSON()
         {
@@ -30,9 +30,9 @@ namespace mc_compiled.Modding.Resources
                     {
                         ["description"] = new JObject()
                         {
-                            ["identifier"] = identifier,
-                            ["texture_width"] = textureWidth,
-                            ["texture_height"] = textureHeight
+                            ["identifier"] = this.identifier,
+                            ["texture_width"] = this.textureWidth,
+                            ["texture_height"] = this.textureHeight
                         }
                     }
                 })
@@ -47,8 +47,7 @@ namespace mc_compiled.Modding.Resources
             string str = full.ToString();
             return Encoding.UTF8.GetBytes(str);
         }
-        public string GetOutputFile() =>
-            name + ".json";
+        public string GetOutputFile() => this.name + ".json";
         public OutputLocation GetOutputLocation() =>
             OutputLocation.r_MODELS__ENTITY;
     }

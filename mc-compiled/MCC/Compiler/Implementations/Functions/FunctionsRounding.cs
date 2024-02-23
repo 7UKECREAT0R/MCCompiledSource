@@ -4,9 +4,6 @@ using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 using mc_compiled.MCC.Functions.Types;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
@@ -14,13 +11,13 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     {
         public FunctionRoundCompiletime() : base("round", "compiletimeRound", "decimal ?", "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
         {
-            this.AddParameter(
+            AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            decimal number = ((TokenNumberLiteral)((CompiletimeFunctionParameter)Parameters[0]).CurrentValue).GetNumber();
+            decimal number = ((TokenNumberLiteral)((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue).GetNumber();
             decimal result = decimal.Round(number, MidpointRounding.AwayFromZero);
 
             return new TokenDecimalLiteral(result, statement.Lines[0]);
@@ -30,19 +27,19 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     {
         public FunctionRoundRuntime() : base("round", "runtimeRound", "decimal ?", "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
         {
-            this.AddParameter(
+            AddParameter(
                 new RuntimeFunctionParameterDynamic(this, "number", "runtime_round_num").WithAcceptedTypes(Typedef.FIXED_DECIMAL)
             );
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            ScoreboardValue input = ((RuntimeFunctionParameterDynamic)parameters[0]).RuntimeDestination;
+            ScoreboardValue input = ((RuntimeFunctionParameterDynamic) this.parameters[0]).RuntimeDestination;
             int precision = ((FixedDecimalData)input.data).precision;
             int coefficient = (int)Math.Pow(10, precision);
             int half = coefficient / 2;
 
-            string temp1Name = this.CreateUniqueTempValueName(uniqueIdentifier);
-            string temp2Name = this.CreateUniqueTempValueName(uniqueIdentifier);
+            string temp1Name = CreateUniqueTempValueName(uniqueIdentifier);
+            string temp2Name = CreateUniqueTempValueName(uniqueIdentifier);
             var temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
             var temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
             executor.scoreboard.Add(temp1);
@@ -76,13 +73,13 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     {
         public FunctionFloorCompiletime() : base("floor", "compiletimeFloor", "decimal ?", "Rounds down the given value to the nearest integer.")
         {
-            this.AddParameter(
+            AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) Parameters[0]).CurrentValue).GetNumber();
+            decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue).GetNumber();
             decimal result = decimal.Floor(number);
 
             return new TokenDecimalLiteral(result, statement.Lines[0]);
@@ -92,18 +89,18 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     {
         public FunctionFloorRuntime() : base("floor", "runtimeFloor", "decimal ?", "Rounds down the given value to the nearest integer.")
         {
-            this.AddParameter(
+            AddParameter(
                 new RuntimeFunctionParameterDynamic(this, "number", "runtime_floor_num").WithAcceptedTypes(Typedef.FIXED_DECIMAL)
             );
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            ScoreboardValue input = ((RuntimeFunctionParameterDynamic) parameters[0]).RuntimeDestination;
+            ScoreboardValue input = ((RuntimeFunctionParameterDynamic) this.parameters[0]).RuntimeDestination;
             int precision = ((FixedDecimalData)input.data).precision;
             int coefficient = (int)Math.Pow(10, precision);
 
-            string temp1Name = this.CreateUniqueTempValueName(uniqueIdentifier);
-            string temp2Name = this.CreateUniqueTempValueName(uniqueIdentifier);
+            string temp1Name = CreateUniqueTempValueName(uniqueIdentifier);
+            string temp2Name = CreateUniqueTempValueName(uniqueIdentifier);
             var temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
             var temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
             executor.scoreboard.Add(temp1);
@@ -125,13 +122,13 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     {
         public FunctionCeilingCompiletime() : base("ceiling", "compiletimeCeiling", "decimal ?", "Rounds up the given value to the nearest integer.")
         {
-            this.AddParameter(
+            AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) Parameters[0]).CurrentValue).GetNumber();
+            decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue).GetNumber();
             decimal result = decimal.Ceiling(number);
 
             return new TokenDecimalLiteral(result, statement.Lines[0]);
@@ -141,18 +138,18 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     {
         public FunctionCeilingRuntime() : base("ceiling", "runtimeCeiling", "decimal ?", "Rounds up the given value to the nearest integer.")
         {
-            this.AddParameter(
+            AddParameter(
                 new RuntimeFunctionParameterDynamic(this, "number", "runtime_ceil_num").WithAcceptedTypes(Typedef.FIXED_DECIMAL)
             );
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            ScoreboardValue input = ((RuntimeFunctionParameterDynamic) parameters[0]).RuntimeDestination;
+            ScoreboardValue input = ((RuntimeFunctionParameterDynamic) this.parameters[0]).RuntimeDestination;
             int precision = ((FixedDecimalData)input.data).precision;
             int coefficient = (int)Math.Pow(10, precision);
 
-            string temp1Name = this.CreateUniqueTempValueName(uniqueIdentifier);
-            string temp2Name = this.CreateUniqueTempValueName(uniqueIdentifier);
+            string temp1Name = CreateUniqueTempValueName(uniqueIdentifier);
+            string temp2Name = CreateUniqueTempValueName(uniqueIdentifier);
             var temp1 = new ScoreboardValue(temp1Name, true, Typedef.INTEGER, executor.scoreboard);
             var temp2 = new ScoreboardValue(temp2Name, true, Typedef.INTEGER, executor.scoreboard);
             executor.scoreboard.Add(temp1);

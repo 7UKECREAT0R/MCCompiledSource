@@ -11,7 +11,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public string Stringify(Keywords keywords) => string.Join(" ", keywords.keywords.Select(w => w.name.Contains(' ') ? ("<<" + w.name + ">>") : w.name));
         public void Write(TextWriter writer)
         {
-            writer.WriteLine($"# MCC Raw Syntax (version {MCC.Compiler.Executor.MCC_VERSION})");
+            writer.WriteLine($"# MCC Raw Syntax (version {Compiler.Executor.MCC_VERSION})");
             writer.WriteLine("# This is a comment. Ignore empty lines.");
             writer.WriteLine("# Multi-word keywords are surrounded with <<double angle brackets>>.");
             writer.WriteLine();

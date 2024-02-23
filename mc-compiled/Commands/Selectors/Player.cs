@@ -14,7 +14,7 @@ namespace mc_compiled.Commands.Selectors
 
         private Player(GameMode? gamemode, int? levelMin = null, int? levelMax = null)
         {
-            gamemodeNot = false;
+            this.gamemodeNot = false;
             this.gamemode = gamemode;
             this.levelMin = levelMin;
             this.levelMax = levelMax;
@@ -77,12 +77,12 @@ namespace mc_compiled.Commands.Selectors
         public string[] GetSections()
         {
             var strings = new List<string>();
-            if (gamemode.HasValue)
-                strings.Add("m=" + (gamemodeNot?"!":"") + ((int)gamemode.Value));
-            if (levelMin.HasValue)
-                strings.Add("lm=" + levelMin.Value);
-            if (levelMax.HasValue)
-                strings.Add("l=" + levelMax.Value);
+            if (this.gamemode.HasValue)
+                strings.Add("m=" + (this.gamemodeNot?"!":"") + ((int) this.gamemode.Value));
+            if (this.levelMin.HasValue)
+                strings.Add("lm=" + this.levelMin.Value);
+            if (this.levelMax.HasValue)
+                strings.Add("l=" + this.levelMax.Value);
             return strings.ToArray();
         }
 
@@ -96,8 +96,7 @@ namespace mc_compiled.Commands.Selectors
 
         public bool Equals(Player other)
         {
-            return gamemode == other.gamemode && gamemodeNot == other.gamemodeNot && levelMin == other.levelMin &&
-                   levelMax == other.levelMax;
+            return this.gamemode == other.gamemode && this.gamemodeNot == other.gamemodeNot && this.levelMin == other.levelMin && this.levelMax == other.levelMax;
         }
         public override bool Equals(object obj)
         {
@@ -108,10 +107,10 @@ namespace mc_compiled.Commands.Selectors
         {
             unchecked
             {
-                int hashCode = gamemode.GetHashCode();
-                hashCode = (hashCode * 397) ^ gamemodeNot.GetHashCode();
-                hashCode = (hashCode * 397) ^ levelMin.GetHashCode();
-                hashCode = (hashCode * 397) ^ levelMax.GetHashCode();
+                int hashCode = this.gamemode.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.gamemodeNot.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.levelMin.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.levelMax.GetHashCode();
                 return hashCode;
             }
         }

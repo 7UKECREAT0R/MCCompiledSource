@@ -47,11 +47,11 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             JArray errors = new JArray();
 
-            foreach (int line in lines)
+            foreach (int line in this.lines)
             {
                 JObject error = new JObject();
                 error["line"] = line;
-                error["error"] = message.Base64Encode();
+                error["error"] = this.message.Base64Encode();
                 errors.Add(error);
             }
 
@@ -96,21 +96,21 @@ namespace mc_compiled.MCC.ServerWebSocket
         JArray PPVToJSON()
         {
             JArray json = new JArray();
-            foreach (string ppv in ppvs)
+            foreach (string ppv in this.ppvs)
                 json.Add(ppv);
             return json;
         }
         JArray FunctionsToJSON()
         {
             JArray array = new JArray();
-            foreach(FunctionStructure function in functions)
+            foreach(FunctionStructure function in this.functions)
                 array.Add(function.ToJSON());
             return array;
         }
         JArray MacrosToJSON()
         {
             JArray array = new JArray();
-            foreach(MacroStructure macro in macros)
+            foreach(MacroStructure macro in this.macros)
                 array.Add(macro.ToJSON());
             return array;
         }
@@ -127,7 +127,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         public override string ToString()
         {
-            return $"LintStructure: {ppvs.Count} PPV, {variables.Count} VARS, {functions.Count} FUNCS, {macros.Count} MACROS";
+            return $"LintStructure: {this.ppvs.Count} PPV, {this.variables.Count} VARS, {this.functions.Count} FUNCS, {this.macros.Count} MACROS";
         }
     }
 
@@ -181,19 +181,19 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             if (!(obj is FunctionStructure structure))
                 return false;
-            if (!name.Equals(structure.name))
+            if (!this.name.Equals(structure.name))
                 return false;
-            if (returnType != null)
+            if (this.returnType != null)
             {
-                if (!returnType.Equals(structure.returnType))
+                if (!this.returnType.Equals(structure.returnType))
                     return false;
             }
-            if(structure.args.Count != args.Count)
+            if(structure.args.Count != this.args.Count)
                 return false;
 
-            for(int i = 0; i < args.Count; i++)
+            for(int i = 0; i < this.args.Count; i++)
             {
-                if (!args[i].Equals(structure.args[i]))
+                if (!this.args[i].Equals(structure.args[i]))
                     return false;
             }
 
@@ -202,10 +202,10 @@ namespace mc_compiled.MCC.ServerWebSocket
         public override int GetHashCode()
         {
             int hashCode = 1090742913;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(returnType);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.returnType);
 
-            foreach(VariableStructure structure in args)
+            foreach(VariableStructure structure in this.args)
             {
                 hashCode ^= structure.GetHashCode();
             }
@@ -216,10 +216,10 @@ namespace mc_compiled.MCC.ServerWebSocket
         public JObject ToJSON()
         {
             JObject json = new JObject();
-            json["name"] = name;
+            json["name"] = this.name;
             json["arguments"] = VariableStructure.Join(this.args);
-            json["docs"] = docs.Base64Encode();
-            json["return"] = returnType;
+            json["docs"] = this.docs.Base64Encode();
+            json["return"] = this.returnType;
             return json;
         }
 
@@ -255,9 +255,9 @@ namespace mc_compiled.MCC.ServerWebSocket
         public JObject ToJSON()
         {
             JObject json = new JObject();
-            json["name"] = name;
-            json["type"] = type;
-            json["docs"] = docs.Base64Encode();
+            json["name"] = this.name;
+            json["type"] = this.type;
+            json["docs"] = this.docs.Base64Encode();
             return json;
         }
         public static JArray Join(List<VariableStructure> variables)
@@ -266,15 +266,13 @@ namespace mc_compiled.MCC.ServerWebSocket
         }
         public override bool Equals(object obj)
         {
-            return obj is VariableStructure structure &&
-                   name == structure.name &&
-                   type == structure.type;
+            return obj is VariableStructure structure && this.name == structure.name && this.type == structure.type;
         }
         public override int GetHashCode()
         {
             int hashCode = -1614644627;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(type);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.type);
             return hashCode;
         }
     }
@@ -299,9 +297,9 @@ namespace mc_compiled.MCC.ServerWebSocket
         public JObject ToJSON()
         {
             JObject json = new JObject();
-            json["name"] = name;
-            json["arguments"] = new JArray(arguments);
-            json["docs"] = docs.Base64Encode();
+            json["name"] = this.name;
+            json["arguments"] = new JArray(this.arguments);
+            json["docs"] = this.docs.Base64Encode();
             return json;
         }
     }

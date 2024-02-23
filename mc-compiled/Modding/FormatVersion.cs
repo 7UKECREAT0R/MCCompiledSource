@@ -64,10 +64,10 @@ namespace mc_compiled.Modding
         /// <returns></returns>
         public override string ToString()
         {
-            if (minor.HasValue)
-                return $"{release}.{major}.{minor.Value}";
+            if (this.minor.HasValue)
+                return $"{this.release}.{this.major}.{this.minor.Value}";
 
-            return $"{release}.{major}";
+            return $"{this.release}.{this.major}";
         }
     }
 }

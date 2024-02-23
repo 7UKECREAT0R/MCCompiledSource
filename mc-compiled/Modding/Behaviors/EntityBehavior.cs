@@ -22,20 +22,20 @@ namespace mc_compiled.Modding.Behaviors
 
         public string CommandReference
         {
-            get => description.identifier;
+            get => this.description.identifier;
         }
 
         public EntityBehavior(string identifier)
         {
-            description = new EntityDescription(identifier);
-            events = new List<EntityEventHandler>();
+            this.description = new EntityDescription(identifier);
+            this.events = new List<EntityEventHandler>();
         }
         public EntityBehavior()
         {
-            controllers = new List<AnimationController>();
-            components = new List<EntityComponent>();
-            componentGroups = new List<EntityComponentGroup>();
-            events = new List<EntityEventHandler>();
+            this.controllers = new List<AnimationController>();
+            this.components = new List<EntityComponent>();
+            this.componentGroups = new List<EntityComponentGroup>();
+            this.events = new List<EntityEventHandler>();
         }
         /// <summary>
         /// Create a new event and register it into this behavior.
@@ -46,7 +46,7 @@ namespace mc_compiled.Modding.Behaviors
         public EntityEventHandler CreateEvent(string id, EntityEventAction action)
         {
             EntityEventHandler handler = new EntityEventHandler(id, action: action);
-            events.Add(handler);
+            this.events.Add(handler);
             return handler;
         }
         public JObject ToJSON()
@@ -54,14 +54,14 @@ namespace mc_compiled.Modding.Behaviors
             JObject root = new JObject();
             
             // Description
-            JObject desc = description.ToJSON();
-            if (controllers != null)
+            JObject desc = this.description.ToJSON();
+            if (this.controllers != null)
             {
                 JObject animations = new JObject();
-                foreach (AnimationController anim in controllers)
+                foreach (AnimationController anim in this.controllers)
                     animations[anim.name] = anim.Identifier;
 
-                var animate = controllers.Select(anim => anim.name);
+                var animate = this.controllers.Select(anim => anim.name);
 
                 desc["animations"] = animations;
                 desc["scripts"] = new JObject()
@@ -72,28 +72,28 @@ namespace mc_compiled.Modding.Behaviors
             root["description"] = desc;
 
             // Component Groups
-            if (componentGroups != null)
+            if (this.componentGroups != null)
             {
                 JObject componentGroupsJson = new JObject();
-                foreach (EntityComponentGroup group in componentGroups)
+                foreach (EntityComponentGroup group in this.componentGroups)
                     componentGroupsJson.Add(group.ToJSON());
                 root["component_groups"] = componentGroupsJson;
             }
 
             // Components
-            if (components != null)
+            if (this.components != null)
             {
                 JObject componentsJson = new JObject();
-                foreach (EntityComponent component in components)
+                foreach (EntityComponent component in this.components)
                     componentsJson[component.GetIdentifier()] = component.GetValue();
                 root["components"] = componentsJson;
             }
 
             // Events
-            if(events.Count > 0)
+            if(this.events.Count > 0)
             {
                 JObject eventsJson = new JObject();
-                foreach (EntityEventHandler @event in events)
+                foreach (EntityEventHandler @event in this.events)
                     eventsJson.Add(@event.ToDefinitionJSON());
                 root["events"] = eventsJson;
             }
@@ -113,8 +113,7 @@ namespace mc_compiled.Modding.Behaviors
             string str = full.ToString();
             return Encoding.UTF8.GetBytes(str);
         }
-        public string GetOutputFile() =>
-            description.GetEntityName() + ".json";
+        public string GetOutputFile() => this.description.GetEntityName() + ".json";
         public OutputLocation GetOutputLocation() =>
             OutputLocation.b_ENTITIES;
 
