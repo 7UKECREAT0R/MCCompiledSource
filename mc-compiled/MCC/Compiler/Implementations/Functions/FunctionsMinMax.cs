@@ -15,8 +15,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            TokenLiteral a = (this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenLiteral;
-            TokenLiteral b = (this.Parameters[1] as CompiletimeFunctionParameter).CurrentValue as TokenLiteral;
+            TokenLiteral a = ((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenLiteral;
+            TokenLiteral b = ((CompiletimeFunctionParameter)this.Parameters[1]).CurrentValue as TokenLiteral;
 
             if(a.CompareWithOther(TokenCompare.Type.LESS_OR_EQUAL, b))
                 return a;
@@ -35,8 +35,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            RuntimeFunctionParameterDynamic _a = this.parameters[0] as RuntimeFunctionParameterDynamic;
-            RuntimeFunctionParameterDynamic _b = this.parameters[1] as RuntimeFunctionParameterDynamic;
+            RuntimeFunctionParameterDynamic _a = (RuntimeFunctionParameterDynamic)this.parameters[0];
+            RuntimeFunctionParameterDynamic _b = (RuntimeFunctionParameterDynamic)this.parameters[1];
             ScoreboardValue a = _a.RuntimeDestination;
             ScoreboardValue b = _b.RuntimeDestination;
 
@@ -72,8 +72,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            TokenLiteral a = (this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenLiteral;
-            TokenLiteral b = (this.Parameters[1] as CompiletimeFunctionParameter).CurrentValue as TokenLiteral;
+            TokenLiteral a = ((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenLiteral;
+            TokenLiteral b = ((CompiletimeFunctionParameter)this.Parameters[1]).CurrentValue as TokenLiteral;
 
             if (a.CompareWithOther(TokenCompare.Type.GREATER_OR_EQUAL, b))
                 return a;
@@ -92,8 +92,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
-            RuntimeFunctionParameterDynamic _a = this.parameters[0] as RuntimeFunctionParameterDynamic;
-            RuntimeFunctionParameterDynamic _b = this.parameters[1] as RuntimeFunctionParameterDynamic;
+            RuntimeFunctionParameterDynamic _a = (RuntimeFunctionParameterDynamic)this.parameters[0];
+            RuntimeFunctionParameterDynamic _b = (RuntimeFunctionParameterDynamic)this.parameters[1];
             ScoreboardValue a = _a.RuntimeDestination;
             ScoreboardValue b = _b.RuntimeDestination;
 

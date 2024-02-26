@@ -14,7 +14,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         }
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            string name = ((this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenStringLiteral).text;
+            string name = (((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenStringLiteral).text;
             if (!executor.scoreboard.TryGetByUserFacingName(name, out ScoreboardValue value))
                 throw new StatementException(statement, $"Couldn't find a value with the name '{name}'.");
             

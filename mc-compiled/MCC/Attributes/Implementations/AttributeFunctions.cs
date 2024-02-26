@@ -98,8 +98,7 @@ namespace mc_compiled.MCC.Attributes.Implementations
         /// <summary>
         /// Keep at the bottom of the class because of static ordering.
         /// </summary>
-        internal static readonly AttributeFunction[] ALL_ATTRIBUTES = new AttributeFunction[]
-        {
+        internal static readonly AttributeFunction[] ALL_ATTRIBUTES = {
             GLOBAL,
             EXTERN,
             EXPORT,

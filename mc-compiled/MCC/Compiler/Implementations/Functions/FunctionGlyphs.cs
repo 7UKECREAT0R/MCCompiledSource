@@ -18,8 +18,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
 
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            int x = (this.Parameters[0] as CompiletimeFunctionParameter).CurrentValue as TokenIntegerLiteral;
-            int y = (this.Parameters[1] as CompiletimeFunctionParameter).CurrentValue as TokenIntegerLiteral;
+            int x = ((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenIntegerLiteral;
+            int y = ((CompiletimeFunctionParameter)this.Parameters[1]).CurrentValue as TokenIntegerLiteral;
             int offset = y * GLYPH_WIDTH + x;
             char character = (char)(this.baseCharacter | offset);
             return new TokenStringLiteral(character.ToString(), statement.Lines[0]);

@@ -15,12 +15,12 @@ namespace mc_compiled.MCC
     {
         public static Definitions GLOBAL_DEFS;
 
-        public const string FILE = "definitions.def";
-        public static readonly Regex DEF_REGEX = new Regex(@"\[([\w ]+):\s*([\w ,]+)\]");
+        private const string FILE = "definitions.def";
+        private static readonly Regex DEF_REGEX = new Regex(@"(\\*)\[([\w ]+):\s*([\w ,]+)\]");
 
         internal readonly Dictionary<string, string> defs;
 
-        string BuildKey(string category, string query)
+        private static string BuildKey(string category, string query)
         {
             return (category + ':' + query).ToUpper();
         }
@@ -35,16 +35,16 @@ namespace mc_compiled.MCC
             string path = Path.Combine(assemblyDir, FILE);
             if (!File.Exists(path))
             {
-                ConsoleColor errprevious = Console.ForegroundColor;
+                ConsoleColor previousColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("WARNING: Missing definitions file at '{0}'. Expect everything to blow up.", path);
-                Console.ForegroundColor = errprevious;
+                Console.ForegroundColor = previousColor;
                 return;
             }
             string[] lines = File.ReadAllLines(path, Encoding.UTF8);
             string category = null;
             int catEntries = 0;
-            string[] categoryAliases = new string[0];
+            string[] categoryAliases = Array.Empty<string>();
 
             ConsoleColor previous = ConsoleColor.White;
             if (debugInfo)
@@ -76,7 +76,7 @@ namespace mc_compiled.MCC
                     }
                     else
                     {
-                        categoryAliases = new string[0];
+                        categoryAliases = Array.Empty<string>();
                         category = input;
                     }
                     continue;
@@ -89,26 +89,25 @@ namespace mc_compiled.MCC
 
                 string[] assignParts = line.Split(new string[] { " IS " },
                     StringSplitOptions.RemoveEmptyEntries);
-                if (assignParts.Length == 2)
+                
+                if (assignParts.Length != 2)
+                    continue;
+                if (category == null)
+                    continue;
+                
+                string name = assignParts[0].Trim().ToUpper();
+                string value = assignParts[1].Trim();
+
+                string key = BuildKey(category, name);
+                this.defs[key] = value;
+
+                if (debugInfo)
+                    catEntries++;
+
+                foreach (string alias in categoryAliases)
                 {
-                    if (category == null)
-                        continue;
-                    string name = assignParts[0].Trim().ToUpper();
-                    string value = assignParts[1].Trim();
-
-                    string key;
-                    
-                    key = BuildKey(category, name);
+                    key = BuildKey(alias, name);
                     this.defs[key] = value;
-
-                    if (debugInfo)
-                        catEntries++;
-
-                    foreach (string alias in categoryAliases)
-                    {
-                        key = BuildKey(alias, name);
-                        this.defs[key] = value;
-                    }
                 }
             }
 
@@ -135,8 +134,18 @@ namespace mc_compiled.MCC
 
             foreach(Match match in matches)
             {
-                string category = match.Groups[1].Value;
-                string fullQuery = match.Groups[2].Value;
+                StringBuilder sb = new StringBuilder();
+                int backslashes = match.Groups[1].Value.Length;
+
+                if (backslashes % 2 == 1)
+                {
+                    sb.Append(match.Value.Substring(backslashes / 2));
+                    goto no_changes_replace; // odd number of backslashes, it's escaped
+                }
+
+                sb.Append('\\', backslashes / 2);
+                string category = match.Groups[2].Value;
+                string fullQuery = match.Groups[3].Value;
                 string[] multi = fullQuery.Split(',').Select(s => s.Trim()).ToArray();
                 string[] replacements = new string[multi.Length];
                 for(int i = 0; i < multi.Length; i++)
@@ -147,9 +156,14 @@ namespace mc_compiled.MCC
                     else
                         goto no_changes; // fight me
                 }
-                input = input.Replace(match.Value, string.Join("", replacements));
-                no_changes:
-                continue;
+                foreach (string t in replacements)
+                    sb.Append(t);
+
+                no_changes_replace:
+                string replacementString = sb.ToString();
+                input = input.Replace(match.Value, replacementString);
+                
+                no_changes: ;
             }
 
             return input;

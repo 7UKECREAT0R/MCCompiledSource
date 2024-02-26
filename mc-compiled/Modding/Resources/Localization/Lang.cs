@@ -14,9 +14,9 @@ namespace mc_compiled.Modding.Resources.Localization
         private const string HEADER = "MCCompiled Language Entries";
         private int headerIndex = -1; // index of the MCCompiled header in the lang file.
 
+        private readonly List<LangEntry> lines;
         private readonly string localeName;
         private LocaleDefinition locale;
-        private List<LangEntry> lines;
 
         /// <summary>
         /// A .lang file.
