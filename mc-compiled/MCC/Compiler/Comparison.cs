@@ -425,7 +425,7 @@ namespace mc_compiled.MCC.Compiler
             setupFile.Add(Command.ScoreboardSet(resultObjective, 0));
             setupFile.Add(Command.Execute().WithSubcommands(chunks).Run(Command.ScoreboardSet(resultObjective, 1)));
             
-            ConditionalSubcommand used = ConditionalSubcommandScore.New(resultObjective, new Range(1, false));
+            ConditionalSubcommand used = ConditionalSubcommandScore.New(resultObjective, Range.Of(1));
             record.conditionalUsed = used;
             executor.SetLastCompare(record);
             

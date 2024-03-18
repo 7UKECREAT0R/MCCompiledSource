@@ -34,8 +34,8 @@ namespace mc_compiled.MCC.Scheduling.Implementations
             executor.AddCommandInit(Command.ScoreboardSet(counter, this.delay));
 
             this.thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, null)).Run(Command.ScoreboardSubtract(counter, 1)));
-            this.thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, false)).Run(Command.Function(this.function.CommandReference)));
-            this.thisFunction.Add(Command.Execute().IfScore(counter, new Range(0, false)).Run(Command.ScoreboardSet(counter, this.delay)));
+            this.thisFunction.Add(Command.Execute().IfScore(counter, Range.Of(0)).Run(Command.Function(this.function.CommandReference)));
+            this.thisFunction.Add(Command.Execute().IfScore(counter, Range.Of(0)).Run(Command.ScoreboardSet(counter, this.delay)));
         }
         public override string[] PerTickCommands()
         {

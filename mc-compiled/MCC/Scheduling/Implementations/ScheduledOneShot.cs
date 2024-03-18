@@ -68,14 +68,14 @@ namespace mc_compiled.MCC.Scheduling.Implementations
                 return new[]
                 {
                     Command.Execute().IfScore(this.trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(this.trigger, 1)),
-                    Command.Execute().IfScore(this.trigger, new Range(0, false)).Run(this.callCommand),
+                    Command.Execute().IfScore(this.trigger, Range.Of(0)).Run(this.callCommand),
                 };
             }
 
             return new[]
             {
                 Command.Execute().As(Selector.ALL_ENTITIES).IfScore(this.trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(this.trigger, 1)),
-                Command.Execute().As(Selector.ALL_ENTITIES).IfScore(this.trigger, new Range(0, false)).Run(this.callCommand)
+                Command.Execute().As(Selector.ALL_ENTITIES).IfScore(this.trigger, Range.Of(0)).Run(this.callCommand)
             };
         }
 

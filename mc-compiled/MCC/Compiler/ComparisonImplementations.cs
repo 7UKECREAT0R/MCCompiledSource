@@ -242,7 +242,7 @@ namespace mc_compiled.MCC.Compiler
                 if(willBeInverted)
                 {
                     return new Subcommand[] {
-                        new SubcommandIf(ConditionalSubcommandScore.New(this.temp, new Range(1, false)))
+                        new SubcommandIf(ConditionalSubcommandScore.New(this.temp, Range.Of(1)))
                     };
                 }
                 else
@@ -267,7 +267,7 @@ namespace mc_compiled.MCC.Compiler
                 if (willBeInverted)
                 {
                     return new Subcommand[] {
-                        new SubcommandIf(ConditionalSubcommandScore.New(this.temp, new Range(1, false)))
+                        new SubcommandIf(ConditionalSubcommandScore.New(this.temp, Range.Of(1)))
                     };
                 }
                 else

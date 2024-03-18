@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             value.manager.executor.TryGetPPV("_true", out PreprocessorVariable trueValues);
             value.manager.executor.TryGetPPV("_false", out PreprocessorVariable falseValues);
 
-            var check = new Range(1, false);
+            var check = Range.Of(1);
             
             var terms = new JSONRawTerm[] {
                 new JSONVariant(

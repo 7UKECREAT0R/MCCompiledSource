@@ -11,7 +11,7 @@ namespace mc_compiled.Commands
         /// <summary>
         /// A range which matches only 0.
         /// </summary>
-        public static readonly Range zero = new Range(0, false);
+        public static readonly Range zero = Of(0);
         /// <summary>
         /// A range which matches everything but 0.
         /// </summary>
@@ -63,6 +63,13 @@ namespace mc_compiled.Commands
                 this.max = null;
         }
 
+        /// <summary>
+        /// Returns a range which matches only the given input number.
+        /// </summary>
+        public static Range Of(int number)
+        {
+            return new Range(number, false);
+        }
         /// <summary>
         /// Parse a range input into a Range structure.
         /// </summary>
