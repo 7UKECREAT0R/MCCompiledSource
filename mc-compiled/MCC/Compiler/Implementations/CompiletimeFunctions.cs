@@ -18,7 +18,8 @@ namespace mc_compiled.MCC.Compiler.Implementations
                     new FunctionGlyphE0(),
                     new FunctionGlyphE1(),
                     new FunctionGetValueByName(),
-
+                    new FunctionCountEntities(),
+                    
                     // compile-time functions
                     new FunctionMinCompiletime(),
                     new FunctionMaxCompiletime(),

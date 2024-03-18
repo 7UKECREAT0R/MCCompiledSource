@@ -192,7 +192,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal bool comparesRange;
 
-        private bool SourceIsGlobal => this.sourceSelector.Equals(Executor.FAKEPLAYER_NAME);
+        private bool SourceIsGlobal => this.sourceSelector.Equals(Executor.FAKE_PLAYER_NAME);
         internal Clarifier SourceClarifier => new Clarifier(this.SourceIsGlobal, this.sourceSelector);
         
         // The reason this isn't a ScoreboardValue is because sometimes the user
@@ -206,7 +206,7 @@ namespace mc_compiled.Commands.Execute
         // if !comparesRange
         internal TokenCompare.Type comparisonType;
 
-        private bool OtherIsGlobal => this.otherSelector.Equals(Executor.FAKEPLAYER_NAME);
+        private bool OtherIsGlobal => this.otherSelector.Equals(Executor.FAKE_PLAYER_NAME);
         internal Clarifier OtherClarifier => new Clarifier(this.OtherIsGlobal, this.otherSelector);
         private readonly string otherSelector;
         internal string otherValue;

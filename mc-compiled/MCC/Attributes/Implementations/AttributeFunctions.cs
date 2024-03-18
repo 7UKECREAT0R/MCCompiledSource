@@ -31,7 +31,7 @@ namespace mc_compiled.MCC.Attributes.Implementations
         /// Makes the attached value global.
         /// </summary>
         public static readonly AttributeFunction GLOBAL = new AttributeFunction("global", "global",
-"Makes a value global, meaning it will only be accessed in the context of the global fakeplayer, `" + Executor.FAKEPLAYER_NAME + "`")
+"Makes a value global, meaning it will only be accessed in the context of the global fakeplayer, `" + Executor.FAKE_PLAYER_NAME + "`")
            .WithCallAction((parameters, executor, statement) => new AttributeGlobal());
 
         /// <summary>

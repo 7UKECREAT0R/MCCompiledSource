@@ -2,7 +2,7 @@ const mccompiled = {
 	operators: [ `<`, `>`, `{`, `}`, `=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `!` ],
 	selectors: [ `@e`, `@a`, `@s`, `@p`, `@r` ],
 	preprocessor: [ `$add`, `$append`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$prepend`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
-	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dialogue`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport` ],
+	commands: [ `actionbar`, `assert`, `clear`, `damage`, `define`, `dialogue`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `repeat`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport`, `while` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
 	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `extern`, `export`, `bind`, `auto`, `partial` ],
 	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
@@ -343,7 +343,7 @@ const mcc_commands = [
 	},
 	{
 		word: `if`,
-		docs: `Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.`
+		docs: `Performs a comparison, only running the proceeding statement/code-block if the comparisons(s) are true. Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'`
 	},
 	{
 		word: `init`,
@@ -394,6 +394,10 @@ const mcc_commands = [
 		docs: `Teleports the given entities deep into the void, causing a silent death. Looking to rewrite this in the future to generate entity code for real removal.`
 	},
 	{
+		word: `repeat`,
+		docs: `Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.`
+	},
+	{
 		word: `replace`,
 		docs: `Replaces all source blocks with a result block in a specific region.`
 	},
@@ -440,6 +444,10 @@ const mcc_commands = [
 	{
 		word: `teleport`,
 		docs: `Alias of 'tp'. Teleports the executing/given entities to a specific position, selector, "name:type" of entity, or name of another managed entity (e.g., dummy entities).`
+	},
+	{
+		word: `while`,
+		docs: `Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'`
 	},
 ]
 const mcc_literals = [

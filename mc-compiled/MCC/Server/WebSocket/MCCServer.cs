@@ -180,7 +180,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 if(package.didHandshake)
                 {
                     // read the first two bytes of the header.
-                    if ((bytesRead = package.client.Receive(tempBuffer, 0, 2, SocketFlags.None)) < 2)
+                    if (package.client.Receive(tempBuffer, 0, 2, SocketFlags.None) < 2)
                         throw new Exception("Client sent incomplete frame header to the server.");
 
                     // parse bytes 0 and 1.
@@ -193,7 +193,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                     if (additionalBytesNeeded > 0)
                     {
-                        if ((bytesRead = package.client.Receive(tempBuffer, 2, additionalBytesNeeded, SocketFlags.None)) < additionalBytesNeeded)
+                        if (package.client.Receive(tempBuffer, 2, additionalBytesNeeded, SocketFlags.None) < additionalBytesNeeded)
                             throw new Exception("Client sent incomplete frame header to the server.");
                     }
                     
@@ -463,7 +463,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     "MCCompiled Version: " + Executor.MCC_VERSION,
                     "Made for Minecraft Version: " + Executor.MINECRAFT_VERSION,
                     "",
-                    "Fakeplayer Name: " + Executor.FAKEPLAYER_NAME,
+                    "Fakeplayer Name: " + Executor.FAKE_PLAYER_NAME,
                     "Maximum Code Depth: " + Executor.MAXIMUM_DEPTH)
                     .Base64Encode();
 

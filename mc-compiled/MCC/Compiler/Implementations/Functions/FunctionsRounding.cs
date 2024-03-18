@@ -28,7 +28,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         public FunctionRoundRuntime() : base("round", "runtimeRound", "decimal ?", "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
         {
             AddParameter(
-                new RuntimeFunctionParameterDynamic(this, "number", "runtime_round_num").WithAcceptedTypes(Typedef.FIXED_DECIMAL)
+                new RuntimeFunctionParameterDynamic(this, "number", "runtime_round_num")
+                    .WithAcceptedTypes(Typedef.FIXED_DECIMAL)
             );
         }
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)

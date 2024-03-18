@@ -26,7 +26,7 @@
 			<Keywords name="Folders in comment, close"></Keywords>
 			<Keywords name="Keywords1">@e @a @s @p @r</Keywords>
 			<Keywords name="Keywords2">$add $append $assert $call $dec $div $else $if $inc $include $iterate $json $len $log $macro $mean $median $mod $mul $pow $prepend $repeat $reverse $sort $strfriendly $strlower $strupper $sub $sum $swap $unique $var</Keywords>
-			<Keywords name="Keywords3">actionbar assert clear damage define dialogue dummy effect else execute explode face lookat feature fill for function fn give globalactionbar globalprint globaltitle halt if init initialize kill lang mc command cmd move particle playsound print remove replace return rotate say scatter setblock tag test throw title tp teleport</Keywords>
+			<Keywords name="Keywords3">actionbar assert clear damage define dialogue dummy effect else execute explode face lookat feature fill for function fn give globalactionbar globalprint globaltitle halt if init initialize kill lang mc command cmd move particle playsound print remove repeat replace return rotate say scatter setblock tag test throw title tp teleport while</Keywords>
 			<Keywords name="Keywords4">true false not and null ~ ^</Keywords>
 			<Keywords name="Keywords5">int decimal bool time struct ppv global extern export bind auto partial</Keywords>
 			<Keywords name="Keywords6">count any block blocks positioned</Keywords>

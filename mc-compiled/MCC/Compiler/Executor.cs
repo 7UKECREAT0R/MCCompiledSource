@@ -15,7 +15,6 @@ using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
-using mc_compiled.Compiler;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
@@ -33,13 +32,13 @@ namespace mc_compiled.MCC.Compiler
 
         public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
-        public const decimal MCC_VERSION = 1.17M;                 // _compiler
-        public static string MINECRAFT_VERSION = "0.00.000";    // _minecraft
-        public const string MCC_GENERATED_FOLDER = "compiler";  // folder that generated functions go into
-        public const string MCC_TESTS_FOLDER = "tests";         // folder that generated tests go into
-        public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";
+        public const decimal MCC_VERSION = 1.18M;                       // _compiler
+        public static string MINECRAFT_VERSION = "0.00.000";            // _minecraft
+        public const string MCC_GENERATED_FOLDER = "compiler";          // folder that generated functions go into
+        public const string MCC_TESTS_FOLDER = "tests";                 // folder that generated tests go into
+        public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";    // prefix for translation keys
         public const string UNDOCUMENTED_TEXT = "This symbol has no documentation.";
-        public const string FAKEPLAYER_NAME = "_";
+        public const string FAKE_PLAYER_NAME = "_";                     // the name of the "fake player" used for globals.
         public static int MAXIMUM_DEPTH = 100;
 
         internal const string LANGUAGE_FILE = "language.json";
@@ -415,60 +414,13 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
         /// </summary>
-        private LocaleDefinition ActiveLocale { get; set; }
+        internal LocaleDefinition ActiveLocale { get; private set; }
 
         /// <summary>
         /// Returns if a locale has been set via <see cref="SetLocale(string)"/>.
         /// </summary>
         public bool HasLocale => this.ActiveLocale != null;
-
-        /// <summary>
-        /// Called when localization is enabled for a new locale.
-        /// </summary>
-        /// <param name="langFile">The lang file to hold the localization for this new locale.</param>
-        private void OnLocalizationEnabled(Lang langFile)
-        {
-            const string packName = "pack.name";
-            const string packDescription = "pack.description";
-
-            if (this.project.behaviorManifest != null)
-                TryLocalizeManifestFile(this.project.behaviorManifest);
-            if (this.project.resourceManifest != null)
-                TryLocalizeManifestFile(this.project.resourceManifest);
-            
-            return;
-
-            void TryLocalizeManifestFile(Manifest manifest)
-            {
-                if (!manifest.description.Equals(packDescription))
-                {
-                    string oldDescription = manifest.description;
-                    manifest.description = packDescription;
-                    
-                    var entry = LangEntry.Create(packDescription, oldDescription);
-                    
-                    int indexOfExisting = langFile.IndexOf(packDescription);
-                    if (indexOfExisting == -1)
-                        langFile.InsertAtIndex(0, entry);
-                    else
-                        langFile.SetAtIndex(indexOfExisting, entry);
-                }
-                // ReSharper disable once InvertIf
-                if (!manifest.name.Equals(packName))
-                {
-                    string oldName = manifest.name;
-                    manifest.name = packName;
-                    
-                    var entry = LangEntry.Create(packName, oldName);
-                    
-                    int indexOfExisting = langFile.IndexOf(packName);
-                    if (indexOfExisting == -1)
-                        langFile.InsertAtIndex(0, entry);
-                    else
-                        langFile.SetAtIndex(indexOfExisting, entry);
-                }
-            }
-        }
+        
         /// <summary>
         /// Sets the active locale that FString data will be sent to.
         /// </summary>
@@ -482,7 +434,6 @@ namespace mc_compiled.MCC.Compiler
             }
 
             this.ActiveLocale = this.languageManager.DefineLocale(locale);
-            OnLocalizationEnabled(this.ActiveLocale.file);
         }
         /// <summary>
         /// Sets a locale entry in the associated .lang file. Throws a <see cref="StatementException"/> if no locale has been set yet via <see cref="SetLocale(string)"/>.
@@ -517,7 +468,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Gets the sound definitions file, reading it from the existing RP if it exists.
         /// </summary>
-        public SoundDefinitions GetSoundDefinitions(Statement callingStatement)
+        private SoundDefinitions GetSoundDefinitions(Statement callingStatement)
         {
             if (this.soundDefinitions != null)
                 return this.soundDefinitions;
@@ -538,7 +489,7 @@ namespace mc_compiled.MCC.Compiler
             AddExtraFile(this.soundDefinitions);
             return this.soundDefinitions;
         }
-
+        
         /// <summary>
         /// Get the path of a file relative to the working directory.
         /// </summary>

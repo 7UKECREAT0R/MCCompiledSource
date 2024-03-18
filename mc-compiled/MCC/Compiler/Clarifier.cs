@@ -80,7 +80,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         private void Reset()
         {
-            this.CurrentString = this.global ? Executor.FAKEPLAYER_NAME : DEFAULT_CLARIFIER;
+            this.CurrentString = this.global ? Executor.FAKE_PLAYER_NAME : DEFAULT_CLARIFIER;
         }
 
         /// <summary>

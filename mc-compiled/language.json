@@ -1,5 +1,5 @@
 {
-  "version": 1.17,
+  "version": 1.18,
   "preprocessor_variables": [
     "_compiler",
     "_minecraft",
@@ -497,28 +497,8 @@
     "if": {
       "description": "If Statement",
       "wiki_link": "Comparison.md",
-      "details": "Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.",
-      "category": "logic",
-      "patterns": [
-        [ "not:not", "value:boolean" ],
-        [ "value:boolean" ],
-        [ "value:score", "compare:comparison", "value:other" ],
-        [ "value:score", "compare:comparison", "any:other" ],
-        [ "selector:check for match" ],
-        [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
-        [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
-        [ "id:any", "selector:filter" ],
-        [ "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
-        [ "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ],
-        [ "not:not", "value:score", "compare:comparison", "value:other" ],
-        [ "not:not", "value:score", "compare:comparison", "any:other" ],
-        [ "not:not", "selector:check for match" ],
-        [ "not:not", "id:count", "selector:entities", "compare:comparison", "value:amount" ],
-        [ "not:not", "id:count", "selector:entities", "compare:comparison", "number:amount" ],
-        [ "not:not", "id:any", "selector:filter" ],
-        [ "not:not", "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
-        [ "not:not", "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ]
-      ]
+      "details": "Performs a comparison, only running the proceeding statement/code-block if the comparisons(s) are true. Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'",
+      "category": "logic"
     },
     "else": {
       "description": "Else Statement",
@@ -527,31 +507,25 @@
       "category": "logic",
       "attributes": [ "INVERTS_COMPARISON" ]
     },
+    "while": {
+      "description": "While Statement",
+      "details": "Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'",
+      "category": "logic"
+    },
+    "repeat": {
+      "description": "Repeat N Times",
+      "details": "Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.",
+      "category": "logic",
+      "patterns": [
+        [ "int:repetitions", "?id:current" ],
+        [ "value:repetitions", "?id:current" ]
+      ]
+    },
     "assert": {
       "description": "Assert Statement",
       "wiki_link": "Testing.md#writing-a-test",
       "details": "Asserts that the given condition evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).",
-      "category": "debug",
-      "patterns": [
-        [ "not:not", "value:boolean" ],
-        [ "value:boolean" ],
-        [ "value:score", "compare:comparison", "value:other" ],
-        [ "value:score", "compare:comparison", "any:other" ],
-        [ "selector:check for match" ],
-        [ "id:count", "selector:entities", "compare:comparison", "value:amount" ],
-        [ "id:count", "selector:entities", "compare:comparison", "number:amount" ],
-        [ "id:any", "selector:filter" ],
-        [ "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
-        [ "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ],
-        [ "not:not", "value:score", "compare:comparison", "value:other" ],
-        [ "not:not", "value:score", "compare:comparison", "any:other" ],
-        [ "not:not", "selector:check for match" ],
-        [ "not:not", "id:count", "selector:entities", "compare:comparison", "value:amount" ],
-        [ "not:not", "id:count", "selector:entities", "compare:comparison", "number:amount" ],
-        [ "not:not", "id:any", "selector:filter" ],
-        [ "not:not", "id:block", "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data" ],
-        [ "not:not", "id:blocks", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "coordinate:x destination", "coordinate:y destination", "coordinate:z destination" ]
-      ]
+      "category": "debug"
     },
     "throw": {
       "description": "Throw Error",

@@ -16,7 +16,7 @@ using System.Linq;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
-using mc_compiled.Compiler;
+using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
 using Microsoft.CSharp.RuntimeBinder;
@@ -1464,6 +1464,148 @@ namespace mc_compiled.MCC.Compiler
             }
         }
         [UsedImplicitly]
+        public static void @while(Executor executor, Statement tokens)
+        {
+            CommandFile sustainLoop = Executor.GetNextGeneratedFile("whileSustain");
+            CommandFile loopCode = Executor.GetNextGeneratedFile("while");
+
+            // sustainLoop should contain the comparison and then call to loopCode if it succeeds
+            executor.PushFile(sustainLoop);
+            ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
+            set.RunCommand(Command.Function(loopCode), executor, tokens);
+            executor.PopFile();
+            
+            Statement nextStatement = executor.Seek();
+            Action<Executor> whenCodeIsOver = exec =>
+            {
+                loopCode.Add(Command.Function(sustainLoop));
+                exec.PopFile();
+            };
+
+            executor.AddCommand(Command.Function(sustainLoop));
+            
+            if (nextStatement is StatementOpenBlock openBlock)
+            {
+                openBlock.openAction = exec =>
+                {
+                    exec.PushFile(loopCode);
+                };
+                openBlock.CloseAction = whenCodeIsOver;
+            }
+            else
+            {
+                executor.PushFile(loopCode);
+                executor.DeferAction(whenCodeIsOver);
+            }
+        }
+        [UsedImplicitly]
+        public static void repeat(Executor executor, Statement tokens)
+        {
+            Token repetitions = tokens.Next();
+            bool isValue = repetitions is TokenIdentifierValue;
+
+            ScoreboardValue storeIn;
+            if (tokens.NextIs<TokenIdentifier>())
+            {
+                string storeInIdentifier = tokens.Next<TokenIdentifier>("store in").word;
+                
+                // check if that name is in use already by another scoreboard value
+                if (executor.scoreboard.TryGetByUserFacingName(storeInIdentifier, out ScoreboardValue existing))
+                {
+                    // constraints
+                    if (existing.type.TypeEnum != ScoreboardManager.ValueType.INT)
+                        throw new StatementException(tokens, $"Value '{storeInIdentifier}' must be an int in order to be reused in a loop (currently {existing.GetExtendedTypeKeyword()}).");
+                    
+                    storeIn = existing.clarifier.IsGlobal ?
+                        existing : // use existing, all constraints match
+                        existing.Clone(tokens, newClarifier: Clarifier.Global()); // reinterpret as global
+                }
+                else
+                {
+                    // create a new scoreboard value for the identifier.
+                    storeIn = new ScoreboardValue(Typedef.INTEGER, Clarifier.Global(),
+                        null,
+                        storeInIdentifier,
+                        storeInIdentifier,
+                        $"Contains the current iteration for the loop: '{tokens.Source}'",
+                        executor.scoreboard)
+                        .WithAttributes(new[] { new AttributeGlobal() }, tokens);
+                    executor.scoreboard.Add(storeIn);
+                }
+            }
+            else
+            {
+                // store in an anonymous value which will not be shown to the user.
+                storeIn = new ScoreboardValue(Typedef.INTEGER, Clarifier.Global(),
+                    null,
+                    "_anonymous_repeat_scope" + executor.depth,
+                    null,
+                    $"Contains the current iteration for the loop: '{tokens.Source}'",
+                    executor.scoreboard);
+            }
+            
+            executor.AddCommandsInit(storeIn.CommandsDefine());
+
+            string repetitionsString;
+            var startLoopCommands = new List<string>();
+
+            if (isValue)
+            {
+                ScoreboardValue value = ((TokenIdentifierValue) repetitions).value;
+                startLoopCommands.AddRange(storeIn.Assign(value, tokens));
+                startLoopCommands.AddRange(storeIn.SubtractLiteral(new TokenIntegerLiteral(1, IntMultiplier.none, tokens.Lines[0]), tokens)); // minus one because it's exclusive (0..i-1)
+                repetitionsString = $"{{{value.Name}}}";
+            }
+            else
+            {
+                int n = ((TokenNumberLiteral) repetitions).GetNumberInt() - 1; // minus one because it's exclusive (0..i-1)
+                if (n < 1)
+                    throw new StatementException(tokens, "Code inside repeat-statement will never be run.");
+                
+                var literal = new TokenIntegerLiteral(n, IntMultiplier.none, tokens.Lines[0]);
+                startLoopCommands.AddRange(storeIn.AssignLiteral(literal, tokens));
+                repetitionsString = $"{n}";
+            }
+
+            CommandFile sustainLoop = Executor.GetNextGeneratedFile("repeatSustain");
+            CommandFile loopCode = Executor.GetNextGeneratedFile("repeat");
+            executor.AddExtraFile(sustainLoop);
+            
+            sustainLoop.Add(Command.Execute()
+                .IfScore(storeIn, new Range(0, null))
+                .Run(Command.Function(loopCode)));
+            startLoopCommands.Add(Command.Function(sustainLoop));
+
+            Statement nextStatement = executor.Seek();
+            if (nextStatement == null)
+                throw new StatementException(tokens, "Unexpected end of file after repeat-statement.");
+            
+            Action<Executor> whenCodeIsOver = exec =>
+            {
+                loopCode.Add(storeIn.SubtractLiteral(new TokenIntegerLiteral(1, IntMultiplier.none, tokens.Lines[0]), tokens));
+                loopCode.Add(Command.Function(sustainLoop));
+                exec.PopFile();
+            };
+            
+            CommandFile file = executor.CurrentFile;
+            executor.AddCommands(startLoopCommands, "beginRepeat",
+                $"Begins a loop that repeats {repetitionsString} times. Located in {file.CommandReference} line {executor.NextLineNumber}.");
+
+            if (nextStatement is StatementOpenBlock openBlock)
+            {
+                openBlock.openAction = exec =>
+                {
+                    exec.PushFile(loopCode);
+                };
+                openBlock.CloseAction = whenCodeIsOver;
+            }
+            else
+            {
+                executor.PushFile(loopCode);
+                executor.DeferAction(whenCodeIsOver);
+            }
+        }
+        [UsedImplicitly]
         public static void assert(Executor executor, Statement tokens)
         {
             executor.MarkAssertionOnFileStack();
@@ -1500,13 +1642,12 @@ namespace mc_compiled.MCC.Compiler
             json.Insert(0, new JSONText("§c"));
 
             string[] fs = Executor.ResolveRawText(json, "tellraw @s ");
-            string[] commands = new string[fs.Length + 1];
+            string[] commands = new string[fs.Length + 2];
             
-            commands[0] = Command.Tellraw("@s",
-                new RawTextJsonBuilder()
-                    .AddTerm(new JSONText($"Error thrown in {executor.CurrentFile.CommandReference}")).BuildString());
+            commands[0] = Command.Tellraw("@s", new RawTextJsonBuilder().AddTerm(new JSONText($"Error thrown at line {tokens.Lines[0]}:")).BuildString());
+            commands[1] = Command.Tellraw("@s", new RawTextJsonBuilder().AddTerm(new JSONText($"\t- {tokens.Source.Trim()}")).BuildString());
             for (int i = 0; i < fs.Length; i++)
-                commands[i + 1] = fs[i];
+                commands[i + 2] = fs[i];
 
             executor.AddCommandsClean(commands, "throwError", $"Called in a throw command located in {executor.CurrentFile.CommandReference} line {executor.NextLineNumber}");
             executor.AddCommand(GenerateHaltCommand(executor));
@@ -1621,7 +1762,7 @@ namespace mc_compiled.MCC.Compiler
                     // ReSharper disable once InvertIf
                     if(builderField.Equals("DYE"))
                     {
-                        color = new ItemTagCustomColor()
+                        color = new ItemTagCustomColor
                         {
                             r = (byte)tokens.Next<TokenIntegerLiteral>("red"),
                             g = (byte)tokens.Next<TokenIntegerLiteral>("green"),

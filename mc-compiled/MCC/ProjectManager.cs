@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using mc_compiled.Commands;
-using mc_compiled.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.MCC.Scheduling.Implementations;
+using mc_compiled.Modding.Resources.Localization;
 
 namespace mc_compiled.MCC
 {
@@ -57,9 +57,6 @@ namespace mc_compiled.MCC
             this.copyFiles = new HashSet<CopyFile>();
             this.files = new List<IAddonFile>();
             this.features = 0;
-            
-            // get manifests
-            ProcessManifests();
         }
         /// <summary>
         /// Returns this project manager after setting it to lint mode, lowering memory usage
@@ -100,7 +97,7 @@ namespace mc_compiled.MCC
             if (this.parentExecutor.definedReturnedTypes.Any())
             {
                 file.Add("# Removes return values used by the compiled code.");
-
+                
                 var objectives = new HashSet<string>();
                 
                 foreach (string objective in this.parentExecutor
@@ -261,7 +258,10 @@ namespace mc_compiled.MCC
                 this.files.Clear();
                 return;
             }
-
+            
+            // get manifests
+            ProcessManifests();
+            
             // uninstall feature
             if(HasFeature(Feature.UNINSTALL))
                 CreateUninstallFile();
@@ -348,8 +348,59 @@ namespace mc_compiled.MCC
             // add to output.
             TryAddFile(this.behaviorManifest);
             TryAddFile(this.resourceManifest);
+            
+            // localize them, if we need to do that
+            if(this.parentExecutor.HasLocale)
+                LocalizeManifests(this.parentExecutor.ActiveLocale.file);
         }
+        /// <summary>
+        /// Localizes the manifests which are loaded and valid.
+        /// </summary>
+        /// <param name="langFile">The lang file to store the pack.name and pack.description keys.</param>
+        private void LocalizeManifests(Lang langFile)
+        {
+            const string packName = "pack.name";
+            const string packDescription = "pack.description";
 
+            if (this.behaviorManifest != null)
+                TryLocalizeManifestFile(this.behaviorManifest);
+            if (this.resourceManifest != null)
+                TryLocalizeManifestFile(this.resourceManifest);
+            
+            return;
+
+            void TryLocalizeManifestFile(Manifest manifest)
+            {
+                if (!manifest.description.Equals(packDescription))
+                {
+                    string oldDescription = manifest.description;
+                    manifest.description = packDescription;
+                    
+                    var entry = LangEntry.Create(packDescription, oldDescription);
+                    
+                    int indexOfExisting = langFile.IndexOf(packDescription);
+                    if (indexOfExisting == -1)
+                        langFile.InsertAtIndex(0, entry);
+                    else
+                        langFile.SetAtIndex(indexOfExisting, entry);
+                }
+                // ReSharper disable once InvertIf
+                if (!manifest.name.Equals(packName))
+                {
+                    string oldName = manifest.name;
+                    manifest.name = packName;
+                    
+                    var entry = LangEntry.Create(packName, oldName);
+                    
+                    int indexOfExisting = langFile.IndexOf(packName);
+                    if (indexOfExisting == -1)
+                        langFile.InsertAtIndex(0, entry);
+                    else
+                        langFile.SetAtIndex(indexOfExisting, entry);
+                }
+            }
+        }
+        
         /// <summary>
         /// Returns the full, exact output location of this IAddonFile in relation to this project.
         /// </summary>

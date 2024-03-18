@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 
-namespace mc_compiled.Compiler
+namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
     /// Manages the caching and downloading of default pack objects, as well as I/O for other temporary files.

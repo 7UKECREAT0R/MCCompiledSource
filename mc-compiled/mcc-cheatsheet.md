@@ -361,25 +361,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 : Ends the execution of the code entirely by hitting the function command limit.
 
 [If Statement](Comparison.md)
-: Allows comparison of variables, along with a huge collection of other criteria. Can be chained together by the keyword 'and' and inverted by the keyword 'not'. Only runs the proceeding statement/code-block for entities where the condition returns true.
-- `if <not: not> <value: boolean>`
-- `if <value: boolean>`
-- `if <value: score> <compare: comparison> <value: other>`
-- `if <value: score> <compare: comparison> <any: other>`
-- `if <selector: check for match>`
-- `if <id: count> <selector: entities> <compare: comparison> <value: amount>`
-- `if <id: count> <selector: entities> <compare: comparison> <number: amount>`
-- `if <id: any> <selector: filter>`
-- `if <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
-- `if <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
-- `if <not: not> <value: score> <compare: comparison> <value: other>`
-- `if <not: not> <value: score> <compare: comparison> <any: other>`
-- `if <not: not> <selector: check for match>`
-- `if <not: not> <id: count> <selector: entities> <compare: comparison> <value: amount>`
-- `if <not: not> <id: count> <selector: entities> <compare: comparison> <number: amount>`
-- `if <not: not> <id: any> <selector: filter>`
-- `if <not: not> <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
-- `if <not: not> <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
+: Performs a comparison, only running the proceeding statement/code-block if the comparisons(s) are true. Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'
 
 [Set Return Value](Functions.md#return-values)
 : Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.
@@ -395,30 +377,20 @@ For Each Entity
 - `for <selector: entities> <id: at> <coordinate: x> <coordinate: y> <coordinate: z>`
 - `for <selector: entities>`
 
+Repeat N Times
+: Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.
+- `repeat <int: repetitions> [id: current]`
+- `repeat <value: repetitions> [id: current]`
+
+While Statement
+: Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'
+
 
 ### Category: debug
 Commands related to testing, debugging and all-around solidifying code.
 
 [Assert Statement](Testing.md#writing-a-test)
 : Asserts that the given condition evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).
-- `assert <not: not> <value: boolean>`
-- `assert <value: boolean>`
-- `assert <value: score> <compare: comparison> <value: other>`
-- `assert <value: score> <compare: comparison> <any: other>`
-- `assert <selector: check for match>`
-- `assert <id: count> <selector: entities> <compare: comparison> <value: amount>`
-- `assert <id: count> <selector: entities> <compare: comparison> <number: amount>`
-- `assert <id: any> <selector: filter>`
-- `assert <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
-- `assert <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
-- `assert <not: not> <value: score> <compare: comparison> <value: other>`
-- `assert <not: not> <value: score> <compare: comparison> <any: other>`
-- `assert <not: not> <selector: check for match>`
-- `assert <not: not> <id: count> <selector: entities> <compare: comparison> <value: amount>`
-- `assert <not: not> <id: count> <selector: entities> <compare: comparison> <number: amount>`
-- `assert <not: not> <id: any> <selector: filter>`
-- `assert <not: not> <id: block> <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data]`
-- `assert <not: not> <id: blocks> <coordinate: x1> <coordinate: y1> <coordinate: z1> <coordinate: x2> <coordinate: y2> <coordinate: z2> <coordinate: x destination> <coordinate: y destination> <coordinate: z destination>`
 
 [Define Test](Testing.md#writing-a-test)
 : Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.

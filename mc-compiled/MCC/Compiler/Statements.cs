@@ -133,11 +133,10 @@ namespace mc_compiled.MCC.Compiler
                 return $"[OPEN BLOCK: {this.statementsInside} STATEMENTS]";
         }
 
-        protected override TypePattern[] GetValidPatterns()
-            => new TypePattern[0];
+        protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
         protected override void Run(Executor executor)
         {
-            if (this.openAction != null) this.openAction(executor);
+            this.openAction?.Invoke(executor);
             executor.depth++;
 
             if (executor.depth > Executor.MAXIMUM_DEPTH)
