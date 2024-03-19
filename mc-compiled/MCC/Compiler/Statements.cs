@@ -225,7 +225,7 @@ namespace mc_compiled.MCC.Compiler
             if (!this.HasNext)
                 throw new StatementException(this, "Nothing on right-hand side of assignment.");
 
-            if (NextIs<TokenIdentifierValue>())
+            if (NextIs<TokenIdentifierValue>(false))
             {
                 var next = Next<TokenIdentifierValue>(null);
                 CommandFile file = executor.CurrentFile;
@@ -246,7 +246,7 @@ namespace mc_compiled.MCC.Compiler
                         "set_op",
                         $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} = {next.value.Name}).");
             }
-            else if (NextIs<TokenLiteral>())
+            else if (NextIs<TokenLiteral>(false))
             {
                 var next = Next<TokenLiteral>(null);
                 CommandFile file = executor.CurrentFile;
@@ -312,7 +312,7 @@ namespace mc_compiled.MCC.Compiler
         }
         protected override void Run(Executor executor)
         {
-            if (!NextIs<TokenIdentifierFunction>())
+            if (!NextIs<TokenIdentifierFunction>(false))
             {
                 var id = Next<TokenIdentifier>("function name");
                 throw new StatementException(this, $"Unresolved function name \"{id.word}\". Is it spelled right & defined somewhere above this line?");
@@ -320,7 +320,7 @@ namespace mc_compiled.MCC.Compiler
 
             var value = Next<TokenIdentifierFunction>(null);
 
-            if (NextIs<TokenOpenParenthesis>())
+            if (NextIs<TokenOpenParenthesis>(false))
                 Next();
 
             var _passIn = new List<Token>();

@@ -70,7 +70,7 @@ namespace mc_compiled.MCC.Attributes.Implementations
                 _ = statement.Next(); // skip (
                 _ = statement.Next(); // skip query string
 
-                while (statement.NextIs<TokenStringLiteral>())
+                while (statement.NextIs<TokenStringLiteral>(false))
                 {
                     string target = statement.Next<TokenStringLiteral>("target");
 

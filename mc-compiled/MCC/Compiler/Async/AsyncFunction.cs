@@ -23,7 +23,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// <summary>
         /// The escaped string representing the function name that will be used in all related identifiers.
         /// </summary>
-        private readonly string escapedFunctionName;
+        internal readonly string escapedFunctionName;
         /// <summary>
         /// The entity that should be targeted by this async function.
         /// If global, use the global fake-player to hold the state.
@@ -36,15 +36,17 @@ namespace mc_compiled.MCC.Compiler.Async
         /// </summary>
         public RuntimeFunction registeredFunction;
 
+        private int NextStageIndex => this.stages.Count;
         private readonly AsyncManager parent;
         private readonly List<AsyncStage> stages;
-        
+
+        private AsyncStage activeStage;
         private CommandFile tick;
         internal CommandFile tickPrerequisite;
         
         internal ScoreboardValue runningValue;
-        private ScoreboardValue stageValue;
-        private ScoreboardValue timerValue;
+        internal ScoreboardValue stageValue;
+        internal ScoreboardValue timerValue;
 
         private void InitializeScoreboardValues(ScoreboardManager manager)
         {
@@ -55,9 +57,9 @@ namespace mc_compiled.MCC.Compiler.Async
         }
         private void InitializeCommandFiles()
         {
-            this.tickPrerequisite = new CommandFile(false,
+            this.tickPrerequisite = new CommandFile(true,
                 NameTickPrerequisiteFunction(this.escapedFunctionName), FOLDER);
-            this.tick = new CommandFile(false,
+            this.tick = new CommandFile(true,
                 NameTickFunction(this.escapedFunctionName), FOLDER);
             
             this.parent.parent.AddExtraFile(this.tickPrerequisite);
@@ -81,6 +83,20 @@ namespace mc_compiled.MCC.Compiler.Async
 
             InitializeScoreboardValues(this.parent.parent.scoreboard);
             InitializeCommandFiles();
+        }
+        
+        public void StartNewStage()
+        {
+            int index = this.NextStageIndex;
+            
+        }
+        public void FinishStage(int tickDelayUntilNext)
+        {
+            
+        }
+        public void FinishStage(ComparisonSet comparisonToGoToNext)
+        {
+            
         }
     }
     public enum AsyncTarget

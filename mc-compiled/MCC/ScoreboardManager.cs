@@ -240,7 +240,7 @@ namespace mc_compiled.MCC
             ITypeStructure data = null;
             string name = null;
 
-            if (tokens.NextIs<TokenIdentifier>())
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
                 var identifier = tokens.Next<TokenIdentifier>(null);
                 string typeWord = identifier.word.ToUpper();
@@ -275,7 +275,7 @@ namespace mc_compiled.MCC
 
             if (name == null)
             {
-                if (!tokens.NextIs<TokenStringLiteral>())
+                if (!tokens.NextIs<TokenStringLiteral>(false))
                     throw new StatementException(tokens, "No name specified after type.");
                 name = tokens.Next<TokenStringLiteral>(null);
             }
@@ -283,7 +283,7 @@ namespace mc_compiled.MCC
             // the default value to set it to.
             Token defaultValue = null;
             
-            if (tokens.NextIs<TokenAssignment>())
+            if (tokens.NextIs<TokenAssignment>(false))
             {
                 tokens.Next();
                 defaultValue = tokens.Next();
@@ -304,7 +304,7 @@ namespace mc_compiled.MCC
 
             void FindAttributes()
             {
-                while (tokens.NextIs<TokenAttribute>())
+                while (tokens.NextIs<TokenAttribute>(false))
                 {
                     var _attribute = tokens.Next<TokenAttribute>(null);
                     attributes.Add(_attribute.attribute);

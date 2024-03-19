@@ -940,12 +940,12 @@ namespace mc_compiled.MCC.Compiler
             if (!(_tokens is StatementUnknown tokens))
                 return false;
 
-            return tokens.NextIs<TokenBuilderIdentifier>();
+            return tokens.NextIs<TokenBuilderIdentifier>(false);
         }
         public bool NextBuilderField(ref Statement tokens, out TokenBuilderIdentifier builderField)
         {
             // next in statement?
-            if (tokens.NextIs<TokenBuilderIdentifier>())
+            if (tokens.NextIs<TokenBuilderIdentifier>(false))
             {
                 builderField = tokens.Next<TokenBuilderIdentifier>(null);
                 return true;

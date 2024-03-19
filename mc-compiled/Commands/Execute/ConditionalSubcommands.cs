@@ -53,7 +53,7 @@ namespace mc_compiled.Commands.Execute
             this.z = tokens.Next<TokenCoordinateLiteral>("z");
             this.block = tokens.Next<TokenStringLiteral>("block");
 
-            if(tokens.NextIs<TokenIntegerLiteral>())
+            if(tokens.NextIs<TokenIntegerLiteral>(false))
                 this.data = tokens.Next<TokenIntegerLiteral>(null);
         }
         public override string ToMinecraft()
@@ -315,7 +315,7 @@ namespace mc_compiled.Commands.Execute
             this.sourceValue = tokens.Next<TokenIdentifierValue>("source").value.InternalName;
 
             // thisScore == otherScore
-            if(tokens.NextIs<TokenCompare>(false))
+            if(tokens.NextIs<TokenCompare>(false, false))
             {
                 this.comparesRange = false;
                 this.comparisonType = tokens.Next<TokenCompare>("comparison operator").GetCompareType();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -116,29 +117,29 @@ namespace mc_compiled.MCC.Compiler
             if (this.currentToken >= this.tokens.Length)
                 throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
             Token token = this.tokens[this.currentToken];
-            if (!(token is T))
-            {
-                if (token is IImplicitToken)
-                {
-                    IImplicitToken implicitToken = token as IImplicitToken;
-                    Type[] otherTypes = implicitToken.GetImplicitTypes();
-
-                    for (int i = 0; i < otherTypes.Length; i++)
-                        if (typeof(T).IsAssignableFrom(otherTypes[i]))
-                            return implicitToken.Convert(this.executor, i) as T;
-                }
+            
+            if (token is T validToken)
+                return validToken;
+            
+            if (!(token is IImplicitToken implicitToken))
                 throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType()}");
-            }
-            else
-                return token as T;
+                
+            Type[] otherTypes = implicitToken.GetImplicitTypes();
+
+            for (int i = 0; i < otherTypes.Length; i++)
+                if (typeof(T).IsAssignableFrom(otherTypes[i]))
+                    return implicitToken.Convert(this.executor, i) as T;
+            throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {implicitToken.GetType()}");
         }
         /// <summary>
         /// Returns if the next parameter (if any) is able to be casted to a certain type. Implements MCCompiled implicit conversions.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="allowImplicit"></param>
+        /// <typeparam name="T">The type to check for. If <paramref name="enforceType"/> is true, the token (if any) must match the type or it will throw an error.</typeparam>
+        /// <param name="enforceType">If true and there is a token at the end of the statement, an exception will be thrown if the type doesn't match.</param>
+        /// <param name="allowImplicit">Allow implicit conversion of tokens.</param>
         /// <returns></returns>
-        public bool NextIs<T>(bool allowImplicit = true)
+        [AssertionMethod]
+        public bool NextIs<T>(bool enforceType, bool allowImplicit = true)
         {
             if (!this.HasNext)
                 return false;
@@ -149,10 +150,25 @@ namespace mc_compiled.MCC.Compiler
                 return true;
 
             if (!allowImplicit || !(token is IImplicitToken implicitToken))
+            {
+                TryEnforceType();
                 return false;
-            
+            }
+
             Type[] otherTypes = implicitToken.GetImplicitTypes();
-            return otherTypes.Any(t => typeof(T).IsAssignableFrom(t));
+            bool canDoImplicitConversion = otherTypes.Any(t => typeof(T).IsAssignableFrom(t));
+
+            if (!canDoImplicitConversion)
+                TryEnforceType();
+            
+            return canDoImplicitConversion;
+
+            // throws if enforceType is enabled.
+            void TryEnforceType()
+            {
+                if(enforceType)
+                    throw new FeederException(this, $"Parameter here must be '{typeof(T).Name}', but got '{token.GetType().Name}'.");
+            }
         }
 
         /// <summary>

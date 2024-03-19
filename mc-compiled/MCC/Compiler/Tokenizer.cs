@@ -103,22 +103,33 @@ namespace mc_compiled.MCC.Compiler
 
             while ((token = NextToken()) != null)
             {
-                if (token is TokenIdentifier id)
+                switch (token)
                 {
-                    // split the deref token, it wasn't a directive
-                    string word = id.word;
-                    if (word[0] == '$')
+                    case TokenComment _:
                     {
-                        if(word.Length == 1)
-                            token = new TokenDeref(CURRENT_LINE);
-                        else
+                        // strip all comments except ones at the start of the line
+                        if(lastWasNewline || all.Count == 0)
+                            all.Add(token);
+                        continue;
+                    }
+                    case TokenIdentifier id:
+                    {
+                        // split the deref token, it wasn't a directive
+                        string word = id.word;
+                        if (word[0] == '$')
                         {
-                            all.Add(new TokenDeref(CURRENT_LINE));
-                            token = new TokenIdentifier(word.Substring(1), CURRENT_LINE);
+                            if(word.Length == 1)
+                                token = new TokenDeref(CURRENT_LINE);
+                            else
+                            {
+                                all.Add(new TokenDeref(CURRENT_LINE));
+                                token = new TokenIdentifier(word.Substring(1), CURRENT_LINE);
+                            }
                         }
+                        break;
                     }
                 }
-                
+
                 if (token is TokenNewline)
                 {
                     if (lastWasNewline)
@@ -136,7 +147,6 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Read the next valid identifier.
         /// </summary>
-        /// <returns></returns>
         private Token NextToken()
         {
             FlushIgnoredCharacters();

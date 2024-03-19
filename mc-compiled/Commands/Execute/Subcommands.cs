@@ -214,7 +214,7 @@ namespace mc_compiled.Commands.Execute
         public override void FromTokens(Statement tokens)
         {
             // entity
-            if(tokens.NextIs<TokenSelectorLiteral>())
+            if(tokens.NextIs<TokenSelectorLiteral>(false))
             {
                 this.isEntity = true;
 
@@ -306,7 +306,7 @@ namespace mc_compiled.Commands.Execute
         public override void FromTokens(Statement tokens)
         {
             // entity
-            if(tokens.NextIs<TokenSelectorLiteral>())
+            if(tokens.NextIs<TokenSelectorLiteral>(false))
             {
                 this.asEntity = true;
                 this.entity = tokens.Next<TokenSelectorLiteral>("entity");
@@ -359,7 +359,7 @@ namespace mc_compiled.Commands.Execute
         public override void FromTokens(Statement tokens)
         {
             // entity
-            if (tokens.NextIs<TokenSelectorLiteral>())
+            if (tokens.NextIs<TokenSelectorLiteral>(false))
             {
                 this.asEntity = true;
                 this.entity = tokens.Next<TokenSelectorLiteral>("entity");

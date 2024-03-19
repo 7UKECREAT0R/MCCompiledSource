@@ -64,7 +64,7 @@ namespace mc_compiled.MCC.Compiler
                         
                         // ComparisonValue
                         // if <score> <operator> <value>
-                        if (tokens.NextIs<TokenCompare>())
+                        if (tokens.NextIs<TokenCompare>(false))
                         {
                             TokenCompare.Type comparison = tokens.Next<TokenCompare>("comparison operator").GetCompareType();
                             Token b = tokens.Next();
@@ -133,7 +133,7 @@ namespace mc_compiled.MCC.Compiler
                                 string block = tokens.Next<TokenStringLiteral>("block");
 
                                 int? data = null;
-                                if (tokens.NextIs<TokenIntegerLiteral>())
+                                if (tokens.NextIs<TokenIntegerLiteral>(false))
                                     data = tokens.Next<TokenIntegerLiteral>("data");
 
                                 var blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
@@ -157,7 +157,7 @@ namespace mc_compiled.MCC.Compiler
                                 Coordinate destZ = tokens.Next<TokenCoordinateLiteral>("destination z");
 
                                 var scanMode = BlocksScanMode.all;
-                                if(tokens.NextIs<TokenIdentifierEnum>())
+                                if(tokens.NextIs<TokenIdentifierEnum>(false))
                                 {
                                     ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>("scan mode").value;
                                     parsed.RequireType<BlocksScanMode>(tokens);
