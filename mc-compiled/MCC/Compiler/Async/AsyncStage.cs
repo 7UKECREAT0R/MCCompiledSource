@@ -37,11 +37,11 @@ namespace mc_compiled.MCC.Compiler.Async
         {
             this.ticksUntilNextStage = delay;
         }
-        public AsyncStage(AsyncFunction parent, int stageIndex, bool isFirst)
+        public AsyncStage(AsyncFunction parent, int stageIndex)
         {
             this.parent = parent;
             this.stageIndex = stageIndex;
-            this.isFirst = isFirst;
+            this.isFirst = stageIndex == 0;
 
             string stageName = FOLDER + NameStageFunction(parent.escapedFunctionName, stageIndex);
             this.stageCommands = new CommandFile(true, stageName);

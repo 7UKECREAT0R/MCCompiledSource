@@ -6,13 +6,15 @@ namespace mc_compiled.MCC.Compiler.Async
 {
     public class AsyncManager
     {
-        private AsyncFunction currentFunction;
+        public AsyncFunction CurrentFunction { get; private set; }
+        public bool IsInAsync => this.CurrentFunction != null;
+        
         private CommandFile tickFile;
         public readonly Executor parent;
         
         public AsyncManager(Executor parent)
         {
-            this.currentFunction = null;
+            this.CurrentFunction = null;
             this.parent = parent;
         }
 
@@ -47,13 +49,9 @@ namespace mc_compiled.MCC.Compiler.Async
         }
         public AsyncFunction StartNewAsyncFunction(string name, AsyncTarget target)
         {
-            this.currentFunction = new AsyncFunction(this, name, target);
-            RegisterNewFunction(this.currentFunction);
-            return this.currentFunction;
+            this.CurrentFunction = new AsyncFunction(this, name, target);
+            RegisterNewFunction(this.CurrentFunction);
+            return this.CurrentFunction;
         }
-        
-        public bool IsInAsync => this.currentFunction != null;
-        public AsyncFunction CurrentAsyncFunction => this.currentFunction;
-        
     }
 }

@@ -36,6 +36,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// </summary>
         public RuntimeFunction registeredFunction;
 
+        private Executor Executor => this.parent.parent;
         private int NextStageIndex => this.stages.Count;
         private readonly AsyncManager parent;
         private readonly List<AsyncStage> stages;
@@ -84,19 +85,36 @@ namespace mc_compiled.MCC.Compiler.Async
             InitializeScoreboardValues(this.parent.parent.scoreboard);
             InitializeCommandFiles();
         }
-        
+
+        /// <summary>
+        /// Starts a new stage in this async function.
+        /// </summary>
         public void StartNewStage()
         {
             int index = this.NextStageIndex;
-            
+            this.activeStage = new AsyncStage(this, index);
+            this.activeStage.Begin(this.Executor);
+            this.stages.Add(this.activeStage);
         }
+        /// <summary>
+        /// Finish the current stage of the async function.
+        /// </summary>
+        /// <param name="tickDelayUntilNext">The number of ticks to delay before moving to the next stage.</param>
         public void FinishStage(int tickDelayUntilNext)
         {
-            
+            this.activeStage.SetTickDelay(tickDelayUntilNext);
+            this.activeStage.Finish(this.Executor);
+            this.activeStage = null;
         }
-        public void FinishStage(ComparisonSet comparisonToGoToNext)
+        /// <summary>
+        /// Finish the currently active stage of the async function.
+        /// </summary>
+        /// <param name="comparisonToGoToNext">The comparison that must be met to transition to the next stage.</param>
+        /// <param name="callingStatement">The statement to blame when everything blows up.</param>
+        public void FinishStage(ComparisonSet comparisonToGoToNext, Statement callingStatement)
         {
-            
+            this.activeStage.FinishUnderCondition(this.Executor, comparisonToGoToNext, callingStatement);
+            this.activeStage = null;
         }
     }
     public enum AsyncTarget
