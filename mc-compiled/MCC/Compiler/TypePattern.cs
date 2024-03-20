@@ -92,12 +92,12 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public MatchResult Check(Token[] tokens)
         {
-            float givenLength = (float)tokens.Length;
-            float minLength = (float) this.pattern.Count(mt => !mt.IsOptional);
+            float givenLength = tokens.Length;
+            float minLength = this.pattern.Count(mt => !mt.IsOptional);
             if (tokens.Length < minLength)
             {
                 // return the missing tokens.
-                var missing = this.pattern.Skip(tokens.Length);
+                IEnumerable<MultiType> missing = this.pattern.Skip(tokens.Length);
                 return new MatchResult(false, givenLength / minLength, missing.ToArray());
             }
 

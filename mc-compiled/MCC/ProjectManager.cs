@@ -268,6 +268,9 @@ namespace mc_compiled.MCC
             if (HasFeature(Feature.AUTOINIT))
                 CreateAutoInitFile();
             
+            // async
+            this.parentExecutor.async.TryBuildTickFile();
+            
             // actual writing
             foreach (IAddonFile file in this.files)
             {

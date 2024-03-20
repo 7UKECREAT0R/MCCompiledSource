@@ -2950,17 +2950,21 @@ namespace mc_compiled.MCC.Compiler
             string actualName = usesFolders ? functionName.Substring(functionName.LastIndexOf('.') + 1) : functionName;
 
             // constructor
-            AsyncFunction asyncFunction;
             RuntimeFunction function;
 
             if (isAsync)
             {
-                asyncFunction = executor.async.StartNewAsyncFunction(tokens, functionName, actualName, docs, asyncTarget);
-                function = asyncFunction;
+                function = executor.async.StartNewAsyncFunction(tokens,
+                    functionName, actualName, docs,
+                    attributes.ToArray(), asyncTarget);
+                function.isAddedToExecutor = true;
+                
+                // have to manually register the base file with the executor because
+                // it never gets pushed/popped from the file stack, only the different stages
+                executor.AddExtraFile(function.file);
             }
             else
             {
-                asyncFunction = null;
                 function = new RuntimeFunction(tokens, functionName, actualName, docs, attributes.ToArray())
                 {
                     documentation = docs,
@@ -3090,6 +3094,7 @@ namespace mc_compiled.MCC.Compiler
                 while (tokens.NextIs<TokenAttribute>(false))
                 {
                     var _attribute = tokens.Next<TokenAttribute>("attribute");
+                    
                     if (_attribute.attribute is AttributeAsync attributeAsync)
                     {
                         isAsync = true;
@@ -3525,6 +3530,8 @@ namespace mc_compiled.MCC.Compiler
                 ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
                 set.InvertAll(isWhile);
                 
+                async.FinishStageImmediate();
+                async.StartNewStage();
                 async.FinishStage(set, tokens);
                 async.StartNewStage();
             }
@@ -3534,7 +3541,10 @@ namespace mc_compiled.MCC.Compiler
             {
                 if (asyncResult.function.target == AsyncTarget.Local && async.target == AsyncTarget.Global)
                     throw new StatementException(tokens, "Cannot await an async(local) function from an async(global) function; no way to know the entity to wait on.");
-
+                
+                // throws exception if deadlock is detected
+                async.AddWaitsOn(asyncResult.function, tokens);
+                
                 ComparisonSet set = new ComparisonSet();
                 
                 // check for the called function's 'running' == false
@@ -3549,6 +3559,9 @@ namespace mc_compiled.MCC.Compiler
                 );
                 
                 set.Add(value);
+                
+                async.FinishStageImmediate();
+                async.StartNewStage();
                 async.FinishStage(set, tokens);
                 async.StartNewStage();
             }

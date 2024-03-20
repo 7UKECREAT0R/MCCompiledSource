@@ -12,7 +12,7 @@ namespace mc_compiled.MCC.Compiler.Async
         private static string NameStageFunction(string functionName, int stage) =>
             $"{functionName}_{stage}";
 
-        private readonly int stageIndex;
+        public readonly int index;
         private readonly bool isFirst;
         
         internal readonly CommandFile file;
@@ -28,14 +28,19 @@ namespace mc_compiled.MCC.Compiler.Async
         {
             this.ticksUntilNextStage = delay;
         }
-        public AsyncStage(AsyncFunction parent, int stageIndex)
+        public void RemoveTickDelay()
+        {
+            this.ticksUntilNextStage = null;
+        }
+        public AsyncStage(AsyncFunction parent, int index)
         {
             this.parent = parent;
-            this.stageIndex = stageIndex;
-            this.isFirst = stageIndex == 0;
+            this.index = index;
+            this.isFirst = index == 0;
 
-            string stageName = FOLDER + NameStageFunction(parent.escapedFunctionName, stageIndex);
-            this.file = new CommandFile(true, stageName);
+            string stageName = FOLDER + NameStageFunction(parent.escapedFunctionName, index);
+            this.file = new CommandFile(false, stageName);
+            parent.file.RegisterCall(this.file);
 
             this.ticksUntilNextStage = null;
         }
@@ -59,7 +64,7 @@ namespace mc_compiled.MCC.Compiler.Async
             {
                 if (this.file.Length > 0)
                     this.file.Add("");
-                this.file.Add($"# End of the last async stage: {this.stageIndex}.");
+                this.file.Add($"# End of the last async stage: {this.index}.");
             }
             
             this.file.Add(Command.ScoreboardSet(this.parent.runningValue, 0));
@@ -77,7 +82,7 @@ namespace mc_compiled.MCC.Compiler.Async
                 if (this.file.Length > 0)
                     this.file.Add("");
 
-                this.file.Add($"# End of async stage {this.stageIndex}.");
+                this.file.Add($"# End of async stage {this.index}.");
                 this.file.Add($"# Waits {this.ticksUntilNextStage} ticks until next stage.");
             }
             
@@ -87,12 +92,14 @@ namespace mc_compiled.MCC.Compiler.Async
             if (this.ticksUntilNextStage.HasValue)
             {
                 this.file.Add(Command.ScoreboardSet(this.parent.timerValue, this.ticksUntilNextStage.Value));
-                this.file.Add(Command.ScoreboardSet(this.parent.stageValue, this.stageIndex));
+                this.file.Add(Command.ScoreboardSet(this.parent.stageValue, this.index));
                 return;
             }
             
             // immediately jump to the next stage
-            this.file.Add(Command.ScoreboardSet(this.parent.stageValue, this.stageIndex + 1));
+            this.file.Add(Command.ScoreboardSet(this.parent.timerValue, -1));
+            this.file.Add(Command.ScoreboardSet(this.parent.stageValue, this.index + 1));
+
         }
         /// <summary>
         /// Finishes this stage if the given condition is met.
@@ -107,7 +114,7 @@ namespace mc_compiled.MCC.Compiler.Async
                 if (this.file.Length > 0)
                     this.file.Add("");
 
-                this.file.Add($"# End of async stage {this.stageIndex}.");
+                this.file.Add($"# End of async stage {this.index}.");
                 this.file.Add($"# Continues if the following condition evaluates to true:");
                 this.file.Add($"#     " + conditions.GetDescription());
 
@@ -115,7 +122,7 @@ namespace mc_compiled.MCC.Compiler.Async
 
             string command = this.ticksUntilNextStage.HasValue ?
                 Command.ScoreboardSet(this.parent.timerValue, this.ticksUntilNextStage.Value) :
-                Command.ScoreboardSet(this.parent.stageValue, this.stageIndex + 1);
+                Command.ScoreboardSet(this.parent.stageValue, this.index + 1);
             
             conditions.RunCommand(command, executor, callingStatement);
             executor.PopFile();

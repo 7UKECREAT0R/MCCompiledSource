@@ -416,6 +416,10 @@ namespace mc_compiled.MCC.Compiler
                 throw new TokenizerException("Couldn't parse literal: " + str);
             
             d *= (int)multiplier;
+            
+            if (multiplier != IntMultiplier.none && d == (int)d) // now an integer value after being multiplied
+                return new TokenIntegerLiteral((int) d, multiplier, CURRENT_LINE);
+            
             return new TokenDecimalLiteral(d, CURRENT_LINE);
         }
         /// <summary>

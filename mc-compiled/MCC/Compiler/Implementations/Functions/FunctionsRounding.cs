@@ -56,7 +56,9 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             output.Add(Command.ScoreboardOpMod(temp2, temp1));
 
             // needs branch for logic
-            var roundUp = new CommandFile(output.IsInUse, output.name + "roundUp", output.folder);
+            var roundUp = new CommandFile(false, output.name + "roundUp", output.folder);
+            output.RegisterCall(roundUp);
+            
             executor.AddExtraFile(roundUp);
             if (Program.DECORATE)
                 roundUp.AddTrace(output, statement.Lines[0]);

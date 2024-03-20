@@ -133,13 +133,14 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public static readonly Keywords comparisons = new Keywords()
         {
             keywords = new[] {
+                new Keyword("until", "Used in the 'await' command to wait UNTIL a condition is true."),
                 new Keyword("count", "Compare the number of entities that match a selector."),
                 new Keyword("any", "Check if any entities match a selector."),
                 new Keyword("block", "Check for a block."),
                 new Keyword("blocks", "Check for an area of blocks matching another."),
                 new Keyword("positioned", "Position the next comparison.")
             },
-            style = new Highlight(255, 95, 66, HighlightStyle.NONE)
+            style = new Highlight(217, 130, 80, HighlightStyle.NONE)
         };
         public static readonly Keywords options = new Keywords()
         {

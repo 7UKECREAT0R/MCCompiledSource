@@ -1,4 +1,5 @@
 # Cheat Sheet
+This file is generated automatically.
 
 ## Comments
 `// <text>` - Line comment. Must be at the start of the line and extends to the very end.<br />
@@ -355,7 +356,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 - `await <int: ticks>`
 - `await <id: until> <*: conditions>`
 - `await <id: while> <*: conditions>`
-- `await
+- `await <async: async context>`
 
 [Define Function](Functions.md#defining-functions)
 : Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`

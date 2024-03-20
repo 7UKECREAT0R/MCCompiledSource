@@ -137,25 +137,15 @@ namespace mc_compiled.MCC.Compiler
         /// Returns this CommandFile with isInUse set to true.
         /// </summary>
         /// <returns></returns>
-        public CommandFile AsInUse()
+        public void AsInUse()
         {
             this.IsInUse = true;
-            return this;
-        }
-        /// <summary>
-        /// Returns this CommandFile with isInUse set to false.
-        /// </summary>
-        /// <returns></returns>
-        public CommandFile AsNotInUse()
-        {
-            this.IsInUse = false;
-            return this;
         }
         /// <summary>
         /// Returns this CommandFile with isTest set to true.
         /// </summary>
         /// <returns></returns>
-        internal CommandFile AsTest()
+        internal void AsTest()
         {
             if(!this.isTest)
             {
@@ -166,7 +156,6 @@ namespace mc_compiled.MCC.Compiler
             }
 
             this.isTest = true;
-            return this;
         }
         /// <summary>
         /// Mark this file as containing a test assertion.

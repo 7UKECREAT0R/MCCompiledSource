@@ -52,6 +52,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// </summary>
         /// <param name="other">The <see cref="AsyncFunction"/> to add to the list of waits on.</param>
         /// <param name="callingStatement">The <see cref="Statement"/> to use for exceptions.</param>
+        /// <exception cref="StatementException">If a deadlock is detected.</exception>
         public void AddWaitsOn(AsyncFunction other, Statement callingStatement)
         {
             this.waitsOn.Add(other);
@@ -82,16 +83,22 @@ namespace mc_compiled.MCC.Compiler.Async
             this.runningValue = new ScoreboardValue(NameRunningObjective(this.escapedFunctionName), global, Typedef.BOOLEAN, manager);
             this.stageValue = new ScoreboardValue(NameStageObjective(this.escapedFunctionName), global, Typedef.INTEGER, manager);
             this.timerValue = new ScoreboardValue(NameTimerObjective(this.escapedFunctionName), global, Typedef.TIME, manager);
+            
+            this.parent.parent.AddCommandsInit(this.runningValue.CommandsDefine());
+            this.parent.parent.AddCommandsInit(this.stageValue.CommandsDefine());
+            this.parent.parent.AddCommandsInit(this.timerValue.CommandsDefine());
         }
         private void InitializeCommandFiles()
         {
-            this.tickPrerequisite = new CommandFile(true,
+            this.tickPrerequisite = new CommandFile(false,
                 NameTickPrerequisiteFunction(this.escapedFunctionName), FOLDER);
-            this.tick = new CommandFile(true,
+            this.tick = new CommandFile(false,
                 NameTickFunction(this.escapedFunctionName), FOLDER);
             
             this.parent.parent.AddExtraFile(this.tickPrerequisite);
             this.parent.parent.AddExtraFile(this.tick);
+            this.file.RegisterCall(this.tickPrerequisite);
+            this.file.RegisterCall(this.tick);
 
             this.tickPrerequisite.Add(new[] {
                 // if timer == 0: stage++
@@ -102,8 +109,30 @@ namespace mc_compiled.MCC.Compiler.Async
                 Command.Execute().IfScore(this.timerValue, Range.Of(-1)).Run(Command.Function(this.tick))
             });
         }
-        public AsyncFunction(Statement statement, string name, string internalName, string documentation, AsyncManager parent, AsyncTarget target) :
-                base(statement, name, internalName, documentation, new IAttribute[] { new AttributeAsync(target) })
+        private void InitializeCallCommands()
+        {
+            // these commands are NOT what get run when you call the function in MCCompiled; this is only here to
+            // facilitate if the function gets run in-game.
+            
+            if (this.stages.Count == 0)
+            {
+                AddCommand("# No async code was added to this function.");
+                return;
+            }
+            
+            AddCommand(Command.Function(this.stages[0].file));
+        }
+        private void PopulateTickFunction()
+        {
+            foreach (AsyncStage stage in this.stages)
+            {
+                string command = Command.Execute().IfScore(this.stageValue, Range.Of(stage.index)).Run(Command.Function(stage.file));
+                this.tick.Add(command);
+            }
+        }
+        public AsyncFunction(Statement statement, string name, string internalName, string documentation,
+            IAttribute[] attributes, AsyncManager parent, AsyncTarget target) :
+            base(statement, name, internalName, documentation, attributes)
         {
             this.parent = parent;
             this.actualInternalName = internalName;
@@ -125,25 +154,28 @@ namespace mc_compiled.MCC.Compiler.Async
         {
             // stop this async function and remove it from the parent
             this.parent.StopAsyncFunction();
+            PopulateTickFunction();
+            InitializeCallCommands();
         };
-        
+
+        public override string Returns => "async context";
         public override void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller) =>
             throw new StatementException(caller, "Async functions cannot return values.");
         public override void TryReturnValue(TokenLiteral value, Statement caller, Executor executor) =>
             throw new StatementException(caller, "Async functions cannot return values.");
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
-            if (this.stages.Count == 0)
-            {
-                commandBuffer.Add(Command.Function(this.file));
-                return new TokenAsyncResult(this, statement.Lines[0]);
-            }
-
             // add the file to the executor if it hasn't been yet.
             if(!this.isAddedToExecutor && !this.isExtern)
             {
                 executor.AddExtraFile(this.file);
                 this.isAddedToExecutor = true;
+            }
+
+            if (this.stages.Count == 0)
+            {
+                commandBuffer.Add(Command.Function(this.file));
+                return new TokenAsyncResult(this, statement.Lines[0]);
             }
 
             commandBuffer.Add(Command.Function(this.stages[0].file));
@@ -164,6 +196,7 @@ namespace mc_compiled.MCC.Compiler.Async
             this.activeStage = new AsyncStage(this, index);
             this.activeStage.Begin(this.Executor);
             this.stages.Add(this.activeStage);
+            this.file.RegisterCall(this.activeStage.file);
         }
         /// <summary>
         /// Finish the last stage by terminating the async state machine.
@@ -180,6 +213,15 @@ namespace mc_compiled.MCC.Compiler.Async
         public void FinishStage(int tickDelayUntilNext)
         {
             this.activeStage.SetTickDelay(tickDelayUntilNext);
+            this.activeStage.Finish(this.Executor);
+            this.activeStage = null;
+        }
+        /// <summary>
+        /// Finish the current stage of the async function immediately in the same tick.
+        /// </summary>
+        public void FinishStageImmediate()
+        {
+            this.activeStage.RemoveTickDelay();
             this.activeStage.Finish(this.Executor);
             this.activeStage = null;
         }

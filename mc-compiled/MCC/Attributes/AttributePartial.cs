@@ -11,7 +11,11 @@ namespace mc_compiled.MCC.Attributes
         
         internal AttributePartial() { }
 
-        public void OnAddedFunction(RuntimeFunction function, Statement causingStatement) {}
+        public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
+        {
+            if (function.HasAttribute<AttributeAsync>())
+                throw new StatementException(causingStatement, "Cannot make an async function 'partial'.");
+        }
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement) =>
             throw new StatementException(causingStatement, "Cannot apply attribute 'partial' to a value.");
         public void OnCalledFunction(RuntimeFunction function,

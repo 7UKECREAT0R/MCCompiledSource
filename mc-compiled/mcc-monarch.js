@@ -5,7 +5,7 @@ const mccompiled = {
 	commands: [ `actionbar`, `assert`, `await`, `clear`, `damage`, `define`, `dialogue`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `repeat`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport`, `while` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
 	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `local`, `extern`, `export`, `bind`, `auto`, `partial`, `async` ],
-	comparisons: [ `count`, `any`, `block`, `blocks`, `positioned` ],
+	comparisons: [ `until`, `count`, `any`, `block`, `blocks`, `positioned` ],
 	options: [ `dummies`, `autoinit`, `exploders`, `uninstall`, `tests`, `audiofiles`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `removeall`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `new`, `open`, `change`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `text:`, `button:`, `onOpen:`, `onClose:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
         root: [
@@ -543,6 +543,10 @@ const mcc_types = [
 	},
 ]
 const mcc_comparisons = [
+	{
+		word: `until`,
+		docs: `Used in the 'await' command to wait UNTIL a condition is true.`
+	},
 	{
 		word: `count`,
 		docs: `Compare the number of entities that match a selector.`
