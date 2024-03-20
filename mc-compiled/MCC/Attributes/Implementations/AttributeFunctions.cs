@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Compiler.Async;
 using mc_compiled.MCC.Compiler.Implementations;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
@@ -18,7 +19,7 @@ namespace mc_compiled.MCC.Attributes.Implementations
             }
         }
 
-        public static readonly AttributeFunction AUTO = new AttributeFunction("auto", "auto",
+        private static readonly AttributeFunction AUTO = new AttributeFunction("auto", "auto",
             "Makes a function run every tick (via tick.json), or if specified, some other interval.")
             .AddParameter(new CompiletimeFunctionParameter<TokenIntegerLiteral>("interval", new TokenIntegerLiteral(0, IntMultiplier.none, 0)))
             .WithCallAction((parameters, executor, statement) =>
@@ -28,37 +29,44 @@ namespace mc_compiled.MCC.Attributes.Implementations
             });
         
         /// <summary>
-        /// Makes the attached value global.
+        /// Makes the attached value global. Dually used as a parameter in the async attribute.
         /// </summary>
-        public static readonly AttributeFunction GLOBAL = new AttributeFunction("global", "global",
-"Makes a value global, meaning it will only be accessed in the context of the global fakeplayer, `" + Executor.FAKE_PLAYER_NAME + "`")
+        private static readonly AttributeFunction GLOBAL = new AttributeFunction("global", "global",
+"Makes a value global, never being assigned on an entity. Alternately used as a parameter for the 'async' attribute.")
            .WithCallAction((parameters, executor, statement) => new AttributeGlobal());
-
+        
+        /// <summary>
+        /// Makes the attached value global. Dually used as a parameter in the async attribute.
+        /// </summary>
+        private static readonly AttributeFunction LOCAL = new AttributeFunction("local", "local",
+                "Makes a value local (default). Alternately used as a parameter for the 'async' attribute.")
+            .WithCallAction((parameters, executor, statement) => new AttributeLocal());
+        
         /// <summary>
         /// Makes the attached function extern.
         /// </summary>
-        public static readonly AttributeFunction EXTERN = new AttributeFunction("extern", "extern",
+        private static readonly AttributeFunction EXTERN = new AttributeFunction("extern", "extern",
 "Makes a function extern, meaning it was written outside of MCCompiled and can now be called as any other function.")
            .WithCallAction((parameters, executor, statement) => new AttributeExtern());
 
         /// <summary>
         /// Makes the attached function partial.
         /// </summary>
-        public static readonly AttributeFunction PARTIAL = new AttributeFunction("partial", "partial",
+        private static readonly AttributeFunction PARTIAL = new AttributeFunction("partial", "partial",
                 "Makes a function partial, allowing it to be re-defined , appending to any previous code in it. When re-declaring a function, the partial attribute must be used in both.")
             .WithCallAction((parameters, executor, statement) => new AttributePartial());
         
         /// <summary>
         /// Makes the attached function export always, even if unused.
         /// </summary>
-        public static readonly AttributeFunction EXPORT = new AttributeFunction("export", "export",
+        private static readonly AttributeFunction EXPORT = new AttributeFunction("export", "export",
                 "Marks a function for export, meaning it will be outputted regardless of if it is used or not.")
             .WithCallAction((parameters, executor, statement) => new AttributeExport());
         
         /// <summary>
         /// Binds the attached value to a MoLang query using animation controllers.
         /// </summary>
-        public static readonly AttributeFunction BIND = new AttributeFunction("bind", "bind",
+        private static readonly AttributeFunction BIND = new AttributeFunction("bind", "bind",
 "Binds a value to a pre-defined MoLang query. See bindings.json.")
             .AddParameter(new CompiletimeFunctionParameter<TokenStringLiteral>("query"))
             .WithCallAction((parameters, executor, statement) =>
@@ -95,16 +103,38 @@ namespace mc_compiled.MCC.Attributes.Implementations
                 return new AttributeBind(binding, null);
             });
 
+        private static readonly AttributeFunction ASYNC = new AttributeFunction("async", "async",
+                "Makes the given function asynchronous, either locally (state is attached to an entity) or globally (state is global only).")
+            .AddParameter(new CompiletimeFunctionParameter<TokenAttribute>("local/global"))
+            .WithCallAction((parameters, Executor, statement) =>
+            {
+                TokenAttribute passedInAttribute = (TokenAttribute)parameters[0].CurrentValue;
+                bool isLocal = passedInAttribute.attribute is AttributeLocal;
+                bool isGlobal = passedInAttribute.attribute is AttributeGlobal;
+
+                switch (isLocal)
+                {
+                    case false when !isGlobal:
+                        throw new StatementException(statement, "Parameter for 'async' must be either 'local' or 'global'.");
+                    case true:
+                        return new AttributeAsync(AsyncTarget.Local);
+                    default:
+                        return new AttributeAsync(AsyncTarget.Global);
+                }
+            });
+
         /// <summary>
         /// Keep at the bottom of the class because of static ordering.
         /// </summary>
         internal static readonly AttributeFunction[] ALL_ATTRIBUTES = {
             GLOBAL,
+            LOCAL,
             EXTERN,
             EXPORT,
             BIND,
             AUTO,
-            PARTIAL
+            PARTIAL,
+            ASYNC
         };
     }
 }

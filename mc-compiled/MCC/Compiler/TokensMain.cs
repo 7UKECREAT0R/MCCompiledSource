@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Compiler.Async;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -62,7 +63,16 @@ namespace mc_compiled.MCC.Compiler
             this.contents = contents;
         }
     }
-
+    public sealed class TokenAsyncResult : Token
+    {
+        public readonly AsyncFunction function;
+        public override string AsString() => $"[async call: {this.function.escapedFunctionName}]";
+        public TokenAsyncResult(AsyncFunction function, int lineNumber) : base(lineNumber)
+        {
+            this.function = function;
+        }
+    }
+    
     /// <summary>
     /// Represents a token which doesn't have any identifiable tokenization-time category,
     /// but is probably an identifier. Should probably resolve when possible.

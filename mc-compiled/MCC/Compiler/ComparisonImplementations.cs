@@ -270,13 +270,11 @@ namespace mc_compiled.MCC.Compiler
                         new SubcommandIf(ConditionalSubcommandScore.New(this.temp, Range.Of(1)))
                     };
                 }
-                else
-                {
-                    // "value constant" comparison
-                    return this.entries.Item2
-                        .Select(condition => new SubcommandIf(condition))
-                        .Cast<Subcommand>().ToArray();
-                }
+
+                // "value constant" comparison
+                return this.entries.Item2
+                    .Select(condition => new SubcommandIf(condition))
+                    .Cast<Subcommand>().ToArray();
             }
 
             // "constant constant" comparison.

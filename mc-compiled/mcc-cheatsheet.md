@@ -48,10 +48,10 @@ json
 : A JSON object achieved by $dereferencing a preprocessor variable holding one.
 
 ## Commands
-All the commands in the language (version 1.17). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in `<angle brackets>`, and an optional parameter is surrounded in `[square brackets]`.
+All the commands in the language (version 1.18). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in `<angle brackets>`, and an optional parameter is surrounded in `[square brackets]`.
 
 
-### Category: preprocessor
+### Category: preprocessor {id="commands-preprocessor"}
 Commands that allow the user to do things at compile time. Preprocessor commands generally start with a `$` and are highlighted differently than regular commands.
 
 [Add to Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
@@ -149,7 +149,7 @@ Commands that allow the user to do things at compile time. Preprocessor commands
 - `$json <string: file name> <id: result> [string: path]`
 - `$json <json: existing json> <id: result> [string: path]`
 
-[Preprocessor Repeat](Compile-Time-Repeating-and-Iteration.md#repeat_number)
+[Preprocessor Repeat](Compile-Time-Loops.md#repeat_number)
 : Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.
 - `$repeat <int: amount> [id: indicator]`
 - `$repeat <range: amount> [id: indicator]`
@@ -188,7 +188,7 @@ Iterate Preprocessor Array
 - `$iterate <json: array or object> <id: current>`
 
 
-### Category: text
+### Category: text {id="commands-text"}
 Commands which display text to players through format-strings, or manipulate text otherwise.
 
 [Define/Open Dialogue](Dialogue.md)
@@ -198,11 +198,11 @@ Commands which display text to players through format-strings, or manipulate tex
 - `dialogue <id: change> <selector: npc> <string: scene tag> [selector: player]`
 
 [Print to All Players](Text-Commands.md#commands)
-: Prints a chat message to all players in the game. Supports format-strings.
+: Prints a chat message to all players in the game. <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
 - `globalprint <string: text>`
 
 [Print to Player](Text-Commands.md#commands)
-: Prints a chat message to the executing player, or to the given one if specified. Supports format-strings.
+: Prints a chat message to the executing player, or to the given one if specified. <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
 - `print <selector: entity> <string: text>`
 - `print <string: text>`
 
@@ -211,21 +211,21 @@ Commands which display text to players through format-strings, or manipulate tex
 - `lang <id: locale>`
 
 [Show Actionbar to All Players](Text-Commands.md#commands)
-: Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. Supports format-strings.
+: Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar. <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
 - `globalactionbar <string: text>`
 
 [Show Actionbar](Text-Commands.md#commands)
-: Displays an actionbar on the screen of the executing player, or to the given one if specified. Supports format-strings.
+: Displays an actionbar on the screen of the executing player, or to the given one if specified. <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
 - `actionbar <string: text>`
 
 [Show Title to All Players](Text-Commands.md#commands)
-: Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. Supports format-strings.
+: Displays a title on the screen of all players in the game. Can also be used to set the timings of the title. <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
 - `globaltitle <id: times> <int: fade in> <int: stay> <int: fade out>`
 - `globaltitle <id: subtitle> <string: text>`
 - `globaltitle <string: text>`
 
 [Show Title](Text-Commands.md#commands)
-: Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. Supports format-strings.
+: Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title. <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
 - `title <selector: target> <id: times> <int: fade in> <int: stay> <int: fade out>`
 - `title <selector: target> <id: subtitle> <string: text>`
 - `title <selector: target> <string: text>`
@@ -238,7 +238,7 @@ Say
 - `say <string: message>`
 
 
-### Category: entities
+### Category: entities {id="commands-entities"}
 Commands which manipulate, spawn, and transform entities in various ways.
 
 Damage Entity
@@ -291,7 +291,7 @@ Teleport Entity
 - `tp <selector: source> <string: other> [id: facing] [coordinate: facing x] [coordinate: facing y] [coordinate: facing z] [bool: check for blocks]`
 
 
-### Category: blocks
+### Category: blocks {id="commands-blocks"}
 Commands which interact with the Minecraft world's blocks.
 
 [Scatter Blocks in Region](Scatter.md)
@@ -311,7 +311,7 @@ Set Block
 - `setblock <coordinate: x> <coordinate: y> <coordinate: z> <string: block> [int: data] [id: replace mode]`
 
 
-### Category: items
+### Category: items {id="commands-items"}
 Commands relating to entity/player items and inventories.
 
 [Give Item](Giving-Items.md)
@@ -323,7 +323,7 @@ Clear Entity
 - `clear [selector: target] [string: item] [int: data] [int: max count]`
 
 
-### Category: cosmetic
+### Category: cosmetic {id="commands-cosmetic"}
 Commands that add visual and auditory appeal to the user's code.
 
 [Play Sound](Playsound.md)
@@ -335,7 +335,7 @@ Spawn Particle
 - `particle <string: effect> [coordinate: x] [coordinate: y] [coordinate: z]`
 
 
-### Category: values
+### Category: values {id="commands-values"}
 Commands tied directly to values. Values can be used in if-statements, format-strings, and many other places.
 
 [Define Variable](Values.md#defining-values)
@@ -347,8 +347,15 @@ Commands tied directly to values. Values can be used in if-statements, format-st
 - `init <value: value>`
 
 
-### Category: logic
+### Category: logic {id="commands-logic"}
 Commands which handle logic and code flow. The butter for all the bread (code).
+
+[Await (async)](Async.md#awaiting)
+: Works in async functions. Awaits a certain amount of time, for a condition to be met, or another async function to complete executing.
+- `await <int: ticks>`
+- `await <id: until> <*: conditions>`
+- `await <id: while> <*: conditions>`
+- `await
 
 [Define Function](Functions.md#defining-functions)
 : Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`
@@ -356,6 +363,11 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 
 [Else Statement](Comparison.md#else)
 : Inverts the comparison given by the previous if-statement at this scope level.
+
+[For Each Entity](Loops.md#for)
+: Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>`
+- `for <selector: entities> <id: at> <coordinate: x> <coordinate: y> <coordinate: z>`
+- `for <selector: entities>`
 
 [Halt Execution](Debugging.md#halting-code)
 : Ends the execution of the code entirely by hitting the function command limit.
@@ -369,13 +381,8 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 - `return <any: return value>`
 
 Execute
-: Begins a vanilla minecraft 1.19.70+ execute chain. Can be followed by a statement or code-block, but does not explicitly support the 'run' subcommand.
+: Begins a vanilla Minecraft execute chain. Can be followed by a statement or code-block, but does not explicitly support the 'run' subcommand.
 - `execute <id: subcommand> <*: subcommand arguments>`
-
-For Each Entity
-: Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>`
-- `for <selector: entities> <id: at> <coordinate: x> <coordinate: y> <coordinate: z>`
-- `for <selector: entities>`
 
 Repeat N Times
 : Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.
@@ -386,7 +393,7 @@ While Statement
 : Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'
 
 
-### Category: debug
+### Category: debug {id="commands-debug"}
 Commands related to testing, debugging and all-around solidifying code.
 
 [Assert Statement](Testing.md#writing-a-test)
@@ -404,11 +411,11 @@ Commands related to testing, debugging and all-around solidifying code.
 - `$assert <id: a> <compare: comparison> <id: b>`
 
 [Throw Error](Debugging.md#throwing-errors)
-: Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. Supports format-strings.
+: Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw. <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
 - `throw <string: error>`
 
 
-### Category: features
+### Category: features {id="commands-features"}
 Commands related to the optionally enable-able features in the language.
 
 [Create Explosion](Optional-Features.md#exploders)
@@ -427,7 +434,7 @@ Commands related to the optionally enable-able features in the language.
 - `dummy <id: remove> <string: name> [string: tag]`
 
 
-### Category: other
+### Category: other {id="commands-other"}
 The other commands that don't have a good designation.
 
 Minecraft Command

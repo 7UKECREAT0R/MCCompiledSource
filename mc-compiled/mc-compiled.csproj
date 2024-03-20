@@ -94,12 +94,14 @@
     <Compile Include="Commands\Selectors\SelectorUtils.cs" />
     <Compile Include="Commands\Selectors\Tag.cs" />
     <Compile Include="Commands\Selectors\TransformResult.cs" />
+    <Compile Include="MCC\Attributes\AttributeAsync.cs" />
     <Compile Include="MCC\Attributes\AttributeAuto.cs" />
     <Compile Include="MCC\Attributes\AttributeBind.cs" />
     <Compile Include="MCC\Attributes\AttributeDelay.cs" />
     <Compile Include="MCC\Attributes\AttributeExport.cs" />
     <Compile Include="MCC\Attributes\AttributeExtern.cs" />
     <Compile Include="MCC\Attributes\AttributeGlobal.cs" />
+    <Compile Include="MCC\Attributes\AttributeLocal.cs" />
     <Compile Include="MCC\Attributes\AttributePartial.cs" />
     <Compile Include="MCC\Attributes\Implementations\AttributeFunctions.cs" />
     <Compile Include="MCC\Compiler\Async\AsyncManager.cs" />

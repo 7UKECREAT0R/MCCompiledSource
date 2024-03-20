@@ -16,7 +16,9 @@ namespace mc_compiled.MCC.Attributes
         }
 
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement) =>
-            throw new StatementException(causingStatement, "Cannot apply attribute 'global' to a function.");
+            throw new StatementException(causingStatement,
+                "Cannot apply attribute 'global' to a function. Did you mean 'async(global)'?"
+            );
 
         public void OnCalledFunction(RuntimeFunction function,
             List<string> commands, Executor executor, Statement statement) {}

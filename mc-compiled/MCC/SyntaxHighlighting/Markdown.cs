@@ -9,7 +9,9 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 {
     internal class Markdown : SyntaxTarget
     {
+        private const string FORMAT_STRING_LINK = " <format color=\"CadetBlue\">Supports [<format color=\"CadetBlue\">format-strings.</format>](Text-Commands.md#format-strings)</format>";
         private const string PRELUDE_MARKDOWN = @"# Cheat Sheet
+This file is generated automatically.
 
 ## Comments
 `// <text>` - Line comment. Must be at the start of the line and extends to the very end.<br />
@@ -39,7 +41,11 @@ Starts and ends with brackets, holding code inside:
                 ? directive.description
                 : $"[{directive.description}]({directive.wikiLink})");
             sb.Append(": ");
-            sb.AppendLine(directive.documentation);
+            sb.Append(directive.documentation);
+
+            if (directive.HasAttribute(DirectiveAttribute.USES_FSTRING))
+                sb.Append(FORMAT_STRING_LINK);
+            sb.AppendLine();
 
             foreach(TypePattern pattern in directive.patterns)
             {
@@ -125,7 +131,7 @@ Starts and ends with brackets, holding code inside:
 
             IEnumerable<string> directivesAndCategories = sortedDirectives.Select(kv =>
                 $@"
-### Category: {kv.Key}
+### Category: {kv.Key} {{id=""commands-{kv.Key}""}}
 {Syntax.categories[kv.Key]}
 
 {string.Join("", kv.Value)}"

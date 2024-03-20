@@ -15,6 +15,7 @@ using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
+using mc_compiled.MCC.Compiler.Async;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
@@ -103,6 +104,7 @@ namespace mc_compiled.MCC.Compiler
 
         internal readonly EntityManager entities;
         internal readonly ProjectManager project;
+        internal readonly AsyncManager async;
 
         private Statement[] statements;
         private int readIndex = 0;
@@ -131,6 +133,7 @@ namespace mc_compiled.MCC.Compiler
             this.statements = statements;
             this.project = new ProjectManager(projectName, bpBase, rpBase, this);
             this.entities = new EntityManager(this);
+            this.async = new AsyncManager(this);
 
             this.definedStdFiles = new List<int>();
             this.ppv = new Dictionary<string, PreprocessorVariable>(StringComparer.OrdinalIgnoreCase);

@@ -50,6 +50,10 @@ namespace mc_compiled.MCC.Compiler
                 this.attributes |= attribute;
             return this;
         }
+        public bool HasAttribute(DirectiveAttribute attribute)
+        {
+            return (this.attributes & attribute) != 0;
+        }
 
         /// <summary>
         /// Get the key that should be used in a dictionary.

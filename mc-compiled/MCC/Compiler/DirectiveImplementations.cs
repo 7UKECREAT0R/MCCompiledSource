@@ -16,6 +16,7 @@ using System.Linq;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
+using mc_compiled.MCC.Compiler.Async;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
@@ -1349,7 +1350,7 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommands(commands, null, null, true);
         }
         [UsedImplicitly]
-        public static void @if(Executor executor, Statement tokens)
+        public static void ifStatement(Executor executor, Statement tokens)
         {
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end of file after if-statement.");
@@ -1360,7 +1361,7 @@ namespace mc_compiled.MCC.Compiler
             set.Run(executor, tokens);
         }
         [UsedImplicitly]
-        public static void @else(Executor executor, Statement tokens)
+        public static void elseStatement(Executor executor, Statement tokens)
         {
             if (!executor.HasNext)
                 throw new StatementException(tokens, "Unexpected end of file after else-statement.");
@@ -1464,7 +1465,7 @@ namespace mc_compiled.MCC.Compiler
             }
         }
         [UsedImplicitly]
-        public static void @while(Executor executor, Statement tokens)
+        public static void whileLoop(Executor executor, Statement tokens)
         {
             CommandFile sustainLoop = Executor.GetNextGeneratedFile("whileSustain");
             CommandFile loopCode = Executor.GetNextGeneratedFile("while");
@@ -1635,7 +1636,7 @@ namespace mc_compiled.MCC.Compiler
             set.RunCommand(Command.Function(file), executor, tokens);
         }
         [UsedImplicitly]
-        public static void @throw(Executor executor, Statement tokens)
+        public static void throwError(Executor executor, Statement tokens)
         {
             string text = tokens.Next<TokenStringLiteral>("throw message");
             List<JSONRawTerm> json = executor.FString(text, tokens, out bool _);
@@ -3142,7 +3143,7 @@ namespace mc_compiled.MCC.Compiler
             };
         }
         [UsedImplicitly]
-        public static void @return(Executor executor, Statement tokens)
+        public static void returnFromFunction(Executor executor, Statement tokens)
         {
             RuntimeFunction activeFunction = executor.CurrentFile.runtimeFunction;
 
@@ -3401,7 +3402,7 @@ namespace mc_compiled.MCC.Compiler
             }
         }
         [UsedImplicitly]
-        public static void @for(Executor executor, Statement tokens)
+        public static void forEntities(Executor executor, Statement tokens)
         {
             var selector = tokens.Next<TokenSelectorLiteral>("entities");
             
@@ -3413,15 +3414,15 @@ namespace mc_compiled.MCC.Compiler
             {
                 string identifier = tokens.Next<TokenIdentifier>("subcommand").word;
 
-                if(identifier.ToUpper().Equals("AT"))
-                {
-                    if (tokens.NextIs<TokenCoordinateLiteral>(true))
-                        x = tokens.Next<TokenCoordinateLiteral>("x");
-                    if (tokens.NextIs<TokenCoordinateLiteral>(true))
-                        y = tokens.Next<TokenCoordinateLiteral>("y");
-                    if (tokens.NextIs<TokenCoordinateLiteral>(true))
-                        z = tokens.Next<TokenCoordinateLiteral>("z");
-                }
+                if (!identifier.ToUpper().Equals("AT"))
+                    throw new StatementException(tokens, "Invalid subcommand for the 'for' command. Did you mean 'at'?");
+                
+                if (tokens.NextIs<TokenCoordinateLiteral>(true))
+                    x = tokens.Next<TokenCoordinateLiteral>("x");
+                if (tokens.NextIs<TokenCoordinateLiteral>(true))
+                    y = tokens.Next<TokenCoordinateLiteral>("y");
+                if (tokens.NextIs<TokenCoordinateLiteral>(true))
+                    z = tokens.Next<TokenCoordinateLiteral>("z");
             }
 
             if (!executor.HasNext)
@@ -3467,6 +3468,74 @@ namespace mc_compiled.MCC.Compiler
                     .Positioned(x, y, z)
                     .Run();
                 executor.AppendCommandPrepend(commandPrefix);
+            }
+        }
+        [UsedImplicitly]
+        public static void await(Executor executor, Statement tokens)
+        {
+            if (!executor.async.IsInAsync)
+                throw new StatementException(tokens, "The await command can only be used in an async context.");
+
+            AsyncFunction async = executor.async.CurrentFunction;
+            Token token = tokens.Next();
+            
+            // await <time>
+            if (token is TokenIntegerLiteral tokenInteger)
+            {
+                int ticks = tokenInteger.number;
+                async.FinishStage(ticks);
+                async.StartNewStage();
+            }
+            
+            // await until <conditions>
+            // await while <conditions>
+            if (token is TokenIdentifier tokenIdentifier)
+            {
+                string word = tokenIdentifier.word;
+                bool isWhile;
+                
+                switch (word.ToUpper())
+                {
+                    case "UNTIL":
+                        isWhile = false;
+                        break;
+                    case "WHILE":
+                        isWhile = true;
+                        break;
+                    default:
+                        throw new StatementException(tokens, 
+                            $"Invalid await subcommand '{word}'. Must be 'until' or 'while'.");
+                }
+                
+                ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
+                set.InvertAll(isWhile);
+                
+                async.FinishStage(set, tokens);
+                async.StartNewStage();
+            }
+            
+            // await <async function call>
+            if (token is TokenAsyncResult asyncResult)
+            {
+                if (asyncResult.function.target == AsyncTarget.Local && async.target == AsyncTarget.Global)
+                    throw new StatementException(tokens, "Cannot await an async(local) function from an async(global) function; no way to know the entity to wait on.");
+
+                ComparisonSet set = new ComparisonSet();
+                
+                // check for the called function's 'running' == false
+                ScoreboardValue running = asyncResult.function.runningValue;
+                int lineNumber = tokens.Lines[0];
+                
+                ComparisonValue value = new ComparisonValue(
+                    new TokenIdentifierValue(running.Name, running, lineNumber),
+                    TokenCompare.Type.EQUAL,
+                    new TokenBooleanLiteral(false, lineNumber),
+                    false
+                );
+                
+                set.Add(value);
+                async.FinishStage(set, tokens);
+                async.StartNewStage();
             }
         }
     }
