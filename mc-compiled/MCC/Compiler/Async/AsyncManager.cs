@@ -47,11 +47,20 @@ namespace mc_compiled.MCC.Compiler.Async
             
             this.tickFile.Add(command);
         }
-        public AsyncFunction StartNewAsyncFunction(string name, AsyncTarget target)
+        public AsyncFunction StartNewAsyncFunction(Statement callingStatement, string name, string internalName,
+            string documentation, AsyncTarget target)
         {
-            this.CurrentFunction = new AsyncFunction(this, name, target);
+            this.CurrentFunction = new AsyncFunction(callingStatement, name, internalName, documentation, this, target);
             RegisterNewFunction(this.CurrentFunction);
             return this.CurrentFunction;
+        }
+        public void StopAsyncFunction()
+        {
+            if (this.CurrentFunction == null)
+                return;
+            
+            this.CurrentFunction.TerminateStage();
+            this.CurrentFunction = null;
         }
     }
 }

@@ -2890,7 +2890,9 @@ namespace mc_compiled.MCC.Compiler
         {
             // pull attributes
             var attributes = new List<IAttribute>();
-
+            AsyncTarget asyncTarget = AsyncTarget.Local;
+            bool isAsync = false;
+            
             FindAttributes();
 
             // normal definition
@@ -2948,11 +2950,24 @@ namespace mc_compiled.MCC.Compiler
             string actualName = usesFolders ? functionName.Substring(functionName.LastIndexOf('.') + 1) : functionName;
 
             // constructor
-            var function = new RuntimeFunction(tokens, functionName, actualName, docs, attributes.ToArray())
+            AsyncFunction asyncFunction;
+            RuntimeFunction function;
+
+            if (isAsync)
             {
-                documentation = docs,
-                isAddedToExecutor = true
-            };
+                asyncFunction = executor.async.StartNewAsyncFunction(tokens, functionName, actualName, docs, asyncTarget);
+                function = asyncFunction;
+            }
+            else
+            {
+                asyncFunction = null;
+                function = new RuntimeFunction(tokens, functionName, actualName, docs, attributes.ToArray())
+                {
+                    documentation = docs,
+                    isAddedToExecutor = true
+                };
+            }
+
             
             // folders, if specified via dots
             if (usesFolders)
@@ -3062,14 +3077,8 @@ namespace mc_compiled.MCC.Compiler
 
                 var openBlock = executor.Peek<StatementOpenBlock>();
 
-                openBlock.openAction = (e) =>
-                {
-                    e.PushFile(function.file);
-                };
-                openBlock.CloseAction = (e) =>
-                {
-                    e.PopFile();
-                };
+                openBlock.openAction = function.BlockOpenAction;
+                openBlock.CloseAction = function.BlockCloseAction;
             }
             else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");
@@ -3081,6 +3090,12 @@ namespace mc_compiled.MCC.Compiler
                 while (tokens.NextIs<TokenAttribute>(false))
                 {
                     var _attribute = tokens.Next<TokenAttribute>("attribute");
+                    if (_attribute.attribute is AttributeAsync attributeAsync)
+                    {
+                        isAsync = true;
+                        asyncTarget = attributeAsync.target;
+                    }
+
                     attributes.Add(_attribute.attribute);
                 }
             }

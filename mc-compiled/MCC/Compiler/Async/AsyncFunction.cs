@@ -37,11 +37,6 @@ namespace mc_compiled.MCC.Compiler.Async
         /// List of async functions this function waits on. Used to prevent deadlocks at compile time.
         /// </summary>
         private readonly HashSet<AsyncFunction> waitsOn;
-        /// <summary>
-        /// The function that's registered with the compiler and shows up in things like autocomplete results.
-        /// Calling this function should route to the first stage of the code.
-        /// </summary>
-        public RuntimeFunction registeredFunction;
 
         /// <summary>
         /// Determines whether this <see cref="AsyncFunction"/> waits on the specified async function.
@@ -80,7 +75,6 @@ namespace mc_compiled.MCC.Compiler.Async
         internal ScoreboardValue runningValue;
         internal ScoreboardValue stageValue;
         internal ScoreboardValue timerValue;
-
         
         private void InitializeScoreboardValues(ScoreboardManager manager)
         {
@@ -117,11 +111,50 @@ namespace mc_compiled.MCC.Compiler.Async
             this.target = target;
             this.waitsOn = new HashSet<AsyncFunction>();
             this.stages = new List<AsyncStage>();
-
+            
             InitializeScoreboardValues(this.parent.parent.scoreboard);
             InitializeCommandFiles();
         }
 
+        public override Action<Executor> BlockOpenAction => e =>
+        {
+            // starts the first async stage
+            StartNewStage();
+        };
+        public override Action<Executor> BlockCloseAction => e =>
+        {
+            // stop this async function and remove it from the parent
+            this.parent.StopAsyncFunction();
+        };
+        
+        public override void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller) =>
+            throw new StatementException(caller, "Async functions cannot return values.");
+        public override void TryReturnValue(TokenLiteral value, Statement caller, Executor executor) =>
+            throw new StatementException(caller, "Async functions cannot return values.");
+        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        {
+            if (this.stages.Count == 0)
+            {
+                commandBuffer.Add(Command.Function(this.file));
+                return new TokenAsyncResult(this, statement.Lines[0]);
+            }
+
+            // add the file to the executor if it hasn't been yet.
+            if(!this.isAddedToExecutor && !this.isExtern)
+            {
+                executor.AddExtraFile(this.file);
+                this.isAddedToExecutor = true;
+            }
+
+            commandBuffer.Add(Command.Function(this.stages[0].file));
+
+            // apply attributes
+            foreach (IAttribute attribute in this.attributes)
+                attribute.OnCalledFunction(this, commandBuffer, executor, statement);
+
+            return new TokenAsyncResult(this, statement.Lines[0]);
+        }
+        
         /// <summary>
         /// Starts a new stage in this async function.
         /// </summary>
@@ -131,6 +164,14 @@ namespace mc_compiled.MCC.Compiler.Async
             this.activeStage = new AsyncStage(this, index);
             this.activeStage.Begin(this.Executor);
             this.stages.Add(this.activeStage);
+        }
+        /// <summary>
+        /// Finish the last stage by terminating the async state machine.
+        /// </summary>
+        public void TerminateStage()
+        {
+            this.activeStage.FinishTerminate(this.Executor);
+            this.activeStage = null;
         }
         /// <summary>
         /// Finish the current stage of the async function.

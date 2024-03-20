@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Compiler.Async;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -23,12 +24,29 @@ namespace mc_compiled.MCC.Functions.Types
         private readonly List<RuntimeFunctionParameter> parameters;
         protected readonly List<IAttribute> attributes;
 
-        public bool isExtern;           // created outside of MCCompiled, assume parameter names are as-listed.
-        public readonly string name;    // user-facing name (keyword)
-        public string internalName;     // name used internally if the normal name won't work.
-        public string documentation;    // docs
+        private readonly string name;   // user-facing name
+        public bool isExtern;           // created outside of MCCompiled, parameter names are verbatim
+        public string internalName;     // name used internally if the normal name won't work
+        public string documentation;    // the documentation that should show under this function
         private bool _hasSignaled;
 
+        /// <summary>
+        /// The action to be run when this function's block opens.
+        /// Overridden by <see cref="AsyncFunction"/> to change this behavior.
+        /// </summary>
+        public virtual Action<Executor> BlockOpenAction => e =>
+        {
+            e.PushFile(this.file);
+        };
+        /// <summary>
+        /// The action to be run when this function's block closes.
+        /// Overridden by <see cref="AsyncFunction"/> to change this behavior.
+        /// </summary>
+        public virtual Action<Executor> BlockCloseAction => e =>
+        {
+            e.PopFile();
+        };
+        
         public RuntimeFunction(Statement creationStatement, string name, string internalName, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
             this.creationStatement = creationStatement;
@@ -131,7 +149,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="executor">The executor.</param>
         /// <param name="caller">The statement to blame for when everything explodes.</param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller)
+        public virtual void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller)
         {
             IEnumerable<string> commands;
             if (this.returnValue != null && value.NeedsToBeConvertedFor(this.returnValue))
@@ -167,7 +185,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="executor"></param>
         /// <param name="value"></param>
         /// <returns>A new scoreboard value that holds the returned value</returns>
-        public void TryReturnValue(TokenLiteral value, Statement caller, Executor executor)
+        public virtual void TryReturnValue(TokenLiteral value, Statement caller, Executor executor)
         {
             IEnumerable<string> commands;
             
@@ -192,7 +210,6 @@ namespace mc_compiled.MCC.Functions.Types
             
             executor.AddCommands(commands, "returnValue", $"Returns the literal '{value}'. Called in a return command located in {this.file.CommandReference} line {executor.NextLineNumber}");
         }
-
         public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
         {
             // add the file to the executor if it hasn't been yet.

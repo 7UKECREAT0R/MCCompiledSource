@@ -160,7 +160,7 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// Define all of the given non-null scoreboard values if they haven't already. Place in the 'init' file.
+        /// Define all of the given non-null scoreboard values if they haven't already. Places them in the 'init' file.
         /// </summary>
         /// <param name="values">The values to define.</param>
         public void DefineMany(params ScoreboardValue[] values)
@@ -168,7 +168,7 @@ namespace mc_compiled.MCC
             DefineMany((IEnumerable<ScoreboardValue>)values);
         }
         /// <summary>
-        /// Define all of the given non-null scoreboard values if they haven't already. Place in the 'init' file.
+        /// Define all of the given non-null scoreboard values if they haven't already. Places them in the 'init' file.
         /// </summary>
         /// <param name="values">The values to define.</param>
         public void DefineMany(IEnumerable<ScoreboardValue> values)

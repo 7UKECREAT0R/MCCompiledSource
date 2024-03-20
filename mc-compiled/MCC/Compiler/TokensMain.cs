@@ -63,6 +63,9 @@ namespace mc_compiled.MCC.Compiler
             this.contents = contents;
         }
     }
+    /// <summary>
+    /// Represents the return value of calling an async function.
+    /// </summary>
     public sealed class TokenAsyncResult : Token
     {
         public readonly AsyncFunction function;
