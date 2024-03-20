@@ -2982,7 +2982,7 @@ namespace mc_compiled.MCC.Compiler
                 // this is likely an overload of another function, change the file name
                 string newName = Executor.GetNextGeneratedName(function.file.name + "_overload");
                 function.file.name = newName;
-                function.name = newName;
+                function.internalName = newName;
                 
                 // loop through all functions and see if one matches parameters
                 foreach (Function existingFunction in existingFunctions)

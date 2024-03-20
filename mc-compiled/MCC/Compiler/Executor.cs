@@ -1571,7 +1571,7 @@ namespace mc_compiled.MCC.Compiler
                 // test doesnt have any assertions
                 RuntimeFunction func = file.runtimeFunction;
                 Statement creationStatement = func.creationStatement;
-                throw new StatementException(creationStatement, $"Test '{func.name}' does not contain any assert statements, and thus will always pass.");
+                throw new StatementException(creationStatement, $"Test '{func.internalName}' does not contain any assert statements, and thus will always pass.");
             }
 
             if(file.IsTest) // test is valid
@@ -1582,9 +1582,9 @@ namespace mc_compiled.MCC.Compiler
                 Statement creationStatement = func.creationStatement;
 
                 CommandFile tests = this.TestsFile;
-                tests.Add($"# Test {testId}: {func.name}, located at line {creationStatement.Lines[0]}");
+                tests.Add($"# Test {testId}: {func.internalName}, located at line {creationStatement.Lines[0]}");
                 tests.Add(Command.Function(file));
-                tests.Add(Command.Tellraw("@s", new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} ({func.name}) passed.")).BuildString()));
+                tests.Add(Command.Tellraw("@s", new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} ({func.internalName}) passed.")).BuildString()));
                 tests.Add("");
             }
 

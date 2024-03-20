@@ -21,25 +21,25 @@ namespace mc_compiled.MCC.Functions.Types
 
         public readonly bool isCompilerGenerated;
         private readonly List<RuntimeFunctionParameter> parameters;
-        private readonly List<IAttribute> attributes;
+        protected readonly List<IAttribute> attributes;
 
-        public bool isExtern;               // created outside of MCCompiled, assume parameter names are as-listed.
-        public readonly string aliasedName; // user-facing name (keyword)
-        public string name;                 // name used internally if the normal name won't work.
-        public string documentation;        // docs
-        bool _hasSignaled = false;
+        public bool isExtern;           // created outside of MCCompiled, assume parameter names are as-listed.
+        public readonly string name;    // user-facing name (keyword)
+        public string internalName;     // name used internally if the normal name won't work.
+        public string documentation;    // docs
+        private bool _hasSignaled;
 
-        public RuntimeFunction(Statement creationStatement, string aliasedName, string name, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
+        public RuntimeFunction(Statement creationStatement, string name, string internalName, string documentation, IAttribute[] attributes, bool isCompilerGenerated = false)
         {
             this.creationStatement = creationStatement;
             this.isAddedToExecutor = false;
 
-            this.aliasedName = aliasedName;
             this.name = name;
+            this.internalName = internalName;
             this.documentation = documentation;
             this.isCompilerGenerated = isCompilerGenerated;
 
-            this.file = new CommandFile(false, name, null, this);
+            this.file = new CommandFile(false, internalName, null, this);
             this.returnValue = null;
             
 
@@ -57,7 +57,7 @@ namespace mc_compiled.MCC.Functions.Types
         internal void SignalToAttributes(Statement callingStatement)
         {
             if (this._hasSignaled)
-                throw new Exception($"Attempt to call SignalToAttributes again on function '{this.name}'");
+                throw new Exception($"Attempt to call SignalToAttributes again on function '{this.internalName}'");
 
             this._hasSignaled = true;
 
@@ -110,11 +110,11 @@ namespace mc_compiled.MCC.Functions.Types
         /// <returns>This object for chaining.</returns>
         public RuntimeFunction ForceHash()
         {
-            this.name = ScoreboardValue.StandardizedHash(this.name);
+            this.internalName = ScoreboardValue.StandardizedHash(this.internalName);
             return this;
         }
 
-        public override string Keyword => this.aliasedName;
+        public override string Keyword => this.name;
         public override string Returns => this.returnValue?.GetExtendedTypeKeyword();
         public override string Documentation => this.documentation;
         public override FunctionParameter[] Parameters => this.parameters.Cast<FunctionParameter>().ToArray();
@@ -225,7 +225,7 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override int GetHashCode()
         {
-            return (this.name ?? this.aliasedName).GetHashCode();
+            return (this.internalName ?? this.name).GetHashCode();
         }
     }
 }

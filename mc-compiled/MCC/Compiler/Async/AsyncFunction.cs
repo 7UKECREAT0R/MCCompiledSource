@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows.Media.TextFormatting;
 using mc_compiled.Commands;
+using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Functions.Types;
 
 namespace mc_compiled.MCC.Compiler.Async
 {
-    public class AsyncFunction
+    public class AsyncFunction : RuntimeFunction
     {
         private static readonly string FOLDER = $"{Executor.MCC_GENERATED_FOLDER}/async";
         private static string EscapeFunctionName(string functionName) =>
@@ -24,6 +26,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// The escaped string representing the function name that will be used in all related identifiers.
         /// </summary>
         internal readonly string escapedFunctionName;
+        internal readonly string actualInternalName;
         /// <summary>
         /// The entity that should be targeted by this async function.
         /// If global, use the global fake-player to hold the state.
@@ -31,11 +34,40 @@ namespace mc_compiled.MCC.Compiler.Async
         /// </summary>
         internal readonly AsyncTarget target;
         /// <summary>
+        /// List of async functions this function waits on. Used to prevent deadlocks at compile time.
+        /// </summary>
+        private readonly HashSet<AsyncFunction> waitsOn;
+        /// <summary>
         /// The function that's registered with the compiler and shows up in things like autocomplete results.
         /// Calling this function should route to the first stage of the code.
         /// </summary>
         public RuntimeFunction registeredFunction;
 
+        /// <summary>
+        /// Determines whether this <see cref="AsyncFunction"/> waits on the specified async function.
+        /// </summary>
+        /// <param name="other">The <see cref="AsyncFunction"/> to check if it is waited upon.</param>
+        /// <returns>True if this <see cref="AsyncFunction"/> waits on the specified <see cref="AsyncFunction"/>, otherwise false.</returns>
+        public bool WaitsOn(AsyncFunction other)
+        {
+            return this.waitsOn.Contains(other);
+        }
+        /// <summary>
+        /// Adds a specified <see cref="AsyncFunction"/> to the list of async functions that this function waits on.
+        /// </summary>
+        /// <param name="other">The <see cref="AsyncFunction"/> to add to the list of waits on.</param>
+        /// <param name="callingStatement">The <see cref="Statement"/> to use for exceptions.</param>
+        public void AddWaitsOn(AsyncFunction other, Statement callingStatement)
+        {
+            this.waitsOn.Add(other);
+
+            if(other.WaitsOn(this))
+            {
+                throw new StatementException(callingStatement, 
+                    $"Function '{other}' also awaits this function, potentially causing a deadlock.");
+            }
+        }
+        
         private Executor Executor => this.parent.parent;
         private int NextStageIndex => this.stages.Count;
         private readonly AsyncManager parent;
@@ -49,6 +81,7 @@ namespace mc_compiled.MCC.Compiler.Async
         internal ScoreboardValue stageValue;
         internal ScoreboardValue timerValue;
 
+        
         private void InitializeScoreboardValues(ScoreboardManager manager)
         {
             bool global = this.target == AsyncTarget.Global;
@@ -75,11 +108,14 @@ namespace mc_compiled.MCC.Compiler.Async
                 Command.Execute().IfScore(this.timerValue, Range.Of(-1)).Run(Command.Function(this.tick))
             });
         }
-        public AsyncFunction(AsyncManager parent, string functionName, AsyncTarget target)
+        public AsyncFunction(Statement statement, string name, string internalName, string documentation, AsyncManager parent, AsyncTarget target) :
+                base(statement, name, internalName, documentation, new IAttribute[] { new AttributeAsync(target) })
         {
             this.parent = parent;
-            this.escapedFunctionName = EscapeFunctionName(functionName);
+            this.actualInternalName = internalName;
+            this.escapedFunctionName = EscapeFunctionName(internalName);
             this.target = target;
+            this.waitsOn = new HashSet<AsyncFunction>();
             this.stages = new List<AsyncStage>();
 
             InitializeScoreboardValues(this.parent.parent.scoreboard);
@@ -115,6 +151,28 @@ namespace mc_compiled.MCC.Compiler.Async
         {
             this.activeStage.FinishUnderCondition(this.Executor, comparisonToGoToNext, callingStatement);
             this.activeStage = null;
+        }
+
+        private bool Equals(AsyncFunction other)
+        {
+            return this.actualInternalName == other.actualInternalName && this.target == other.target;
+        }
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((AsyncFunction) obj);
+        }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((this.actualInternalName != null ? this.actualInternalName.GetHashCode() : 0) * 397) ^ (int) this.target;
+            }
         }
     }
     public enum AsyncTarget

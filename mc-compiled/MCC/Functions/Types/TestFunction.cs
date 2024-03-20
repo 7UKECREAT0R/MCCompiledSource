@@ -10,7 +10,7 @@ namespace mc_compiled.MCC.Functions.Types
     /// </summary>
     internal class TestFunction : RuntimeFunction
     {
-        public TestFunction(Statement creationStatement, string aliasedName, string name, string documentation) : base(creationStatement, aliasedName, name, documentation, Array.Empty<IAttribute>(), false)
+        public TestFunction(Statement creationStatement, string name, string internalName, string documentation) : base(creationStatement, name, internalName, documentation, Array.Empty<IAttribute>(), false)
         {
             this.file.AsInUse();
             this.file.AsTest();
