@@ -416,9 +416,21 @@ namespace mc_compiled.MCC.Compiler
                 throw new TokenizerException("Couldn't parse literal: " + str);
             
             d *= (int)multiplier;
-            
-            if (multiplier != IntMultiplier.none && d == (int)d) // now an integer value after being multiplied
-                return new TokenIntegerLiteral((int) d, multiplier, CURRENT_LINE);
+
+            // ReSharper disable once InvertIf
+            if (multiplier != IntMultiplier.none)
+            {
+                // if it's not an integer after being multiplied, then throw a special exception for this case.
+                int rounded;
+
+                if (d == (int)d)
+                    rounded = (int)d;
+                else
+                    rounded = (int)Math.Round(d);
+                
+                // throw new TokenizerException("Time suffix did not multiply evenly to ticks.", new[] {CURRENT_LINE});
+                return new TokenIntegerLiteral(rounded, multiplier, CURRENT_LINE);
+            }
             
             return new TokenDecimalLiteral(d, CURRENT_LINE);
         }
