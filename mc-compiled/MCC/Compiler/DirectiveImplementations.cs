@@ -1382,7 +1382,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             Statement nextStatement = executor.Seek();
-
+            
             if (nextStatement is StatementOpenBlock openBlock)
             {
                 // only do the block stuff if necessary.
@@ -2857,8 +2857,6 @@ namespace mc_compiled.MCC.Compiler
                     {
                         e.PopFile();
                     };
-                    // set metadata
-                    openBlock.metadata.changesExecutingEntity = true;
                 }
             }
             else
@@ -3083,7 +3081,6 @@ namespace mc_compiled.MCC.Compiler
                 
                 openBlock.openAction = function.BlockOpenAction;
                 openBlock.CloseAction = function.BlockCloseAction;
-                openBlock.metadata.isAsync = isAsync;
             }
             else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");

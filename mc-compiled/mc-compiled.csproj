@@ -107,7 +107,6 @@
     <Compile Include="MCC\Compiler\Async\AsyncManager.cs" />
     <Compile Include="MCC\Compiler\Async\AsyncFunction.cs" />
     <Compile Include="MCC\Compiler\Async\AsyncStage.cs" />
-    <Compile Include="MCC\Compiler\BlockMetadata.cs" />
     <Compile Include="MCC\Compiler\Implementations\CompiletimeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionCountEntities.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionGlyphs.cs" />

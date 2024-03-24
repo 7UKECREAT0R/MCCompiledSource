@@ -100,8 +100,6 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public StatementCloseBlock closer;
 
-        public BlockMetadata metadata;
-        
         public int statementsInside;
         public int meaningfulStatementsInside;
         public override bool Skip => false;
@@ -126,7 +124,6 @@ namespace mc_compiled.MCC.Compiler
             this.statementsInside = statementsInside;
             this.openAction = null;
             this.DecorateInSource = false;
-            this.metadata = default;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -157,7 +154,6 @@ namespace mc_compiled.MCC.Compiler
         {
             this.closeAction = null;
             this.DecorateInSource = false;
-            this.metadata = default;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -165,8 +161,6 @@ namespace mc_compiled.MCC.Compiler
             return $"[CLOSE BLOCK]";
         }
 
-        public readonly BlockMetadata metadata;
-        
         /// <summary>
         /// Pointer to the opening block.
         /// </summary>
