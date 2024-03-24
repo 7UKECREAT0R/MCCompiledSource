@@ -722,7 +722,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 Token token = tokens[i];
 
-                if (!(token is TokenCloseIndexer))
+                if (!(token is TokenCloseIndexer closer))
                     continue;
                 
                 // pull tokens until we find an opener
@@ -733,12 +733,15 @@ namespace mc_compiled.MCC.Compiler
                     if (previousToken is TokenOpenIndexer)
                     {
                         i = j;
-                        break;
+                        goto foundOpener;
                     }
 
                     openerTokens.Push(previousToken);
                 }
 
+                throw new StatementException(this, $"Couldn't find opening bracket for closer '{closer.AsString()}'.");
+                
+                foundOpener:
                 // create an indexer out of them
                 Token[] insideTokens = openerTokens
                     .Reverse()

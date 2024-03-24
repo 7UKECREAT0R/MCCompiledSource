@@ -1,4 +1,5 @@
-﻿using mc_compiled.Commands;
+﻿using System;
+using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using System.Collections.Generic;
@@ -56,7 +57,9 @@ namespace mc_compiled.MCC.Compiler
                 switch (currentToken)
                 {
                     case TokenNot _:
-                        invertNext = !invertNext;
+                        if (invertNext)
+                            throw new StatementException(tokens, "Double-negative.");
+                        invertNext = true;
                         continue;
                     case TokenIdentifierValue identifierValue:
                     {
@@ -71,16 +74,18 @@ namespace mc_compiled.MCC.Compiler
                             var field = new ComparisonValue(identifierValue, comparison, b, invertNext);
                             invertNext = false;
                             set.Add(field);
+                            break;
                         }
-                        else if (value.type.CanCompareAlone)
-                        {
-                            // if <score>
-                            var comparisonAlone = new ComparisonAlone(value, invertNext);
-                            invertNext = false;
-                            set.Add(comparisonAlone);
-                        }
+
+                        if (!value.type.CanCompareAlone)
+                            throw new StatementException(tokens, $"Cannot compare value '{value.Name}' alone.");
                         
+                        // if <score>
+                        var comparisonAlone = new ComparisonAlone(value, invertNext);
+                        invertNext = false;
+                        set.Add(comparisonAlone);
                         break;
+
                     }
                     case TokenSelectorLiteral selectorLiteral:
                     {
@@ -157,7 +162,7 @@ namespace mc_compiled.MCC.Compiler
                                 Coordinate destZ = tokens.Next<TokenCoordinateLiteral>("destination z");
 
                                 var scanMode = BlocksScanMode.all;
-                                if(tokens.NextIs<TokenIdentifierEnum>(false))
+                                if (tokens.NextIs<TokenIdentifierEnum>(false))
                                 {
                                     ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>("scan mode").value;
                                     parsed.RequireType<BlocksScanMode>(tokens);
@@ -171,10 +176,13 @@ namespace mc_compiled.MCC.Compiler
                                 set.Add(blockCheck);
                                 break;
                             }
+                            default:
+                                throw new StatementException(tokens, $"Invalid condition: '{currentToken.AsString()}'.");
                         }
-
                         break;
                     }
+                    default:
+                        throw new StatementException(tokens, $"Invalid condition: '{currentToken.AsString()}'.");
                 }
 
                 if (!tokens.HasNext)
@@ -183,12 +191,15 @@ namespace mc_compiled.MCC.Compiler
                 currentToken = tokens.Next();
 
                 // loop again if an AND operator is present
-                if (currentToken is TokenAnd)
-                    continue;
-                break;
-                
+                if (!(currentToken is TokenAnd))
+                    throw new StatementException(tokens, "Missing 'and' between conditions.");
+                if (!tokens.HasNext)
+                    throw new StatementException(tokens, "No condition specified after 'and'.");
             } while (tokens.HasNext);
 
+            if (invertNext)
+                throw new StatementException(tokens, "No condition specified after 'not'.");
+            
             return set;
         }
 

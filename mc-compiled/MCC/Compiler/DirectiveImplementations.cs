@@ -1726,43 +1726,39 @@ namespace mc_compiled.MCC.Compiler
                         loreLines.Add(tokens.Next<TokenStringLiteral>("lore line"));
                         needsStructure = true;
                         break;
-                }
-                if (itemNameComp.Equals("WRITTEN_BOOK"))
-                {
-                    switch (builderField)
-                    {
-                        case "TITLE":
-                            if (book == null)
-                                book = new ItemTagBookData();
-                            ItemTagBookData bookData0 = book.Value;
-                            bookData0.title = tokens.Next<TokenStringLiteral>("title");
-                            book = bookData0;
-                            needsStructure = true;
-                            break;
-                        case "AUTHOR":
-                            if (book == null)
-                                book = new ItemTagBookData();
-                            ItemTagBookData bookData1 = book.Value;
-                            bookData1.author = tokens.Next<TokenStringLiteral>("author");
-                            book = bookData1;
-                            needsStructure = true;
-                            break;
-                        case "PAGE":
-                            if (book == null)
-                                book = new ItemTagBookData();
-                            if (bookPages == null)
-                                bookPages = new List<string>();
-                            bookPages.Add(tokens.Next<TokenStringLiteral>("page contents").text.Replace("\\n", "\n"));
-                            needsStructure = true;
-                            break;
-                    }
-                }
-                // ReSharper disable once InvertIf
-                if (itemNameComp.StartsWith("LEATHER_"))
-                {
-                    // ReSharper disable once InvertIf
-                    if(builderField.Equals("DYE"))
-                    {
+                    case "TITLE":
+                        if (!itemNameComp.Equals("WRITTEN_BOOK"))
+                            throw new StatementException(tokens, "Property 'title' can only be used on item 'written_book'.");
+                        if (book == null)
+                            book = new ItemTagBookData();
+                        ItemTagBookData bookData0 = book.Value;
+                        bookData0.title = tokens.Next<TokenStringLiteral>("title");
+                        book = bookData0;
+                        needsStructure = true;
+                        break;
+                    case "AUTHOR":
+                        if (!itemNameComp.Equals("WRITTEN_BOOK"))
+                            throw new StatementException(tokens, "Property 'author' can only be used on item 'written_book'.");
+                        if (book == null)
+                            book = new ItemTagBookData();
+                        ItemTagBookData bookData1 = book.Value;
+                        bookData1.author = tokens.Next<TokenStringLiteral>("author");
+                        book = bookData1;
+                        needsStructure = true;
+                        break;
+                    case "PAGE":
+                        if (!itemNameComp.Equals("WRITTEN_BOOK"))
+                            throw new StatementException(tokens, "Property 'page' can only be used on item 'written_book'.");
+                        if (book == null)
+                            book = new ItemTagBookData();
+                        if (bookPages == null)
+                            bookPages = new List<string>();
+                        bookPages.Add(tokens.Next<TokenStringLiteral>("page contents").text.Replace("\\n", "\n"));
+                        needsStructure = true;
+                        break;
+                    case "DYE" when itemNameComp.StartsWith("LEATHER_"):
+                        if (!itemNameComp.StartsWith("LEATHER_"))
+                            throw new StatementException(tokens, "Property 'dye' can only be used on leather items.");
                         color = new ItemTagCustomColor
                         {
                             r = (byte)tokens.Next<TokenIntegerLiteral>("red"),
@@ -1770,7 +1766,9 @@ namespace mc_compiled.MCC.Compiler
                             b = (byte)tokens.Next<TokenIntegerLiteral>("blue")
                         };
                         needsStructure = true;
-                    }
+                        break;
+                    default:
+                        throw new StatementException(tokens, $"Invalid property for item: '{builderIdentifier.word}'");
                 }
             }
 
