@@ -1,6 +1,7 @@
 ﻿using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
@@ -19,7 +20,8 @@ namespace mc_compiled.MCC.Compiler
         /// A list of all of the commands in this file.
         /// </summary>
         internal readonly List<string> commands = new List<string>();
-        
+
+        private bool isAsync;
         private bool isInUse;
         private bool isTest;
         private bool hasAssertions;
@@ -71,7 +73,6 @@ namespace mc_compiled.MCC.Compiler
                 return this.folder + '/' + this.name;
             }
         }
-
         public string CommandReferenceHash
         {
             get
@@ -86,6 +87,7 @@ namespace mc_compiled.MCC.Compiler
 
             }
         }
+        
         public string[] Folders
         {
             set
@@ -102,7 +104,7 @@ namespace mc_compiled.MCC.Compiler
         private bool _doNotWrite;
 
         /// <summary>
-        /// Do NOT write this commandfile to the output.
+        /// Do NOT write this <see cref="CommandFile"/> to the output.
         /// </summary>
         internal bool DoNotWrite
         {
@@ -164,11 +166,23 @@ namespace mc_compiled.MCC.Compiler
         {
             this.hasAssertions = true;
         }
-
+        /// <summary>
+        /// Mark this file as an async stage; used in static analysis for async control flow.
+        /// </summary>
+        internal void MarkAsync()
+        {
+            this.isAsync = true;
+        }
+        
+        internal bool IsAsync
+        {
+            get => this.isAsync;
+        }
         internal bool IsTest
         {
             get => this.isTest;
         }
+        
         /// <summary>
         /// Returns if this file is a valid test, if it is. Otherwise, true.
         /// </summary>
@@ -186,6 +200,8 @@ namespace mc_compiled.MCC.Compiler
         {
             return obj is CommandFile file && this.folder == file.folder && this.name == file.name;
         }
+        
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             int hashCode = -172474549;
@@ -258,6 +274,5 @@ namespace mc_compiled.MCC.Compiler
         }
         public OutputLocation GetOutputLocation() =>
             OutputLocation.b_FUNCTIONS;
-
     }
 }

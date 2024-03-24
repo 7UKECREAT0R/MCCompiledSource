@@ -40,6 +40,8 @@ namespace mc_compiled.MCC.Compiler.Async
 
             string stageName = FOLDER + NameStageFunction(parent.escapedFunctionName, index);
             this.file = new CommandFile(false, stageName);
+            this.file.MarkAsync();
+            
             parent.file.RegisterCall(this.file);
 
             this.ticksUntilNextStage = null;
@@ -58,7 +60,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// <param name="executor"></param>
         public void FinishTerminate(Executor executor)
         {
-            executor.PopFile();
+            executor.PopFirstFile(file => file.IsAsync);
             
             if (Program.DECORATE)
             {
@@ -75,7 +77,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// </summary>
         public void Finish(Executor executor)
         {
-            executor.PopFile();
+            executor.PopFirstFile(file => file.IsAsync);
 
             if (Program.DECORATE)
             {
@@ -125,7 +127,7 @@ namespace mc_compiled.MCC.Compiler.Async
                 Command.ScoreboardSet(this.parent.stageValue, this.index + 1);
             
             conditions.RunCommand(command, executor, callingStatement);
-            executor.PopFile();
+            executor.PopFirstFile(file => file.IsAsync);
         }
     }
 }

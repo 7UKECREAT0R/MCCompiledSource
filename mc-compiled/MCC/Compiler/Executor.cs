@@ -115,7 +115,7 @@ namespace mc_compiled.MCC.Compiler
         private readonly bool[] lastPreprocessorCompare;
         private readonly PreviousComparisonStructure[] lastCompare;
         private readonly StringBuilder prependBuffer;
-        private readonly Stack<CommandFile> currentFiles;
+        private Stack<CommandFile> currentFiles;
         private int testCount;
         
         internal int depth;
@@ -250,7 +250,7 @@ namespace mc_compiled.MCC.Compiler
                     DumpTextBuffer();
 
                     // get the rawtext terms
-                    Token[] remaining = subStatement.GetRemainingTokens();
+                    IEnumerable<Token> remaining = subStatement.GetRemainingTokens();
                     foreach (Token token in remaining)
                     {
                         switch (token)
@@ -910,6 +910,7 @@ namespace mc_compiled.MCC.Compiler
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T Next<T>() where T : Statement => this.statements[this.readIndex++] as T;
+        
         /// <summary>
         /// Peek at the next statement as a certain type.
         /// </summary>
@@ -923,6 +924,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="skip"></param>
         /// <returns></returns>
         public T Peek<T>(int skip) where T : Statement => this.statements[this.readIndex + skip] as T;
+        
         /// <summary>
         /// Returns if there's another statement available and it's of a certain type.
         /// </summary>
@@ -933,7 +935,7 @@ namespace mc_compiled.MCC.Compiler
         /// Returns if the next statement is an unknown statement with builder field(s) in it.
         /// </summary>
         /// <returns></returns>
-        public bool NextIsBuilder()
+        private bool NextIsBuilder()
         {
             if (!this.HasNext)
                 return false;
@@ -945,6 +947,7 @@ namespace mc_compiled.MCC.Compiler
 
             return tokens.NextIs<TokenBuilderIdentifier>(false);
         }
+        
         public bool NextBuilderField(ref Statement tokens, out TokenBuilderIdentifier builderField)
         {
             // next in statement?
@@ -1191,8 +1194,8 @@ namespace mc_compiled.MCC.Compiler
         /// Get the current file that should be written to.
         /// </summary>
         public CommandFile CurrentFile => this.currentFiles.Peek();
-        internal CommandFile HeadFile { get; private set; }
-        internal CommandFile InitFile { get; private set; }
+        internal CommandFile HeadFile { get; }
+        internal CommandFile InitFile { get; }
         private CommandFile TestsFile { get; set; }
 
         /// <summary>
@@ -1200,14 +1203,13 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public int ScopeLevel => this.currentFiles.Count - 1;
         /// <summary>
-        /// Get if the base file (projectName.mcfunction) is the active file.
-        /// </summary>
-        public bool IsScopeBase => this.currentFiles.Count <= 1;
-        /// <summary>
         /// The number of the next line that will be added.
         /// </summary>
         public int NextLineNumber => this.CurrentFile.Length + 1;
 
+        /// <summary>
+        /// Generates a new tests file.
+        /// </summary>
         public void CreateTestsFile()
         {
             this.TestsFile = new CommandFile(true, "test");
@@ -1601,30 +1603,46 @@ namespace mc_compiled.MCC.Compiler
 
             this.project.AddFile(file);
         }
+        /// <summary>
+        /// Pops the first item off the stack that matches the given predicate, starting from the top.
+        /// </summary>
+        /// <param name="condition">The condition to match.</param>
+        public void PopFirstFile(Predicate<CommandFile> condition)
+        {
+            List<CommandFile> files = this.currentFiles.ToList();
+            int indexOfMatch = files.FindIndex(condition);
+
+            if (indexOfMatch == -1)
+            {
+                PopFile();
+                return;
+            }
+
+            files.RemoveAt(indexOfMatch);
+            this.currentFiles = new Stack<CommandFile>(files);
+        }
         private void FinalizeInitFile()
         {
-            CommandFile file = this.InitFile;
-
             if (this.TestsFile != null)
             {
                 this.TestsFile.AddTop("");
-                this.TestsFile.AddTop(Command.Function(file));
+                this.TestsFile.AddTop(Command.Function(this.InitFile));
                 this.TestsFile.AddTop("# Run the initialization file to make sure any needed data is there.");
             }
 
             if (this.initCommands.Count <= 0)
                 return;
             
-            file.AddTop("");
-            file.AddTop(this.initCommands);
+            this.InitFile.AddTop("");
+            this.InitFile.AddTop(this.initCommands);
 
             if (Program.DECORATE)
             {
-                file.AddTop("# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having strange issues, re-running this may fix it.");
-                file.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
+                this.InitFile.AddTop("# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having strange issues, re-running this may fix it.");
+                this.InitFile.AddTop("# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
             }
 
-            this.project.AddFile(file);
+            this.project.AddFile(this.InitFile);
         }
 
         private static readonly Dictionary<int, int> generatedNames = new Dictionary<int, int>();

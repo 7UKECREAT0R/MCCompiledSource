@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 
@@ -175,14 +176,13 @@ namespace mc_compiled.MCC.Compiler
         /// Return the remaining tokens in this feeder, excluding comments. Does not actually modify the reader's location.
         /// </summary>
         /// <returns></returns>
-        public Token[] GetRemainingTokens()
+        public IEnumerable<Token> GetRemainingTokens()
         {
             if (this.tokens.Length <= this.currentToken)
                 return Array.Empty<Token>();
 
             return this.tokens.Skip(this.currentToken)
-                .Where(t => !(t is IUselessInformation))
-                .ToArray();
+                .Where(t => !(t is IUselessInformation));
         }
 
         /// <summary>

@@ -82,8 +82,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public MatchResult Check(Statement _tokens)
         {
-            var tokens = _tokens.GetRemainingTokens();
-            return Check(tokens);
+            IEnumerable<Token> tokens = _tokens.GetRemainingTokens();
+            return Check(tokens.ToArray());
         }
         /// <summary>
         /// Checks the given array of tokens against this pattern, returning information about how much they match, if it matched, and which tokens are missing.

@@ -256,8 +256,8 @@ namespace mc_compiled.MCC
                     TypePattern pattern = type.SpecifyPattern;
                     if (pattern != null)
                     {
-                        Token[] remaining = tokens.GetRemainingTokens();
-                        MatchResult match = pattern.Check(remaining);
+                        IEnumerable<Token> remaining = tokens.GetRemainingTokens();
+                        MatchResult match = pattern.Check(remaining.ToArray());
                         
                         if(match.match)
                             data = type.AcceptPattern(tokens);

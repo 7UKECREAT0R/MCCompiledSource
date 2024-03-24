@@ -3,6 +3,7 @@ using mc_compiled.MCC.Functions.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Commands.Native;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -99,6 +100,8 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public StatementCloseBlock closer;
 
+        public BlockMetadata metadata;
+        
         public int statementsInside;
         public int meaningfulStatementsInside;
         public override bool Skip => false;
@@ -123,6 +126,7 @@ namespace mc_compiled.MCC.Compiler
             this.statementsInside = statementsInside;
             this.openAction = null;
             this.DecorateInSource = false;
+            this.metadata = default;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -153,6 +157,7 @@ namespace mc_compiled.MCC.Compiler
         {
             this.closeAction = null;
             this.DecorateInSource = false;
+            this.metadata = default;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -160,6 +165,8 @@ namespace mc_compiled.MCC.Compiler
             return $"[CLOSE BLOCK]";
         }
 
+        public readonly BlockMetadata metadata;
+        
         /// <summary>
         /// Pointer to the opening block.
         /// </summary>
@@ -178,11 +185,10 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public Action<Executor> closeAction;
 
-        protected override TypePattern[] GetValidPatterns()
-            => new TypePattern[0];
+        protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
         protected override void Run(Executor executor)
         {
-            if (this.closeAction != null) this.closeAction(executor);
+            this.closeAction?.Invoke(executor);
 
             executor.depth--;
 

@@ -195,6 +195,21 @@ namespace mc_compiled.MCC.Compiler
 
             this.currentToken = 0;
             Run(executor);
+            
+            // if there's tokens left in this statement, then the user likely expected them to be used.
+            // throwing a helpful exception if this is the case. I would emit a warning if I could (do this when LSP is implemented pls)
+            
+            if (this.RemainingTokens == 0)
+                return;
+            
+            Token[] remainingUsefulTokens = GetRemainingTokens().Where(t => !(t is IUselessInformation)).ToArray();
+
+            if (remainingUsefulTokens.Length == 0)
+                return;
+
+            string tokensWere = remainingUsefulTokens.Length == 1 ? "Token was" : "Tokens were";
+            string joined = string.Join(", ", remainingUsefulTokens.Select(t => t.AsString()));
+            throw new StatementException(this, $"{tokensWere} not used: {joined}");
         }
         private void SquashAll(List<Token> tokens, Executor executor)
         {

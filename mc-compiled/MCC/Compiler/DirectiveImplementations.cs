@@ -1220,7 +1220,7 @@ namespace mc_compiled.MCC.Compiler
             if (!executor.functions.TryGetFunctions(functionName, out Function[] functions))
                 throw new StatementException(tokens, $"Could not find a function by the name '{functionName}'");
 
-            Token[] remainingTokens = tokens.GetRemainingTokens();
+            Token[] remainingTokens = tokens.GetRemainingTokens().ToArray();
             int line = tokens.Lines[0];
 
             // construct a literal function call and then run it
@@ -2788,7 +2788,7 @@ namespace mc_compiled.MCC.Compiler
                 TypePattern[] patterns = subcommand.Patterns;
                 if (patterns != null && patterns.Length > 0)
                 {
-                    IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens.GetRemainingTokens()));
+                    IEnumerable<MatchResult> results = patterns.Select(pattern => pattern.Check(tokens.GetRemainingTokens().ToArray()));
                     IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
                     
                     if (matchResults.All(result => !result.match))
@@ -2859,6 +2859,8 @@ namespace mc_compiled.MCC.Compiler
                     {
                         e.PopFile();
                     };
+                    // set metadata
+                    openBlock.metadata.changesExecutingEntity = true;
                 }
             }
             else
@@ -3080,9 +3082,10 @@ namespace mc_compiled.MCC.Compiler
                     throw new StatementException(tokens, "Extern functions cannot have a body.");
 
                 var openBlock = executor.Peek<StatementOpenBlock>();
-
+                
                 openBlock.openAction = function.BlockOpenAction;
                 openBlock.CloseAction = function.BlockCloseAction;
+                openBlock.metadata.isAsync = isAsync;
             }
             else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");
