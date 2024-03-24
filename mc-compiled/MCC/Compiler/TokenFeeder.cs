@@ -178,6 +178,8 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public IEnumerable<Token> GetRemainingTokens()
         {
+            if (this.tokens == null)
+                return Array.Empty<Token>();
             if (this.tokens.Length <= this.currentToken)
                 return Array.Empty<Token>();
 
@@ -188,8 +190,15 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Returns the number of remaining tokens in this feeder, excluding comments.
         /// </summary>
-        public int RemainingTokens =>
-            this.tokens.Skip(this.currentToken)
-            .Count(t => !(t is IUselessInformation));
+        public int RemainingTokens
+        {
+            get
+            {
+                if (this.tokens == null)
+                    return 0;
+                return this.tokens.Skip(this.currentToken)
+                    .Count(t => !(t is IUselessInformation));
+            }
+        }
     }
 }
