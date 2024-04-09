@@ -95,8 +95,10 @@ namespace mc_compiled.MCC.Compiler
                 // resolve the token.
                 if (resolveStrings && unresolved is TokenStringLiteral literal)
                     allResolved.Add(new TokenStringLiteral(executor.ResolveString(literal), line));
-                else if (unresolved is TokenUnresolvedSelector selector)
-                    allResolved.Add(selector.Resolve(executor));
+                else if (unresolved is TokenUnresolvedSelector unresolvedSelector)
+                    allResolved.Add(unresolvedSelector.Resolve(executor).Validate(this));
+                else if (unresolved is TokenSelectorLiteral resolvedSelector)
+                    allResolved.Add(resolvedSelector.Validate(this));
                 else
                 {
                     switch (unresolved)
@@ -555,9 +557,13 @@ namespace mc_compiled.MCC.Compiler
         }
         private void SquashFunctions(List<Token> tokens, Executor executor)
         {
+            // be careful if this is a function definition, might be in the same format.
+            bool isFunctionDefinition = this is StatementDirective directive &&
+                                        directive.directive.call == DirectiveImplementations.function;
+            
             int startAt = 0;
 
-            // ignore first function call since thats part of the statement
+            // ignore first function call since that's part of the statement
             if (this is StatementFunctionCall)
                 startAt = 2;
 
@@ -569,9 +575,14 @@ namespace mc_compiled.MCC.Compiler
 
                 if (!(selected is TokenIdentifierFunction identifierFunction))
                     continue;
-
+                
                 Function[] functions = identifierFunction.functions;
-
+                
+                // if a function is being defined and there's an existing function (but it's user defined)
+                // then this is almost 100% unintentional.
+                if (isFunctionDefinition && functions.Any(f => f is RuntimeFunction))
+                    continue;
+                
                 // skip if there's no parenthesis and no functions can be implicitly called.
                 bool useImplicit = false;
                 if (!functions.Any(f => f.ImplicitCall))

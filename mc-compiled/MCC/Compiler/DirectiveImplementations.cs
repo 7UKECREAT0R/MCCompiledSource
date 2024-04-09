@@ -1367,7 +1367,7 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, "Unexpected end of file after else-statement.");
 
             PreviousComparisonStructure set = executor.GetLastCompare();
-
+            
             if (set == null)
                 throw new StatementException(tokens, "No if-statement was found in front of this else-statement at this scope level.");
 
@@ -2663,7 +2663,11 @@ namespace mc_compiled.MCC.Compiler
         public static void playsound(Executor executor, Statement tokens)
         {
             string soundId = tokens.Next<TokenStringLiteral>("sound");
-            Selector filter = tokens.Next<TokenSelectorLiteral>("filter");
+
+            Selector filter = tokens.NextIs<TokenSelectorLiteral>(true) ?
+                tokens.Next<TokenSelectorLiteral>("filter") :
+                Selector.SELF;
+            
             bool wasSoundFile;
 
             if (filter.AnyNonPlayers)
@@ -3071,16 +3075,20 @@ namespace mc_compiled.MCC.Compiler
 
             if (function == null)
                 throw new StatementException(tokens, "No other partial function matched this partial function (?)");
+            if (tokens.NextIs<TokenCloseParenthesis>(false))
+                tokens.Next();
             
             if (executor.NextIs<StatementOpenBlock>())
             {
                 if (function.isExtern)
-                    throw new StatementException(tokens, "Extern functions cannot have a body.");
+                    throw new StatementException(tokens, "External functions cannot have a body.");
 
                 var openBlock = executor.Peek<StatementOpenBlock>();
                 
                 openBlock.openAction = function.BlockOpenAction;
                 openBlock.CloseAction = function.BlockCloseAction;
+                openBlock.ignoreAsync = true;
+                openBlock.closer.ignoreAsync = true;
             }
             else if(!function.isExtern)
                 throw new StatementException(tokens, "No block following function definition.");
@@ -3092,14 +3100,18 @@ namespace mc_compiled.MCC.Compiler
                 while (tokens.NextIs<TokenAttribute>(false))
                 {
                     var _attribute = tokens.Next<TokenAttribute>("attribute");
+                    IAttribute attribute = _attribute.attribute;
                     
-                    if (_attribute.attribute is AttributeAsync attributeAsync)
+                    if (attributes.Any(a => a.GetType() == attribute.GetType()))
+                        throw new StatementException(tokens, $"Attribute '{attribute.GetDebugString()}' is already present on this function.");
+                    
+                    if (attribute is AttributeAsync attributeAsync)
                     {
                         isAsync = true;
                         asyncTarget = attributeAsync.target;
                     }
 
-                    attributes.Add(_attribute.attribute);
+                    attributes.Add(attribute);
                 }
             }
         }
@@ -3495,21 +3507,24 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, "The await command can only be used in an async context.");
 
             AsyncFunction async = executor.async.CurrentFunction;
-            Token token = tokens.Next();
             
             // await <time>
-            if (token is TokenIntegerLiteral tokenInteger)
+            if (tokens.NextIs<TokenIntegerLiteral>(false))
             {
-                int ticks = tokenInteger.number;
+                int ticks = tokens
+                    .Next<TokenIntegerLiteral>("time")
+                    .Scaled(IntMultiplier.none);
+                
                 async.FinishStage(ticks);
                 async.StartNewStage();
+                return;
             }
             
             // await until <conditions>
             // await while <conditions>
-            if (token is TokenIdentifier tokenIdentifier)
+            if (tokens.NextIs<TokenIdentifier>(false))
             {
-                string word = tokenIdentifier.word;
+                string word = tokens.Next<TokenIdentifier>("until/while").word;
                 bool isWhile;
                 
                 switch (word.ToUpper())
@@ -3521,8 +3536,7 @@ namespace mc_compiled.MCC.Compiler
                         isWhile = true;
                         break;
                     default:
-                        throw new StatementException(tokens, 
-                            $"Invalid await subcommand '{word}'. Must be 'until' or 'while'.");
+                        throw new StatementException(tokens, $"Invalid await subcommand '{word}'. Must be 'until' or 'while'.");
                 }
                 
                 ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
@@ -3532,11 +3546,15 @@ namespace mc_compiled.MCC.Compiler
                 async.StartNewStage();
                 async.FinishStage(set, tokens);
                 async.StartNewStage();
+                return;
             }
             
             // await <async function call>
-            if (token is TokenAsyncResult asyncResult)
+            // ReSharper disable once InvertIf
+            if (tokens.NextIs<TokenAsyncResult>(false))
             {
+                TokenAsyncResult asyncResult = tokens.Next<TokenAsyncResult>("async");
+                
                 if (asyncResult.function.target == AsyncTarget.Local && async.target == AsyncTarget.Global)
                     throw new StatementException(tokens, "Cannot await an async(local) function from an async(global) function; no way to know the entity to wait on.");
                 
@@ -3562,7 +3580,10 @@ namespace mc_compiled.MCC.Compiler
                 async.StartNewStage();
                 async.FinishStage(set, tokens);
                 async.StartNewStage();
+                return;
             }
+
+            throw new StatementException(tokens, $"Invalid await subcommand '{tokens.Next<Token>("subcommand").AsString()}'. Supports a time in ticks, an async function call, or while/until with condition(s).");
         }
     }
 }

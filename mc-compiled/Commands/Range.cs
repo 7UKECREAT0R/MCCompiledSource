@@ -105,6 +105,69 @@ namespace mc_compiled.Commands
         }
 
         /// <summary>
+        /// Tries to parse a string and convert it into a Range.
+        /// </summary>
+        /// <param name="str">The string to parse.</param>
+        /// <param name="result">When this method returns, contains the parsed Range if successful; otherwise, null.</param>
+        /// <returns>true if the string was successfully parsed; otherwise, false.</returns>
+        public static bool TryParse(string str, out Range? result)
+        {
+            if (string.IsNullOrEmpty(str))
+            {
+                result = null;
+                return false;
+            }
+
+            bool not = str.StartsWith("!");
+            if (not)
+                str = str.Substring(1);
+
+            if (str.Contains(".."))
+            {
+                int index = str.IndexOf("..", StringComparison.Ordinal);
+                if (index == 0) // ..10
+                {
+                    if (int.TryParse(str.Substring(2), out int maxVal))
+                    {
+                        result = new Range(null, maxVal, not);
+                        return true;
+                    }
+                }
+                else if (index + 2 >= str.Length) // 10..
+                {
+                    if (int.TryParse(str.Substring(0, index), out int minVal))
+                    {
+                        result = new Range(minVal, null, not);
+                        return true;
+                    }
+                }
+                else
+                {
+                    string _a = str.Substring(0, index);
+                    string _b = str.Substring(index + 2);
+
+                    if (int.TryParse(_a, out int a) && 
+                        int.TryParse(_b, out int b))
+                    {
+                        result = new Range(a, b, not);
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                if (int.TryParse(str, out int parse))
+                {
+                    result = new Range(parse, not);
+                    return true;
+                }
+            }
+
+            result = null;
+            return false;
+        }
+
+        /// <summary>
         /// Returns this Range in the traditional minecraft-required format.
         /// </summary>
         /// <returns></returns>

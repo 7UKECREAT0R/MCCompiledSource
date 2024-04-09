@@ -4,6 +4,7 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Compiler.Async;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -384,10 +385,28 @@ namespace mc_compiled.MCC.Compiler
 
                             openBlock.openAction = (e) =>
                             {
+                                /* old async stuff
+                                if (e.async.IsInAsync)
+                                {
+                                    AsyncFunction currentFunction = e.async.CurrentFunction;
+                                    currentFunction.FinishStageImmediate();
+                                    currentFunction.PushNewGroup();
+                                    currentFunction.StartNewStage();
+                                }*/
+
                                 e.PushFile(blockFile);
                             };
                             openBlock.CloseAction = (e) =>
                             {
+                                /* old async stuff
+                                if (e.async.IsInAsync)
+                                {
+                                    AsyncFunction currentFunction = e.async.CurrentFunction;
+                                    currentFunction.FinishStageImmediate();
+                                    currentFunction.PopGroup();
+                                    currentFunction.StartNewStage();
+                                }*/ 
+
                                 e.PopFile();
                             };
                         }

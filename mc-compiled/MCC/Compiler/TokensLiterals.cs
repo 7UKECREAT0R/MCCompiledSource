@@ -1229,6 +1229,18 @@ namespace mc_compiled.MCC.Compiler
                 core = core
             };
         }
+        /// <summary>
+        /// Validates the selector that is contained within this token and throws a <see cref="StatementException"/> if
+        /// it does not pass. 
+        /// </summary>
+        /// <param name="callingStatement">The statement to blame for an exception, if any.</param>
+        /// <exception cref="StatementException">If the selector doesn't pass basic validation.</exception>
+        /// <returns>This token.</returns>
+        public TokenSelectorLiteral Validate(Statement callingStatement)
+        {
+            this.selector.Validate(callingStatement);
+            return this;
+        }
         public override TokenLiteral Clone() => new TokenSelectorLiteral(new Selector(this.selector), this.lineNumber);
         public override string ToString() => this.selector.ToString();
 

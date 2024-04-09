@@ -1618,8 +1618,46 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
+            CommandFile file = files[indexOfMatch];
             files.RemoveAt(indexOfMatch);
             this.currentFiles = new Stack<CommandFile>(files);
+            
+            this.unreachableCode = -1;
+            
+            if(!file.IsValidTest)
+            {
+                // test doesnt have any assertions
+                RuntimeFunction func = file.runtimeFunction;
+                Statement creationStatement = func.creationStatement;
+                throw new StatementException(creationStatement, $"Test '{func.internalName}' does not contain any assert statements, and thus will always pass.");
+            }
+
+            if(file.IsTest) // test is valid
+            {
+                // test related stuff
+                int testId = ++this.testCount;
+                RuntimeFunction func = file.runtimeFunction;
+                Statement creationStatement = func.creationStatement;
+
+                CommandFile tests = this.TestsFile;
+                tests.Add($"# Test {testId}: {func.internalName}, located at line {creationStatement.Lines[0]}");
+                tests.Add(Command.Function(file));
+                tests.Add(Command.Tellraw("@s", new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} ({func.internalName}) passed.")).BuildString()));
+                tests.Add("");
+            }
+
+            if (ReferenceEquals(file, this.InitFile))
+                return; // do not write the init file until the whole program is finished.
+
+            // file is empty, so it causes minecraft errors if we don't do this
+            if (file.Length == 0)
+            {
+                if (file.IsRootFile)
+                    return; // no need to save down the root file if it doesn't exist.
+                file.Add("# empty file");
+            }
+
+            this.project.AddFile(file);
         }
         private void FinalizeInitFile()
         {

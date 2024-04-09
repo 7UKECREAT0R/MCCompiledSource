@@ -29,6 +29,8 @@
                 if (string.IsNullOrWhiteSpace(b))
                     continue;
                 endCount = int.Parse(b);
+                if (endCount < 0)
+                    endCount = 0;
                 break;
             }
 

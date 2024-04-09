@@ -69,6 +69,9 @@ namespace mc_compiled.Commands.Selectors
                 case "ADVENTURE":
                 case "2":
                     return GameMode.adventure;
+                case "SPECTATOR":
+                case "6":
+                    return GameMode.spectator;
                 default:
                     return null;
             }

@@ -493,8 +493,6 @@ namespace mc_compiled.MCC.ServerWebSocket
                     case "install":
                         toOpen = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                         break;
-                    default:
-                        break;
                 }
 
                 if (this.debug)
@@ -513,7 +511,11 @@ namespace mc_compiled.MCC.ServerWebSocket
                 if (this.debug)
                     Console.WriteLine("Linting...");
 
-                Lint(code, package);
+                if(Debugger.IsAttached)
+                    LintWithDebugger(code, package);
+                else
+                    Lint(code, package);
+
                 return false;
             }
             if(action.Equals("compile"))
@@ -556,6 +558,8 @@ namespace mc_compiled.MCC.ServerWebSocket
                     }
 
                     string file = this.project.File;
+                    Debug.Assert(file != null, nameof(file) + " != null");
+                    
                     string fileName = Path.GetFileName(file);
 
                     if (File.Exists(file))
@@ -702,7 +706,62 @@ namespace mc_compiled.MCC.ServerWebSocket
             return false;
         }
 
-        void Lint(string code, WebSocketPackage package)
+        private void LintWithDebugger(string code, WebSocketPackage package)
+        {
+            try
+            {
+                Program.DEBUG = this.debug;
+                Program.PrepareToCompile();
+                Token[] tokens = new Tokenizer(code).Tokenize();
+                Statement[] statements = Assembler.AssembleTokens(tokens);
+                var executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", this.outputBehaviorPack, this.outputResourcePack);
+                executor.Linter();
+                executor.Execute();
+
+                // gather information.
+                LintStructure lint = LintStructure.Harvest(executor);
+
+                if (this.debug)
+                    Console.WriteLine("\tLint success. " + lint.ToString());
+
+                string json = lint.ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+
+                // tell the client that there are no more errors
+                package.SendFrame(WebSocketFrame.String(
+                    @"{""action"":""seterrors"",""errors"":[]}"
+                ));
+
+                executor.Cleanup(); // free executor resources now
+            }
+            catch (TokenizerException exc)
+            {
+                if (this.debug)
+                    Console.WriteLine("\tError. " + exc.Message);
+                string json = ErrorStructure.Wrap(exc).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+            }
+            catch (StatementException exc)
+            {
+                if (this.debug)
+                    Console.WriteLine("\tError. " + exc.Message);
+                string json = ErrorStructure.Wrap(exc).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+            }
+            catch (FeederException exc)
+            {
+                if (this.debug)
+                    Console.WriteLine("\tError. " + exc.Message);
+                string json = ErrorStructure.Wrap(exc).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+            }
+            finally
+            {
+                // no longer busy
+                package.SendFrame(CreateBusyFrame(false));
+            }
+        }
+        private void Lint(string code, WebSocketPackage package)
         {
             try
             {

@@ -96,6 +96,10 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementOpenBlock : Statement
     {
         /// <summary>
+        /// If async state should be ignored for this block.
+        /// </summary>
+        public bool ignoreAsync;
+        /// <summary>
         /// Pointer to the closing block.
         /// </summary>
         public StatementCloseBlock closer;
@@ -114,9 +118,7 @@ namespace mc_compiled.MCC.Compiler
         public Action<Executor> CloseAction
         {
             get => this.closer?.closeAction;
-            set {
-                if (this.closer != null) this.closer.closeAction = value;
-            }
+            set => this.closer.closeAction = value;
         }
 
         public StatementOpenBlock(int statementsInside, CommandFile file) : base(null)
@@ -137,9 +139,17 @@ namespace mc_compiled.MCC.Compiler
         protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
         protected override void Run(Executor executor)
         {
+            // start a new group of async stages
+            if (!this.ignoreAsync && executor.async.IsInAsync)
+            {
+                executor.async.CurrentFunction.StartNewGroup();
+                executor.async.CurrentFunction.StartNewStage();
+            }
+            
             this.openAction?.Invoke(executor);
+            
+            // track depth
             executor.depth++;
-
             if (executor.depth > Executor.MAXIMUM_DEPTH)
                 throw new Exception($"Surpassed maximum depth ({Executor.MAXIMUM_DEPTH}). Use the compile option: --maxdepth <amount>");
         }
@@ -162,6 +172,10 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
+        /// If async state should be ignored for this block.
+        /// </summary>
+        public bool ignoreAsync;
+        /// <summary>
         /// Pointer to the opening block.
         /// </summary>
         public StatementOpenBlock opener;
@@ -172,7 +186,7 @@ namespace mc_compiled.MCC.Compiler
         public Action<Executor> OpenAction
         {
             get => this.opener?.openAction;
-            set { if(this.opener != null) this.opener.openAction = value; }
+            set => this.opener.openAction = value;
         }
         /// <summary>
         /// The action when this closing block is called.
@@ -182,10 +196,17 @@ namespace mc_compiled.MCC.Compiler
         protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
         protected override void Run(Executor executor)
         {
+            // start a new group of async stages
+            if (!this.ignoreAsync && executor.async.IsInAsync)
+            {
+                executor.async.CurrentFunction.StartNewGroup();
+                executor.async.CurrentFunction.StartNewStage();
+            }
+
             this.closeAction?.Invoke(executor);
 
+            // track depth
             executor.depth--;
-
             if (executor.depth < 0)
                 throw new Exception("Bracket depth was less than 0, this is likely a bug and should be reported.");
         }

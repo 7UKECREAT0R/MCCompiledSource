@@ -25,7 +25,7 @@ namespace mc_compiled.Commands.Selectors
         {
             if (this.checks == null || this.checks.Count < 1)
                 return null;
-            return "scores={" + string.Join(",", (from i in this.checks select i.ToString())) + "}";
+            return "scores={" + string.Join(",", from i in this.checks select i.ToString()) + "}";
         }
 
         public static Scores Parse(string fullSelector)
@@ -47,6 +47,7 @@ namespace mc_compiled.Commands.Selectors
                     continue;
 
                 string scoreName = part.Substring(0, index).Trim();
+                
                 string _range = part.Substring(index + 1).Trim();
                 Range? range = Range.Parse(_range);
 

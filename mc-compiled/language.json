@@ -738,7 +738,7 @@
       "details": "Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.",
       "category": "cosmetic",
       "patterns": [
-        [ "string:sound", "selector:who", "?coordinate:x", "?coordinate:y", "?coordinate:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
+        [ "string:sound", "?selector:who", "?coordinate:x", "?coordinate:y", "?coordinate:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
       ]
     },
     "particle": {

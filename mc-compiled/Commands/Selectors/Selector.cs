@@ -222,6 +222,15 @@ namespace mc_compiled.Commands.Selectors
             return selector;
         }
 
+        public void Validate(Statement callingStatement)
+        {
+            string stringRepresentation = ToString();
+            
+            if (this.count.HasCount && this.count.count == 0)
+                throw new StatementException(callingStatement, $"Selector '{stringRepresentation}' does not select any entities.");
+            
+        }
+        
         public Core core;
         private Coordinate offsetX = Coordinate.here;
         private Coordinate offsetY = Coordinate.here;

@@ -1273,7 +1273,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.homeBlocks != null)
-                json["home_block_list"] = new JArray(this.homeBlocks);
+                json["home_block_list"] = new JArray(this.homeBlocks.Cast<object>());
 
             return json;
         }
