@@ -3,6 +3,7 @@ using mc_compiled.MCC.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.Async;
 
@@ -34,6 +35,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// The action to be run when this function's block opens.
         /// Overridden by <see cref="AsyncFunction"/> to change this behavior.
         /// </summary>
+        [PublicAPI]
         public virtual Action<Executor> BlockOpenAction => e =>
         {
             e.PushFile(this.file);
@@ -42,6 +44,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// The action to be run when this function's block closes.
         /// Overridden by <see cref="AsyncFunction"/> to change this behavior.
         /// </summary>
+        [PublicAPI]
         public virtual Action<Executor> BlockCloseAction => e =>
         {
             e.PopFile();

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Media.TextFormatting;
+using System.Linq;
 using mc_compiled.Commands;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.TypeSystem;
@@ -65,10 +65,40 @@ namespace mc_compiled.MCC.Compiler.Async
         }
         
         private Executor Executor => this.parent.parent;
-        private int NextStageIndex => this.stages.Count;
+        private int NextStageIndex => this.groups.Sum(group => group.Count);
         private readonly AsyncManager parent;
-        private readonly List<AsyncStage> stages;
+        private readonly List<List<AsyncStage>> groups;
 
+        /// <summary>
+        /// Gets the current group of stages in the async function.
+        /// </summary>
+        /// <remarks>
+        /// This property returns the current group of stages in the async function.
+        /// A group of stages represents a logical unit of execution within the async function.
+        /// </remarks>
+        private List<AsyncStage> CurrentGroup => this.groups[this.groups.Count - 1];
+        /// <summary>
+        /// Pushes a new stage group onto the stack of stages.
+        /// </summary>
+        internal void StartNewGroup()
+        {
+            var stageList = new List<AsyncStage>();
+            this.groups.Add(stageList);
+        }
+        
+        public override Action<Executor> BlockOpenAction => e =>
+        {
+            // starts the first async stage
+            StartNewStage();
+        };
+        public override Action<Executor> BlockCloseAction => e =>
+        {
+            // stop this async function and remove it from the parent
+            this.parent.StopAsyncFunction();
+            PopulateTickFunction();
+            InitializeCallCommands();
+        };
+        
         private AsyncStage activeStage;
         private CommandFile tick;
         internal CommandFile tickPrerequisite;
@@ -114,20 +144,31 @@ namespace mc_compiled.MCC.Compiler.Async
             // these commands are NOT what get run when you call the function in MCCompiled; this is only here to
             // facilitate if the function gets run in-game.
             
-            if (this.stages.Count == 0)
+            if (this.groups.Count == 0)
             {
                 AddCommand("# No async code was added to this function.");
                 return;
             }
-            
-            AddCommand(Command.Function(this.stages[0].file));
+
+            List<AsyncStage> validGroup = this.groups.FirstOrDefault(group => group.Count > 0);
+
+            if (validGroup == null)
+            {
+                AddCommand("# No async code was added to this function.");
+                return;
+            }
+                
+            AddCommand(Command.Function(validGroup[0].file));
         }
         private void PopulateTickFunction()
         {
-            foreach (AsyncStage stage in this.stages)
+            foreach (List<AsyncStage> group in this.groups)
             {
-                string command = Command.Execute().IfScore(this.stageValue, Range.Of(stage.index)).Run(Command.Function(stage.file));
-                this.tick.Add(command);
+                foreach (AsyncStage stage in group)
+                {
+                    string command = Command.Execute().IfScore(this.stageValue, Range.Of(stage.index)).Run(Command.Function(stage.file));
+                    this.tick.Add(command);
+                }
             }
         }
         public AsyncFunction(Statement statement, string name, string internalName, string documentation,
@@ -139,24 +180,15 @@ namespace mc_compiled.MCC.Compiler.Async
             this.escapedFunctionName = EscapeFunctionName(internalName);
             this.target = target;
             this.waitsOn = new HashSet<AsyncFunction>();
-            this.stages = new List<AsyncStage>();
+            
+            // initialize the groups
+            this.groups = new List<List<AsyncStage>>();
+            StartNewGroup();
             
             InitializeScoreboardValues(this.parent.parent.scoreboard);
             InitializeCommandFiles();
         }
-
-        public override Action<Executor> BlockOpenAction => e =>
-        {
-            // starts the first async stage
-            StartNewStage();
-        };
-        public override Action<Executor> BlockCloseAction => e =>
-        {
-            // stop this async function and remove it from the parent
-            this.parent.StopAsyncFunction();
-            PopulateTickFunction();
-            InitializeCallCommands();
-        };
+        
 
         public override string Returns => "async context";
         public override void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller) =>
@@ -172,13 +204,13 @@ namespace mc_compiled.MCC.Compiler.Async
                 this.isAddedToExecutor = true;
             }
 
-            if (this.stages.Count == 0)
+            if (this.groups.Count == 0)
             {
                 commandBuffer.Add(Command.Function(this.file));
                 return new TokenAsyncResult(this, statement.Lines[0]);
             }
 
-            commandBuffer.Add(Command.Function(this.stages[0].file));
+            commandBuffer.Add(Command.Function(this.groups[0][0].file));
 
             // apply attributes
             foreach (IAttribute attribute in this.attributes)
@@ -195,7 +227,7 @@ namespace mc_compiled.MCC.Compiler.Async
             int index = this.NextStageIndex;
             this.activeStage = new AsyncStage(this, index);
             this.activeStage.Begin(this.Executor);
-            this.stages.Add(this.activeStage);
+            this.CurrentGroup.Add(this.activeStage);
             this.file.RegisterCall(this.activeStage.file);
         }
         /// <summary>
@@ -236,6 +268,32 @@ namespace mc_compiled.MCC.Compiler.Async
             this.activeStage = null;
         }
 
+        /// <summary>
+        /// Sends information about this function's groups and stages to stdout.
+        /// </summary>
+        /// <returns></returns>
+        internal void PrintDebugGroupInfo()
+        {
+            Console.WriteLine($"Group information for async function '{this.internalName}' ({this.groups.Count} groups):");
+
+            int groupNumber = 1;
+            int stageNumber = 1;
+
+            foreach (List<AsyncStage> group in this.groups)
+            {
+                Console.WriteLine($"\tGroup {groupNumber++} ({group.Count} stages):");
+                foreach (AsyncStage stage in group)
+                {
+                    string[] commands = stage.file.commands.ToArray();
+                    Console.WriteLine($"\t\tStage {stageNumber++} ({commands.Length} commands):");
+                    foreach (string command in commands)
+                    {
+                        Console.WriteLine($"\t\t\t/" + command);
+                    }
+                }
+            }
+        }
+        
         private bool Equals(AsyncFunction other)
         {
             return this.actualInternalName == other.actualInternalName && this.target == other.target;
