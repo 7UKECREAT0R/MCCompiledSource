@@ -10,7 +10,7 @@ namespace mc_compiled.MCC.Compiler.Async
 {
     public class AsyncFunction : RuntimeFunction
     {
-        private static readonly string FOLDER = $"{Executor.MCC_GENERATED_FOLDER}/async";
+        internal static readonly string FOLDER = $"{Executor.MCC_GENERATED_FOLDER}/async";
         private static string EscapeFunctionName(string functionName) =>
             functionName.Replace('/', '_').Replace('.', '_');
         private static string NameTickPrerequisiteFunction(string functionName) =>
@@ -65,7 +65,12 @@ namespace mc_compiled.MCC.Compiler.Async
         }
         
         private Executor Executor => this.parent.parent;
-        private int NextStageIndex => this.groups.Sum(group => group.Count);
+        internal int NextStageIndex => this.groups.Sum(group => group.Count);
+        /// <summary>
+        /// Returns the index of the active stage.
+        /// </summary>
+        internal AsyncStage ActiveStage => this.activeStage;
+
         private readonly AsyncManager parent;
         private readonly List<List<AsyncStage>> groups;
 
@@ -166,7 +171,25 @@ namespace mc_compiled.MCC.Compiler.Async
             {
                 foreach (AsyncStage stage in group)
                 {
-                    string command = Command.Execute().IfScore(this.stageValue, Range.Of(stage.index)).Run(Command.Function(stage.file));
+                    bool stageSetsTimer = stage.HasTickDelay;
+                    string command;
+
+                    if (stageSetsTimer)
+                    {
+                        // this stage may have been run by the previous stage internally, so to prevent it
+                        // from being called twice, make sure it didn't set a timer for incrementation.
+                        command = Command.Execute()
+                            .IfScore(this.stageValue, Range.Of(stage.index))
+                            .IfScore(this.timerValue, Range.Of(-1))
+                            .Run(Command.Function(stage.file));
+                    }
+                    else
+                    {
+                        command = Command.Execute()
+                            .IfScore(this.stageValue, Range.Of(stage.index))
+                            .Run(Command.Function(stage.file));
+                    }
+
                     this.tick.Add(command);
                 }
             }
@@ -190,7 +213,7 @@ namespace mc_compiled.MCC.Compiler.Async
         }
         
 
-        public override string Returns => "async context";
+        public override string Returns => "awaitable";
         public override void TryReturnValue(ScoreboardValue value, Executor executor, Statement caller) =>
             throw new StatementException(caller, "Async functions cannot return values.");
         public override void TryReturnValue(TokenLiteral value, Statement caller, Executor executor) =>
@@ -207,7 +230,7 @@ namespace mc_compiled.MCC.Compiler.Async
             if (this.groups.Count == 0)
             {
                 commandBuffer.Add(Command.Function(this.file));
-                return new TokenAsyncResult(this, statement.Lines[0]);
+                return new TokenAwaitable(this, statement.Lines[0]);
             }
 
             commandBuffer.Add(Command.Function(this.groups[0][0].file));
@@ -216,7 +239,7 @@ namespace mc_compiled.MCC.Compiler.Async
             foreach (IAttribute attribute in this.attributes)
                 attribute.OnCalledFunction(this, commandBuffer, executor, statement);
 
-            return new TokenAsyncResult(this, statement.Lines[0]);
+            return new TokenAwaitable(this, statement.Lines[0]);
         }
         
         /// <summary>
@@ -282,14 +305,13 @@ namespace mc_compiled.MCC.Compiler.Async
             foreach (List<AsyncStage> group in this.groups)
             {
                 Console.WriteLine($"\tGroup {groupNumber++} ({group.Count} stages):");
+                
                 foreach (AsyncStage stage in group)
                 {
                     string[] commands = stage.file.commands.ToArray();
                     Console.WriteLine($"\t\tStage {stageNumber++} ({commands.Length} commands):");
                     foreach (string command in commands)
-                    {
-                        Console.WriteLine($"\t\t\t/" + command);
-                    }
+                        Console.WriteLine($"\t\t\t/{command}");
                 }
             }
         }

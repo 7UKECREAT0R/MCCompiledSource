@@ -35,9 +35,9 @@ namespace mc_compiled.MCC.Compiler
         {
             return this.directive.patterns;
         }
-        protected override void Run(Executor executor)
+        protected override void Run(Executor runningExecutor)
         {
-            this.directive.call(executor, this);
+            this.directive.call(runningExecutor, this);
         }
     }
     public sealed class StatementComment : Statement
@@ -54,23 +54,23 @@ namespace mc_compiled.MCC.Compiler
         public override string ToString() => $"[COMMENT] {this.comment}";
         protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
 
-        protected override void Run(Executor executor)
+        protected override void Run(Executor runningExecutor)
         {
             if (!Program.DECORATE)
                 return;
 
             // peek at the next to determine if this comment will be used as documentation or not.
-            Statement next = executor.Peek();
+            Statement next = runningExecutor.Peek();
             if(next is StatementDirective statementDirective)
             {
                 if (statementDirective.HasAttribute(DirectiveAttribute.DOCUMENTABLE))
                     return; // this is a documentation string.
             }
 
-            string str = executor.ResolveString(this.comment);
+            string str = runningExecutor.ResolveString(this.comment);
 
             // find whether to add a newline or not
-            CommandFile file = executor.CurrentFile;
+            CommandFile file = runningExecutor.CurrentFile;
             int length = file.Length;
 
             if (length > 0)
@@ -130,27 +130,26 @@ namespace mc_compiled.MCC.Compiler
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
         {
-            if(this.meaningfulStatementsInside != this.statementsInside)
-                return $"[OPEN BLOCK: {this.meaningfulStatementsInside} STATEMENTS ({this.statementsInside})]";
-            else
-                return $"[OPEN BLOCK: {this.statementsInside} STATEMENTS]";
+            return this.meaningfulStatementsInside != this.statementsInside ?
+                $"[OPEN BLOCK: {this.meaningfulStatementsInside} STATEMENTS ({this.statementsInside})]" :
+                $"[OPEN BLOCK: {this.statementsInside} STATEMENTS]";
         }
 
         protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
-        protected override void Run(Executor executor)
+        protected override void Run(Executor runningExecutor)
         {
             // start a new group of async stages
-            if (!this.ignoreAsync && executor.async.IsInAsync)
+            if (!this.ignoreAsync && runningExecutor.async.IsInAsync)
             {
-                executor.async.CurrentFunction.StartNewGroup();
-                executor.async.CurrentFunction.StartNewStage();
+                runningExecutor.async.CurrentFunction.StartNewGroup();
+                runningExecutor.async.CurrentFunction.StartNewStage();
             }
             
-            this.openAction?.Invoke(executor);
+            this.openAction?.Invoke(runningExecutor);
             
             // track depth
-            executor.depth++;
-            if (executor.depth > Executor.MAXIMUM_DEPTH)
+            runningExecutor.depth++;
+            if (runningExecutor.depth > Executor.MAXIMUM_DEPTH)
                 throw new Exception($"Surpassed maximum depth ({Executor.MAXIMUM_DEPTH}). Use the compile option: --maxdepth <amount>");
         }
     }
@@ -194,25 +193,26 @@ namespace mc_compiled.MCC.Compiler
         public Action<Executor> closeAction;
 
         protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
-        protected override void Run(Executor executor)
+        protected override void Run(Executor runningExecutor)
         {
             // start a new group of async stages
-            if (!this.ignoreAsync && executor.async.IsInAsync)
+            if (!this.ignoreAsync && runningExecutor.async.IsInAsync)
             {
-                executor.async.CurrentFunction.StartNewGroup();
-                executor.async.CurrentFunction.StartNewStage();
+                runningExecutor.async.CurrentFunction.FinishStageImmediate();
+                runningExecutor.async.CurrentFunction.StartNewGroup();
+                runningExecutor.async.CurrentFunction.StartNewStage();
             }
 
-            this.closeAction?.Invoke(executor);
+            this.closeAction?.Invoke(runningExecutor);
 
             // track depth
-            executor.depth--;
-            if (executor.depth < 0)
+            runningExecutor.depth--;
+            if (runningExecutor.depth < 0)
                 throw new Exception("Bracket depth was less than 0, this is likely a bug and should be reported.");
         }
     }
     /// <summary>
-    /// Statement that assigns a scoreboard value and may also perform a set of arithmatic.<br />
+    /// Statement that assigns a scoreboard value and may also perform a set of arithmetic.<br />
     /// Examples:<br />
     ///     a *= b + (c - d) * e<br />
     ///     a += b<br />
@@ -238,7 +238,7 @@ namespace mc_compiled.MCC.Compiler
                 )
             };
         }
-        protected override void Run(Executor executor)
+        protected override void Run(Executor runningExecutor)
         {
             var value = Next<TokenIdentifierValue>("left");
             var assignment = Next<IAssignment>("assignment operator");
@@ -249,7 +249,7 @@ namespace mc_compiled.MCC.Compiler
             if (NextIs<TokenIdentifierValue>(false))
             {
                 var next = Next<TokenIdentifierValue>(null);
-                CommandFile file = executor.CurrentFile;
+                CommandFile file = runningExecutor.CurrentFile;
 
                 if (assignment is TokenArithmetic arithmetic)
                 {
@@ -259,18 +259,18 @@ namespace mc_compiled.MCC.Compiler
                     IEnumerable<string> commands = value.value.Operation
                         (next.value, op, this);
                     
-                    executor.AddCommands(commands,
+                    runningExecutor.AddCommands(commands,
                         "math_op",
-                        $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} {arithmetic.AsString()} {next.value.Name}).");
+                        $"Math operation from {file.CommandReference} line {runningExecutor.NextLineNumber}. Performs ({value.value.Name} {arithmetic.AsString()} {next.value.Name}).");
                 } else
-                    executor.AddCommands(value.value.Assign(next.value, this),
+                    runningExecutor.AddCommands(value.value.Assign(next.value, this),
                         "set_op",
-                        $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} = {next.value.Name}).");
+                        $"Set operation from {file.CommandReference} line {runningExecutor.NextLineNumber}. Performs ({value.value.Name} = {next.value.Name}).");
             }
             else if (NextIs<TokenLiteral>(false))
             {
                 var next = Next<TokenLiteral>(null);
-                CommandFile file = executor.CurrentFile;
+                CommandFile file = runningExecutor.CurrentFile;
 
                 if (assignment is TokenArithmetic arithmetic)
                 {
@@ -292,18 +292,18 @@ namespace mc_compiled.MCC.Compiler
                         case TokenArithmetic.Type.SWAP:
                         default:
                         {
-                            ScoreboardValue temp = executor.scoreboard.temps.RequestGlobal(next, this);
+                            ScoreboardValue temp = runningExecutor.scoreboard.temps.RequestGlobal(next, this);
                             commands.AddRange(temp.AssignLiteral(next, this));
                             commands.AddRange(value.value.Operation(temp, op, this));
                             break;
                         }
                     }
 
-                    executor.AddCommands(commands, "math_op", $"Math operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} {arithmetic.AsString()} {next.AsString()}).");
+                    runningExecutor.AddCommands(commands, "math_op", $"Math operation from {file.CommandReference} line {runningExecutor.NextLineNumber}. Performs ({value.value.Name} {arithmetic.AsString()} {next.AsString()}).");
                 }
                 else
-                    executor.AddCommands(value.value.AssignLiteral
-                        (next, this), "set_op", $"Set operation from {file.CommandReference} line {executor.NextLineNumber}. Performs ({value.value.Name} = {next.AsString()}).");
+                    runningExecutor.AddCommands(value.value.AssignLiteral
+                        (next, this), "set_op", $"Set operation from {file.CommandReference} line {runningExecutor.NextLineNumber}. Performs ({value.value.Name} = {next.AsString()}).");
             }
             else
                 throw new StatementException(this, $"Cannot assign variable to type \"{Peek().GetType().Name}\"");
@@ -331,7 +331,7 @@ namespace mc_compiled.MCC.Compiler
                 )
             };
         }
-        protected override void Run(Executor executor)
+        protected override void Run(Executor runningExecutor)
         {
             if (!NextIs<TokenIdentifierFunction>(false))
             {
@@ -397,18 +397,18 @@ namespace mc_compiled.MCC.Compiler
             
             if (bestFunction is RuntimeFunction)
             {
-                _ = bestFunction.CallFunction(callCommands, executor, this);
-                bestFunction.ProcessParameters(passIn, parameterCommands, executor, this);
+                _ = bestFunction.CallFunction(callCommands, runningExecutor, this);
+                bestFunction.ProcessParameters(passIn, parameterCommands, runningExecutor, this);
             }
             else
             {
-                bestFunction.ProcessParameters(passIn, parameterCommands, executor, this);
-                _ = bestFunction.CallFunction(callCommands, executor, this);
+                bestFunction.ProcessParameters(passIn, parameterCommands, runningExecutor, this);
+                _ = bestFunction.CallFunction(callCommands, runningExecutor, this);
             }
 
             
             // finish with the commands.
-            CommandFile current = executor.CurrentFile;
+            CommandFile current = runningExecutor.CurrentFile;
 
             // register the call for usage tree
             if (bestFunction is RuntimeFunction runtime)
@@ -416,8 +416,8 @@ namespace mc_compiled.MCC.Compiler
 
             string[] commands = parameterCommands.Concat(callCommands).ToArray();
             
-            executor.AddCommands(commands, "call" + bestFunction.Keyword.Replace('.', '_'),
-                $"From file {current.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", passIn.Select(t => t.AsString()))})");
+            runningExecutor.AddCommands(commands, "call" + bestFunction.Keyword.Replace('.', '_'),
+                $"From file {current.CommandReference} line {runningExecutor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", passIn.Select(t => t.AsString()))})");
         }
     }
 
@@ -442,7 +442,7 @@ namespace mc_compiled.MCC.Compiler
         public Token[] GetTokens() => this.tokens;
 
         protected override TypePattern[] GetValidPatterns() { return Array.Empty<TypePattern>(); } // always valid
-        protected override void Run(Executor executor) { } // no operation
+        protected override void Run(Executor runningExecutor) { } // no operation
     }
 
     /// <summary>

@@ -58,7 +58,7 @@
     "range": "TokenRangeLiteral",
     "json": "TokenJSONLiteral",
     "not": "TokenNot",
-    "async": "TokenAsyncResult"
+    "awaitable": "TokenAwaitable"
   },
   "categories": {
     "preprocessor": "Commands that allow the user to do things at compile time. Preprocessor commands generally start with a `$` and are highlighted differently than regular commands.",
@@ -861,7 +861,7 @@
         [ "int:ticks" ],
         [ "id:until", "*:conditions" ],
         [ "id:while", "*:conditions" ],
-        [ "async:async context" ]
+        [ "awaitable:awaitable" ]
       ]
     }
   }

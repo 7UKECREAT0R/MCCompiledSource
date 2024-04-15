@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Run this statement/continue where it left off.
         /// </summary>
-        protected abstract void Run(Executor executor);
+        protected abstract void Run(Executor runningExecutor);
 
         /// <summary>
         /// Clone this statement and resolve its unidentified tokens based off the current executor's state.
@@ -845,7 +845,7 @@ namespace mc_compiled.MCC.Compiler
         {
             return $"[HUSK] {string.Join(" ", from t in this.tokens select t.DebugString())}";
         }
-        protected override void Run(Executor executor) =>
+        protected override void Run(Executor runningExecutor) =>
             throw new StatementException(this, "Compiler tried to run a Husk statement. Have a dev look at this.");
         protected override TypePattern[] GetValidPatterns() => null;
         public override bool HasAttribute(DirectiveAttribute attribute) => false;

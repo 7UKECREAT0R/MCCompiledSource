@@ -131,7 +131,6 @@ namespace mc_compiled.Commands.Execute
         /// <summary>
         /// Executes at the location of @s. Shorthand for <b>.At(Selector.SELF)</b>
         /// </summary>
-        /// <param name="entity"></param>
         /// <returns></returns>
         public ExecuteBuilder AtSelf()
         {
@@ -223,7 +222,7 @@ namespace mc_compiled.Commands.Execute
         /// <summary>
         /// Run a command with all the previous subcommands applied. Calls <see cref="Build"/> and returns it, as 'run' is terminating.
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="command">The command to run with this execute context.</param>
         /// <returns></returns>
         public string Run(string command)
         {
@@ -231,9 +230,8 @@ namespace mc_compiled.Commands.Execute
             return Build(out _);
         }
         /// <summary>
-        /// Place a 'run' clause with no command and a whitespace at the end. Good for prepping for placing your own command.
+        /// Place a 'run' clause with no command and a whitespace at the end.
         /// </summary>
-        /// <param name="command"></param>
         /// <returns></returns>
         public string Run()
         {
@@ -242,7 +240,7 @@ namespace mc_compiled.Commands.Execute
         }
 
         /// <summary>
-        /// Same as <see cref="Run(string)"/>, but applies to every command in the array.
+        /// Same as <see cref="Run(string)"/>, but applies to every command in the array individually.
         /// </summary>
         /// <param name="commands"></param>
         /// <returns></returns>

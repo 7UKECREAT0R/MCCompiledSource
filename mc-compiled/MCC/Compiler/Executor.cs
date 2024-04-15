@@ -850,7 +850,7 @@ namespace mc_compiled.MCC.Compiler
 
             return null;
         }
-
+        
         /// <summary>
         /// Seek for the next statement that has valid executable data. Returns null if outside of bounds.
         /// </summary>
@@ -860,7 +860,7 @@ namespace mc_compiled.MCC.Compiler
         /// Seek forward from the statement N statements in front of the read index until it finds one with valid executable data. 0: current, 1: next, etc...
         /// Does perform bounds checking, and returns null if outside bounds.
         /// </summary>
-        /// <param name="amount"></param>
+        /// <param name="amount">The number of valid-data statements to skip.</param>
         /// <returns></returns>
         public Statement SeekSkip(int amount)
         {

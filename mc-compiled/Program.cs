@@ -24,6 +24,7 @@ namespace mc_compiled
         private static bool NO_PAUSE;
         private static bool REGOLITH;
 
+        public static bool TRACE;
         public static bool DECORATE;
         public static bool EXPORT_ALL;
         public static bool DEBUG;
@@ -51,6 +52,7 @@ namespace mc_compiled
             Console.Write("\t  [-orp | --outputrp] <directory>\tOutput resources to a specific directory. Use ?project to denote project name.\n");
             Console.Write("\t  [-od | --outputdevelopment]\t\tOutput files to the com.mojang development_x_packs directory.\n");
             Console.Write("\t  [-p | --project] <name>\t\tRun the compilation with the given project name. Defaults to using the input file's name.\n");
+            Console.Write("\t  [--trace]\t\t\t\tInclude trace commands in the final result, which is only really useful for debugging internally.\n");
             Console.Write("\t  [-ppv | --variable] <name> <value>\tRun the compilation with the given preprocessor variable already set.\n");
             Console.Write("\t  [--search]\t\t\t\tSearch for and compile all mcc files in the current directory and subdirectories.\n");
         }
@@ -81,6 +83,9 @@ namespace mc_compiled
                     case "-EA":
                     case "--EXPORT_ALL":
                         EXPORT_ALL = true;
+                        break;
+                    case "--TRACE":
+                        TRACE = true;
                         break;
                     case "--DEBUG":
                     case "-DB":

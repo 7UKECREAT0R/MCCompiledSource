@@ -64,13 +64,13 @@ namespace mc_compiled.MCC.Compiler
         }
     }
     /// <summary>
-    /// Represents the return value of calling an async function.
+    /// Represents the return value of calling an async function. It is possible to `await` this value.
     /// </summary>
-    public sealed class TokenAsyncResult : Token
+    public sealed class TokenAwaitable : Token
     {
         public readonly AsyncFunction function;
-        public override string AsString() => $"[async call: {this.function.escapedFunctionName}]";
-        public TokenAsyncResult(AsyncFunction function, int lineNumber) : base(lineNumber)
+        public override string AsString() => $"[awaitable: {this.function.escapedFunctionName}]";
+        public TokenAwaitable(AsyncFunction function, int lineNumber) : base(lineNumber)
         {
             this.function = function;
         }

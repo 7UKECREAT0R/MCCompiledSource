@@ -3176,7 +3176,9 @@ namespace mc_compiled.MCC.Compiler
         public static void returnFromFunction(Executor executor, Statement tokens)
         {
             RuntimeFunction activeFunction = executor.CurrentFile.runtimeFunction;
-
+                
+            // exceptions for when this command is run inside an async function are performed inside `AsyncFunction#TryReturnValue`
+            
             if (activeFunction == null)
                 throw new StatementException(tokens, "Cannot return a value outside of a function.");
 
@@ -3551,20 +3553,20 @@ namespace mc_compiled.MCC.Compiler
             
             // await <async function call>
             // ReSharper disable once InvertIf
-            if (tokens.NextIs<TokenAsyncResult>(false))
+            if (tokens.NextIs<TokenAwaitable>(false))
             {
-                TokenAsyncResult asyncResult = tokens.Next<TokenAsyncResult>("async");
+                TokenAwaitable awaitable = tokens.Next<TokenAwaitable>("async");
                 
-                if (asyncResult.function.target == AsyncTarget.Local && async.target == AsyncTarget.Global)
+                if (awaitable.function.target == AsyncTarget.Local && async.target == AsyncTarget.Global)
                     throw new StatementException(tokens, "Cannot await an async(local) function from an async(global) function; no way to know the entity to wait on.");
                 
                 // throws exception if deadlock is detected
-                async.AddWaitsOn(asyncResult.function, tokens);
+                async.AddWaitsOn(awaitable.function, tokens);
                 
                 ComparisonSet set = new ComparisonSet();
                 
                 // check for the called function's 'running' == false
-                ScoreboardValue running = asyncResult.function.runningValue;
+                ScoreboardValue running = awaitable.function.runningValue;
                 int lineNumber = tokens.Lines[0];
                 
                 ComparisonValue value = new ComparisonValue(

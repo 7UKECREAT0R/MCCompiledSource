@@ -2,8 +2,10 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Compiler.Async;
 
 namespace mc_compiled.MCC.Scheduling
 {
@@ -40,7 +42,23 @@ namespace mc_compiled.MCC.Scheduling
 
             return file;
         }
-
+        /// <summary>
+        /// Returns if the input file is related directly to the scheduler.
+        /// </summary>
+        /// <param name="file">The file to check.</param>
+        /// <returns>True if the file is used in any scheduled tasks; otherwise false.</returns>
+        internal bool IsFileAuto(CommandFile file)
+        {
+            // ReSharper disable once InvertIf
+            if (file.folder != null && file.folder.Equals(AsyncFunction.FOLDER))
+            {
+                if (file.name.Equals("tick"))
+                    return true;
+            }
+            
+            return file.folder?.StartsWith(FOLDER) ?? false;
+        }
+        
         public string CommandReference => throw new NotImplementedException();
 
         /// <summary>

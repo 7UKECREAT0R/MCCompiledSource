@@ -115,10 +115,10 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Create a new command file with an optional runtime function linked to it.
         /// </summary>
-        /// <param name="isInUse"></param>
-        /// <param name="name"></param>
-        /// <param name="folder"></param>
-        /// <param name="runtimeFunction"></param>
+        /// <param name="isInUse">Is the file currently in use? (the file will be omitted if false and EXPORT_ALL is disabled.)</param>
+        /// <param name="name">The name of the command file, not including folder.</param>
+        /// <param name="folder">The folder path this command file is contained in; can be separated using either slash type. Default is null.</param>
+        /// <param name="runtimeFunction">The <see cref="RuntimeFunction"/> that is linked to this command file, if any. Default is null.</param>
         public CommandFile(bool isInUse, string name, string folder = null, RuntimeFunction runtimeFunction = null)
         {
             this.isInUse = isInUse;

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
+using mc_compiled.Json;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.MCC.Scheduling.Implementations;
@@ -280,6 +282,15 @@ namespace mc_compiled.MCC
                     bool prerequisite = !cmd.IsInUse || ReferenceEquals(cmd, this.parentExecutor.HeadFile);
                     if (prerequisite && cmd.commands.TrueForAll(c => c.StartsWith("#")))
                         continue;
+                    
+                    // traces
+                    bool isDirectlyFromTickJson = this.parentExecutor.GetScheduler().IsFileAuto(cmd);
+                    if (Program.TRACE && !isDirectlyFromTickJson)
+                    {
+                        cmd.AddTop("");
+                        cmd.AddTop(Command.Tellraw(Selector.ALL_PLAYERS.ToString(),
+                            new RawTextJsonBuilder().AddTerm(new JSONText($"[TRACE] > {cmd.CommandReference}")).Build()));
+                    }
                 }
                 
                 // log the write to console

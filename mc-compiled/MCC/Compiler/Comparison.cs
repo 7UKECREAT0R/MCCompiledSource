@@ -16,7 +16,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Instantiates an empty ComparisonSet.
         /// </summary>
-        public ComparisonSet() : base() { }
+        public ComparisonSet() { }
 
         public string GetDescription() => "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']';
         
@@ -243,7 +243,7 @@ namespace mc_compiled.MCC.Compiler
 
             // add commands to a file
             CommandFile prepFile = null;
-            if (commands.Count > 0 || usesElse)
+            if (commands.Count > 0 || usesElse || executor.async.IsInAsync)
             {
                 prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
                 if(Program.DECORATE)
@@ -259,10 +259,10 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // apply the comparisons.
-            if (usesElse)
+            if (usesElse || executor.async.IsInAsync) // if we're in async, we need implicit else for skipping stages
                 ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel);
             else
-                ApplyComparisonToSolo(chunks, callingStatement, executor, cancel);
+                ApplyComparisonToSolo(chunks, executor, cancel);
         }
 
         /// <summary>
@@ -291,10 +291,9 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // add commands to a file
-            CommandFile prepFile = null;
             if (commands.Count > 0)
             {
-                prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
+                CommandFile prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
                 if (Program.DECORATE)
                 {
                     // attempt to add extra detail to the output file for reading users
@@ -334,10 +333,9 @@ namespace mc_compiled.MCC.Compiler
         /// Applies the given comparison subcommands to the executor.
         /// </summary>
         /// <param name="chunks">The chunks to add.</param>
-        /// <param name="forExceptions">For exceptions.</param>
         /// <param name="executor">The executor to modify.</param>
         /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
-        private void ApplyComparisonToSolo(IEnumerable<Subcommand> chunks, Statement forExceptions, Executor executor, bool cancel)
+        private void ApplyComparisonToSolo(IEnumerable<Subcommand> chunks, Executor executor, bool cancel)
         {
             string prepend = new ExecuteBuilder()
                 .WithSubcommands(chunks)
@@ -371,39 +369,67 @@ namespace mc_compiled.MCC.Compiler
                 .WithSubcommand(new SubcommandIf(used))
                 .Run();
             
-            InjectBranch(executor, executePrefix, cancel);
+            InjectBranch(executor, executePrefix, cancel, record);
         }
         
-        private void InjectBranch(Executor executor, string prepend, bool cancel)
+        private void InjectBranch(Executor executor, string prepend, bool cancel, PreviousComparisonStructure elseInfo = null)
         {
             // get the next statement to determine how to inject the comparison
             Statement next = executor.Seek();
             
             if (next is StatementOpenBlock openBlock)
-                InjectBranchBlock(executor, prepend, cancel, openBlock);
+                InjectBranchBlock(executor, prepend, cancel, openBlock, elseInfo);
             else
-                InjectBranchSingle(executor, prepend, cancel);
+                InjectBranchSingle(executor, prepend, cancel, elseInfo);
         }
-        private void InjectBranchBlock(Executor executor, string prepend, bool cancel, StatementOpenBlock openBlock)
+        private void InjectBranchBlock(Executor executor, string prepend, bool cancel, StatementOpenBlock openBlock, PreviousComparisonStructure elseInfo = null)
         {
-            if(openBlock.statementsInside == 0)
-            {
-                openBlock.openAction = null;
-                openBlock.CloseAction = null;
-                return;
-            }
-            
             if (cancel)
             {
+                openBlock.CloseAction = null;
                 openBlock.openAction = (e) =>
                 {
-                    openBlock.CloseAction = null;
                     for (int i = 0; i < openBlock.statementsInside; i++)
                         e.Next();
                 };
                 return;
             }
 
+            if (openBlock.meaningfulStatementsInside == 0)
+            {
+                openBlock.openAction = null;
+                openBlock.CloseAction = null;
+                return;
+            }
+
+            // special case if we're in an async context.
+            if (executor.async.IsInAsync)
+            {
+                // there will be an async stage allocated for us to use by the time the OpenAction gets hit.
+                string currentFunction = executor.async.CurrentFunction.escapedFunctionName;
+                int nextStage = executor.async.CurrentFunction.NextStageIndex;
+                string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
+                executor.AddCommand(prepend + Command.Function(nextStageName));
+                
+                // the file that enters into either the 'true async stage' or 'false async stage'.
+                // the 'false async stage' will need to be set when the block closes, so store a reference of it.
+                CommandFile entryFile = executor.CurrentFile;
+
+                openBlock.CloseAction = (e) =>
+                {
+                    if (elseInfo == null)
+                        throw new Exception("Did not get PreviousComparisonStructure for async branch evaluation.");
+                    
+                    AsyncStage closingStage = e.async.CurrentFunction.ActiveStage;
+                    string elseCommand = new ExecuteBuilder()
+                        .WithSubcommand(new SubcommandUnless(elseInfo.conditionalUsed))
+                        .Run(Command.Function(closingStage.file));
+                    
+                    entryFile.Add(elseCommand);
+                };
+                return;
+            }
+            
             if (openBlock.meaningfulStatementsInside == 1)
             {
                 // modify prepend buffer as if 1 statement was there
@@ -433,7 +459,7 @@ namespace mc_compiled.MCC.Compiler
                 e.PopFile();
             };
         }
-        private static void InjectBranchSingle(Executor executor, string prepend, bool cancel)
+        private static void InjectBranchSingle(Executor executor, string prepend, bool cancel, PreviousComparisonStructure elseInfo = null)
         {
             if (cancel)
             {
@@ -443,6 +469,37 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
             
+            // special case if we're in an async context.
+            if (executor.async.IsInAsync)
+            {
+                // we need to start a new async stage to hold the single affected stage.
+                CommandFile originalFile = executor.CurrentFile;
+                string currentFunction = executor.async.CurrentFunction.escapedFunctionName;
+                int nextStage = executor.async.CurrentFunction.NextStageIndex;
+                string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
+                executor.AddCommand(prepend + Command.Function(nextStageName));
+                
+                // start the new one
+                executor.async.CurrentFunction.FinishStageImmediate();
+                executor.async.CurrentFunction.StartNewStage();
+
+                // defer ending the stage until next statement
+                executor.DeferAction((e) =>
+                {
+                    e.async.CurrentFunction.FinishStageImmediate();
+                    e.async.CurrentFunction.StartNewStage();
+
+                    if (elseInfo == null)
+                        throw new Exception("Did not get PreviousComparisonStructure for async branch evaluation.");
+
+                    AsyncStage closingStage = e.async.CurrentFunction.ActiveStage;
+                    string elseCommand = new ExecuteBuilder()
+                        .WithSubcommand(new SubcommandUnless(elseInfo.conditionalUsed))
+                        .Run(Command.Function(closingStage.file));
+                    originalFile.Add(elseCommand);
+                });
+            }
+
             executor.AppendCommandPrepend(prepend);
         }
         
@@ -456,10 +513,7 @@ namespace mc_compiled.MCC.Compiler
                 item.SetInversion(invert);
         }
 
-        public bool IsEmpty
-        {
-            get => this.Count == 0;
-        }
+        private bool IsEmpty => this.Count == 0;
     }
 
     /// <summary>
@@ -467,7 +521,7 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public abstract class Comparison
     {
-        readonly bool originallyInverted;
+        private readonly bool originallyInverted;
 
         /// <summary>
         /// Encodes a selector's hash and depth together with a prefix. (not actually 'encoding')
@@ -478,9 +532,9 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public static string DepthEncode(string prefix, int depth, Selector selector)
         {
-            return prefix + depth + '_' + selector.GetHashCode().ToString().Replace('-', '0');;
+            return prefix + depth + '_' + selector.GetHashCode().ToString().Replace('-', '0');
         }
-        public Comparison(bool invert)
+        protected Comparison(bool invert)
         {
             this.originallyInverted = invert;
             this.inverted = invert;
@@ -489,7 +543,8 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// If this comparison is inverted.
         /// </summary>
-        public bool inverted;
+        protected bool inverted;
+        
         /// <summary>
         /// Toggles the inversion of this comparison.
         /// </summary>

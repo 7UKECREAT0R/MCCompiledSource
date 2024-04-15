@@ -689,7 +689,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                         ["properties"] = _properties
                     };
                     package.SendFrame(WebSocketFrame.JSON(properties));
-
+                    
                     Lint(code, package);
 
                     if (this.debug)

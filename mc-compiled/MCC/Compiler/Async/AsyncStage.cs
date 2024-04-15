@@ -7,9 +7,16 @@ namespace mc_compiled.MCC.Compiler.Async
     /// </summary>
     public class AsyncStage
     {
-        private static readonly string FOLDER = $"{Executor.MCC_GENERATED_FOLDER}/async/stages/";
-        private static string NameStageFunction(string functionName, int stage) =>
-            $"{functionName}_{stage}";
+        private static readonly string FOLDER = $"{Executor.MCC_GENERATED_FOLDER}/async/stages";
+        /// <summary>
+        /// Returns the name of a stage function.
+        /// </summary>
+        /// <param name="functionName">Generally implemented using: <code>AsyncFunction#escapedFunctionName</code></param>
+        /// <param name="stage">The index of the stage for this function.</param>
+        /// <param name="includeFolder">Include the folder path in the returned value?</param>
+        /// <returns>The internal name of a function matching the input conditions.</returns>
+        internal static string NameStageFunction(string functionName, int stage, bool includeFolder = false) =>
+            includeFolder ? $"{FOLDER}/{functionName}_{stage}" : $"{functionName}_{stage}";
 
         public readonly int index;
         private readonly bool isFirst;
@@ -18,7 +25,12 @@ namespace mc_compiled.MCC.Compiler.Async
         private readonly AsyncFunction parent;
         
         private int? ticksUntilNextStage;
-        
+
+        /// <summary>
+        /// Returns if this stage delays for >0 ticks before progressing to the next stage.
+        /// </summary>
+        /// <returns></returns>
+        public bool HasTickDelay => this.ticksUntilNextStage.HasValue && this.ticksUntilNextStage.Value != 0;
         /// <summary>
         /// Sets the tick delay for the current stage.
         /// </summary>
@@ -37,8 +49,8 @@ namespace mc_compiled.MCC.Compiler.Async
             this.index = index;
             this.isFirst = index == 0;
 
-            string stageName = FOLDER + NameStageFunction(parent.escapedFunctionName, index);
-            this.file = new CommandFile(false, stageName);
+            string stageName = NameStageFunction(parent.escapedFunctionName, index);
+            this.file = new CommandFile(false, stageName, FOLDER);
             this.file.MarkAsync();
             
             parent.file.RegisterCall(this.file);
@@ -59,7 +71,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// <param name="executor"></param>
         public void FinishTerminate(Executor executor)
         {
-            executor.PopFirstFile(file => file.IsAsync);
+            executor.PopFile();
             
             if (Program.DECORATE)
             {
