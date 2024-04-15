@@ -339,101 +339,12 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
         private void ApplyComparisonToSolo(IEnumerable<Subcommand> chunks, Statement forExceptions, Executor executor, bool cancel)
         {
-            // get the next statement to determine how to run this comparison
-            Statement next = executor.Seek();
-
-            if (next is StatementOpenBlock openBlock)
-            {
-                // only do the block stuff if necessary.
-                if (openBlock.statementsInside > 0)
-                {
-                    if (cancel)
-                    {
-                        openBlock.openAction = (e) =>
-                        {
-                            openBlock.CloseAction = null;
-                            for (int i = 0; i < openBlock.statementsInside; i++)
-                                e.Next();
-                        };
-                    }
-                    else
-                    {
-                        string finalExecute = new ExecuteBuilder()
-                            .WithSubcommands(chunks)
-                            .WithSubcommand(new SubcommandRun())
-                            .Build(out _);
-
-                        if (openBlock.meaningfulStatementsInside == 1)
-                        {
-                            // modify prepend buffer as if 1 statement was there
-                            executor.AppendCommandPrepend(finalExecute);
-                            openBlock.openAction = null;
-                            openBlock.CloseAction = null;
-                        }
-                        else
-                        {
-                            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
-
-                            if (Program.DECORATE)
-                            {
-                                blockFile.Add($"# Run after comparison {GetDescription()}");
-                                blockFile.AddTrace(executor.CurrentFile);
-                            }
-
-                            string command = finalExecute + Command.Function(blockFile);
-                            executor.AddCommand(command);
-
-                            openBlock.openAction = (e) =>
-                            {
-                                /* old async stuff
-                                if (e.async.IsInAsync)
-                                {
-                                    AsyncFunction currentFunction = e.async.CurrentFunction;
-                                    currentFunction.FinishStageImmediate();
-                                    currentFunction.PushNewGroup();
-                                    currentFunction.StartNewStage();
-                                }*/
-
-                                e.PushFile(blockFile);
-                            };
-                            openBlock.CloseAction = (e) =>
-                            {
-                                /* old async stuff
-                                if (e.async.IsInAsync)
-                                {
-                                    AsyncFunction currentFunction = e.async.CurrentFunction;
-                                    currentFunction.FinishStageImmediate();
-                                    currentFunction.PopGroup();
-                                    currentFunction.StartNewStage();
-                                }*/ 
-
-                                e.PopFile();
-                            };
-                        }
-                    }
-                } else
-                {
-                    openBlock.openAction = null;
-                    openBlock.CloseAction = null;
-                }
-            }
-            else
-            {
-                if (cancel)
-                {
-                    while (executor.HasNext && executor.Peek().Skip)
-                        executor.Next();
-                    executor.Next();
-                }
-                else
-                {
-                    string finalExecute = new ExecuteBuilder()
-                        .WithSubcommands(chunks)
-                        .WithSubcommand(new SubcommandRun())
-                        .Build(out _);
-                    executor.AppendCommandPrepend(finalExecute);
-                }
-            }
+            string prepend = new ExecuteBuilder()
+                .WithSubcommands(chunks)
+                .WithSubcommand(new SubcommandRun())
+                .Build(out _);
+            
+            InjectBranch(executor, prepend, cancel);
         }
 
         /// <summary>
@@ -446,9 +357,6 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
         private void ApplyComparisonToWithElse(IEnumerable<Subcommand> chunks, CommandFile setupFile, Statement forExceptions, Executor executor, bool cancel)
         {
-            // get the next statement to determine how to run this comparison
-            Statement next = executor.Seek();
-
             var record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel, GetDescription());
             ScoreboardValue resultObjective = record.resultStore;
 
@@ -463,73 +371,81 @@ namespace mc_compiled.MCC.Compiler
                 .WithSubcommand(new SubcommandIf(used))
                 .Run();
             
-            if (next is StatementOpenBlock openBlock)
-            {
-                // only do the block stuff if necessary.
-                if (openBlock.statementsInside > 0)
-                {
-                    if (cancel)
-                    {
-                        openBlock.openAction = (e) =>
-                        {
-                            openBlock.CloseAction = null;
-                            for (int i = 0; i < openBlock.statementsInside; i++)
-                                e.Next();
-                        };
-                    }
-                    else
-                    {
-
-                        if (openBlock.meaningfulStatementsInside == 1)
-                        {
-                            // modify prepend buffer as if 1 statement was there
-                            executor.AppendCommandPrepend(executePrefix);
-                            openBlock.openAction = null;
-                            openBlock.CloseAction = null;
-                        }
-                        else
-                        {
-                            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
-
-                            if (Program.DECORATE)
-                            {
-                                blockFile.Add($"# Run after comparison {GetDescription()}");
-                                blockFile.AddTrace(executor.CurrentFile);
-                            }
-
-                            string command = executePrefix + Command.Function(blockFile);
-                            executor.AddCommand(command);
-
-                            openBlock.openAction = (e) =>
-                            {
-                                e.PushFile(blockFile);
-                            };
-                            openBlock.CloseAction = (e) =>
-                            {
-                                e.PopFile();
-                            };
-                        }
-                    }
-                }
-                else
-                {
-                    openBlock.openAction = null;
-                    openBlock.CloseAction = null;
-                }
-            }
-            else
-            {
-                if (cancel)
-                {
-                    while(executor.HasNext && executor.Peek().Skip)
-                        executor.Next();
-                    executor.Next();
-                }
-                else
-                    executor.AppendCommandPrepend(executePrefix);
-            }
+            InjectBranch(executor, executePrefix, cancel);
         }
+        
+        private void InjectBranch(Executor executor, string prepend, bool cancel)
+        {
+            // get the next statement to determine how to inject the comparison
+            Statement next = executor.Seek();
+            
+            if (next is StatementOpenBlock openBlock)
+                InjectBranchBlock(executor, prepend, cancel, openBlock);
+            else
+                InjectBranchSingle(executor, prepend, cancel);
+        }
+        private void InjectBranchBlock(Executor executor, string prepend, bool cancel, StatementOpenBlock openBlock)
+        {
+            if(openBlock.statementsInside == 0)
+            {
+                openBlock.openAction = null;
+                openBlock.CloseAction = null;
+                return;
+            }
+            
+            if (cancel)
+            {
+                openBlock.openAction = (e) =>
+                {
+                    openBlock.CloseAction = null;
+                    for (int i = 0; i < openBlock.statementsInside; i++)
+                        e.Next();
+                };
+                return;
+            }
 
+            if (openBlock.meaningfulStatementsInside == 1)
+            {
+                // modify prepend buffer as if 1 statement was there
+                executor.AppendCommandPrepend(prepend);
+                openBlock.openAction = null;
+                openBlock.CloseAction = null;
+                return;
+            }
+
+            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+
+            if (Program.DECORATE)
+            {
+                blockFile.Add($"# Run after comparison {GetDescription()}");
+                blockFile.AddTrace(executor.CurrentFile);
+            }
+
+            string command = prepend + Command.Function(blockFile);
+            executor.AddCommand(command);
+
+            openBlock.openAction = (e) =>
+            {
+                e.PushFile(blockFile);
+            };
+            openBlock.CloseAction = (e) =>
+            {
+                e.PopFile();
+            };
+        }
+        private static void InjectBranchSingle(Executor executor, string prepend, bool cancel)
+        {
+            if (cancel)
+            {
+                while(executor.HasNext && executor.Peek().Skip)
+                    executor.Next();
+                executor.Next();
+                return;
+            }
+            
+            executor.AppendCommandPrepend(prepend);
+        }
+        
         /// <summary>
         /// Set the inversion on all elements.
         /// </summary>
