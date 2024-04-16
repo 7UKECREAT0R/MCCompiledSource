@@ -498,6 +498,7 @@ namespace mc_compiled.MCC.Compiler
                         .Run(Command.Function(closingStage.file));
                     originalFile.Add(elseCommand);
                 });
+                return;
             }
 
             executor.AppendCommandPrepend(prepend);

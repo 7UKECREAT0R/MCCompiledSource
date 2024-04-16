@@ -159,8 +159,8 @@ namespace mc_compiled.MCC.Compiler
             this.definedReturnedTypes = new HashSet<Typedef>();
 
             if (inputPPVs != null && inputPPVs.Count > 0)
-                foreach (Program.InputPPV ppv in inputPPVs)
-                    SetPPV(ppv.name, ppv.value);
+                foreach (Program.InputPPV inputPPV in inputPPVs)
+                    SetPPV(inputPPV.name, inputPPV.value);
 
             // support up to MAXIMUM_SCOPE levels of scope before blowing up
             this.lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
