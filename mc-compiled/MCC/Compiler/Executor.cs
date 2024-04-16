@@ -80,22 +80,39 @@ namespace mc_compiled.MCC.Compiler
             Console.ForegroundColor = old;
         }
 
-        private int iterationsUntilDeferProcess = 0;
+        /// <summary>
+        /// The number of iterations until the <see cref="deferredActions"/> are processed in order of newest-to-oldest.
+        /// </summary>
+        private int iterationsUntilDeferProcess;
         /// <summary>
         /// Defer an action to happen after the next valid statement has run.
         /// </summary>
         /// <param name="action"></param>
         public void DeferAction(Action<Executor> action)
         {
-            this.iterationsUntilDeferProcess += 2;
+            this.iterationsUntilDeferProcess = 2;
             this.deferredActions.Push(action);
         }
         /// <summary>
-        /// Process all deferred actions currently in the queue.
+        /// Tick the deferred actions and run all of them if the timer is in the right state.
         /// </summary>
-        private void ProcessDeferredActions()
+        private void TickDeferredActions()
         {
-            while(this.deferredActions.Any())
+            if (this.iterationsUntilDeferProcess <= 0)
+                return;
+            
+            this.iterationsUntilDeferProcess--;
+            if (this.iterationsUntilDeferProcess != 0)
+                return;
+            
+            AcceptDeferredActions();
+        }
+        /// <summary>
+        /// Process all deferred actions in the queue.
+        /// </summary>
+        private void AcceptDeferredActions()
+        {
+            while (this.deferredActions.Any())
             {
                 Action<Executor> action = this.deferredActions.Pop();
                 action.Invoke(this);
@@ -1066,13 +1083,8 @@ namespace mc_compiled.MCC.Compiler
                 // check for unreachable code due to halt directive
                 CheckUnreachable(statement);
 
-                // run deferred processes
-                if(this.iterationsUntilDeferProcess > 0)
-                {
-                    this.iterationsUntilDeferProcess--;
-                    if (this.iterationsUntilDeferProcess == 0)
-                        ProcessDeferredActions();
-                }
+                // tick deferred processes
+                TickDeferredActions();
 
                 if(Program.DEBUG)
                     Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement.ToString());
@@ -1110,19 +1122,14 @@ namespace mc_compiled.MCC.Compiler
                 // check for unreachable code due to halt directive
                 CheckUnreachable(statement);
 
-                // run deferred processes
-                if (this.iterationsUntilDeferProcess > 0)
-                {
-                    this.iterationsUntilDeferProcess--;
-                    if (this.iterationsUntilDeferProcess == 0)
-                        ProcessDeferredActions();
-                }
+                // tick deferred processes
+                TickDeferredActions();
 
                 if (Program.DEBUG)
                     Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement.ToString());
             }
 
-            // now its done, so restore state
+            // now it's done, so restore state
             this.statements = restore0;
             this.readIndex = restore1;
         }
