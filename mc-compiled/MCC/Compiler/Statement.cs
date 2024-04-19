@@ -47,12 +47,12 @@ namespace mc_compiled.MCC.Compiler
         /// <br />This function pushes the Scoreboard temp state once.
         /// </summary>
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
-        public Statement ClonePrepare(Executor executor)
+        public Statement ClonePrepare(Executor activeExecutor)
         {
             if (!(MemberwiseClone() is Statement statement))
                 return null;
             
-            statement.PrepareThis(executor);
+            statement.PrepareThis(activeExecutor);
             return statement;
         }
         /// <summary>
@@ -60,10 +60,10 @@ namespace mc_compiled.MCC.Compiler
         /// After this is finished, squash and process any intermediate math or functional operations.
         /// </summary>
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
-        public void PrepareThis(Executor executor)
+        public void PrepareThis(Executor activeExecutor)
         {
             // set executors
-            SetExecutor(executor);
+            SetExecutor(activeExecutor);
 
             // e.g. close/open block
             if (this.tokens == null)
@@ -94,9 +94,9 @@ namespace mc_compiled.MCC.Compiler
                 
                 // resolve the token.
                 if (resolveStrings && unresolved is TokenStringLiteral literal)
-                    allResolved.Add(new TokenStringLiteral(executor.ResolveString(literal), line));
+                    allResolved.Add(new TokenStringLiteral(activeExecutor.ResolveString(literal), line));
                 else if (unresolved is TokenUnresolvedSelector unresolvedSelector)
-                    allResolved.Add(unresolvedSelector.Resolve(executor).Validate(this));
+                    allResolved.Add(unresolvedSelector.Resolve(activeExecutor).Validate(this));
                 else if (unresolved is TokenSelectorLiteral resolvedSelector)
                     allResolved.Add(resolvedSelector.Validate(this));
                 else
@@ -111,18 +111,18 @@ namespace mc_compiled.MCC.Compiler
                             if (lastTokenWasDeref)
                             {
                                 // prioritize preprocessor variables first -- just in case.
-                                if (executor.TryGetPPV(word, out PreprocessorVariable ppv))
+                                if (activeExecutor.TryGetPPV(word, out PreprocessorVariable ppv))
                                     allResolved.Add(new TokenIdentifierPreprocessor(word, ppv, line));
                                 break;
                             }
                             
-                            if (executor.scoreboard.TryGetByUserFacingName(word, out ScoreboardValue value))
+                            if (activeExecutor.scoreboard.TryGetByUserFacingName(word, out ScoreboardValue value))
                                 allResolved.Add(new TokenIdentifierValue(word, value, line));
-                            else if (executor.TryLookupMacro(word, out Macro? macro))
+                            else if (activeExecutor.TryLookupMacro(word, out Macro? macro))
                                 allResolved.Add(new TokenIdentifierMacro(macro.GetValueOrDefault(), line));
-                            else if (executor.functions.TryGetFunctions(word, out Function[] functions))
+                            else if (activeExecutor.functions.TryGetFunctions(word, out Function[] functions))
                                 allResolved.Add(new TokenIdentifierFunction(word, functions, line));
-                            else if (executor.TryGetPPV(word, out PreprocessorVariable ppv))
+                            else if (activeExecutor.TryGetPPV(word, out PreprocessorVariable ppv))
                                 allResolved.Add(new TokenIdentifierPreprocessor(word, ppv, line));
                             else
                                 allResolved.Add(tokenIdentifier);
@@ -140,7 +140,7 @@ namespace mc_compiled.MCC.Compiler
                 lastTokenWasDeref = false;
             }
 
-            SquashAll(allResolved, executor);
+            SquashAll(allResolved, activeExecutor);
 
             this.tokens = allResolved.ToArray();
             this.patterns = GetValidPatterns();
@@ -149,7 +149,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Decorate the active file with this statement's source if decoration is enabled.
         /// </summary>
-        public void Decorate(Executor executor)
+        public void Decorate(Executor activeExecutor)
         {
             if (!Program.DECORATE || !this.DecorateInSource || this.Source == null)
                 return;
@@ -163,7 +163,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             // find whether to add a newline or not
-            CommandFile file = executor.CurrentFile;
+            CommandFile file = activeExecutor.CurrentFile;
             int length = file.Length;
 
             if (length > 0)
@@ -178,7 +178,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Run this statement from square one.
         /// </summary>
-        public void Run0(Executor executor)
+        public void Run0(Executor activeExecutor)
         {
             if (this.patterns != null && this.patterns.Length > 0)
             {
@@ -196,7 +196,7 @@ namespace mc_compiled.MCC.Compiler
             }
 
             this.currentToken = 0;
-            Run(executor);
+            Run(activeExecutor);
             
             // if there's tokens left in this statement, then the user likely expected them to be used.
             // throwing a helpful exception if this is the case. I would emit a warning if I could (do this when LSP is implemented pls)
@@ -213,12 +213,12 @@ namespace mc_compiled.MCC.Compiler
             string joined = string.Join(", ", remainingUsefulTokens.Select(t => t.AsString()));
             throw new StatementException(this, $"{tokensWere} not used: {joined}");
         }
-        private void SquashAll(List<Token> tokens, Executor executor)
+        private void SquashAll(List<Token> squashTokens, Executor activeExecutor)
         {
             // recursively call parenthesis first
-            for(int i = 0; i < tokens.Count; i++)
+            for(int i = 0; i < squashTokens.Count; i++)
             {
-                Token token = tokens[i];
+                Token token = squashTokens[i];
                 if (!(token is TokenOpenGroupingBracket opener))
                     continue;
                 if (opener.hasBeenSquashed)
@@ -226,9 +226,9 @@ namespace mc_compiled.MCC.Compiler
 
                 int level = 1;
                 var toSquash = new List<Token>();
-                for(int x = i + 1; x < tokens.Count; x++)
+                for(int x = i + 1; x < squashTokens.Count; x++)
                 {
-                    token = tokens[x];
+                    token = squashTokens[x];
                     switch (token)
                     {
                         case TokenOpenGroupingBracket opener2 when opener.IsAssociated(opener2):
@@ -253,7 +253,7 @@ namespace mc_compiled.MCC.Compiler
                 // check if this is a function call.
                 bool isFunction = this is StatementFunctionCall && i == 1;
                 if(!isFunction && i > 0)
-                    isFunction |= tokens[i - 1] is TokenIdentifierFunction;
+                    isFunction |= squashTokens[i - 1] is TokenIdentifierFunction;
 
                 // only remove parentheses, NOT indexers, if they're used for grouping
                 if (isFunction || opener is TokenOpenIndexer)
@@ -262,36 +262,36 @@ namespace mc_compiled.MCC.Compiler
                     removeLength += 2;
 
                 // inside parentheses
-                SquashAll(toSquash, executor);
-                tokens.RemoveRange(startIndex, removeLength);
-                tokens.InsertRange(startIndex, toSquash);
+                SquashAll(toSquash, activeExecutor);
+                squashTokens.RemoveRange(startIndex, removeLength);
+                squashTokens.InsertRange(startIndex, toSquash);
                 opener.hasBeenSquashed = true;
                 i = -1; // reset back to the start
             }
             
             // squash any range pieces into a complete range, now that the numbers have been evaluated
-            SquashSpecial(tokens);
+            SquashSpecial(squashTokens);
             // squash any indexing brackets into single semantically evaluated tokens.
-            SquashIndexers(tokens);
+            SquashIndexers(squashTokens);
 
             // run $dereferences
-            SquashDereferences(tokens, executor);
+            SquashDereferences(squashTokens);
             // run functions(...)
-            SquashFunctions(tokens, executor);
+            SquashFunctions(squashTokens, activeExecutor);
             // run indexers[...]
-            SquashIndexing(tokens);
+            SquashIndexing(squashTokens);
             // run multiplication/division/modulo
-            Squash<TokenArithmeticFirst>(tokens, executor);
+            Squash<TokenArithmeticFirst>(squashTokens, activeExecutor);
             // run addition/subtraction
-            Squash<TokenArithmeticSecond>(tokens, executor);
+            Squash<TokenArithmeticSecond>(squashTokens, activeExecutor);
         }
 
-        private void SquashSpecial(List<Token> tokens)
+        private void SquashSpecial(List<Token> squashTokens)
         {
             // going over it backwards for merging any particular tokens
-            for (int i = tokens.Count - 1; i >= 0; i--)
+            for (int i = squashTokens.Count - 1; i >= 0; i--)
             {
-                Token token = tokens[i];
+                Token token = squashTokens[i];
 
                 switch (token)
                 {
@@ -338,8 +338,8 @@ namespace mc_compiled.MCC.Compiler
                             replacement.range.invert = true;
                         }
 
-                        tokens.RemoveRange(i, replacementLength);
-                        tokens.Insert(i, replacement);
+                        squashTokens.RemoveRange(i, replacementLength);
+                        squashTokens.Insert(i, replacement);
                         continue;
                     }
                     case TokenRangeInvert _:
@@ -347,10 +347,10 @@ namespace mc_compiled.MCC.Compiler
                         Token after = After(1);
                         if (!(after is TokenIntegerLiteral afterLiteral))
                             throw new TokenizerException("You can only invert integers.");
-                        tokens.RemoveRange(i, 2);
+                        squashTokens.RemoveRange(i, 2);
                         int number = afterLiteral;
                         var range = new Range(number, true);
-                        tokens.Insert(i, new TokenRangeLiteral(range, token.lineNumber));
+                        squashTokens.Insert(i, new TokenRangeLiteral(range, token.lineNumber));
                         continue;
                     }
                 }
@@ -370,8 +370,8 @@ namespace mc_compiled.MCC.Compiler
                                 replace.Add(unwrapped);
                         }
 
-                        tokens.RemoveAt(i);
-                        tokens.InsertRange(i, replace);
+                        squashTokens.RemoveAt(i);
+                        squashTokens.InsertRange(i, replace);
                         i += replace.Count;
                     }
                 }
@@ -382,22 +382,22 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (i - amount < 0)
                         return null;
-                    return tokens[i - amount];
+                    return squashTokens[i - amount];
                 }
 
                 Token After(int amount)
                 {
-                    if (i + amount >= tokens.Count)
+                    if (i + amount >= squashTokens.Count)
                         return null;
-                    return tokens[i + amount];
+                    return squashTokens[i + amount];
                 }
             }
         }
-        private void Squash<T>(List<Token> tokens, Executor executor)
+        private void Squash<T>(List<Token> squashTokens, Executor activeExecutor)
         {
-            for (int i = 1; i < (tokens.Count() - 1); i++)
+            for (int i = 1; i < (squashTokens.Count() - 1); i++)
             {
-                Token selected = tokens[i];
+                Token selected = squashTokens[i];
                 if (!(selected is T))
                     continue;
                 if (selected is IAssignment)
@@ -409,8 +409,8 @@ namespace mc_compiled.MCC.Compiler
                 var commands = new List<string>();
                 Token squashedToken = null;
                 
-                Token _left = tokens[i - 1];
-                Token _right = tokens[i + 1];
+                Token _left = squashTokens[i - 1];
+                Token _right = squashTokens[i + 1];
 
                 bool squashToGlobal = false;
                 bool leftIsLiteral = _left is TokenLiteral;
@@ -455,7 +455,7 @@ namespace mc_compiled.MCC.Compiler
                     ScoreboardValue b = right.value;
                     squashToGlobal = a.clarifier.IsGlobal || b.clarifier.IsGlobal;
 
-                    ScoreboardValue temp = executor.scoreboard.temps.RequestCopy(a, squashToGlobal);
+                    ScoreboardValue temp = activeExecutor.scoreboard.temps.RequestCopy(a, squashToGlobal);
                     string accessorTemp = temp.Name;
 
                     commands.AddRange(temp.Assign(a, this));
@@ -495,7 +495,7 @@ namespace mc_compiled.MCC.Compiler
                         b = (_right as TokenIdentifierValue).value;
                         squashToGlobal = b.clarifier.IsGlobal;
 
-                        a = executor.scoreboard.temps.Request(_left as TokenLiteral, this, true);
+                        a = activeExecutor.scoreboard.temps.Request(_left as TokenLiteral, this, true);
                         aAccessor = a.Name;
                         commands.AddRange(a.AssignLiteral(_left as TokenLiteral, this));
                     }
@@ -504,11 +504,11 @@ namespace mc_compiled.MCC.Compiler
                         var left = _left as TokenIdentifierValue;
                         squashToGlobal = left.value.clarifier.IsGlobal;
 
-                        b = executor.scoreboard.temps.Request(_right as TokenLiteral, this, true);
+                        b = activeExecutor.scoreboard.temps.Request(_right as TokenLiteral, this, true);
                         commands.AddRange(b.AssignLiteral(_right as TokenLiteral, this));
 
                         // left is a value, so it needs to be put into a temp variable so that the source is not modified
-                        a = executor.scoreboard.temps.RequestCopy(left.value, squashToGlobal);
+                        a = activeExecutor.scoreboard.temps.RequestCopy(left.value, squashToGlobal);
                         commands.AddRange(a.Assign(left.value, this));
                         aAccessor = a.Name;
                     }
@@ -542,20 +542,20 @@ namespace mc_compiled.MCC.Compiler
                 else
                     throw new StatementException(this, $"No valid data given in tokens '{_left}' and '{_right}'; was there a misspelling?");
 
-                CommandFile file = executor.CurrentFile;
-                int nextLineNumber = executor.NextLineNumber;
-                executor.AddCommandsClean(commands, "inline_op",
+                CommandFile file = activeExecutor.CurrentFile;
+                int nextLineNumber = activeExecutor.NextLineNumber;
+                activeExecutor.AddCommandsClean(commands, "inline_op",
                     $"Part of an inline math operation from {file.CommandReference} line {nextLineNumber}. Performs ({_left.AsString()} {arithmetic} {_right.AsString()}).");
 
                 // replace those three tokens with the one squashed one
-                tokens.RemoveRange(i - 1, 3);
-                tokens.Insert(i - 1, squashedToken);
+                squashTokens.RemoveRange(i - 1, 3);
+                squashTokens.Insert(i - 1, squashedToken);
 
                 // restart order-of-operations
                 i = -1;
             }
         }
-        private void SquashFunctions(List<Token> tokens, Executor executor)
+        private void SquashFunctions(List<Token> squashTokens, Executor activeExecutor)
         {
             // be careful if this is a function definition, might be in the same format.
             bool isFunctionDefinition = this is StatementDirective directive &&
@@ -567,11 +567,11 @@ namespace mc_compiled.MCC.Compiler
             if (this is StatementFunctionCall)
                 startAt = 2;
 
-            for(int i = startAt; i < tokens.Count; i++)
+            for(int i = startAt; i < squashTokens.Count; i++)
             {
-                Token selected = tokens[i];
-                Token second = (tokens.Count > (i + 1)) ? tokens[i + 1] : null;
-                Token third = (tokens.Count > (i + 2)) ? tokens[i + 2] : null;
+                Token selected = squashTokens[i];
+                Token second = (squashTokens.Count > (i + 1)) ? squashTokens[i + 1] : null;
+                Token third = (squashTokens.Count > (i + 2)) ? squashTokens[i + 2] : null;
 
                 if (!(selected is TokenIdentifierFunction identifierFunction))
                     continue;
@@ -602,12 +602,12 @@ namespace mc_compiled.MCC.Compiler
                 var _tokensInside = new List<Token>();
                 if (!useImplicit && !(third is TokenCloseParenthesis))
                 {
-                    for(int z = x; z < tokens.Count; z++)
+                    for(int z = x; z < squashTokens.Count; z++)
                     {
-                        Token token = tokens[z];
+                        Token token = squashTokens[z];
                         if (token is TokenCloseParenthesis)
                             break;
-                        _tokensInside.Add(tokens[z]);
+                        _tokensInside.Add(squashTokens[z]);
                     }
                 }
                 Token[] tokensInside = _tokensInside.ToArray();
@@ -653,33 +653,33 @@ namespace mc_compiled.MCC.Compiler
                 var commands = new List<string>();
 
                 // process the parameters and get their commands.
-                bestFunction.ProcessParameters(tokensInside, commands, executor, this);
+                bestFunction.ProcessParameters(tokensInside, commands, activeExecutor, this);
 
                 // call the function.
-                Token replacement = bestFunction.CallFunction(commands, executor, this);
+                Token replacement = bestFunction.CallFunction(commands, activeExecutor, this);
 
                 // finish with the commands.
-                CommandFile current = executor.CurrentFile;
+                CommandFile current = activeExecutor.CurrentFile;
 
                 // register the call for usage tree
                 if (bestFunction is RuntimeFunction runtime)
                     current.RegisterCall(runtime.file);
 
-                executor.AddCommandsClean(commands, "call" + bestFunction.Keyword.Replace('.', '_'),
-                    $"From file {current.CommandReference} line {executor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", tokensInside.Select(t => t.AsString()))})");
+                activeExecutor.AddCommandsClean(commands, "call" + bestFunction.Keyword.Replace('.', '_'),
+                    $"From file {current.CommandReference} line {activeExecutor.NextLineNumber}: {bestFunction.Keyword}({string.Join(", ", tokensInside.Select(t => t.AsString()))})");
                 commands.Clear();
 
                 if (useImplicit)
                 {
-                    tokens.RemoveAt(i);
-                    tokens.Insert(i, replacement);
+                    squashTokens.RemoveAt(i);
+                    squashTokens.Insert(i, replacement);
                 }
                 else
                 {
                     // substitute the returned value from the function.
                     int len = x - i + (1 + tokensInside.Length);
-                    tokens.RemoveRange(i, len);
-                    tokens.Insert(i, replacement);
+                    squashTokens.RemoveRange(i, len);
+                    squashTokens.Insert(i, replacement);
                 }
 
                 // i gets incremented next iteration
@@ -687,22 +687,22 @@ namespace mc_compiled.MCC.Compiler
                 i = startAt - 1;
             }
         }
-        private void SquashDereferences(List<Token> tokens, Executor executor)
+        private void SquashDereferences(List<Token> squashTokens)
         {
-            int tokensLength = tokens.Count;
+            int tokensLength = squashTokens.Count;
             int i;
 
             for (i = 0; i < tokensLength - 1; i++)
             {
-                Token currentToken = tokens[i];
+                Token iToken = squashTokens[i];
 
-                if (!(currentToken is TokenDeref))
+                if (!(iToken is TokenDeref))
                     continue;
                 
                 // get the next token and see if it's a preprocessor variable
-                Token nextToken = tokens[i + 1];
+                Token nextToken = squashTokens[i + 1];
                 if (!(nextToken is TokenIdentifierPreprocessor preprocessorToken))
-                    throw new StatementException(this, $"Cannot derefrence token: {nextToken.AsString()}");
+                    throw new StatementException(this, $"Cannot dereference token: {nextToken.AsString()}");
                 
                 PreprocessorVariable ppv = preprocessorToken.variable;
                 int insertCount = ppv.Length - 1;
@@ -719,19 +719,19 @@ namespace mc_compiled.MCC.Compiler
                     });
 
                 // remove i and i+1 from the tokens
-                tokens.RemoveRange(i, 2);
+                squashTokens.RemoveRange(i, 2);
                 tokensLength -= (1 - insertCount); // length reduced by one (deref removed), but went up by insertCount
                 
                 // insert the tokens and step forward past them, if needed.
-                tokens.InsertRange(i, wrappedLiterals);
+                squashTokens.InsertRange(i, wrappedLiterals);
                 i += insertCount;
             }
         }
-        private void SquashIndexers(List<Token> tokens)
+        private void SquashIndexers(List<Token> squashTokens)
         {
-            for (int i = tokens.Count - 1; i >= 0; i--)
+            for (int i = squashTokens.Count - 1; i >= 0; i--)
             {
-                Token token = tokens[i];
+                Token token = squashTokens[i];
 
                 if (!(token is TokenCloseIndexer closer))
                     continue;
@@ -740,7 +740,7 @@ namespace mc_compiled.MCC.Compiler
                 var openerTokens = new Stack<Token>();
                 for (int j = i - 1; j >= 0; j--)
                 {
-                    Token previousToken = tokens[j];
+                    Token previousToken = squashTokens[j];
                     if (previousToken is TokenOpenIndexer)
                     {
                         i = j;
@@ -758,15 +758,15 @@ namespace mc_compiled.MCC.Compiler
                     .Reverse()
                     .ToArray();
                 var indexer = TokenIndexer.CreateIndexer(insideTokens, this);
-                tokens.RemoveRange(i, insideTokens.Length + 2 ); // account for open/close brackets
-                tokens.Insert(i, indexer);
+                squashTokens.RemoveRange(i, insideTokens.Length + 2 ); // account for open/close brackets
+                squashTokens.Insert(i, indexer);
             }
         }
-        private void SquashIndexing(List<Token> tokens)
+        private void SquashIndexing(List<Token> squashTokens)
         {
-            for (int i = tokens.Count - 1; i >= 0; i--)
+            for (int i = squashTokens.Count - 1; i >= 0; i--)
             {
-                Token token = tokens[i];
+                Token token = squashTokens[i];
                 
                 // apply indexer to IIndexable
                 if (token is TokenIndexer indexer)
@@ -802,8 +802,8 @@ namespace mc_compiled.MCC.Compiler
                     while (indexerBuffer.Count > 0);
 
                     // replace tokens
-                    tokens.RemoveRange(i, indexerCount);
-                    tokens[i - 1] = current;
+                    squashTokens.RemoveRange(i, indexerCount);
+                    squashTokens[i - 1] = current;
                 }
 
                 continue;
@@ -812,7 +812,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     if (i - amount < 0)
                         return null;
-                    return tokens[i - amount];
+                    return squashTokens[i - amount];
                 }
             }
         }
@@ -832,6 +832,17 @@ namespace mc_compiled.MCC.Compiler
                     return true;
                 return this.patterns.Any(tp => tp.Check(this.tokens).match);
             }
+        }
+
+        /// <summary>
+        /// Returns if this collection of statements contains a top-level async split.
+        /// </summary>
+        /// <param name="statements">The statements to check.</param>
+        /// <param name="forExceptions">The statement to blame for exceptions.</param>
+        /// <returns></returns>
+        public static bool ContainsAsyncSplit(IEnumerable<Statement> statements, Statement forExceptions)
+        {
+            return statements.Any(s => s.HasAttribute(DirectiveAttribute.CAUSES_ASYNC_SPLIT));
         }
     }
     /// <summary>
