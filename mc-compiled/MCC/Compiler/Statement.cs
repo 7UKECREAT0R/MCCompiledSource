@@ -17,6 +17,11 @@ namespace mc_compiled.MCC.Compiler
         /// If this statement should be skipped by the executor.
         /// </summary>
         public abstract bool Skip { get; }
+        /// <summary>
+        /// If this statement will split async context. (grouping or stages)
+        /// </summary>
+        public abstract bool DoesAsyncSplit { get; }
+
 
         private TypePattern[] patterns;
 
@@ -816,33 +821,10 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
         }
+        
         public object Clone()
         {
             return MemberwiseClone();
-        }
-
-        /// <summary>
-        /// If the tokens inside this statement match its pattern, if any.
-        /// </summary>
-        public bool IsValid
-        {
-            get
-            {
-                if (this.patterns.Length < 1)
-                    return true;
-                return this.patterns.Any(tp => tp.Check(this.tokens).match);
-            }
-        }
-
-        /// <summary>
-        /// Returns if this collection of statements contains a top-level async split.
-        /// </summary>
-        /// <param name="statements">The statements to check.</param>
-        /// <param name="forExceptions">The statement to blame for exceptions.</param>
-        /// <returns></returns>
-        public static bool ContainsAsyncSplit(IEnumerable<Statement> statements, Statement forExceptions)
-        {
-            return statements.Any(s => s.HasAttribute(DirectiveAttribute.CAUSES_ASYNC_SPLIT));
         }
     }
     /// <summary>
@@ -851,6 +833,8 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementHusk : Statement
     {
         public override bool Skip => true;
+        public override bool DoesAsyncSplit => false;
+
         public StatementHusk(Token[] tokens) : base(tokens, true) { }
         public override string ToString()
         {

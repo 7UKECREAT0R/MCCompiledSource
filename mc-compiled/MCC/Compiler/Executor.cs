@@ -988,9 +988,9 @@ namespace mc_compiled.MCC.Compiler
             return false;
         }
         /// <summary>
-        /// Return an array of the next x statements.
+        /// Return an array of the next N statements.
         /// </summary>
-        /// <param name="amount"></param>
+        /// <param name="amount">The number of statements to grab.</param>
         /// <returns></returns>
         public Statement[] Peek(int amount)
         {
@@ -1001,7 +1001,36 @@ namespace mc_compiled.MCC.Compiler
 
             int write = 0;
             for (int i = this.readIndex; i < this.statements.Length && i < this.readIndex + amount; i++)
-                ret[write++] = this.statements[i];
+            {
+                Statement statement = this.statements[i];
+                if (statement.Skip)
+                    continue;
+                ret[write++] = statement;
+            }
+
+            return ret;
+        }
+        /// <summary>
+        /// Return an array of the next N statements.
+        /// </summary>
+        /// <param name="skip">The number of statements to skip before grabbing the next N statements.</param>
+        /// <param name="amount">The number of statements to grab.</param>
+        /// <returns></returns>
+        public Statement[] Peek(int skip, int amount)
+        {
+            if (amount == 0)
+                return Array.Empty<Statement>();
+
+            var ret = new Statement[amount];
+
+            int write = 0;
+            for (int i = this.readIndex + skip; i < this.statements.Length && i < this.readIndex + amount; i++)
+            {
+                Statement statement = this.statements[i];
+                if (statement.Skip)
+                    continue;
+                ret[write++] = statement;
+            }
 
             return ret;
         }
@@ -1019,9 +1048,9 @@ namespace mc_compiled.MCC.Compiler
             if(NextIs<StatementOpenBlock>())
             {
                 var block = Next<StatementOpenBlock>();
-                int statements = block.statementsInside;
-                Statement[] code = Peek(statements);
-                this.readIndex += statements;
+                int statementCount = block.statementsInside;
+                Statement[] code = Peek(statementCount);
+                this.readIndex += statementCount;
                 this.readIndex++; // block closer
                 return code;
             }

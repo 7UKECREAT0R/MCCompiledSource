@@ -260,7 +260,7 @@ namespace mc_compiled.MCC.Compiler
 
             // apply the comparisons.
             if (usesElse || executor.async.IsInAsync) // if we're in async, we need implicit else for skipping stages
-                ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel);
+                ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel, usesElse);
             else
                 ApplyComparisonToSolo(chunks, executor, cancel);
         }
@@ -353,7 +353,9 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="forExceptions">For exceptions.</param>
         /// <param name="executor">The executor to modify.</param>
         /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
-        private void ApplyComparisonToWithElse(IEnumerable<Subcommand> chunks, CommandFile setupFile, Statement forExceptions, Executor executor, bool cancel)
+        /// <param name="usesElse"></param>
+        private void ApplyComparisonToWithElse(IEnumerable<Subcommand> chunks, CommandFile setupFile,
+            Statement forExceptions, Executor executor, bool cancel, bool usesElse)
         {
             var record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel, GetDescription());
             ScoreboardValue resultObjective = record.resultStore;
@@ -405,29 +407,34 @@ namespace mc_compiled.MCC.Compiler
             // special case if we're in an async context.
             if (executor.async.IsInAsync)
             {
-                // there will be an async stage allocated for us to use by the time the OpenAction gets hit.
-                string currentFunction = executor.async.CurrentFunction.escapedFunctionName;
-                int nextStage = executor.async.CurrentFunction.NextStageIndex;
-                string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
-                executor.AddCommand(prepend + Command.Function(nextStageName));
-                
-                // the file that enters into either the 'true async stage' or 'false async stage'.
-                // the 'false async stage' will need to be set when the block closes, so store a reference of it.
-                CommandFile entryFile = executor.CurrentFile;
-
-                openBlock.CloseAction = (e) =>
+                // we only want to do this if there will actually be an async split inside
+                Statement[] containingStatements = executor.Peek(1, openBlock.statementsInside);
+                if (containingStatements.Any(s => s.DoesAsyncSplit))
                 {
-                    if (elseInfo == null)
-                        throw new Exception("Did not get PreviousComparisonStructure for async branch evaluation.");
+                    // there will be an async stage allocated for us to use by the time the OpenAction gets hit.
+                    string currentFunction = executor.async.CurrentFunction.escapedFunctionName;
+                    int nextStage = executor.async.CurrentFunction.NextStageIndex;
+                    string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
+                    executor.AddCommand(prepend + Command.Function(nextStageName));
+                
+                    // the file that enters into either the 'true async stage' or 'false async stage'.
+                    // the 'false async stage' will need to be set when the block closes, so store a reference of it.
+                    CommandFile entryFile = executor.CurrentFile;
+
+                    openBlock.CloseAction = (e) =>
+                    {
+                        if (elseInfo == null)
+                            throw new Exception("Did not get PreviousComparisonStructure for async branch evaluation.");
                     
-                    AsyncStage closingStage = e.async.CurrentFunction.ActiveStage;
-                    string elseCommand = new ExecuteBuilder()
-                        .WithSubcommand(new SubcommandUnless(elseInfo.conditionalUsed))
-                        .Run(Command.Function(closingStage.file));
+                        AsyncStage closingStage = e.async.CurrentFunction.ActiveStage;
+                        string elseCommand = new ExecuteBuilder()
+                            .WithSubcommand(new SubcommandUnless(elseInfo.conditionalUsed))
+                            .Run(Command.Function(closingStage.file));
                     
-                    entryFile.Add(elseCommand);
-                };
-                return;
+                        entryFile.Add(elseCommand);
+                    };
+                    return;
+                }
             }
             
             if (openBlock.meaningfulStatementsInside == 1)
@@ -472,35 +479,41 @@ namespace mc_compiled.MCC.Compiler
             // special case if we're in an async context.
             if (executor.async.IsInAsync)
             {
-                // we need to start a new async stage to hold the single affected stage.
-                CommandFile originalFile = executor.CurrentFile;
-                string currentFunction = executor.async.CurrentFunction.escapedFunctionName;
-                int nextStage = executor.async.CurrentFunction.NextStageIndex;
-                string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
-                executor.AddCommand(prepend + Command.Function(nextStageName));
-                
-                // start the new one
-                executor.async.CurrentFunction.FinishStageImmediate();
-                executor.async.CurrentFunction.StartNewStage();
-
-                // defer ending the stage until next statement
-                executor.DeferAction((e) =>
+                // we only want to do this if there will actually be an async split inside
+                Statement nextStatement = executor.Seek();
+                if (nextStatement.DoesAsyncSplit)
                 {
-                    e.async.CurrentFunction.FinishStageImmediate();
-                    e.async.CurrentFunction.StartNewStage();
+                    // we need to start a new async stage to hold the single affected stage.
+                    CommandFile originalFile = executor.CurrentFile;
+                    string currentFunction = executor.async.CurrentFunction.escapedFunctionName;
+                    int nextStage = executor.async.CurrentFunction.NextStageIndex;
+                    string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
+                    executor.AddCommand(prepend + Command.Function(nextStageName));
 
-                    if (elseInfo == null)
-                        throw new Exception("Did not get PreviousComparisonStructure for async branch evaluation.");
+                    // TODO: when I get back
+                    // there's a possibility the fix I made this morning causes normal if-statements not to work as a new
+                    // stage isn't allocated for when it ends. make sure they work, as well as when explicit `else` is used
 
-                    AsyncStage closingStage = e.async.CurrentFunction.ActiveStage;
-                    string elseCommand = new ExecuteBuilder()
-                        .WithSubcommand(new SubcommandUnless(elseInfo.conditionalUsed))
-                        .Run(Command.Function(closingStage.file));
-                    originalFile.Add(elseCommand);
-                });
-                return;
+                    // start the new one
+                    executor.async.CurrentFunction.FinishStageImmediate();
+                    executor.async.CurrentFunction.StartNewStage();
+
+                    // defer ending the stage until next statement
+                    executor.DeferAction((e) =>
+                    {
+                        if (elseInfo == null)
+                            throw new Exception("Did not get PreviousComparisonStructure for async branch evaluation.");
+
+                        AsyncStage closingStage = e.async.CurrentFunction.ActiveStage;
+                        string elseCommand = new ExecuteBuilder()
+                            .WithSubcommand(new SubcommandUnless(elseInfo.conditionalUsed))
+                            .Run(Command.Function(closingStage.file));
+                        originalFile.Add(elseCommand);
+                    });
+                    return;
+                }
             }
-
+            
             executor.AppendCommandPrepend(prepend);
         }
         

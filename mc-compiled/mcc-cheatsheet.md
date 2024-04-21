@@ -329,7 +329,7 @@ Commands that add visual and auditory appeal to the user's code.
 
 [Play Sound](Playsound.md)
 : Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.
-- `playsound <string: sound> <selector: who> [coordinate: x] [coordinate: y] [coordinate: z] [number: volume] [number: pitch] [number: minimum volume]`
+- `playsound <string: sound> [selector: who] [coordinate: x] [coordinate: y] [coordinate: z] [number: volume] [number: pitch] [number: minimum volume]`
 
 Spawn Particle
 : Spawns a particle effect in the world.
@@ -356,7 +356,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 - `await <int: ticks>`
 - `await <id: until> <*: conditions>`
 - `await <id: while> <*: conditions>`
-- `await <async: async context>`
+- `await <awaitable: awaitable>`
 
 [Define Function](Functions.md#defining-functions)
 : Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`

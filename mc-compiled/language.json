@@ -862,7 +862,8 @@
         [ "id:until", "*:conditions" ],
         [ "id:while", "*:conditions" ],
         [ "awaitable:awaitable" ]
-      ]
+      ],
+      "attributes": [ "CAUSES_ASYNC_SPLIT" ]
     }
   }
 }

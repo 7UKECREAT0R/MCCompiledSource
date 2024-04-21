@@ -11,6 +11,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly Directive directive;
         public override bool Skip => false;
+        public override bool DoesAsyncSplit => HasAttribute(DirectiveAttribute.CAUSES_ASYNC_SPLIT);
 
         public StatementDirective(Directive directive, Token[] tokens) : base(tokens, true)
         {
@@ -44,6 +45,7 @@ namespace mc_compiled.MCC.Compiler
     {
         public readonly string comment;
         public override bool Skip => true;
+        public override bool DoesAsyncSplit => false;
 
         public StatementComment(string comment) : base(Array.Empty<Token>(), true)
         {
@@ -107,6 +109,7 @@ namespace mc_compiled.MCC.Compiler
         public int statementsInside;
         public int meaningfulStatementsInside;
         public override bool Skip => false;
+        public override bool DoesAsyncSplit => false;
 
         /// <summary>
         /// The action when this opening block is called.
@@ -128,6 +131,7 @@ namespace mc_compiled.MCC.Compiler
             this.DecorateInSource = false;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
+            
         public override string ToString()
         {
             return this.meaningfulStatementsInside != this.statementsInside ?
@@ -159,6 +163,8 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementCloseBlock : Statement
     {
         public override bool Skip => false;
+        public override bool DoesAsyncSplit => false;
+        
         public StatementCloseBlock() : base(null)
         {
             this.closeAction = null;
@@ -222,6 +228,8 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementOperation : Statement, IExecutionSetPart
     {
         public override bool Skip => false;
+        public override bool DoesAsyncSplit => false;
+
         public StatementOperation(Token[] tokens) : base(tokens) {}
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -315,6 +323,8 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementFunctionCall : Statement, IExecutionSetPart
     {
         public override bool Skip => false;
+        public override bool DoesAsyncSplit => false;
+
         public StatementFunctionCall(Token[] tokens) : base(tokens) { }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString()
@@ -429,6 +439,8 @@ namespace mc_compiled.MCC.Compiler
     public sealed class StatementUnknown : Statement
     {
         public override bool Skip => true;
+        public override bool DoesAsyncSplit => false;
+
         public StatementUnknown(Token[] tokens) : base(tokens)
         {
             this.DecorateInSource = false;
