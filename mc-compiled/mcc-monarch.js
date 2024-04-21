@@ -24,8 +24,15 @@ const mccompiled = {
 			{ include: '@handler' },
 			
 			[ /[<>{}=()+\-*/%!]+/, 'operators' ],
-            [ /"(?:[^"\\]|\\.)*"/, 'strings' ],
-            [ /'(?:[^'\\]|\\.)*'/, 'strings' ],
+
+            // terminated strings
+            [ /"(?:[^"\\]|\\.)*"/, 'string' ],
+            [ /'(?:[^'\\]|\\.)*'/, 'string' ],
+
+            // unterminated strings
+			[ /"(?:[^"\\]|\\.)*$/, 'string' ],
+			[ /'(?:[^'\\]|\\.)*$/, 'string' ],
+
             [ /\[.+\]/, 'selectors.properties' ],
             [ /!?(?:\.\.)?\d+(?:\.\.)?\.?\d*[hms]?/, 'numbers' ]
         ],

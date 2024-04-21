@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
@@ -8,11 +9,11 @@ namespace mc_compiled.MCC.SyntaxHighlighting
     /// </summary>
     internal class Monarch : SyntaxTarget
     {
-        public void KeywordPattern(TextWriter writer, string type, Keyword[] values)
+        private static void KeywordPattern(TextWriter writer, string type, IEnumerable<Keyword> values)
         {
             writer.WriteLine($"\t{type}: [ `{string.Join("`, `", values.Select(v => v.name))}` ],");
         }
-        public void KeywordField(TextWriter writer, string type, Keyword[] values)
+        private static void KeywordField(TextWriter writer, string type, Keyword[] values)
         {
             writer.WriteLine($@"const {type} = [");
 
@@ -62,8 +63,15 @@ $@"    tokenizer: {{
 			{{ include: '@handler' }},
 			
 			[ /[<>{{}}=()+\-*/%!]+/, 'operators' ],
-            [ /""(?:[^""\\]|\\.)*""/, 'strings' ],
-            [ /'(?:[^'\\]|\\.)*'/, 'strings' ],
+
+            // terminated strings
+            [ /""(?:[^""\\]|\\.)*""/, 'string' ],
+            [ /'(?:[^'\\]|\\.)*'/, 'string' ],
+
+            // unterminated strings
+			[ /""(?:[^""\\]|\\.)*$/, 'string' ],
+			[ /'(?:[^'\\]|\\.)*$/, 'string' ],
+
             [ /\[.+\]/, 'selectors.properties' ],
             [ /!?(?:\.\.)?\d+(?:\.\.)?\.?\d*[hms]?/, 'numbers' ]
         ],
