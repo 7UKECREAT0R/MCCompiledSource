@@ -1,5 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {
@@ -8,44 +11,69 @@ namespace mc_compiled.MCC.SyntaxHighlighting
     /// </summary>
     internal class RawSyntax : SyntaxTarget
     {
-        public string Stringify(Keywords keywords) => string.Join(" ", keywords.keywords.Select(w => w.name.Contains(' ') ? ("<<" + w.name + ">>") : w.name));
-        public void Write(TextWriter writer)
+        private static JObject BuildKeywords(Keywords keywords)
         {
-            writer.WriteLine($"# MCC Raw Syntax (version {Compiler.Executor.MCC_VERSION})");
-            writer.WriteLine("# This is a comment. Ignore empty lines.");
-            writer.WriteLine("# Multi-word keywords are surrounded with <<double angle brackets>>.");
-            writer.WriteLine();
-            writer.WriteLine("extension=" + Syntax.EXTENSION);
-            writer.WriteLine("ignoreCase=" + Syntax.IGNORE_CASE);
-            writer.WriteLine("commentFolding=" + Syntax.COMMENT_FOLDING);
-            writer.WriteLine("compactFolding=" + Syntax.COMPACT_FOLDING);
-            writer.WriteLine();
-            writer.WriteLine("blockOpen=" + Syntax.blockOpen);
-            writer.WriteLine("blockClose=" + Syntax.blockClose);
-            writer.WriteLine("selectorOpen=" + Syntax.bracketOpen);
-            writer.WriteLine("selectorClose=" + Syntax.bracketClose);
-            writer.WriteLine("string=" + Syntax.stringDelimiter);
-            writer.WriteLine("escape=" + Syntax.escape);
-            writer.WriteLine();
-            writer.WriteLine("numberPrefixes=" + string.Join(" ", Syntax.numberPrefixes));
-            writer.WriteLine("numberSuffixes=" + string.Join(" ", Syntax.numberSuffixes));
-            writer.WriteLine("rangeOperator=" + Syntax.NUMBER_RANGE);
-            writer.WriteLine();
-            writer.WriteLine("lineComment=" + Syntax.lineComment);
-            writer.WriteLine("openComment=" + Syntax.multilineOpen);
-            writer.WriteLine("closeComment=" + Syntax.multilineClose);
-            writer.WriteLine();
-            writer.WriteLine("operators=" + Stringify(Syntax.operators));
-            writer.WriteLine("selectors=" + Stringify(Syntax.selectors));
-            writer.WriteLine("preprocessor=" + Stringify(Syntax.preprocessor));
-            writer.WriteLine("commands=" + Stringify(Syntax.commands));
-            writer.WriteLine("literals=" + Stringify(Syntax.literals));
-            writer.WriteLine("types=" + Stringify(Syntax.types));
-            writer.WriteLine("comparisons=" + Stringify(Syntax.comparisons));
-            writer.WriteLine("options=" + Stringify(Syntax.options));
-            writer.WriteLine();
+            var json = new JObject()
+            {
+                ["formatting"] = keywords.style.ToJson(),
+            };
+
+            foreach (Keyword keyword in keywords.keywords)
+                json[keyword.name] = keyword.documentation;
+
+            return json;
         }
-        public string Describe() => "Raw syntax output in a simple format for parsing into a data format.";
-        public string GetFile() => "mcc-raw.txt";
+        protected static JObject Build()
+        {
+            var json = new JObject()
+            {
+                ["version"] = Executor.MCC_VERSION,
+                ["extension"] = Syntax.EXTENSION,
+                ["misc"] = new JObject
+                {
+                    ["ignoreCase"] = Syntax.IGNORE_CASE,
+                    ["allowCommentFolding"] = Syntax.COMMENT_FOLDING,
+                    ["allowCompactFolding"] = Syntax.COMPACT_FOLDING,
+                },
+                ["syntax"] = new JObject
+                {
+                    ["rangeDelimiter"] = Syntax.rangeDelimiter,
+                    ["invertDelimiter"] = Syntax.invertDelimiter,
+                    ["stringDelimiters"] = new JArray(Syntax.stringDelimiter0, Syntax.stringDelimiter1),
+                    ["bracketOpen"] = Syntax.bracketOpen,
+                    ["bracketClose"] = Syntax.bracketClose,
+                    ["blockOpen"] = Syntax.blockOpen,
+                    ["blockClose"] = Syntax.blockClose,
+                    ["escape"] = Syntax.escape,
+                    ["comments"] = new JObject
+                    {
+                        ["line"] = Syntax.lineComment,
+                        ["open"] = Syntax.multilineOpen,
+                        ["close"] = Syntax.multilineClose
+                    },
+                    ["numberPrefixes"] = new JArray(Syntax.numberPrefixes.Cast<object>()),
+                    ["numberSuffixes"] = new JArray(Syntax.numberSuffixes.Cast<object>())
+                },
+                ["keywords"] = new JObject
+                {
+                    ["operators"] = BuildKeywords(Syntax.operators),
+                    ["selectors"] = BuildKeywords(Syntax.selectors),
+                    ["preprocessor"] = BuildKeywords(Syntax.preprocessor),
+                    ["commands"] = BuildKeywords(Syntax.commands),
+                    ["literals"] = BuildKeywords(Syntax.literals),
+                    ["types"] = BuildKeywords(Syntax.types),
+                    ["comparisons"] = BuildKeywords(Syntax.comparisons),
+                    ["options"] = BuildKeywords(Syntax.options)
+                }
+            };
+
+            return json;
+        }
+        public virtual void Write(TextWriter writer)
+        {
+            writer.WriteLine(Build().ToString(Formatting.Indented));
+        }
+        public virtual string Describe() => "Raw syntax output in JSON (formatted).";
+        public virtual string GetFile() => "mcc-raw.json";
     }
 }

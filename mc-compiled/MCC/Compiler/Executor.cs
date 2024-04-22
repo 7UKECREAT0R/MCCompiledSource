@@ -1003,8 +1003,6 @@ namespace mc_compiled.MCC.Compiler
             for (int i = this.readIndex; i < this.statements.Length && i < this.readIndex + amount; i++)
             {
                 Statement statement = this.statements[i];
-                if (statement.Skip)
-                    continue;
                 ret[write++] = statement;
             }
 
@@ -1027,8 +1025,6 @@ namespace mc_compiled.MCC.Compiler
             for (int i = this.readIndex + skip; i < this.statements.Length && i < this.readIndex + amount; i++)
             {
                 Statement statement = this.statements[i];
-                if (statement.Skip)
-                    continue;
                 ret[write++] = statement;
             }
 

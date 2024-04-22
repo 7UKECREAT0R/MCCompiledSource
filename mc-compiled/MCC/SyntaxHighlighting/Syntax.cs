@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Attributes.Implementations;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {
@@ -14,24 +15,27 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         static Syntax() { }
 
         public const string EXTENSION = "mcc";
-        public const bool IGNORE_CASE = true;
+        public const bool IGNORE_CASE = false;
         public const bool COMMENT_FOLDING = true;
         public const bool COMPACT_FOLDING = false;
-        public const string NUMBER_RANGE = "..";
 
         internal static readonly Dictionary<string, SyntaxTarget> syntaxTargets = new Dictionary<string, SyntaxTarget>()
         {
-            { "udl2", new UDL2() },
+            { "notepadplusplus", new UDL2() },
             { "monarch", new Monarch() },
             { "raw", new RawSyntax() },
+            { "raw-min", new RawSyntaxMin() },
             { "markdown", new Markdown() }
         };
 
+        public const string rangeDelimiter = "..";
+        public const string invertDelimiter = "!";
         public const string bracketOpen = "[";
         public const string bracketClose = "]";
         public const string blockOpen = "{";
         public const string blockClose = "}";
-        public const string stringDelimiter = "\"";
+        public const string stringDelimiter0 = "\"";
+        public const string stringDelimiter1 = "'";
         public const string escape = "\\";
         public const string lineComment = "//";
         public const string multilineOpen = "/*";
@@ -281,19 +285,27 @@ namespace mc_compiled.MCC.SyntaxHighlighting
     }
     internal struct Highlight
     {
-        public readonly int r, g, b;
+        private readonly int r;
+        private readonly int g;
+        private readonly int b;
         public readonly HighlightStyle style;
 
-        public string HexWithoutHash
+        public string HexWithoutHash => $"{this.r:X2}{this.g:X2}{this.b:X2}";
+        public string HexWithHash => $"#{this.r:X2}{this.g:X2}{this.b:X2}";
+        public JObject ToJson()
         {
-            get => string.Format("{0:X2}{1:X2}{2:X2}", this.r, this.g, this.b);
+            return new JObject()
+            {
+                ["style"] = this.style.ToString(),
+                ["color"] = new JObject()
+                {
+                    ["red"] = this.r,
+                    ["green"] = this.g,
+                    ["blue"] = this.b
+                }
+            };
         }
-        public string HexWithHash
-        {
-            get => string.Format("#{0:X2}{1:X2}{2:X2}", this.r, this.g, this.b);
-        }
-
-
+        
         internal Highlight(int r, int g, int b, HighlightStyle style)
         {
             this.r = r;

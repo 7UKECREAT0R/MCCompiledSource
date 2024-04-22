@@ -112,7 +112,7 @@ namespace mc_compiled.MCC.Compiler
                         {
                             // identifier resolve requires a manual search.
                             string word = tokenIdentifier.word;
-
+                            
                             if (lastTokenWasDeref)
                             {
                                 // prioritize preprocessor variables first -- just in case.
@@ -214,9 +214,9 @@ namespace mc_compiled.MCC.Compiler
             if (remainingUsefulTokens.Length == 0)
                 return;
 
-            string tokensWere = remainingUsefulTokens.Length == 1 ? "Token was" : "Tokens were";
+            string plural = remainingUsefulTokens.Length == 1 ? "token" : "tokens";
             string joined = string.Join(", ", remainingUsefulTokens.Select(t => t.AsString()));
-            throw new StatementException(this, $"{tokensWere} not used: {joined}");
+            throw new StatementException(this, $"Trailing unused {plural}: {joined}");
         }
         private void SquashAll(List<Token> squashTokens, Executor activeExecutor)
         {

@@ -191,6 +191,7 @@
     <Compile Include="MCC\SyntaxHighlighting\Markdown.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Monarch.cs" />
     <Compile Include="MCC\SyntaxHighlighting\RawSyntax.cs" />
+    <Compile Include="MCC\SyntaxHighlighting\RawSyntaxMin.cs" />
     <Compile Include="MCC\SyntaxHighlighting\Syntax.cs" />
     <Compile Include="MCC\SyntaxHighlighting\UDL2.cs" />
     <Compile Include="MCC\TempManager.cs" />

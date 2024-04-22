@@ -110,11 +110,11 @@ namespace mc_compiled.MCC.Compiler
                         // strip all comments except ones at the start of the line
                         if(lastWasNewline || all.Count == 0)
                             all.Add(token);
-                        continue;
+                        break;
                     }
                     case TokenIdentifier id:
                     {
-                        // split the deref token, it wasn't a directive
+                        // split the deref token; it wasn't a directive
                         string word = id.word;
                         if (word[0] == '$')
                         {

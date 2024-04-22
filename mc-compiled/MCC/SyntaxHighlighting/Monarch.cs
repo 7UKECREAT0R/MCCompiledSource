@@ -48,7 +48,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
             writer.WriteLine(
 $@"    tokenizer: {{
         root: [
-            [ /@?[a-zA-Z$][\w]*/, {{
+            [ /@?[a-zA-Z$]\w*/, {{
                 cases: {{
                     '@selectors': 'selectors',
                     '@preprocessor': 'preprocessor',
@@ -72,7 +72,7 @@ $@"    tokenizer: {{
 			[ /""(?:[^""\\]|\\.)*$/, 'string' ],
 			[ /'(?:[^'\\]|\\.)*$/, 'string' ],
 
-            [ /\[.+\]/, 'selectors.properties' ],
+            [ /\[.+]/, 'selectors.properties' ],
             [ /!?(?:\.\.)?\d+(?:\.\.)?\.?\d*[hms]?/, 'numbers' ]
         ],
 		comment: [

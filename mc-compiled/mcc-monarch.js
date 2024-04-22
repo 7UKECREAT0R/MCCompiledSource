@@ -9,7 +9,7 @@ const mccompiled = {
 	options: [ `dummies`, `autoinit`, `exploders`, `uninstall`, `tests`, `audiofiles`, `up`, `down`, `left`, `right`, `forward`, `backward`, `ascending`, `descending`, `survival`, `creative`, `adventure`, `spectator`, `removeall`, `times`, `subtitle`, `destroy`, `replace`, `hollow`, `outline`, `keep`, `new`, `open`, `change`, `lockinventory`, `lockslot`, `canplaceon:`, `candestroy:`, `enchant:`, `name:`, `lore:`, `author:`, `title:`, `page:`, `dye:`, `text:`, `button:`, `onOpen:`, `onClose:`, `align`, `anchored`, `as`, `at`, `facing`, `facing entity`, `in`, `positioned`, `positioned as`, `rotated`, `rotated as` ],
     tokenizer: {
         root: [
-            [ /@?[a-zA-Z$][\w]*/, {
+            [ /@?[a-zA-Z$]\w*/, {
                 cases: {
                     '@selectors': 'selectors',
                     '@preprocessor': 'preprocessor',
@@ -33,7 +33,7 @@ const mccompiled = {
 			[ /"(?:[^"\\]|\\.)*$/, 'string' ],
 			[ /'(?:[^'\\]|\\.)*$/, 'string' ],
 
-            [ /\[.+\]/, 'selectors.properties' ],
+            [ /\[.+]/, 'selectors.properties' ],
             [ /!?(?:\.\.)?\d+(?:\.\.)?\.?\d*[hms]?/, 'numbers' ]
         ],
 		comment: [

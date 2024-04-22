@@ -105,7 +105,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                         Content("Keywords", "name=\"Numbers, extras2\"", "");
                         Content("Keywords", "name=\"Numbers, suffix1\"", string.Join(" ", Syntax.numberSuffixes));
                         Content("Keywords", "name=\"Numbers, suffix2\"", "");
-                        Content("Keywords", "name=\"Numbers, range\"", Syntax.NUMBER_RANGE);
+                        Content("Keywords", "name=\"Numbers, range\"", Syntax.rangeDelimiter);
                         Content(Syntax.operators, "Operators1");
                         Content("Keywords", "name=\"Operators2\"", "");
                         Content("Keywords", "name=\"Folders in code1, open\"", Syntax.blockOpen);
@@ -125,7 +125,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                         Content(Syntax.comparisons, "Keywords6");
                         Content(Syntax.options, "Keywords7");
                         Content("Keywords", "name=\"Keywords8\"", "");
-                        Content("Keywords", "name=\"Delimiters\"", $@"00{Syntax.stringDelimiter} 01\ 02(({Syntax.stringDelimiter} EOL)) 03{Syntax.bracketOpen} 04 05(({Syntax.bracketClose} EOL)) 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23");
+                        Content("Keywords", "name=\"Delimiters\"", $@"00{Syntax.stringDelimiter0} 01\ 02(({Syntax.stringDelimiter0} EOL)) 03{Syntax.bracketOpen} 04 05(({Syntax.bracketClose} EOL)) 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23");
                     Close("KeywordLists");
                     Open("Styles");
                         const string font = "Consolas";
