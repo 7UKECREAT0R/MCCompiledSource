@@ -549,7 +549,7 @@ namespace mc_compiled.MCC.Compiler
 
                 CommandFile file = activeExecutor.CurrentFile;
                 int nextLineNumber = activeExecutor.NextLineNumber;
-                activeExecutor.AddCommandsClean(commands, "inline_op",
+                activeExecutor.AddCommandsClean(commands, "inlineOp",
                     $"Part of an inline math operation from {file.CommandReference} line {nextLineNumber}. Performs ({_left.AsString()} {arithmetic} {_right.AsString()}).");
 
                 // replace those three tokens with the one squashed one

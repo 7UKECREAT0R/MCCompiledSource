@@ -213,6 +213,10 @@ namespace mc_compiled.MCC.Compiler
         public void Add(string command) => this.commands.Add(command);
         public void Add(IEnumerable<string> commands) =>
             this.commands.AddRange(commands);
+        public void CopyFrom(CommandFile sustainLoop)
+        {
+            this.commands.AddRange(sustainLoop.commands);
+        }
 
         public void AddTop(string command) => this.commands.Insert(0, command);
         public void AddTop(IEnumerable<string> commands) =>

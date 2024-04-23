@@ -9,6 +9,8 @@ namespace mc_compiled.MCC.Compiler.Async
 {
     public class AsyncManager
     {
+        public static StatementException UnsupportedException(Statement statement) =>
+            throw new StatementException(statement, "Command is currently unsupported in async contexts, but being worked on.");
         public AsyncFunction CurrentFunction { get; private set; }
         public bool IsInAsync => this.CurrentFunction != null;
 

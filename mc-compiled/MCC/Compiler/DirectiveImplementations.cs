@@ -21,7 +21,6 @@ using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
 using Microsoft.CSharp.RuntimeBinder;
-// ReSharper disable IdentifierTypo
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -1467,6 +1466,18 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void whileLoop(Executor executor, Statement tokens)
         {
+            Statement nextStatement = executor.Seek();
+            if (nextStatement == null)
+                throw new StatementException(tokens, "Unexpected end of file after repeat-statement.");
+
+            Statement[] repeatStatements = (nextStatement is StatementOpenBlock _openBlock)
+                ? executor.Peek(1, _openBlock.statementsInside)
+                : new[] { nextStatement };
+            bool isAsync = executor.async.IsInAsync && repeatStatements.Any(s => s.DoesAsyncSplit);
+
+            if (isAsync) // temporary throw while this is unsupported.
+                throw AsyncManager.UnsupportedException(tokens);
+            
             CommandFile sustainLoop = Executor.GetNextGeneratedFile("whileSustain");
             CommandFile loopCode = Executor.GetNextGeneratedFile("while");
 
@@ -1476,7 +1487,6 @@ namespace mc_compiled.MCC.Compiler
             set.RunCommand(Command.Function(loopCode), executor, tokens);
             executor.PopFile();
             
-            Statement nextStatement = executor.Seek();
             Action<Executor> whenCodeIsOver = exec =>
             {
                 loopCode.Add(Command.Function(sustainLoop));
@@ -1504,7 +1514,19 @@ namespace mc_compiled.MCC.Compiler
         {
             Token repetitions = tokens.Next();
             bool isValue = repetitions is TokenIdentifierValue;
+            
+            Statement nextStatement = executor.Seek();
+            if (nextStatement == null)
+                throw new StatementException(tokens, "Unexpected end of file after repeat-statement.");
 
+            Statement[] repeatStatements = (nextStatement is StatementOpenBlock _openBlock)
+                ? executor.Peek(1, _openBlock.statementsInside)
+                : new[] {nextStatement};
+            bool isAsync = executor.async.IsInAsync && repeatStatements.Any(s => s.DoesAsyncSplit);
+
+            if (isAsync) // temporary throw while this is unsupported.
+                throw AsyncManager.UnsupportedException(tokens);
+            
             ScoreboardValue storeIn;
             if (tokens.NextIs<TokenIdentifier>(false))
             {
@@ -1570,16 +1592,11 @@ namespace mc_compiled.MCC.Compiler
 
             CommandFile sustainLoop = Executor.GetNextGeneratedFile("repeatSustain");
             CommandFile loopCode = Executor.GetNextGeneratedFile("repeat");
-            executor.AddExtraFile(sustainLoop);
             
             sustainLoop.Add(Command.Execute()
                 .IfScore(storeIn, new Range(0, null))
                 .Run(Command.Function(loopCode)));
             startLoopCommands.Add(Command.Function(sustainLoop));
-
-            Statement nextStatement = executor.Seek();
-            if (nextStatement == null)
-                throw new StatementException(tokens, "Unexpected end of file after repeat-statement.");
             
             Action<Executor> whenCodeIsOver = exec =>
             {
@@ -1589,9 +1606,14 @@ namespace mc_compiled.MCC.Compiler
             };
             
             CommandFile file = executor.CurrentFile;
-            executor.AddCommands(startLoopCommands, "beginRepeat",
-                $"Begins a loop that repeats {repetitionsString} times. Located in {file.CommandReference} line {executor.NextLineNumber}.");
 
+            /*if (!isAsync)
+            {*/
+                executor.AddExtraFile(sustainLoop);
+                executor.AddCommands(startLoopCommands, "beginRepeat",
+                    $"Begins a loop that repeats {repetitionsString} times. Located in {file.CommandReference} line {executor.NextLineNumber}.");
+            //}
+            
             if (nextStatement is StatementOpenBlock openBlock)
             {
                 openBlock.openAction = exec =>
@@ -1651,7 +1673,7 @@ namespace mc_compiled.MCC.Compiler
                 commands[i + 2] = fs[i];
 
             executor.AddCommandsClean(commands, "throwError", $"Called in a throw command located in {executor.CurrentFile.CommandReference} line {executor.NextLineNumber}");
-            executor.AddCommand(GenerateHaltCommand(executor));
+            executor.AddCommands(GenerateHaltCommand(executor), "throwErrorHalt", "Stops the execution of the code after a throw by expending the command limit.");
         }
         [UsedImplicitly]
         public static void give(Executor executor, Statement tokens)
@@ -2301,21 +2323,32 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void halt(Executor executor, Statement tokens)
         {
-            string command = GenerateHaltCommand(executor);
-            executor.AddCommand(command);
+            IEnumerable<string> commands = GenerateHaltCommand(executor);
+            executor.AddCommands(commands, "startHaltExecution", "Prepares to halt the code by expending the command limit.");
             executor.UnreachableCode();
         }
-        private static string GenerateHaltCommand(Executor executor)
+        private static IEnumerable<string> GenerateHaltCommand(Executor executor)
         {
-            var file = new CommandFile(true, "halt_execution", Executor.MCC_GENERATED_FOLDER);
-
-            if (executor.HasSTDFile(file))
-                return Command.Function(file);
+            var file = new CommandFile(true, "haltExecution", Executor.MCC_GENERATED_FOLDER);
+            var commands = new List<string>
+            {
+                Command.Function(file)
+            };
+            if (executor.async.IsInAsync)
+            {
+                // we also need to stop the async state
+                IEnumerable<string> haltCommands = executor.async.CurrentFunction.CommandsHalt();
+                commands.InsertRange(0, haltCommands);
+            }
             
+            if (executor.HasSTDFile(file))
+                return commands;
+
             // recursively call self until function command limit reached
             file.Add(Command.Function(file));
             executor.DefineSTDFile(file);
-            return Command.Function(file);
+
+            return commands;
         }
         
         [UsedImplicitly]
@@ -2365,7 +2398,7 @@ namespace mc_compiled.MCC.Compiler
                 };
 
                 CommandFile file = executor.CurrentFile;
-                executor.AddCommands(commands, "damagefrom", $"Creates a dummy entity and uses it to attack the entity from the location ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
+                executor.AddCommands(commands, "damageFrom", $"Creates a dummy entity and uses it to attack the entity from the location ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
                 return;
             }
 

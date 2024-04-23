@@ -14,7 +14,7 @@ namespace mc_compiled.MCC.Compiler.Async
         private static string EscapeFunctionName(string functionName) =>
             functionName.Replace('/', '_').Replace('.', '_');
         private static string NameTickPrerequisiteFunction(string functionName) =>
-            $"pretick_{functionName}";
+            $"preTick_{functionName}";
         private static string NameTickFunction(string functionName) =>
            $"tick_{functionName}";
 
@@ -43,7 +43,7 @@ namespace mc_compiled.MCC.Compiler.Async
         /// </summary>
         /// <param name="other">The <see cref="AsyncFunction"/> to check if it is waited upon.</param>
         /// <returns>True if this <see cref="AsyncFunction"/> waits on the specified <see cref="AsyncFunction"/>, otherwise false.</returns>
-        public bool WaitsOn(AsyncFunction other)
+        private bool WaitsOn(AsyncFunction other)
         {
             return this.waitsOn.Contains(other);
         }
@@ -66,6 +66,7 @@ namespace mc_compiled.MCC.Compiler.Async
         
         private Executor Executor => this.parent.parent;
         internal int NextStageIndex => this.groups.Sum(group => group.Count);
+        
         /// <summary>
         /// Returns the index of the active stage.
         /// </summary>
@@ -291,6 +292,19 @@ namespace mc_compiled.MCC.Compiler.Async
             this.activeStage = null;
         }
 
+        /// <summary>
+        /// Returns the commands needed to halt the execution of this async function.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> CommandsHalt()
+        {
+            return new[]
+            {
+                Command.ScoreboardSet(this.runningValue, 0),
+                Command.ScoreboardSet(this.timerValue, -1),
+                Command.ScoreboardSet(this.stageValue, -1)
+            };
+        }
         /// <summary>
         /// Sends information about this function's groups and stages to stdout.
         /// </summary>
