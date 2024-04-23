@@ -1,5 +1,5 @@
 ﻿{
-  "last_mc_version": "1.20.51",
+  "last_mc_version": "1.20.80",
   "bindings": {
     "query.blocking": {
       "type": "bool",
@@ -24,12 +24,24 @@
       ],
       "desc": "Runs on players. Returns if the attached player is alive."
     },
+    "query.is_baby": {
+      "type": "bool",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if the entity is a baby."
+    },
     "query.is_breathing": {
       "type": "bool",
       "targets": [
         "player.json"
       ],
       "desc": "Runs on players. Returns if the attached player is breathing."
+    },
+    "query.is_carrying_block": {
+      "type": "bool",
+      "targets": [
+        "enderman.json"
+      ],
+      "desc": "Runs on endermen. Returns if the attached enderman is carrying a block."
     },
     "query.is_charged": {
       "type": "bool",
@@ -58,6 +70,13 @@
         "player.json"
       ],
       "desc": "Runs on players. Returns if the attached player is eating."
+    },
+    "query.is_elder": {
+      "type": "bool",
+      "targets": [
+        "guardian.json"
+      ],
+      "desc": "Runs on guardians. Returns if the attached guardian is an elder."
     },
     "query.is_emoting": {
       "type": "bool",
@@ -97,21 +116,6 @@
       ],
       "desc": "Runs on players. Returns if the attached player is pressing the jump button."
     },
-    "query.is_sneaking": {
-      "type": "bool",
-      "targets": [
-        "player.json",
-        "fox.json"
-      ],
-      "desc": "Runs on players. Returns if the attached player (or fox) is sneaking."
-    },
-    "query.is_sprinting": {
-      "type": "bool",
-      "targets": [
-        "player.json"
-      ],
-      "desc": "Runs on players. Returns if the attached player is sprinting."
-    },
     "query.is_moving": {
       "type": "bool",
       "targets": null,
@@ -127,20 +131,64 @@
       "targets": null,
       "desc": "Runs on the given entities. Returns if the entity is on the ground."
     },
-    "query.is_sleeping": {
-      "type": "bool",
-      "targets": [
-        "player.json",
-        "fox.json"
-      ],
-      "desc": "Runs on players. Returns if the attached player (or fox) is sleeping."
-    },
     "query.is_sheared": {
       "type": "bool",
       "targets": [
         "sheep.json"
       ],
       "desc": "Runs on sheep. Returns if the sheep is sheared."
+    },
+    "query.is_sitting": {
+      "type": "bool",
+      "targets": [
+        "fox.json",
+        "wolf.json",
+        "parrot.json"
+      ],
+      "desc": "Runs on wolves/dogs/parrots/foxes. Returns if the entity is sitting."
+    },
+    "query.is_sleeping": {
+      "type": "bool",
+      "targets": [
+        "player.json",
+        "fox.json"
+      ],
+      "desc": "Runs on players/foxes. Returns if the attached player (or fox) is sleeping."
+    },
+    "query.is_sneaking": {
+      "type": "bool",
+      "targets": [
+        "player.json",
+        "fox.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player (or fox) is sneaking."
+    },
+    "query.is_sneezing": {
+      "type": "bool",
+      "targets": [
+        "llama.json"
+      ],
+      "desc": "Runs on llamas. Returns if the llama is sneezing."
+    },
+    "query.is_sprinting": {
+      "type": "bool",
+      "targets": [
+        "player.json"
+      ],
+      "desc": "Runs on players. Returns if the attached player is sprinting."
+    },
+    "query.is_tamed": {
+      "type": "bool",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if the entity is tamed."
+    },
+    "query.is_transforming": {
+      "type": "bool",
+      "targets": [
+        "husk.json",
+        "zombie.json"
+      ],
+      "desc": "Runs on zombies/husks. Returns if the entity is transforming to a drowned."
     },
     "query.moon_phase": {
       "type": "int",
