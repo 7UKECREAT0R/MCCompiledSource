@@ -2350,7 +2350,144 @@ namespace mc_compiled.MCC.Compiler
 
             return commands;
         }
-        
+
+        [UsedImplicitly]
+        public static void summon(Executor executor, Statement tokens)
+        {
+            string entityType = tokens.Next<TokenIdentifier>("entity type").word;
+            Coordinate x = Coordinate.here;
+            Coordinate y = Coordinate.here;
+            Coordinate z = Coordinate.here;
+
+            // summon <entityType> <nameTag> [spawnPosition: x y z]
+            if (tokens.NextIs<TokenStringLiteral>(false, false))
+            {
+                string nameTagShortSyntax = tokens.Next<TokenStringLiteral>(null);
+                
+                if(tokens.NextIs<TokenCoordinateLiteral>(true))
+                    GetSpawnPosition();
+                
+                executor.AddCommand(Command.Summon(entityType, nameTagShortSyntax, x, y, z));
+                return;
+            }
+            
+            // summon <entityType>
+            if (!tokens.NextIs<TokenCoordinateLiteral>(false))
+            {
+                executor.AddCommand(Command.Summon(entityType));
+                return;
+            }
+            
+            // summon <entityType> <spawnPosition: x y z> ...
+            GetSpawnPosition();
+
+            // summon <entityType> <spawnPosition: x y z> <rotation: y x>
+            if (tokens.NextIs<TokenCoordinateLiteral>(false))
+            {
+                Coordinate rotationY = tokens.Next<TokenCoordinateLiteral>("rotation y");
+                Coordinate rotationX = tokens.Next<TokenCoordinateLiteral>("rotation x");
+
+                // summon <entityType> <spawnPosition: x y z> <rotation: y x> <spawnEvent>
+                if (tokens.NextIs<TokenStringLiteral>(true, false))
+                {
+                    string spawnEvent = tokens.Next<TokenStringLiteral>("spawn event");
+
+                    // summon <entityType> <spawnPosition: x y z> <rotation: y x> <spawnEvent> <nameTag>
+                    if (tokens.NextIs<TokenStringLiteral>(true, false))
+                    {
+                        string nameTag = tokens.Next<TokenStringLiteral>("name tag");
+                        executor.AddCommand(Command.Summon(entityType, x, y, z, rotationY, rotationX, nameTag, spawnEvent));
+                        return;
+                    }
+                    
+                    executor.AddCommand(Command.SummonWithEvent(entityType, x, y, z, rotationY, rotationX, spawnEvent));
+                    return;
+                }
+                
+                executor.AddCommand(Command.Summon(entityType, x, y, z, rotationY, rotationX));
+                return;
+            }
+            
+            // summon <entityType> <spawnPosition: x y z> facing ...
+            if (tokens.NextIs<TokenIdentifier>(true, false))
+            {
+                string word = tokens.Next<TokenIdentifier>(null).word;
+                if (!word.Equals("facing", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (word.StartsWith("f", StringComparison.OrdinalIgnoreCase))
+                        throw new StatementException(tokens, $"Unknown summon subcommand: '{word}' (did you mean 'facing'?)");
+                    throw new StatementException(tokens, $"Unknown summon subcommand: '{word}'");
+                }
+                
+                // summon <entityType> <spawnPosition: x y z> facing <entity>
+                if (tokens.NextIs<TokenSelectorLiteral>(false, false))
+                {
+                    Selector faceEntity = tokens.Next<TokenSelectorLiteral>("look at entity");
+                    string faceSelector = faceEntity.ToString();
+                    
+                    // summon <entityType> <spawnPosition: x y z> facing <entity> <spawnEvent>
+                    if (tokens.NextIs<TokenStringLiteral>(true, false))
+                    {
+                        string spawnEvent = tokens.Next<TokenStringLiteral>("spawn event");
+
+                        // summon <entityType> <spawnPosition: x y z> facing <entity> <spawnEvent> <nameTag>
+                        if (tokens.NextIs<TokenStringLiteral>(true, false))
+                        {
+                            string nameTag = tokens.Next<TokenStringLiteral>("name tag");
+                            executor.AddCommand(Command.SummonFacing(entityType, x, y, z, faceSelector, nameTag, spawnEvent));
+                            return;
+                        }
+                    
+                        executor.AddCommand(Command.SummonFacingWithEvent(entityType, x, y, z, faceSelector, spawnEvent));
+                        return;
+                    }
+                    
+                    executor.AddCommand(Command.SummonFacing(entityType, x, y, z, faceSelector));
+                    return;
+                }
+
+                // summon <entityType> <spawnPosition: x y z> facing <face: x y z>
+                // ReSharper disable once InvertIf
+                if (tokens.NextIs<TokenCoordinateLiteral>(false, false))
+                {
+                    Coordinate faceX = tokens.Next<TokenCoordinateLiteral>("face x");
+                    Coordinate faceY = tokens.Next<TokenCoordinateLiteral>("face y");
+                    Coordinate faceZ = tokens.Next<TokenCoordinateLiteral>("face z");
+                    
+                    // summon <entityType> <spawnPosition: x y z> facing <face: x y z> <spawnEvent>
+                    if (tokens.NextIs<TokenStringLiteral>(true, false))
+                    {
+                        string spawnEvent = tokens.Next<TokenStringLiteral>("spawn event");
+
+                        // summon <entityType> <spawnPosition: x y z> facing <face: x y z> <spawnEvent> <nameTag>
+                        if (tokens.NextIs<TokenStringLiteral>(true, false))
+                        {
+                            string nameTag = tokens.Next<TokenStringLiteral>("name tag");
+                            executor.AddCommand(Command.SummonFacing(entityType, x, y, z, faceX, faceY, faceZ, nameTag, spawnEvent));
+                            return;
+                        }
+                    
+                        executor.AddCommand(Command.SummonFacingWithEvent(entityType, x, y, z, faceX, faceY, faceZ, spawnEvent));
+                        return;
+                    }
+                    
+                    executor.AddCommand(Command.SummonFacing(entityType, x, y, z, faceX, faceY, faceZ));
+                    return;
+                }
+
+                throw new StatementException(tokens, "Where the entity should face was not specified.");
+            }
+            
+            executor.AddCommand(Command.Summon(entityType, x, y, z));
+            return;
+            
+            void GetSpawnPosition()
+            {
+                x = tokens.Next<TokenCoordinateLiteral>("spawn position x");
+                y = tokens.Next<TokenCoordinateLiteral>("spawn position y");
+                z = tokens.Next<TokenCoordinateLiteral>("spawn position z");
+            }
+        }
         [UsedImplicitly]
         public static void damage(Executor executor, Statement tokens)
         {

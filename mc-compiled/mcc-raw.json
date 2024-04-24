@@ -170,6 +170,7 @@
       "say": "Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.",
       "scatter": "Randomly scatters blocks throughout a region with a certain percentage.",
       "setblock": "Sets the block at a specific position, optionally using a replace mode.",
+      "summon": "Summons an entity; matches Minecraft vanilla syntax.",
       "tag": "Add and remove tags from the given entity.",
       "test": "Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.",
       "throw": "Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw.",

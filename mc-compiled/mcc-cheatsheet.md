@@ -276,6 +276,14 @@ Rotate Entity
 : Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.
 - `rotate <selector: source> <int: y> <int: x>`
 
+Summon Entity
+: Summons an entity; matches Minecraft vanilla syntax.
+- `summon <id: type>`
+- `summon <id: type> <string: name tag> [coordinate: x] [coordinate: y] [coordinate: z]`
+- `summon <id: type> <coordinate: x> <coordinate: y> <coordinate: z> <coordinate: y rotation> <coordinate: x rotation> [string: spawn event] [string: name tag]`
+- `summon <id: type> <coordinate: x> <coordinate: y> <coordinate: z> <id: facing> <selector: entity to face> [string: spawn event] [string: name tag]`
+- `summon <id: type> <coordinate: x> <coordinate: y> <coordinate: z> <id: facing> <coordinate: face x> <coordinate: face y> <coordinate: face z> [string: spawn event] [string: name tag]`
+
 Tag Entity
 : Add and remove tags from the given entity.
 - `tag <selector: target> <id: mode> <string: name>`

@@ -2,7 +2,7 @@ const mccompiled = {
 	operators: [ `<`, `>`, `{`, `}`, `=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `!` ],
 	selectors: [ `@e`, `@a`, `@s`, `@p`, `@r` ],
 	preprocessor: [ `$add`, `$append`, `$assert`, `$call`, `$dec`, `$div`, `$else`, `$if`, `$inc`, `$include`, `$iterate`, `$json`, `$len`, `$log`, `$macro`, `$mean`, `$median`, `$mod`, `$mul`, `$pow`, `$prepend`, `$repeat`, `$reverse`, `$sort`, `$strfriendly`, `$strlower`, `$strupper`, `$sub`, `$sum`, `$swap`, `$unique`, `$var` ],
-	commands: [ `actionbar`, `assert`, `await`, `clear`, `damage`, `define`, `dialogue`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `repeat`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `tag`, `test`, `throw`, `title`, `tp`, `teleport`, `while` ],
+	commands: [ `actionbar`, `assert`, `await`, `clear`, `damage`, `define`, `dialogue`, `dummy`, `effect`, `else`, `execute`, `explode`, `face`, `lookat`, `feature`, `fill`, `for`, `function`, `fn`, `give`, `globalactionbar`, `globalprint`, `globaltitle`, `halt`, `if`, `init`, `initialize`, `kill`, `lang`, `mc`, `command`, `cmd`, `move`, `particle`, `playsound`, `print`, `remove`, `repeat`, `replace`, `return`, `rotate`, `say`, `scatter`, `setblock`, `summon`, `tag`, `test`, `throw`, `title`, `tp`, `teleport`, `while` ],
 	literals: [ `true`, `false`, `not`, `and`, `null`, `~`, `^` ],
 	types: [ `int`, `decimal`, `bool`, `time`, `struct`, `ppv`, `global`, `local`, `extern`, `export`, `bind`, `auto`, `partial`, `async` ],
 	comparisons: [ `until`, `count`, `any`, `block`, `blocks`, `positioned` ],
@@ -431,6 +431,10 @@ const mcc_commands = [
 	{
 		word: `setblock`,
 		docs: `Sets the block at a specific position, optionally using a replace mode.`
+	},
+	{
+		word: `summon`,
+		docs: `Summons an entity; matches Minecraft vanilla syntax.`
 	},
 	{
 		word: `tag`,

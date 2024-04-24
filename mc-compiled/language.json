@@ -712,6 +712,18 @@
       "details": "Ends the execution of the code entirely by hitting the function command limit.",
       "category": "logic"
     },
+    "summon": {
+      "description": "Summon Entity",
+      "details": "Summons an entity; matches Minecraft vanilla syntax.",
+      "category": "entities",
+      "patterns": [
+        [ "id:type" ],
+        [ "id:type", "string:name tag", "?coordinate:x", "?coordinate:y", "?coordinate:z" ],
+        [ "id:type", "coordinate:x", "coordinate:y", "coordinate:z", "coordinate:y rotation", "coordinate:x rotation", "?string:spawn event", "?string:name tag" ],
+        [ "id:type", "coordinate:x", "coordinate:y", "coordinate:z", "id:facing", "selector:entity to face", "?string:spawn event", "?string:name tag" ],
+        [ "id:type", "coordinate:x", "coordinate:y", "coordinate:z", "id:facing", "coordinate:face x", "coordinate:face y", "coordinate:face z", "?string:spawn event", "?string:name tag" ]
+      ]
+    },
     "damage": {
       "description": "Damage Entity",
       "details": "Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",

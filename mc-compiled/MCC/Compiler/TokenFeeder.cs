@@ -84,7 +84,10 @@ namespace mc_compiled.MCC.Compiler
         /// Pulls the next token in the feeder, casting it to the given type. Implements MCCompiled implicit conversions.
         /// </summary>
         /// <typeparam name="T">The type to cast.</typeparam>
-        /// <param name="parameterHint">The name of the parameter that this token will fill. Errors will display this name as a hint to the user. You may pass null to this parameter if you have checked it beforehand.</param>
+        /// <param name="parameterHint">
+        /// The name of the parameter that this token will fill. Errors will display this name as a hint to the user.
+        /// You may pass null to this parameter if you have checked it beforehand via <see cref="NextIs{T}"/>.
+        /// </param>
         /// <returns></returns>
         /// <exception cref="FeederException"></exception>
         public T Next<T>(string parameterHint) where T : class
