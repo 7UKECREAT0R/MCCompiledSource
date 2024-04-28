@@ -668,7 +668,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public JToken LoadJSONFile(string path, int hash, Statement callingStatement)
         {
-            // cached file, dont read again
+            // cached file, don't read again
             if (this.loadedFiles.TryGetValue(hash, out object value))
             {
                 if (value is JToken token)
@@ -777,7 +777,7 @@ namespace mc_compiled.MCC.Compiler
                     filePath[paths.Length] = toLocate.GetOutputFile(); // last index
 
                     string downloadedFile = TemporaryFilesManager.Get(packType, callingStatement, filePath);
-                    root = LoadJSONFile(downloadedFile, outputFileHash, null);
+                    root = LoadJSONFile(downloadedFile, outputFileHash, callingStatement);
                 }
             }
 

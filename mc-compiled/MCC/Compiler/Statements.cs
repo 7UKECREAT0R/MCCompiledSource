@@ -62,11 +62,14 @@ namespace mc_compiled.MCC.Compiler
                 return;
 
             // peek at the next to determine if this comment will be used as documentation or not.
-            Statement next = runningExecutor.Peek();
-            if(next is StatementDirective statementDirective)
+            if (runningExecutor.HasNext)
             {
-                if (statementDirective.HasAttribute(DirectiveAttribute.DOCUMENTABLE))
-                    return; // this is a documentation string.
+                Statement next = runningExecutor.Peek();
+                if (next is StatementDirective statementDirective)
+                {
+                    if (statementDirective.HasAttribute(DirectiveAttribute.DOCUMENTABLE))
+                        return; // this is a documentation string.
+                }
             }
 
             string str = runningExecutor.ResolveString(this.comment);

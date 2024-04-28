@@ -69,11 +69,6 @@ namespace mc_compiled.MCC.Attributes
 
                 var driver = new AnimationController(driverName);
                 executor.AddExtraFile(driver);
-
-                // catch cases where there are no targetFiles for the binding
-                if (this.binding.targetFiles == null || this.binding.targetFiles.Length == 0)
-                    throw new StatementException(callingStatement,
-                        $"Binding '{this.binding.molangQuery}' requires target entities to be specified.");
                 
                 // the binding's implementation of the controller states is invoked here
                 // we support bool, int, and float
