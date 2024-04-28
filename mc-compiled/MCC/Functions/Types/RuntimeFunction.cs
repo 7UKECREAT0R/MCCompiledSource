@@ -213,7 +213,8 @@ namespace mc_compiled.MCC.Functions.Types
             
             executor.AddCommands(commands, "returnValue", $"Returns the literal '{value}'. Called in a return command located in {this.file.CommandReference} line {executor.NextLineNumber}");
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             // add the file to the executor if it hasn't been yet.
             if(!this.isAddedToExecutor && !this.isExtern)

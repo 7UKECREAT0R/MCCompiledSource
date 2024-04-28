@@ -190,17 +190,29 @@ namespace mc_compiled.MCC
         }
 
         /// <summary>
-        /// Attempts to throw a <see cref="StatementException"/> if there is a duplicate value with the same name 
+        /// Attempts to throw a <see cref="StatementException"/> if there is a duplicate value with the same name.
+        /// Does not throw if the value exactly matches another value.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="callingStatement"></param>
-        public void TryThrowForDuplicate(ScoreboardValue value, Statement callingStatement)
+        /// <param name="value">The scoreboard value to check for duplicates of.</param>
+        /// <param name="callingStatement">The statement that is calling this method.</param>
+        /// <param name="identicalDuplicate">An output parameter indicating if the value is an identical duplicate of an existing value.</param>
+        public void TryThrowForDuplicate(ScoreboardValue value, Statement callingStatement, out bool identicalDuplicate)
         {
-            ScoreboardValue find = this.values.FirstOrDefault(v => v.InternalName == value.InternalName);
+            ScoreboardValue find = this.values.FirstOrDefault(v =>
+                v.InternalName.Equals(value.InternalName) || v.Name.Equals(value.Name));
 
             if (find == null)
+            {
+                identicalDuplicate = false;
                 return;
-            
+            }
+
+            if (find.Equals(value))
+            {
+                identicalDuplicate = true;
+                return; // identical copy
+            }
+
             if(find.Name.Equals(find.InternalName))
                 throw new StatementException(callingStatement, $"Value \"{find.Name}\" already exists.");
             

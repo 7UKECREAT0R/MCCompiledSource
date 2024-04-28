@@ -25,7 +25,8 @@ namespace mc_compiled.MCC.Functions.Types
             score = -999;
             return true;
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             throw new StatementException(statement, "Attempted to call test function manually. Use `/function test` ingame.");
         }

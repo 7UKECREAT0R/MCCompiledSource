@@ -634,9 +634,7 @@ namespace mc_compiled.MCC.Compiler
             var block = executor.Next<StatementOpenBlock>();
             int count = block.statementsInside;
             Statement[] statements = executor.Peek(count);
-
-            if (count < 1)
-                throw new StatementException(tokens, "Cannot have empty macro.");
+            
             for (int i = 0; i < count; i++)
                 executor.Next(); // skip over those
 
@@ -1263,7 +1261,7 @@ namespace mc_compiled.MCC.Compiler
                 tokens.Next<TokenSelectorLiteral>("player") : Selector.SELF;
 
             if (player.AnyNonPlayers)
-                throw new StatementException(tokens, $"The selector {player} will never target any players.");
+                throw new StatementException(tokens, $"The selector {player} may target non-players.");
             
             string str = tokens.Next<TokenStringLiteral>("format string");
             List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
@@ -1302,15 +1300,17 @@ namespace mc_compiled.MCC.Compiler
             executor.AddCommandsInit(value.CommandsDefine());
 
             // register it to the executor.
-            executor.scoreboard.TryThrowForDuplicate(value, tokens);
-            executor.scoreboard.Add(value);
+            executor.scoreboard.TryThrowForDuplicate(value, tokens, out bool identicalDuplicate);
+
+            if (!identicalDuplicate)
+                executor.scoreboard.Add(value);
 
             if (def.defaultValue == null)
                 return;
             
             // all the rest of this is getting the commands to define the variable.
             var commands = new List<string>();
-
+            
             switch (def.defaultValue)
             {
                 case TokenLiteral literal:
@@ -2241,7 +2241,7 @@ namespace mc_compiled.MCC.Compiler
                 Selector.SELF;
             
             if (player.AnyNonPlayers)
-                throw new StatementException(tokens, $"The selector {player} will never target any players.");
+                throw new StatementException(tokens, $"The selector {player} may target non-players.");
             
             if (tokens.NextIs<TokenIdentifier>(false, false))
             {
@@ -2303,7 +2303,7 @@ namespace mc_compiled.MCC.Compiler
                 Selector.SELF;
 
             if (player.AnyNonPlayers)
-                throw new StatementException(tokens, $"The selector {player} will never target any players.");
+                throw new StatementException(tokens, $"The selector {player} may target non-players.");
             
             string str = tokens.Next<TokenStringLiteral>("actionbar");
             List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
@@ -2841,7 +2841,7 @@ namespace mc_compiled.MCC.Compiler
             bool wasSoundFile;
 
             if (filter.AnyNonPlayers)
-                throw new StatementException(tokens, $"The selector {filter} will never target any players.");
+                throw new StatementException(tokens, $"The selector {filter} may target non-players.");
             
             if(!tokens.NextIs<TokenCoordinateLiteral>(false))
             {
@@ -3109,8 +3109,10 @@ namespace mc_compiled.MCC.Compiler
                 ScoreboardValue value = def.Create(executor.scoreboard, tokens);
                 value.clarifier.IsGlobal = true;
 
-                executor.scoreboard.TryThrowForDuplicate(value, tokens);
-                executor.scoreboard.Add(value);
+                executor.scoreboard.TryThrowForDuplicate(value, tokens, out bool identicalDuplicate);
+                
+                if(!identicalDuplicate)
+                    executor.scoreboard.Add(value);
 
                 parameters.Add(new RuntimeFunctionParameter(value, def.defaultValue));
             }

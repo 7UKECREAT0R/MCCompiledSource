@@ -407,13 +407,13 @@ namespace mc_compiled.MCC.Compiler
             
             if (bestFunction is RuntimeFunction)
             {
-                _ = bestFunction.CallFunction(callCommands, runningExecutor, this);
+                _ = bestFunction.CallFunction(callCommands, passIn, runningExecutor, this);
                 bestFunction.ProcessParameters(passIn, parameterCommands, runningExecutor, this);
             }
             else
             {
                 bestFunction.ProcessParameters(passIn, parameterCommands, runningExecutor, this);
-                _ = bestFunction.CallFunction(callCommands, runningExecutor, this);
+                _ = bestFunction.CallFunction(callCommands, passIn, runningExecutor, this);
             }
 
             

@@ -13,7 +13,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 new CompiletimeFunctionParameter<TokenLiteral>("b")
             );
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             TokenLiteral a = ((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenLiteral;
             TokenLiteral b = ((CompiletimeFunctionParameter)this.Parameters[1]).CurrentValue as TokenLiteral;
@@ -70,7 +71,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 new CompiletimeFunctionParameter<TokenLiteral>("b")
             );
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             TokenLiteral a = ((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenLiteral;
             TokenLiteral b = ((CompiletimeFunctionParameter)this.Parameters[1]).CurrentValue as TokenLiteral;

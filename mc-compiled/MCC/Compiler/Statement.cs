@@ -661,7 +661,7 @@ namespace mc_compiled.MCC.Compiler
                 bestFunction.ProcessParameters(tokensInside, commands, activeExecutor, this);
 
                 // call the function.
-                Token replacement = bestFunction.CallFunction(commands, activeExecutor, this);
+                Token replacement = bestFunction.CallFunction(commands, tokensInside, activeExecutor, this);
 
                 // finish with the commands.
                 CommandFile current = activeExecutor.CurrentFile;

@@ -13,8 +13,7 @@ namespace mc_compiled.MCC.Functions.Types
     {
         readonly List<CompiletimeFunctionParameter> parameters;
 
-        //          ARG1                            ARG2      ARG3       RETURN
-        public Func<CompiletimeFunctionParameter[], Executor, Statement, IAttribute> callAction;
+        public Func<CompiletimeFunctionParameter[], Token[], Executor, Statement, IAttribute> callAction;
 
         public readonly string visualName;      // user-facing name (keyword)
         public readonly string internalName;    // name used internally.
@@ -37,15 +36,16 @@ namespace mc_compiled.MCC.Functions.Types
         /// <see cref="Executor"/> - The executor running this action. <br />
         /// <see cref="Statement"/> - The statement running this action.
         /// </remarks>
-        /// <param name="callAction">The call action to set. See above for its parameters.</param>
+        /// <param name="newCallAction">The call action to set. See above for its parameters.</param>
         /// <returns>This object for chaining.</returns>
         public AttributeFunction WithCallAction(Func<
             CompiletimeFunctionParameter[],
+            Token[],
             Executor,
             Statement,
-            IAttribute> callAction)
+            IAttribute> newCallAction)
         {
-            this.callAction = callAction;
+            this.callAction = newCallAction;
             return this;
         }
         /// <summary>
@@ -61,11 +61,11 @@ namespace mc_compiled.MCC.Functions.Types
         /// <summary>
         /// Adds multiple compile-time parameters to this attribute function.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="parametersToAdd">The parameters to add to this function.</param>
         /// <returns>This object for chaining.</returns>
-        public AttributeFunction AddParameters(IEnumerable<CompiletimeFunctionParameter> parameters)
+        public AttributeFunction AddParameters(IEnumerable<CompiletimeFunctionParameter> parametersToAdd)
         {
-            this.parameters.AddRange(parameters);
+            this.parameters.AddRange(parametersToAdd);
             return this;
         }
 
@@ -88,12 +88,12 @@ namespace mc_compiled.MCC.Functions.Types
             score = 0;
             return false;
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor, Statement statement)
         {
             if (this.callAction == null)
                 throw new StatementException(statement, $"Function \"{this.internalName}\" has no call action bound. This is a bug with the compiler.");
 
-            IAttribute constructed = this.callAction(this.parameters.ToArray(), executor, statement);
+            IAttribute constructed = this.callAction(this.parameters.ToArray(), allParameters, executor, statement);
             return new TokenAttribute(constructed, statement.Lines[0]);
         }
     }

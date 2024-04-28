@@ -33,7 +33,7 @@ namespace mc_compiled.MCC.Compiler
 
         public static readonly Regex FSTRING_SELECTOR = new Regex(_FSTRING_SELECTOR);
         public static readonly Regex FSTRING_VARIABLE = new Regex(_FSTRING_VARIABLE);
-        public const decimal MCC_VERSION = 1.18M;                       // _compiler
+        public const decimal MCC_VERSION = 1.19M;                       // _compiler
         public static string MINECRAFT_VERSION = "0.00.000";            // _minecraft
         public const string MCC_GENERATED_FOLDER = "compiler";          // folder that generated functions go into
         public const string MCC_TESTS_FOLDER = "tests";                 // folder that generated tests go into
@@ -776,7 +776,7 @@ namespace mc_compiled.MCC.Compiler
                     }
                     filePath[paths.Length] = toLocate.GetOutputFile(); // last index
 
-                    string downloadedFile = TemporaryFilesManager.Get(packType, filePath);
+                    string downloadedFile = TemporaryFilesManager.Get(packType, callingStatement, filePath);
                     root = LoadJSONFile(downloadedFile, outputFileHash, null);
                 }
             }

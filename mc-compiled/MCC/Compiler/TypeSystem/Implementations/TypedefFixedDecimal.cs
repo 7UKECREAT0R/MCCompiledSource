@@ -39,6 +39,18 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         {
             return this.precision.GetHashCode();
         }
+        public bool Equals(FixedDecimalData other)
+        {
+            return this.precision == other.precision;
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is FixedDecimalData other && Equals(other);
+        }
+        public override int GetHashCode()
+        {
+            return this.precision.GetHashCode();
+        }
     }
     internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
     {

@@ -38,8 +38,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="defaultState">[OUT] The default state to use.</param>
         /// <returns>An array of <see cref="ControllerState"/>s that represent this binding.</returns>
         public abstract ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState);
-        public override string ToString() =>
-$"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles == null ? "none" : string.Join(" ", this.targetFiles))} :: desc: {this.description}";
+        public override string ToString() => $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles == null ? "none" : string.Join(" ", this.targetFiles))} :: desc: {this.description}";
     }
     /// <summary>
     /// A definition describing how to bind to a Molang query that evaluates to a boolean.
@@ -48,14 +47,14 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
     {
         public MolangBindingBool(string molangQuery, string[] targetFiles, string description)
             : base(molangQuery, targetFiles, description) { }
-
-
+        
         public override BindingType Type => BindingType.boolean;
         public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState)
         {
             defaultState = "off";
 
-            return new[] {
+            return new[]
+            {
                 new ControllerState()
                 {
                     name = "off",
@@ -65,7 +64,7 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
                     },
                     transitions = new ControllerState.Transition[]
                     {
-                        new ControllerState.Transition("on", (MolangValue) this.molangQuery)
+                        new ControllerState.Transition("on", (MolangValue)this.molangQuery)
                     }
                 },
                 new ControllerState()
@@ -83,6 +82,55 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
             };
         }
     }
+        
+    /// <summary>
+    /// A definition describing how to bind to a Molang query that evaluates to a custom bool expression.
+    /// </summary>
+    public sealed class MolangBindingCustomBool : MolangBinding
+    {
+        private readonly string customQuery;
+        
+        public MolangBindingCustomBool(string molangQuery, string[] targetFiles, string description, string customQuery)
+            : base(molangQuery, targetFiles, description)
+        {
+            this.customQuery = customQuery;
+        }
+
+        public override BindingType Type => BindingType.custom_bool;
+        public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement, out string defaultState)
+        {
+            defaultState = "off";
+
+            return new[]
+            {
+                new ControllerState()
+                {
+                    name = "off",
+                    onEntryCommands = new[]
+                    {
+                        Command.ForJSON(Command.ScoreboardSet(value, 0))    
+                    },
+                    transitions = new[]
+                    {
+                        new ControllerState.Transition("on", (MolangValue)$"{this.customQuery}")
+                    }
+                },
+                new ControllerState()
+                {
+                    name = "on",
+                    onEntryCommands = new[]
+                    {
+                        Command.ForJSON(Command.ScoreboardSet(value, 1))
+                    },
+                    transitions = new[]
+                    {
+                        new ControllerState.Transition("off", (MolangValue)$"!({this.customQuery})")
+                    }
+                }
+            };
+        }
+    }
+    
     /// <summary>
     /// A definition describing how to bind to a Molang query that evaluates to an integer, within a given range.
     /// </summary>
@@ -137,11 +185,11 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
                 var state = new ControllerState()
                 {
                     name = stateName,
-                    onEntryCommands = new string[]
+                    onEntryCommands = new[]
                     {
                         Command.ForJSON(Command.ScoreboardSet(value, currentState))
                     },
-                    transitions = new ControllerState.Transition[]
+                    transitions = new[]
                     {
                         new ControllerState.Transition(director, (MolangValue)$"{this.molangQuery} != {currentState}")
                     }
@@ -224,11 +272,19 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
             return states;
         }
     }
+
     public enum BindingType
     {
+        /// <summary>
+        /// A boolean.
+        /// </summary>
         boolean,
+        /// <summary>
+        /// An integer with a minimum and maximum value. Will check every index between min and max inclusive.
+        /// </summary>
         integer,
-        floating_point
+        floating_point,
+        custom_bool
     }
 
     /// <summary>
@@ -246,14 +302,14 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
             int numberRegistered = 0;
             LAST_MC_VERSION = json["last_mc_version"].ToString();
 
-            JObject bindingsDict = json["bindings"] as JObject;
+            var bindingsDict = json["bindings"] as JObject;
             
             Debug.Assert(bindingsDict != null, "Field 'bindings' (at root) was missing in bindings.json");
             
             foreach(JProperty property in bindingsDict.Properties())
             {
-                string query = property.Name.ToString();
-                JObject body = property.Value as JObject;
+                string query = property.Name;
+                var body = property.Value as JObject;
 
                 Debug.Assert(body != null, "Field 'body' (under 'bindings') was missing in bindings.json");
 
@@ -305,6 +361,10 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
                         float maxF = (body["max"] ?? throw new Exception($"Missing field 'max' in binding '{query}'.")).Value<float>();
                         float stepF = (body["step"] ?? throw new Exception($"Missing field 'step' in binding '{query}'.")).Value<float>();
                         binding = new MolangBindingFloat(query, targets, desc, minF, maxF, stepF);
+                        break;
+                    case "CUSTOM_BOOL":
+                        string customQuery = (body["condition"] ?? throw new Exception($"Missing field 'condition' in binding '{query}'.")).Value<string>();
+                        binding = new MolangBindingCustomBool(query, targets, desc, customQuery);
                         break;
                     default:
                         throw new Exception($"Invalid type '{type}' specified in binding '{query}'.");
@@ -362,7 +422,5 @@ $"Binding ({this.Type}): \"{this.molangQuery}\" :: target(s): {(this.targetFiles
             Load(debug);
             _isLoaded = true;
         }
-
-
     }
 }

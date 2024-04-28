@@ -63,49 +63,62 @@ namespace mc_compiled.MCC.Compiler
         }
         /// <summary>
         /// Download the newest file from remote source, overwriting the old one if it exists.
+        /// Returns boolean indicating if the download was success.
         /// </summary>
         /// <param name="packType"></param>
         /// <param name="pathEntries"></param>
-        private static void DownloadNewest(PackType packType, params string[] pathEntries)
+        private static bool DownloadNewest(PackType packType, params string[] pathEntries)
         {
             string path = BuildTraversalPath(packType, pathEntries);
-            DownloadNewest(path);
+            return DownloadNewest(path);
         }
         /// <summary>
         /// Download the newest file from the remote source, overwriting the old one if it exists.
+        /// Returns boolean indicating if the download was success.
         /// </summary>
         /// <param name="traversalPath">The relative path of the file to be downloaded.</param>
-        private static void DownloadNewest(string traversalPath)
+        private static bool DownloadNewest(string traversalPath)
         {
-            Console.WriteLine("[DefaultPackManager] Downloading remote file {0}...", traversalPath);
+            try
+            {
+                Console.WriteLine("[DefaultPackManager] Downloading remote file {0}...", traversalPath);
 
-            string sourcePath = GetSourcePath(traversalPath);
-            string destPath = GetDestPath(traversalPath);
+                string sourcePath = GetSourcePath(traversalPath);
+                string destPath = GetDestPath(traversalPath);
 
-            // ensure the directory exists for the file to be placed in.
-            string directory = Path.GetDirectoryName(destPath);
-            if (directory == null)
-                throw new ArgumentNullException(nameof(directory));
-            Directory.CreateDirectory(directory);
+                // ensure the directory exists for the file to be placed in.
+                string directory = Path.GetDirectoryName(destPath);
+                if (directory == null)
+                    throw new ArgumentNullException(nameof(directory));
+                Directory.CreateDirectory(directory);
 
-            // delete the old file
-            if (File.Exists(destPath))
-                File.Delete(destPath);
+                // delete the old file
+                if (File.Exists(destPath))
+                    File.Delete(destPath);
 
-            // Download the file from the remote source.
-            using (WebClient client = new WebClient())
-                client.DownloadFile(sourcePath, destPath);
+                // Download the file from the remote source.
+                using (WebClient client = new WebClient())
+                    client.DownloadFile(sourcePath, destPath);
 
-            Console.WriteLine("[DefaultPackManager] Complete: {0}.", destPath);
+                Console.WriteLine("[DefaultPackManager] Complete: {0}.", destPath);
+
+                return true; // return true if download is successful
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[DefaultPackManager] Exception: {0}.", ex.Message);
+                return false; // return false if an exception occurred we conclude that download was unsuccessful
+            }
         }
 
         /// <summary>
         /// Gets the given default pack file, downloading it if it's not already cached.
         /// </summary>
-        /// <param name="packType"></param>
-        /// <param name="pathEntries"></param>
-        /// <returns>The path to the file in question.</returns>
-        public static string Get(PackType packType, params string[] pathEntries)
+        /// <param name="packType">The type of pack to look in.</param>
+        /// <param name="callingStatement">The calling statement for exceptions.</param>
+        /// <param name="pathEntries">The entries to the path of the file from the root of the given pack type.</param>
+        /// <returns>The path to the gotten file.</returns>
+        public static string Get(PackType packType, Statement callingStatement, params string[] pathEntries)
         {
             string path = BuildTraversalPath(packType, pathEntries);
             string destPath = GetDestPath(path);
@@ -113,7 +126,9 @@ namespace mc_compiled.MCC.Compiler
             if (File.Exists(destPath))
                 return destPath;
 
-            DownloadNewest(packType, pathEntries);
+            if (!DownloadNewest(packType, pathEntries))
+                throw new StatementException(callingStatement, $"Couldn't download file: {(packType == PackType.BehaviorPack ? "BP" : "RP")}/{string.Join("/", pathEntries)}");
+            
             return destPath;
         }
         

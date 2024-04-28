@@ -1,6 +1,18 @@
 ﻿{
   "last_mc_version": "1.20.80",
   "bindings": {
+    "is_day": {
+      "type": "custom_bool",
+      "condition": "query.time_of_day >= 0.25 && query.time_of_day < 0.75",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if it is currently daytime."
+    },
+    "is_night": {
+      "type": "custom_bool",
+      "condition": "query.time_of_day < 0.25 && query.time_of_day >= 0.75",
+      "targets": null,
+      "desc": "Runs on the given entities. Returns if it is currently nighttime."
+    },
     "query.blocking": {
       "type": "bool",
       "targets": [
@@ -145,65 +157,65 @@
         "wolf.json",
         "parrot.json"
       ],
-      "desc": "Runs on wolves/dogs/parrots/foxes. Returns if the entity is sitting."
-    },
-    "query.is_sleeping": {
-      "type": "bool",
-      "targets": [
+    "desc": "Runs on wolves/dogs/parrots/foxes. Returns if the entity is sitting."
+  },
+  "query.is_sleeping": {
+    "type": "bool",
+    "targets": [
         "player.json",
         "fox.json"
       ],
-      "desc": "Runs on players/foxes. Returns if the attached player (or fox) is sleeping."
-    },
-    "query.is_sneaking": {
-      "type": "bool",
-      "targets": [
+    "desc": "Runs on players/foxes. Returns if the attached player (or fox) is sleeping."
+  },
+  "query.is_sneaking": {
+    "type": "bool",
+    "targets": [
         "player.json",
         "fox.json"
       ],
-      "desc": "Runs on players. Returns if the attached player (or fox) is sneaking."
-    },
-    "query.is_sneezing": {
-      "type": "bool",
-      "targets": [
+    "desc": "Runs on players. Returns if the attached player (or fox) is sneaking."
+  },
+  "query.is_sneezing": {
+    "type": "bool",
+    "targets": [
         "llama.json"
       ],
-      "desc": "Runs on llamas. Returns if the llama is sneezing."
-    },
-    "query.is_sprinting": {
-      "type": "bool",
-      "targets": [
+    "desc": "Runs on llamas. Returns if the llama is sneezing."
+  },
+  "query.is_sprinting": {
+    "type": "bool",
+    "targets": [
         "player.json"
       ],
-      "desc": "Runs on players. Returns if the attached player is sprinting."
-    },
-    "query.is_tamed": {
-      "type": "bool",
-      "targets": null,
-      "desc": "Runs on the given entities. Returns if the entity is tamed."
-    },
-    "query.is_transforming": {
-      "type": "bool",
-      "targets": [
+    "desc": "Runs on players. Returns if the attached player is sprinting."
+  },
+  "query.is_tamed": {
+    "type": "bool",
+    "targets": null,
+    "desc": "Runs on the given entities. Returns if the entity is tamed."
+  },
+  "query.is_transforming": {
+    "type": "bool",
+    "targets": [
         "husk.json",
         "zombie.json"
       ],
-      "desc": "Runs on zombies/husks. Returns if the entity is transforming to a drowned."
-    },
-    "query.moon_phase": {
-      "type": "int",
-      "min": 0,
-      "max": 7,
-      "targets": [
+    "desc": "Runs on zombies/husks. Returns if the entity is transforming to a drowned."
+  },
+  "query.moon_phase": {
+    "type": "int",
+    "min": 0,
+    "max": 7,
+    "targets": [
         "player.json"
       ],
-      "desc": "Runs on players. Returns the current phase of the moon, 0-7. 0 being full moon."
-    },
-    "query.sleep_rotation": {
-      "type": "int",
-      "min": 0,
-      "max": 4,
-      "targets": [
+    "desc": "Runs on players. Returns the current phase of the moon, 0-7. 0 being full moon."
+  },
+  "query.sleep_rotation": {
+    "type": "int",
+    "min": 0,
+    "max": 4,
+    "targets": [
         "player.json"
       ],
       "desc": "Runs on players. Returns the direction of the bed they are sleeping on, or 0."

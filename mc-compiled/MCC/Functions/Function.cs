@@ -162,9 +162,11 @@ namespace mc_compiled.MCC.Functions
         /// Call this function after the inputs have been processed by <see cref="ProcessParameters"/>.
         /// </summary>
         /// <param name="commandBuffer">The commands that will be added after this function call is completed in full.</param>
+        /// <param name="allParameters">The parameters passed to the function, raw without the parameter wrapper.</param>
         /// <param name="executor">The executing environment.</param>
         /// <param name="statement">The statement that is calling this function.</param>
         /// <returns>The token to replace the function during squashing. Return null to completely remove the token.</returns>
-        public abstract Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement);
+        public abstract Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement);
     }
 }

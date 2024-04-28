@@ -184,7 +184,8 @@ namespace mc_compiled.MCC.Functions.Types
             throw new StatementException(caller, $"Cannot return into generated value {variable}? (Create an issue on GitHub or let me know in the Discord)");
         }
 
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             int signature = GetHashCode();
 

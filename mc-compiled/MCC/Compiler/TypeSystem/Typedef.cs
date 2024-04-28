@@ -45,7 +45,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
 
         public override bool Equals(object obj)
         {
-            return (obj is Typedef def) && def.TypeEnum == this.TypeEnum;
+            return (obj is Typedef def) &&
+                   def.TypeEnum == this.TypeEnum;
         }
         /// <summary>
         /// Returns the HashCode of this type. Short for: <code>this.TypeEnum.GetHashCode();</code>

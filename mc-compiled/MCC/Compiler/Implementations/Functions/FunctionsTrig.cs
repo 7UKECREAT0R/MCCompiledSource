@@ -12,7 +12,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue).GetNumber();
             decimal result = (decimal)(float)Math.Sin((double)number);
@@ -28,7 +29,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue).GetNumber();
             decimal result = (decimal)(float)Math.Cos((double)number);
@@ -44,7 +46,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue).GetNumber();
             decimal result = (decimal)(float)Math.Tan((double)number);
@@ -60,7 +63,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
             );
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue).GetNumber();
             decimal result = (decimal)(float)Math.Atan((double)number);

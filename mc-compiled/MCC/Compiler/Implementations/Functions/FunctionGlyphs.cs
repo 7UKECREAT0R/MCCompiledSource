@@ -16,7 +16,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
             );
         }
 
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             int x = ((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenIntegerLiteral;
             int y = ((CompiletimeFunctionParameter)this.Parameters[1]).CurrentValue as TokenIntegerLiteral;

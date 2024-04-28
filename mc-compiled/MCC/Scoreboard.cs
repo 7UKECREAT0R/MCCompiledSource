@@ -265,12 +265,11 @@ namespace mc_compiled.MCC
                 return false; // name was not equal
             if (this.type.TypeEnum != other.type.TypeEnum)
                 return false; // type was not equal
-            if ((this.data == null) == (other.data == null))
+            if ((this.data == null) != (other.data == null))
                 return false; // data null state is not equal
-            if (this.data != null && !this.data.Equals(other.data))
-                return false; // data was not equal
 
-            return true;
+            // data is equal?
+            return this.data == null || this.data.Equals(other.data);
         }
         public override bool Equals(object obj)
         {

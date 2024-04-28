@@ -21,7 +21,10 @@ namespace mc_compiled.Commands
         /// <returns></returns>
         public static string ForJSON(string command)
         {
+            if(command.StartsWith("/"))
+                return command.Replace("\"", "\\\"");
             return '/' + command.Replace("\"", "\\\"");
+
         }
         /// <summary>
         /// Returns this string, but surrounded with quotation marks if it contains whitespace. 

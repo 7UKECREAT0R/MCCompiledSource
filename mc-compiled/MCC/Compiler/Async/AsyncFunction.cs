@@ -219,7 +219,8 @@ namespace mc_compiled.MCC.Compiler.Async
             throw new StatementException(caller, "Async functions cannot return values.");
         public override void TryReturnValue(TokenLiteral value, Statement caller, Executor executor) =>
             throw new StatementException(caller, "Async functions cannot return values.");
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             // add the file to the executor if it hasn't been yet.
             if(!this.isAddedToExecutor && !this.isExtern)

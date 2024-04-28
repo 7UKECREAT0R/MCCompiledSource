@@ -12,7 +12,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
                 new CompiletimeFunctionParameter<TokenStringLiteral>("name")
             );
         }
-        public override Token CallFunction(List<string> commandBuffer, Executor executor, Statement statement)
+        public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+            Statement statement)
         {
             string name = (((CompiletimeFunctionParameter)this.Parameters[0]).CurrentValue as TokenStringLiteral).text;
             if (!executor.scoreboard.TryGetByUserFacingName(name, out ScoreboardValue value))
