@@ -3,15 +3,15 @@
   "bindings": {
     "is_day": {
       "type": "custom_bool",
-      "condition": "query.time_of_day >= 0.25 && query.time_of_day < 0.75",
+      "condition": "query.time_of_day >= 0.22749 && query.time_of_day < 0.77255",
       "targets": null,
-      "desc": "Runs on the given entities. Returns if it is currently daytime."
+      "desc": "Runs on the given entities. Returns if it is currently day-time (not able to sleep)."
     },
     "is_night": {
       "type": "custom_bool",
-      "condition": "query.time_of_day < 0.25 && query.time_of_day >= 0.75",
+      "condition": "query.time_of_day < 0.22749 && query.time_of_day >= 0.77255",
       "targets": null,
-      "desc": "Runs on the given entities. Returns if it is currently nighttime."
+      "desc": "Runs on the given entities. Returns if it is currently night-time (able to sleep)."
     },
     "query.blocking": {
       "type": "bool",
