@@ -1,4 +1,5 @@
-﻿using mc_compiled.Commands.Execute;
+﻿using System.CodeDom;
+using mc_compiled.Commands.Execute;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
@@ -66,6 +67,12 @@ namespace mc_compiled.Json
             int leadingWhitespace = this.text.TakeWhile(char.IsWhiteSpace).Count();
             int trailingWhitespace = this.text.Reverse().TakeWhile(char.IsWhiteSpace).Count();
 
+            // find unescaped newlines in this.text
+            bool hasNewlines = this.text.Contains(@"\\n");
+            if (hasNewlines)
+                this.text = this.text.Replace(@"\\n", "%1");
+            this.text = this.text.Replace("\\", ""); // this is really stupid and prone to break
+            
             bool hasLeadingWhitespace = leadingWhitespace > 0;
             bool hasTrailingWhitespace = trailingWhitespace > 0;
 
@@ -77,7 +84,7 @@ namespace mc_compiled.Json
                 string _key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
                 _key = executor.SetLocaleEntry(_key, this.text, forExceptions, true)?.key;
                 
-                return new[] { _key == null ? (JSONRawTerm)new JSONText(this.text) : (JSONRawTerm)new JSONTranslate(_key) };
+                return new[] { _key == null ? (JSONRawTerm)new JSONText(this.text) : (JSONRawTerm)(hasNewlines ? new JSONTranslate(_key).WithNewlineSupport() : new JSONTranslate(_key)) };
             }
 
             int indices = 1 + (hasLeadingWhitespace ? 1 : 0) + (hasTrailingWhitespace ? 1 : 0);
@@ -109,7 +116,7 @@ namespace mc_compiled.Json
             if (key == null)
                 output[index] = new JSONText(textCopy);
             else
-                output[index] = new JSONTranslate(key);
+                output[index] = hasNewlines ? new JSONTranslate(key).WithNewlineSupport() : new JSONTranslate(key);
 
             // done
             return output;
@@ -208,6 +215,10 @@ namespace mc_compiled.Json
             this.withUsesStr = true;
             this.withStr.AddRange(strings);
             return this;
+        }
+        public JSONTranslate WithNewlineSupport()
+        {
+            return With("\n");
         }
 
         public override JObject Build()

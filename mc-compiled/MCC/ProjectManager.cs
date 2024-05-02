@@ -10,7 +10,10 @@ using mc_compiled.Json;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.MCC.Scheduling.Implementations;
+using mc_compiled.Modding.Manifest;
+using mc_compiled.Modding.Manifest.Modules;
 using mc_compiled.Modding.Resources.Localization;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC
 {
@@ -262,7 +265,8 @@ namespace mc_compiled.MCC
             }
             
             // get manifests
-            ProcessManifests();
+            if(!Program.IGNORE_MANIFESTS)
+                ProcessManifests();
             
             // uninstall feature
             if(HasFeature(Feature.UNINSTALL))
@@ -284,12 +288,13 @@ namespace mc_compiled.MCC
                         continue;
                     
                     // traces
-                    bool isDirectlyFromTickJson = this.parentExecutor.GetScheduler().IsFileAuto(cmd);
+                    bool isDirectlyFromTickJson = this.parentExecutor.HasScheduler() && this.parentExecutor.GetScheduler().IsFileAuto(cmd);
                     if (Program.TRACE && !isDirectlyFromTickJson)
                     {
                         cmd.AddTop("");
                         cmd.AddTop(Command.Tellraw(Selector.ALL_PLAYERS.ToString(),
-                            new RawTextJsonBuilder().AddTerm(new JSONText($"[TRACE] > {cmd.CommandReference}")).Build()));
+                            new RawTextJsonBuilder().AddTerm(new JSONText($"[TRACE] > {cmd.CommandReference}"))
+                                .Build()));
                     }
                 }
                 
@@ -324,15 +329,15 @@ namespace mc_compiled.MCC
             if (hasBehaviorManifest)
             {
                 string data = File.ReadAllText(behaviorManifestLocation);
-                this.behaviorManifest = new Manifest(data, OutputLocation.b_ROOT);
+                JObject json = JObject.Parse(data);
+                this.behaviorManifest = Manifest.Parse(json, ManifestType.BP, this.name);
             }
             else
             {
                 if (needsBehaviorManifest)
                 {
-                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
-                    this.behaviorManifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), this.name, projectDescription)
-                        .WithModule(Manifest.Module.BehaviorData());
+                    this.behaviorManifest = new Manifest(ManifestType.BP, this.name)
+                        .WithModule(new BasicModule(ModuleType.data));
                 }
             }
 
@@ -340,23 +345,23 @@ namespace mc_compiled.MCC
             if (hasResourceManifest)
             {
                 string data = File.ReadAllText(resourceManifestLocation);
-                this.resourceManifest = new Manifest(data, OutputLocation.r_ROOT);
+                JObject json = JObject.Parse(data);
+                this.resourceManifest = Manifest.Parse(json, ManifestType.RP, this.name);
             }
             else
             {
                 if (needsResourceManifest)
                 {
-                    string projectDescription = "MCCompiled " + Executor.MCC_VERSION + " Project";
-                    this.resourceManifest = new Manifest(OutputLocation.r_ROOT, Guid.NewGuid(), this.name, projectDescription)
-                        .WithModule(Manifest.Module.ResourceData());
+                    this.resourceManifest = new Manifest(ManifestType.RP, this.name)
+                        .WithModule(new BasicModule(ModuleType.resources));
                 }
             }
 
             // link dependencies if both packs exist
             if (this.resourceManifest != null && this.behaviorManifest != null)
             {
-                this.behaviorManifest.dependsOn = this.resourceManifest.uuid;
-                this.resourceManifest.dependsOn = this.behaviorManifest.uuid;
+                this.behaviorManifest.DependOn(this.resourceManifest);
+                this.resourceManifest.DependOn(this.behaviorManifest);
             }
 
             // add to output.
@@ -370,43 +375,50 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Localizes the manifests which are loaded and valid.
         /// </summary>
-        /// <param name="langFile">The lang file to store the pack.name and pack.description keys.</param>
-        private void LocalizeManifests(Lang langFile)
+        /// <param name="_langFile">The lang file to store the pack.name and pack.description keys.</param>
+        private void LocalizeManifests(Lang _langFile)
         {
-            const string packName = "pack.name";
-            const string packDescription = "pack.description";
+            const string localizedName = "pack.name";
+            const string localizedDescription = "pack.description";
 
             if (this.behaviorManifest != null)
-                TryLocalizeManifestFile(this.behaviorManifest);
+            {
+                // the BP is a special case because it needs its own languages.json and Lang file generated.
+                var bpLangManager = new LanguageManager(this.parentExecutor, true);
+                AddFile(bpLangManager);
+                Lang bpLang = bpLangManager.DefineLocale(this.parentExecutor.ActiveLocale.locale).file;
+                TryLocalizeManifestFile(this.behaviorManifest.header, bpLang);
+            }
+
             if (this.resourceManifest != null)
-                TryLocalizeManifestFile(this.resourceManifest);
+                TryLocalizeManifestFile(this.resourceManifest.header, _langFile);
             
             return;
 
-            void TryLocalizeManifestFile(Manifest manifest)
+            void TryLocalizeManifestFile(ManifestHeader header, Lang langFile)
             {
-                if (!manifest.description.Equals(packDescription))
+                if (!header.description.Equals(localizedDescription))
                 {
-                    string oldDescription = manifest.description;
-                    manifest.description = packDescription;
+                    string oldDescription = header.description;
+                    header.description = localizedDescription;
                     
-                    var entry = LangEntry.Create(packDescription, oldDescription);
+                    var entry = LangEntry.Create(localizedDescription, oldDescription);
                     
-                    int indexOfExisting = langFile.IndexOf(packDescription);
+                    int indexOfExisting = langFile.IndexOf(localizedDescription);
                     if (indexOfExisting == -1)
                         langFile.InsertAtIndex(0, entry);
                     else
                         langFile.SetAtIndex(indexOfExisting, entry);
                 }
                 // ReSharper disable once InvertIf
-                if (!manifest.name.Equals(packName))
+                if (!header.name.Equals(localizedName))
                 {
-                    string oldName = manifest.name;
-                    manifest.name = packName;
+                    string oldName = header.name;
+                    header.name = localizedName;
                     
-                    var entry = LangEntry.Create(packName, oldName);
+                    var entry = LangEntry.Create(localizedName, oldName);
                     
-                    int indexOfExisting = langFile.IndexOf(packName);
+                    int indexOfExisting = langFile.IndexOf(localizedName);
                     if (indexOfExisting == -1)
                         langFile.InsertAtIndex(0, entry);
                     else

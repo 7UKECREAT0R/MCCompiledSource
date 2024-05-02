@@ -59,7 +59,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             set
             {
                 this._npcName = new RawTextJsonBuilder();
-                this._npcName.AddTerm(new JSONTranslate(value).With("\n"));
+                this._npcName.AddTerm(new JSONTranslate(value).WithNewlineSupport());
             }
         }
         /// <summary>
@@ -110,7 +110,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             set
             {
                 this._text = new RawTextJsonBuilder();
-                this._text.AddTerm(new JSONTranslate(value).With("\n"));
+                this._text.AddTerm(new JSONTranslate(value).WithNewlineSupport());
             }
         }
         /// <summary>

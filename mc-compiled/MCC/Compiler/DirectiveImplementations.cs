@@ -597,9 +597,6 @@ namespace mc_compiled.MCC.Compiler
         [UsedImplicitly]
         public static void _log(Executor executor, Statement tokens)
         {
-            if (executor.linting)
-                return;
-
             var strings = new List<string>();
 
             while(tokens.HasNext)
@@ -612,6 +609,9 @@ namespace mc_compiled.MCC.Compiler
                     strings.Add(next.DebugString());
             }
 
+            if (executor.linting)
+                return;
+            
             Console.WriteLine("[LOG] {0}", string.Join(" ", strings));
         }
         
@@ -1239,6 +1239,8 @@ namespace mc_compiled.MCC.Compiler
         public static void mc(Executor executor, Statement tokens)
         {
             string command = tokens.Next<TokenStringLiteral>("command");
+            if (command.StartsWith("/"))
+                command = command.Substring(1);
             executor.AddCommand(command);
         }
         [UsedImplicitly]

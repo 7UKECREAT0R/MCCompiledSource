@@ -215,7 +215,15 @@
     <Compile Include="Modding\FormatVersion.cs" />
     <Compile Include="Modding\IAddonFile.cs" />
     <Compile Include="Modding\Behaviors\LootTable.cs" />
-    <Compile Include="Modding\Manifest.cs" />
+    <Compile Include="Modding\Manifest\Dependencies\DependencyModule.cs" />
+    <Compile Include="Modding\Manifest\Dependencies\DependencyUUID.cs" />
+    <Compile Include="Modding\Manifest\Manifest.cs" />
+    <Compile Include="Modding\Manifest\Dependency.cs" />
+    <Compile Include="Modding\Manifest\ManifestHeader.cs" />
+    <Compile Include="Modding\Manifest\ManifestVersion.cs" />
+    <Compile Include="Modding\Manifest\Module.cs" />
+    <Compile Include="Modding\Manifest\Modules\BasicModule.cs" />
+    <Compile Include="Modding\Manifest\Modules\ScriptModule.cs" />
     <Compile Include="Modding\Offsets.cs" />
     <Compile Include="Modding\Resources\EntityGeometry.cs" />
     <Compile Include="Modding\Resources\EntityResource.cs" />

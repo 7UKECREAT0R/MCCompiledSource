@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using mc_compiled.Modding.Manifest;
+using mc_compiled.Modding.Manifest.Modules;
 
 // ReSharper disable CommentTypo
 
@@ -28,6 +30,7 @@ namespace mc_compiled
         public static bool DECORATE;
         public static bool EXPORT_ALL;
         public static bool DEBUG;
+        public static bool IGNORE_MANIFESTS;
 
         private static void Help()
         {
@@ -83,6 +86,10 @@ namespace mc_compiled
                     case "-EA":
                     case "--EXPORT_ALL":
                         EXPORT_ALL = true;
+                        break;
+                    case "-IM":
+                    case "--IGNORE_MANIFESTS":
+                        IGNORE_MANIFESTS = true;
                         break;
                     case "--TRACE":
                         TRACE = true;
@@ -331,8 +338,9 @@ namespace mc_compiled
                 case "--MANIFEST":
                 {
                     string rest = string.Join(" ", args).Substring(11);
-                    Manifest manifest = new Manifest(OutputLocation.b_ROOT, Guid.NewGuid(), rest, "TODO set description")
-                        .WithModule(Manifest.Module.BehaviorData());
+                    Manifest manifest = new Manifest(ManifestType.BP, rest)
+                        .WithModule(new BasicModule(ModuleType.data));
+                    
                     File.WriteAllBytes("manifest.json", manifest.GetOutputData());
                     Console.WriteLine("Wrote a new 'manifest.json' to current directory.");
                     return;

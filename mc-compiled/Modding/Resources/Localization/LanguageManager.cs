@@ -17,13 +17,15 @@ namespace mc_compiled.Modding.Resources.Localization
         /// </summary>
         public const string MERGE_PPV = "_lang_merge";
 
+        private readonly bool isForBehaviorPack;
         internal Executor executor;
         internal HashSet<LocaleDefinition> locales;
 
-        internal LanguageManager(Executor executor)
+        internal LanguageManager(Executor executor, bool isForBehaviorPack)
         {
             this.executor = executor;
             this.locales = new HashSet<LocaleDefinition>();
+            this.isForBehaviorPack = isForBehaviorPack;
         }
         
         /// <summary>
@@ -32,7 +34,7 @@ namespace mc_compiled.Modding.Resources.Localization
         /// <returns></returns>
         internal LocaleDefinition DefineLocale(string locale)
         {
-            LocaleDefinition lookupDummy = new LocaleDefinition(locale, null);
+            var lookupDummy = new LocaleDefinition(locale, null);
 
             if(this.locales.TryGetValue(lookupDummy, out LocaleDefinition actual))
                 return actual;
@@ -46,10 +48,10 @@ namespace mc_compiled.Modding.Resources.Localization
             if (System.IO.File.Exists(path))
             {
                 string file = this.executor.LoadFileString(path);
-                lang = Lang.Parse(locale, file);
+                lang = Lang.Parse(locale, file, this.isForBehaviorPack);
             }
             else
-                lang = new Lang(locale);
+                lang = new Lang(locale, this.isForBehaviorPack);
 
             this.executor.AddExtraFile(lang);
             LocaleDefinition localeDefinition = lang.GetOrCreateLocaleDefinition();
@@ -62,11 +64,12 @@ namespace mc_compiled.Modding.Resources.Localization
 
         public byte[] GetOutputData()
         {
-            JArray array = new JArray(from l in this.locales select l.locale);
+            var array = new JArray(from l in this.locales select l.locale);
             string json = array.ToString(Newtonsoft.Json.Formatting.Indented);
             return Encoding.UTF8.GetBytes(json);
         }
         public string GetOutputFile() => "languages.json";
-        public OutputLocation GetOutputLocation() => OutputLocation.r_TEXTS;
+        public OutputLocation GetOutputLocation() => this.isForBehaviorPack ?
+            OutputLocation.b_TEXTS : OutputLocation.r_TEXTS;
     }
 }

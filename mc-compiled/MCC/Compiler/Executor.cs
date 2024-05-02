@@ -449,7 +449,7 @@ namespace mc_compiled.MCC.Compiler
         {
             if (this.languageManager == null)
             {
-                this.languageManager = new LanguageManager(this);
+                this.languageManager = new LanguageManager(this, false);
                 AddExtraFile(this.languageManager);
             }
 
@@ -1430,6 +1430,11 @@ namespace mc_compiled.MCC.Compiler
             this.project.AddFile(this.scheduler);
             return this.scheduler;
         }
+        /// <summary>
+        /// Returns if this Executor has a tick scheduler yet. 
+        /// </summary>
+        /// <returns></returns>
+        public bool HasScheduler() => this.scheduler != null;
 
         private TickScheduler scheduler;
         

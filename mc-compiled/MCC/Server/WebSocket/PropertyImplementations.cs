@@ -42,7 +42,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         static PropertyImplementations()
         {
             ALL_PROPERTIES.Add(new PropertyImpl("debug", true,
-                new Action<string, MCCServerProject>((_value, project) =>
+                (_value, project) =>
                 {
                     if (!bool.TryParse(_value, out bool value))
                         return;
@@ -54,26 +54,31 @@ namespace mc_compiled.MCC.ServerWebSocket
                         Console.WriteLine("Debug enabled by remote client.");
                     else
                         Console.WriteLine("Debug disabled by remote client.");
-                }
-            )));
+                }));
             ALL_PROPERTIES.Add(new PropertyImpl("decorate", false,
-                new Action<string, MCCServerProject>((_value, project) =>
+                (_value, project) =>
                 {
                     if (!bool.TryParse(_value, out bool value))
                         return;
 
                     Program.DECORATE = value;
-                }
-            )));
+                }));
             ALL_PROPERTIES.Add(new PropertyImpl("export_all", false,
-                new Action<string, MCCServerProject>((_value, project) =>
+                (_value, project) =>
                 {
                     if (!bool.TryParse(_value, out bool value))
                         return;
 
                     Program.EXPORT_ALL = value;
-                }
-            )));
+                }));
+            ALL_PROPERTIES.Add(new PropertyImpl("ignore_manifests", false,
+                (_value, project) =>
+                {
+                    if (!bool.TryParse(_value, out bool value))
+                        return;
+
+                    Program.IGNORE_MANIFESTS = value;
+                }));
         }
     }
     /// <summary>

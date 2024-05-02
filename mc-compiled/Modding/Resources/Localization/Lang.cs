@@ -14,6 +14,7 @@ namespace mc_compiled.Modding.Resources.Localization
         private const string HEADER = "MCCompiled Language Entries";
         private int headerIndex = -1; // index of the MCCompiled header in the lang file.
 
+        private readonly bool isForBehaviorPack;
         private readonly List<LangEntry> lines;
         private readonly string localeName;
         private LocaleDefinition locale;
@@ -21,8 +22,9 @@ namespace mc_compiled.Modding.Resources.Localization
         /// <summary>
         /// A .lang file.
         /// </summary>
-        internal Lang(string localeName, LangEntry[] lines = null)
+        internal Lang(string localeName, bool isForBehaviorPack, LangEntry[] lines = null)
         {
+            this.isForBehaviorPack = isForBehaviorPack;
             this.localeName = localeName;
             this.locale = null;
             this.lines = new List<LangEntry>();
@@ -36,9 +38,11 @@ namespace mc_compiled.Modding.Resources.Localization
         /// Create a new Lang file with the given locale.
         /// </summary>
         /// <param name="locale"></param>
+        /// <param name="isForBehaviorPack"></param>
         /// <param name="lines"></param>
-        private Lang(LocaleDefinition locale, LangEntry[] lines = null)
+        private Lang(LocaleDefinition locale, bool isForBehaviorPack, LangEntry[] lines = null)
         {
+            this.isForBehaviorPack = isForBehaviorPack;
             this.localeName = locale.locale;
             this.locale = locale;
             this.locale.file = this;
@@ -69,11 +73,12 @@ namespace mc_compiled.Modding.Resources.Localization
         /// </summary>
         /// <param name="locale"></param>
         /// <param name="file"></param>
+        /// <param name="isForBehaviorPack"></param>
         /// <returns></returns>
-        internal static Lang Parse(LocaleDefinition locale, string file)
+        internal static Lang Parse(LocaleDefinition locale, string file, bool isForBehaviorPack)
         {
             string[] lines = file.Split(new char[] { '\r', '\n' });
-            List<LangEntry> entries = new List<LangEntry>(lines.Length);
+            var entries = new List<LangEntry>(lines.Length);
 
             foreach (string line in lines)
             {
@@ -91,7 +96,7 @@ namespace mc_compiled.Modding.Resources.Localization
                         continue;
                     }
 
-                    string comment = new string(line.Substring(2).SkipWhile(c => char.IsWhiteSpace(c)).ToArray());
+                    string comment = new string(line.Substring(2).SkipWhile(char.IsWhiteSpace).ToArray());
                     entries.Add(LangEntry.Comment(comment));
                     continue;
                 }
@@ -107,21 +112,21 @@ namespace mc_compiled.Modding.Resources.Localization
                 string key = line.Substring(0, equals);
                 string value = line.Substring(equals + 1);
 
-                LangEntry entry = LangEntry.Create(key, value);
+                var entry = LangEntry.Create(key, value);
                 entries.Add(entry);
-                continue;
             }
 
-            Lang lang = new Lang(locale, entries.ToArray());
+            var lang = new Lang(locale, isForBehaviorPack, entries.ToArray());
             return lang;
         }
         /// <summary>
         /// Parse a .lang file under the given locale string.
         /// </summary>
-        /// <param name="locale"></param>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        internal static Lang Parse(string locale, string file)
+        /// <param name="locale">The locale string.</param>
+        /// <param name="file">The .lang file content.</param>
+        /// <param name="isForBehaviorPack">Indicates whether the file is for a behavior pack.</param>
+        /// <returns>The parsed Lang object.</returns>
+        internal static Lang Parse(string locale, string file, bool isForBehaviorPack)
         {
             file = file.Replace(Environment.NewLine, "\n");
             string[] lines = file.Split('\n');
@@ -166,7 +171,7 @@ namespace mc_compiled.Modding.Resources.Localization
                 entries.Add(entry);
             }
 
-            var lang = new Lang(locale, entries.ToArray());
+            var lang = new Lang(locale, isForBehaviorPack, entries.ToArray());
             return lang;
         }
 
@@ -297,11 +302,12 @@ namespace mc_compiled.Modding.Resources.Localization
         public string GetExtendedDirectory() => null;
         public byte[] GetOutputData()
         {
-            string[] lines = (from line in this.lines select line.ToString()).ToArray();
-            string fullString = string.Join(Environment.NewLine, lines);
+            string[] outputLines = (from line in this.lines select line.ToString()).ToArray();
+            string fullString = string.Join(Environment.NewLine, outputLines);
             return Encoding.UTF8.GetBytes(fullString);
         }
         public string GetOutputFile() => this.localeName + ".lang";
-        public OutputLocation GetOutputLocation() => OutputLocation.r_TEXTS;
+        public OutputLocation GetOutputLocation() => this.isForBehaviorPack ?
+            OutputLocation.b_TEXTS : OutputLocation.r_TEXTS;
     }
 }
