@@ -22,6 +22,7 @@ namespace mc_compiled.MCC.Compiler.Implementations
                     
                     // compile-time functions
                     new FunctionRandomCompiletime(),
+                    new FunctionRandomCompiletimeRange(),
                     new FunctionMinCompiletime(),
                     new FunctionMaxCompiletime(),
                     new FunctionSqrtCompiletime(),
