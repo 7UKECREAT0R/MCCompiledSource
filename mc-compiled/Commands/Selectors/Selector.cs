@@ -335,8 +335,8 @@ namespace mc_compiled.Commands.Selectors
     }
     public class UnresolvedSelector
     {
-        public Selector.Core core;
-        public string remainderString;
+        private Selector.Core core;
+        private string remainderString;
 
         public UnresolvedSelector(Selector.Core core, string remainderString)
         {

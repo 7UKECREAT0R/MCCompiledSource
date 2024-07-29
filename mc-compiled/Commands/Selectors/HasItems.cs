@@ -7,7 +7,7 @@ namespace mc_compiled.Commands.Selectors
 {
     public struct HasItems
     {
-        private static readonly Regex MATCHER = new Regex(@"hasitem=\[?([\w\d=,.{}]+)\]?");
+        private static readonly Regex MATCHER = new Regex(@"hasitem=\[?([\w\d=:,.{}]+)\]?");
         public List<HasItemEntry> entries;
 
         public HasItems(params HasItemEntry[] start)

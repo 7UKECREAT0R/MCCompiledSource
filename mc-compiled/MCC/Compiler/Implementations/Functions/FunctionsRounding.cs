@@ -9,7 +9,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {
     internal class FunctionRoundCompiletime : CompiletimeFunction
     {
-        public FunctionRoundCompiletime() : base("round", "compiletimeRound", "decimal ?", "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
+        public FunctionRoundCompiletime() : base("round", "compiletimeRound", "decimal ?",
+            "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
         {
             AddParameter(
                 new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
@@ -26,7 +27,8 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
     }
     internal class FunctionRoundRuntime : GenerativeFunction
     {
-        public FunctionRoundRuntime() : base("round", "runtimeRound", "decimal ?", "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
+        public FunctionRoundRuntime() : base("round", "runtimeRound", "decimal ?",
+            "Rounds the given value to the nearest integer, or does nothing if it is already an integer.")
         {
             AddParameter(
                 new RuntimeFunctionParameterDynamic(this, "number", "runtime_round_num")
@@ -36,6 +38,7 @@ namespace mc_compiled.MCC.Compiler.Implementations.Functions
         public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue)
         {
             ScoreboardValue input = ((RuntimeFunctionParameterDynamic) this.parameters[0]).RuntimeDestination;
+            
             int precision = ((FixedDecimalData)input.data).precision;
             int coefficient = (int)Math.Pow(10, precision);
             int half = coefficient / 2;

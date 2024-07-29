@@ -52,55 +52,55 @@ const mccompiled = {
 const mcc_operators = [
 	{
 		word: `<`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `>`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `{`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `}`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `=`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `(`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `)`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `+`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `-`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `*`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `/`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `%`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 	{
 		word: `!`,
-		docs: 'No documentation available for v1.18.'
+		docs: 'No documentation available for v1.19.'
 	},
 ]
 const mcc_selectors = [

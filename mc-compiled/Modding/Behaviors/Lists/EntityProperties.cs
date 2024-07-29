@@ -432,20 +432,6 @@ namespace mc_compiled.Modding.Behaviors
             };
         }
     }
-    public class ComponentSoundVolume : EntityComponent
-    {
-        public float volume = 1f;
-
-        public override string GetIdentifier() =>
-            "minecraft:sound_volume";
-        public override JObject _GetValue()
-        {
-            return new JObject()
-            {
-                ["value"] = this.volume
-            };
-        }
-    }
     public class ComponentFamily : EntityComponent
     {
         public string[] families;

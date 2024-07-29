@@ -21,6 +21,7 @@ namespace mc_compiled.MCC.Compiler.Implementations
                     new FunctionCountEntities(),
                     
                     // compile-time functions
+                    new FunctionRandomCompiletime(),
                     new FunctionMinCompiletime(),
                     new FunctionMaxCompiletime(),
                     new FunctionSqrtCompiletime(),
@@ -38,6 +39,7 @@ namespace mc_compiled.MCC.Compiler.Implementations
                     new FunctionRoundRuntime(),
                     new FunctionFloorRuntime(),
                     new FunctionCeilingRuntime(),
+                    new FunctionRandomRuntime()
                 };
             }
         }

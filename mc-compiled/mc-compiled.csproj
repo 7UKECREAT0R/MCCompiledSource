@@ -110,6 +110,7 @@
     <Compile Include="MCC\Compiler\Implementations\CompiletimeFunctions.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionCountEntities.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionGlyphs.cs" />
+    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsRandom.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsRounding.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsMinMax.cs" />
     <Compile Include="MCC\Compiler\Implementations\Functions\FunctionSqrtCompiletime.cs" />

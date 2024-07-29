@@ -49,7 +49,7 @@ json
 : A JSON object achieved by $dereferencing a preprocessor variable holding one.
 
 ## Commands
-All the commands in the language (version 1.18). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in `<angle brackets>`, and an optional parameter is surrounded in `[square brackets]`.
+All the commands in the language (version 1.19). The command ID is the first word of the line, followed by the arguments it gives. Each command parameter includes the type it's allowed to be and its name. A required parameter is surrounded in `<angle brackets>`, and an optional parameter is surrounded in `[square brackets]`.
 
 
 ### Category: preprocessor {id="commands-preprocessor"}

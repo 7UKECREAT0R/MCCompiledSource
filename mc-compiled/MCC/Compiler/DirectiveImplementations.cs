@@ -1609,12 +1609,14 @@ namespace mc_compiled.MCC.Compiler
             
             CommandFile file = executor.CurrentFile;
 
-            /*if (!isAsync)
-            {*/
-                executor.AddExtraFile(sustainLoop);
-                executor.AddCommands(startLoopCommands, "beginRepeat",
-                    $"Begins a loop that repeats {repetitionsString} times. Located in {file.CommandReference} line {executor.NextLineNumber}.");
-            //}
+            executor.AddExtraFile(sustainLoop);
+            executor.AddCommands(startLoopCommands, "beginRepeat", $"Begins a loop that repeats {repetitionsString} times. Located in {file.CommandReference} line {executor.NextLineNumber}.");
+
+            // async handling
+            /*if (!executor.async.IsInAsync)
+            {
+                executor
+            }*/
             
             if (nextStatement is StatementOpenBlock openBlock)
             {
@@ -2109,7 +2111,6 @@ namespace mc_compiled.MCC.Compiler
                 formatVersion = 1,
                 size = new VectorIntNBT((int)sizeX, (int)sizeY, (int)sizeZ),
                 worldOrigin = new VectorIntNBT(0, 0, 0),
-
                 palette = new PaletteNBT(new PaletteEntryNBT(block)),
                 entities = new EntityListNBT(Array.Empty<EntityNBT>()),
                 indices = new BlockIndicesNBT(blocks)
