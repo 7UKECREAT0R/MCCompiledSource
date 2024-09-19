@@ -105,6 +105,13 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public bool ignoreAsync;
         /// <summary>
+        /// If this block has data for language entry context.
+        /// Close blocks attached to an OpenBlock entry with this true should pop an element off of
+        /// <see cref="Executor.currentLocaleEntryPath"/>
+        /// </summary>
+        public bool hasLangContext;
+        internal string langContext;
+        /// <summary>
         /// Pointer to the closing block.
         /// </summary>
         public StatementCloseBlock closer;
@@ -151,6 +158,9 @@ namespace mc_compiled.MCC.Compiler
                 runningExecutor.async.CurrentFunction.StartNewGroup();
                 runningExecutor.async.CurrentFunction.StartNewStage();
             }
+
+            if (this.hasLangContext)
+                runningExecutor.currentLocaleEntryPath.Push(this.langContext);
             
             this.openAction?.Invoke(runningExecutor);
             
@@ -158,6 +168,23 @@ namespace mc_compiled.MCC.Compiler
             runningExecutor.depth++;
             if (runningExecutor.depth > Executor.MAXIMUM_DEPTH)
                 throw new Exception($"Surpassed maximum depth ({Executor.MAXIMUM_DEPTH}). Use the compile option: --maxdepth <amount>");
+        }
+        
+        /// <summary>
+        /// Sets the context for language entries that are resolved inside this block.
+        /// <i>
+        /// Do this whenever possible!
+        /// It helps lang entry readability a lot!
+        /// </i>
+        /// </summary>
+        /// <param name="context">
+        /// The context string. Avoid spaces, hyphens, dots,
+        /// or anything else that wouldn't work well in a lang entry.
+        /// </param>
+        public void SetLangContext(string context)
+        {
+            this.hasLangContext = true;
+            this.langContext = context;
         }
     }
     /// <summary>
@@ -212,6 +239,9 @@ namespace mc_compiled.MCC.Compiler
                 runningExecutor.async.CurrentFunction.StartNewStage();
             }
 
+            if (this.opener.hasLangContext)
+                runningExecutor.currentLocaleEntryPath.Pop();
+            
             this.closeAction?.Invoke(runningExecutor);
 
             // track depth

@@ -197,7 +197,8 @@ namespace mc_compiled.Modding.Resources.Localization
                 this.headerIndex++; // after the header, not before
 
                 // if EOL is right there, add an empty line.
-                if(this.lines.Count <= this.headerIndex) this.lines.Add(LangEntry.Empty());
+                if(this.lines.Count <= this.headerIndex)
+                    this.lines.Add(LangEntry.Empty());
             }
         }
 
@@ -213,13 +214,6 @@ namespace mc_compiled.Modding.Resources.Localization
             // attempt to find an entry that matches the key.
             if(!langEntry.isEmpty && !langEntry.isComment)
             {
-                string keyToFind = langEntry.key;
-                int indexOfKey = this.lines
-                    .FindIndex(e =>
-                        !e.isComment &&
-                        !e.isEmpty &&
-                        e.key.Equals(keyToFind));
-
                 if(merge)
                 {
                     string valueToFind = langEntry.value;
@@ -235,6 +229,13 @@ namespace mc_compiled.Modding.Resources.Localization
                         return this.lines[indexOfValue];
                     }
                 }
+
+                string keyToFind = langEntry.key;
+                int indexOfKey = this.lines
+                    .FindIndex(e =>
+                        !e.isComment &&
+                        !e.isEmpty &&
+                        e.key.Equals(keyToFind));
 
                 if (indexOfKey != -1)
                 {
@@ -298,10 +299,53 @@ namespace mc_compiled.Modding.Resources.Localization
             return entries;
         }
 
+        /// <summary>
+        /// Sorts every entry under the MCCompiled header alphabetically by key.
+        /// </summary>
+        private void Reorganize()
+        {
+            if (this.headerIndex != -1)
+            {
+                List<LangEntry> entriesToSort = this.lines
+                    .Skip(this.headerIndex)
+                    .TakeWhile(entry => !entry.isComment && !entry.isEmpty)
+                    .ToList();
+
+                entriesToSort.Sort((entry1, entry2) =>
+                    new NaturalStringComparer().Compare(entry1.key, entry2.key));
+
+                for (int i = 0; i < entriesToSort.Count; i++)
+                    this.lines[this.headerIndex + i] = entriesToSort[i];
+            }
+        }
+        /// <summary>
+        /// Removes empty entries at the end of the file.
+        /// </summary>
+        private void Truncate()
+        {
+            int count = 0;
+            for (int i = this.lines.Count - 1; i > 0; i--)
+            {
+                LangEntry currentLine = this.lines[i];
+                LangEntry nextLine = this.lines[i - 1];
+
+                if (currentLine.isEmpty && nextLine.isEmpty)
+                    count++;
+                else break;
+            }
+
+            if (count > 0)
+                this.lines.RemoveRange(this.lines.Count - count, count); 
+        }
+        
         public string CommandReference => throw new NotImplementedException();
         public string GetExtendedDirectory() => null;
         public byte[] GetOutputData()
         {
+            if(this.headerIndex != -1)
+                Reorganize();
+            Truncate();
+            
             string[] outputLines = (from line in this.lines select line.ToString()).ToArray();
             string fullString = string.Join(Environment.NewLine, outputLines);
             return Encoding.UTF8.GetBytes(fullString);

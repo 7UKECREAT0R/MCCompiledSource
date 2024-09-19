@@ -137,7 +137,7 @@ namespace mc_compiled.MCC.Functions.Types
             // branch file
             if (commands.Length > 1)
             {
-                CommandFile branch = Executor.GetNextGeneratedFile($"returnFrom_{this.name}_{value.InternalName}");
+                CommandFile branch = Executor.GetNextGeneratedFile($"returnFrom_{this.name}_{value.InternalName}", false);
                 branch.Add(commands);
                 executor.AddExtraFile(branch);
                 return Command.Function(branch);
@@ -173,7 +173,7 @@ namespace mc_compiled.MCC.Functions.Types
             // branch file
             if (commands.Length > 1)
             {
-                CommandFile branch = Executor.GetNextGeneratedFile($"returnFrom_{this.name}_{parameterName}");
+                CommandFile branch = Executor.GetNextGeneratedFile($"returnFrom_{this.name}_{parameterName}", false);
                 branch.Add(commands);
                 executor.AddExtraFile(branch);
                 return Command.Function(branch);

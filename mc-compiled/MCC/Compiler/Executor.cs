@@ -37,7 +37,7 @@ namespace mc_compiled.MCC.Compiler
         public static string MINECRAFT_VERSION = "0.00.000";            // _minecraft
         public const string MCC_GENERATED_FOLDER = "compiler";          // folder that generated functions go into
         public const string MCC_TESTS_FOLDER = "tests";                 // folder that generated tests go into
-        public const string MCC_TRANSLATE_PREFIX = "mcc.generated.";    // prefix for translation keys
+        public const string MCC_TRANSLATE_PREFIX = "mcc.";              // prefix for translation keys
         public const string UNDOCUMENTED_TEXT = "This symbol has no documentation.";
         public const string FAKE_PLAYER_NAME = "_";                     // the name of the "fake player" used for globals.
         public static int MAXIMUM_DEPTH = 100;
@@ -214,10 +214,11 @@ namespace mc_compiled.MCC.Compiler
         /// Resolve an FString into rawtext terms. Also adds all setup commands for variables.
         /// </summary>
         /// <param name="fstring">The string to resolve.</param>
+        /// <param name="langIdentifier">A unique identifier that makes language entries (if any) distinct.</param>
         /// <param name="forExceptions">The statement to use for exceptions.</param>
         /// <param name="advanced">If this FString is 'advanced' as in, requires per-user execution.</param>
         /// <returns></returns>
-        public List<JSONRawTerm> FString(string fstring, Statement forExceptions, out bool advanced)
+        public List<JSONRawTerm> FString(string fstring, string langIdentifier, Statement forExceptions, out bool advanced)
         {
             advanced = false;
             var terms = new List<JSONRawTerm>();
@@ -297,7 +298,7 @@ namespace mc_compiled.MCC.Compiler
                                     $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {this.NextLineNumber}");
 
                                 // localize and flatten the array.
-                                terms.AddRange(rtTerms.SelectMany(term => term.Localize(this, forExceptions)));
+                                terms.AddRange(rtTerms.SelectMany(term => term.Localize(this, langIdentifier, forExceptions)));
 
                                 scoreIndex++;
                                 continue;
@@ -307,7 +308,7 @@ namespace mc_compiled.MCC.Compiler
                         // default representation
                         string stringRepresentation = ResolveString(token.ToString());
                         if(!string.IsNullOrEmpty(stringRepresentation))
-                            terms.AddRange(new JSONText(stringRepresentation).Localize(this, forExceptions));
+                            terms.AddRange(new JSONText(stringRepresentation).Localize(this, langIdentifier, forExceptions));
                     }
 
                     continue;
@@ -327,7 +328,7 @@ namespace mc_compiled.MCC.Compiler
                 if (string.IsNullOrEmpty(bufferContents))
                     return;
                 
-                terms.AddRange(new JSONText(bufferContents).Localize(this, forExceptions));
+                terms.AddRange(new JSONText(bufferContents).Localize(this, langIdentifier, forExceptions));
                 buffer.Clear();
             }
 
@@ -335,7 +336,7 @@ namespace mc_compiled.MCC.Compiler
             int ScanForCloser(string str, int start)
             {
                 int len = str.Length;
-                int depth = -1;
+                int bracketDepth = -1;
                 bool escape = false;
 
                 for(int i = start + 1; i < len; i++)
@@ -349,12 +350,12 @@ namespace mc_compiled.MCC.Compiler
                             continue;
                         // actual bracket stuff
                         case '{':
-                            depth++;
+                            bracketDepth++;
                             continue;
                         case '}':
                         {
-                            depth--;
-                            if (depth < 0)
+                            bracketDepth--;
+                            if (bracketDepth < 0)
                                 return i - start;
                             break;
                         }
@@ -427,20 +428,23 @@ namespace mc_compiled.MCC.Compiler
             return null; // return value isn't used in this case
         }
 
+        internal readonly Stack<string> currentLocaleEntryPath = new Stack<string>();
         private LanguageManager languageManager;
         private SoundDefinitions soundDefinitions;
         private DialogueManager dialogueDefinitions;
-        
+
+        /// <summary>
+        /// The prefix to use for locale entries at the current location of the executor.
+        /// </summary>
+        internal string LocaleEntryPrefix => $"{MCC_TRANSLATE_PREFIX}{string.Join(".", this.currentLocaleEntryPath)}.";
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
         /// </summary>
         internal LocaleDefinition ActiveLocale { get; private set; }
-
         /// <summary>
         /// Returns if a locale has been set via <see cref="SetLocale(string)"/>.
         /// </summary>
         public bool HasLocale => this.ActiveLocale != null;
-        
         /// <summary>
         /// Sets the active locale that FString data will be sent to.
         /// </summary>
@@ -462,7 +466,7 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="value"></param>
         /// <param name="forExceptions"></param>
         /// <param name="overwrite"></param>
-        /// <returns>The entry that *should* be used, in the case that a merge occurred. If null is returned, then translation should not be used for this input string at all.</returns>
+        /// <returns>The entry that *should* be used in the case that a merge occurred. If null is returned, then translation should not be used for this input string at all.</returns>
         /// <exception cref="StatementException"></exception>
         public LangEntry? SetLocaleEntry(string key, string value, Statement forExceptions, bool overwrite)
         {
@@ -473,7 +477,7 @@ namespace mc_compiled.MCC.Compiler
                 return null;
             
             if (!this.HasLocale)
-                throw new StatementException(forExceptions, "No language has been set to write to. See the 'lang' command.");
+                throw new StatementException(forExceptions, "No language has been set. See the 'lang' command.");
 
             bool merge;
 
@@ -540,7 +544,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Adds a new sound definition to the project, or returns an existing one if it already exists.
+        /// Adds a new sound definition to the project or returns an existing one if it already exists.
         /// </summary>
         /// <param name="soundFile">The path to the sound file to be added.</param>
         /// <param name="category">The category of the sound.</param>
@@ -567,13 +571,13 @@ namespace mc_compiled.MCC.Compiler
             var copyFile = new CopyFile(soundFile, OutputLocation.r_SOUNDS, relativePath ?? fileName);
             AddExtraFile(copyFile);
 
-            SoundDefinitions soundDefinitions = GetSoundDefinitions(callingStatement);
+            SoundDefinitions soundDef = GetSoundDefinitions(callingStatement);
             var soundDefinition = new SoundDefinition(soundName, fileName, category, soundFolder.ToString());
             
-            if (soundDefinitions.TryGetSoundDefinition(soundDefinition.CommandReference, out SoundDefinition existing))
+            if (soundDef.TryGetSoundDefinition(soundDefinition.CommandReference, out SoundDefinition existing))
                 return existing;
             
-            soundDefinitions.AddSoundDefinition(soundDefinition);
+            soundDef.AddSoundDefinition(soundDefinition);
             return soundDefinition;
         }
         /// <summary>
@@ -616,7 +620,7 @@ namespace mc_compiled.MCC.Compiler
             throw new StatementException(source, $"Feature not enabled: {name}. Enable using the command 'feature {name.ToLower()}' at the top of the file.");
         }
         /// <summary>
-        /// Checks if the execution context is currently in an unreachable area, and throw an exception if true.
+        /// Checks if the execution context is currently in an unreachable area and throw an exception if true.
         /// </summary>
         /// <param name="current">The statement that is currently being run.</param>
         /// <exception cref="StatementException">If the execution context is currently in an unreachable area.</exception>
@@ -1033,8 +1037,9 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Reads the next statement, or set of statements if it is a block. Similar to Next() in that it updates the readIndex.
         /// </summary>
+        /// <param name="shouldBlockAsyncBeDisabled">Should a block be fetched, should its effect on async statements be disabled?</param>
         /// <returns></returns>
-        public Statement[] NextExecutionSet()
+        public Statement[] NextExecutionSet(bool shouldBlockAsyncBeDisabled)
         {
             Statement current = this.statements[this.readIndex - 1];
 
@@ -1044,6 +1049,8 @@ namespace mc_compiled.MCC.Compiler
             if(NextIs<StatementOpenBlock>())
             {
                 var block = Next<StatementOpenBlock>();
+                if (shouldBlockAsyncBeDisabled)
+                    block.ignoreAsync = true;
                 int statementCount = block.statementsInside;
                 Statement[] code = Peek(statementCount);
                 this.readIndex += statementCount;
@@ -1291,7 +1298,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            CommandFile file = GetNextGeneratedFile(friendlyName);
+            CommandFile file = GetNextGeneratedFile(friendlyName, false);
 
             if (friendlyDescription != null)
                 file.Add("# " + friendlyDescription);
@@ -1342,7 +1349,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            CommandFile file = GetNextGeneratedFile(friendlyName);
+            CommandFile file = GetNextGeneratedFile(friendlyName, false);
 
             if(friendlyDescription != null)
                 file.Add("# " + friendlyDescription);
@@ -1720,28 +1727,34 @@ namespace mc_compiled.MCC.Compiler
             this.project.AddFile(this.InitFile);
         }
 
-        private static readonly Dictionary<int, int> generatedNames = new Dictionary<int, int>();
+        private static readonly Dictionary<string, int> generatedNames = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         /// <summary>
         /// Construct the next available name using a sequential number to distinguish it, like input0, input1, input2, etc...
         /// </summary>
-        /// <param name="friendlyName"></param>
+        /// <param name="friendlyName">The name to get the next number for.</param>
+        /// <param name="showNumberOnFirst">If a number should be appended to the first item with a generated name.</param>
+        /// <param name="oneIndexed">If the file numbers should be indexed by 1 rather than 0.</param>
         /// <returns>friendlyName[next available index]</returns>
-        public static string GetNextGeneratedName(string friendlyName)
+        public static string GetNextGeneratedName(string friendlyName, bool showNumberOnFirst, bool oneIndexed)
         {
-            int hash = friendlyName.GetHashCode();
-            if (!generatedNames.TryGetValue(hash, out int index))
+            if (!generatedNames.TryGetValue(friendlyName, out int index))
                 index = 0;
-            generatedNames[hash] = index + 1;
-            return friendlyName + index;
+            generatedNames[friendlyName] = index + 1;
+
+            if (index == 0 && !showNumberOnFirst)
+                return friendlyName;
+            
+            return friendlyName + (index + (oneIndexed ? 1 : 0));
         }
         /// <summary>
         /// Construct the next available command file (in the generated folder) using a sequential number to distinguish it, like input0, input1, input2, etc...
         /// </summary>
         /// <param name="friendlyName">A user-friendly name to mark the file by.</param>
+        /// <param name="oneIndexed"></param>
         /// <returns>A command file titled "friendlyName[next available index]" </returns>
-        public static CommandFile GetNextGeneratedFile(string friendlyName)
+        public static CommandFile GetNextGeneratedFile(string friendlyName, bool oneIndexed)
         {
-            string name = GetNextGeneratedName(friendlyName);
+            string name = GetNextGeneratedName(friendlyName, true, oneIndexed);
             return new CommandFile(true, name, MCC_GENERATED_FOLDER);
         }
         public static void ResetGeneratedNames()

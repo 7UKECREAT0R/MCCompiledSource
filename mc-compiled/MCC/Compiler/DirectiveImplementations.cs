@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
@@ -435,7 +436,8 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 var block = executor.Peek<StatementOpenBlock>();
-
+                block.ignoreAsync = true;
+                
                 if (result)
                 {
                     block.openAction = null;
@@ -463,6 +465,7 @@ namespace mc_compiled.MCC.Compiler
             if (executor.NextIs<StatementOpenBlock>())
             {
                 var block = executor.Peek<StatementOpenBlock>();
+                block.ignoreAsync = true;
                 if (run)
                 {
                     block.openAction = null;
@@ -569,7 +572,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIdentifier>(true))
                 tracker = tokens.Next<TokenIdentifier>("variable name").word;
 
-            Statement[] statements = executor.NextExecutionSet();
+            Statement[] statements = executor.NextExecutionSet(true);
 
             if(useRange)
             {
@@ -632,6 +635,7 @@ namespace mc_compiled.MCC.Compiler
                 args.Add(tokens.Next<TokenIdentifier>("macro argument name").word);
 
             var block = executor.Next<StatementOpenBlock>();
+            block.ignoreAsync = true;
             int count = block.statementsInside;
             Statement[] statements = executor.Peek(count);
             
@@ -1038,7 +1042,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 var json = tokens.Next<TokenJSONLiteral>("json");
                 current = tokens.Next<TokenIdentifier>("current token name").word;
-                statements = executor.NextExecutionSet();
+                statements = executor.NextExecutionSet(true);
 
                 JToken jsonToken = json.token;
 
@@ -1062,7 +1066,7 @@ namespace mc_compiled.MCC.Compiler
                 if (!executor.TryGetPPV(input, out PreprocessorVariable values))
                     throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
 
-                statements = executor.NextExecutionSet();
+                statements = executor.NextExecutionSet(true);
 
                 foreach (dynamic value in values)
                 {
@@ -1247,7 +1251,7 @@ namespace mc_compiled.MCC.Compiler
         public static void globalprint(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>("format string");
-            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, "print_a", tokens, out bool advanced);
 
             string[] commands = advanced ?
                 Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "tellraw @s ")) :
@@ -1266,7 +1270,7 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, $"The selector {player} may target non-players.");
             
             string str = tokens.Next<TokenStringLiteral>("format string");
-            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
+            List<JSONRawTerm> terms = executor.FString(str, "print_" + player.core, tokens, out bool _);
             string[] commands = Executor.ResolveRawText(terms, $"tellraw {player} ");
 
             CommandFile file = executor.CurrentFile;
@@ -1282,7 +1286,7 @@ namespace mc_compiled.MCC.Compiler
             
             const bool DEFAULT_MERGE = true;
 
-            // create preprocessor variable if it doesn't exist.
+            // create a preprocessor variable if it doesn't exist.
             if (!executor.ppv.TryGetValue(LanguageManager.MERGE_PPV, out _))
                 executor.ppv[LanguageManager.MERGE_PPV] = new PreprocessorVariable(DEFAULT_MERGE);
 
@@ -1414,7 +1418,7 @@ namespace mc_compiled.MCC.Compiler
                         }
                         else
                         {
-                            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+                            CommandFile blockFile = Executor.GetNextGeneratedFile("branch", false);
 
                             if (Program.DECORATE)
                             {
@@ -1480,10 +1484,10 @@ namespace mc_compiled.MCC.Compiler
             if (isAsync) // temporary throw while this is unsupported.
                 throw AsyncManager.UnsupportedException(tokens);
             
-            CommandFile sustainLoop = Executor.GetNextGeneratedFile("whileSustain");
-            CommandFile loopCode = Executor.GetNextGeneratedFile("while");
+            CommandFile sustainLoop = Executor.GetNextGeneratedFile("whileSustain", false);
+            CommandFile loopCode = Executor.GetNextGeneratedFile("while", false);
 
-            // sustainLoop should contain the comparison and then call to loopCode if it succeeds
+            // sustainLoop should contain the comparison and then call loopCode if it succeeds
             executor.PushFile(sustainLoop);
             ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
             set.RunCommand(Command.Function(loopCode), executor, tokens);
@@ -1499,6 +1503,7 @@ namespace mc_compiled.MCC.Compiler
             
             if (nextStatement is StatementOpenBlock openBlock)
             {
+                openBlock.SetLangContext("while");
                 openBlock.openAction = exec =>
                 {
                     exec.PushFile(loopCode);
@@ -1592,8 +1597,8 @@ namespace mc_compiled.MCC.Compiler
                 repetitionsString = $"{n}";
             }
 
-            CommandFile sustainLoop = Executor.GetNextGeneratedFile("repeatSustain");
-            CommandFile loopCode = Executor.GetNextGeneratedFile("repeat");
+            CommandFile sustainLoop = Executor.GetNextGeneratedFile("repeatSustain", false);
+            CommandFile loopCode = Executor.GetNextGeneratedFile("repeat", false);
             
             sustainLoop.Add(Command.Execute()
                 .IfScore(storeIn, new Range(0, null))
@@ -1620,6 +1625,7 @@ namespace mc_compiled.MCC.Compiler
             
             if (nextStatement is StatementOpenBlock openBlock)
             {
+                openBlock.SetLangContext("repeat");
                 openBlock.openAction = exec =>
                 {
                     exec.PushFile(loopCode);
@@ -1640,7 +1646,7 @@ namespace mc_compiled.MCC.Compiler
             ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
             set.InvertAll(true);
 
-            CommandFile file = Executor.GetNextGeneratedFile("failAssertion");
+            CommandFile file = Executor.GetNextGeneratedFile("failAssertion", false);
             IEnumerable<ScoreboardValue> values = set.GetAssertionTargets();
 
             // construct assertion failed message based on all values in this comparison set
@@ -1665,7 +1671,7 @@ namespace mc_compiled.MCC.Compiler
         public static void throwError(Executor executor, Statement tokens)
         {
             string text = tokens.Next<TokenStringLiteral>("throw message");
-            List<JSONRawTerm> json = executor.FString(text, tokens, out bool _);
+            List<JSONRawTerm> json = executor.FString(text, "throw", tokens, out bool _);
             json.Insert(0, new JSONText("§c"));
 
             string[] fs = Executor.ResolveRawText(json, "tellraw @s ");
@@ -2207,7 +2213,7 @@ namespace mc_compiled.MCC.Compiler
                     case "SUBTITLE":
                     {
                         string str = tokens.Next<TokenStringLiteral>("subtitle");
-                        List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
+                        List<JSONRawTerm> terms = executor.FString(str, "subtitle_a", tokens, out bool advanced);
 
                         string[] commands = advanced ?
                             Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "titleraw @s subtitle ")) :
@@ -2226,7 +2232,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>(true))
             {
                 string str = tokens.Next<TokenStringLiteral>("title");
-                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
+                List<JSONRawTerm> terms = executor.FString(str, "title_a", tokens, out bool advanced);
 
                 string[] commands = advanced ?
                     Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "title @s title ")) :
@@ -2262,7 +2268,7 @@ namespace mc_compiled.MCC.Compiler
                     case "SUBTITLE":
                     {
                         string str = tokens.Next<TokenStringLiteral>("subtitle");
-                        List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
+                        List<JSONRawTerm> terms = executor.FString(str, "subtitle_" + player.core, tokens, out bool _);
 
                         string[] commands = Executor.ResolveRawText(terms, $"titleraw {player} subtitle ");
 
@@ -2279,7 +2285,7 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenStringLiteral>(true))
             {
                 string str = tokens.Next<TokenStringLiteral>("title");
-                List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
+                List<JSONRawTerm> terms = executor.FString(str, "title_" + player.core, tokens, out bool _);
                 string[] commands = Executor.ResolveRawText(terms, $"titleraw {player} title ");
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "title", $"Called in a title command located in {file.CommandReference} line {executor.NextLineNumber}");
@@ -2289,7 +2295,7 @@ namespace mc_compiled.MCC.Compiler
         public static void globalactionbar(Executor executor, Statement tokens)
         {
             string str = tokens.Next<TokenStringLiteral>("actionbar");
-            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool advanced);
+            List<JSONRawTerm> terms = executor.FString(str, "actionbar_a", tokens, out bool advanced);
 
             string[] commands = advanced ?
                 Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "titleraw @s actionbar ")) :
@@ -2309,7 +2315,7 @@ namespace mc_compiled.MCC.Compiler
                 throw new StatementException(tokens, $"The selector {player} may target non-players.");
             
             string str = tokens.Next<TokenStringLiteral>("actionbar");
-            List<JSONRawTerm> terms = executor.FString(str, tokens, out bool _);
+            List<JSONRawTerm> terms = executor.FString(str, "actionbar_" + player.core, tokens, out bool _);
 
             string[] commands = Executor.ResolveRawText(terms, $"titleraw {player} actionbar ");
 
@@ -3000,6 +3006,16 @@ namespace mc_compiled.MCC.Compiler
                     return; // do nothing
                 }
 
+                // tiny contextual information without being too long
+                var langContext = new StringBuilder("execute");
+                if (builder.TryGetFirst(out SubcommandAs _as))
+                    langContext.Append("_as_" + _as.entity.core);
+                if (builder.TryGetFirst(out SubcommandIf _if))
+                    langContext.Append("_if");
+                if (builder.TryGetFirst(out SubcommandUnless _unless))
+                    langContext.Append("_unless");
+                openBlock.SetLangContext(langContext.ToString());
+                
                 string finalExecute = builder
                     .WithSubcommand(new SubcommandRun())
                     .Build(out _);
@@ -3013,7 +3029,7 @@ namespace mc_compiled.MCC.Compiler
                 }
                 else
                 {
-                    CommandFile blockFile = Executor.GetNextGeneratedFile("execute");
+                    CommandFile blockFile = Executor.GetNextGeneratedFile("execute", false);
 
                     if(Program.DECORATE)
                     {
@@ -3120,7 +3136,7 @@ namespace mc_compiled.MCC.Compiler
                 parameters.Add(new RuntimeFunctionParameter(value, def.defaultValue));
             }
 
-            // see if last statement was a comment, and use that for documentation
+            // see if the last statement was a comment and use that for documentation
             string docs = executor.GetDocumentationString(out bool hadDocumentation);
 
             // the actual name of the function file
@@ -3171,12 +3187,12 @@ namespace mc_compiled.MCC.Compiler
                 }
             }
 
-            // check for duplicates and try to extend partial function
+            // check for duplicates and try to extend the partial function
             bool cancelRegistry = false;
             if (executor.functions.TryGetFunctions(actualName, out Function[] existingFunctions))
             {
                 // this is likely an overload of another function, change the file name
-                string newName = Executor.GetNextGeneratedName(function.file.name + "_overload");
+                string newName = Executor.GetNextGeneratedName(function.file.name + "_overload", true, true);
                 function.file.name = newName;
                 function.internalName = newName;
                 
@@ -3257,9 +3273,10 @@ namespace mc_compiled.MCC.Compiler
             {
                 if (function.isExtern)
                     throw new StatementException(tokens, "External functions cannot have a body.");
-
+                
                 var openBlock = executor.Peek<StatementOpenBlock>();
                 
+                openBlock.SetLangContext("func_" + functionName.ToLower());
                 openBlock.openAction = function.BlockOpenAction;
                 openBlock.CloseAction = function.BlockCloseAction;
                 openBlock.ignoreAsync = true;
@@ -3338,6 +3355,7 @@ namespace mc_compiled.MCC.Compiler
             
             var openBlock = executor.Peek<StatementOpenBlock>();
 
+            openBlock.SetLangContext("test_" + testName.ToLower());
             openBlock.openAction = (e) =>
             {
                 e.PushFile(test.file);
@@ -3431,7 +3449,7 @@ namespace mc_compiled.MCC.Compiler
                     if (!executor.NextIs<StatementOpenBlock>())
                         throw new StatementException(tokens, "Dialogue definition must be followed by a block containing the fields for the dialogue.");
 
-                    Statement[] statements = executor.NextExecutionSet();
+                    Statement[] statements = executor.NextExecutionSet(true);
                     string npcName = null;
                     string text = null;
                     string[] onOpen = null;
@@ -3459,14 +3477,14 @@ namespace mc_compiled.MCC.Compiler
                                     break;
                                 case "BUTTON":
                                     string buttonText = unknown.Next<TokenStringLiteral>("button name");
-                                    string[] buttonCommands = BuildCommandsFromNextExecutionSet();
+                                    string[] buttonCommands = BuildCommandsFromNextExecutionSet("dialogue_button");
                                     buttonCommands = CompressCommandsToFile(buttonCommands, $"scene{newSceneTag}_press",
                                         $"Called when the button '{buttonText}' is pressed by a player in the dialogue '{newSceneTag}'. @s refers to the player, not the NPC.");
                                     var newButton = new Button(buttonCommands);
 
                                     if (executor.HasLocale)
                                     {
-                                        string langEntryName = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".button");
+                                        string langEntryName = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".button", true, true);
                                         langEntryName = executor.SetLocaleEntry(langEntryName, buttonText, tokens, true)?.key;
                                         if (langEntryName == null)
                                             newButton.NameString = buttonText;
@@ -3479,17 +3497,17 @@ namespace mc_compiled.MCC.Compiler
                                     buttons.Add(newButton);
                                     break;
                                 case "ONOPEN":
-                                    onOpen = BuildCommandsFromNextExecutionSet();
+                                    onOpen = BuildCommandsFromNextExecutionSet("dialogue_onopen");
                                     break;
                                 case "ONCLOSE":
-                                    onClose = BuildCommandsFromNextExecutionSet();
+                                    onClose = BuildCommandsFromNextExecutionSet("dialogue_onclose");
                                     break;
                             }
                         }
 
                         continue;
 
-                        string[] BuildCommandsFromNextExecutionSet()
+                        string[] BuildCommandsFromNextExecutionSet(string langIdentifier)
                         {
                             i += 1;
                             if (i >= statements.Length)
@@ -3499,6 +3517,8 @@ namespace mc_compiled.MCC.Compiler
                             
                             if (!(firstStatement is StatementOpenBlock openBlock))
                                 return Array.Empty<string>();
+                            
+                            openBlock.SetLangContext(langIdentifier);
                             
                             // skip open block
                             i += 1;
@@ -3543,7 +3563,7 @@ namespace mc_compiled.MCC.Compiler
                     
                     if (executor.HasLocale)
                     {
-                        string npcNameTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".name");
+                        string npcNameTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".name", true, true);
                         string npcNameEscapedNewlines = npcName.Replace("\\n", "%1");
                         npcNameTranslationKey = executor.SetLocaleEntry(npcNameTranslationKey, npcNameEscapedNewlines, tokens, true)?.key;
                         if (npcNameTranslationKey == null)
@@ -3558,7 +3578,7 @@ namespace mc_compiled.MCC.Compiler
                     {
                         if (!executor.HasLocale)
                             throw new StatementException(tokens, "Use of '\\n' in dialogue texts requires localization to be enabled.");
-                        string textTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".text");
+                        string textTranslationKey = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + newSceneTag + ".text", true, true);
                         string textEscapedNewlines = text.Replace("\\n", "%1");
                         textTranslationKey = executor.SetLocaleEntry(textTranslationKey, textEscapedNewlines, tokens, true)?.key;
                         if (textTranslationKey == null)
@@ -3590,7 +3610,7 @@ namespace mc_compiled.MCC.Compiler
                     return commands;
                 }
 
-                CommandFile file = Executor.GetNextGeneratedFile(fileName);
+                CommandFile file = Executor.GetNextGeneratedFile(fileName, false);
                 executor.AddExtraFile(file);
 
                 if (Program.DECORATE)
@@ -3638,7 +3658,8 @@ namespace mc_compiled.MCC.Compiler
             if(executor.NextIs<StatementOpenBlock>())
             {
                 var block = executor.Peek<StatementOpenBlock>();
-                CommandFile file = Executor.GetNextGeneratedFile("for");
+                block.SetLangContext("for_" + selector.selector.core);
+                CommandFile file = Executor.GetNextGeneratedFile("for", false);
 
                 if(Program.DECORATE)
                 {

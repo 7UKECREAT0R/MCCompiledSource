@@ -250,6 +250,8 @@ namespace mc_compiled.MCC.Compiler.Async
         public void StartNewStage()
         {
             int index = this.NextStageIndex;
+            if (this.activeStage != null)
+                throw new Exception("Error while processing async: Started new stage without ending previous one.");
             this.activeStage = new AsyncStage(this, index);
             this.activeStage.Begin(this.Executor);
             this.CurrentGroup.Add(this.activeStage);

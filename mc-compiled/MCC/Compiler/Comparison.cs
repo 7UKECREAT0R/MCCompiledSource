@@ -245,7 +245,7 @@ namespace mc_compiled.MCC.Compiler
             CommandFile prepFile = null;
             if (commands.Count > 0 || usesElse || executor.async.IsInAsync)
             {
-                prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
+                prepFile = Executor.GetNextGeneratedFile("comparisonSetup", false);
                 if(Program.DECORATE)
                 {
                     // attempt to add extra detail to the output file for reading users
@@ -293,7 +293,7 @@ namespace mc_compiled.MCC.Compiler
             // add commands to a file
             if (commands.Count > 0)
             {
-                CommandFile prepFile = Executor.GetNextGeneratedFile("comparisonSetup");
+                CommandFile prepFile = Executor.GetNextGeneratedFile("comparisonSetup", false);
                 if (Program.DECORATE)
                 {
                     // attempt to add extra detail to the output file for reading users
@@ -446,7 +446,7 @@ namespace mc_compiled.MCC.Compiler
                 return;
             }
 
-            CommandFile blockFile = Executor.GetNextGeneratedFile("branch");
+            CommandFile blockFile = Executor.GetNextGeneratedFile("branch", false);
 
             if (Program.DECORATE)
             {

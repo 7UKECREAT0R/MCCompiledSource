@@ -44,6 +44,27 @@ namespace mc_compiled.Commands.Execute
         }
 
         /// <summary>
+        /// Attempts to get the first instance of the given subcommand inside this builder.
+        /// </summary>
+        /// <typeparam name="T">The type of subcommand to find.</typeparam>
+        /// <param name="result">The first instance of the subcommand if found, otherwise null.</param>
+        /// <returns>True if the subcommand is found; otherwise, false.</returns>
+        internal bool TryGetFirst<T>(out T result) where T : Subcommand
+        {
+            foreach (Subcommand subcommand in this.subcommands)
+            {
+                if (!(subcommand is T resultCasted))
+                    continue;
+                
+                result = resultCasted;
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+        
+        /// <summary>
         /// Create a new ExecuteBuilder. Please prefer <see cref="Command.Execute"/> to create a new instance.
         /// </summary>
         internal ExecuteBuilder()

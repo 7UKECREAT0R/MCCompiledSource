@@ -32,7 +32,7 @@ namespace mc_compiled.Json
         /// Returns an array of terms representing this term, but localized (if enabled).
         /// </summary>
         /// <returns></returns>
-        public abstract JSONRawTerm[] Localize(Executor executor, Statement forExceptions);
+        public abstract JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions);
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ namespace mc_compiled.Json
     /// </summary>
     public class JSONText : JSONRawTerm
     {
-        string text;
+        private string text;
         public JSONText(string text)
         {
             this.text = EscapeString(text);
@@ -58,7 +58,7 @@ namespace mc_compiled.Json
             return '[' + this.text + ']';
         }
 
-        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
         {
             if (!executor.HasLocale)
                 return new JSONRawTerm[] { new JSONText(this.text) };
@@ -76,15 +76,13 @@ namespace mc_compiled.Json
             bool hasLeadingWhitespace = leadingWhitespace > 0;
             bool hasTrailingWhitespace = trailingWhitespace > 0;
 
-            string safeHashCode = this.text.GetHashCode().ToString().Replace('-', '_');
+            string key = Executor.GetNextGeneratedName(executor.LocaleEntryPrefix + identifier, false, true);
 
             // basic string, nothing fancy here
             if (!hasLeadingWhitespace && !hasTrailingWhitespace)
             {
-                string _key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
-                _key = executor.SetLocaleEntry(_key, this.text, forExceptions, true)?.key;
-                
-                return new[] { _key == null ? (JSONRawTerm)new JSONText(this.text) : (JSONRawTerm)(hasNewlines ? new JSONTranslate(_key).WithNewlineSupport() : new JSONTranslate(_key)) };
+                key = executor.SetLocaleEntry(key, this.text, forExceptions, true)?.key;
+                return new[] { key == null ? new JSONText(this.text) : (JSONRawTerm)(hasNewlines ? new JSONTranslate(key).WithNewlineSupport() : new JSONTranslate(key)) };
             }
 
             int indices = 1 + (hasLeadingWhitespace ? 1 : 0) + (hasTrailingWhitespace ? 1 : 0);
@@ -110,7 +108,6 @@ namespace mc_compiled.Json
             }
 
             // finally, the translated part.
-            string key = Executor.GetNextGeneratedName(Executor.MCC_TRANSLATE_PREFIX + "rawtext" + safeHashCode);
             key = executor.SetLocaleEntry(key, textCopy, forExceptions, true)?.key;
 
             if (key == null)
@@ -154,7 +151,7 @@ namespace mc_compiled.Json
             return "[SCORE " + this.objective + " OF " + this.selector + ']';
         }
 
-        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
         {
             return new JSONRawTerm[] { this };
         }
@@ -182,7 +179,7 @@ namespace mc_compiled.Json
             return '[' + this.selector + ']';
         }
 
-        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
         {
             return new JSONRawTerm[] { this };
         }
@@ -216,6 +213,10 @@ namespace mc_compiled.Json
             this.withStr.AddRange(strings);
             return this;
         }
+        /// <summary>
+        /// Adds a "with" entry to this rawtext, which enables support for using newlines.
+        /// </summary>
+        /// <returns></returns>
         public JSONTranslate WithNewlineSupport()
         {
             return With("\n");
@@ -250,7 +251,7 @@ namespace mc_compiled.Json
             return '[' + this.translationKey + ']';
         }
 
-        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
         {
             return new JSONRawTerm[] { this };
         }
@@ -280,10 +281,10 @@ namespace mc_compiled.Json
             return "{variant}";
         }
 
-        public override JSONRawTerm[] Localize(Executor executor, Statement forExceptions)
+        public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
         {
-            var newConditionals = this.terms.Select(term => term.Localize(executor, forExceptions));
-            return new[] { new JSONVariant(newConditionals.ToArray()) };
+            IEnumerable<ConditionalTerm> newConditionals = this.terms.Select(term => term.Localize(executor, identifier, forExceptions));
+            return new JSONRawTerm[] { new JSONVariant(newConditionals.ToArray()) };
         }
     }
     public class ConditionalTerm
@@ -304,9 +305,9 @@ namespace mc_compiled.Json
         /// Returns a shallow copy of this ConditionalTerm, but localized (if enabled).
         /// </summary>
         /// <returns></returns>
-        internal ConditionalTerm Localize(Executor executor, Statement forExceptions)
+        internal ConditionalTerm Localize(Executor executor, string identifier, Statement forExceptions)
         {
-            var localizedTerms = this.terms.SelectMany(term => term.Localize(executor, forExceptions));
+            IEnumerable<JSONRawTerm> localizedTerms = this.terms.SelectMany(term => term.Localize(executor, identifier, forExceptions));
             return new ConditionalTerm(localizedTerms.ToArray(), this.condition, this.invert);
         }
     }

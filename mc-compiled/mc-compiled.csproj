@@ -232,6 +232,7 @@
     <Compile Include="Modding\Resources\Localization\LangEntry.cs" />
     <Compile Include="Modding\Resources\Localization\LanguageManager.cs" />
     <Compile Include="Modding\Resources\Localization\LocaleDefinition.cs" />
+    <Compile Include="Modding\Resources\Localization\NaturalStringComparer.cs" />
     <Compile Include="Modding\Resources\SoundDefinitions.cs" />
     <Compile Include="Modding\StructureFile.cs" />
     <Compile Include="Commands\Selectors\BlockCheck.cs" />
