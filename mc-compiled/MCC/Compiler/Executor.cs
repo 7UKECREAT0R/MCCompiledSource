@@ -866,10 +866,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns><b>null</b> if no statements have been gotten yet.</returns>
         public Statement PeekLast()
         {
-            if (this.readIndex > 1)
-                return this.statements[this.readIndex - 2];
-
-            return null;
+            return this.readIndex > 1 ? this.statements[this.readIndex - 2] : null;
         }
         
         /// <summary>

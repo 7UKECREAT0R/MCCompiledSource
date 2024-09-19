@@ -636,7 +636,8 @@ namespace mc_compiled.MCC.Compiler
         private static void _macrodefine(Executor executor, Statement tokens)
         {
             string macroName = tokens.Next<TokenIdentifier>("macro name").word;
-
+            string docs = executor.GetDocumentationString(out _);
+            
             var args = new List<string>();
             while (tokens.NextIs<TokenIdentifier>(false))
                 args.Add(tokens.Next<TokenIdentifier>("macro argument name").word);
@@ -650,8 +651,6 @@ namespace mc_compiled.MCC.Compiler
                 executor.Next(); // skip over those
 
             executor.Next<StatementCloseBlock>();
-
-            string docs = executor.GetDocumentationString(out _);
             var macro = new Macro(macroName, docs, args.ToArray(), statements);
             executor.RegisterMacro(macro);
         }

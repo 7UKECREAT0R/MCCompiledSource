@@ -86,7 +86,7 @@ namespace mc_compiled.MCC.Compiler
         /// <typeparam name="T">The type to cast.</typeparam>
         /// <param name="parameterHint">
         /// The name of the parameter that this token will fill. Errors will display this name as a hint to the user.
-        /// You may pass null to this parameter if you have checked it beforehand via <see cref="NextIs{T}"/>.
+        /// You may pass null to this parameter if you’ve checked it beforehand via <see cref="NextIs{T}"/>.
         /// </param>
         /// <returns></returns>
         /// <exception cref="FeederException"></exception>
@@ -178,7 +178,7 @@ namespace mc_compiled.MCC.Compiler
         }
 
         /// <summary>
-        /// Return the remaining tokens in this feeder, excluding comments. Does not actually modify the reader's location.
+        /// Return the remaining tokens in this feeder, excluding comments. Doesn’t modify the reader's location.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<Token> GetRemainingTokens()
