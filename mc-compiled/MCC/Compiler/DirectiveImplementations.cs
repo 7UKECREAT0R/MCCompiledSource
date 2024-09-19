@@ -110,12 +110,19 @@ namespace mc_compiled.MCC.Compiler
         public static void _var(Executor executor, Statement tokens)
         {
             string varName = tokens.Next<TokenIdentifier>("variable name").word;
-            
-            var values = new List<dynamic>();
-            while (tokens.NextIs<IPreprocessor>(false))
-                values.Add(tokens.Next<IPreprocessor>("variable value").GetValue());
-            
-            executor.SetPPV(varName, values.ToArray());
+
+            if (tokens.NextIs<IPreprocessor>(true))
+            {
+                var values = new List<dynamic>();
+                while (tokens.NextIs<IPreprocessor>(true))
+                    values.Add(tokens.Next<IPreprocessor>("variable value").GetValue());
+                executor.SetPPV(varName, values.ToArray());
+            }
+            else
+            {
+                // empty preprocessor variable definition
+                executor.SetPPV(varName);
+            }
         }
         [UsedImplicitly]
         public static void _inc(Executor executor, Statement tokens)

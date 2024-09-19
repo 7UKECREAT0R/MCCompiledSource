@@ -81,7 +81,7 @@
       "category": "preprocessor",
       "function": "_var",
       "patterns": [
-        [ "id:variable", "object:values" ]
+        [ "id:variable", "?object:values" ]
       ],
       "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
     },

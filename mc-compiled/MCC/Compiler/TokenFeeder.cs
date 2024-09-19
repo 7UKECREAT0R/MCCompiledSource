@@ -152,7 +152,9 @@ namespace mc_compiled.MCC.Compiler
 
             if (token is T)
                 return true;
-
+            if(token is IUselessInformation)
+                return false; // don't throw
+            
             if (!allowImplicit || !(token is IImplicitToken implicitToken))
             {
                 TryEnforceType();

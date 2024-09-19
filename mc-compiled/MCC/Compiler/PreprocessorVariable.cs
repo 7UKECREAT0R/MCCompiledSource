@@ -42,9 +42,6 @@ namespace mc_compiled.MCC.Compiler
         
         public PreprocessorVariableRaw(params T[] items)
         {
-            if (items.Length == 0)
-                throw new Exception("Cannot create empty PreprocessorVariable.");
-            
             this.items = items;
             this.Length = items.Length;
             this.Capacity = items.Length;
