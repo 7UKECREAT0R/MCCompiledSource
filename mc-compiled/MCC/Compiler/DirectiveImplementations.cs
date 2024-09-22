@@ -29,9 +29,8 @@ namespace mc_compiled.MCC.Compiler
     {
         public static void ResetState()
         {
-            scatterFile = 0;
+            // empty
         }
-        private static int scatterFile;
 
         // ReSharper disable once ReturnTypeCanBeEnumerable.Local
         /// <summary>
@@ -785,12 +784,13 @@ namespace mc_compiled.MCC.Compiler
                     {
                         string word = words[i];
 
-                        // edge case: if word starts with capital and ends with lowercase, it's already fine
+                        // edge case: if a word starts with capital and ends with lowercase, it's already fine
                         if (char.IsUpper(word[0]) && char.IsLower(word[word.Length - 1]))
                             continue;
                         
                         // edge case: short words should not be capitalized
-                        if (word.Length <= 3)
+                        // ...unless it's at the start of the string
+                        if (word.Length <= 3 && i > 0)
                         {
                             words[i] = word.ToLower();
                             continue;
@@ -798,7 +798,7 @@ namespace mc_compiled.MCC.Compiler
 
                         bool doUpperCase = true;
                         char[] chars = word.ToCharArray()
-                            .Select((c, index) =>
+                            .Select(c =>
                             {
                                 // don't do anything if it's not a letter
                                 if (!char.IsLetter(c))
@@ -1078,7 +1078,6 @@ namespace mc_compiled.MCC.Compiler
                 {
                     executor.SetPPV(current, value);
                     executor.ExecuteSubsection(statements);
-                    break;
                 }
             }
 
@@ -1819,7 +1818,7 @@ namespace mc_compiled.MCC.Compiler
                     book = bookData;
                 }
 
-                var item = new ItemStack()
+                var item = new ItemStack
                 {
                     id = itemName,
                     count = count,
@@ -1835,8 +1834,9 @@ namespace mc_compiled.MCC.Compiler
                     bookData = book,
                     customColor = color
                 };
-                var file = new StructureFile("item" + item.GetHashCode(),
-                    Executor.MCC_GENERATED_FOLDER, StructureNBT.SingleItem(item));
+                
+                string fileName = Executor.GetNextGeneratedName(item.DescriptiveFileName, false, true);
+                var file = new StructureFile(fileName, Executor.MCC_GENERATED_FOLDER, StructureNBT.SingleItem(item));
                 executor.AddExtraFile(file);
 
                 string cmd = Command.StructureLoad(file.CommandReference, Coordinate.here, Coordinate.here, Coordinate.here,
@@ -2128,9 +2128,8 @@ namespace mc_compiled.MCC.Compiler
                 indices = new BlockIndicesNBT(blocks)
             };
 
-            string fileName = "scatter_" + scatterFile++;
-            var file = new StructureFile(fileName,
-                Executor.MCC_GENERATED_FOLDER, structure);
+            string fileName = Executor.GetNextGeneratedName("scatter_" + Command.UTIL.StripNamespace(block), false, true);
+            var file = new StructureFile(fileName, Executor.MCC_GENERATED_FOLDER, structure);
             executor.project.WriteSingleFile(file);
 
             Coordinate minX = Coordinate.Min(x1, x2);
@@ -2937,7 +2936,6 @@ namespace mc_compiled.MCC.Compiler
                 SoundDefinition definition = executor.AddNewSoundDefinition(soundId, category, tokens);
                 valid = true;
                 return definition.CommandReference;
-
             }
         }
         [UsedImplicitly]

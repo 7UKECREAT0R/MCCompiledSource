@@ -33,8 +33,11 @@ namespace mc_compiled.MCC.Compiler.Async
                 .Cast<AsyncFunction>()
                 .ToArray();
 
-            foreach (AsyncFunction asyncFunction in asyncFunctions)
-                asyncFunction.PrintDebugGroupInfo();
+            if(Program.DEBUG)
+            {
+                foreach (AsyncFunction asyncFunction in asyncFunctions)
+                    asyncFunction.PrintDebugGroupInfo();
+            }
             
             if (!Program.EXPORT_ALL && !asyncFunctions.Any(f => f.file.IsInUse))
                 return;

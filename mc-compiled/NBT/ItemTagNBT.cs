@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace mc_compiled.NBT
@@ -119,11 +120,30 @@ namespace mc_compiled.NBT
         LOCK_IN_SLOT = 1,
         LOCK_IN_INVENTORY = 2
     }
-    public struct ItemTagCustomColor
+    public struct ItemTagCustomColor : IEquatable<ItemTagCustomColor>
     {
         public byte r, g, b;
+        
+        public bool Equals(ItemTagCustomColor other)
+        {
+            return this.r == other.r && this.g == other.g && this.b == other.b;
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is ItemTagCustomColor other && Equals(other);
+        }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = this.r.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.g.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.b.GetHashCode();
+                return hashCode;
+            }
+        }
     }
-    public struct ItemTagBookData
+    public struct ItemTagBookData : IEquatable<ItemTagBookData>
     {
         public string author;
         public string title;
@@ -152,6 +172,25 @@ namespace mc_compiled.NBT
                 name = "pages",
                 values = compounds
             };
+        }
+        
+        public bool Equals(ItemTagBookData other)
+        {
+            return this.author == other.author && this.title == other.title && Equals(this.pages, other.pages);
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is ItemTagBookData other && Equals(other);
+        }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = (this.author != null ? this.author.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.title != null ? this.title.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.pages != null ? this.pages.GetHashCode() : 0);
+                return hashCode;
+            }
         }
     }
 }

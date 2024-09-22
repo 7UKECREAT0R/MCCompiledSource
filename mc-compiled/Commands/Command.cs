@@ -107,16 +107,33 @@ namespace mc_compiled.Commands
                 Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
 
             /// <summary>
-            /// Prepends "minecraft:" if no namespace is given.
+            /// Prepends "minecraft:" if no namespace is identifier.
             /// </summary>
-            /// <param name="identifier"></param>
             /// <returns></returns>
             public string RequireNamespace(string identifier)
             {
                 if (identifier.Contains(':'))
                     return identifier;
-                else
-                    return "minecraft:" + identifier;
+                return "minecraft:" + identifier;
+            }
+            /// <summary>
+            /// Strips the namespace off of the given identifier.
+            /// <code>
+            /// minecraft:diamond → diamond
+            /// </code>
+            /// </summary>
+            /// <returns></returns>
+            public string StripNamespace(string identifier)
+            {
+                if (identifier.Contains(':'))
+                {
+                    int lastColon = identifier.LastIndexOf(':');
+                    return lastColon + 1 >= identifier.Length ?
+                        identifier.Trim(':') :
+                        identifier.Substring(lastColon + 1);
+                }
+
+                return identifier;
             }
 
             /// <summary>
