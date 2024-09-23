@@ -436,7 +436,10 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// The prefix to use for locale entries at the current location of the executor.
         /// </summary>
-        internal string LocaleEntryPrefix => $"{MCC_TRANSLATE_PREFIX}{string.Join(".", this.currentLocaleEntryPath)}.";
+        internal string LocaleEntryPrefix =>
+            this.currentLocaleEntryPath.Any() ?
+                $"{MCC_TRANSLATE_PREFIX}{string.Join(".", this.currentLocaleEntryPath)}." :
+                MCC_TRANSLATE_PREFIX;
         /// <summary>
         /// Returns the active locale, if any. Set using <see cref="SetLocale(string)"/>.
         /// </summary>
