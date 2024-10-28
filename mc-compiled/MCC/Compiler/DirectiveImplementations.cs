@@ -3002,6 +3002,8 @@ namespace mc_compiled.MCC.Compiler
 
             if (next is StatementOpenBlock openBlock)
             {
+                openBlock.ignoreAsync = true;
+                
                 // only do the block stuff if necessary.
                 if (openBlock.meaningfulStatementsInside == 0)
                 {
@@ -3193,7 +3195,7 @@ namespace mc_compiled.MCC.Compiler
 
             // check for duplicates and try to extend the partial function
             bool cancelRegistry = false;
-            if (executor.functions.TryGetFunctions(actualName, out Function[] existingFunctions))
+            if (executor.functions.TryGetFunctions(functionName, out Function[] existingFunctions))
             {
                 // this is likely an overload of another function, change the file name
                 string newName = Executor.GetNextGeneratedName(function.file.name + "_overload", true, true);
@@ -3662,7 +3664,9 @@ namespace mc_compiled.MCC.Compiler
             if(executor.NextIs<StatementOpenBlock>())
             {
                 var block = executor.Peek<StatementOpenBlock>();
+                block.ignoreAsync = true;
                 block.SetLangContext("for_" + selector.selector.core);
+                
                 CommandFile file = Executor.GetNextGeneratedFile("for", false);
 
                 if(Program.DECORATE)
