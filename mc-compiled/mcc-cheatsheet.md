@@ -173,7 +173,7 @@ Commands that allow the user to do things at compile time. Preprocessor commands
 
 [Set Preprocessor Variable](Preprocessor.md)
 : Sets a preprocessor variable to the value(s) provided.
-- `$var <id: variable> <object: values>`
+- `$var <id: variable> [object: values]`
 
 [Subtract from Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
 : Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B
