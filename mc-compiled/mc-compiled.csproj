@@ -1,270 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F591FCB1-4CA6-4F65-B840-52807BB08190}</ProjectGuid>
+    <TargetFramework>net48</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>mc_compiled</RootNamespace>
-    <AssemblyName>mc-compiled</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="JetBrains.Annotations, Version=4242.42.42.42, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
-      <HintPath>..\packages\JetBrains.Annotations.2023.3.0\lib\net20\JetBrains.Annotations.dll</HintPath>
-    </Reference>
-    <Reference Include="Matarillo.IO, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Matarillo.IO.1.0.0\lib\netstandard1.1\Matarillo.IO.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Commands\Execute\ConditionalSubcommands.cs" />
-    <Compile Include="Commands\Execute\ConditionalSubcommand.cs" />
-    <Compile Include="Commands\Execute\ExecuteBuilder.cs" />
-    <Compile Include="Commands\Execute\Subcommand.cs" />
-    <Compile Include="Commands\Execute\Subcommands.cs" />
-    <Compile Include="Commands\Native\BlockState.cs" />
-    <Compile Include="Commands\Native\BlockStates.cs" />
-    <Compile Include="Commands\Selectors\Area.cs" />
-    <Compile Include="Commands\Selectors\Count.cs" />
-    <Compile Include="Commands\Selectors\Entity.cs" />
-    <Compile Include="Commands\Selectors\HasItems.cs" />
-    <Compile Include="Commands\Selectors\Selector.cs" />
-    <Compile Include="Commands\Selectors\Player.cs" />
-    <Compile Include="Commands\Selectors\Scores.cs" />
-    <Compile Include="Commands\Selectors\SelectorUtils.cs" />
-    <Compile Include="Commands\Selectors\Tag.cs" />
-    <Compile Include="Commands\Selectors\TransformResult.cs" />
-    <Compile Include="MCC\Attributes\AttributeAsync.cs" />
-    <Compile Include="MCC\Attributes\AttributeAuto.cs" />
-    <Compile Include="MCC\Attributes\AttributeBind.cs" />
-    <Compile Include="MCC\Attributes\AttributeDelay.cs" />
-    <Compile Include="MCC\Attributes\AttributeExport.cs" />
-    <Compile Include="MCC\Attributes\AttributeExtern.cs" />
-    <Compile Include="MCC\Attributes\AttributeGlobal.cs" />
-    <Compile Include="MCC\Attributes\AttributeLocal.cs" />
-    <Compile Include="MCC\Attributes\AttributePartial.cs" />
-    <Compile Include="MCC\Attributes\Implementations\AttributeFunctions.cs" />
-    <Compile Include="MCC\Compiler\Async\AsyncManager.cs" />
-    <Compile Include="MCC\Compiler\Async\AsyncFunction.cs" />
-    <Compile Include="MCC\Compiler\Async\AsyncStage.cs" />
-    <Compile Include="MCC\Compiler\Implementations\CompiletimeFunctions.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionCountEntities.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionGlyphs.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsRandom.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsRounding.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsMinMax.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionSqrtCompiletime.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionsTrig.cs" />
-    <Compile Include="MCC\Compiler\Implementations\Functions\FunctionGetValueByName.cs" />
-    <Compile Include="MCC\Compiler\MolangBindings.cs" />
-    <Compile Include="MCC\Compiler\Clarifier.cs" />
-    <Compile Include="MCC\Compiler\Implementations\IFunctionProvider.cs" />
-    <Compile Include="MCC\Compiler\PreprocessorVariable.cs" />
-    <Compile Include="MCC\Compiler\PreviousComparisonStructure.cs" />
-    <Compile Include="MCC\Compiler\TemporaryFilesManager.cs" />
-    <Compile Include="MCC\Compiler\TimeFormat.cs" />
-    <Compile Include="MCC\Compiler\TokenFeeder.cs" />
-    <Compile Include="MCC\Attributes\IAttribute.cs" />
-    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefBoolean.cs" />
-    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefFixedDecimal.cs" />
-    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefInteger.cs" />
-    <Compile Include="MCC\Compiler\TypeSystem\Implementations\TypedefTime.cs" />
-    <Compile Include="MCC\Compiler\TypeSystem\ITypeStructure.cs" />
-    <Compile Include="MCC\Compiler\TypeSystem\Typedef.cs" />
-    <Compile Include="MCC\Compiler\TypeSystem\TypedefStatic.cs" />
-    <Compile Include="MCC\Functions\Function.cs" />
-    <Compile Include="MCC\Functions\FunctionComparator.cs" />
-    <Compile Include="MCC\Functions\FunctionManager.cs" />
-    <Compile Include="MCC\Compiler\PreprocessorUtils.cs" />
-    <Compile Include="MCC\Compiler\Assembler.cs" />
-    <Compile Include="Commands\CommandEnumParser.cs" />
-    <Compile Include="Commands\Command.cs" />
-    <Compile Include="Commands\Native\EnchantmentEntry.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="MCC\Compiler\CommandFile.cs" />
-    <Compile Include="MCC\Compiler\Comparison.cs" />
-    <Compile Include="MCC\Compiler\ComparisonImplementations.cs" />
-    <Compile Include="MCC\Compiler\DirectiveImplementations.cs" />
-    <Compile Include="MCC\Compiler\Directives.cs" />
-    <Compile Include="MCC\Functions\FunctionParameter.cs" />
-    <Compile Include="MCC\CustomEntities\CustomEntityManager.cs" />
-    <Compile Include="MCC\CustomEntities\ExploderManager.cs" />
-    <Compile Include="MCC\EntityManager.cs" />
-    <Compile Include="MCC\Compiler\Executor.cs" />
-    <Compile Include="MCC\Compiler\Statements.cs" />
-    <Compile Include="MCC\CustomEntities\DummyManager.cs" />
-    <Compile Include="MCC\Feature.cs" />
-    <Compile Include="MCC\FeatureManager.cs" />
-    <Compile Include="MCC\Functions\Types\AttributeFunction.cs" />
-    <Compile Include="MCC\Functions\Types\CompiletimeFunction.cs" />
-    <Compile Include="MCC\Functions\Types\CompiletimeFunctionParameter.cs" />
-    <Compile Include="MCC\Functions\Types\GenerativeFunction.cs" />
-    <Compile Include="MCC\Functions\Types\RuntimeFunction.cs" />
-    <Compile Include="MCC\Functions\Types\RuntimeFunctionParameter.cs" />
-    <Compile Include="MCC\Functions\Types\RuntimeFunctionParameterDynamic.cs" />
-    <Compile Include="MCC\Functions\Types\TestFunction.cs" />
-    <Compile Include="MCC\ProjectManager.cs" />
-    <Compile Include="MCC\Macro.cs" />
-    <Compile Include="MCC\Scheduling\Implementations\ScheduledOneShot.cs" />
-    <Compile Include="MCC\Scheduling\Implementations\ScheduledRepeat.cs" />
-    <Compile Include="MCC\Scheduling\Implementations\ScheduledRepeatEveryTick.cs" />
-    <Compile Include="MCC\Scheduling\ScheduledTask.cs" />
-    <Compile Include="MCC\ScoreboardManager.cs" />
-    <Compile Include="MCC\Compiler\Statement.cs" />
-    <Compile Include="MCC\Compiler\Token.cs" />
-    <Compile Include="MCC\Compiler\TokensLiterals.cs" />
-    <Compile Include="MCC\Compiler\TokensMain.cs" />
-    <Compile Include="MCC\Compiler\TokensOperators.cs" />
-    <Compile Include="MCC\Compiler\TypePattern.cs" />
-    <Compile Include="MCC\FixedPoint.cs" />
-    <Compile Include="MCC\Scoreboard.cs" />
-    <Compile Include="MCC\Server\WebSocket\HttpHelper.cs" />
-    <Compile Include="MCC\Server\WebSocket\LintStructures.cs" />
-    <Compile Include="MCC\Server\WebSocket\MCCServer.cs" />
-    <Compile Include="MCC\Server\WebSocket\MCCServerProject.cs" />
-    <Compile Include="MCC\Server\WebSocket\PropertyImplementations.cs" />
-    <Compile Include="MCC\Server\WebSocket\RegistryConfiguration.cs" />
-    <Compile Include="MCC\Server\WebSocket\ServerAsyncPackage.cs" />
-    <Compile Include="MCC\Server\WebSocket\SocketMessage.cs" />
-    <Compile Include="MCC\Server\WebSocket\WebSocketFrame.cs" />
-    <Compile Include="MCC\Scheduling\TickScheduler.cs" />
-    <Compile Include="MCC\SyntaxHighlighting\Markdown.cs" />
-    <Compile Include="MCC\SyntaxHighlighting\Monarch.cs" />
-    <Compile Include="MCC\SyntaxHighlighting\RawSyntax.cs" />
-    <Compile Include="MCC\SyntaxHighlighting\RawSyntaxMin.cs" />
-    <Compile Include="MCC\SyntaxHighlighting\Syntax.cs" />
-    <Compile Include="MCC\SyntaxHighlighting\UDL2.cs" />
-    <Compile Include="MCC\TempManager.cs" />
-    <Compile Include="Modding\Behaviors\AnimationController.cs" />
-    <Compile Include="Modding\Behaviors\Dialogue\Button.cs" />
-    <Compile Include="Modding\Behaviors\Dialogue\DialogueManager.cs" />
-    <Compile Include="Modding\Behaviors\Dialogue\Scene.cs" />
-    <Compile Include="Modding\Behaviors\EntityBehavior.cs" />
-    <Compile Include="Modding\Behaviors\EntityComponent.cs" />
-    <Compile Include="Modding\Behaviors\EntityComponentGroup.cs" />
-    <Compile Include="Modding\Behaviors\EntityDescription.cs" />
-    <Compile Include="Modding\Behaviors\EntityEvents.cs" />
-    <Compile Include="Modding\Behaviors\EventSubject.cs" />
-    <Compile Include="Modding\Behaviors\Filter.cs" />
-    <Compile Include="Modding\Behaviors\FilterCollection.cs" />
-    <Compile Include="Modding\Behaviors\Lists\EntityComponents.cs" />
-    <Compile Include="Modding\Behaviors\Lists\EntityFilters.cs" />
-    <Compile Include="Modding\Behaviors\Lists\EntityProperties.cs" />
-    <Compile Include="Modding\Behaviors\MolangValue.cs" />
-    <Compile Include="Modding\CopyFile.cs" />
-    <Compile Include="Modding\FormatVersion.cs" />
-    <Compile Include="Modding\IAddonFile.cs" />
-    <Compile Include="Modding\Behaviors\LootTable.cs" />
-    <Compile Include="Modding\Manifest\Dependencies\DependencyModule.cs" />
-    <Compile Include="Modding\Manifest\Dependencies\DependencyUUID.cs" />
-    <Compile Include="Modding\Manifest\Manifest.cs" />
-    <Compile Include="Modding\Manifest\Dependency.cs" />
-    <Compile Include="Modding\Manifest\ManifestHeader.cs" />
-    <Compile Include="Modding\Manifest\ManifestVersion.cs" />
-    <Compile Include="Modding\Manifest\Module.cs" />
-    <Compile Include="Modding\Manifest\Modules\BasicModule.cs" />
-    <Compile Include="Modding\Manifest\Modules\ScriptModule.cs" />
-    <Compile Include="Modding\Offsets.cs" />
-    <Compile Include="Modding\Resources\EntityGeometry.cs" />
-    <Compile Include="Modding\Resources\EntityResource.cs" />
-    <Compile Include="Modding\Resources\Localization\Lang.cs" />
-    <Compile Include="Modding\Resources\Localization\LangEntry.cs" />
-    <Compile Include="Modding\Resources\Localization\LanguageManager.cs" />
-    <Compile Include="Modding\Resources\Localization\LocaleDefinition.cs" />
-    <Compile Include="Modding\Resources\Localization\NaturalStringComparer.cs" />
-    <Compile Include="Modding\Resources\SoundDefinitions.cs" />
-    <Compile Include="Modding\StructureFile.cs" />
-    <Compile Include="Commands\Selectors\BlockCheck.cs" />
-    <Compile Include="Commands\Coordinate.cs" />
-    <Compile Include="Commands\Native\Block.cs" />
-    <Compile Include="Commands\Native\ItemStack.cs" />
-    <Compile Include="Commands\Range.cs" />
-    <Compile Include="Json\RawTextJsonBuilder.cs" />
-    <Compile Include="Json\RawTextJsonTerms.cs" />
-    <Compile Include="MCC\Compiler\Tokenizer.cs" />
-    <Compile Include="MCC\Definitions.cs" />
-    <Compile Include="NBT\BlockIndicesNBT.cs" />
-    <Compile Include="NBT\EnchantNBT.cs" />
-    <Compile Include="NBT\AttributeNBT.cs" />
-    <Compile Include="NBT\EntityListNBT.cs" />
-    <Compile Include="NBT\EntityNBT.cs" />
-    <Compile Include="NBT\EquipmentNBT.cs" />
-    <Compile Include="NBT\FileWriterNBT.cs" />
-    <Compile Include="NBT\ItemNBT.cs" />
-    <Compile Include="NBT\ItemTagNBT.cs" />
-    <Compile Include="NBT\NBTByteArray.cs" />
-    <Compile Include="NBT\NBTCompound.cs" />
-    <Compile Include="NBT\NBTDouble.cs" />
-    <Compile Include="NBT\NBTFloat.cs" />
-    <Compile Include="NBT\NBTColor.cs" />
-    <Compile Include="NBT\NBTInt.cs" />
-    <Compile Include="NBT\NBTIntArray.cs" />
-    <Compile Include="NBT\NBTList.cs" />
-    <Compile Include="NBT\NBTLong.cs" />
-    <Compile Include="NBT\NBTLongArray.cs" />
-    <Compile Include="NBT\NBTShort.cs" />
-    <Compile Include="NBT\NBTByte.cs" />
-    <Compile Include="NBT\NBTNode.cs" />
-    <Compile Include="NBT\NBTEnd.cs" />
-    <Compile Include="NBT\NBTString.cs" />
-    <Compile Include="NBT\PaletteEntryNBT.cs" />
-    <Compile Include="NBT\PaletteNBT.cs" />
-    <Compile Include="NBT\RotationNBT.cs" />
-    <Compile Include="NBT\StructureNBT.cs" />
-    <Compile Include="NBT\VectorIntNBT.cs" />
-    <Compile Include="NBT\VectorNBT.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="..\.editorconfig">
       <Link>.editorconfig</Link>
     </None>
-    <None Include="App.config" />
     <AdditionalFiles Include="language.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>
     <AdditionalFiles Include="bindings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="definitions.def">
@@ -273,5 +26,11 @@
     <Content Include="update-regolith-filter.bat" />
     <Content Include="update-website.bat" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+    <PackageReference Include="Matarillo.IO" Version="1.0.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
 </Project>
