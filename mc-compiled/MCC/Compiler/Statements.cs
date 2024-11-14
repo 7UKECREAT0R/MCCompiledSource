@@ -1,9 +1,8 @@
-﻿using mc_compiled.MCC.Functions;
-using mc_compiled.MCC.Functions.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using mc_compiled.Commands.Native;
+using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Functions.Types;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -47,14 +46,14 @@ namespace mc_compiled.MCC.Compiler
         public override bool Skip => true;
         public override bool DoesAsyncSplit => false;
 
-        public StatementComment(string comment) : base(Array.Empty<Token>(), true)
+        public StatementComment(string comment) : base([], true)
         {
             this.comment = comment;
             this.DecorateInSource = false;
         }
         public override bool HasAttribute(DirectiveAttribute attribute) => false;
         public override string ToString() => $"[COMMENT] {this.comment}";
-        protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
+        protected override TypePattern[] GetValidPatterns() => [];
 
         protected override void Run(Executor runningExecutor)
         {
@@ -134,7 +133,7 @@ namespace mc_compiled.MCC.Compiler
             set => this.closer.closeAction = value;
         }
 
-        public StatementOpenBlock(int statementsInside, CommandFile file) : base(null)
+        public StatementOpenBlock(int statementsInside) : base(null)
         {
             this.statementsInside = statementsInside;
             this.openAction = null;
@@ -149,7 +148,7 @@ namespace mc_compiled.MCC.Compiler
                 $"[OPEN BLOCK: {this.statementsInside} STATEMENTS]";
         }
 
-        protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
+        protected override TypePattern[] GetValidPatterns() => [];
         protected override void Run(Executor runningExecutor)
         {
             // start a new group of async stages
@@ -228,7 +227,7 @@ namespace mc_compiled.MCC.Compiler
         /// </summary>
         public Action<Executor> closeAction;
 
-        protected override TypePattern[] GetValidPatterns() => Array.Empty<TypePattern>();
+        protected override TypePattern[] GetValidPatterns() => [];
         protected override void Run(Executor runningExecutor)
         {
             // start a new group of async stages
@@ -272,12 +271,13 @@ namespace mc_compiled.MCC.Compiler
 
         protected override TypePattern[] GetValidPatterns()
         {
-            return new[] {
+            return
+            [
                 new TypePattern(
                     new NamedType(typeof(TokenIdentifierValue)),
                     new NamedType(typeof(IAssignment))
                 )
-            };
+            ];
         }
         protected override void Run(Executor runningExecutor)
         {
@@ -367,12 +367,13 @@ namespace mc_compiled.MCC.Compiler
 
         protected override TypePattern[] GetValidPatterns()
         {
-            return new[] {
+            return
+            [
                 new TypePattern(
                     new NamedType(typeof(TokenIdentifier)),
                     new NamedType(typeof(TokenOpenParenthesis))
                 )
-            };
+            ];
         }
         protected override void Run(Executor runningExecutor)
         {
@@ -486,7 +487,7 @@ namespace mc_compiled.MCC.Compiler
 
         public Token[] GetTokens() => this.tokens;
 
-        protected override TypePattern[] GetValidPatterns() { return Array.Empty<TypePattern>(); } // always valid
+        protected override TypePattern[] GetValidPatterns() { return []; } // always valid
         protected override void Run(Executor runningExecutor) { } // no operation
     }
 

@@ -63,9 +63,9 @@ namespace mc_compiled.Commands
             str = str.TrimEnd('f');
             
             if (relative)
-                str = str.Substring(1);
+                str = str[1..];
             if (lookOffset)
-                str = str.Substring(1);
+                str = str[1..];
 
             if (int.TryParse(str, out int i))
                 return new Coordinate(i, false, relative, lookOffset);

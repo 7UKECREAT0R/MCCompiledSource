@@ -1,19 +1,20 @@
-﻿using mc_compiled.MCC.Compiler;
-using mc_compiled.Modding;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Scheduling;
 using mc_compiled.MCC.Scheduling.Implementations;
+using mc_compiled.Modding;
 using mc_compiled.Modding.Manifest;
 using mc_compiled.Modding.Manifest.Modules;
 using mc_compiled.Modding.Resources.Localization;
 using Newtonsoft.Json.Linq;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC
 {
@@ -31,9 +32,9 @@ namespace mc_compiled.MCC
         /// Namespace an identifier for this project.
         /// <code>this.Identifier + ':' + name</code>
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="rawName"></param>
         /// <returns></returns>
-        public string Namespace(string name) => this.Identifier + ':' + name;
+        public string Namespace(string rawName) => this.Identifier + ':' + rawName;
 
         private readonly string name;
         private readonly Executor parentExecutor;
@@ -59,8 +60,8 @@ namespace mc_compiled.MCC
             
             this.name = name;
             this.registry = new OutputRegistry(bpBase, rpBase);
-            this.copyFiles = new HashSet<CopyFile>();
-            this.files = new List<IAddonFile>();
+            this.copyFiles = [];
+            this.files = [];
             this.features = 0;
         }
         /// <summary>
@@ -201,12 +202,12 @@ namespace mc_compiled.MCC
                 string fileB = Path.GetFileName(test.GetOutputFile());
                 string directoryB = test.GetExtendedDirectory();
 
-                bool match = true;
+                /*bool match = true;
                 match &= fileA.Equals(fileB);
                 match &= (directoryA == null) == (directoryB == null);
 
                 if (match && directoryA != null)
-                    match &= directoryA.Equals(directoryB);
+                    match &= directoryA.Equals(directoryB);*/
 
                 if (test.GetOutputFile().Equals(file.GetOutputFile()) && test.GetOutputLocation() == fileLocation) this.files.RemoveAt(i);
             }
@@ -241,9 +242,9 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Adds a collection of files to this project.
         /// </summary>
-        /// <param name="files"></param>
-        internal void AddFiles(IEnumerable<IAddonFile> files) =>
-            this.files.AddRange(files);
+        /// <param name="newFiles"></param>
+        internal void AddFiles(IEnumerable<IAddonFile> newFiles) =>
+            this.files.AddRange(newFiles);
         /// <summary>
         /// Returns if this project has any file name containing a set of text.
         /// </summary>
@@ -432,7 +433,7 @@ namespace mc_compiled.MCC
         /// </summary>
         /// <param name="file">The file to get the full path of.</param>
         /// <param name="includeFileName">Whether to include the file name in the output, or just the directory.</param>
-        /// <returns>null if the file should not be outputted.</returns>
+        /// <returns>null if the file shouldn’t be outputted.</returns>
         public string GetOutputFileLocationFull(IAddonFile file, bool includeFileName)
         {
             string outputFile = file.GetOutputFile();

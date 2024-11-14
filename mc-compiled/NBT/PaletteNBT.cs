@@ -14,32 +14,32 @@ namespace mc_compiled.NBT
         }
         public NBTCompound ToNBT()
         {
-            return new NBTCompound()
+            return new NBTCompound
             {
                 name = "palette",
-                values = new NBTNode[]
-                {
-                    new NBTCompound()
+                values =
+                [
+                    new NBTCompound
                     {
                         name = "default",
-                        values = new NBTNode[]
-                        {
-                            new NBTList()
+                        values =
+                        [
+                            new NBTList
                             {
                                 name = "block_palette",
                                 listType = TAG.Compound,
-                                values = (from bp in this.block_palette select bp.ToNBT("")).ToArray()
+                                values = (from bp in this.block_palette select bp.ToNBT("")).ToArray<NBTNode>()
                             },
-                            new NBTCompound()
+                            new NBTCompound
                             {
                                 name = "block_position_data",
-                                values = new NBTNode[] { new NBTEnd() }
+                                values = [new NBTEnd()]
                             },
                             new NBTEnd()
-                        }
+                        ]
                     },
                     new NBTEnd()
-                }
+                ]
             };
         }
     }

@@ -102,20 +102,18 @@ namespace mc_compiled.MCC.Compiler.Async
 
             if (this.ticksUntilNextStage.HasValue)
             {
-                executor.AddCommandsClean(new[]
-                {
+                executor.AddCommandsClean([
                     Command.ScoreboardSet(this.parent.timerValue, this.ticksUntilNextStage.Value),
                     Command.ScoreboardSet(this.parent.stageValue, this.index)
-                }, null, null, true);
+                ], null, null, true);
                 return;
             }
 
             // immediately jump to the next stage
-            executor.AddCommandsClean(new[]
-            {
+            executor.AddCommandsClean([
                 Command.ScoreboardSet(this.parent.timerValue, -1),
                 Command.ScoreboardSet(this.parent.stageValue, this.index + 1)
-            }, null, null, true);
+            ], null, null, true);
 
 
             executor.PopFile();

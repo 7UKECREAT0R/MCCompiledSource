@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 
@@ -27,6 +28,6 @@ namespace mc_compiled.MCC.CustomEntities
 
         protected abstract IEnumerable<IAddonFile> CreateEntityFiles();
         public abstract bool HasEntity(string name);
-        public abstract bool Search(string name, out Commands.Selectors.Selector selector);
+        public abstract bool Search(string name, out Selector selector);
     }
 }

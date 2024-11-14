@@ -1,7 +1,4 @@
-﻿using mc_compiled.MCC.Attributes;
-using mc_compiled.MCC.Compiler;
-using mc_compiled.MCC.Compiler.TypeSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,6 +6,9 @@ using System.Text;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
+using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC
 {
@@ -106,7 +106,7 @@ namespace mc_compiled.MCC
             if (name.Length > MAX_NAME_LENGTH)
                 this.name = name;
 
-            this.attributes = new List<IAttribute>();
+            this.attributes = [];
             this.clarifier = new Clarifier(global);
             this.type = type;
         }
@@ -119,7 +119,7 @@ namespace mc_compiled.MCC
             if (name.Length > MAX_NAME_LENGTH)
                 this.name = name;
 
-            this.attributes = new List<IAttribute>();
+            this.attributes = [];
             this.clarifier = new Clarifier(global);
             this.data = data;
             this.type = type;
@@ -127,7 +127,7 @@ namespace mc_compiled.MCC
         public ScoreboardValue(Typedef type, Clarifier clarifier, ITypeStructure data, string internalName, string name, string documentation,
             ScoreboardManager manager)
         {
-            this.attributes = new List<IAttribute>();
+            this.attributes = [];
             this.type = type;
             this.clarifier = clarifier;
             this.data = data;
@@ -178,13 +178,13 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public ScoreboardValue Clone(Statement callingStatement, Typedef newType = null, Clarifier newClarifier = null, ITypeStructure newData = null, string newInternalName = null, string newName = null)
         {
-            Typedef type = newType ?? this.type;
-            Clarifier clarifier = newClarifier ?? this.clarifier.Clone();
-            ITypeStructure data = newData ?? (this.data == null ? null : type.CloneData(this.data));
-            string internalName = newInternalName ?? this.internalName;
-            string name = newName ?? this.name;
+            Typedef _type = newType ?? this.type;
+            Clarifier _clarifier = newClarifier ?? this.clarifier.Clone();
+            ITypeStructure _data = newData ?? (this.data == null ? null : _type.CloneData(this.data));
+            string _internalName = newInternalName ?? this.internalName;
+            string _name = newName ?? this.name;
 
-            var clone = new ScoreboardValue(type, clarifier, data, internalName, name, null, this.manager);
+            var clone = new ScoreboardValue(_type, _clarifier, _data, _internalName, _name, null, this.manager);
             clone.WithAttributes(this.attributes, callingStatement);
 
             return clone;
@@ -408,23 +408,22 @@ namespace mc_compiled.MCC
         /// Calls one of this object's operation methods (Add, Subtract, Multiply, etc...) based on the given arithmetic type.
         /// </summary>
         /// <param name="other"></param>
-        /// <param name="type"></param>
+        /// <param name="arithmeticType"></param>
         /// <param name="callingStatement"></param>
         /// <returns></returns>
-        public IEnumerable<string> Operation(ScoreboardValue other, TokenArithmetic.Type type,
+        public IEnumerable<string> Operation(ScoreboardValue other, TokenArithmetic.Type arithmeticType,
             Statement callingStatement)
         {
-            switch (type)
+            return arithmeticType switch
             {
-                case TokenArithmetic.Type.ADD: return Add(other, callingStatement);
-                case TokenArithmetic.Type.SUBTRACT: return Subtract(other, callingStatement);
-                case TokenArithmetic.Type.MULTIPLY: return Multiply(other, callingStatement);
-                case TokenArithmetic.Type.DIVIDE: return Divide(other, callingStatement);
-                case TokenArithmetic.Type.MODULO: return Modulo(other, callingStatement);
-                case TokenArithmetic.Type.SWAP: return Swap(other, callingStatement);
-                default:
-                    throw new StatementException(callingStatement, $"Unknown arithmetic type '{type}'.");
-            }
+                TokenArithmetic.Type.ADD => Add(other, callingStatement),
+                TokenArithmetic.Type.SUBTRACT => Subtract(other, callingStatement),
+                TokenArithmetic.Type.MULTIPLY => Multiply(other, callingStatement),
+                TokenArithmetic.Type.DIVIDE => Divide(other, callingStatement),
+                TokenArithmetic.Type.MODULO => Modulo(other, callingStatement),
+                TokenArithmetic.Type.SWAP => Swap(other, callingStatement),
+                _ => throw new StatementException(callingStatement, $"Unknown arithmetic type '{arithmeticType}'.")
+            };
         }
         
         /// <summary>
@@ -457,8 +456,8 @@ namespace mc_compiled.MCC
             if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
-                ScoreboardManager manager = other.manager;
-                b = manager.temps.RequestCopy(this);
+                ScoreboardManager otherManager = other.manager;
+                b = otherManager.temps.RequestCopy(this);
                 
                 // convert 'other' into the new temp
                 commands.AddRange(other.CommandsConvert(b, callingStatement));
@@ -515,8 +514,8 @@ namespace mc_compiled.MCC
             if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
-                ScoreboardManager manager = other.manager;
-                b = manager.temps.RequestCopy(this);
+                ScoreboardManager otherManager = other.manager;
+                b = otherManager.temps.RequestCopy(this);
                 
                 // convert 'other' into the new temp
                 commands.AddRange(other.CommandsConvert(b, callingStatement));
@@ -544,8 +543,8 @@ namespace mc_compiled.MCC
             if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
-                ScoreboardManager manager = other.manager;
-                b = manager.temps.RequestCopy(this);
+                ScoreboardManager otherManager = other.manager;
+                b = otherManager.temps.RequestCopy(this);
                 
                 // convert 'other' into the new temp
                 commands.AddRange(other.CommandsConvert(b, callingStatement));
@@ -573,8 +572,8 @@ namespace mc_compiled.MCC
             if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
-                ScoreboardManager manager = other.manager;
-                b = manager.temps.RequestCopy(this);
+                ScoreboardManager otherManager = other.manager;
+                b = otherManager.temps.RequestCopy(this);
                 
                 // convert 'other' into the new temp
                 commands.AddRange(other.CommandsConvert(b, callingStatement));
@@ -601,10 +600,10 @@ namespace mc_compiled.MCC
             if (NeedsToBeConvertedFor(other))
             {
                 // create temp to hold it in
-                ScoreboardManager manager = other.manager;
+                ScoreboardManager otherManager = other.manager;
                 
-                ScoreboardValue a = manager.temps.RequestCopy(this);
-                ScoreboardValue b = manager.temps.RequestCopy(other);
+                ScoreboardValue a = otherManager.temps.RequestCopy(this);
+                ScoreboardValue b = otherManager.temps.RequestCopy(other);
                 
                 // convert both types into the temp variables
                 commands.AddRange(b.Assign(this, callingStatement));

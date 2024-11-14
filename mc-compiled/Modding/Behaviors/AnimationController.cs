@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors
 {
@@ -23,7 +23,7 @@ namespace mc_compiled.Modding.Behaviors
                 if(this.defaultState != null)
                     return this.defaultState;
 
-                return (this.states.Count > 0) ? this.states[0].name : null as string;
+                return (this.states.Count > 0) ? this.states[0].name : null;
             }
         }
 
@@ -35,7 +35,7 @@ namespace mc_compiled.Modding.Behaviors
         public AnimationController(string name)
         {
             this.name = name;
-            this.states = new List<ControllerState>();
+            this.states = [];
         }
         public JObject ToJSON()
         {
@@ -46,9 +46,9 @@ namespace mc_compiled.Modding.Behaviors
             foreach (ControllerState state in this.states)
                 statesJson[state.name] = state.ToJSON();
 
-            baseJson["animation_controllers"] = new JObject()
+            baseJson["animation_controllers"] = new JObject
             {
-                [this.Identifier] = new JObject()
+                [this.Identifier] = new JObject
                 {
                     ["states"] = statesJson,
                     ["initial_state"] = this.DefaultState
@@ -89,7 +89,7 @@ namespace mc_compiled.Modding.Behaviors
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     [this.other] = this.condition.ToString()
                 };
@@ -108,9 +108,9 @@ namespace mc_compiled.Modding.Behaviors
             if (this.transitions != null)
                 json["transitions"] = new JArray(this.transitions.Select(t => t.ToJSON()));
             if (this.onEntryCommands != null)
-                json["on_entry"] = new JArray(this.onEntryCommands);
+                json["on_entry"] = new JArray(this.onEntryCommands.Cast<object>().ToArray());
             if (this.onExitCommands != null)
-                json["on_exit"] = new JArray(this.onExitCommands);
+                json["on_exit"] = new JArray(this.onExitCommands.Cast<object>().ToArray());
 
             return json;
         }

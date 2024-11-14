@@ -6,24 +6,20 @@ namespace mc_compiled.Commands.Selectors
     /// <summary>
     /// Represents a selector option which selects based off of location and area.
     /// </summary>
-    public struct Area
+    public struct Area(
+        Coordinate? x,
+        Coordinate? y,
+        Coordinate? z,
+        float? radiusMin = null,
+        float? radiusMax = null,
+        int? volumeX = null,
+        int? volumeY = null,
+        int? volumeZ = null)
     {
-        public Coordinate? x, y, z;
-        public float? radiusMin, radiusMax;
-        public int? volumeX, volumeY, volumeZ;
+        public Coordinate? x = x, y = y, z = z;
+        public float? radiusMin = radiusMin, radiusMax = radiusMax;
+        public int? volumeX = volumeX, volumeY = volumeY, volumeZ = volumeZ;
 
-        public Area(Coordinate? x, Coordinate? y, Coordinate? z, float? radiusMin = null,
-            float? radiusMax = null, int? volumeX = null, int? volumeY = null, int? volumeZ = null)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.radiusMin = radiusMin;
-            this.radiusMax = radiusMax;
-            this.volumeX = volumeX;
-            this.volumeY = volumeY;
-            this.volumeZ = volumeZ;
-        }
         public Area Clone() => (Area)MemberwiseClone();
 
         /// <summary>
@@ -50,8 +46,8 @@ namespace mc_compiled.Commands.Selectors
                 int index = chunk.IndexOf('=');
                 if (index == -1)
                     continue;
-                string a = chunk.Substring(0, index).Trim().ToUpper();
-                string b = chunk.Substring(index + 1).Trim();
+                string a = chunk[..index].Trim().ToUpper();
+                string b = chunk[(index + 1)..].Trim();
 
                 switch(a)
                 {
@@ -103,7 +99,7 @@ namespace mc_compiled.Commands.Selectors
         /// <returns></returns>
         public string[] GetSections()
         {
-            List<string> parts = new List<string>();
+            List<string> parts = [];
             if (this.x.HasValue)
             {
                 parts.Add("x=" + this.x.Value);
@@ -177,6 +173,14 @@ namespace mc_compiled.Commands.Selectors
             return a;
         }
 
+        public static bool operator ==(Area left, Area right)
+        {
+            return left.Equals(right);
+        }
 
+        public static bool operator !=(Area left, Area right)
+        {
+            return !(left == right);
+        }
     }
 }

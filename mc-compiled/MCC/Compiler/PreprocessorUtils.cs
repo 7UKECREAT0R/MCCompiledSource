@@ -1,9 +1,10 @@
-﻿using mc_compiled.Commands.Selectors;
-using mc_compiled.Commands;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Attributes;
+using Newtonsoft.Json.Linq;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -159,29 +160,19 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>null if the dynamic couldn't be wrapped.</returns>
         public static TokenLiteral DynamicToLiteral(dynamic value, int line)
         {
-            switch (value)
+            return value switch
             {
-                case int integer:
-                    return new TokenIntegerLiteral(integer, IntMultiplier.none, line);
-                case decimal number:
-                    return new TokenDecimalLiteral(number, line);
-                case bool boolean:
-                    return new TokenBooleanLiteral(boolean, line);
-                case string text:
-                    return new TokenStringLiteral(text, line);
-                case Coordinate coordinate:
-                    return new TokenCoordinateLiteral(coordinate, line);
-                case Selector selector:
-                    return new TokenSelectorLiteral(selector, line);
-                case Range range:
-                    return new TokenRangeLiteral(range, line);
-                case JToken json:
-                    return new TokenJSONLiteral(json, line);
-                case IAttribute attribute:
-                    return new TokenAttribute(attribute, line);
-                default:
-                    return null;
-            }
+                int integer => new TokenIntegerLiteral(integer, IntMultiplier.none, line),
+                decimal number => new TokenDecimalLiteral(number, line),
+                bool boolean => new TokenBooleanLiteral(boolean, line),
+                string text => new TokenStringLiteral(text, line),
+                Coordinate coordinate => new TokenCoordinateLiteral(coordinate, line),
+                Selector selector => new TokenSelectorLiteral(selector, line),
+                Range range => new TokenRangeLiteral(range, line),
+                JToken json => new TokenJSONLiteral(json, line),
+                IAttribute attribute => new TokenAttribute(attribute, line),
+                _ => null
+            };
         }
 
         /// <summary>
@@ -191,7 +182,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public static IEnumerable<string> ParseAccessor(string tree)
         {
-            char[] SEPARATORS = { '.', '/', '\\' };
+            char[] SEPARATORS = ['.', '/', '\\'];
             return tree.Split(SEPARATORS);
         }
     }

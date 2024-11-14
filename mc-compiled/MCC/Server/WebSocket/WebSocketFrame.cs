@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.ServerWebSocket
@@ -53,13 +54,13 @@ namespace mc_compiled.MCC.ServerWebSocket
             ulong messageLength = 0;
 
             if (byte1Info.extension == WebSocketPayloadLength.NORMAL)
-                messageLength = (ulong)byte1Info.payloadLength;
+                messageLength = byte1Info.payloadLength;
             else if (byte1Info.extension == WebSocketPayloadLength.EXTENDED)
             {
                 // get 2 more bytes
                 byte a = frame[offset++];
                 byte b = frame[offset++];
-                messageLength = (ulong)BitConverter.ToUInt16(new byte[] { b, a }, 0);
+                messageLength = BitConverter.ToUInt16([b, a], 0);
             }
             else if (byte1Info.extension == WebSocketPayloadLength.MASSIVE)
             {
@@ -72,7 +73,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 byte f = frame[offset++];
                 byte g = frame[offset++];
                 byte h = frame[offset++];
-                messageLength = BitConverter.ToUInt64(new byte[] { h, g, f, e, d, c, b, a }, 0);
+                messageLength = BitConverter.ToUInt64([h, g, f, e, d, c, b, a], 0);
             }
 
             // get/unmask the message data
@@ -85,7 +86,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 byte maskB = frame[offset++];
                 byte maskC = frame[offset++];
                 byte maskD = frame[offset++];
-                byte[] masks = new byte[] { maskA, maskB, maskC, maskD };
+                byte[] masks = [maskA, maskB, maskC, maskD];
 
                 ulong longOffset = (ulong)offset;
 
@@ -103,9 +104,8 @@ namespace mc_compiled.MCC.ServerWebSocket
             return new WebSocketFrame(opcode, messageData, byte0Info.fin, null);
         }
         /// <summary>
-        /// Creates a WebSocketFrame from a complete header, but without the payload.
+        /// Creates a WebSocketFrame from a complete header but without the payload.
         /// </summary>
-        /// <param name="header"></param>
         public static WebSocketFrame FromFrameHeader(WebSocketByte0Info byte0Info, WebSocketByte1Info byte1Info, byte[] header, int startOffset = 2)
         {
             WebSocketOpCode opcode = byte0Info.opcode;
@@ -114,13 +114,13 @@ namespace mc_compiled.MCC.ServerWebSocket
             long messageLength = 0;
 
             if (byte1Info.extension == WebSocketPayloadLength.NORMAL)
-                messageLength = (long)byte1Info.payloadLength;
+                messageLength = byte1Info.payloadLength;
             else if (byte1Info.extension == WebSocketPayloadLength.EXTENDED)
             {
                 // get 2 more bytes
                 byte a = header[offset++];
                 byte b = header[offset++];
-                messageLength = (long)BitConverter.ToUInt16(new byte[] { b, a }, 0);
+                messageLength = BitConverter.ToUInt16([b, a], 0);
             }
             else if (byte1Info.extension == WebSocketPayloadLength.MASSIVE)
             {
@@ -133,7 +133,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 byte f = header[offset++];
                 byte g = header[offset++];
                 byte h = header[offset++];
-                messageLength = (long)BitConverter.ToUInt64(new byte[] { h, g, f, e, d, c, b, a }, 0);
+                messageLength = (long)BitConverter.ToUInt64([h, g, f, e, d, c, b, a], 0);
             }
 
             // get/unmask the message data
@@ -145,8 +145,8 @@ namespace mc_compiled.MCC.ServerWebSocket
                 byte maskA = header[offset++];
                 byte maskB = header[offset++];
                 byte maskC = header[offset++];
-                byte maskD = header[offset++];
-                masks = new byte[] { maskA, maskB, maskC, maskD };
+                byte maskD = header[offset];
+                masks = [maskA, maskB, maskC, maskD];
             }
 
             return new WebSocketFrame(opcode, messageLength, byte0Info.fin, masks);
@@ -155,8 +155,6 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <summary>
         /// Creates a WebSocketFrame that wraps a UTF-8 string.
         /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
         public static WebSocketFrame String(string text, bool fin = true)
         {
             byte[] data = Encoding.UTF8.GetBytes(text);
@@ -165,31 +163,25 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <summary>
         /// Creates a WebSocketFrame that wraps a JSON object.
         /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
         public static WebSocketFrame JSON(JObject json, bool fin = true)
         {
-            string str = json.ToString(Newtonsoft.Json.Formatting.None);
+            string str = json.ToString(Formatting.None);
             byte[] data = Encoding.UTF8.GetBytes(str);
             return new WebSocketFrame(WebSocketOpCode.TEXT, data, fin, null);
         }
         /// <summary>
         /// Creates a WebSocketFrame that initiates a close.
         /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
         public static WebSocketFrame Close(bool fin = true)
         {
-            return new WebSocketFrame(WebSocketOpCode.CLOSE, new byte[0], fin, null);
+            return new WebSocketFrame(WebSocketOpCode.CLOSE, [], fin, null);
         }
         /// <summary>
         /// Creates a WebSocketFrame that serves as a response to a "Ping"
         /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
         public static WebSocketFrame Pong(bool fin = true)
         {
-            return new WebSocketFrame(WebSocketOpCode.PONG, new byte[0], fin, null);
+            return new WebSocketFrame(WebSocketOpCode.PONG, [], fin, null);
         }
 
         /// <summary>
@@ -197,17 +189,17 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         public byte[] GetBytes()
         {
-            long length = this.data.LongLength;
-            WebSocketByte0Info byte0Info = new WebSocketByte0Info(this.opcode, true);
-            WebSocketByte1Info byte1Info = new WebSocketByte1Info(false, DeterminePayloadLength(length));
+            long dataLengthTotal = this.data.LongLength;
+            var byte0Info = new WebSocketByte0Info(this.opcode, true);
+            var byte1Info = new WebSocketByte1Info(false, DeterminePayloadLength(dataLengthTotal));
 
             if (byte1Info.extension == WebSocketPayloadLength.NORMAL)
-                byte1Info.payloadLength = (byte)length;
+                byte1Info.payloadLength = (byte)dataLengthTotal;
 
             byte byte0 = byte0Info.Encode();
             byte byte1 = byte1Info.Encode();
 
-            ulong numBytesNeeded = ((ulong)length) + 2L + (ulong)(int)byte1Info.extension;
+            ulong numBytesNeeded = ((ulong)dataLengthTotal) + 2L + (ulong)(int)byte1Info.extension;
             byte[] bytes = new byte[numBytesNeeded];
 
             bytes[0] = byte0;
@@ -220,13 +212,13 @@ namespace mc_compiled.MCC.ServerWebSocket
 
             if(byte1Info.extension == WebSocketPayloadLength.EXTENDED)
             {
-                byte[] converted = BitConverter.GetBytes((ushort)length);
+                byte[] converted = BitConverter.GetBytes((ushort)dataLengthTotal);
                 pull = littleEndian ? 1 : 0;
                 bytes[offset++] = converted[pull]; pull += step;
                 bytes[offset++] = converted[pull];
             } else if(byte1Info.extension == WebSocketPayloadLength.MASSIVE)
             {
-                byte[] converted = BitConverter.GetBytes((ulong)length);
+                byte[] converted = BitConverter.GetBytes((ulong)dataLengthTotal);
                 pull = littleEndian ? 7 : 0;
 
                 // RFC 6455 § 5.2, "Payload Length"
@@ -243,7 +235,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 bytes[offset++] = converted[pull];
             }
 
-            Array.Copy(this.data, 0L, bytes, offset, length);
+            Array.Copy(this.data, 0L, bytes, offset, dataLengthTotal);
             return bytes;
         }
 
@@ -254,18 +246,18 @@ namespace mc_compiled.MCC.ServerWebSocket
                 for (long i = 0; i < this.data.LongLength; i++) this.data[i] = (byte)(this.data[i] ^ this.mask[i % 4]);
             }
         }
-        public byte[] UnmaskData(byte[] data)
+        public byte[] UnmaskData(byte[] dataToUnmask)
         {
             if (this.mask != null)
             {
-                for (long i = 0; i < data.LongLength; i++)
-                    data[i] = (byte)(data[i] ^ this.mask[i % 4]);
+                for (long i = 0; i < dataToUnmask.LongLength; i++)
+                    dataToUnmask[i] = (byte)(dataToUnmask[i] ^ this.mask[i % 4]);
             }
-            return data;
+            return dataToUnmask;
         }
-        public void SetData(byte[] data)
+        public void SetData(byte[] newData)
         {
-            this.data = data;
+            this.data = newData;
             UnmaskData();
         }
 
@@ -286,7 +278,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             bool fin = (data & FIN_MASK) == FIN_MASK;
             sbyte opcode = (sbyte)(data & OPCODE_MASK);
 
-            WebSocketByte0Info info = new WebSocketByte0Info()
+            WebSocketByte0Info info = new WebSocketByte0Info
             {
                 fin = fin,
                 opcode = (WebSocketOpCode)opcode
@@ -322,7 +314,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             if (bytes < 126)
                 return WebSocketPayloadLength.NORMAL;
-            else if (bytes <= (long)ushort.MaxValue)
+            else if (bytes <= ushort.MaxValue)
                 return WebSocketPayloadLength.EXTENDED;
             else
                 return WebSocketPayloadLength.MASSIVE;
@@ -330,11 +322,9 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         public override string ToString()
         {
-            //string dataString = Encoding.UTF8.GetString(this.data);
-            if (this.fin)
-                return $"{{[FIN] {this.opcode}: len '{this.length}'}}";
-            else
-                return $"{{[NOT FIN] {this.opcode}: len '{this.length}'}}";
+            return this.fin ?
+                $"{{[FIN] {this.opcode}: len '{this.length}'}}" :
+                $"{{[NOT FIN] {this.opcode}: len '{this.length}'}}";
         }
     }
 
@@ -400,18 +390,12 @@ namespace mc_compiled.MCC.ServerWebSocket
             this.mask = mask;
             this.extension = extension;
 
-            switch (extension)
+            this.payloadLength = extension switch
             {
-                case WebSocketPayloadLength.EXTENDED:
-                    this.payloadLength = 126;
-                    break;
-                case WebSocketPayloadLength.MASSIVE:
-                    this.payloadLength = 127;
-                    break;
-                default:
-                    this.payloadLength = 0;
-                    break;
-            }
+                WebSocketPayloadLength.EXTENDED => 126,
+                WebSocketPayloadLength.MASSIVE => 127,
+                _ => 0
+            };
         }
 
         internal byte Encode()

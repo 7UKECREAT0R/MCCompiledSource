@@ -17,10 +17,12 @@ namespace mc_compiled.MCC.ServerWebSocket
         internal readonly MCCServerProject project;
 
         /// <summary>
-        /// Creates a new ServerAsyncPackage with a new byte buffer.
+        /// Represents a WebSocket structure passed into a thread for networking.
+        /// Contains useful methods for managing the state in a thread-safe way.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="client"></param>
+        /// <param name="server">The server socket instance.</param>
+        /// <param name="client">The client socket instance.</param>
+        /// <param name="mcc">The MCCServer instance managing the server.</param>
         public WebSocketPackage(Socket server, Socket client, MCCServer mcc)
         {
             this.server = server;
@@ -64,7 +66,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         public void SendFrame(WebSocketFrame frame)
         {
             if (Program.DEBUG)
-                Console.WriteLine("Sending frame {0}", frame.ToString());
+                Console.WriteLine("Sending frame {0}", frame);
 
             if (this._isDisposed || this.client == null)
             {

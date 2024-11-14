@@ -1,10 +1,11 @@
-﻿using mc_compiled.MCC.CustomEntities;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using mc_compiled.Commands;
+using mc_compiled.MCC.CustomEntities;
 using mc_compiled.Modding.Behaviors.Lists;
 using mc_compiled.Modding.Resources;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace mc_compiled.Modding.Behaviors
 {
@@ -28,14 +29,14 @@ namespace mc_compiled.Modding.Behaviors
         public EntityBehavior(string identifier)
         {
             this.description = new EntityDescription(identifier);
-            this.events = new List<EntityEventHandler>();
+            this.events = [];
         }
         public EntityBehavior()
         {
-            this.controllers = new List<AnimationController>();
-            this.components = new List<EntityComponent>();
-            this.componentGroups = new List<EntityComponentGroup>();
-            this.events = new List<EntityEventHandler>();
+            this.controllers = [];
+            this.components = [];
+            this.componentGroups = [];
+            this.events = [];
         }
         /// <summary>
         /// Create a new event and register it into this behavior.
@@ -64,7 +65,7 @@ namespace mc_compiled.Modding.Behaviors
                 var animate = this.controllers.Select(anim => anim.name);
 
                 desc["animations"] = animations;
-                desc["scripts"] = new JObject()
+                desc["scripts"] = new JObject
                 {
                     ["animate"] = new JArray(animate)
                 };
@@ -98,7 +99,7 @@ namespace mc_compiled.Modding.Behaviors
                 root["events"] = eventsJson;
             }
 
-            return new JObject()
+            return new JObject
             {
                 ["format_version"] = FormatVersion.b_ENTITY.ToString(),
                 ["minecraft:entity"] = root
@@ -127,76 +128,86 @@ namespace mc_compiled.Modding.Behaviors
             string geometryID = "geometry." + entityID.Replace(':', '.');
             EntityGeometry geometry = new EntityGeometry("dummy", geometryID);
 
-            return new DummyFiles() {
-                behavior = new EntityBehavior()
+            return new DummyFiles {
+                behavior = new EntityBehavior
                 {
                     description = new EntityDescription(entityID),
-                    components = new List<EntityComponent>(new EntityComponent[]
-                    {
-                        new ComponentNameable()
+                    components =
+                    [
+                        ..new EntityComponent[]
                         {
-                            allowNametags = true,
-                            alwaysShowName = Program.DEBUG
-                        },
-                        new ComponentCustomHitTest()
-                        {
-                            hitboxes = new ComponentCustomHitTest.Hitbox[]
+                            new ComponentNameable
                             {
-                                new ComponentCustomHitTest.Hitbox(new Offset3(0, 100, 0), 0, 0)
-                            }
-                        },
-                        new ComponentDamageSensor()
-                        {
-                            triggerPool = new ComponentDamageSensor.Trigger[]
+                                allowNametags = true,
+                                alwaysShowName = Program.DEBUG
+                            },
+                            new ComponentCustomHitTest
                             {
-                                new ComponentDamageSensor.Trigger()
-                                {
-                                    dealsDamage = false,
-                                    cause = Commands.DamageCause.all,
-                                    damageModifier = 1,
-                                    damageMultiplier = 0
-                                }
+                                hitboxes =
+                                [
+                                    new ComponentCustomHitTest.Hitbox(new Offset3(0, 100, 0), 0, 0)
+                                ]
+                            },
+                            new ComponentDamageSensor
+                            {
+                                triggerPool =
+                                [
+                                    new ComponentDamageSensor.Trigger
+                                    {
+                                        dealsDamage = false,
+                                        cause = DamageCause.all,
+                                        damageModifier = 1,
+                                        damageMultiplier = 0
+                                    }
+                                ]
+                            },
+                            new ComponentPushable
+                            {
+                                isPushableByEntity = false,
+                                isPushableByPiston = false
+                            },
+                            new ComponentCollisionBox
+                            {
+                                width = 0.0001f,
+                                height = 0.0001f
+                            },
+                            new ComponentTickWorld
+                            {
+                                neverDespawn = true,
+                                tickRadius = 2
                             }
-                        },
-                        new ComponentPushable()
-                        {
-                            isPushableByEntity = false,
-                            isPushableByPiston = false
-                        },
-                        new ComponentCollisionBox()
-                        {
-                            width = 0.0001f,
-                            height = 0.0001f
-                        },
-                        new ComponentTickWorld()
-                        {
-                            neverDespawn = true,
-                            tickRadius = 2
                         }
-                    }),
-                    componentGroups = new List<EntityComponentGroup>(new EntityComponentGroup[]
-                    {
-                        new EntityComponentGroup(DummyManager.DESTROY_COMPONENT_GROUP, new ComponentInstantDespawn()),
-                        new EntityComponentGroup(DummyManager.TAGGABLE_COMPONENT_GROUP, new ComponentFamily()
+                    ],
+                    componentGroups =
+                    [
+                        ..new[]
                         {
-                            families = new[] { DummyManager.TAGGABLE_FAMILY_NAME }
-                        })
-                    }),
-                    events = new List<EntityEventHandler>(new EntityEventHandler[]
-                    {
-                        new EntityEventHandler(DummyManager.DESTROY_EVENT_NAME, action:
-                            new EventActionAddGroup(DummyManager.DESTROY_COMPONENT_GROUP)),
-                        new EntityEventHandler(DummyManager.TAGGABLE_EVENT_ADD_NAME, action:
-                            new EventActionAddGroup(DummyManager.TAGGABLE_COMPONENT_GROUP)),
-                        new EntityEventHandler(DummyManager.TAGGABLE_EVENT_REMOVE_NAME, action:
-                            new EventActionRemoveGroup(DummyManager.TAGGABLE_COMPONENT_GROUP)),
+                            new EntityComponentGroup(DummyManager.DESTROY_COMPONENT_GROUP,
+                                new ComponentInstantDespawn()),
+                            new EntityComponentGroup(DummyManager.TAGGABLE_COMPONENT_GROUP, new ComponentFamily
+                            {
+                                families = [DummyManager.TAGGABLE_FAMILY_NAME]
+                            })
+                        }
+                    ],
+                    events =
+                    [
+                        ..new[]
+                        {
+                            new EntityEventHandler(DummyManager.DESTROY_EVENT_NAME, action:
+                                new EventActionAddGroup(DummyManager.DESTROY_COMPONENT_GROUP)),
+                            new EntityEventHandler(DummyManager.TAGGABLE_EVENT_ADD_NAME, action:
+                                new EventActionAddGroup(DummyManager.TAGGABLE_COMPONENT_GROUP)),
+                            new EntityEventHandler(DummyManager.TAGGABLE_EVENT_REMOVE_NAME, action:
+                                new EventActionRemoveGroup(DummyManager.TAGGABLE_COMPONENT_GROUP)),
 
-                    })
+                        }
+                    ]
                 },
-                resources = new EntityResource()
+                resources = new EntityResource
                 {
                     name = "dummy",
-                    description = new ClientEntityDescription()
+                    description = new ClientEntityDescription
                     {
                         identifier = entityID,
                         geometry = geometry,
@@ -216,58 +227,61 @@ namespace mc_compiled.Modding.Behaviors
             string geometryID = "geometry." + entityID.Replace(':', '.');
             EntityGeometry geometry = new EntityGeometry("exploder", geometryID);
 
-            List<EntityComponentGroup> groups = new List<EntityComponentGroup>();
-            List<EntityEventHandler> events = new List<EntityEventHandler>();
+            List<EntityComponentGroup> groups = [];
+            List<EntityEventHandler> events = [];
 
 
-            return new ExploderFiles()
+            return new ExploderFiles
             {
                 groups = groups,
                 events = events,
 
-                behavior = new EntityBehavior()
+                behavior = new EntityBehavior
                 {
                     description = new EntityDescription(entityID),
-                    components = new List<EntityComponent>(new EntityComponent[]
-                    {
-                        new ComponentCustomHitTest()
+                    components =
+                    [
+                        ..new EntityComponent[]
                         {
-                            hitboxes = new ComponentCustomHitTest.Hitbox[]
+                            new ComponentCustomHitTest
                             {
-                                new ComponentCustomHitTest.Hitbox(new Offset3(0, 100, 0), 0, 0)
-                            }
-                        },
-                        new ComponentDamageSensor()
-                        {
-                            triggerPool = new ComponentDamageSensor.Trigger[]
+                                hitboxes =
+                                [
+                                    new ComponentCustomHitTest.Hitbox(new Offset3(0, 100, 0), 0, 0)
+                                ]
+                            },
+                            new ComponentDamageSensor
                             {
-                                new ComponentDamageSensor.Trigger()
-                                {
-                                    dealsDamage = false,
-                                    cause = Commands.DamageCause.all,
-                                    damageModifier = 1,
-                                    damageMultiplier = 0
-                                }
+                                triggerPool =
+                                [
+                                    new ComponentDamageSensor.Trigger
+                                    {
+                                        dealsDamage = false,
+                                        cause = DamageCause.all,
+                                        damageModifier = 1,
+                                        damageMultiplier = 0
+                                    }
+                                ]
+                            },
+                            new ComponentPushable
+                            {
+                                isPushableByEntity = false,
+                                isPushableByPiston = false
+                            },
+                            new ComponentCollisionBox
+                            {
+                                width = 0.0001f,
+                                height = 0.0001f
                             }
-                        },
-                        new ComponentPushable()
-                        {
-                            isPushableByEntity = false,
-                            isPushableByPiston = false
-                        },
-                        new ComponentCollisionBox()
-                        {
-                            width = 0.0001f,
-                            height = 0.0001f
                         }
-                    }),
+                    ],
                     componentGroups = groups,
                     events = events
                 },
-                resources = new EntityResource()
+                resources = new EntityResource
                 {
                     name = "exploder",
-                    description = new ClientEntityDescription()
+                    description = new ClientEntityDescription
                     {
                         identifier = entityID,
                         geometry = geometry,

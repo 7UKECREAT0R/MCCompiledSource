@@ -1,15 +1,14 @@
-﻿using mc_compiled.Commands.Execute;
-using mc_compiled.Commands;
-using mc_compiled.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
+using mc_compiled.Json;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 {
     internal sealed class TypedefBoolean : Typedef
     {
-        internal TypedefBoolean() {}
-        
         // Data
         public override ScoreboardManager.ValueType TypeEnum => ScoreboardManager.ValueType.BOOL;
         public override string TypeShortcode => "BLN";
@@ -19,14 +18,14 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
         internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value)
         {
-            return new ConditionalSubcommandScore[]
-            {
+            return
+            [
                 ConditionalSubcommandScore.New(value, new Range(1, invert))
-            };
+            ];
         }
         internal override string[] GetObjectives(ScoreboardValue input)
         {
-            return new[] { input.InternalName };
+            return [input.InternalName];
         }
 
         // Conversion
@@ -43,8 +42,8 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
             
             var terms = new JSONRawTerm[] {
                 new JSONVariant(
-                    new ConditionalTerm(new JSONRawTerm[] { new JSONText(trueValues[0].ToString()) }, ConditionalSubcommandScore.New(value, check), false),
-                    new ConditionalTerm(new JSONRawTerm[] { new JSONText(falseValues[0].ToString()) }, ConditionalSubcommandScore.New(value, check), true)
+                    new ConditionalTerm([new JSONText(trueValues[0].ToString())], ConditionalSubcommandScore.New(value, check), false),
+                    new ConditionalTerm([new JSONText(falseValues[0].ToString())], ConditionalSubcommandScore.New(value, check), true)
                 )
             };
 
@@ -53,7 +52,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
             TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement)
         {
-            if (!(literal is TokenBooleanLiteral booleanLiteral))
+            if (literal is not TokenBooleanLiteral booleanLiteral)
                 throw LiteralConversionError(self, literal, callingStatement);
 
             int src = booleanLiteral.boolean ? 1 : 0;
@@ -77,19 +76,18 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
             return new Tuple<string[], ConditionalSubcommandScore[]>(
                 null,
-                new ConditionalSubcommandScore[]
-                {
+                [
                     ConditionalSubcommandScore.New(self, range)
-                }
+                ]
             );
         }
         internal override IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal,
             Statement callingStatement)
         {
-            if (!(literal is TokenBooleanLiteral booleanLiteral))
+            if (literal is not TokenBooleanLiteral booleanLiteral)
                 throw LiteralConversionError(self, literal, callingStatement);
 
-            return new[] { Command.ScoreboardSet(self, ((bool)booleanLiteral) ? 1 : 0) };
+            return [Command.ScoreboardSet(self, ((bool)booleanLiteral) ? 1 : 0)];
         }
         internal override IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal,
             Statement callingStatement)
@@ -106,7 +104,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
         internal override IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other,
             Statement callingStatement)
         {
-            return new[] { Command.ScoreboardOpSet(self, other) };
+            return [Command.ScoreboardOpSet(self, other)];
         }
         internal override IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other,
             Statement callingStatement)

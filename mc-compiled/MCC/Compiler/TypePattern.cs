@@ -12,9 +12,9 @@ namespace mc_compiled.MCC.Compiler
         private readonly List<MultiType> pattern;
 
         /// <summary>
-        /// Construct a new TypePattern that starts with a base required token.
+        /// Construct a new TypePattern that starts with some required token(s).
         /// </summary>
-        /// <param name="initial"></param>
+        /// <param name="initial">The initial tokens.</param>
         public TypePattern(params NamedType[] initial)
         {
             this.pattern = initial.Select(type => new MultiType(false, "unknown", type)).ToList();
@@ -22,10 +22,9 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Construct an empty TypePattern.
         /// </summary>
-        /// <param name="initial"></param>
         public TypePattern()
         {
-            this.pattern = new List<MultiType>();
+            this.pattern = [];
         }
 
         public int Count
@@ -120,7 +119,7 @@ namespace mc_compiled.MCC.Compiler
                         {
                             // this argument was not given and was not optional
                             int skip = self > 0 ? self - 1 : 0;
-                            var missing = this.pattern.Skip(skip).TakeWhile(mt => !mt.IsOptional);
+                            IEnumerable<MultiType> missing = this.pattern.Skip(skip).TakeWhile(mt => !mt.IsOptional);
                             return new MatchResult(false, givenLength / minLength, missing.ToArray());
                         }
                     }
@@ -135,7 +134,6 @@ namespace mc_compiled.MCC.Compiler
                 {
                     self++;
                     external++;
-                    continue;
                 }
                 else if (mtt.IsOptional)
                     self++;
@@ -144,7 +142,7 @@ namespace mc_compiled.MCC.Compiler
                     // skipped/failed required parameter
                     int skip = self > 0 ? self - 1 : 0;
                     int missing = this.pattern.Skip(skip).Count(mt => !mt.IsOptional);
-                    return new MatchResult(false, (patternCount - missing) / (float)patternCount, new[] { mtt });
+                    return new MatchResult(false, (patternCount - missing) / (float)patternCount, [mtt]);
                 }
             }
         }
@@ -241,7 +239,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Check this type to see if it fits into this MultiType's template.
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="obj">The object to check the type of.</param>
         /// <returns></returns>
         public bool Check(object obj)
         {

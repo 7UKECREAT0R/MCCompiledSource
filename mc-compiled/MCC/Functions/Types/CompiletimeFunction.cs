@@ -1,5 +1,5 @@
-﻿using mc_compiled.MCC.Compiler;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -21,13 +21,14 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="aliasedName">The user-facing name of the function.</param>
         /// <param name="name">The internal name of the function.</param>
         /// <param name="returnType">The type-keyword of the value this returns, or null.</param>
+        /// <param name="documentation">The documentation of this function.</param>
         public CompiletimeFunction(string aliasedName, string name, string returnType, string documentation)
         {
             this.aliasedName = aliasedName;
             this.name = name;
             this.returnType = returnType;
             this.documentation = documentation;
-            this.parameters = new List<CompiletimeFunctionParameter>();
+            this.parameters = [];
         }
         /// <summary>
         /// Adds a compile-time parameter to this function.
@@ -42,38 +43,34 @@ namespace mc_compiled.MCC.Functions.Types
         /// <summary>
         /// Adds multiple compile-time parameters to this function.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="newParameters"></param>
         /// <returns>This object for chaining.</returns>
-        public CompiletimeFunction AddParameters(IEnumerable<CompiletimeFunctionParameter> parameters)
+        public CompiletimeFunction AddParameters(IEnumerable<CompiletimeFunctionParameter> newParameters)
         {
-            this.parameters.AddRange(parameters);
+            this.parameters.AddRange(newParameters);
             return this;
         }
         /// <summary>
         /// Adds multiple compile-time parameters to this function.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="newParameters"></param>
         /// <returns>This object for chaining.</returns>
-        public CompiletimeFunction AddParameters(params CompiletimeFunctionParameter[] parameters)
+        public CompiletimeFunction AddParameters(params CompiletimeFunctionParameter[] newParameters)
         {
-            this.parameters.AddRange(parameters);
+            this.parameters.AddRange(newParameters);
             return this;
         }
 
         public override string Keyword => this.aliasedName;
         public override string Returns => this.returnType;
         public override string Documentation => this.documentation;
-        public override FunctionParameter[] Parameters => this.parameters.ToArray();
+        public override FunctionParameter[] Parameters => this.parameters.Cast<FunctionParameter>().ToArray();
         public override int ParameterCount => this.parameters.Count;
         public override string[] Aliases => null;
         public override int Importance => 2; // most important. always prefer compile-time.
         public override bool ImplicitCall => false;
         public override bool AdvertiseOverLSP => true;
 
-        public override bool MatchParameters(Token[] inputs, out string error, out int score)
-        {
-            return base.MatchParameters(inputs, out error, out score);
-        }
         public override int GetHashCode()
         {
             return (this.name ?? this.aliasedName).GetHashCode();

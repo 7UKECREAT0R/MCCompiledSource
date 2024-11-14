@@ -1,27 +1,27 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.Commands.Selectors;
-using mc_compiled.MCC.Attributes;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
 using mc_compiled.Commands.Native;
+using mc_compiled.Commands.Selectors;
+using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
+using Newtonsoft.Json.Linq;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
     /// Represents a literal in code.
     /// </summary>
-    public abstract class TokenLiteral : Token
+    public abstract class TokenLiteral(int lineNumber) : Token(lineNumber)
     {
         protected const string DEFAULT_ERROR = "Invalid literal operation.";
 
         public abstract TokenLiteral Clone();
         public override string AsString() => "<? literal>";
         public abstract override string ToString();
-        protected TokenLiteral(int lineNumber) : base(lineNumber) { }
 
         /// <summary>
         /// Return this literal's Scoreboard value type. Used when defining a variable with type inference.
@@ -83,11 +83,10 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// Represents a value which has no determined value, but is defined as 0 under every type.
     /// </summary>
-    public class TokenNullLiteral : TokenLiteral, IPreprocessor
+    public class TokenNullLiteral(int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
     {
         public override string AsString() => "null";
         public override string ToString() => "null";
-        public TokenNullLiteral(int lineNumber) : base(lineNumber) { }
         public override TokenLiteral Clone() => new TokenNullLiteral(this.lineNumber);
         public object GetValue()
         {
@@ -102,107 +101,83 @@ namespace mc_compiled.MCC.Compiler
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
-            switch (other)
+            return other switch
             {
-                case TokenDecimalLiteral decimalLiteral:
-                    return new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber);
-                case TokenBooleanLiteral boolLiteral:
-                    return new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber);
-                case TokenIntegerLiteral intLiteral:
-                    return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, this.lineNumber);
-                default:
-                    throw new TokenException(this, DEFAULT_ERROR);
-            }
+                TokenDecimalLiteral decimalLiteral => new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber),
+                TokenBooleanLiteral boolLiteral => new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber),
+                TokenIntegerLiteral intLiteral => new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier,
+                    this.lineNumber),
+                _ => throw new TokenException(this, DEFAULT_ERROR)
+            };
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
-            switch (other)
+            return other switch
             {
-                case TokenDecimalLiteral decimalLiteral:
-                    return new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber);
-                case TokenBooleanLiteral boolLiteral:
-                    return new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber);
-                case TokenIntegerLiteral intLiteral:
-                    return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, this.lineNumber);
-                default:
-                    throw new TokenException(this, DEFAULT_ERROR);
-            }
+                TokenDecimalLiteral decimalLiteral => new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber),
+                TokenBooleanLiteral boolLiteral => new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber),
+                TokenIntegerLiteral intLiteral => new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier,
+                    this.lineNumber),
+                _ => throw new TokenException(this, DEFAULT_ERROR)
+            };
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
-            switch (other)
+            return other switch
             {
-                case TokenDecimalLiteral decimalLiteral:
-                    return new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber);
-                case TokenBooleanLiteral boolLiteral:
-                    return new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber);
-                case TokenIntegerLiteral intLiteral:
-                    return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, this.lineNumber);
-                default:
-                    throw new TokenException(this, DEFAULT_ERROR);
-            }
+                TokenDecimalLiteral decimalLiteral => new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber),
+                TokenBooleanLiteral boolLiteral => new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber),
+                TokenIntegerLiteral intLiteral => new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier,
+                    this.lineNumber),
+                _ => throw new TokenException(this, DEFAULT_ERROR)
+            };
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
-            switch (other)
+            return other switch
             {
-                case TokenDecimalLiteral decimalLiteral:
-                    return new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber);
-                case TokenBooleanLiteral boolLiteral:
-                    return new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber);
-                case TokenIntegerLiteral intLiteral:
-                    return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, this.lineNumber);
-                default:
-                    throw new TokenException(this, DEFAULT_ERROR);
-            }
+                TokenDecimalLiteral decimalLiteral => new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber),
+                TokenBooleanLiteral boolLiteral => new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber),
+                TokenIntegerLiteral intLiteral => new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier,
+                    this.lineNumber),
+                _ => throw new TokenException(this, DEFAULT_ERROR)
+            };
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
-            switch (other)
+            return other switch
             {
-                case TokenDecimalLiteral decimalLiteral:
-                    return new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber);
-                case TokenBooleanLiteral boolLiteral:
-                    return new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber);
-                case TokenIntegerLiteral intLiteral:
-                    return new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier, this.lineNumber);
-                default:
-                    throw new TokenException(this, DEFAULT_ERROR);
-            }
+                TokenDecimalLiteral decimalLiteral => new TokenDecimalLiteral(decimalLiteral.number, this.lineNumber),
+                TokenBooleanLiteral boolLiteral => new TokenBooleanLiteral(boolLiteral.boolean, this.lineNumber),
+                TokenIntegerLiteral intLiteral => new TokenIntegerLiteral(intLiteral.number, intLiteral.multiplier,
+                    this.lineNumber),
+                _ => throw new TokenException(this, DEFAULT_ERROR)
+            };
         }
         public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral numberLiteral))
+            if (other is not TokenNumberLiteral numberLiteral)
                 throw new TokenException(this, DEFAULT_ERROR);
             
             decimal number = numberLiteral.GetNumber();
-            switch (cType)
+            return cType switch
             {
-                case TokenCompare.Type.EQUAL:
-                    return decimal.Zero == number;
-                case TokenCompare.Type.NOT_EQUAL:
-                    return decimal.Zero != number;
-                case TokenCompare.Type.LESS:
-                    return decimal.Zero < number;
-                case TokenCompare.Type.LESS_OR_EQUAL:
-                    return decimal.Zero <= number;
-                case TokenCompare.Type.GREATER:
-                    return decimal.Zero > number;
-                case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return decimal.Zero >= number;
-                default:
-                    break;
-            }
-
-            throw new TokenException(this, DEFAULT_ERROR);
+                TokenCompare.Type.EQUAL => decimal.Zero == number,
+                TokenCompare.Type.NOT_EQUAL => decimal.Zero != number,
+                TokenCompare.Type.LESS => decimal.Zero < number,
+                TokenCompare.Type.LESS_OR_EQUAL => decimal.Zero <= number,
+                TokenCompare.Type.GREATER => decimal.Zero > number,
+                TokenCompare.Type.GREATER_OR_EQUAL => decimal.Zero >= number,
+                _ => throw new TokenException(this, DEFAULT_ERROR)
+            };
         }
     }
     /// <summary>
     /// A token which holds a completely constructed attribute. See <see cref="Attributes.IAttribute"/>.
     /// </summary>
-    public sealed class TokenAttribute : TokenLiteral, IPreprocessor
+    public sealed class TokenAttribute(IAttribute attribute, int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
     {
-        public readonly IAttribute attribute;
+        public readonly IAttribute attribute = attribute;
 
         public override string AsString() => $"[Attribute: {this.attribute.GetDebugString()}]";
 
@@ -251,18 +226,12 @@ namespace mc_compiled.MCC.Compiler
         {
             throw new TokenException(this, DEFAULT_ERROR);
         }
-        public TokenAttribute(IAttribute attribute, int lineNumber) : base(lineNumber)
-        {
-            this.attribute = attribute;
-        }
     }
     /// <summary>
     /// Represents a generic number literal.
     /// </summary>
-    public abstract class TokenNumberLiteral : TokenLiteral, IPreprocessor
+    public abstract class TokenNumberLiteral(int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
     {
-        public TokenNumberLiteral(int lineNumber) : base(lineNumber) { }
-
         public int GetNumberInt()
         {
             return (int)GetNumber(); // floor
@@ -277,17 +246,14 @@ namespace mc_compiled.MCC.Compiler
 
         public override Typedef GetTypedef() => Typedef.INTEGER;
     }
-    public sealed class TokenStringLiteral : TokenLiteral, IPreprocessor, IImplicitToken, IIndexable, IDocumented
+    public sealed class TokenStringLiteral(string text, int lineNumber)
+        : TokenLiteral(lineNumber), IPreprocessor, IImplicitToken, IIndexable, IDocumented
     {
-        public readonly string text;
+        public readonly string text = text;
 
         public override string AsString() => '"' + this.text + '"';
         [UsedImplicitly]
-        private TokenStringLiteral() : base(-1) { }
-        public TokenStringLiteral(string text, int lineNumber) : base(lineNumber)
-        {
-            this.text = text;
-        }
+        private TokenStringLiteral() : this(null, -1) { }
         public override TokenLiteral Clone() => new TokenStringLiteral(this.text, this.lineNumber);
         public override string ToString() => this.text;
         public object GetValue() => this.text;
@@ -302,7 +268,7 @@ namespace mc_compiled.MCC.Compiler
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
-            if (!(other is IPreprocessor preprocessor))
+            if (other is not IPreprocessor preprocessor)
                 throw new TokenException(this, "Invalid literal operation.");
 
             string append = preprocessor.GetValue().ToString();
@@ -316,13 +282,13 @@ namespace mc_compiled.MCC.Compiler
                 {
                     string str = literal1;
                     if (this.text.EndsWith(str))
-                        str = this.text.Substring(0, this.text.Length - str.Length);
+                        str = this.text[..^str.Length];
                     return new TokenStringLiteral(str, this.lineNumber);
                 }
                 case TokenNumberLiteral literal2:
                 {
                     int number = literal2.GetNumberInt();
-                    string str = number > this.text.Length ? "" : this.text.Substring(0, this.text.Length - number);
+                    string str = number > this.text.Length ? "" : this.text[..^number];
                     return new TokenStringLiteral(str, this.lineNumber);
                 }
                 default:
@@ -331,7 +297,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal number = literal.GetNumber();
@@ -351,13 +317,13 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal number = literal.GetNumber();
             int length = (int)decimal.Round(this.text.Length / number);
 
-            return new TokenStringLiteral(this.text.Substring(0, length), this.lineNumber);
+            return new TokenStringLiteral(this.text[..length], this.lineNumber);
 
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
@@ -367,42 +333,29 @@ namespace mc_compiled.MCC.Compiler
         public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
         {
             int a = this.text.Length;
-            int b;
 
-            switch (other)
+            int b = other switch
             {
-                case TokenNumberLiteral literal1:
-                    b = literal1.GetNumberInt();
-                    break;
-                case TokenStringLiteral literal2:
-                    b = literal2.text.Length;
-                    break;
-                default:
-                    throw new NotImplementedException("TokenStringLiteral being compared to " + other.GetType().Name);
-            }
+                TokenNumberLiteral literal1 => literal1.GetNumberInt(),
+                TokenStringLiteral literal2 => literal2.text.Length,
+                _ => throw new Exception("TokenStringLiteral being compared to " + other.GetType().Name)
+            };
 
-            switch (cType)
+            return cType switch
             {
-                case TokenCompare.Type.EQUAL:
-                    return a == b;
-                case TokenCompare.Type.NOT_EQUAL:
-                    return a != b;
-                case TokenCompare.Type.LESS:
-                    return a < b;
-                case TokenCompare.Type.LESS_OR_EQUAL:
-                    return a <= b;
-                case TokenCompare.Type.GREATER:
-                    return a > b;
-                case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return a >= b;
-                default:
-                    throw new Exception("Unknown comparison type: " + cType);
-            }
+                TokenCompare.Type.EQUAL => a == b,
+                TokenCompare.Type.NOT_EQUAL => a != b,
+                TokenCompare.Type.LESS => a < b,
+                TokenCompare.Type.LESS_OR_EQUAL => a <= b,
+                TokenCompare.Type.GREATER => a > b,
+                TokenCompare.Type.GREATER_OR_EQUAL => a >= b,
+                _ => throw new Exception("Unknown comparison type: " + cType)
+            };
         }
 
         public Type[] GetImplicitTypes()
         {
-            return new[] { typeof(TokenSelectorLiteral), typeof(TokenIdentifier) };
+            return [typeof(TokenSelectorLiteral), typeof(TokenIdentifier)];
         }
         public Token Convert(Executor executor, int index)
         {
@@ -423,7 +376,7 @@ namespace mc_compiled.MCC.Compiler
 
                         if (len > 2)
                         {
-                            Selector parsed = Selector.Parse(core, this.text.Substring(2));
+                            Selector parsed = Selector.Parse(core, this.text[2..]);
                             return new TokenSelectorLiteral(parsed, this.lineNumber);
                         }
 
@@ -443,16 +396,16 @@ namespace mc_compiled.MCC.Compiler
                     if (colon != -1)
                     {
                         string old = name;
-                        name = old.Substring(0, colon);
+                        name = old[..colon];
                         if (old.Length >= colon)
-                            type = old.Substring(colon + 1);
+                            type = old[(colon + 1)..];
                     }
                     if (string.IsNullOrEmpty(name))
                         name = null;
                     if (string.IsNullOrEmpty(type))
                         type = null;
 
-                    return new TokenSelectorLiteral(new Selector()
+                    return new TokenSelectorLiteral(new Selector
                     {
                         core = Selector.Core.e,
                         entity = new Entity(name, type, new List<string>())
@@ -559,15 +512,12 @@ namespace mc_compiled.MCC.Compiler
             return new TokenBlockStateLiteral(this.blockState, this.lineNumber);
         }
     }
-    public sealed class TokenBooleanLiteral : TokenNumberLiteral, IPreprocessor, IDocumented
+    public sealed class TokenBooleanLiteral(bool boolean, int lineNumber)
+        : TokenNumberLiteral(lineNumber), IPreprocessor, IDocumented
     {
-        public readonly bool boolean;
+        public readonly bool boolean = boolean;
         public override string AsString() => this.boolean.ToString();
-        internal TokenBooleanLiteral() : base(-1) { }
-        public TokenBooleanLiteral(bool boolean, int lineNumber) : base(lineNumber)
-        {
-            this.boolean = boolean;
-        }
+        internal TokenBooleanLiteral() : this(false, -1) { }
         public override TokenLiteral Clone() => new TokenBooleanLiteral(this.boolean, this.lineNumber);
         public override string ToString() => this.boolean.ToString();
         public override object GetValue() => this.boolean;
@@ -612,17 +562,14 @@ namespace mc_compiled.MCC.Compiler
         public string GetDocumentation() => "A value that can be either 'true' or 'false.'";
     }
 
-    public class TokenCoordinateLiteral : TokenNumberLiteral, IDocumented
+    public class TokenCoordinateLiteral(Coordinate coordinate, int lineNumber)
+        : TokenNumberLiteral(lineNumber), IDocumented
     {
-        private readonly Coordinate coordinate;
+        private readonly Coordinate coordinate = coordinate;
         
         public override string AsString() => this.coordinate.ToString();
         public override string ToString() => this.coordinate.ToString();
-        internal TokenCoordinateLiteral() : base(-1) { }
-        public TokenCoordinateLiteral(Coordinate coordinate, int lineNumber) : base(lineNumber)
-        {
-            this.coordinate = coordinate;
-        }
+        internal TokenCoordinateLiteral() : this(new Coordinate(), -1) { }
         public override TokenLiteral Clone() => new TokenCoordinateLiteral(new Coordinate(this.coordinate), this.lineNumber);
         public override decimal GetNumber()
         {
@@ -644,97 +591,85 @@ namespace mc_compiled.MCC.Compiler
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal number = literal.GetNumber();
-            var coordinate = new Coordinate(this.coordinate);
-            coordinate.valueDecimal += number;
-            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
-            return new TokenCoordinateLiteral(coordinate, this.lineNumber);
+            var modifiedCoordinate = new Coordinate(this.coordinate);
+            modifiedCoordinate.valueDecimal += number;
+            modifiedCoordinate.valueInteger = (int)decimal.Round(modifiedCoordinate.valueDecimal);
+            return new TokenCoordinateLiteral(modifiedCoordinate, this.lineNumber);
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal number = literal.GetNumber();
-            var coordinate = new Coordinate(this.coordinate);
-            coordinate.valueDecimal -= number;
-            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
-            return new TokenCoordinateLiteral(coordinate, this.lineNumber);
+            var modifiedCoordinate = new Coordinate(this.coordinate);
+            modifiedCoordinate.valueDecimal -= number;
+            modifiedCoordinate.valueInteger = (int)decimal.Round(modifiedCoordinate.valueDecimal);
+            return new TokenCoordinateLiteral(modifiedCoordinate, this.lineNumber);
 
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal number = literal.GetNumber();
-            var coordinate = new Coordinate(this.coordinate);
-            coordinate.valueDecimal *= number;
-            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
-            return new TokenCoordinateLiteral(coordinate, this.lineNumber);
+            var modifiedCoordinate = new Coordinate(this.coordinate);
+            modifiedCoordinate.valueDecimal *= number;
+            modifiedCoordinate.valueInteger = (int)decimal.Round(modifiedCoordinate.valueDecimal);
+            return new TokenCoordinateLiteral(modifiedCoordinate, this.lineNumber);
 
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal number = literal.GetNumber();
-            var coordinate = new Coordinate(this.coordinate);
-            coordinate.valueDecimal /= number;
-            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
-            return new TokenCoordinateLiteral(coordinate, this.lineNumber);
+            var modifiedCoordinate = new Coordinate(this.coordinate);
+            modifiedCoordinate.valueDecimal /= number;
+            modifiedCoordinate.valueInteger = (int)decimal.Round(modifiedCoordinate.valueDecimal);
+            return new TokenCoordinateLiteral(modifiedCoordinate, this.lineNumber);
 
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal number = literal.GetNumber();
-            var coordinate = new Coordinate(this.coordinate);
-            coordinate.valueDecimal %= number;
-            coordinate.valueInteger = (int)decimal.Round(coordinate.valueDecimal);
-            return new TokenCoordinateLiteral(coordinate, this.lineNumber);
+            var modifiedCoordinate = new Coordinate(this.coordinate);
+            modifiedCoordinate.valueDecimal %= number;
+            modifiedCoordinate.valueInteger = (int)decimal.Round(modifiedCoordinate.valueDecimal);
+            return new TokenCoordinateLiteral(modifiedCoordinate, this.lineNumber);
 
         }
         public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
         {
             decimal a = this.coordinate.valueDecimal;
-            decimal b;
 
-            switch (other)
+            decimal b = other switch
             {
-                case TokenNumberLiteral literal:
-                    b = literal.GetNumber();
-                    break;
-                case TokenStringLiteral literal:
-                    b = literal.text.Length;
-                    break;
-                default:
-                    throw new NotImplementedException("TokenCoordinateLiteral being compared to " + other.GetType().Name);
-            }
-            
-            switch (cType)
+                TokenNumberLiteral literal => literal.GetNumber(),
+                TokenStringLiteral literal => literal.text.Length,
+                _ => throw new Exception("TokenCoordinateLiteral being compared to " +
+                                         other.GetType().Name)
+            };
+
+            return cType switch
             {
-                case TokenCompare.Type.EQUAL:
-                    return a == b;
-                case TokenCompare.Type.NOT_EQUAL:
-                    return a != b;
-                case TokenCompare.Type.LESS:
-                    return a < b;
-                case TokenCompare.Type.LESS_OR_EQUAL:
-                    return a <= b;
-                case TokenCompare.Type.GREATER:
-                    return a > b;
-                case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return a >= b;
-                default:
-                    throw new Exception("Unknown comparison type: " + cType);
-            }
+                TokenCompare.Type.EQUAL => a == b,
+                TokenCompare.Type.NOT_EQUAL => a != b,
+                TokenCompare.Type.LESS => a < b,
+                TokenCompare.Type.LESS_OR_EQUAL => a <= b,
+                TokenCompare.Type.GREATER => a > b,
+                TokenCompare.Type.GREATER_OR_EQUAL => a >= b,
+                _ => throw new Exception("Unknown comparison type: " + cType)
+            };
         }
 
         public string GetDocumentation() => "A Minecraft coordinate value that can optionally be both relative and facing offset, like ~10, 40, or ^5.";
@@ -784,7 +719,7 @@ namespace mc_compiled.MCC.Compiler
 
         public override string AsString() => this.number.ToString();
         [UsedImplicitly]
-        public TokenIntegerLiteral() : base() { }
+        public TokenIntegerLiteral() { }
         public TokenIntegerLiteral(int number, IntMultiplier multiplier, int lineNumber) :
             base(new Coordinate(number, false, false, false), lineNumber)
         {
@@ -905,16 +840,13 @@ namespace mc_compiled.MCC.Compiler
 
         public new string GetDocumentation() => "Any integral number, like 5, 10, 5291, or -40. Use time suffixes to scale the integer accordingly, like with 4s -> 80.";
     }
-    public sealed class TokenRangeLiteral : TokenLiteral, IPreprocessor, IIndexable, IDocumented
+    public sealed class TokenRangeLiteral(Range range, int lineNumber)
+        : TokenLiteral(lineNumber), IPreprocessor, IIndexable, IDocumented
     {
-        public Range range;
+        public Range range = range;
         public override string AsString() => this.range.ToString();
         public override string ToString() => this.range.ToString();
-        internal TokenRangeLiteral() : base(-1) { }
-        public TokenRangeLiteral(Range range, int lineNumber) : base(lineNumber)
-        {
-            this.range = range;
-        }
+        internal TokenRangeLiteral() : this(new Range(), -1) { }
         public override TokenLiteral Clone() => new TokenRangeLiteral(new Range(this.range), this.lineNumber);
 
         public override Typedef GetTypedef() => null;
@@ -1043,37 +975,23 @@ namespace mc_compiled.MCC.Compiler
             int thisMin = this.range.min ?? int.MinValue;
             int thisMax = this.range.max ?? int.MaxValue;
 
-            int b;
-
-            switch (other)
+            int b = other switch
             {
-                case TokenNumberLiteral literal:
-                    b = literal.GetNumberInt();
-                    break;
-                case TokenStringLiteral literal:
-                    b = literal.text.Length;
-                    break;
-                default:
-                    throw new NotImplementedException("TokenRangeLiteral being compared to " + other.GetType().Name);
-            }
+                TokenNumberLiteral literal => literal.GetNumberInt(),
+                TokenStringLiteral literal => literal.text.Length,
+                _ => throw new Exception("TokenRangeLiteral being compared to " + other.GetType().Name)
+            };
 
-            switch (cType)
+            return cType switch
             {
-                case TokenCompare.Type.EQUAL:
-                    return b <= thisMax && b >= thisMin;
-                case TokenCompare.Type.NOT_EQUAL:
-                    return b < thisMin || b > thisMax;
-                case TokenCompare.Type.LESS:
-                    return b < thisMin;
-                case TokenCompare.Type.LESS_OR_EQUAL:
-                    return b <= thisMin;
-                case TokenCompare.Type.GREATER:
-                    return b > thisMax;
-                case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return b >= thisMax;
-                default:
-                    throw new Exception("Unknown comparison type: " + cType);
-            }
+                TokenCompare.Type.EQUAL => b <= thisMax && b >= thisMin,
+                TokenCompare.Type.NOT_EQUAL => b < thisMin || b > thisMax,
+                TokenCompare.Type.LESS => b < thisMin,
+                TokenCompare.Type.LESS_OR_EQUAL => b <= thisMin,
+                TokenCompare.Type.GREATER => b > thisMax,
+                TokenCompare.Type.GREATER_OR_EQUAL => b >= thisMax,
+                _ => throw new Exception("Unknown comparison type: " + cType)
+            };
         }
 
         public object GetValue()
@@ -1100,36 +1018,27 @@ namespace mc_compiled.MCC.Compiler
                     if(this.range.single)
                         return new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber);
 
-                    switch (value)
+                    return value switch
                     {
                         // fetch min/max for 0/1
-                        case 0:
-                            return new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber);
-                        case 1:
-                            return new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none, this.lineNumber);
-                        case 2:
-                            return new TokenBooleanLiteral(this.range.invert, this.lineNumber);
-                        default:
-                            throw new Exception($"Invalid indexer for range: '{value}'");
-                    }
+                        0 => new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber),
+                        1 => new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none, this.lineNumber),
+                        2 => new TokenBooleanLiteral(this.range.invert, this.lineNumber),
+                        _ => throw new Exception($"Invalid indexer for range: '{value}'")
+                    };
                 }
                 case TokenIndexerString indexerString:
                 {
                     string input = indexerString.token.text.ToUpper();
-                    switch (input)
+                    return input switch
                     {
-                        case "MIN":
-                        case "MINIMUM":
-                            return new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber);
-                        case "MAX":
-                        case "MAXIMUM":
-                            return new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none, this.lineNumber);
-                        case "INVERTED":
-                        case "INVERT":
-                            return new TokenBooleanLiteral(this.range.invert, this.lineNumber);
-                        default:
-                            throw new Exception($"Invalid indexer for range: '{input}'");
-                    }
+                        "MIN" or "MINIMUM" => new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none,
+                            this.lineNumber),
+                        "MAX" or "MAXIMUM" => new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none,
+                            this.lineNumber),
+                        "INVERTED" or "INVERT" => new TokenBooleanLiteral(this.range.invert, this.lineNumber),
+                        _ => throw new Exception($"Invalid indexer for range: '{input}'")
+                    };
                 }
                 default:
                     throw indexer.GetException(this, forExceptions);
@@ -1138,15 +1047,11 @@ namespace mc_compiled.MCC.Compiler
 
         public string GetDocumentation() => "A Minecraft number that specifies a range of integers (inclusive). Omitting a number from one side makes the number unbounded. 4.. means four and up. 1..5 means one through five.";
     }
-    public sealed class TokenDecimalLiteral : TokenCoordinateLiteral
+    public sealed class TokenDecimalLiteral(decimal number, int lineNumber)
+        : TokenCoordinateLiteral(new Coordinate(number, true, false, false), lineNumber)
     {
-        public readonly decimal number;
+        public readonly decimal number = number;
         public override string AsString() => this.number.ToString();
-        public TokenDecimalLiteral(decimal number, int lineNumber) :
-            base(new Coordinate(number, true, false, false), lineNumber)
-        {
-            this.number = number;
-        }
         public override TokenLiteral Clone() => new TokenDecimalLiteral(this.number, this.lineNumber);
         public override string ToString() => this.number.ToString();
         public override object GetValue() => this.number;
@@ -1166,7 +1071,7 @@ namespace mc_compiled.MCC.Compiler
 
         public override TokenLiteral AddWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal d = literal.GetNumber();
@@ -1174,7 +1079,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral SubWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal d = literal.GetNumber();
@@ -1182,7 +1087,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral MulWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal d = literal.GetNumber();
@@ -1190,7 +1095,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral DivWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal d = literal.GetNumber();
@@ -1198,7 +1103,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public override TokenLiteral ModWithOther(TokenLiteral other)
         {
-            if (!(other is TokenNumberLiteral literal))
+            if (other is not TokenNumberLiteral literal)
                 throw new TokenException(this, "Invalid literal operation.");
             
             decimal d = literal.GetNumber();
@@ -1224,7 +1129,7 @@ namespace mc_compiled.MCC.Compiler
         public TokenSelectorLiteral(Selector.Core core, int lineNumber) : base(lineNumber)
         {
             this.simple = true;
-            this.selector = new Selector()
+            this.selector = new Selector
             {
                 core = core
             };
@@ -1285,9 +1190,10 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// A literal holding a JSON value. Mostly used for indexing purposes.
     /// </summary>
-    public class TokenJSONLiteral : TokenLiteral, IPreprocessor, IIndexable, IDocumented
+    public class TokenJSONLiteral(JToken token, int lineNumber)
+        : TokenLiteral(lineNumber), IPreprocessor, IIndexable, IDocumented
     {
-        public readonly JToken token;
+        public readonly JToken token = token;
 
         public bool IsObject
         {
@@ -1300,11 +1206,7 @@ namespace mc_compiled.MCC.Compiler
 
         public override string AsString() => this.token.ToString();
         public override string ToString() => this.token.ToString();
-        internal TokenJSONLiteral() : base(-1) { }
-        public TokenJSONLiteral(JToken token, int lineNumber) : base(lineNumber)
-        {
-            this.token = token;
-        }
+        internal TokenJSONLiteral() : this(null, -1) { }
         public override TokenLiteral Clone() => new TokenJSONLiteral(this.token, this.lineNumber);
         public static implicit operator JToken(TokenJSONLiteral t) => t.token;
 
@@ -1344,7 +1246,7 @@ namespace mc_compiled.MCC.Compiler
         {
             switch (indexer)
             {
-                case TokenIndexerInteger _ when !(this.token is JArray):
+                case TokenIndexerInteger _ when this.token is not JArray:
                     throw new StatementException(forExceptions, "JSON type cannot be indexed using a number: " + this.token.Type);
                 case TokenIndexerInteger integer:
                 {
@@ -1360,7 +1262,7 @@ namespace mc_compiled.MCC.Compiler
                         return output;
                     throw new StatementException(forExceptions, "Couldn't load JSON value: " + indexedItem);
                 }
-                case TokenIndexerString _ when !(this.token is JObject):
+                case TokenIndexerString _ when this.token is not JObject:
                     throw new StatementException(forExceptions, "JSON type cannot be indexed using a string: " + this.token.Type);
                 case TokenIndexerString @string:
                 {

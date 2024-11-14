@@ -1,6 +1,6 @@
-﻿using mc_compiled.MCC.Compiler;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC.Functions.Types

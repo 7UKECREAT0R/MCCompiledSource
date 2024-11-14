@@ -1,11 +1,11 @@
 ﻿using System;
-using mc_compiled.MCC.Compiler;
-using mc_compiled.MCC.Functions.Types;
-using mc_compiled.Modding.Behaviors;
-using mc_compiled.Modding;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Functions.Types;
+using mc_compiled.Modding;
+using mc_compiled.Modding.Behaviors;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Attributes
 {
@@ -90,7 +90,7 @@ namespace mc_compiled.MCC.Attributes
 
                 JArray scriptsToAnimate;
                 if ((scriptsToAnimate = scripts["animate"] as JArray) == null)
-                    scriptsToAnimate = new JArray();
+                    scriptsToAnimate = [];
 
                 animations[scriptName] = driver.Identifier;
                 if(!scriptsToAnimate.Any(jt => jt.ToString().Equals(scriptName)))

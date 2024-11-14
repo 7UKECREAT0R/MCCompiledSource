@@ -21,7 +21,7 @@ namespace mc_compiled.NBT
         /// <param name="blocks"></param>
         public BlockIndicesNBT(int[,,] blocks)
         {
-            this.size = new VectorIntNBT()
+            this.size = new VectorIntNBT
             {
                 x = blocks.GetLength(0),
                 y = blocks.GetLength(1),
@@ -42,30 +42,30 @@ namespace mc_compiled.NBT
             for (int i = 0; i < length; i++)
                 empty[i] = -1;
 
-            this.primaryLayer = new NBTList()
+            this.primaryLayer = new NBTList
             {
                 name = "",
                 listType = TAG.Int,
-                values = (from convert in unwrap select new NBTInt() { name = "", value = convert }).ToArray()
+                values = (from convert in unwrap select new NBTInt { name = "", value = convert }).ToArray<NBTNode>()
             };
-            this.secondaryLayer = new NBTList()
+            this.secondaryLayer = new NBTList
             {
                 name = "",
                 listType = TAG.Int,
-                values = (from convert in empty select new NBTInt() { name = "", value = convert }).ToArray()
+                values = (from convert in empty select new NBTInt { name = "", value = convert }).ToArray<NBTNode>()
             };
         }
 
         public NBTList ToNBT()
         {
-            return new NBTList()
+            return new NBTList
             {
                 name = "block_indices",
                 listType = TAG.List,
-                values = new NBTList[]
-                {
+                values =
+                [
                     this.primaryLayer, this.secondaryLayer
-                }
+                ]
             };
         }
     }

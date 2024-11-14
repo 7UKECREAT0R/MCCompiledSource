@@ -4,11 +4,11 @@ using System.Text;
 namespace mc_compiled.MCC.Compiler
 {
     /// <summary>
-    /// An MCCompiled time format parsed from a string. e.g., "hh:mm:ss", "m:sss"
+    /// An MCCompiled time format parsed from a string; e.g., "hh:mm:ss", "m:sss"
     /// </summary>
     public struct TimeFormat
     {
-        public static readonly TimeFormat Default = new TimeFormat(0, 1, 2, TimeOption.m | TimeOption.s); // m:ss
+        public static readonly TimeFormat Default = new(0, 1, 2, TimeOption.m | TimeOption.s); // m:ss
 
         public TimeOption flags;
         public int minimumHours;
@@ -17,7 +17,7 @@ namespace mc_compiled.MCC.Compiler
 
         public static TimeFormat Parse(string str)
         {
-            TimeFormat format = new TimeFormat(0, 0, 0, TimeOption.none);
+            var format = new TimeFormat(0, 0, 0, TimeOption.none);
 
             foreach(char c in str.ToLower())
             {

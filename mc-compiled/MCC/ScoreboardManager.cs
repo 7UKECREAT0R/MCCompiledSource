@@ -1,7 +1,7 @@
-﻿using mc_compiled.MCC.Attributes;
-using mc_compiled.MCC.Compiler;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
 namespace mc_compiled.MCC
@@ -78,9 +78,9 @@ namespace mc_compiled.MCC
             /// <returns></returns>
             internal ScoreboardValue Create(ScoreboardManager sb, Statement tokens)
             {
-                ITypeStructure data = this.dataObject;
+                ITypeStructure localData = this.dataObject;
 
-                if (data == null)
+                if (localData == null)
                 {
                     if (this.type.SpecifyPattern != null)
                     {
@@ -96,11 +96,11 @@ namespace mc_compiled.MCC
                         }
 
                         // digest pattern
-                        data = this.type.AcceptPattern(tokens);
+                        localData = this.type.AcceptPattern(tokens);
                     }
                 }
 
-                ScoreboardValue value = new ScoreboardValue(this.name, false, this.type, data, sb)
+                ScoreboardValue value = new ScoreboardValue(this.name, false, this.type, localData, sb)
                     .WithAttributes(this.attributes, tokens);
                 return value;
             }
@@ -155,25 +155,25 @@ namespace mc_compiled.MCC
         public ScoreboardManager(Executor executor)
         {
             this.temps = new TempManager(this, executor);
-            this.values = new HashSet<ScoreboardValue>();
+            this.values = [];
             this.executor = executor;
         }
 
         /// <summary>
         /// Define all of the given non-null scoreboard values if they haven't already. Places them in the 'init' file.
         /// </summary>
-        /// <param name="values">The values to define.</param>
-        public void DefineMany(params ScoreboardValue[] values)
+        /// <param name="newValues">The values to define.</param>
+        public void DefineMany(params ScoreboardValue[] newValues)
         {
-            DefineMany((IEnumerable<ScoreboardValue>)values);
+            DefineMany((IEnumerable<ScoreboardValue>)newValues);
         }
         /// <summary>
         /// Define all of the given non-null scoreboard values if they haven't already. Places them in the 'init' file.
         /// </summary>
-        /// <param name="values">The values to define.</param>
-        public void DefineMany(IEnumerable<ScoreboardValue> values)
+        /// <param name="newValues">The values to define.</param>
+        public void DefineMany(IEnumerable<ScoreboardValue> newValues)
         {
-            foreach(ScoreboardValue value in values)
+            foreach(ScoreboardValue value in newValues)
             {
                 if (value == null)
                     continue;

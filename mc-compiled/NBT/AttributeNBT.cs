@@ -68,20 +68,20 @@
 
         public NBTCompound ToNBT()
         {
-            return new NBTCompound()
+            return new NBTCompound
             {
                 name = "",
-                values = new NBTNode[]
-                {
-                    new NBTFloat() { name = "Base", value = this.baseValue },
-                    new NBTFloat() { name = "Current", value = this.currentValue },
-                    new NBTFloat() { name = "DefaultMax", value = this.defaultMax },
-                    new NBTFloat() { name = "DefaultMin", value = this.defaultMin },
-                    new NBTFloat() { name = "Max", value = this.max },
-                    new NBTFloat() { name = "Min", value = this.min },
-                    new NBTString() { name = "Name", value = this.identifier },
+                values =
+                [
+                    new NBTFloat { name = "Base", value = this.baseValue },
+                    new NBTFloat { name = "Current", value = this.currentValue },
+                    new NBTFloat { name = "DefaultMax", value = this.defaultMax },
+                    new NBTFloat { name = "DefaultMin", value = this.defaultMin },
+                    new NBTFloat { name = "Max", value = this.max },
+                    new NBTFloat { name = "Min", value = this.min },
+                    new NBTString { name = "Name", value = this.identifier },
                     new NBTEnd()
-                }
+                ]
             };
         }
     }

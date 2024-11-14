@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Commands.Native;
 
 namespace mc_compiled.NBT
 {
@@ -13,7 +14,7 @@ namespace mc_compiled.NBT
         public short damage;           // The damage on this item if a tool.
         public ItemTagNBT tag;         // Extra item data like enchants and display name.
 
-        public ItemNBT(Commands.Native.ItemStack fromStack)
+        public ItemNBT(ItemStack fromStack)
         {
             this.item = fromStack.id;
             this.canDestroy = fromStack.canDestroy;
@@ -34,38 +35,38 @@ namespace mc_compiled.NBT
         }
         public NBTCompound ToNBT()
         {
-            List<NBTNode> nodes = new List<NBTNode>();
+            List<NBTNode> nodes = [];
 
             if (this.canDestroy != null && this.canDestroy.Length > 0)
-                nodes.Add(new NBTList() {
+                nodes.Add(new NBTList {
                     name = "CanDestroy",
                     listType = TAG.String,
-                    values = (from cd in this.canDestroy select new NBTString()
+                    values = (from cd in this.canDestroy select new NBTString
                     {
                         name = "",
                         value = cd
-                    }).ToArray()
+                    }).ToArray<NBTNode>()
                 });
             if (this.canPlaceOn != null && this.canPlaceOn.Length > 0)
-                nodes.Add(new NBTList()
+                nodes.Add(new NBTList
                 {
                     name = "CanPlaceOn",
                     listType = TAG.String,
-                    values = (from cpo in this.canPlaceOn select new NBTString()
+                    values = (from cpo in this.canPlaceOn select new NBTString
                     {
                         name = "",
                         value = cpo
-                    }).ToArray()
+                    }).ToArray<NBTNode>()
                 });
 
-            nodes.Add(new NBTByte() { name = "Count", value = this.count });
-            nodes.Add(new NBTShort() { name = "Damage", value = this.damage });
-            nodes.Add(new NBTString() { name = "Name", value = this.item });
-            nodes.Add(new NBTByte() { name = "WasPickedUp", value = 0 });
+            nodes.Add(new NBTByte { name = "Count", value = this.count });
+            nodes.Add(new NBTShort { name = "Damage", value = this.damage });
+            nodes.Add(new NBTString { name = "Name", value = this.item });
+            nodes.Add(new NBTByte { name = "WasPickedUp", value = 0 });
             nodes.Add(this.tag.ToNBT());
             nodes.Add(new NBTEnd());
 
-            return new NBTCompound()
+            return new NBTCompound
             {
                 name = "Item",
                 values = nodes.ToArray()

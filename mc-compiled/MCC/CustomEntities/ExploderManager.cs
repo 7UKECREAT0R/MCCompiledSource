@@ -1,9 +1,12 @@
-﻿using mc_compiled.Commands;
+﻿using System;
+using System.Collections.Generic;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding.Behaviors.Lists;
-using System;
-using System.Collections.Generic;
+using mc_compiled.Modding.Resources;
 
 namespace mc_compiled.MCC.CustomEntities
 {
@@ -50,9 +53,9 @@ namespace mc_compiled.MCC.CustomEntities
         /// </summary>
         private readonly string exploderType;
 
-        internal ExploderManager(Compiler.Executor executor) : base(executor)
+        internal ExploderManager(Executor executor) : base(executor)
         {
-            this.definedPresets = new HashSet<ExploderPreset>();
+            this.definedPresets = [];
             this.files = new ExploderFiles();
             this.exploderType = executor.project.Namespace("exploder");
         }
@@ -63,7 +66,7 @@ namespace mc_compiled.MCC.CustomEntities
             return this.files.AddonFiles;
         }
         public override bool HasEntity(string name) => false;
-        public override bool Search(string name, out Commands.Selectors.Selector selector)
+        public override bool Search(string name, out Selector selector)
         {
             selector = null;
             return false;
@@ -122,15 +125,15 @@ namespace mc_compiled.MCC.CustomEntities
         internal List<EntityEventHandler> events;
 
         public EntityBehavior behavior;
-        public Modding.Resources.EntityResource resources;
-        public Modding.Resources.EntityGeometry geometry;
+        public EntityResource resources;
+        public EntityGeometry geometry;
 
         public IAddonFile[] AddonFiles
         {
-            get => new IAddonFile[]
-            {
-                this.behavior, this.resources, this.geometry,
-            };
+            get =>
+            [
+                this.behavior, this.resources, this.geometry
+            ];
         }
     }
     public readonly struct ExploderPreset

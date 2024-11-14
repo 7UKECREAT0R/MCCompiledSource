@@ -4,7 +4,7 @@ namespace mc_compiled.Commands.Selectors
 {
     public struct BlockCheck
     {
-        public static readonly BlockCheck DISABLED = new BlockCheck() { present = false };
+        public static readonly BlockCheck DISABLED = new BlockCheck { present = false };
         /// <summary>
         /// only false if this blockcheck is disabled
         /// </summary>
@@ -38,12 +38,14 @@ namespace mc_compiled.Commands.Selectors
 
         public override string ToString()
         {
-            List<string> parts = new List<string>();
+            List<string> parts =
+            [
+                this.x.ToString(),
+                this.y.ToString(),
+                this.z.ToString(),
+                this.block
+            ];
 
-            parts.Add(this.x.ToString());
-            parts.Add(this.y.ToString());
-            parts.Add(this.z.ToString());
-            parts.Add(this.block);
             int tempData = this.data ?? 0;
             parts.Add(tempData.ToString());
 

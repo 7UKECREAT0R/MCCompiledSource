@@ -31,7 +31,7 @@ namespace mc_compiled.MCC.Compiler
             if(this is TokenNewline)
                 return "[Newline]\n";
 
-            string typeName = GetType().Name.Substring(5);
+            string typeName = GetType().Name[5..];
             return '[' + typeName + ' ' + AsString() + ']';
         }
     }
@@ -60,6 +60,7 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// Convert this token to an alternate type by index of its valid types.
         /// </summary>
+        /// <param name="executor">The executor running this conversion, for project context/errors.</param>
         /// <param name="index">The index of GetImplicitTypes() to convert to.</param>
         /// <returns></returns>
         Token Convert(Executor executor, int index);

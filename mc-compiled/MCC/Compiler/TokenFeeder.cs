@@ -8,24 +8,19 @@ namespace mc_compiled.MCC.Compiler
     /// <summary>
     /// A class which allows the "feeding" of tokens and quick checking/casting of their types.
     /// </summary>
-    public class TokenFeeder
+    public class TokenFeeder(Token[] tokens)
     {
         public Executor executor;
-        protected Token[] tokens;
-        protected int currentToken;
+        protected Token[] tokens = tokens;
+        protected int currentToken = 0;
 
-        public TokenFeeder(Token[] tokens)
-        {
-            this.tokens = tokens;
-            this.currentToken = 0;
-        }
         /// <summary>
         /// Set the executor of this TokenFeeder.
         /// </summary>
-        /// <param name="executor"></param>
-        public void SetExecutor(Executor executor)
+        /// <param name="newExecutor"></param>
+        public void SetExecutor(Executor newExecutor)
         {
-            this.executor = executor;
+            this.executor = newExecutor;
         }
 
         /// <summary>
@@ -99,7 +94,7 @@ namespace mc_compiled.MCC.Compiler
             
             if (token is T castedToken)
                 return castedToken;
-            if (!(token is IImplicitToken implicitToken))
+            if (token is not IImplicitToken implicitToken)
                 throw new FeederException(this, $"Invalid token type for parameter '{parameterHint}'. Expected {typeof(T).Name} but got {token.GetType().Name}");
 
             Type[] otherTypes = implicitToken.GetImplicitTypes();
@@ -125,7 +120,7 @@ namespace mc_compiled.MCC.Compiler
             if (token is T validToken)
                 return validToken;
             
-            if (!(token is IImplicitToken implicitToken))
+            if (token is not IImplicitToken implicitToken)
                 throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType()}");
                 
             Type[] otherTypes = implicitToken.GetImplicitTypes();
@@ -155,7 +150,7 @@ namespace mc_compiled.MCC.Compiler
             if(token is IUselessInformation)
                 return false; // don't throw
             
-            if (!allowImplicit || !(token is IImplicitToken implicitToken))
+            if (!allowImplicit || token is not IImplicitToken implicitToken)
             {
                 TryEnforceType();
                 return false;
@@ -189,7 +184,7 @@ namespace mc_compiled.MCC.Compiler
                 return Array.Empty<Token>();
 
             return this.tokens.Skip(this.currentToken)
-                .Where(t => !(t is IUselessInformation));
+                .Where(t => t is not IUselessInformation);
         }
 
         /// <summary>
@@ -202,7 +197,7 @@ namespace mc_compiled.MCC.Compiler
                 if (this.tokens == null)
                     return 0;
                 return this.tokens.Skip(this.currentToken)
-                    .Count(t => !(t is IUselessInformation));
+                    .Count(t => t is not IUselessInformation);
             }
         }
     }

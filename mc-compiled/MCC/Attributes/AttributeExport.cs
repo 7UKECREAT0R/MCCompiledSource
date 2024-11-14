@@ -9,8 +9,6 @@ namespace mc_compiled.MCC.Attributes
         public string GetDebugString() => "export";
         public string GetCodeRepresentation() => "export";
 
-        internal AttributeExport() { }
-
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
         {
             function.file.AsInUse(); // Marks file as 'in use' so it is included in the output, along with anything it calls.

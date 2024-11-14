@@ -1,4 +1,12 @@
-﻿using mc_compiled.Commands.Native;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Native;
 using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
@@ -6,14 +14,9 @@ using mc_compiled.MCC.ServerWebSocket;
 using mc_compiled.MCC.SyntaxHighlighting;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
-using mc_compiled.NBT;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using mc_compiled.Modding.Manifest;
 using mc_compiled.Modding.Manifest.Modules;
+using mc_compiled.NBT;
 
 // ReSharper disable CommentTypo
 
@@ -69,7 +72,7 @@ namespace mc_compiled
                 return;
             }
 
-            string[] files = { args[0] };
+            string[] files = [args[0]];
             var inputPPVs = new List<InputPPV>();
             bool debug = false;
             bool search = false;
@@ -150,7 +153,7 @@ namespace mc_compiled
             }
 
             // load enums and directives
-            Commands.CommandEnumParser.Init();
+            CommandEnumParser.Init();
             Directives.LoadFromLanguage(debug);
 
             string fileUpper = files[0].ToUpper();
@@ -173,11 +176,9 @@ namespace mc_compiled
                             string stOutput = st.Value.GetFile();
                             Console.WriteLine("\tExporting syntax file for target '{0}'... ({1})", st.Key, stOutput);
 
-                            using (FileStream outputStream = File.Open(stOutput, FileMode.Create))
-                            using (TextWriter writer = new StreamWriter(outputStream))
-                            {
-                                st.Value.Write(writer);
-                            }
+                            using FileStream outputStream = File.Open(stOutput, FileMode.Create);
+                            using TextWriter writer = new StreamWriter(outputStream);
+                            st.Value.Write(writer);
                         }
 
                         Console.ForegroundColor = ConsoleColor.Green;
@@ -227,10 +228,8 @@ namespace mc_compiled
                     NO_PAUSE = true;
 
                     DEBUG = debug;
-                    using (var server = new MCCServer(orp, obp))
-                    {
-                        server.StartServer();
-                    }
+                    using var server = new MCCServer(orp, obp);
+                    server.StartServer();
 
                     return;
                 }
@@ -248,7 +247,7 @@ namespace mc_compiled
                 }
                 case "--INFO":
                     Console.WriteLine("V{0}", Executor.MCC_VERSION);
-                    Console.WriteLine("L{0}", System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    Console.WriteLine("L{0}", Assembly.GetExecutingAssembly().Location);
                     return;
                 case "--FROMPROTOCOL":
                 {
@@ -266,10 +265,8 @@ namespace mc_compiled
                     DECORATE = false;
                     NO_PAUSE = true;
                     DEBUG = debug;
-                    using (var server = new MCCServer(orp, obp))
-                    {
-                        server.StartServer();
-                    }
+                    using var server = new MCCServer(orp, obp);
+                    server.StartServer();
                     return;
                 }
                 case "--JSONBUILDER":
@@ -283,9 +280,9 @@ namespace mc_compiled
                 {
                     int size = int.Parse(args[1]);
 
-                    StructureFile empty = new StructureFile("empty", null, new StructureNBT()
+                    StructureFile empty = new StructureFile("empty", null, new StructureNBT
                     {
-                        entities = new EntityListNBT(Array.Empty<EntityNBT>()),
+                        entities = new EntityListNBT([]),
                         worldOrigin = new VectorIntNBT(0, 0, 0),
                         size = new VectorIntNBT(size, size, size),
                         palette = new PaletteNBT(
@@ -337,7 +334,7 @@ namespace mc_compiled
                 }
                 case "--MANIFEST":
                 {
-                    string rest = string.Join(" ", args).Substring(11);
+                    string rest = string.Join(" ", args)[11..];
                     Manifest manifest = new Manifest(ManifestType.BP, rest)
                         .WithModule(new BasicModule(ModuleType.data));
                     
@@ -465,7 +462,7 @@ namespace mc_compiled
                         changedFile = e.Name;
                         break;
                     }
-                    System.Threading.Thread.Sleep(100);
+                    Thread.Sleep(100);
                 }
                 compileEnd:
                 watcher.Dispose();
@@ -495,15 +492,16 @@ namespace mc_compiled
         {
             // reset all that icky static stuff
             Executor.ResetGeneratedNames();
-            Commands.Command.ResetState();
+            Command.ResetState();
             Tokenizer.CURRENT_LINE = 0;
             DirectiveImplementations.ResetState();
         }
 
-        private static readonly string[] CLEAN_FILTERS = {
+        private static readonly string[] CLEAN_FILTERS =
+        [
             "*.mcstructure",
             "*.mcfunction"
-        };
+        ];
         private static void CleanDirectory(string cleanFolder, string file)
         {
             cleanFolder = cleanFolder.Replace("?project", Path.GetFileNameWithoutExtension(file));

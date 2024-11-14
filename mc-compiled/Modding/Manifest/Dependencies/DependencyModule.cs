@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Manifest.Dependencies
 {
@@ -20,7 +19,7 @@ namespace mc_compiled.Modding.Manifest.Dependencies
         
         public override JObject ToJSON()
         {
-            return new JObject()
+            return new JObject
             {
                 ["module_name"] = this.moduleName,
                 ["version"] = this.version.ToVersionString()

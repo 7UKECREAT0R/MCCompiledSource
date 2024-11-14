@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.Commands
 {
@@ -76,13 +77,13 @@ namespace mc_compiled.Commands
         /// <exception cref="MCC.Compiler.StatementException">If the given enum is not of a certain type.</exception>
         // ReSharper disable once PureAttributeOnVoidMethod
         [Pure]
-        public void RequireType<T>(MCC.Compiler.Statement thrower) where T: Enum
+        public void RequireType<T>(Statement thrower) where T: Enum
         {
             if (IsType<T>())
                 return;
             
             string reqEnumName = typeof(T).Name;
-            throw new MCC.Compiler.StatementException(thrower, $"Must specify {reqEnumName}; Given {this.enumType.Name}.");
+            throw new StatementException(thrower, $"Must specify {reqEnumName}; Given {this.enumType.Name}.");
         }
     }
 

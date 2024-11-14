@@ -1,9 +1,11 @@
-﻿using mc_compiled.MCC.Compiler;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Resources.Localization
 {
@@ -24,7 +26,7 @@ namespace mc_compiled.Modding.Resources.Localization
         internal LanguageManager(Executor executor, bool isForBehaviorPack)
         {
             this.executor = executor;
-            this.locales = new HashSet<LocaleDefinition>();
+            this.locales = [];
             this.isForBehaviorPack = isForBehaviorPack;
         }
         
@@ -45,7 +47,7 @@ namespace mc_compiled.Modding.Resources.Localization
             Lang lang;
 
             // fetch lang file if it exists. otherwise, create one.
-            if (System.IO.File.Exists(path))
+            if (File.Exists(path))
             {
                 string file = this.executor.LoadFileString(path);
                 lang = Lang.Parse(locale, file, this.isForBehaviorPack);
@@ -65,7 +67,7 @@ namespace mc_compiled.Modding.Resources.Localization
         public byte[] GetOutputData()
         {
             var array = new JArray(from l in this.locales select l.locale);
-            string json = array.ToString(Newtonsoft.Json.Formatting.Indented);
+            string json = array.ToString(Formatting.Indented);
             return Encoding.UTF8.GetBytes(json);
         }
         public string GetOutputFile() => "languages.json";

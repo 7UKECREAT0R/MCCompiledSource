@@ -61,52 +61,25 @@ namespace mc_compiled.Modding
     {
         public static bool IsBehavior(this OutputLocation output)
         {
-            switch (output)
+            return output switch
             {
-                case OutputLocation.b_ROOT:
-                case OutputLocation.b_ANIMATIONS:
-                case OutputLocation.b_ANIMATION_CONTROLLERS:
-                case OutputLocation.b_BLOCKS:
-                case OutputLocation.b_BIOMES:
-                case OutputLocation.b_DIALOGUE:
-                case OutputLocation.b_ENTITIES:
-                case OutputLocation.b_FEATURES:
-                case OutputLocation.b_FEATURE_RULES:
-                case OutputLocation.b_FUNCTIONS:
-                case OutputLocation.b_ITEMS:
-                case OutputLocation.b_LOOT_TABLES:
-                case OutputLocation.b_RECIPES:
-                case OutputLocation.b_SCRIPTS__CLIENT:
-                case OutputLocation.b_SCRIPTS__SERVER:
-                case OutputLocation.b_SCRIPTS__GAMETESTS:
-                case OutputLocation.b_SPAWN_RULES:
-                case OutputLocation.b_TEXTS:
-                case OutputLocation.b_TRADING:
-                case OutputLocation.b_STRUCTURES:
-                    return true;
-                case OutputLocation.r_ROOT:
-                case OutputLocation.r_ANIMATION_CONTROLLERS:
-                case OutputLocation.r_ANIMATIONS:
-                case OutputLocation.r_ATTACHABLES:
-                case OutputLocation.r_ENTITY:
-                case OutputLocation.r_FOGS:
-                case OutputLocation.r_MODELS__ENTITY:
-                case OutputLocation.r_MODELS__BLOCKS:
-                case OutputLocation.r_PARTICLES:
-                case OutputLocation.r_ITEMS:
-                case OutputLocation.r_RENDER_CONTROLLERS:
-                case OutputLocation.r_SOUNDS:
-                case OutputLocation.r_TEXTS:
-                case OutputLocation.r_TEXTURES__ENVIRONMENT:
-                case OutputLocation.r_TEXTURES__BLOCKS:
-                case OutputLocation.r_TEXTURES__ENTITY:
-                case OutputLocation.r_TEXTURES__ITEMS:
-                case OutputLocation.r_TEXTURES__PARTICLE:
-                case OutputLocation.r_UI:
-                    return false;
-                default:
-                    return true;
-            }
+                OutputLocation.b_ROOT or OutputLocation.b_ANIMATIONS or OutputLocation.b_ANIMATION_CONTROLLERS
+                    or OutputLocation.b_BLOCKS or OutputLocation.b_BIOMES or OutputLocation.b_DIALOGUE
+                    or OutputLocation.b_ENTITIES or OutputLocation.b_FEATURES or OutputLocation.b_FEATURE_RULES
+                    or OutputLocation.b_FUNCTIONS or OutputLocation.b_ITEMS or OutputLocation.b_LOOT_TABLES
+                    or OutputLocation.b_RECIPES or OutputLocation.b_SCRIPTS__CLIENT or OutputLocation.b_SCRIPTS__SERVER
+                    or OutputLocation.b_SCRIPTS__GAMETESTS or OutputLocation.b_SPAWN_RULES or OutputLocation.b_TEXTS
+                    or OutputLocation.b_TRADING or OutputLocation.b_STRUCTURES => true,
+                OutputLocation.r_ROOT or OutputLocation.r_ANIMATION_CONTROLLERS or OutputLocation.r_ANIMATIONS
+                    or OutputLocation.r_ATTACHABLES or OutputLocation.r_ENTITY or OutputLocation.r_FOGS
+                    or OutputLocation.r_MODELS__ENTITY or OutputLocation.r_MODELS__BLOCKS or OutputLocation.r_PARTICLES
+                    or OutputLocation.r_ITEMS or OutputLocation.r_RENDER_CONTROLLERS or OutputLocation.r_SOUNDS
+                    or OutputLocation.r_TEXTS or OutputLocation.r_TEXTURES__ENVIRONMENT
+                    or OutputLocation.r_TEXTURES__BLOCKS or OutputLocation.r_TEXTURES__ENTITY
+                    or OutputLocation.r_TEXTURES__ITEMS or OutputLocation.r_TEXTURES__PARTICLE
+                    or OutputLocation.r_UI => false,
+                _ => true
+            };
         }
     }
     /// <summary>

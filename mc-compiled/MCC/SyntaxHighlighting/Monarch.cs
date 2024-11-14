@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {
@@ -26,7 +27,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 writer.WriteLine($"\t\tword: `{value.name}`,");
                 writer.WriteLine(value.documentation != null
                     ? $"\t\tdocs: `{value.documentation.Replace("`", "\\`")}`"
-                    : $"\t\tdocs: 'No documentation available for v{Compiler.Executor.MCC_VERSION}.'");
+                    : $"\t\tdocs: 'No documentation available for v{Executor.MCC_VERSION}.'");
                 writer.WriteLine("\t},");
             }
 

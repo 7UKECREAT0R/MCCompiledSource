@@ -38,17 +38,13 @@ namespace mc_compiled.Commands.Native
         /// <returns>A BlockState object created from the literal token, or null if the conversion fails.</returns>
         public static BlockState FromLiteral(string fieldName, TokenLiteral literal)
         {
-            switch (literal)
+            return literal switch
             {
-                case TokenStringLiteral str:
-                    return new BlockState(fieldName, str.text);
-                case TokenBooleanLiteral boolean:
-                    return new BlockState(fieldName, boolean.boolean);
-                case TokenNumberLiteral num:
-                    return new BlockState(fieldName, num.GetNumberInt());
-                default:
-                    return new BlockState(fieldName, literal.AsString());
-            }
+                TokenStringLiteral str => new BlockState(fieldName, str.text),
+                TokenBooleanLiteral boolean => new BlockState(fieldName, boolean.boolean),
+                TokenNumberLiteral num => new BlockState(fieldName, num.GetNumberInt()),
+                _ => new BlockState(fieldName, literal.AsString())
+            };
         }
         
         private string FieldName { get; }
@@ -60,17 +56,13 @@ namespace mc_compiled.Commands.Native
         
         public override string ToString()
         {
-            switch (this.ValueType)
+            return this.ValueType switch
             {
-                case BlockStateType.Enum:
-                    return $@"""{this.FieldName}""=""{this.ValueAsEnum}""";
-                case BlockStateType.Boolean:
-                    return $@"""{this.FieldName}""={this.ValueAsBoolean}";
-                case BlockStateType.Integer:
-                    return $@"""{this.FieldName}""={this.ValueAsInteger}";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                BlockStateType.Enum => $@"""{this.FieldName}""=""{this.ValueAsEnum}""",
+                BlockStateType.Boolean => $@"""{this.FieldName}""={this.ValueAsBoolean}",
+                BlockStateType.Integer => $@"""{this.FieldName}""={this.ValueAsInteger}",
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
     public enum BlockStateType

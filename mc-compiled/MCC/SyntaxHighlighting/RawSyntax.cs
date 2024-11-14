@@ -13,7 +13,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
     {
         private static JObject BuildKeywords(Keywords keywords)
         {
-            var json = new JObject()
+            var json = new JObject
             {
                 ["formatting"] = keywords.style.ToJson(),
             };
@@ -25,7 +25,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         }
         protected static JObject Build()
         {
-            var json = new JObject()
+            var json = new JObject
             {
                 ["version"] = Executor.MCC_VERSION,
                 ["extension"] = Syntax.EXTENSION,

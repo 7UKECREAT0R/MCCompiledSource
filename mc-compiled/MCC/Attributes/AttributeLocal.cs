@@ -8,8 +8,7 @@ namespace mc_compiled.MCC.Attributes
     {
         public string GetDebugString() => "local";
         public string GetCodeRepresentation() => "local";
-        
-        internal AttributeLocal() { }
+
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement)
         {
             value.clarifier.SetGlobal(false);

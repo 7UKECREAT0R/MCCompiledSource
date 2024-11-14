@@ -75,18 +75,18 @@ namespace mc_compiled.MCC.Compiler
         /// Sets all the items of the preprocessor variable with the specified items.
         /// </summary>
         /// <typeparam name="T">The type of items.</typeparam>
-        /// <param name="items">The items to set in the preprocessor variable.</param>
+        /// <param name="newItems">The items to set in the preprocessor variable.</param>
         /// <exception cref="Exception">Thrown when the items array is empty.</exception>
         
         [PublicAPI]
-        public void SetAll(params T[] items)
+        public void SetAll(params T[] newItems)
         {
-            if (items.Length == 0)
+            if (newItems.Length == 0)
                 throw new Exception("Cannot fill preprocessor variable with 0 items.");
 
-            this.items = items;
-            this.Length = items.Length;
-            this.Capacity = items.Length;
+            this.items = newItems;
+            this.Length = newItems.Length;
+            this.Capacity = newItems.Length;
         }
         /// <summary>
         /// Sets all the items of the preprocessor variable with the specified items.
@@ -156,11 +156,11 @@ namespace mc_compiled.MCC.Compiler
         /// Appends a range of items to the existing items in the array.
         /// </summary>
         /// <typeparam name="T">The type of items in the array.</typeparam>
-        /// <param name="_items">The range of items to append.</param>
-        public void AppendRange(IEnumerable<T> _items)
+        /// <param name="_newItems">The range of items to append.</param>
+        public void AppendRange(IEnumerable<T> _newItems)
         {
-            T[] items = _items.ToArray();
-            int length = items.Length;
+            T[] newItems = _newItems.ToArray();
+            int length = newItems.Length;
             int resultLength = this.Length + length;
 
             if (resultLength > this.Capacity)
@@ -172,18 +172,18 @@ namespace mc_compiled.MCC.Compiler
                 Array.Resize(ref this.items, this.Capacity);
             }
             
-            Array.Copy(items, 0, this.items, this.Length, length);
+            Array.Copy(newItems, 0, this.items, this.Length, length);
             this.Length = resultLength;
         }
         /// <summary>
         /// Prepends a collection of items to the beginning of the current collection.
         /// </summary>
         /// <typeparam name="T">The type of elements in the collection.</typeparam>
-        /// <param name="_items">The collection to prepend to the current collection.</param>
-        public void PrependRange(IEnumerable<T> _items)
+        /// <param name="_newItems">The collection to prepend to the current collection.</param>
+        public void PrependRange(IEnumerable<T> _newItems)
         {
-            T[] items = _items.ToArray();
-            int length = items.Length;
+            T[] newItems = _newItems.ToArray();
+            int length = newItems.Length;
             int resultLength = this.Length + length;
 
             if (resultLength > this.Capacity)
@@ -198,7 +198,7 @@ namespace mc_compiled.MCC.Compiler
             // move all elements right in this.items 'length'
             Array.Copy(this.items, 0, this.items, length, this.Length);
             // insert items to prepend
-            Array.Copy(items, 0, this.items, 0, length);
+            Array.Copy(newItems, 0, this.items, 0, length);
             this.Length = resultLength;
         }
 

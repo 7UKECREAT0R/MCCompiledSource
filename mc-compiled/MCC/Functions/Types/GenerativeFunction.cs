@@ -31,7 +31,7 @@ namespace mc_compiled.MCC.Functions.Types
             this.name = name;
             this.documentation = documentation;
             this.returns = returns;
-            this.parameters = new List<FunctionParameter>();
+            this.parameters = [];
             this.createdVariants = new Dictionary<int, Tuple<CommandFile, ScoreboardValue>>();
             this.tempValues = new Dictionary<int, int>();
         }
@@ -60,13 +60,16 @@ namespace mc_compiled.MCC.Functions.Types
         }
 
         /// <summary>
-        /// Generate code for the current input parameters, outputting into `output`. Everything else is handled by <see cref="GenerativeFunction"/>'s <see cref="CallFunction(List{string}, Executor, Statement)"/> implementation.
+        /// Generate code for the current input parameters, outputting into `output`.
+        /// Everything else is handled by <see cref="GenerativeFunction"/>'s <see cref="CallFunction(List{string},Token[],Executor,Statement)"/> implementation.
         /// </summary>
         /// <param name="output">The file to emit the generated code into.</param>
         /// <param name="uniqueIdentifier">A unique identifier representing this iteration of the code generation.</param>
-        /// <param name="executor"></param>
-        /// <param name="statement"></param>
-        public abstract void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement, out ScoreboardValue resultValue);
+        /// <param name="executor">The executor responsible for executing the generated code.</param>
+        /// <param name="statement">The statement that represents the current context of code generation.</param>
+        /// <param name="resultValue">An output parameter that returns the generated scoreboard value.</param>
+        public abstract void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor,
+            Statement statement, out ScoreboardValue resultValue);
 
         /// <summary>
         /// Adds a parameter to this function.
@@ -81,21 +84,21 @@ namespace mc_compiled.MCC.Functions.Types
         /// <summary>
         /// Adds multiple parameters to this function.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="newParameters"></param>
         /// <returns>This object for chaining.</returns>
-        public GenerativeFunction AddParameters(IEnumerable<FunctionParameter> parameters)
+        public GenerativeFunction AddParameters(IEnumerable<FunctionParameter> newParameters)
         {
-            this.parameters.AddRange(parameters);
+            this.parameters.AddRange(newParameters);
             return this;
         }
         /// <summary>
         /// Adds multiple runtime parameters to this function.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="newParameters"></param>
         /// <returns>This object for chaining.</returns>
-        public GenerativeFunction AddParameters(params FunctionParameter[] parameters)
+        public GenerativeFunction AddParameters(params FunctionParameter[] newParameters)
         {
-            this.parameters.AddRange(parameters);
+            this.parameters.AddRange(newParameters);
             return this;
         }
 
@@ -115,6 +118,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="value">The value to try to return.</param>
         /// <param name="executor">The executor.</param>
         /// <param name="caller">The statement to blame for when everything explodes.</param>
+        /// <param name="returnedTo">The scoreboard value that the return value was stored in.</param>
         /// <returns>The commands needed to perform the return.</returns>
         public string TryReturnValue(ScoreboardValue value, Executor executor, Statement caller, out ScoreboardValue returnedTo)
         {
@@ -154,6 +158,7 @@ namespace mc_compiled.MCC.Functions.Types
         /// <param name="value">The value to try to return.</param>
         /// <param name="executor">The executor.</param>
         /// <param name="caller">The statement to blame for when everything explodes.</param>
+        /// <param name="returnedTo">The scoreboard value that the return value was stored in.</param>
         /// <returns>The commands needed to perform the return.</returns>
         public string TryReturnValue(string parameterName, TokenLiteral value, Executor executor, Statement caller, out ScoreboardValue returnedTo)
         {
@@ -233,7 +238,7 @@ namespace mc_compiled.MCC.Functions.Types
             // calculate hash by input parameter types
             foreach (FunctionParameter parameter in this.parameters)
             {
-                if (!(parameter is CompiletimeFunctionParameter compiletimeFunctionParameter))
+                if (parameter is not CompiletimeFunctionParameter compiletimeFunctionParameter)
                     continue;
                 
                 Token token = compiletimeFunctionParameter.CurrentValue;

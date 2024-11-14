@@ -1,16 +1,15 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.Commands.Execute;
-using mc_compiled.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
+using mc_compiled.Json;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 {
     internal sealed class TypedefTime : TypedefInteger
     {
-        internal TypedefTime() {}
-        
         private const string SB_HOURS = "_mcc_t_hrs";
         private const string SB_MINUTES = "_mcc_t_min";
         private const string SB_SECONDS = "_mcc_t_sec";
@@ -60,7 +59,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
             manager.DefineMany(scoreboardHours, scoreboardMinutes, scoreboardSeconds, temporary, constant);
 
-            var commands = new List<string>()
+            var commands = new List<string>
             {
                 Command.ScoreboardSet(constant, 20),
                 Command.ScoreboardOpSet(temporary, value),
@@ -124,7 +123,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
                     for (int digits = 0; digits < format.minimumHours; digits++)
                     {
-                        buffer.Add(new ConditionalTerm(new JSONRawTerm[] { new JSONText(textBuffer.ToString()) }, ConditionalSubcommandScore.New(value.clarifier.CurrentString, hours, new Range(bound, previousBound)), false));
+                        buffer.Add(new ConditionalTerm([new JSONText(textBuffer.ToString())], ConditionalSubcommandScore.New(value.clarifier.CurrentString, hours, new Range(bound, previousBound)), false));
 
                         textBuffer.Append('0');
                         previousBound = bound - 1;
@@ -154,7 +153,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
                     for (int digits = 0; digits < format.minimumMinutes; digits++)
                     {
-                        buffer.Add(new ConditionalTerm(new JSONRawTerm[] { new JSONText(textBuffer.ToString()) }, ConditionalSubcommandScore.New(value.clarifier.CurrentString, minutes, new Range(bound, previousBound)), false));
+                        buffer.Add(new ConditionalTerm([new JSONText(textBuffer.ToString())], ConditionalSubcommandScore.New(value.clarifier.CurrentString, minutes, new Range(bound, previousBound)), false));
 
                         textBuffer.Append('0');
                         previousBound = bound - 1;
@@ -189,7 +188,7 @@ namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations
 
                     for (int digits = 0; digits < format.minimumSeconds; digits++)
                     {
-                        buffer.Add(new ConditionalTerm(new JSONRawTerm[] { new JSONText(textBuffer.ToString()) }, ConditionalSubcommandScore.New(value.clarifier.CurrentString, seconds, new Range(bound, previousBound)), false));
+                        buffer.Add(new ConditionalTerm([new JSONText(textBuffer.ToString())], ConditionalSubcommandScore.New(value.clarifier.CurrentString, seconds, new Range(bound, previousBound)), false));
 
                         textBuffer.Append('0');
                         previousBound = bound - 1;

@@ -1,9 +1,9 @@
-﻿using mc_compiled.MCC.Functions.Types;
-using mc_compiled.Modding;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
+using mc_compiled.MCC.Functions.Types;
+using mc_compiled.Modding;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -15,11 +15,11 @@ namespace mc_compiled.MCC.Compiler
         /// <summary>
         /// A list of all of the other CommandFiles that this file makes reference to.
         /// </summary>
-        private readonly List<CommandFile> calls = new List<CommandFile>();
+        private readonly List<CommandFile> calls = [];
         /// <summary>
         /// A list of all of the commands in this file.
         /// </summary>
-        internal readonly List<string> commands = new List<string>();
+        internal readonly List<string> commands = [];
 
         private bool isAsync;
         private bool isInUse;
@@ -211,16 +211,16 @@ namespace mc_compiled.MCC.Compiler
         }
 
         public void Add(string command) => this.commands.Add(command);
-        public void Add(IEnumerable<string> commands) =>
-            this.commands.AddRange(commands);
+        public void Add(IEnumerable<string> newCommands) =>
+            this.commands.AddRange(newCommands);
         public void CopyFrom(CommandFile sustainLoop)
         {
             this.commands.AddRange(sustainLoop.commands);
         }
 
         public void AddTop(string command) => this.commands.Insert(0, command);
-        public void AddTop(IEnumerable<string> commands) =>
-            this.commands.InsertRange(0, commands);
+        public void AddTop(IEnumerable<string> newCommands) =>
+            this.commands.InsertRange(0, newCommands);
 
         /// <summary>
         /// Adds the following standard comment to the file: "Located at (callingFile) line (callingFile.Length)"

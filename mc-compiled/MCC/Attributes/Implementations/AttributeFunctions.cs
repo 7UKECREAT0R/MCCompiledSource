@@ -5,6 +5,9 @@ using mc_compiled.MCC.Compiler.Implementations;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
 
+// Disabling this because I'd like to keep the names of the lambda parameters -lukecreator
+// ReSharper disable UnusedParameter.Local
+
 namespace mc_compiled.MCC.Attributes.Implementations
 {
     public static class AttributeFunctions
@@ -84,7 +87,7 @@ namespace mc_compiled.MCC.Attributes.Implementations
                     int colon = target.IndexOf(':');
 
                     if (colon != -1) // get rid of namespace
-                        target = target.Substring(colon + 1);
+                        target = target[(colon + 1)..];
 
                     if (!target.EndsWith(".json")) // force .json at the end
                         target += ".json";
@@ -111,21 +114,20 @@ namespace mc_compiled.MCC.Attributes.Implementations
                 bool isLocal = passedInAttribute.attribute is AttributeLocal;
                 bool isGlobal = passedInAttribute.attribute is AttributeGlobal;
 
-                switch (isLocal)
+                return isLocal switch
                 {
-                    case false when !isGlobal:
-                        throw new StatementException(statement, "Parameter for 'async' must be either 'local' or 'global'.");
-                    case true:
-                        return new AttributeAsync(AsyncTarget.Local);
-                    default:
-                        return new AttributeAsync(AsyncTarget.Global);
-                }
+                    false when !isGlobal => throw new StatementException(statement,
+                        "Parameter for 'async' must be either 'local' or 'global'."),
+                    true => new AttributeAsync(AsyncTarget.Local),
+                    _ => new AttributeAsync(AsyncTarget.Global)
+                };
             });
 
         /// <summary>
         /// Keep at the bottom of the class because of static ordering.
         /// </summary>
-        internal static readonly AttributeFunction[] ALL_ATTRIBUTES = {
+        internal static readonly AttributeFunction[] ALL_ATTRIBUTES =
+        [
             GLOBAL,
             LOCAL,
             EXTERN,
@@ -134,6 +136,6 @@ namespace mc_compiled.MCC.Attributes.Implementations
             AUTO,
             PARTIAL,
             ASYNC
-        };
+        ];
     }
 }

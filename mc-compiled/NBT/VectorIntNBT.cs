@@ -13,16 +13,16 @@
 
         public NBTList ToNBT(string name)
         {
-            return new NBTList()
+            return new NBTList
             {
                 name = name,
                 listType = TAG.Int,
-                values = new NBTInt[]
-                {
-                    new NBTInt() { name = "", value = this.x },
-                    new NBTInt() { name = "", value = this.y },
-                    new NBTInt() { name = "", value = this.z }
-                }
+                values =
+                [
+                    new NBTInt { name = "", value = this.x },
+                    new NBTInt { name = "", value = this.y },
+                    new NBTInt { name = "", value = this.z }
+                ]
             };
         }
     }

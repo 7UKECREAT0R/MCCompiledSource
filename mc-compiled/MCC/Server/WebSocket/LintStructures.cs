@@ -1,10 +1,10 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace mc_compiled.MCC.ServerWebSocket
 {
@@ -45,7 +45,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         public string ToJSON()
         {
-            JArray errors = new JArray();
+            JArray errors = [];
 
             foreach (int line in this.lines)
             {
@@ -64,12 +64,11 @@ namespace mc_compiled.MCC.ServerWebSocket
     }
     public class LintStructure
     {
-        internal List<string> ppvs = new List<string>();
-        internal List<VariableStructure> variables = new List<VariableStructure>();
-        internal List<FunctionStructure> functions = new List<FunctionStructure>();
-        internal List<MacroStructure> macros = new List<MacroStructure>();
+        internal List<string> ppvs = [];
+        internal List<VariableStructure> variables = [];
+        internal List<FunctionStructure> functions = [];
+        internal List<MacroStructure> macros = [];
 
-        public LintStructure() { }
         public static LintStructure Harvest(Executor executor)
         {
             LintStructure lint = new LintStructure();
@@ -95,21 +94,21 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         JArray PPVToJSON()
         {
-            JArray json = new JArray();
+            JArray json = [];
             foreach (string ppv in this.ppvs)
                 json.Add(ppv);
             return json;
         }
         JArray FunctionsToJSON()
         {
-            JArray array = new JArray();
+            JArray array = [];
             foreach(FunctionStructure function in this.functions)
                 array.Add(function.ToJSON());
             return array;
         }
         JArray MacrosToJSON()
         {
-            JArray array = new JArray();
+            JArray array = [];
             foreach(MacroStructure macro in this.macros)
                 array.Add(macro.ToJSON());
             return array;
@@ -131,7 +130,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         }
     }
 
-    public struct FunctionStructure
+    public readonly struct FunctionStructure : IEquatable<FunctionStructure>
     {
         public readonly string name;
         public readonly string returnType;
@@ -143,7 +142,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             this.name = name;
             this.returnType = returnType;
             this.docs = docs;
-            this.args = new List<VariableStructure>(args);
+            this.args = [..args];
         }
         public static FunctionStructure Wrap(Function function, LintStructure parent)
         {
@@ -152,7 +151,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             string returnType = function.Returns;
 
             int count = function.ParameterCount;
-            List<VariableStructure> variables = new List<VariableStructure>();
+            List<VariableStructure> variables = [];
             FunctionParameter[] parameters = function.Parameters;
 
             for (int i = 0; i < count; i++)
@@ -179,7 +178,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         public override bool Equals(object obj)
         {
-            if (!(obj is FunctionStructure structure))
+            if (obj is not FunctionStructure structure)
                 return false;
             if (!this.name.Equals(structure.name))
                 return false;
@@ -223,8 +222,20 @@ namespace mc_compiled.MCC.ServerWebSocket
             return json;
         }
 
+        public bool Equals(FunctionStructure other)
+        {
+            return this.name == other.name && this.returnType == other.returnType && this.docs == other.docs && Equals(this.args, other.args);
+        }
+        public static bool operator ==(FunctionStructure left, FunctionStructure right)
+        {
+            return left.Equals(right);
+        }
+        public static bool operator !=(FunctionStructure left, FunctionStructure right)
+        {
+            return !(left == right);
+        }
     }
-    public struct VariableStructure
+    public readonly struct VariableStructure : IEquatable<VariableStructure>
     {
         public readonly string name;
         public readonly string type;
@@ -262,7 +273,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         }
         public static JArray Join(List<VariableStructure> variables)
         {
-            return new JArray(variables.Select(variable => variable.ToJSON()).ToArray());
+            return new JArray(variables.Select(variable => variable.ToJSON()).ToArray<object>());
         }
         public override bool Equals(object obj)
         {
@@ -275,19 +286,26 @@ namespace mc_compiled.MCC.ServerWebSocket
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.type);
             return hashCode;
         }
-    }
-    public struct MacroStructure
-    {
-        public readonly string name;
-        public readonly string[] arguments;
-        public readonly string docs;
 
-        public MacroStructure(string name, string[] arguments, string docs)
+        public static bool operator ==(VariableStructure left, VariableStructure right)
         {
-            this.name = name;
-            this.arguments = arguments;
-            this.docs = docs;
+            return left.Equals(right);
         }
+        public static bool operator !=(VariableStructure left, VariableStructure right)
+        {
+            return !(left == right);
+        }
+        public bool Equals(VariableStructure other)
+        {
+            return this.name == other.name && this.type == other.type && this.docs == other.docs;
+        }
+    }
+    public readonly struct MacroStructure(string name, string[] arguments, string docs)
+    {
+        public readonly string name = name;
+        public readonly string[] arguments = arguments;
+        public readonly string docs = docs;
+
         public static MacroStructure Wrap(Macro macro)
         {
             return new MacroStructure(macro.name, macro.argNames,
@@ -296,10 +314,12 @@ namespace mc_compiled.MCC.ServerWebSocket
 
         public JObject ToJSON()
         {
-            JObject json = new JObject();
-            json["name"] = this.name;
-            json["arguments"] = new JArray(this.arguments);
-            json["docs"] = this.docs.Base64Encode();
+            var json = new JObject
+            {
+                ["name"] = this.name,
+                ["arguments"] = new JArray(this.arguments.Cast<object>().ToArray()),
+                ["docs"] = this.docs.Base64Encode()
+            };
             return json;
         }
     }

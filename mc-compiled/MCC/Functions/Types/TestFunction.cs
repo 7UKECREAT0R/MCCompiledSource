@@ -1,7 +1,5 @@
-﻿using mc_compiled.MCC.Attributes;
+﻿using System.Collections.Generic;
 using mc_compiled.MCC.Compiler;
-using System;
-using System.Collections.Generic;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -10,7 +8,7 @@ namespace mc_compiled.MCC.Functions.Types
     /// </summary>
     internal class TestFunction : RuntimeFunction
     {
-        public TestFunction(Statement creationStatement, string name, string internalName, string documentation) : base(creationStatement, name, internalName, documentation, Array.Empty<IAttribute>(), false)
+        public TestFunction(Statement creationStatement, string name, string internalName, string documentation) : base(creationStatement, name, internalName, documentation, [])
         {
             this.file.AsInUse();
             this.file.AsTest();

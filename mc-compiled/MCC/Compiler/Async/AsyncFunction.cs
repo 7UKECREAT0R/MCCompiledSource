@@ -5,6 +5,7 @@ using mc_compiled.Commands;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Functions.Types;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler.Async
 {
@@ -92,12 +93,12 @@ namespace mc_compiled.MCC.Compiler.Async
             this.groups.Add(stageList);
         }
         
-        public override Action<Executor> BlockOpenAction => e =>
+        public override Action<Executor> BlockOpenAction => _ =>
         {
             // starts the first async stage
             StartNewStage();
         };
-        public override Action<Executor> BlockCloseAction => e =>
+        public override Action<Executor> BlockCloseAction => _ =>
         {
             // stop this async function and remove it from the parent
             this.parent.StopAsyncFunction();
@@ -136,14 +137,14 @@ namespace mc_compiled.MCC.Compiler.Async
             this.file.RegisterCall(this.tickPrerequisite);
             this.file.RegisterCall(this.tick);
 
-            this.tickPrerequisite.Add(new[] {
+            this.tickPrerequisite.Add([
                 // if timer == 0: stage++
                 Command.Execute().IfScore(this.timerValue, Range.Of(0)).Run(Command.ScoreboardAdd(this.stageValue, 1)),
                 // if timer >= 0: timer--
                 Command.Execute().IfScore(this.timerValue, new Range(0, null)).Run(Command.ScoreboardSubtract(this.timerValue, 1)),
                 // if timer == -1: tick()
                 Command.Execute().IfScore(this.timerValue, Range.Of(-1)).Run(Command.Function(this.tick))
-            });
+            ]);
         }
         private void InitializeCallCommands()
         {
@@ -203,10 +204,10 @@ namespace mc_compiled.MCC.Compiler.Async
             this.actualInternalName = internalName;
             this.escapedFunctionName = EscapeFunctionName(internalName);
             this.target = target;
-            this.waitsOn = new HashSet<AsyncFunction>();
+            this.waitsOn = [];
             
             // initialize the groups
-            this.groups = new List<List<AsyncStage>>();
+            this.groups = [];
             StartNewGroup();
             
             InitializeScoreboardValues(this.parent.parent.scoreboard);
@@ -301,12 +302,12 @@ namespace mc_compiled.MCC.Compiler.Async
         /// <returns></returns>
         public IEnumerable<string> CommandsHalt()
         {
-            return new[]
-            {
+            return
+            [
                 Command.ScoreboardSet(this.runningValue, 0),
                 Command.ScoreboardSet(this.timerValue, -1),
                 Command.ScoreboardSet(this.stageValue, -1)
-            };
+            ];
         }
         /// <summary>
         /// Sends information about this function's groups and stages to stdout.

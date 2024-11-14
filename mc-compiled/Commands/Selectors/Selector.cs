@@ -1,7 +1,8 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.Commands.Selectors
 {
@@ -24,45 +25,32 @@ namespace mc_compiled.Commands.Selectors
         {
             string originalCore = core;
             if (core.StartsWith("@"))
-                core = core.Substring(1);
-            switch (core.ToUpper())
+                core = core[1..];
+            return core.ToUpper() switch
             {
-                case "P":
-                    return Core.p;
-                case "S":
-                    return Core.s;
-                case "A":
-                    return Core.a;
-                case "E":
-                    return Core.e;
-                case "R":
-                    return Core.r;
-                case "INITIATOR":
-                case "I":
-                    throw new FormatException($"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue.");
-                default:
-                    throw new FormatException($"Cannot parse selector \"{originalCore}\"");
-            }
+                "P" => Core.p,
+                "S" => Core.s,
+                "A" => Core.a,
+                "E" => Core.e,
+                "R" => Core.r,
+                "INITIATOR" or "I" => throw new FormatException(
+                    $"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue."),
+                _ => throw new FormatException($"Cannot parse selector \"{originalCore}\"")
+            };
         }
         public static Core ParseCore(char core)
         {
-            switch (char.ToUpper(core))
+            return char.ToUpper(core) switch
             {
-                case 'P':
-                    return Core.p;
-                case 'S':
-                    return Core.s;
-                case 'A':
-                    return Core.a;
-                case 'E':
-                    return Core.e;
-                case 'R':
-                    return Core.r;
-                case 'I':
-                    throw new FormatException($"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue.");
-                default:
-                    throw new FormatException($"Cannot parse selector \"{core}\"");
-            }
+                'P' => Core.p,
+                'S' => Core.s,
+                'A' => Core.a,
+                'E' => Core.e,
+                'R' => Core.r,
+                'I' => throw new FormatException(
+                    $"Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue."),
+                _ => throw new FormatException($"Cannot parse selector \"{core}\"")
+            };
         }
 
         /// <summary>
@@ -124,11 +112,11 @@ namespace mc_compiled.Commands.Selectors
         {
             this.scores = new Scores
             {
-                checks = new List<ScoresEntry>()
+                checks = []
             };
             this.hasItem = new HasItems
             {
-                entries = new List<HasItemEntry>()
+                entries = []
             };
             this.count = new Count
             {
@@ -137,18 +125,18 @@ namespace mc_compiled.Commands.Selectors
             this.area = new Area();
             this.entity = new Entity();
             this.player = new Player();
-            this.tags = new List<Tag>();
+            this.tags = [];
         }
         public Selector(Core core)
         {
             this.core = core;
             this.scores = new Scores
             {
-                checks = new List<ScoresEntry>()
+                checks = []
             };
             this.hasItem = new HasItems
             {
-                entries = new List<HasItemEntry>()
+                entries = []
             };
             this.count = new Count
             {
@@ -157,7 +145,7 @@ namespace mc_compiled.Commands.Selectors
             this.area = new Area();
             this.entity = new Entity();
             this.player = new Player();
-            this.tags = new List<Tag>();
+            this.tags = [];
         }
         public Selector(Selector copy)
         {
@@ -168,7 +156,7 @@ namespace mc_compiled.Commands.Selectors
             this.count = copy.count;
             this.entity = copy.entity;
             this.player = copy.player;
-            this.tags = new List<Tag>(copy.tags);
+            this.tags = [..copy.tags];
         }
         public static Selector Parse(string str)
         {
@@ -182,8 +170,8 @@ namespace mc_compiled.Commands.Selectors
                 return new Selector(core);
             }
 
-            string coreSection = str.Substring(0, bracket);
-            string bracketSection = str.Substring(bracket);
+            string coreSection = str[..bracket];
+            string bracketSection = str[bracket..];
 
             core = ParseCore(coreSection);
             return Parse(core, bracketSection);
@@ -194,7 +182,7 @@ namespace mc_compiled.Commands.Selectors
             string[] chunks = str.Split(',')
                 .Select(c => c.Trim()).ToArray();
 
-            Selector selector = new Selector()
+            Selector selector = new Selector
             {
                 core = core,
                 area = Area.Parse(chunks),
@@ -210,11 +198,11 @@ namespace mc_compiled.Commands.Selectors
                 int index = chunk.IndexOf('=');
                 if (index == -1)
                     continue;
-                string a = chunk.Substring(0, index).Trim().ToUpper();
+                string a = chunk[..index].Trim().ToUpper();
 
                 if (a.Equals("TAG"))
                 {
-                    string b = chunk.Substring(index + 1).Trim();
+                    string b = chunk[(index + 1)..].Trim();
                     selector.tags.Add(Tag.Parse(b));
                 }
             }
@@ -258,7 +246,7 @@ namespace mc_compiled.Commands.Selectors
         /// <returns></returns>
         public override string ToString()
         {
-            List<string> parts = new List<string>();
+            List<string> parts = [];
 
             string sScores = this.scores.GetSection(),
                 sHasItem = this.hasItem.GetSection(),
@@ -293,6 +281,7 @@ namespace mc_compiled.Commands.Selectors
             return Equals((Selector) obj);
         }
 
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             unchecked

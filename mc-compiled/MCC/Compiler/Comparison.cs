@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
-using System.Collections.Generic;
-using System.Linq;
 using mc_compiled.MCC.Compiler.Async;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -44,7 +45,7 @@ namespace mc_compiled.MCC.Compiler
         public static ComparisonSet GetComparisons(Executor executor, Statement tokens)
         {
             if (!tokens.HasNext)
-                return new ComparisonSet();
+                return [];
 
             var set = new ComparisonSet();
             bool invertNext = false;
@@ -192,7 +193,7 @@ namespace mc_compiled.MCC.Compiler
                 currentToken = tokens.Next();
 
                 // loop again if an AND operator is present
-                if (!(currentToken is TokenAnd))
+                if (currentToken is not TokenAnd)
                     throw new StatementException(tokens, "Missing 'and' between conditions.");
                 if (!tokens.HasNext)
                     throw new StatementException(tokens, "No condition specified after 'and'.");
@@ -260,7 +261,7 @@ namespace mc_compiled.MCC.Compiler
 
             // apply the comparisons.
             if (usesElse || executor.async.IsInAsync) // if we're in async, we need implicit else for skipping stages
-                ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel, usesElse);
+                ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel);
             else
                 ApplyComparisonToSolo(chunks, executor, cancel);
         }
@@ -353,9 +354,8 @@ namespace mc_compiled.MCC.Compiler
         /// <param name="forExceptions">For exceptions.</param>
         /// <param name="executor">The executor to modify.</param>
         /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
-        /// <param name="usesElse"></param>
         private void ApplyComparisonToWithElse(IEnumerable<Subcommand> chunks, CommandFile setupFile,
-            Statement forExceptions, Executor executor, bool cancel, bool usesElse)
+            Statement forExceptions, Executor executor, bool cancel)
         {
             var record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel, GetDescription());
             ScoreboardValue resultObjective = record.resultStore;

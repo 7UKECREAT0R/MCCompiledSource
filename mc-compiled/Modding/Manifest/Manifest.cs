@@ -26,8 +26,8 @@ namespace mc_compiled.Modding.Manifest
         {
             this.type = type;
             this.header = header;
-            this.dependencies = new List<Dependency>();
-            this.modules = new List<Module>();
+            this.dependencies = [];
+            this.modules = [];
         }
         /// <summary>
         /// Construct a default manifest based on some basic input information.
@@ -39,8 +39,8 @@ namespace mc_compiled.Modding.Manifest
         {
             this.type = type;
             this.header = ManifestHeader.Default(type, projectName, uuid);
-            this.dependencies = new List<Dependency>();
-            this.modules = new List<Module>();
+            this.dependencies = [];
+            this.modules = [];
         }
         /// <summary>
         /// Appends a dependency to the manifest.

@@ -112,7 +112,7 @@ namespace mc_compiled.Modding.Resources
         /// <summary>
         /// Represents a sound definition.
         /// </summary>
-        internal SoundDefinition(string name, string fileName, SoundCategory category, params string[] sounds)
+        internal SoundDefinition(string name, SoundCategory category, params string[] sounds)
         {
             this.name = name;
             this.category = category;
@@ -153,7 +153,7 @@ namespace mc_compiled.Modding.Resources
                 }
             }
             
-            return new SoundDefinition(name, name, category, sounds.ToArray());
+            return new SoundDefinition(name, category, sounds.ToArray());
         }
         public JProperty ToJSON()
         {

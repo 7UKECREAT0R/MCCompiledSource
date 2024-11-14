@@ -1,9 +1,10 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.Commands.Execute;
-using mc_compiled.Commands.Selectors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Selectors;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -37,7 +38,7 @@ namespace mc_compiled.MCC.Compiler
             $"{this.score.Name}";
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
-            return new[] {this.score };
+            return [this.score];
         }
     }
 
@@ -63,34 +64,22 @@ namespace mc_compiled.MCC.Compiler
 
         private void FindAType()
         {
-            switch (this.a)
+            this.aType = this.a switch
             {
-                case TokenIdentifierValue _:
-                    this.aType = SideType.Variable;
-                    break;
-                case TokenNumberLiteral _:
-                    this.aType = SideType.Constant;
-                    break;
-                default:
-                    this.aType = SideType.Unknown;
-                    break;
-            }
+                TokenIdentifierValue _ => SideType.Variable,
+                TokenNumberLiteral _ => SideType.Constant,
+                _ => SideType.Unknown
+            };
         }
 
         private void FindBType()
         {
-            switch (this.b)
+            this.bType = this.b switch
             {
-                case TokenIdentifierValue _:
-                    this.bType = SideType.Variable;
-                    break;
-                case TokenNumberLiteral _:
-                    this.bType = SideType.Constant;
-                    break;
-                default:
-                    this.bType = SideType.Unknown;
-                    break;
-            }
+                TokenIdentifierValue _ => SideType.Variable,
+                TokenNumberLiteral _ => SideType.Constant,
+                _ => SideType.Unknown
+            };
         }
         public ComparisonValue(Token a, TokenCompare.Type comparison, Token b, bool invert) : base(invert)
         {
@@ -130,10 +119,10 @@ namespace mc_compiled.MCC.Compiler
 
             if (this.aType == SideType.Variable && this.bType == SideType.Variable)
             {
-                ScoreboardValue a = ((TokenIdentifierValue) this.a).value;
-                ScoreboardValue b = ((TokenIdentifierValue) this.b).value;
+                ScoreboardValue aValue = ((TokenIdentifierValue) this.a).value;
+                ScoreboardValue bValue = ((TokenIdentifierValue) this.b).value;
 
-                if (a.InternalName.Equals(b.InternalName) && a.clarifier.Equals(b.clarifier))
+                if (aValue.InternalName.Equals(bValue.InternalName) && aValue.clarifier.Equals(bValue.clarifier))
                 {
                     switch (localComparison)
                     {
@@ -159,13 +148,13 @@ namespace mc_compiled.MCC.Compiler
                     if (localComparison == TokenCompare.Type.NOT_EQUAL)
                     {
                         commands.Add(Command.Execute()
-                            .UnlessScore(a, TokenCompare.Type.EQUAL, b)
+                            .UnlessScore(aValue, TokenCompare.Type.EQUAL, bValue)
                             .Run(Command.ScoreboardSet(this.temp, 1)));
                     }
                     else
                     {
                         commands.Add(Command.Execute()
-                            .IfScore(a, localComparison, b)
+                            .IfScore(aValue, localComparison, bValue)
                             .Run(Command.ScoreboardSet(this.temp, 1)));
                     }
 
@@ -175,13 +164,13 @@ namespace mc_compiled.MCC.Compiler
 
             if (this.aType == SideType.Variable && this.bType == SideType.Constant)
             {
-                ScoreboardValue a = ((TokenIdentifierValue)this.a).value;
-                TokenNumberLiteral b = (TokenNumberLiteral)this.b;
-                this.entries = a.CompareToLiteral(localComparison, b, callingStatement);
+                ScoreboardValue aValue = ((TokenIdentifierValue)this.a).value;
+                var bValue = (TokenNumberLiteral)this.b;
+                this.entries = aValue.CompareToLiteral(localComparison, bValue, callingStatement);
 
                 if(willBeInverted)
                 {
-                    var commands = new List<string>(this.entries.Item1 ?? Array.Empty<string>());
+                    var commands = new List<string>(this.entries.Item1 ?? []);
                     this.temp = executor.scoreboard.temps.Request(true);
                     commands.Add(Command.ScoreboardSet(this.temp, 0));
 
@@ -236,29 +225,30 @@ namespace mc_compiled.MCC.Compiler
             if (this.BothValues)
             {
                 // "value value" comparison
-                ScoreboardValue a = ((TokenIdentifierValue) this.a).value;
-                ScoreboardValue b = ((TokenIdentifierValue) this.b).value;
+                ScoreboardValue aValue = ((TokenIdentifierValue) this.a).value;
+                ScoreboardValue bValue = ((TokenIdentifierValue) this.b).value;
 
                 if(willBeInverted)
                 {
-                    return new Subcommand[] {
+                    return
+                    [
                         new SubcommandIf(ConditionalSubcommandScore.New(this.temp, Range.Of(1)))
-                    };
+                    ];
                 }
-                else
-                {
-                    if (localComparison == TokenCompare.Type.NOT_EQUAL)
-                    {
-                        return new Subcommand[] {
-                            // mojang doesn't support != so invert the root of the comparison
-                            new SubcommandUnless(ConditionalSubcommandScore.New(a, TokenCompare.Type.EQUAL, b))
-                        };
-                    }
 
-                    return new Subcommand[] {
-                        new SubcommandIf(ConditionalSubcommandScore.New(a, localComparison, b))
-                    };
+                if (localComparison == TokenCompare.Type.NOT_EQUAL)
+                {
+                    return
+                    [
+                        // mojang doesn't support != so invert the root of the comparison
+                        new SubcommandUnless(ConditionalSubcommandScore.New(aValue, TokenCompare.Type.EQUAL, bValue))
+                    ];
                 }
+
+                return
+                [
+                    new SubcommandIf(ConditionalSubcommandScore.New(aValue, localComparison, bValue))
+                ];
 
             }
             
@@ -266,9 +256,10 @@ namespace mc_compiled.MCC.Compiler
             {
                 if (willBeInverted)
                 {
-                    return new Subcommand[] {
+                    return
+                    [
                         new SubcommandIf(ConditionalSubcommandScore.New(this.temp, Range.Of(1)))
-                    };
+                    ];
                 }
 
                 // "value constant" comparison
@@ -294,11 +285,11 @@ namespace mc_compiled.MCC.Compiler
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             if (this.aType == SideType.Variable && this.bType != SideType.Variable)
-                return new[] { ((TokenIdentifierValue) this.a).value };
+                return [((TokenIdentifierValue) this.a).value];
             if (this.aType != SideType.Variable && this.bType == SideType.Variable)
-                return new[] { ((TokenIdentifierValue) this.b).value };
+                return [((TokenIdentifierValue) this.b).value];
             if (this.aType == SideType.Variable && this.bType == SideType.Variable)
-                return new[] { ((TokenIdentifierValue) this.a).value, ((TokenIdentifierValue) this.b).value };
+                return [((TokenIdentifierValue) this.a).value, ((TokenIdentifierValue) this.b).value];
 
             return Array.Empty<ScoreboardValue>();
         }
@@ -325,7 +316,7 @@ namespace mc_compiled.MCC.Compiler
                 return null;
             }
 
-            List<string> commands = new List<string>();
+            List<string> commands = [];
 
             this.temp = executor.scoreboard.temps.Request(true);
             commands.Add(Command.ScoreboardSet(this.temp, 0));
@@ -346,10 +337,10 @@ namespace mc_compiled.MCC.Compiler
             if (willBeInverted || this.inverted)
             {
                 var range = new Range(1, this.inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
+                return [new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range))];
             }
 
-            return new Subcommand[] { new SubcommandAs(this.selector) };
+            return [new SubcommandAs(this.selector)];
         }
 
         public override string GetDescription() =>
@@ -481,39 +472,25 @@ namespace mc_compiled.MCC.Compiler
             if (this.goalType == SideType.Variable)
             {
                 ScoreboardValue b = ((TokenIdentifierValue)this.goalCount).value;
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, localComparison, b)) };
+                return [new SubcommandIf(ConditionalSubcommandScore.New(this.temp, localComparison, b))];
             } else
             {
                 TokenNumberLiteral _b = this.goalCount as TokenNumberLiteral;
                 int b = _b.GetNumberInt();
 
-                Range range;
-
-                switch (localComparison)
+                Range range = localComparison switch
                 {
-                    case TokenCompare.Type.EQUAL:
-                        range = new Range(b, false);
-                        break;
-                    case TokenCompare.Type.NOT_EQUAL:
-                        range = new Range(b, true);
-                        break;
-                    case TokenCompare.Type.LESS:
-                        range = new Range(null, b - 1);
-                        break;
-                    case TokenCompare.Type.LESS_OR_EQUAL:
-                        range = new Range(null, b);
-                        break;
-                    case TokenCompare.Type.GREATER:
-                        range = new Range(b + 1, null);
-                        break;
-                    case TokenCompare.Type.GREATER_OR_EQUAL:
-                        range = new Range(b, null);
-                        break;
-                    default:
-                        throw new StatementException(callingStatement, $"Unexpected comparison type: {localComparison}.");
-                }
+                    TokenCompare.Type.EQUAL => new Range(b, false),
+                    TokenCompare.Type.NOT_EQUAL => new Range(b, true),
+                    TokenCompare.Type.LESS => new Range(null, b - 1),
+                    TokenCompare.Type.LESS_OR_EQUAL => new Range(null, b),
+                    TokenCompare.Type.GREATER => new Range(b + 1, null),
+                    TokenCompare.Type.GREATER_OR_EQUAL => new Range(b, null),
+                    _ => throw new StatementException(callingStatement,
+                        $"Unexpected comparison type: {localComparison}.")
+                };
 
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
+                return [new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range))];
             }
         }
 
@@ -524,7 +501,7 @@ namespace mc_compiled.MCC.Compiler
         public override IEnumerable<ScoreboardValue> GetAssertionTargets()
         {
             if (this.goalType == SideType.Variable)
-                return new[] { (this.goalCount as TokenIdentifierValue).value };
+                return [(this.goalCount as TokenIdentifierValue).value];
             return Array.Empty<ScoreboardValue>();
         }
     }
@@ -552,7 +529,7 @@ namespace mc_compiled.MCC.Compiler
                 return null;
             }
 
-            List<string> commands = new List<string>();
+            List<string> commands = [];
 
             this.temp = executor.scoreboard.temps.Request(true);
             commands.Add(Command.ScoreboardSet(this.temp, 0));
@@ -570,13 +547,13 @@ namespace mc_compiled.MCC.Compiler
             if (willBeInverted)
             {
                 Range range = new Range(1, this.inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
+                return [new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range))];
             }
 
             if(this.inverted)
-                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandEntity.New(this.selector)) };
+                return [new SubcommandUnless(ConditionalSubcommandEntity.New(this.selector))];
             else
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandEntity.New(this.selector)) };
+                return [new SubcommandIf(ConditionalSubcommandEntity.New(this.selector))];
 
         }
 
@@ -615,7 +592,7 @@ namespace mc_compiled.MCC.Compiler
                 return null;
             }
 
-            List<string> commands = new List<string>();
+            List<string> commands = [];
 
             this.temp = executor.scoreboard.temps.Request(true);
             commands.Add(Command.ScoreboardSet(this.temp, 0));
@@ -633,13 +610,15 @@ namespace mc_compiled.MCC.Compiler
             if(willBeInverted)
             {
                 Range range = new Range(1, this.inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
+                return [new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range))];
             }
 
             if (this.inverted)
-                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data)) };
+                return [new SubcommandUnless(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data))
+                ];
             else
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data)) };
+                return [new SubcommandIf(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data))
+                ];
         }
 
         public override string GetDescription() =>
@@ -682,7 +661,7 @@ namespace mc_compiled.MCC.Compiler
                 return null;
             }
 
-            List<string> commands = new List<string>();
+            List<string> commands = [];
 
             this.temp = executor.scoreboard.temps.Request(true);
             commands.Add(Command.ScoreboardSet(this.temp, 0));
@@ -700,13 +679,15 @@ namespace mc_compiled.MCC.Compiler
             if (willBeInverted)
             {
                 var range = new Range(1, this.inverted);
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range)) };
+                return [new SubcommandIf(ConditionalSubcommandScore.New(this.temp, range))];
             }
 
             if (this.inverted)
-                return new Subcommand[] { new SubcommandUnless(ConditionalSubcommandBlocks.New(this.beginX, this.beginY, this.beginZ, this.endX, this.endY, this.endZ, this.destX, this.destY, this.destZ, this.scanMode)) };
+                return [new SubcommandUnless(ConditionalSubcommandBlocks.New(this.beginX, this.beginY, this.beginZ, this.endX, this.endY, this.endZ, this.destX, this.destY, this.destZ, this.scanMode))
+                ];
             else
-                return new Subcommand[] { new SubcommandIf(ConditionalSubcommandBlocks.New(this.beginX, this.beginY, this.beginZ, this.endX, this.endY, this.endZ, this.destX, this.destY, this.destZ, this.scanMode)) };
+                return [new SubcommandIf(ConditionalSubcommandBlocks.New(this.beginX, this.beginY, this.beginZ, this.endX, this.endY, this.endZ, this.destX, this.destY, this.destZ, this.scanMode))
+                ];
         }
 
         public override string GetDescription() =>

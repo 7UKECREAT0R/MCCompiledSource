@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors
 {
@@ -22,7 +22,7 @@ namespace mc_compiled.Modding.Behaviors
         }
         public JObject ToJSON()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["identifier"] = this.identifier,
                 ["is_spawnable"] = this.isSpawnable,
@@ -44,18 +44,18 @@ namespace mc_compiled.Modding.Behaviors
             string stripped = this.identifier;
 
             if (stripped.EndsWith(".json"))
-                stripped = stripped.Substring(0, stripped.Length - 5);
+                stripped = stripped[..^5];
 
             int slash = stripped.LastIndexOf('/');
             if (slash != -1)
-                stripped = stripped.Substring(slash + 1);
+                stripped = stripped[(slash + 1)..];
 
             int i = stripped.IndexOf(':');
 
             if (i == -1)
                 return stripped;
 
-            return stripped.Substring(i + 1);
+            return stripped[(i + 1)..];
         }
     }
     public abstract class EntityScript

@@ -6,7 +6,7 @@ namespace mc_compiled.Commands
     /// Represents a range value in selector options. Examples:
     /// "3..999", "0..10", "50..100", "10", "!1", "!9..100", "!..3"
     /// </summary>
-    public struct Range
+    public struct Range : IEquatable<Range>
     {
         /// <summary>
         /// A range which matches only 0.
@@ -82,18 +82,18 @@ namespace mc_compiled.Commands
 
             bool not = str.StartsWith("!");
             if (not)
-                str = str.Substring(1);
+                str = str[1..];
 
             if (str.Contains(".."))
             {
                 int index = str.IndexOf("..", StringComparison.Ordinal);
                 if (index == 0) // ..10
-                    return new Range(null, int.Parse(str.Substring(2)), not);
+                    return new Range(null, int.Parse(str[2..]), not);
                 if (index + 2 >= str.Length) // 10..
-                    return new Range(int.Parse(str.Substring(0, index)), null, not);
+                    return new Range(int.Parse(str[..index]), null, not);
 
-                string _a = str.Substring(0, index);
-                string _b = str.Substring(index + 2);
+                string _a = str[..index];
+                string _b = str[(index + 2)..];
                 int a = int.Parse(_a);
                 int b = int.Parse(_b);
                 return new Range(a, b, not);
@@ -120,14 +120,14 @@ namespace mc_compiled.Commands
 
             bool not = str.StartsWith("!");
             if (not)
-                str = str.Substring(1);
+                str = str[1..];
 
             if (str.Contains(".."))
             {
                 int index = str.IndexOf("..", StringComparison.Ordinal);
                 if (index == 0) // ..10
                 {
-                    if (int.TryParse(str.Substring(2), out int maxVal))
+                    if (int.TryParse(str[2..], out int maxVal))
                     {
                         result = new Range(null, maxVal, not);
                         return true;
@@ -135,7 +135,7 @@ namespace mc_compiled.Commands
                 }
                 else if (index + 2 >= str.Length) // 10..
                 {
-                    if (int.TryParse(str.Substring(0, index), out int minVal))
+                    if (int.TryParse(str[..index], out int minVal))
                     {
                         result = new Range(minVal, null, not);
                         return true;
@@ -143,8 +143,8 @@ namespace mc_compiled.Commands
                 }
                 else
                 {
-                    string _a = str.Substring(0, index);
-                    string _b = str.Substring(index + 2);
+                    string _a = str[..index];
+                    string _b = str[(index + 2)..];
 
                     if (int.TryParse(_a, out int a) && 
                         int.TryParse(_b, out int b))
@@ -289,7 +289,7 @@ namespace mc_compiled.Commands
             if (a.invert != b.invert || a.single != b.single || a.min != b.min)
                 return false;
 
-            if (!a.single && !b.single)
+            if (!a.single)
                 return a.max == b.max;
 
             return true;
@@ -297,7 +297,7 @@ namespace mc_compiled.Commands
         public static bool operator !=(Range a, Range b)
         {
             if (!a.single && !b.single)
-                return a.invert != b.invert && a.single != b.single && a.min != b.min && a.max != b.max;
+                return false;
             else
                 return a.invert != b.invert && a.single != b.single && a.min != b.min;
         }

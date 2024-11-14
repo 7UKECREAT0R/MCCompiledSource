@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC
 {
@@ -44,7 +45,7 @@ namespace mc_compiled.MCC
             string[] lines = File.ReadAllLines(path, Encoding.UTF8);
             string category = null;
             int catEntries = 0;
-            string[] categoryAliases = Array.Empty<string>();
+            string[] categoryAliases = [];
 
             ConsoleColor previous = ConsoleColor.White;
             if (debugInfo)
@@ -58,7 +59,7 @@ namespace mc_compiled.MCC
                 string line = _line.Trim();
                 if (line.StartsWith("CATEGORY"))
                 {
-                    string input = line.Substring(9).ToUpper();
+                    string input = line[9..].ToUpper();
 
                     if (debugInfo)
                     {
@@ -68,7 +69,7 @@ namespace mc_compiled.MCC
 
                     if (input.Contains(" AND "))
                     {
-                        string[] aliases = input.Split(new string[] { " AND " }, StringSplitOptions.RemoveEmptyEntries);
+                        string[] aliases = input.Split([" AND "], StringSplitOptions.RemoveEmptyEntries);
                         category = aliases[0];
                         categoryAliases = new string[aliases.Length - 1];
                         for (int i = 0; i < categoryAliases.Length; i++)
@@ -76,18 +77,18 @@ namespace mc_compiled.MCC
                     }
                     else
                     {
-                        categoryAliases = Array.Empty<string>();
+                        categoryAliases = [];
                         category = input;
                     }
                     continue;
                 }
                 else if (line.StartsWith("VERSION"))
                 {
-                    Compiler.Executor.MINECRAFT_VERSION = line.Substring(8);
+                    Executor.MINECRAFT_VERSION = line[8..];
                     continue;
                 }
 
-                string[] assignParts = line.Split(new string[] { " IS " },
+                string[] assignParts = line.Split([" IS "],
                     StringSplitOptions.RemoveEmptyEntries);
                 
                 if (assignParts.Length != 2)
@@ -128,18 +129,16 @@ namespace mc_compiled.MCC
         /// <returns></returns>
         public string ReplaceDefinitions(string input)
         {
-            int totalLines = input.Count(c => c == '\n') + 1;
-
             MatchCollection matches = DEF_REGEX.Matches(input);
 
             foreach(Match match in matches)
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 int backslashes = match.Groups[1].Value.Length;
 
                 if (backslashes % 2 == 1)
                 {
-                    sb.Append(match.Value.Substring(backslashes / 2));
+                    sb.Append(match.Value[(backslashes / 2)..]);
                     goto no_changes_replace; // odd number of backslashes, it's escaped
                 }
 

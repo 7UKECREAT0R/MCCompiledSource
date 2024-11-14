@@ -13,26 +13,26 @@
             this.version = version;
         }
 
-        public NBTCompound ToNBT(string name)
+        public NBTCompound ToNBT(string compoundTagName)
         {
-            if (this.states == null) this.states = new NBTNode[] { new NBTEnd() };
+            if (this.states == null) this.states = [new NBTEnd()];
 
-            NBTCompound state = new NBTCompound()
+            NBTCompound state = new NBTCompound
             {
                 name = "states",
                 values = this.states
             };
 
-            return new NBTCompound()
+            return new NBTCompound
             {
-                name = name,
-                values = new NBTNode[]
-                {
-                    new NBTString() { name = "name", value = this.name },
+                name = compoundTagName,
+                values =
+                [
+                    new NBTString { name = "name", value = this.name },
                     state,
-                    new NBTInt() { name = "version", value = this.version },
+                    new NBTInt { name = "version", value = this.version },
                     new NBTEnd()
-                }
+                ]
             };
         }
     }

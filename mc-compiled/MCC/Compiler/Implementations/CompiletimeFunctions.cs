@@ -1,6 +1,6 @@
-﻿using mc_compiled.MCC.Compiler.Implementations.Functions;
+﻿using System.Collections.Generic;
+using mc_compiled.MCC.Compiler.Implementations.Functions;
 using mc_compiled.MCC.Functions;
-using System.Collections.Generic;
 
 namespace mc_compiled.MCC.Compiler.Implementations
 {
@@ -12,8 +12,8 @@ namespace mc_compiled.MCC.Compiler.Implementations
         {
             IEnumerable<Function> IFunctionProvider.ProvideFunctions(ScoreboardManager manager)
             {
-                return new Function[]
-                {
+                return
+                [
                     // special
                     new FunctionGlyphE0(),
                     new FunctionGlyphE1(),
@@ -41,7 +41,7 @@ namespace mc_compiled.MCC.Compiler.Implementations
                     new FunctionFloorRuntime(),
                     new FunctionCeilingRuntime(),
                     new FunctionRandomRuntime()
-                };
+                ];
             }
         }
     }

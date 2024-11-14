@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -7,14 +8,14 @@ namespace mc_compiled.Commands.Selectors
     /// <summary>
     /// Represents a selector option that limits based off of score values.
     /// </summary>
-    public struct Scores
+    public struct Scores : IEquatable<Scores>
     {
         private static readonly Regex MATCHER = new Regex(@"scores={([\w\d=,.]+)}");
         public List<ScoresEntry> checks;
 
         public Scores(params ScoresEntry[] start)
         {
-            this.checks = new List<ScoresEntry>(start);
+            this.checks = [..start];
         }
         public Scores(List<ScoresEntry> start)
         {
@@ -46,9 +47,9 @@ namespace mc_compiled.Commands.Selectors
                 if (index == -1)
                     continue;
 
-                string scoreName = part.Substring(0, index).Trim();
+                string scoreName = part[..index].Trim();
                 
-                string _range = part.Substring(index + 1).Trim();
+                string _range = part[(index + 1)..].Trim();
                 Range? range = Range.Parse(_range);
 
                 if(range == null)
@@ -77,9 +78,19 @@ namespace mc_compiled.Commands.Selectors
         public static Scores operator +(Scores a, Scores other)
         {
             Scores clone = (Scores)a.MemberwiseClone();
-            clone.checks = new List<ScoresEntry>(a.checks);
+            clone.checks = [..a.checks];
             clone.checks.AddRange(other.checks);
             return clone;
+        }
+
+        public static bool operator ==(Scores left, Scores right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Scores left, Scores right)
+        {
+            return !(left == right);
         }
     }
     public struct ScoresEntry
@@ -111,7 +122,7 @@ namespace mc_compiled.Commands.Selectors
 
         public override string ToString()
         {
-            return this.name + "=" + this.value.ToString();
+            return this.name + "=" + this.value;
         }
 
 

@@ -9,7 +9,7 @@ namespace mc_compiled.MCC.ServerWebSocket
     /// </summary>
     internal static class PropertyImplementations
     {
-        private static readonly List<PropertyImpl> ALL_PROPERTIES = new List<PropertyImpl>();
+        private static readonly List<PropertyImpl> ALL_PROPERTIES = [];
 
         /// <summary>
         /// Calls the <see cref="PropertyImpl"/> for the given property string, if one exists.
@@ -56,7 +56,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                         Console.WriteLine("Debug disabled by remote client.");
                 }));
             ALL_PROPERTIES.Add(new PropertyImpl("decorate", false,
-                (_value, project) =>
+                (_value, _) =>
                 {
                     if (!bool.TryParse(_value, out bool value))
                         return;
@@ -64,7 +64,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     Program.DECORATE = value;
                 }));
             ALL_PROPERTIES.Add(new PropertyImpl("export_all", false,
-                (_value, project) =>
+                (_value, _) =>
                 {
                     if (!bool.TryParse(_value, out bool value))
                         return;
@@ -72,7 +72,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     Program.EXPORT_ALL = value;
                 }));
             ALL_PROPERTIES.Add(new PropertyImpl("ignore_manifests", false,
-                (_value, project) =>
+                (_value, _) =>
                 {
                     if (!bool.TryParse(_value, out bool value))
                         return;

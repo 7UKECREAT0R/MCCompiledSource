@@ -1,6 +1,6 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System.Collections.Generic;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Functions.Types;
-using System.Collections.Generic;
 
 namespace mc_compiled.MCC.Attributes
 {

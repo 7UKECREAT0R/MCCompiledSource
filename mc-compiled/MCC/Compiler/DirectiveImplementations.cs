@@ -1,27 +1,28 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.Commands.Native;
-using mc_compiled.Commands.Selectors;
-using mc_compiled.Json;
-using mc_compiled.MCC.CustomEntities;
-using mc_compiled.MCC.Functions;
-using mc_compiled.MCC.Attributes;
-using mc_compiled.MCC.Functions.Types;
-using mc_compiled.Modding;
-using mc_compiled.NBT;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using mc_compiled.Commands.Execute;
-using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Native;
+using mc_compiled.Commands.Selectors;
+using mc_compiled.Json;
+using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.Async;
 using mc_compiled.MCC.Compiler.TypeSystem;
+using mc_compiled.MCC.CustomEntities;
+using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Functions.Types;
+using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
+using mc_compiled.Modding.Resources.Localization;
+using mc_compiled.NBT;
 using Microsoft.CSharp.RuntimeBinder;
+using Newtonsoft.Json.Linq;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -90,7 +91,7 @@ namespace mc_compiled.MCC.Compiler
             if (!allowUnwrapping)
                 return ppv.ToArray();
             
-            if (ppv.Length != 1 || !(ppv[0] is JArray jsonArray))
+            if (ppv.Length != 1 || ppv[0] is not JArray jsonArray)
                 return ppv.ToArray();
             
             if (!jsonArray.All(PreprocessorUtils.CanTokenBeUnwrapped))
@@ -312,7 +313,7 @@ namespace mc_compiled.MCC.Compiler
                 bIndex %= b.Length;
                 dynamic bValue = b[bIndex++];
                 
-                if (!(bValue is int count))
+                if (bValue is not int count)
                     throw new StatementException(tokens, "Can only exponentiate using an integer value.");
                 
                 try
@@ -403,29 +404,16 @@ namespace mc_compiled.MCC.Compiler
 
                     try
                     {
-                        switch (compare)
+                        result &= compare switch
                         {
-                            case TokenCompare.Type.EQUAL:
-                                result &= a == b;
-                                break;
-                            case TokenCompare.Type.NOT_EQUAL:
-                                result &= a != b;
-                                break;
-                            case TokenCompare.Type.LESS:
-                                result &= a < b;
-                                break;
-                            case TokenCompare.Type.LESS_OR_EQUAL:
-                                result &= a <= b;
-                                break;
-                            case TokenCompare.Type.GREATER:
-                                result &= a > b;
-                                break;
-                            case TokenCompare.Type.GREATER_OR_EQUAL:
-                                result &= a >= b;
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
+                            TokenCompare.Type.EQUAL => a == b,
+                            TokenCompare.Type.NOT_EQUAL => a != b,
+                            TokenCompare.Type.LESS => a < b,
+                            TokenCompare.Type.LESS_OR_EQUAL => a <= b,
+                            TokenCompare.Type.GREATER => a > b,
+                            TokenCompare.Type.GREATER_OR_EQUAL => a >= b,
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
                     }
                     catch (Exception)
                     {
@@ -513,29 +501,16 @@ namespace mc_compiled.MCC.Compiler
 
                     try
                     {
-                        switch (compare)
+                        result &= compare switch
                         {
-                            case TokenCompare.Type.EQUAL:
-                                result &= a == b;
-                                break;
-                            case TokenCompare.Type.NOT_EQUAL:
-                                result &= a != b;
-                                break;
-                            case TokenCompare.Type.LESS:
-                                result &= a < b;
-                                break;
-                            case TokenCompare.Type.LESS_OR_EQUAL:
-                                result &= a <= b;
-                                break;
-                            case TokenCompare.Type.GREATER:
-                                result &= a > b;
-                                break;
-                            case TokenCompare.Type.GREATER_OR_EQUAL:
-                                result &= a >= b;
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
+                            TokenCompare.Type.EQUAL => a == b,
+                            TokenCompare.Type.NOT_EQUAL => a != b,
+                            TokenCompare.Type.LESS => a < b,
+                            TokenCompare.Type.LESS_OR_EQUAL => a <= b,
+                            TokenCompare.Type.GREATER => a > b,
+                            TokenCompare.Type.GREATER_OR_EQUAL => a >= b,
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
                     }
                     catch (RuntimeBinderException)
                     {
@@ -684,7 +659,7 @@ namespace mc_compiled.MCC.Compiler
                 if (!tokens.NextIs<IPreprocessor>(false))
                     throw new StatementException(tokens, "Invalid argument type for '" + argNames[i] + "' in macro call.");
 
-                args[i] = new[] { tokens.Next<IPreprocessor>(null).GetValue() };
+                args[i] = [tokens.Next<IPreprocessor>(null).GetValue()];
             }
 
             // save variables which collide with this macro's args.
@@ -775,7 +750,7 @@ namespace mc_compiled.MCC.Compiler
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
                 {
-                    if (!(value[r] is string str))
+                    if (value[r] is not string str)
                         continue;
                     
                     string[] words = str.Split('_', '-', ' ');
@@ -833,7 +808,7 @@ namespace mc_compiled.MCC.Compiler
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
                 {
-                    if (!(value[r] is string str))
+                    if (value[r] is not string str)
                         continue;
                     results[r] = str.ToUpper();
                 }
@@ -855,7 +830,7 @@ namespace mc_compiled.MCC.Compiler
                 dynamic[] results = new dynamic[value.Length];
                 for (int r = 0; r < value.Length; r++)
                 {
-                    if (!(value[r] is string str))
+                    if (value[r] is not string str)
                         continue;
                     results[r] = str.ToLower();
                 }
@@ -904,7 +879,7 @@ namespace mc_compiled.MCC.Compiler
                     int len = values.Length;
                     if (len == 1)
                     {
-                        executor.SetPPV(output, new[] { values[0] });
+                        executor.SetPPV(output, [values[0]]);
                     }
                     else if (len % 2 == 0)
                     {
@@ -912,12 +887,12 @@ namespace mc_compiled.MCC.Compiler
                         dynamic first = values[mid];
                         dynamic second = values[mid - 1];
                         dynamic result = (first + second) / 2;
-                        executor.SetPPV(output, new[] { result });
+                        executor.SetPPV(output, [result]);
                     }
                     else
                     {
                         dynamic result = values[len / 2]; // truncates to middle index
-                        executor.SetPPV(output, new[] { result });
+                        executor.SetPPV(output, [result]);
                     }
                 }
                 catch (RuntimeBinderException)
@@ -944,7 +919,7 @@ namespace mc_compiled.MCC.Compiler
 
                     if (length == 1)
                     {
-                        executor.SetPPV(output, new[] { values[0] });
+                        executor.SetPPV(output, [values[0]]);
                         return;
                     }
                     
@@ -952,7 +927,7 @@ namespace mc_compiled.MCC.Compiler
                     for (int i = 1; i < length; i++)
                         result += values[i];
                     result /= length;
-                    executor.SetPPV(output, new[] { result });
+                    executor.SetPPV(output, [result]);
                 }
                 catch (RuntimeBinderException)
                 {
@@ -1118,7 +1093,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 JToken inputJSON = tokens.Next<TokenJSONLiteral>(null);
 
-                if (!(inputJSON is JArray array))
+                if (inputJSON is not JArray array)
                     throw new StatementException(tokens, "Cannot get the length of a non-array JSON input.");
                 
                 executor.SetPPV(output, array.Count);
@@ -1249,7 +1224,7 @@ namespace mc_compiled.MCC.Compiler
         {
             string command = tokens.Next<TokenStringLiteral>("command");
             if (command.StartsWith("/"))
-                command = command.Substring(1);
+                command = command[1..];
             executor.AddCommand(command);
         }
         [UsedImplicitly]
@@ -1416,7 +1391,7 @@ namespace mc_compiled.MCC.Compiler
                             // modify prepend buffer as if 1 statement was there
                             executor.AppendCommandPrepend(prefix);
                             openBlock.openAction = null;
-                            openBlock.CloseAction = (e) =>
+                            openBlock.CloseAction = (_) =>
                             {
                                 set.Dispose();
                             };
@@ -1451,7 +1426,7 @@ namespace mc_compiled.MCC.Compiler
                     openBlock.openAction = null;
                     openBlock.CloseAction = null;
 
-                    executor.DeferAction(e =>
+                    executor.DeferAction(_ =>
                     {
                         set.Dispose();
                     });
@@ -1468,7 +1443,7 @@ namespace mc_compiled.MCC.Compiler
                 else
                     executor.AppendCommandPrepend(prefix);
 
-                executor.DeferAction(e =>
+                executor.DeferAction(_ =>
                 {
                     set.Dispose();
                 });
@@ -1483,7 +1458,7 @@ namespace mc_compiled.MCC.Compiler
 
             Statement[] repeatStatements = (nextStatement is StatementOpenBlock _openBlock)
                 ? executor.Peek(1, _openBlock.statementsInside)
-                : new[] { nextStatement };
+                : [nextStatement];
             bool isAsync = executor.async.IsInAsync && repeatStatements.Any(s => s.DoesAsyncSplit);
 
             if (isAsync) // temporary throw while this is unsupported.
@@ -1533,7 +1508,7 @@ namespace mc_compiled.MCC.Compiler
 
             Statement[] repeatStatements = (nextStatement is StatementOpenBlock _openBlock)
                 ? executor.Peek(1, _openBlock.statementsInside)
-                : new[] {nextStatement};
+                : [nextStatement];
             bool isAsync = executor.async.IsInAsync && repeatStatements.Any(s => s.DoesAsyncSplit);
 
             if (isAsync) // temporary throw while this is unsupported.
@@ -1564,7 +1539,7 @@ namespace mc_compiled.MCC.Compiler
                         storeInIdentifier,
                         $"Contains the current iteration for the loop: '{tokens.Source}'",
                         executor.scoreboard)
-                        .WithAttributes(new[] { new AttributeGlobal() }, tokens);
+                        .WithAttributes([new AttributeGlobal()], tokens);
                     executor.scoreboard.Add(storeIn);
                 }
             }
@@ -1789,7 +1764,7 @@ namespace mc_compiled.MCC.Compiler
                         if (book == null)
                             book = new ItemTagBookData();
                         if (bookPages == null)
-                            bookPages = new List<string>();
+                            bookPages = [];
                         bookPages.Add(tokens.Next<TokenStringLiteral>("page contents").text.Replace("\\n", "\n"));
                         needsStructure = true;
                         break;
@@ -2124,11 +2099,11 @@ namespace mc_compiled.MCC.Compiler
                 size = new VectorIntNBT((int)sizeX, (int)sizeY, (int)sizeZ),
                 worldOrigin = new VectorIntNBT(0, 0, 0),
                 palette = new PaletteNBT(new PaletteEntryNBT(block)),
-                entities = new EntityListNBT(Array.Empty<EntityNBT>()),
+                entities = new EntityListNBT([]),
                 indices = new BlockIndicesNBT(blocks)
             };
 
-            string fileName = Executor.GetNextGeneratedName("scatter_" + Command.UTIL.StripNamespace(block), false, true);
+            string fileName = Executor.GetNextGeneratedName("scatter_" + Command.Util.StripNamespace(block), false, true);
             var file = new StructureFile(fileName, Executor.MCC_GENERATED_FOLDER, structure);
             executor.project.WriteSingleFile(file);
 
@@ -2184,10 +2159,10 @@ namespace mc_compiled.MCC.Compiler
         {
             var file = new CommandFile(true, "silent_remove", Executor.MCC_GENERATED_FOLDER);
 
-            file.Add(new[] {
+            file.Add([
                 Command.Teleport(Coordinate.here, new Coordinate(-99999, false, true, false), Coordinate.here),
                 Command.Kill(Selector.SELF.ToString())
-            });
+            ]);
 
             executor.DefineSTDFile(file);
 
@@ -2535,8 +2510,8 @@ namespace mc_compiled.MCC.Compiler
 
                 executor.RequireFeature(tokens, Feature.DUMMIES);
                 const string damagerEntity = "_dmg_from";
-                string[] commands = new string[]
-                {
+                string[] commands =
+                [
                     // create dummy entity at location
                     executor.entities.dummies.Create(damagerEntity, false, x, y, z),
 
@@ -2546,7 +2521,7 @@ namespace mc_compiled.MCC.Compiler
 
                     // send kill event to dummy entity
                     executor.entities.dummies.Destroy(damagerEntity, false)
-                };
+                ];
 
                 CommandFile file = executor.CurrentFile;
                 executor.AddCommands(commands, "damageFrom", $"Creates a dummy entity and uses it to attack the entity from the location ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
@@ -2601,11 +2576,12 @@ namespace mc_compiled.MCC.Compiler
                     else
                     {
                         string selector = executor.entities.dummies.GetStringSelector(name, true);
-                        string[] commands = {
+                        string[] commands =
+                        [
                             executor.entities.dummies.Create(name, true, x, y, z),
                             Command.Tag(selector, tag),
                             Command.Event(selector, DummyManager.TAGGABLE_EVENT_REMOVE_NAME)
-                        };
+                        ];
 
                         CommandFile file = executor.CurrentFile;
                         executor.AddCommands(commands, "createDummy", $"Spawns a dummy entity named '{name}' with the tag {tag} at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
@@ -2634,22 +2610,20 @@ namespace mc_compiled.MCC.Compiler
 
                     if (tag == null)
                     {
-                        executor.AddCommands(new[]
-                            {
+                        executor.AddCommands([
                                 executor.entities.dummies.Destroy(name, false),
                                 executor.entities.dummies.Create(name, false, x, y, z)
-                            }, "singletonDummy", $"Spawns a singleton dummy entity named '{name}' at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
+                            ], "singletonDummy", $"Spawns a singleton dummy entity named '{name}' at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
                     }
                     else
                     {
                         string selector = executor.entities.dummies.GetStringSelector(name, true);
-                        executor.AddCommands(new[]
-                            {
+                        executor.AddCommands([
                                 executor.entities.dummies.Destroy(name, false, tag),
                                 executor.entities.dummies.Create(name, true, x, y, z),
                                 Command.Tag(selector, tag),
                                 Command.Event(selector, DummyManager.TAGGABLE_EVENT_REMOVE_NAME)
-                            }, "singletonDummy", $"Spawns a singleton dummy entity named '{name}' with the tag {tag} at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
+                            ], "singletonDummy", $"Spawns a singleton dummy entity named '{name}' with the tag {tag} at ({x} {y} {z}). {file.CommandReference} line {executor.NextLineNumber}");
                     }
 
                     break;
@@ -3016,9 +2990,9 @@ namespace mc_compiled.MCC.Compiler
                 var langContext = new StringBuilder("execute");
                 if (builder.TryGetFirst(out SubcommandAs _as))
                     langContext.Append("_as_" + _as.entity.core);
-                if (builder.TryGetFirst(out SubcommandIf _if))
+                if (builder.TryGetFirst(out SubcommandIf _))
                     langContext.Append("_if");
-                if (builder.TryGetFirst(out SubcommandUnless _unless))
+                if (builder.TryGetFirst(out SubcommandUnless _))
                     langContext.Append("_unless");
                 openBlock.SetLangContext(langContext.ToString());
                 
@@ -3099,7 +3073,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (usesFolders)
             {
-                string[] split = functionName.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] split = functionName.Split(['.'], StringSplitOptions.RemoveEmptyEntries);
                 if (split.Length > 1)
                 {
                     folders = split.Take(split.Length - 1).ToArray();
@@ -3146,7 +3120,7 @@ namespace mc_compiled.MCC.Compiler
             string docs = executor.GetDocumentationString(out bool hadDocumentation);
 
             // the actual name of the function file
-            string actualName = usesFolders ? functionName.Substring(functionName.LastIndexOf('.') + 1) : functionName;
+            string actualName = usesFolders ? functionName[(functionName.LastIndexOf('.') + 1)..] : functionName;
 
             // constructor
             RuntimeFunction function;
@@ -3205,7 +3179,7 @@ namespace mc_compiled.MCC.Compiler
                 // loop through all functions and see if one matches parameters
                 foreach (Function existingFunction in existingFunctions)
                 {
-                    if (!(existingFunction is RuntimeFunction currentFunction))
+                    if (existingFunction is not RuntimeFunction currentFunction)
                         continue;
                     if (currentFunction.ParameterCount != function.ParameterCount)
                         continue;
@@ -3326,7 +3300,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (usesFolders)
             {
-                string[] split = testName.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] split = testName.Split(['.'], StringSplitOptions.RemoveEmptyEntries);
                 if (split.Length > 1)
                     folders = split.Take(split.Length - 1).ToArray();
                 else
@@ -3340,7 +3314,7 @@ namespace mc_compiled.MCC.Compiler
             string docs = executor.GetDocumentationString(out bool _);
 
             // the actual name of the function file
-            string actualName = usesFolders ? testName.Substring(testName.LastIndexOf('.') + 1) : testName;
+            string actualName = usesFolders ? testName[(testName.LastIndexOf('.') + 1)..] : testName;
 
             // constructor
             var test = new TestFunction(tokens, testName, actualName, docs)
@@ -3517,12 +3491,12 @@ namespace mc_compiled.MCC.Compiler
                         {
                             i += 1;
                             if (i >= statements.Length)
-                                return Array.Empty<string>();
+                                return [];
 
                             Statement firstStatement = statements[i];
                             
-                            if (!(firstStatement is StatementOpenBlock openBlock))
-                                return Array.Empty<string>();
+                            if (firstStatement is not StatementOpenBlock openBlock)
+                                return [];
                             
                             openBlock.SetLangContext(langIdentifier);
                             
@@ -3532,7 +3506,7 @@ namespace mc_compiled.MCC.Compiler
                             // pull statements inside into their own array
                             int insideCount = openBlock.statementsInside;
                             if (insideCount < 1)
-                                return Array.Empty<string>();
+                                return [];
                                 
                             var inside = new Statement[insideCount];
                             for (int j = 0; j < insideCount; j++)
@@ -3625,13 +3599,13 @@ namespace mc_compiled.MCC.Compiler
                     file.Add("");
                 }
                 file.Add(commands);
-                return new[]
-                {
+                return
+                [
                     Command.Execute()
                         .As(Selector.INVOKER)
                         .AtSelf()
                         .Run(Command.Function(file.CommandReference))
-                };
+                ];
             }
         }
         [UsedImplicitly]
@@ -3731,20 +3705,15 @@ namespace mc_compiled.MCC.Compiler
             if (tokens.NextIs<TokenIdentifier>(false))
             {
                 string word = tokens.Next<TokenIdentifier>("until/while").word;
-                bool isWhile;
-                
-                switch (word.ToUpper())
+
+                bool isWhile = word.ToUpper() switch
                 {
-                    case "UNTIL":
-                        isWhile = false;
-                        break;
-                    case "WHILE":
-                        isWhile = true;
-                        break;
-                    default:
-                        throw new StatementException(tokens, $"Invalid await subcommand '{word}'. Must be 'until' or 'while'.");
-                }
-                
+                    "UNTIL" => false,
+                    "WHILE" => true,
+                    _ => throw new StatementException(tokens,
+                        $"Invalid await subcommand '{word}'. Must be 'until' or 'while'.")
+                };
+
                 ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
                 set.InvertAll(isWhile);
                 
@@ -3767,7 +3736,7 @@ namespace mc_compiled.MCC.Compiler
                 // throws exception if deadlock is detected
                 async.AddWaitsOn(awaitable.function, tokens);
                 
-                ComparisonSet set = new ComparisonSet();
+                ComparisonSet set = [];
                 
                 // check for the called function's 'running' == false
                 ScoreboardValue running = awaitable.function.runningValue;

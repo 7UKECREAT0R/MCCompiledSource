@@ -1,12 +1,12 @@
-﻿using mc_compiled.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Json;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors.Dialogue
 {
     /// <summary>
-    /// A scene, or page, in an NPC dialogue. See <see cref="Dialogue.scenes"/>
+    /// A scene, or page, in an NPC dialogue. See <see cref="DialogueManager.scenes"/>
     /// </summary>
     public class Scene
     {
@@ -21,7 +21,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         public Scene(string sceneTag)
         {
             this.sceneTag = sceneTag;
-            this.buttons = new List<Button>();
+            this.buttons = [];
         }
         public string CommandReference => this.sceneTag;
         
@@ -30,13 +30,13 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
             this.buttons.Add(button);
             return this;
         }
-        public Scene AddButtons(params Button[] buttons)
+        public Scene AddButtons(params Button[] newButtons)
         {
-            return AddButtons((IEnumerable<Button>) buttons);
+            return AddButtons((IEnumerable<Button>) newButtons);
         }
-        public Scene AddButtons(IEnumerable<Button> buttons)
+        public Scene AddButtons(IEnumerable<Button> newButtons)
         {
-            this.buttons.AddRange(buttons);
+            this.buttons.AddRange(newButtons);
             return this;
         }
 
@@ -144,7 +144,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
 
         public JObject ToJSON()
         {
-            var json = new JObject()
+            var json = new JObject
             {
                 ["scene_tag"] = this.sceneTag,
                 ["npc_name"] = this._npcName?.Build(),

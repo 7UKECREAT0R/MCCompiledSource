@@ -65,18 +65,18 @@ namespace mc_compiled.MCC.Scheduling.Implementations
         {
             if (this.global)
             {
-                return new[]
-                {
+                return
+                [
                     Command.Execute().IfScore(this.trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(this.trigger, 1)),
-                    Command.Execute().IfScore(this.trigger, Range.Of(0)).Run(this.callCommand),
-                };
+                    Command.Execute().IfScore(this.trigger, Range.Of(0)).Run(this.callCommand)
+                ];
             }
 
-            return new[]
-            {
+            return
+            [
                 Command.Execute().As(Selector.ALL_ENTITIES).IfScore(this.trigger, new Range(0, null)).Run(Command.ScoreboardSubtract(this.trigger, 1)),
                 Command.Execute().As(Selector.ALL_ENTITIES).IfScore(this.trigger, Range.Of(0)).Run(this.callCommand)
-            };
+            ];
         }
 
         public override int GetHashCode()

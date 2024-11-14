@@ -10,26 +10,13 @@
         }
         public static DestroyMode ParseDestroyMode(string str)
         {
-            switch (str.ToUpper())
+            return str.ToUpper() switch
             {
-                case "R":
-                case "REPLACE":
-                case "DEFAULT":
-                case "REMOVE":
-                    return DestroyMode.REPLACE;
-                case "K":
-                case "KEEP":
-                case "AIR":
-                case "PRESERVE":
-                    return DestroyMode.KEEP;
-                case "D":
-                case "DESTROY":
-                case "BREAK":
-                case "SIMULATE":
-                    return DestroyMode.DESTROY;
-                default:
-                    return DestroyMode.REPLACE;
-            }
+                "R" or "REPLACE" or "DEFAULT" or "REMOVE" => DestroyMode.REPLACE,
+                "K" or "KEEP" or "AIR" or "PRESERVE" => DestroyMode.KEEP,
+                "D" or "DESTROY" or "BREAK" or "SIMULATE" => DestroyMode.DESTROY,
+                _ => DestroyMode.REPLACE
+            };
         }
 
         public string id;

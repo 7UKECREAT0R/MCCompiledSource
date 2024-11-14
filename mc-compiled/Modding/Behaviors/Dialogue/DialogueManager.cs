@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors.Dialogue
 {
@@ -55,7 +56,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         
         private JObject ToJSON()
         {
-            return new JObject()
+            return new JObject
             {
                 ["format_version"] = FormatVersion.b_DIALOGUE.ToString(),
                 ["minecraft:npc_dialogue"] = new JObject
@@ -70,7 +71,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
         public byte[] GetOutputData()
         {
             JObject built = ToJSON();
-            string dataString = built.ToString(Newtonsoft.Json.Formatting.Indented);
+            string dataString = built.ToString(Formatting.Indented);
             return Encoding.UTF8.GetBytes(dataString);
         }
         public string GetOutputFile() => this.fileName + ".json";
