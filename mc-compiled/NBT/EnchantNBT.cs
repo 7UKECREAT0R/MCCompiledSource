@@ -16,15 +16,15 @@ namespace mc_compiled.NBT
         }
         public NBTCompound ToNBT()
         {
-            return new NBTCompound()
+            return new NBTCompound
             {
                 name = "",
-                values = new NBTNode[]
-                {
-                    new NBTShort() { name = "id", value = this.id },
-                    new NBTShort() { name = "lvl", value = this.level },
+                values =
+                [
+                    new NBTShort { name = "id", value = this.id },
+                    new NBTShort { name = "lvl", value = this.level },
                     new NBTEnd()
-                }
+                ]
             };
         }
     }

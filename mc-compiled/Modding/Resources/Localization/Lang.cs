@@ -1,8 +1,8 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.Modding.Resources.Localization
 {
@@ -27,7 +27,7 @@ namespace mc_compiled.Modding.Resources.Localization
             this.isForBehaviorPack = isForBehaviorPack;
             this.localeName = localeName;
             this.locale = null;
-            this.lines = new List<LangEntry>();
+            this.lines = [];
 
             if (lines != null)
                 this.lines.AddRange(lines);
@@ -46,7 +46,7 @@ namespace mc_compiled.Modding.Resources.Localization
             this.localeName = locale.locale;
             this.locale = locale;
             this.locale.file = this;
-            this.lines = new List<LangEntry>();
+            this.lines = [];
 
             if(lines != null)
                 this.lines.AddRange(lines);
@@ -96,7 +96,7 @@ namespace mc_compiled.Modding.Resources.Localization
                         continue;
                     }
 
-                    string comment = new string(line.Substring(2).SkipWhile(char.IsWhiteSpace).ToArray());
+                    string comment = new string(line[2..].SkipWhile(char.IsWhiteSpace).ToArray());
                     entries.Add(LangEntry.Comment(comment));
                     continue;
                 }
@@ -109,8 +109,8 @@ namespace mc_compiled.Modding.Resources.Localization
                     continue;
                 }
 
-                string key = line.Substring(0, equals);
-                string value = line.Substring(equals + 1);
+                string key = line[..equals];
+                string value = line[(equals + 1)..];
 
                 var entry = LangEntry.Create(key, value);
                 entries.Add(entry);
@@ -148,7 +148,7 @@ namespace mc_compiled.Modding.Resources.Localization
                         continue;
                     }
 
-                    string comment = new string(line.Substring(2).SkipWhile(char.IsWhiteSpace).ToArray());
+                    string comment = new string(line[2..].SkipWhile(char.IsWhiteSpace).ToArray());
                     entries.Add(LangEntry.Comment(comment));
                     continue;
                 }
@@ -161,8 +161,8 @@ namespace mc_compiled.Modding.Resources.Localization
                     continue;
                 }
 
-                string key = line.Substring(0, equals);
-                string value = line.Substring(equals + 1);
+                string key = line[..equals];
+                string value = line[(equals + 1)..];
 
                 if (key.StartsWith(Executor.MCC_TRANSLATE_PREFIX))
                     continue; // don't load generated keys, they need to be thrown out for this build.

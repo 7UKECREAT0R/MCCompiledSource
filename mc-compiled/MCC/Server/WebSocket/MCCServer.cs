@@ -1,6 +1,4 @@
-﻿using mc_compiled.MCC.Compiler;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,6 +9,9 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using mc_compiled.MCC.Compiler;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.ServerWebSocket
 {
@@ -94,10 +95,10 @@ namespace mc_compiled.MCC.ServerWebSocket
             this.socket = new Socket(this.ip.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
             this.sha1 = SHA1.Create();
-            this.multiparts = new List<byte[]>();
+            this.multiparts = [];
         }
 
-        bool _isDisposed = false;
+        private bool _isDisposed = false;
         public void Dispose()
         {
             if (this._isDisposed)
@@ -147,6 +148,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             object state = result.AsyncState;
 
             var server = (Socket)state;
+            Debug.Assert(server != null, nameof(server) + " != null");
             server.ReceiveBufferSize = CHUNK_SIZE;
 
             Socket client = server.EndAccept(result);
@@ -155,7 +157,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             var package = new WebSocketPackage
                 (server, client, this);
 
-            // run the receive loop for the connected client. 
+            // run the reception loop for the connected client. 
             var thread = new Thread(ReceiveLoop);
             thread.Start(package);
         }
@@ -173,7 +175,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             while (true)
             {
                 int bytesReadTotal = 0;
-                int bytesRead = 0;
+                int bytesRead;
 
                 Array.Clear(tempBuffer, 0, READ_SIZE);
 
@@ -217,10 +219,10 @@ namespace mc_compiled.MCC.ServerWebSocket
                             remaining = length - bytesRead;
                         }
 
-                        if (bytesRead < (int)length)
+                        if (bytesRead < length)
                             throw new Exception("Client did not fulfill WebSocket length promise.");
                     } else
-                        content = Array.Empty<byte>();
+                        content = [];
                     
                     Debug.WriteLine($"Got frame: {frame}");
 
@@ -250,8 +252,6 @@ namespace mc_compiled.MCC.ServerWebSocket
                     // the only HTTP used by WebSocket is when initiating the handshake.
                     if (str.StartsWith("GET"))
                         ProcessWebsocketUpgrade(package, str);
-                    
-                    bytesReadTotal = 0;
                 }
                 
                 Array.Clear(tempBuffer, 0, tempBuffer.Length);
@@ -285,7 +285,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
             // create response data
             const string HANDSHAKE_HEADER = "HTTP/1.1 101 Switching Protocols";
-            Dictionary<string, string> http = new Dictionary<string, string>()
+            var http = new Dictionary<string, string>
             {
                 ["Upgrade"] = "Websocket",
                 ["Connection"] = "Upgrade",
@@ -298,19 +298,19 @@ namespace mc_compiled.MCC.ServerWebSocket
             package.didHandshake = true;
 
             // send version info
-            JObject json = new JObject();
+            var json = new JObject();
             json["action"] = "version";
             json["version"] = (int)(Executor.MCC_VERSION * 1000);
             package.SendFrame(WebSocketFrame.JSON(json));
 
             // send current property info
-            JArray _properties = new JArray(this.project.properties.Select(kv => new JObject()
+            var _properties = new JArray(this.project.properties.Select(kv => new JObject
                 {
                     ["name"] = kv.Key.Base64Encode(),
                     ["value"] = kv.Value.Base64Encode()
                 })
             );
-            JObject properties = new JObject()
+            var properties = new JObject
             {
                 ["action"] = "properties",
                 ["properties"] = _properties
@@ -414,7 +414,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             {
                 var color = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Received JSON with no action property:\n{0}", json.ToString());
+                Console.WriteLine("Received JSON with no action property:\n{0}", json);
                 Console.ForegroundColor = color;
                 return false;
             }
@@ -456,7 +456,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 return true;
             if(action.Equals("info"))
             {
-                JObject info = new JObject();
+                var info = new JObject();
                 info["action"] = "menu";
                 info["html"] = CreateGenericMenu("Server Info",
                     "Language Server Version: " + STANDARD_VERSION,
@@ -474,26 +474,16 @@ namespace mc_compiled.MCC.ServerWebSocket
             if (action.Equals("openfolder"))
             {
                 string folder = json["folder"].ToString();
-                string toOpen = null;
 
-                switch (folder)
+                string toOpen = folder switch
                 {
-                    case "current":
-                        toOpen = Directory.GetCurrentDirectory();
-                        break;
-                    case "user":
-                        toOpen = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                        break;
-                    case "bp":
-                        toOpen = this.outputBehaviorPack.Replace("?project_BP", ""); // no project
-                        break;
-                    case "rp":
-                        toOpen = this.outputResourcePack.Replace("?project_RP", ""); // no project
-                        break;
-                    case "install":
-                        toOpen = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                        break;
-                }
+                    "current" => Directory.GetCurrentDirectory(),
+                    "user" => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "bp" => this.outputBehaviorPack.Replace("?project_BP", ""), // no project
+                    "rp" => this.outputResourcePack.Replace("?project_RP", ""), // no project
+                    "install" => Path.GetDirectoryName(AppContext.BaseDirectory),
+                    _ => null
+                };
 
                 if (this.debug)
                     Console.WriteLine("Opening folder: {0}", toOpen);
@@ -523,12 +513,12 @@ namespace mc_compiled.MCC.ServerWebSocket
                 string encodedCode = json["code"].Value<string>();
                 string code = encodedCode.Base64Decode();
                 string encodedProject = json["project"].Value<string>();
-                string project = encodedProject.Base64Decode();
+                string decodedProject = encodedProject.Base64Decode();
 
                 if (this.debug)
-                    Console.WriteLine("Compiling project '{0}'...", project);
+                    Console.WriteLine("Compiling project '{0}'...", decodedProject);
 
-                Compile(code, project, package);
+                Compile(code, decodedProject, package);
                 return false;
             }
 
@@ -549,9 +539,11 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                     if (!this.project.hasFile)
                     {
-                        if (!this.project.RunSaveFileDialog())
+                        if (!this.project.RunSaveFileDialog(out bool unsupported))
                         {
-                            package.SendFrame(CreateNotificationFrame("Save cancelled by user.", "#DDDDDD"));
+                            package.SendFrame(unsupported ?
+                                CreateNotificationFrame("Saving files is unsupported on non-Windows platforms.", "#DDDDDD") :
+                                CreateNotificationFrame("Save cancelled by user.", "#DDDDDD"));
                             package.SendFrame(CreateBusyFrame(false));
                             return; // stop thread
                         }
@@ -581,7 +573,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                             if (hasMetadata)
                             {
-                                string block = metadata.ToString(Newtonsoft.Json.Formatting.None).Base64Encode();
+                                string block = metadata.ToString(Formatting.None).Base64Encode();
                                 string blockString = META_FIELD_METADATA + block + '\n';
                                 byte[] blockBytes = ENCODING.GetBytes(blockString);
                                 stream.Write(blockBytes, 0, blockBytes.Length);
@@ -607,18 +599,21 @@ namespace mc_compiled.MCC.ServerWebSocket
                     package.SendFrame(CreateBusyFrame(false));
                 });
 
-                thread.SetApartmentState(ApartmentState.STA);
+                if(OperatingSystem.IsWindows())
+                    thread.SetApartmentState(ApartmentState.STA);
                 thread.Start();
 
                 return false;
             }
             if (action.Equals("load"))
             {
-                Thread thread = new Thread(() =>
+                var thread = new Thread(() =>
                 {
-                    if (!this.project.RunLoadFileDialog())
+                    if (!this.project.RunLoadFileDialog(out bool unsupported))
                     {
-                        package.SendFrame(CreateNotificationFrame("Load canceled by user.", "#DDDDDD"));
+                        package.SendFrame(unsupported ?
+                            CreateNotificationFrame("Loading files in the editor is unsupported on non-Windows platforms.", "#DDDDDD"):
+                            CreateNotificationFrame("Load canceled by user.", "#DDDDDD"));
                         package.SendFrame(CreateBusyFrame(false));
                         return;
                     }
@@ -629,12 +624,12 @@ namespace mc_compiled.MCC.ServerWebSocket
                         return;
                     
                     string code = File.ReadAllText(file, ENCODING);
-                    JObject metadata = new JObject();
+                    var metadata = new JObject();
 
                     if(code.StartsWith(META_HEADER))
                     {
                         // begin reading metadata.
-                        StringReader reader = new StringReader(code);
+                        var reader = new StringReader(code);
                         _ = reader.ReadLine(); // skip the header
                         code = "";
 
@@ -644,11 +639,11 @@ namespace mc_compiled.MCC.ServerWebSocket
                         {
                             if(line.StartsWith(META_FIELD_METADATA))
                             {
-                                string dataBlock = line.Substring(META_FIELD_METADATA.Length);
+                                string dataBlock = line[META_FIELD_METADATA.Length..];
                                 metadata = JObject.Parse(dataBlock.Base64Decode());
                             } else if(line.StartsWith(META_FIELD_PROPERTIES))
                             {
-                                string dataBlock = line.Substring(META_FIELD_PROPERTIES.Length);
+                                string dataBlock = line[META_FIELD_PROPERTIES.Length..];
                                 this.project.PropertiesBase64 = dataBlock;
                             } else
                             {
@@ -668,7 +663,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                         reader.Dispose();
                     }
 
-                    JObject send = new JObject()
+                    var send = new JObject
                     {
                         ["action"] = "postload",
                         ["code"] = code.Base64Encode(),
@@ -677,13 +672,13 @@ namespace mc_compiled.MCC.ServerWebSocket
                     package.SendFrame(WebSocketFrame.JSON(send));
 
 
-                    JArray _properties = new JArray(this.project.properties.Select(kv => new JObject()
+                    var _properties = new JArray(this.project.properties.Select(kv => new JObject
                         {
                             ["name"] = kv.Key.Base64Encode(),
                             ["value"] = kv.Value.Base64Encode()
                         })
                     );
-                    JObject properties = new JObject()
+                    var properties = new JObject
                     {
                         ["action"] = "properties",
                         ["properties"] = _properties
@@ -693,11 +688,11 @@ namespace mc_compiled.MCC.ServerWebSocket
                     Lint(code, package);
 
                     if (this.debug)
-                        Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata.ToString());
-                    return;
+                        Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata);
                 });
 
-                thread.SetApartmentState(ApartmentState.STA);
+                if(OperatingSystem.IsWindows())
+                    thread.SetApartmentState(ApartmentState.STA);
                 thread.Start();
 
                 return false;
@@ -722,7 +717,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 LintStructure lint = LintStructure.Harvest(executor);
 
                 if (this.debug)
-                    Console.WriteLine("\tLint success. " + lint.ToString());
+                    Console.WriteLine("\tLint success. " + lint);
 
                 string json = lint.ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
@@ -777,7 +772,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 LintStructure lint = LintStructure.Harvest(executor);
 
                 if (this.debug)
-                    Console.WriteLine("\tLint success. " + lint.ToString());
+                    Console.WriteLine("\tLint success. " + lint);
 
                 string json = lint.ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
@@ -819,7 +814,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     Console.WriteLine("\tFatal Error:\n\n" + exc);
                     Console.WriteLine(exc.ToString());
                 }
-                string json = ErrorStructure.Wrap(exc, new[] { 0 }).ToJSON();
+                string json = ErrorStructure.Wrap(exc, [0]).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
             } finally
             {
@@ -831,7 +826,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         {
             Program.DEBUG = this.debug;
             Program.PrepareToCompile();
-            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", Array.Empty<Program.InputPPV>(), this.outputBehaviorPack, this.outputResourcePack, projectName);
+            bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", [], this.outputBehaviorPack, this.outputResourcePack, projectName);
 
             if (this.debug)
                 Console.WriteLine("Compilation Success: {0}", success);
@@ -848,39 +843,42 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <summary>
         /// Creates a WebSocketFrame to hold a MCCompiled protocol 'notification' action.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="color"></param>
+        /// <param name="text">The text to display in the notification.</param>
+        /// <param name="color">The color of the text; name or hexadecimal code.</param>
         /// <returns></returns>
         public static WebSocketFrame CreateNotificationFrame(string text, string color)
         {
-            JObject json = new JObject();
-            json["action"] = "notification";
-            json["text"] = text.Base64Encode();
-            json["color"] = color;
+            var json = new JObject
+            {
+                ["action"] = "notification",
+                ["text"] = text.Base64Encode(),
+                ["color"] = color
+            };
             return WebSocketFrame.JSON(json);
         }
         /// <summary>
-        /// Creates a WebSocketFrame to hold a MCCompiled protocol 'busy' action.
+        /// Creates a WebSocketFrame to hold an MCCompiled protocol 'busy' action.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="color"></param>
+        /// <param name="busy">If the server is busy.</param>
         /// <returns></returns>
         public static WebSocketFrame CreateBusyFrame(bool busy)
         {
-            JObject json = new JObject();
-            json["action"] = "busy";
-            json["busy"] = busy;
+            var json = new JObject
+            {
+                ["action"] = "busy",
+                ["busy"] = busy
+            };
             return WebSocketFrame.JSON(json);
         }
         /// <summary>
         /// Creates HTML for a generic menu with a close button.
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="args"></param>
+        /// <param name="title">The title of the menu.</param>
+        /// <param name="lines">The lines of text to display in the menu.</param>
         /// <returns></returns>
         public static string CreateGenericMenu(string title, params string[] lines)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append("<h1>" + title + "</h1>");
             sb.Append("<h2 style=max-width:400px>");
             foreach (string line in lines)

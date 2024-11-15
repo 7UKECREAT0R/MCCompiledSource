@@ -14,8 +14,8 @@ namespace mc_compiled.Modding.Resources.Localization
             if (x == null || y == null)
                 return string.Compare(x, y, StringComparison.Ordinal);
 
-            string[] xParts = _regex.Matches(x).Cast<Match>().Select(m => m.Value).ToArray();
-            string[] yParts = _regex.Matches(y).Cast<Match>().Select(m => m.Value).ToArray();
+            string[] xParts = _regex.Matches(x).Select(m => m.Value).ToArray();
+            string[] yParts = _regex.Matches(y).Select(m => m.Value).ToArray();
 
             for (int i = 0; i < Math.Min(xParts.Length, yParts.Length); i++)
             {

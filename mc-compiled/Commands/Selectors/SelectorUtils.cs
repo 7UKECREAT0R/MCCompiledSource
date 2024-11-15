@@ -14,23 +14,16 @@ namespace mc_compiled.Commands.Selectors
         /// <returns></returns>
         public static TokenCompare.Type InvertComparison(this TokenCompare.Type type)
         {
-            switch (type)
+            return type switch
             {
-                case TokenCompare.Type.EQUAL:
-                    return TokenCompare.Type.NOT_EQUAL;
-                case TokenCompare.Type.NOT_EQUAL:
-                    return TokenCompare.Type.EQUAL;
-                case TokenCompare.Type.LESS:
-                    return TokenCompare.Type.GREATER_OR_EQUAL;
-                case TokenCompare.Type.LESS_OR_EQUAL:
-                    return TokenCompare.Type.GREATER;
-                case TokenCompare.Type.GREATER:
-                    return TokenCompare.Type.LESS_OR_EQUAL;
-                case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return TokenCompare.Type.LESS;
-                default:
-                    return type;
-            }
+                TokenCompare.Type.EQUAL => TokenCompare.Type.NOT_EQUAL,
+                TokenCompare.Type.NOT_EQUAL => TokenCompare.Type.EQUAL,
+                TokenCompare.Type.LESS => TokenCompare.Type.GREATER_OR_EQUAL,
+                TokenCompare.Type.LESS_OR_EQUAL => TokenCompare.Type.GREATER,
+                TokenCompare.Type.GREATER => TokenCompare.Type.LESS_OR_EQUAL,
+                TokenCompare.Type.GREATER_OR_EQUAL => TokenCompare.Type.LESS,
+                _ => type
+            };
         }
 
         /// <summary>
@@ -40,23 +33,16 @@ namespace mc_compiled.Commands.Selectors
         /// <returns></returns>
         public static TokenCompare.Type InvertDirection(this TokenCompare.Type type)
         {
-            switch (type)
+            return type switch
             {
-                case TokenCompare.Type.EQUAL:
-                    return TokenCompare.Type.EQUAL;
-                case TokenCompare.Type.NOT_EQUAL:
-                    return TokenCompare.Type.NOT_EQUAL;
-                case TokenCompare.Type.LESS:
-                    return TokenCompare.Type.GREATER;
-                case TokenCompare.Type.LESS_OR_EQUAL:
-                    return TokenCompare.Type.GREATER_OR_EQUAL;
-                case TokenCompare.Type.GREATER:
-                    return TokenCompare.Type.LESS;
-                case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return TokenCompare.Type.LESS_OR_EQUAL;
-                default:
-                    return type;
-            }
+                TokenCompare.Type.EQUAL => TokenCompare.Type.EQUAL,
+                TokenCompare.Type.NOT_EQUAL => TokenCompare.Type.NOT_EQUAL,
+                TokenCompare.Type.LESS => TokenCompare.Type.GREATER,
+                TokenCompare.Type.LESS_OR_EQUAL => TokenCompare.Type.GREATER_OR_EQUAL,
+                TokenCompare.Type.GREATER => TokenCompare.Type.LESS,
+                TokenCompare.Type.GREATER_OR_EQUAL => TokenCompare.Type.LESS_OR_EQUAL,
+                _ => type
+            };
         }
 
         /// <summary>

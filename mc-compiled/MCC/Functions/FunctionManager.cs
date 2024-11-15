@@ -1,8 +1,8 @@
-﻿using mc_compiled.MCC.Compiler.Implementations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Attributes.Implementations;
+using mc_compiled.MCC.Compiler.Implementations;
 using mc_compiled.MCC.Functions.Types;
 
 namespace mc_compiled.MCC.Functions
@@ -13,7 +13,7 @@ namespace mc_compiled.MCC.Functions
     public class FunctionManager
     {
         /// <summary>
-        /// All of the functions currently in the project.
+        /// All the functions currently in the project.
         /// </summary>
         private Dictionary<string, List<Function>> functionRegistry;
         private readonly List<TestFunction> tests;
@@ -24,10 +24,10 @@ namespace mc_compiled.MCC.Functions
         /// Contains all compiler-implemented providers that should be added on new instances of a FunctionManager.
         /// </summary>
         internal static IFunctionProvider[] DefaultCompilerProviders =
-        {
+        [
             AttributeFunctions.PROVIDER,
-            CompiletimeFunctions.PROVIDER,
-        };
+            CompiletimeFunctions.PROVIDER
+        ];
 
         /// <summary>
         /// Create a new FunctionManager with an empty registry.
@@ -36,7 +36,7 @@ namespace mc_compiled.MCC.Functions
         {
             this.functionRegistry = new Dictionary<string, List<Function>>(StringComparer.OrdinalIgnoreCase);
             this.scoreboardManager = manager;
-            this.tests = new List<TestFunction>();
+            this.tests = [];
         }
         /// <summary>
         /// Registers the function providers included with the compiler.
@@ -79,7 +79,7 @@ namespace mc_compiled.MCC.Functions
         private void RegisterUnderName(string name, Function function)
         {
             if (!this.functionRegistry.TryGetValue(name, out List<Function> functions))
-                functions = new List<Function>();
+                functions = [];
 
             functions.Add(function);
             this.functionRegistry[name] = functions;

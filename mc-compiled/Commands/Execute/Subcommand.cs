@@ -21,7 +21,7 @@ namespace mc_compiled.Commands.Execute
         /// <summary>
         /// Attempt to load this subcommand's properties from a set of input tokens.
         /// </summary>
-        /// <param name="feeder"></param>
+        /// <param name="tokens">The tokens to load.</param>
         public abstract void FromTokens(Statement tokens);
         /// <summary>
         /// Returns this subcommand as actual command output.
@@ -30,41 +30,28 @@ namespace mc_compiled.Commands.Execute
         public abstract string ToMinecraft();
 
         /// <summary>
-        /// Returns a new instance of the subcommand tied to the given keyword. Case insensitive.
+        /// Returns a new instance of the subcommand tied to the given keyword. Case-insensitive.
         /// </summary>
-        /// <param name="keyword">The case-insensitive keyword to use.param>
+        /// <param name="keyword">The case-insensitive keyword to use.</param>
         /// <param name="forExceptions">The calling statement, only used for exceptions.</param>
-        /// <param name="throwForTerminators">If this should throw if a subcommand is given that terminates the chain.</param>
-        /// <returns></returns>
+        /// <returns>The newly created subcommand instance.</returns>
         public static Subcommand GetSubcommandForKeyword(string keyword, Statement forExceptions)
         {
-            switch (keyword.ToUpper())
+            return keyword.ToUpper() switch
             {
-                case "ALIGN":
-                    return new SubcommandAlign();
-                case "ANCHORED":
-                    return new SubcommandAnchored();
-                case "AS":
-                    return new SubcommandAs();
-                case "AT":
-                    return new SubcommandAt();
-                case "FACING":
-                    return new SubcommandFacing();
-                case "IF":
-                    return new SubcommandIf();
-                case "IN":
-                    return new SubcommandIn();
-                case "POSITIONED":
-                    return new SubcommandPositioned();
-                case "ROTATED":
-                    return new SubcommandRotated();
-                case "RUN":
-                    return new SubcommandRun();
-                case "UNLESS":
-                    return new SubcommandUnless();
-                default:
-                    throw new StatementException(forExceptions, $"Unknown execute subcommand '{keyword}'.");
-            }
+                "ALIGN" => new SubcommandAlign(),
+                "ANCHORED" => new SubcommandAnchored(),
+                "AS" => new SubcommandAs(),
+                "AT" => new SubcommandAt(),
+                "FACING" => new SubcommandFacing(),
+                "IF" => new SubcommandIf(),
+                "IN" => new SubcommandIn(),
+                "POSITIONED" => new SubcommandPositioned(),
+                "ROTATED" => new SubcommandRotated(),
+                "RUN" => new SubcommandRun(),
+                "UNLESS" => new SubcommandUnless(),
+                _ => throw new StatementException(forExceptions, $"Unknown execute subcommand '{keyword}'.")
+            };
         }
     }
 }

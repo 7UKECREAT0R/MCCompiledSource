@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Resources
 {
@@ -22,13 +22,13 @@ namespace mc_compiled.Modding.Resources
         }
         public JObject ToJSON()
         {
-            return new JObject()
+            return new JObject
             {
                 ["format_version"] = FormatVersion.r_MODEL.ToString(),
-                ["minecraft:geometry"] = new JArray(new[] {
-                    new JObject()
+                ["minecraft:geometry"] = new JArray(new object[] {
+                    new JObject
                     {
-                        ["description"] = new JObject()
+                        ["description"] = new JObject
                         {
                             ["identifier"] = this.identifier,
                             ["texture_width"] = this.textureWidth,

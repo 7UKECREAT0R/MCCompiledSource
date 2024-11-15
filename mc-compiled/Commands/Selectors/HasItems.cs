@@ -12,11 +12,11 @@ namespace mc_compiled.Commands.Selectors
 
         public HasItems(params HasItemEntry[] start)
         {
-            this.entries = new List<HasItemEntry>(start);
+            this.entries = [..start];
         }
         public HasItems(List<HasItemEntry> start)
         {
-            this.entries = new List<HasItemEntry>(start);
+            this.entries = [..start];
         }
 
         public string GetSection()
@@ -25,7 +25,7 @@ namespace mc_compiled.Commands.Selectors
                 return null;
 
             if (this.entries.Count == 1)
-                return "hasitem=" + this.entries[0].ToString();
+                return "hasitem=" + this.entries[0];
             else
                 return "hasitem=[" + string.Join(",", (from e in this.entries select e.ToString())) + "]";
         }
@@ -50,7 +50,7 @@ namespace mc_compiled.Commands.Selectors
             // {item=zingus,quantity=1..5},{item=goongongy,location=slot.armor.head,slot=0}
 
             // Reduce down to trimmed pieces.
-            string[] split = str.Split(new[] { "},{" }, StringSplitOptions.None);
+            string[] split = str.Split(["},{"], StringSplitOptions.None);
             var parts = from part in split select part.Trim('{', '}');
 
             // item=goongongy,location=slot.armor.head,slot=0
@@ -63,8 +63,8 @@ namespace mc_compiled.Commands.Selectors
                     int index = section.IndexOf('=');
                     if (index == -1)
                         continue;
-                    string key = section.Substring(0, index).Trim();
-                    string _value = section.Substring(index + 1).Trim();
+                    string key = section[..index].Trim();
+                    string _value = section[(index + 1)..].Trim();
 
                     switch (key.ToUpper())
                     {
@@ -120,9 +120,19 @@ namespace mc_compiled.Commands.Selectors
         public static HasItems operator +(HasItems a, HasItems other)
         {
             var clone = (HasItems)a.MemberwiseClone();
-            clone.entries = new List<HasItemEntry>(a.entries);
+            clone.entries = [..a.entries];
             clone.entries.AddRange(other.entries);
             return clone;
+        }
+
+        public static bool operator ==(HasItems left, HasItems right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(HasItems left, HasItems right)
+        {
+            return !(left == right);
         }
     }
     public struct HasItemEntry
@@ -173,8 +183,10 @@ namespace mc_compiled.Commands.Selectors
 
         public override string ToString()
         {
-            List<string> parts = new List<string>();
-            parts.Add("item=" + this.item);
+            List<string> parts =
+            [
+                "item=" + this.item
+            ];
 
             if (this.data.HasValue)
                 parts.Add("data=" + this.data.Value);
@@ -183,7 +195,7 @@ namespace mc_compiled.Commands.Selectors
             if (this.slot.HasValue)
                 parts.Add("slot=" + this.slot.Value);
             if (this.quantity.HasValue)
-                parts.Add("quantity=" + this.quantity.Value.ToString());
+                parts.Add("quantity=" + this.quantity.Value);
 
             return $@"{{{string.Join(",", parts)}}}";
         }

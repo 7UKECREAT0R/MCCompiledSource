@@ -1,6 +1,6 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System.Collections.Generic;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Functions.Types;
-using System.Collections.Generic;
 
 namespace mc_compiled.MCC.Attributes
 {
@@ -8,8 +8,6 @@ namespace mc_compiled.MCC.Attributes
     {
         public string GetDebugString() => "extern";
         public string GetCodeRepresentation() => "extern";
-        
-        internal AttributeExtern() { }
 
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
         {

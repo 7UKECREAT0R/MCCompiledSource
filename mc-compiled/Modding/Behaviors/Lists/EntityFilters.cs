@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using mc_compiled.Commands;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors.Lists
 {
@@ -54,7 +55,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     }
     public class FilterHasDamage : Filter
     {
-        public Commands.DamageCause damageType;
+        public DamageCause damageType;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "has_damage";
         public override object GetValue() => this.damageType.ToString();
@@ -71,10 +72,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public override JProperty[] GetExtraProperties()
         {
             if (this.itemDomain.HasValue)
-                return new JProperty[]
-                {
+                return
+                [
                     new JProperty("domain", this.itemDomain.ToString())
-                };
+                ];
 
             return null;
         }
@@ -243,7 +244,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     }
     public class FilterIsDifficulty : Filter
     {
-        public Commands.DifficultyMode difficulty;
+        public DifficultyMode difficulty;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_difficulty";
         public override object GetValue() => this.difficulty.ToString();
@@ -257,7 +258,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     }
     public class FilterIsGameRule : Filter
     {
-        public Commands.GameRule gameRule;
+        public GameRule gameRule;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => "is_game_rule";
         public override object GetValue() => this.gameRule.ToString();
@@ -455,7 +456,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
     }
     public class FilterWeather : Filter
     {
-        public Commands.WeatherState weather;
+        public WeatherState weather;
         public bool atPosition;
         public override JProperty[] GetExtraProperties() => null;
         public override string GetTest() => this.atPosition ? "weather_at_position" : "weather";

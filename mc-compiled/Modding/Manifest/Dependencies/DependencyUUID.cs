@@ -24,7 +24,7 @@ namespace mc_compiled.Modding.Manifest.Dependencies
         
         public override JObject ToJSON()
         {
-            return new JObject()
+            return new JObject
             {
                 ["uuid"] = this.dependsOnUUID.ToString(),
                 ["version"] = this.version.ToJSON()

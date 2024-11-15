@@ -1,24 +1,24 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.Commands.Selectors;
-using mc_compiled.Json;
-using mc_compiled.MCC.Functions;
-using mc_compiled.Modding;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using mc_compiled.Commands.Execute;
-using mc_compiled.MCC.Compiler.TypeSystem;
-using mc_compiled.MCC.Scheduling;
-using mc_compiled.Modding.Resources.Localization;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Selectors;
+using mc_compiled.Json;
 using mc_compiled.MCC.Compiler.Async;
+using mc_compiled.MCC.Compiler.TypeSystem;
+using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
+using mc_compiled.MCC.Scheduling;
+using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
+using mc_compiled.Modding.Resources.Localization;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -124,7 +124,7 @@ namespace mc_compiled.MCC.Compiler
         internal readonly AsyncManager async;
 
         private Statement[] statements;
-        private int readIndex = 0;
+        private int readIndex;
         private int unreachableCode = -1;
         private readonly Stack<Action<Executor>> deferredActions;
         private readonly Dictionary<int, object> loadedFiles;
@@ -152,11 +152,11 @@ namespace mc_compiled.MCC.Compiler
             this.entities = new EntityManager(this);
             this.async = new AsyncManager(this);
 
-            this.definedStdFiles = new List<int>();
+            this.definedStdFiles = [];
             this.ppv = new Dictionary<string, PreprocessorVariable>(StringComparer.OrdinalIgnoreCase);
-            this.macros = new List<Macro>();
-            this.definedTags = new HashSet<string>();
-            this.definedReturnedTypes = new HashSet<Typedef>();
+            this.macros = [];
+            this.definedTags = [];
+            this.definedReturnedTypes = [];
 
             if (inputPPVs != null && inputPPVs.Count > 0)
                 foreach (Program.InputPPV inputPPV in inputPPVs)
@@ -236,7 +236,7 @@ namespace mc_compiled.MCC.Compiler
                     if (segmentLength == -1)
                     {
                         // append the rest of the string and cancel.
-                        buffer.Append(fstring.Substring(i));
+                        buffer.Append(fstring[i..]);
                         break;
                     }
 
@@ -383,7 +383,7 @@ namespace mc_compiled.MCC.Compiler
             if (builder == null)
                 builder = Command.Execute();
             if(commands == null)
-                commands = new List<string>();
+                commands = [];
 
             for(int i = 0; i < terms.Count; i++)
             {
@@ -504,7 +504,7 @@ namespace mc_compiled.MCC.Compiler
 
             if (File.Exists(file))
             {
-                if (!(LoadJSONFile(file, callingStatement) is JObject jObject))
+                if (LoadJSONFile(file, callingStatement) is not JObject jObject)
                     throw new StatementException(callingStatement, $"File RP/sounds/{SoundDefinitions.FILE} was not a JSON Object.");
 
                 this.soundDefinitions = SoundDefinitions.Parse(jObject, callingStatement);
@@ -538,7 +538,7 @@ namespace mc_compiled.MCC.Compiler
 
             int indexOfSlash = relative.IndexOf(Path.DirectorySeparatorChar);
             if (indexOfSlash != -1)
-                relative = relative.Substring(indexOfSlash + 1);
+                relative = relative[(indexOfSlash + 1)..];
 
             if (!relative.Contains(Path.DirectorySeparatorChar))
                 return null;
@@ -575,7 +575,7 @@ namespace mc_compiled.MCC.Compiler
             AddExtraFile(copyFile);
 
             SoundDefinitions soundDef = GetSoundDefinitions(callingStatement);
-            var soundDefinition = new SoundDefinition(soundName, fileName, category, soundFolder.ToString());
+            var soundDefinition = new SoundDefinition(soundName, category, soundFolder.ToString());
             
             if (soundDef.TryGetSoundDefinition(soundDefinition.CommandReference, out SoundDefinition existing))
                 return existing;
@@ -767,14 +767,14 @@ namespace mc_compiled.MCC.Compiler
                     if(pathString.StartsWith("r_"))
                     {
                         packType = TemporaryFilesManager.PackType.ResourcePack;
-                        pathString = pathString.Substring(2);
+                        pathString = pathString[2..];
                     }
                     if (pathString.StartsWith("b_"))
                     {
-                        pathString = pathString.Substring(2);
+                        pathString = pathString[2..];
                     }
 
-                    string[] paths = pathString.Split(new[] { "__" }, StringSplitOptions.None);
+                    string[] paths = pathString.Split(["__"], StringSplitOptions.None);
                     string[] filePath = new string[paths.Length + 1];
                     for (int i = 0; i < paths.Length; i++)
                     {
@@ -885,7 +885,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public Statement SeekSkip(int amount)
         {
-            Statement statement = null;
+            Statement statement;
 
             int i = this.readIndex + amount;
 
@@ -905,7 +905,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns><b>null</b> if no statements have been gotten yet.</returns>
         public Statement SeekLast()
         {
-            Statement statement = null;
+            Statement statement;
 
             int i = this.readIndex - 1;
 
@@ -963,7 +963,7 @@ namespace mc_compiled.MCC.Compiler
 
             Statement _tokens = this.statements[this.readIndex];
 
-            if (!(_tokens is StatementUnknown tokens))
+            if (_tokens is not StatementUnknown tokens)
                 return false;
 
             return tokens.NextIs<TokenBuilderIdentifier>(false);
@@ -999,7 +999,7 @@ namespace mc_compiled.MCC.Compiler
         public Statement[] Peek(int amount)
         {
             if (amount == 0)
-                return Array.Empty<Statement>();
+                return [];
 
             var ret = new Statement[amount];
 
@@ -1021,7 +1021,7 @@ namespace mc_compiled.MCC.Compiler
         public Statement[] Peek(int skip, int amount)
         {
             if (amount == 0)
-                return Array.Empty<Statement>();
+                return [];
 
             var ret = new Statement[amount];
 
@@ -1060,10 +1060,10 @@ namespace mc_compiled.MCC.Compiler
 
             Statement next = Next();
 
-            if (!(next is IExecutionSetPart))
+            if (next is not IExecutionSetPart)
                 throw new StatementException(current, "Following statement '" + next.Source + "' cannot be explicitly run.");
 
-            return new[] { next };
+            return [next];
         }
 
         /// <summary>
@@ -1119,7 +1119,7 @@ namespace mc_compiled.MCC.Compiler
                 TickDeferredActions();
 
                 if(Program.DEBUG)
-                    Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement.ToString());
+                    Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement);
             }
 
             while (this.currentFiles.Any())
@@ -1158,7 +1158,7 @@ namespace mc_compiled.MCC.Compiler
                 TickDeferredActions();
 
                 if (Program.DEBUG)
-                    Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement.ToString());
+                    Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement);
             }
 
             // now it's done, so restore state
@@ -1395,7 +1395,7 @@ namespace mc_compiled.MCC.Compiler
         public bool HasExtraFileContaining(string text) =>
             this.project.HasFileContaining(text);
 
-        private readonly List<string> initCommands = new List<string>();
+        private readonly List<string> initCommands = [];
         /// <summary>
         /// Add a command to the 'init' file. Does not affect the prepend buffer.
         /// </summary>
@@ -1482,7 +1482,7 @@ namespace mc_compiled.MCC.Compiler
             if (string.IsNullOrEmpty(name))
                 throw new Exception("Tried to get PPV with empty name.");
             if (name[0] == '$')
-                name = name.Substring(1);
+                name = name[1..];
             
             return this.ppv.TryGetValue(name, out value);
         }
@@ -1497,7 +1497,7 @@ namespace mc_compiled.MCC.Compiler
             if (string.IsNullOrEmpty(name))
                 throw new Exception("Tried to set PPV with empty name.");
             if (name[0] == '$')
-                name = name.Substring(1);
+                name = name[1..];
             this.ppv[name] = values.Clone();
         }
         /// <summary>
@@ -1510,7 +1510,7 @@ namespace mc_compiled.MCC.Compiler
             if (string.IsNullOrEmpty(name))
                 throw new Exception("Tried to set PPV with empty name.");
             if (name[0] == '$')
-                name = name.Substring(1);
+                name = name[1..];
             this.ppv[name] = new PreprocessorVariable(values);
         }
 
@@ -1553,7 +1553,7 @@ namespace mc_compiled.MCC.Compiler
                     continue;
                 }
 
-                string ppvName = text.Substring(lastIndex + 1);
+                string ppvName = text[(lastIndex + 1)..];
                 
                 if (!TryGetPPV(ppvName, out PreprocessorVariable values))
                     continue; // no ppv named that

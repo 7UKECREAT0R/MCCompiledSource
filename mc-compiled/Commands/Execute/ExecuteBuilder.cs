@@ -1,8 +1,8 @@
-﻿using mc_compiled.Commands.Selectors;
+﻿using System.Collections.Generic;
+using System.Linq;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace mc_compiled.Commands.Execute
 {
@@ -35,11 +35,11 @@ namespace mc_compiled.Commands.Execute
         /// <summary>
         /// Adds the given subcommands to this ExecuteBuilder and returns this instance.
         /// </summary>
-        /// <param name="subcommands">The subcommands to add.</param>
+        /// <param name="newSubcommands">The subcommands to add.</param>
         /// <returns></returns>
-        internal ExecuteBuilder WithSubcommands(IEnumerable<Subcommand> subcommands)
+        internal ExecuteBuilder WithSubcommands(IEnumerable<Subcommand> newSubcommands)
         {
-            this.subcommands.AddRange(subcommands);
+            this.subcommands.AddRange(newSubcommands);
             return this;
         }
 
@@ -53,7 +53,7 @@ namespace mc_compiled.Commands.Execute
         {
             foreach (Subcommand subcommand in this.subcommands)
             {
-                if (!(subcommand is T resultCasted))
+                if (subcommand is not T resultCasted)
                     continue;
                 
                 result = resultCasted;
@@ -69,7 +69,7 @@ namespace mc_compiled.Commands.Execute
         /// </summary>
         internal ExecuteBuilder()
         {
-            this.subcommands = new List<Subcommand>();
+            this.subcommands = [];
         }
         /// <summary>
         /// Build the execute builder into a completed command.

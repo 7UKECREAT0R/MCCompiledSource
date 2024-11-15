@@ -1,5 +1,5 @@
-﻿using mc_compiled.MCC.Compiler;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC.Functions
 {

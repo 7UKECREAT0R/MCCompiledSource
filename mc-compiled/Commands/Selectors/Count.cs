@@ -21,8 +21,8 @@
                 int index = chunk.IndexOf('=');
                 if (index == -1)
                     continue;
-                string a = chunk.Substring(0, index).Trim().ToUpper();
-                string b = chunk.Substring(index + 1).Trim();
+                string a = chunk[..index].Trim().ToUpper();
+                string b = chunk[(index + 1)..].Trim();
 
                 if (!a.Equals("C"))
                     continue;
@@ -62,6 +62,16 @@
             if (a.count == NONE)
                 a.count = other.count;
             return a;
+        }
+
+        public static bool operator ==(Count left, Count right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Count left, Count right)
+        {
+            return !(left == right);
         }
     }
 }

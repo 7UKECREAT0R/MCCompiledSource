@@ -8,8 +8,6 @@ namespace mc_compiled.MCC.Attributes
     {
         public string GetDebugString() => "partial";
         public string GetCodeRepresentation() => "partial";
-        
-        internal AttributePartial() { }
 
         public void OnAddedFunction(RuntimeFunction function, Statement causingStatement)
         {

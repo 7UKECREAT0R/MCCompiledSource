@@ -1,12 +1,13 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.Modding.Behaviors;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using mc_compiled.Commands;
+using mc_compiled.Modding.Behaviors;
+using Newtonsoft.Json.Linq;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -53,33 +54,33 @@ namespace mc_compiled.MCC.Compiler
         {
             defaultState = "off";
 
-            return new[]
-            {
-                new ControllerState()
+            return
+            [
+                new ControllerState
                 {
                     name = "off",
-                    onEntryCommands = new string[]
-                    {
-                       Command.ForJSON(Command.ScoreboardSet(value, 0))
-                    },
-                    transitions = new ControllerState.Transition[]
-                    {
+                    onEntryCommands =
+                    [
+                        Command.ForJSON(Command.ScoreboardSet(value, 0))
+                    ],
+                    transitions =
+                    [
                         new ControllerState.Transition("on", (MolangValue)this.molangQuery)
-                    }
+                    ]
                 },
-                new ControllerState()
+                new ControllerState
                 {
                     name = "on",
-                    onEntryCommands = new string[]
-                    {
+                    onEntryCommands =
+                    [
                         Command.ForJSON(Command.ScoreboardSet(value, 1))
-                    },
-                    transitions = new ControllerState.Transition[]
-                    {
+                    ],
+                    transitions =
+                    [
                         new ControllerState.Transition("off", (MolangValue)$"!({this.molangQuery})")
-                    }
+                    ]
                 }
-            };
+            ];
         }
     }
         
@@ -101,33 +102,33 @@ namespace mc_compiled.MCC.Compiler
         {
             defaultState = "off";
 
-            return new[]
-            {
-                new ControllerState()
+            return
+            [
+                new ControllerState
                 {
                     name = "off",
-                    onEntryCommands = new[]
-                    {
-                        Command.ForJSON(Command.ScoreboardSet(value, 0))    
-                    },
-                    transitions = new[]
-                    {
+                    onEntryCommands =
+                    [
+                        Command.ForJSON(Command.ScoreboardSet(value, 0))
+                    ],
+                    transitions =
+                    [
                         new ControllerState.Transition("on", (MolangValue)$"{this.customQuery}")
-                    }
+                    ]
                 },
-                new ControllerState()
+                new ControllerState
                 {
                     name = "on",
-                    onEntryCommands = new[]
-                    {
+                    onEntryCommands =
+                    [
                         Command.ForJSON(Command.ScoreboardSet(value, 1))
-                    },
-                    transitions = new[]
-                    {
+                    ],
+                    transitions =
+                    [
                         new ControllerState.Transition("off", (MolangValue)$"!({this.customQuery})")
-                    }
+                    ]
                 }
-            };
+            ];
         }
     }
     
@@ -171,7 +172,7 @@ namespace mc_compiled.MCC.Compiler
             defaultState = "direct";
             int numberOfStates = this.max - this.min + 1;
             var states = new ControllerState[numberOfStates + 1]; // + 1 for the director
-            var director = new ControllerState()
+            var director = new ControllerState
             {
                 name = defaultState,
                 transitions = new ControllerState.Transition[numberOfStates]
@@ -182,17 +183,17 @@ namespace mc_compiled.MCC.Compiler
                 int currentState = this.min + i;
                 string stateName = "when_" + currentState;
 
-                var state = new ControllerState()
+                var state = new ControllerState
                 {
                     name = stateName,
-                    onEntryCommands = new[]
-                    {
+                    onEntryCommands =
+                    [
                         Command.ForJSON(Command.ScoreboardSet(value, currentState))
-                    },
-                    transitions = new[]
-                    {
+                    ],
+                    transitions =
+                    [
                         new ControllerState.Transition(director, (MolangValue)$"{this.molangQuery} != {currentState}")
-                    }
+                    ]
                 };
 
                 director.transitions[i] = new ControllerState.Transition(state, (MolangValue)$"{this.molangQuery} == {currentState}");
@@ -230,7 +231,7 @@ namespace mc_compiled.MCC.Compiler
             int numberOfStates = ((int)normalizedStep); // floor
 
             var states = new ControllerState[numberOfStates + 1]; // + 1 for the director
-            var director = new ControllerState()
+            var director = new ControllerState
             {
                 name = defaultState,
                 transitions = new ControllerState.Transition[numberOfStates]
@@ -249,7 +250,7 @@ namespace mc_compiled.MCC.Compiler
 
                 string stateName = "state_" + i;
 
-                var state = new ControllerState()
+                var state = new ControllerState
                 {
                     name = stateName,
 
@@ -257,11 +258,11 @@ namespace mc_compiled.MCC.Compiler
                         new TokenDecimalLiteral((decimal)currentValue, callingStatement.Lines[0]), callingStatement
                     ).Select(Command.ForJSON).ToArray(),
 
-                    transitions = new[]
-                    {
+                    transitions =
+                    [
                         new ControllerState.Transition(director,
                             (MolangValue)$"{this.molangQuery} < {lowerBound} && {this.molangQuery} >= {upperBound}")
-                    }
+                    ]
                 };
 
                 director.transitions[i] = new ControllerState.Transition(state, (MolangValue)$"{this.molangQuery} >= {lowerBound} && {this.molangQuery} < {upperBound}");
@@ -292,10 +293,10 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public static class MolangBindings
     {
-        private static bool _isLoaded = false;
+        private static bool _isLoaded;
 
         public static string LAST_MC_VERSION = "unknown";
-        public static readonly Dictionary<string, MolangBinding> BINDINGS = new Dictionary<string, MolangBinding>(StringComparer.OrdinalIgnoreCase);
+        public static readonly Dictionary<string, MolangBinding> BINDINGS = new(StringComparer.OrdinalIgnoreCase);
 
         private static void Load(JObject json, bool debug)
         {
@@ -334,7 +335,7 @@ namespace mc_compiled.MCC.Compiler
                 // try to fetch targets
                 if (body.TryGetValue("targets", out JToken value))
                 {
-                    JArray casted = value.Value<JArray>();
+                    var casted = value.Value<JArray>();
 
                     if (casted != null)
                     {
@@ -389,7 +390,7 @@ namespace mc_compiled.MCC.Compiler
         }
         private static void Load(bool debug)
         {
-            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyDir = Path.GetDirectoryName(AppContext.BaseDirectory);
             Debug.Assert(assemblyDir != null, "Application is in an inaccessible directory.");
             string path = Path.Combine(assemblyDir, Executor.BINDINGS_FILE);
 

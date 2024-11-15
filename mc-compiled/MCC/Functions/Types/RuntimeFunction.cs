@@ -1,10 +1,10 @@
-﻿using mc_compiled.Commands;
-using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
 using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.Async;
 
 namespace mc_compiled.MCC.Functions.Types
@@ -65,10 +65,10 @@ namespace mc_compiled.MCC.Functions.Types
             
 
             if (attributes == null)
-                attributes = Array.Empty<IAttribute>();
+                attributes = [];
 
-            this.attributes = new List<IAttribute>(attributes);
-            this.parameters = new List<RuntimeFunctionParameter>();
+            this.attributes = [..attributes];
+            this.parameters = [];
         }
         /// <summary>
         /// Signal to this function's attributes that they have been added to a function.
@@ -108,21 +108,21 @@ namespace mc_compiled.MCC.Functions.Types
         /// <summary>
         /// Adds multiple runtime parameters to this function.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="newParameters"></param>
         /// <returns>This object for chaining.</returns>
-        public RuntimeFunction AddParameters(IEnumerable<RuntimeFunctionParameter> parameters)
+        public RuntimeFunction AddParameters(IEnumerable<RuntimeFunctionParameter> newParameters)
         {
-            this.parameters.AddRange(parameters);
+            this.parameters.AddRange(newParameters);
             return this;
         }
         /// <summary>
         /// Adds multiple runtime parameters to this function.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="newParameters"></param>
         /// <returns>This object for chaining.</returns>
-        public RuntimeFunction AddParameters(params RuntimeFunctionParameter[] parameters)
+        public RuntimeFunction AddParameters(params RuntimeFunctionParameter[] newParameters)
         {
-            this.parameters.AddRange(parameters);
+            this.parameters.AddRange(newParameters);
             return this;
         }
         /// <summary>

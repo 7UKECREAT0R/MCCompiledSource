@@ -1,6 +1,7 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Reflection;
+using mc_compiled.MCC.Compiler;
+using Microsoft.Win32;
 
 namespace mc_compiled.MCC.ServerWebSocket
 {
@@ -13,7 +14,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         internal const string PROGRAM_ARG = "--fromProtocol";
         internal const string NAME = "MCCompiled Server Protocol";
         internal const string URL_PROTOCOL = "URL Protocol";
-
+        
         public bool hasBeenRegistered;
 
         /// <summary>
@@ -21,6 +22,9 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal RegistryConfiguration()
         {
+            if(!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("This feature is only supported on Windows.");
+            
             try
             {
                 RegistryKey root = Registry.ClassesRoot.OpenSubKey(SUBKEY);
@@ -40,7 +44,6 @@ namespace mc_compiled.MCC.ServerWebSocket
 
                 Console.ForegroundColor = old;
                 this.hasBeenRegistered = false;
-                return;
             }
         }
 
@@ -49,6 +52,9 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal void Install()
         {
+            if(!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("This feature is only supported on Windows.");
+
             try
             {
                 RegistryKey subkey = Registry.ClassesRoot.CreateSubKey(SUBKEY);
@@ -58,11 +64,11 @@ namespace mc_compiled.MCC.ServerWebSocket
                 subkey = subkey.CreateSubKey("shell");
                 subkey = subkey.CreateSubKey("open");
                 subkey = subkey.CreateSubKey("command");
-                subkey.SetValue("", Assembly.GetExecutingAssembly().Location + ' ' + PROGRAM_ARG);
+                subkey.SetValue("", AppContext.BaseDirectory + ' ' + PROGRAM_ARG);
 
                 ConsoleColor old = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Set up MCCompiled {Compiler.Executor.MCC_VERSION} language server for use. Remember to run this command again if the location of this executable changes.");
+                Console.WriteLine($"Set up MCCompiled {Executor.MCC_VERSION} language server for use. Remember to run this command again if the location of this executable changes.");
                 Console.ForegroundColor = old;
                 this.hasBeenRegistered = true;
             }
@@ -80,7 +86,6 @@ namespace mc_compiled.MCC.ServerWebSocket
                 }
 
                 Console.ForegroundColor = old;
-                return;
             }
         }
         /// <summary>
@@ -88,13 +93,16 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal void Uninstall()
         {
+            if(!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("This feature is only supported on Windows.");
+
             try
             {
                 Registry.ClassesRoot.DeleteSubKeyTree(SUBKEY);
 
                 ConsoleColor old = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Uninstalled MCCompiled {Compiler.Executor.MCC_VERSION} language server for all versions.");
+                Console.WriteLine($"Uninstalled MCCompiled {Executor.MCC_VERSION} language server for all versions.");
                 Console.ForegroundColor = old;
                 this.hasBeenRegistered = true;
             }
@@ -112,7 +120,6 @@ namespace mc_compiled.MCC.ServerWebSocket
                 }
 
                 Console.ForegroundColor = old;
-                return;
             }
         }
     }

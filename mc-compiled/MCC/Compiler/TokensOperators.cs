@@ -1,8 +1,8 @@
-﻿using mc_compiled.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -32,7 +32,7 @@ namespace mc_compiled.MCC.Compiler
         }
         protected TokenIndexer(Token innerToken, int lineNumber) : base(lineNumber)
         {
-            this.innerTokens = new[] { innerToken };
+            this.innerTokens = [innerToken];
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace mc_compiled.MCC.Compiler
             switch (tokens.Length)
             {
                 case 0:
-                    return new TokenIndexerUnknown(Array.Empty<Token>(), forExceptions?.Lines[0] ?? -1);
+                    return new TokenIndexerUnknown([], forExceptions?.Lines[0] ?? -1);
                 case 1:
                 {
                     Token token = tokens[0];
@@ -108,11 +108,12 @@ namespace mc_compiled.MCC.Compiler
                 case TokenRangeLiteral rangeLiteral:
                     return new TokenIndexerRange(rangeLiteral, lineNumber);
                 case TokenBlockStateLiteral blockStateLiteral:
-                    return new TokenIndexerBlockStates(new[] {blockStateLiteral}, lineNumber);
+                    return new TokenIndexerBlockStates([blockStateLiteral], lineNumber);
             }
 
             if (forExceptions == null)
-                throw new TokenizerException($"Cannot index/scope with a token: " + literal.DebugString(), new[] { literal.lineNumber } );
+                throw new TokenizerException($"Cannot index/scope with a token: " + literal.DebugString(), [literal.lineNumber
+                ]);
             
             throw new StatementException(forExceptions, $"Cannot index/scope with a token: " + literal.DebugString());
         }
@@ -198,7 +199,7 @@ namespace mc_compiled.MCC.Compiler
         public readonly List<TokenBlockStateLiteral> blockStates;
         public TokenIndexerBlockStates(IEnumerable<TokenBlockStateLiteral> addStates, int lineNumber) : base(addStates, lineNumber)
         {
-            this.blockStates = new List<TokenBlockStateLiteral>();
+            this.blockStates = [];
             this.blockStates.AddRange(addStates);
         }
         public override Token GetPrimaryToken() => null;
@@ -311,23 +312,16 @@ namespace mc_compiled.MCC.Compiler
     {
         public static Range AsRange(this TokenCompare.Type type, int comparingTo)
         {
-            switch (type)
+            return type switch
             {
-                case TokenCompare.Type.EQUAL:
-                    return new Range(comparingTo, false);
-                case TokenCompare.Type.NOT_EQUAL:
-                    return new Range(comparingTo, true);
-                case TokenCompare.Type.LESS:
-                    return new Range(null, comparingTo - 1);
-                case TokenCompare.Type.LESS_OR_EQUAL:
-                    return new Range(null, comparingTo);
-                case TokenCompare.Type.GREATER:
-                    return new Range(comparingTo + 1, null);
-                case TokenCompare.Type.GREATER_OR_EQUAL:
-                    return new Range(comparingTo, null);
-                default:
-                    return new Range();
-            }
+                TokenCompare.Type.EQUAL => new Range(comparingTo, false),
+                TokenCompare.Type.NOT_EQUAL => new Range(comparingTo, true),
+                TokenCompare.Type.LESS => new Range(null, comparingTo - 1),
+                TokenCompare.Type.LESS_OR_EQUAL => new Range(null, comparingTo),
+                TokenCompare.Type.GREATER => new Range(comparingTo + 1, null),
+                TokenCompare.Type.GREATER_OR_EQUAL => new Range(comparingTo, null),
+                _ => new Range()
+            };
         }
     }
     /// <summary>
@@ -351,23 +345,16 @@ namespace mc_compiled.MCC.Compiler
         /// <returns></returns>
         public static string GetMinecraftOperator(Type type)
         {
-            switch (type)
+            return type switch
             {
-                case Type.EQUAL:
-                    return "=";
-                case Type.NOT_EQUAL:
-                    return "DOESNT EXIST MOJANG";
-                case Type.LESS:
-                    return "<";
-                case Type.LESS_OR_EQUAL:
-                    return "<=";
-                case Type.GREATER:
-                    return ">";
-                case Type.GREATER_OR_EQUAL:
-                    return ">=";
-                default:
-                    return "??";
-            }
+                Type.EQUAL => "=",
+                Type.NOT_EQUAL => "DOESNT EXIST MOJANG",
+                Type.LESS => "<",
+                Type.LESS_OR_EQUAL => "<=",
+                Type.GREATER => ">",
+                Type.GREATER_OR_EQUAL => ">=",
+                _ => "??"
+            };
         }
 
         public override string AsString() => "<? compare>";

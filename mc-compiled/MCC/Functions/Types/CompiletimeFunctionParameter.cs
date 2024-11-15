@@ -1,7 +1,7 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -9,13 +9,13 @@ namespace mc_compiled.MCC.Functions.Types
     /// A compile-time parameter that can be just about anything.
     /// Setting this parameter's value will set <see cref="CurrentValue"/>.
     /// </summary>
-    public abstract class CompiletimeFunctionParameter : FunctionParameter
+    public abstract class CompiletimeFunctionParameter(string name, Token defaultValue)
+        : FunctionParameter(name, defaultValue)
     {
         /// <summary>
         /// The current value held in this parameter.
         /// </summary>
         public abstract Token CurrentValue { get; protected set; }
-        protected CompiletimeFunctionParameter(string name, Token defaultValue) : base(name, defaultValue) { }
 
         /// <summary>
         /// Returns the name of the type that is required by this compile-time parameter.
@@ -29,17 +29,14 @@ namespace mc_compiled.MCC.Functions.Types
     /// Setting this parameter's value will set <see cref="CurrentValue"/>, but can only be done if the given literal falls under T.
     /// </summary>
     /// <typeparam name="T">The type the given literal must be to fit into this parameter.</typeparam>
-    public class CompiletimeFunctionParameter<T> : CompiletimeFunctionParameter where T : Token
+    public class CompiletimeFunctionParameter<T>(string name, T defaultValue = null)
+        : CompiletimeFunctionParameter(name, defaultValue)
+        where T : Token
     {
         /// <summary>
         /// The current value held in this parameter.
         /// </summary>
-        public override Token CurrentValue { get; protected set; }
-
-        public CompiletimeFunctionParameter(string name, T defaultValue = null) : base(name, defaultValue)
-        {
-            this.CurrentValue = null;
-        }
+        public sealed override Token CurrentValue { get; protected set; } = null;
 
         public override ParameterFit CheckInput(Token token)
         {
@@ -60,9 +57,9 @@ namespace mc_compiled.MCC.Functions.Types
 
         public override void SetParameter(Token token, List<string> commandBuffer, Executor executor, Statement callingStatement)
         {
-            if (!(token is T))
+            if (token is not T)
             {
-                if (!(token is IImplicitToken conversion))
+                if (token is not IImplicitToken conversion)
                     throw new StatementException(callingStatement, "Invalid parameter input. Developers: please use CheckInput(...)");
                 
                 Type[] types = conversion.GetImplicitTypes();
@@ -83,7 +80,6 @@ namespace mc_compiled.MCC.Functions.Types
 
             T casted = token as T;
             this.CurrentValue = casted;
-            return;
         }
 
         public override string GetRequiredTypeName()
@@ -92,7 +88,7 @@ namespace mc_compiled.MCC.Functions.Types
         }
         public override string ToString()
         {
-            string type = nameof(T);
+            const string type = nameof(T);
             return '[' + type + ' ' + this.name + ']';
         }
     }

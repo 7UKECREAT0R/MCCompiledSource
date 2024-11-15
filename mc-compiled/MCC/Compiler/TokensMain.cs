@@ -1,10 +1,11 @@
-﻿using mc_compiled.Commands.Selectors;
-using mc_compiled.MCC.Functions;
-using System;
+﻿using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.Async;
+using mc_compiled.MCC.Functions;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -28,9 +29,9 @@ namespace mc_compiled.MCC.Compiler
         public Type[] GetImplicitTypes()
         {
             if(this.directive.enumValue.HasValue)
-                return new[] { typeof(TokenIdentifier), typeof(TokenIdentifierEnum) };
+                return [typeof(TokenIdentifier), typeof(TokenIdentifierEnum)];
             else
-                return new[] { typeof(TokenIdentifier) };
+                return [typeof(TokenIdentifier)];
         }
         public Token Convert(Executor executor, int index)
         {
@@ -101,22 +102,18 @@ namespace mc_compiled.MCC.Compiler
         public object GetValue() => this.word;
 
         public Type[] GetImplicitTypes() =>
-            new[]
-            {
-                typeof(TokenStringLiteral),
-                typeof(TokenBuilderIdentifier),
-            };
+        [
+            typeof(TokenStringLiteral),
+                typeof(TokenBuilderIdentifier)
+        ];
         public Token Convert(Executor executor, int index)
         {
-            switch (index)
+            return index switch
             {
-                case CONVERT_STRING:
-                    return new TokenStringLiteral(this.word, this.lineNumber);
-                case CONVERT_BUILDER:
-                    return new TokenBuilderIdentifier(this.word, this.lineNumber);
-                default:
-                    return null;
-            }
+                CONVERT_STRING => new TokenStringLiteral(this.word, this.lineNumber),
+                CONVERT_BUILDER => new TokenBuilderIdentifier(this.word, this.lineNumber),
+                _ => null
+            };
         }
     }
     /// <summary>
@@ -155,7 +152,7 @@ namespace mc_compiled.MCC.Compiler
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (fullWord.EndsWith(":")) // it should as long as its not implicitly converted from identifier
-                this.builderField = fullWord.Substring(0, fullWord.Length - 1).Trim();
+                this.builderField = fullWord[..^1].Trim();
             else
                 this.builderField = fullWord.Trim();
         }
@@ -165,9 +162,9 @@ namespace mc_compiled.MCC.Compiler
     /// </summary>
     public sealed class TokenIdentifierEnum : TokenIdentifier, IDocumented
     {
-        public readonly Commands.ParsedEnumValue value;
+        public readonly ParsedEnumValue value;
         internal TokenIdentifierEnum() : base(null, -1) { }
-        public TokenIdentifierEnum(string word, Commands.ParsedEnumValue value, int lineNumber) : base(word, lineNumber)
+        public TokenIdentifierEnum(string word, ParsedEnumValue value, int lineNumber) : base(word, lineNumber)
         {
             this.value = value;
         }
@@ -250,7 +247,7 @@ namespace mc_compiled.MCC.Compiler
 
         public Token Index(TokenIndexer indexer, Statement forExceptions)
         {
-            if (!(indexer is TokenIndexerInteger integer))
+            if (indexer is not TokenIndexerInteger integer)
                 throw indexer.GetException(this, forExceptions);
 
             int input = integer.token.number;

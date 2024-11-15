@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors
 {
@@ -18,7 +18,7 @@ namespace mc_compiled.Modding.Behaviors
             if (this.Count == 1)
                 return this[0].ToJSON();
 
-            return new JObject()
+            return new JObject
             {
                 [this.merge.ToString()] = new JArray(this.Select(filter => filter.ToJSON()))
             };

@@ -1,12 +1,13 @@
-﻿using mc_compiled.MCC.SyntaxHighlighting;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
+using mc_compiled.MCC.SyntaxHighlighting;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -23,7 +24,7 @@ namespace mc_compiled.MCC.Compiler
         public delegate void DirectiveImpl(Executor executor, Statement tokens);
 
 
-        private static short nextIndex = 0;
+        private static short nextIndex;
         public Directive(DirectiveImpl call, string identifier, string[] aliases, string description, string documentation, string wikiLink, string category, params TypePattern[] patterns)
         {
             nextIndex++;
@@ -37,16 +38,16 @@ namespace mc_compiled.MCC.Compiler
             this.patterns = patterns;
 
             // cache if this directive overlaps an enum
-            if (Commands.CommandEnumParser.TryParse(identifier, out Commands.ParsedEnumValue result)) this.enumValue = result;
+            if (CommandEnumParser.TryParse(identifier, out ParsedEnumValue result)) this.enumValue = result;
         }
         public Directive WithAttribute(DirectiveAttribute attribute)
         {
             this.attributes |= attribute;
             return this;
         }
-        public Directive WithAttributes(params DirectiveAttribute[] attributes)
+        public Directive WithAttributes(params DirectiveAttribute[] newAttributes)
         {
-            foreach (DirectiveAttribute attribute in attributes)
+            foreach (DirectiveAttribute attribute in newAttributes)
                 this.attributes |= attribute;
             return this;
         }
@@ -64,12 +65,12 @@ namespace mc_compiled.MCC.Compiler
             {
                 if (this.aliases != null && this.aliases.Length > 0)
                 {
-                    List<string> values = new List<string>() {this.identifier };
+                    List<string> values = [this.identifier];
                     values.AddRange(this.aliases);
                     return values.ToArray();
                 }
 
-                return new string[] {this.identifier };
+                return [this.identifier];
             }
         }
         public string DirectiveOverview
@@ -78,7 +79,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 if (this.aliases != null && this.aliases.Length > 0)
                 {
-                    List<string> values = new List<string>() {this.identifier };
+                    List<string> values = [this.identifier];
                     values.AddRange(this.aliases);
                     return string.Join("/", values);
                 }
@@ -97,7 +98,7 @@ namespace mc_compiled.MCC.Compiler
 
         // Directive might overlap an enum value.
         // In the case this happens, it can use this field to help convert itself.
-        public readonly Commands.ParsedEnumValue? enumValue;
+        public readonly ParsedEnumValue? enumValue;
 
         public readonly string identifier;
         public readonly string[] aliases;
@@ -134,7 +135,7 @@ namespace mc_compiled.MCC.Compiler
         private static readonly Dictionary<string, DirectiveAttribute> attributeLookup;
         private static readonly Dictionary<string, Directive> directiveLookup;
 
-        public static List<Directive> REGISTRY = new List<Directive>();
+        public static List<Directive> REGISTRY = [];
         public static IEnumerable<Directive> PreprocessorDirectives => REGISTRY.Where(directive => directive.identifier[0] == '$');
         public static IEnumerable<Directive> RegularDirectives => REGISTRY.Where(directive => directive.identifier[0] != '$');
 
@@ -179,7 +180,7 @@ namespace mc_compiled.MCC.Compiler
 
         public static void LoadFromLanguage(bool debug)
         {
-            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyDir = Path.GetDirectoryName(AppContext.BaseDirectory);
             Debug.Assert(assemblyDir != null, nameof(assemblyDir) + " was null");
             
             string path = Path.Combine(assemblyDir, Executor.LANGUAGE_FILE);
@@ -335,14 +336,14 @@ namespace mc_compiled.MCC.Compiler
                             }
                             else
                             {
-                                name = arg.Substring(colon + 1);
-                                _type = arg.Substring(0, colon); 
+                                name = arg[(colon + 1)..];
+                                _type = arg[..colon]; 
                             }
 
                             // check if optional
                             bool optional = _type[0] == '?';
                             if (optional)
-                                _type = _type.Substring(1);
+                                _type = _type[1..];
 
                             // look through mappings for type
                             if(!mappings.TryGetValue(_type, out NamedType type))
@@ -360,10 +361,10 @@ namespace mc_compiled.MCC.Compiler
 
 
                 // find call function
-                MethodInfo info = impls.GetMethod(_function, new[] {
+                MethodInfo info = impls.GetMethod(_function, [
                     typeof(Executor),
                     typeof(Statement)
-                });
+                ]);
                 
                 Debug.Assert(info != null, $"Missing implementation for: DirectiveImplementations.{_function}(executor, statement)");
                 

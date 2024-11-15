@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Linq;
+﻿using System.Linq;
 using mc_compiled.Commands;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors
 {
@@ -15,7 +15,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:ambient_sound_interval";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["event_name"] = this.eventName,
                 ["range"] = this.range,
@@ -29,7 +29,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:can_climb";
         public override JObject _GetValue()
         {
-            return new JObject() {};
+            return new JObject();
         }
     }
     public class ComponentCanFly : EntityComponent
@@ -38,7 +38,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:can_fly";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentCanPowerJump : EntityComponent
@@ -47,7 +47,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:can_power_jump";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentCollisionBox : EntityComponent
@@ -59,7 +59,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:collision_box";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["width"] = this.width,
                 ["height"] = this.height
@@ -74,7 +74,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:color";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.color
             };
@@ -88,7 +88,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:color2";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.color
             };
@@ -102,7 +102,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:default_look_angle";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.angle
             };
@@ -116,7 +116,7 @@ namespace mc_compiled.Modding.Behaviors
             public float dropChance; // 0.0 - 1.0
 
             public JObject ToJSON() =>
-                new JObject()
+                new JObject
                 {
                     ["slot"] = this.slot.String(),
                     ["drop_chance"] = this.dropChance
@@ -131,13 +131,13 @@ namespace mc_compiled.Modding.Behaviors
         public override JObject _GetValue()
         {
             if (this.dropChances == null) {
-                return new JObject()
+                return new JObject
                 {
                     ["table"] = this.lootTable.ResourcePath
                 };
             }
 
-            return new JObject()
+            return new JObject
             {
                 ["table"] = this.lootTable.ResourcePath,
                 ["slot_drop_chance"] = new JArray(this.dropChances.Select(dc => dc.ToJSON()))
@@ -150,7 +150,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:file_immune";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentFloats : EntityComponent
@@ -159,7 +159,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:floats_in_liquid";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentFlyingSpeed : EntityComponent
@@ -170,7 +170,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:flying_speed";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.flySpeed
             };
@@ -183,7 +183,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:friction_modifier";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.friction
             };
@@ -197,7 +197,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:ground_offset";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.groundOffset
             };
@@ -210,7 +210,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:input_ground_controlled";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsBaby : EntityComponent
@@ -219,7 +219,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_baby";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsCharged : EntityComponent
@@ -228,7 +228,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_charged";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsChested : EntityComponent
@@ -237,7 +237,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_chested";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsDyeable : EntityComponent
@@ -251,7 +251,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_dyeable";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["interact_text"] = this.interactText
             };
@@ -263,7 +263,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_hidden_when_invisible";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsIgnited : EntityComponent
@@ -272,7 +272,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_ignited";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsIllagerCaptain : EntityComponent
@@ -281,7 +281,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_illager_captain";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsSaddled : EntityComponent
@@ -290,7 +290,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_saddled";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsShaking : EntityComponent
@@ -299,7 +299,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_shaking";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsSheared : EntityComponent
@@ -308,7 +308,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_sheared";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsStackable : EntityComponent
@@ -317,7 +317,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_stackable";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsStunned : EntityComponent
@@ -326,7 +326,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_stunned";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentIsTamed : EntityComponent
@@ -335,7 +335,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:is_tamed";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentItemControllable : EntityComponent
@@ -348,7 +348,7 @@ namespace mc_compiled.Modding.Behaviors
         {
             if (this.controlItems.Length == 1)
             {
-                return new JObject()
+                return new JObject
                 {
                     ["control_items"] = this.controlItems[0]
                 };
@@ -356,7 +356,7 @@ namespace mc_compiled.Modding.Behaviors
 
             return new JObject
             {
-                ["control_items"] = new JArray(this.controlItems)
+                ["control_items"] = new JArray(this.controlItems.Cast<object>().ToArray())
             };
         }
     }
@@ -369,7 +369,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:loot";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["table"] = this.lootTable.ResourcePath
             };
@@ -383,7 +383,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:mark_variant";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.markVariant
             };
@@ -398,7 +398,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:push_through";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.value
             };
@@ -412,7 +412,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:scale";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.scale
             };
@@ -426,7 +426,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:skin_id";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.skinID
             };
@@ -440,9 +440,9 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:type_family";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
-                ["family"] = new JArray(this.families)
+                ["family"] = new JArray(this.families.Cast<object>().ToArray())
             };
         }
     }
@@ -454,7 +454,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:variant";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.variant
             };
@@ -468,7 +468,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:walk_animation_speed";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["value"] = this.speed
             };
@@ -480,7 +480,7 @@ namespace mc_compiled.Modding.Behaviors
             "minecraft:wants_jockey";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
 }

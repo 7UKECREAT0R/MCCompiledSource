@@ -1,9 +1,10 @@
-﻿using mc_compiled.Commands;
+﻿using System;
+using System.Collections.Generic;
+using mc_compiled.Commands;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Compiler.TypeSystem.Implementations;
 using mc_compiled.MCC.Functions.Types;
-using System;
-using System.Collections.Generic;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {

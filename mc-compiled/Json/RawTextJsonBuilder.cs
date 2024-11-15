@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using mc_compiled.MCC;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Json
 {
@@ -16,11 +18,11 @@ namespace mc_compiled.Json
 
         public RawTextJsonBuilder()
         {
-            this.terms = new List<JSONRawTerm>();
+            this.terms = [];
         }
         public RawTextJsonBuilder(RawTextJsonBuilder copy)
         {
-            this.terms = new List<JSONRawTerm>();
+            this.terms = [];
 
             if (copy != null) this.terms.AddRange(copy.terms);
         }
@@ -33,14 +35,14 @@ namespace mc_compiled.Json
             this.terms.Add(term);
             return this;
         }
-        public RawTextJsonBuilder AddTerms(IEnumerable<JSONRawTerm> terms)
+        public RawTextJsonBuilder AddTerms(IEnumerable<JSONRawTerm> newTerms)
         {
-            this.terms.AddRange(terms);
+            this.terms.AddRange(newTerms);
             return this;
         }
-        public RawTextJsonBuilder AddTerms(params JSONRawTerm[] terms)
+        public RawTextJsonBuilder AddTerms(params JSONRawTerm[] newTerms)
         {
-            this.terms.AddRange(terms);
+            this.terms.AddRange(newTerms);
             return this;
         }
         private string BuildPreviewString()
@@ -67,7 +69,7 @@ namespace mc_compiled.Json
         /// <returns></returns>
         public string BuildString()
         {
-            return Build().ToString(Newtonsoft.Json.Formatting.None);
+            return Build().ToString(Formatting.None);
         }
 
         public void ConsoleInterface()
@@ -97,8 +99,8 @@ namespace mc_compiled.Json
                     return;
                 if(key.Key == ConsoleKey.C)
                 {
-                    this.copiedString = Build().ToString(Newtonsoft.Json.Formatting.None);
-                    Clipboard.SetText(this.copiedString);
+                    this.copiedString = Build().ToString(Formatting.None);
+                    TextCopy.ClipboardService.SetText(this.copiedString);
                     continue;
                 }
 
@@ -118,30 +120,33 @@ namespace mc_compiled.Json
                     string comp = text.ToUpper();
                     if (comp.StartsWith("TEXT"))
                     {
-                        string str = text.Substring(5);
-                        str = MCC.Definitions.GLOBAL_DEFS.ReplaceDefinitions(str);
+                        string str = text[5..];
+                        str = Definitions.GLOBAL_DEFS.ReplaceDefinitions(str);
                         this.terms.Add(new JSONText(str));
                         continue;
                     }
-                    else if (comp.StartsWith("SCORE"))
+
+                    if (comp.StartsWith("SCORE"))
                     {
                         if (text.Length < 7)
                             continue;
-                        string epic = text.Substring(6);
+                        string epic = text[6..];
                         int index = epic.IndexOf(' ');
-                        string objective = epic.Substring(0, index);
-                        string selector = epic.Substring(index + 1);
+                        string objective = epic[..index];
+                        string selector = epic[(index + 1)..];
                         this.terms.Add(new JSONScore(selector, objective));
                         continue;
                     }
-                    else if (comp.StartsWith("SELECTOR"))
+
+                    if (comp.StartsWith("SELECTOR"))
                     {
-                        this.terms.Add(new JSONSelector(text.Substring(9)));
+                        this.terms.Add(new JSONSelector(text[9..]));
                         continue;
                     }
-                    else if (comp.StartsWith("TRANSLATE"))
+
+                    if (comp.StartsWith("TRANSLATE"))
                     {
-                        this.terms.Add(new JSONTranslate(text.Substring(10)));
+                        this.terms.Add(new JSONTranslate(text[10..]));
                         continue;
                     }
                 }
@@ -151,7 +156,6 @@ namespace mc_compiled.Json
                     if (count < 1)
                         continue;
                     this.terms.RemoveAt(count - 1);
-                    continue;
                 }
             }
         }

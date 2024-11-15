@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace mc_compiled.Commands.Selectors
 {
     /// <summary>
-    /// Represents player specific selector options.
+    /// Represents player-specific selector options.
     /// </summary>
-    public struct Player
+    public struct Player : IEquatable<Player>
     {
         private GameMode? gamemode;
         private bool gamemodeNot;
@@ -30,8 +31,8 @@ namespace mc_compiled.Commands.Selectors
                 int index = chunk.IndexOf('=');
                 if (index == -1)
                     continue;
-                string a = chunk.Substring(0, index).Trim().ToUpper();
-                string b = chunk.Substring(index + 1).Trim();
+                string a = chunk[..index].Trim().ToUpper();
+                string b = chunk[(index + 1)..].Trim();
 
                 switch (a)
                 {
@@ -55,26 +56,14 @@ namespace mc_compiled.Commands.Selectors
 
         public static GameMode? ParseGameMode(string str)
         {
-            switch (str.ToUpper())
+            return str.ToUpper() switch
             {
-                case "S":
-                case "SURVIVAL":
-                case "0":
-                    return GameMode.survival;
-                case "C":
-                case "CREATIVE":
-                case "1":
-                    return GameMode.creative;
-                case "A":
-                case "ADVENTURE":
-                case "2":
-                    return GameMode.adventure;
-                case "SPECTATOR":
-                case "6":
-                    return GameMode.spectator;
-                default:
-                    return null;
-            }
+                "S" or "SURVIVAL" or "0" => GameMode.survival,
+                "C" or "CREATIVE" or "1" => GameMode.creative,
+                "A" or "ADVENTURE" or "2" => GameMode.adventure,
+                "SPECTATOR" or "6" => GameMode.spectator,
+                _ => null
+            };
         }
 
         public string[] GetSections()
@@ -127,6 +116,16 @@ namespace mc_compiled.Commands.Selectors
             if (a.levelMax == null)
                 a.levelMax = other.levelMax;
             return a;
+        }
+
+        public static bool operator ==(Player left, Player right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Player left, Player right)
+        {
+            return !(left == right);
         }
     }
 

@@ -1,6 +1,6 @@
-﻿using mc_compiled.MCC.Compiler;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC.Functions
 {
@@ -27,7 +27,7 @@ namespace mc_compiled.MCC.Functions
         /// </summary>
         public abstract string[] Aliases { get; }
         /// <summary>
-        /// The pattern that must be matched by <see cref="MatchParameters(Token[])"/> in order to call this function.
+        /// The pattern that must be matched by <see cref="MatchParameters(Token[],string,int)"/> in order to call this function.
         /// </summary>
         public abstract FunctionParameter[] Parameters { get; }
         /// <summary>
@@ -96,7 +96,7 @@ namespace mc_compiled.MCC.Functions
                 {
                     case ParameterFit.No:
                         // failed match.
-                        error = $"Couldn't accept input \"{source.ToString()}\" for parameter \"{parameter.name}\"";
+                        error = $"Couldn't accept input \"{source}\" for parameter \"{parameter.name}\"";
                         score = -999;
                         return false;
                     case ParameterFit.WithConversion:
@@ -107,8 +107,6 @@ namespace mc_compiled.MCC.Functions
                         break;
                     case ParameterFit.Yes:
                         score += 3;
-                        break;
-                    default:
                         break;
                 }
             }

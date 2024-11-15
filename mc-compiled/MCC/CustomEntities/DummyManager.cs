@@ -1,10 +1,11 @@
-﻿using mc_compiled.Commands;
+﻿using System.Collections.Generic;
+using JetBrains.Annotations;
+using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
-using System.Collections.Generic;
-using JetBrains.Annotations;
+using mc_compiled.Modding.Resources;
 
 namespace mc_compiled.MCC.CustomEntities
 {
@@ -28,7 +29,7 @@ namespace mc_compiled.MCC.CustomEntities
         internal DummyManager(Executor parent) : base(parent)
         {
             this.createdEntityFiles = false;
-            this.existingDummies = new HashSet<string>();
+            this.existingDummies = [];
             this.dummyType = parent.project.Namespace("dummy");
         }
 
@@ -46,11 +47,11 @@ namespace mc_compiled.MCC.CustomEntities
                 return new Selector(Selector.Core.e)
                 {
                     count = new Count(1),
-                    entity = new Entity()
+                    entity = new Entity
                     {
                         type = this.dummyType,
                         name = name,
-                        families = new List<string> { TAGGABLE_FAMILY_NAME }
+                        families = [TAGGABLE_FAMILY_NAME]
                     },
                 };
             }
@@ -58,7 +59,7 @@ namespace mc_compiled.MCC.CustomEntities
             return new Selector(Selector.Core.e)
             {
                 count = new Count(1),
-                entity = new Entity()
+                entity = new Entity
                 {
                     type = this.dummyType,
                     name = name
@@ -110,13 +111,11 @@ namespace mc_compiled.MCC.CustomEntities
         /// <returns>The commands to create this dummy entity.</returns>
         public string Create(string name, bool forTagging, Coordinate x, Coordinate y, Coordinate z)
         {
-            var commands = new List<string>();
             this.existingDummies.Add(name);
 
-            if (!forTagging)
-                return Command.Summon(this.dummyType, x, y, z, Coordinate.here, Coordinate.here, name);
-            
-            return Command.Summon(this.dummyType, x, y, z, Coordinate.here,Coordinate.here, name, TAGGABLE_EVENT_ADD_NAME);
+            return !forTagging ?
+                Command.Summon(this.dummyType, x, y, z, Coordinate.here, Coordinate.here, name) :
+                Command.Summon(this.dummyType, x, y, z, Coordinate.here,Coordinate.here, name, TAGGABLE_EVENT_ADD_NAME);
         }
 
         /// <summary>
@@ -164,15 +163,15 @@ namespace mc_compiled.MCC.CustomEntities
     public struct DummyFiles
     {
         public EntityBehavior behavior;
-        public Modding.Resources.EntityResource resources;
-        public Modding.Resources.EntityGeometry geometry;
+        public EntityResource resources;
+        public EntityGeometry geometry;
 
         public IAddonFile[] AddonFiles
         {
-            get => new IAddonFile[]
-            {
-                this.behavior, this.resources, this.geometry, 
-            };
+            get =>
+            [
+                this.behavior, this.resources, this.geometry
+            ];
         }
     }
 }

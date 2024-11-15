@@ -1,6 +1,6 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System.Collections.Generic;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Functions.Types;
-using System.Collections.Generic;
 
 namespace mc_compiled.MCC.Attributes
 {
@@ -8,8 +8,7 @@ namespace mc_compiled.MCC.Attributes
     {
         public string GetDebugString() => "global";
         public string GetCodeRepresentation() => "global";
-        
-        internal AttributeGlobal() { }
+
         public void OnAddedValue(ScoreboardValue value, Statement causingStatement)
         {
             value.clarifier.SetGlobal(true);

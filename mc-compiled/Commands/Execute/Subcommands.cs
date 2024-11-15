@@ -1,9 +1,9 @@
-﻿using mc_compiled.Commands.Selectors;
-using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using mc_compiled.Commands.Selectors;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.Commands.Execute
 {
@@ -74,12 +74,12 @@ namespace mc_compiled.Commands.Execute
             this.axes = axes;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenStringLiteral), "axes")
             )
-        };
+        ];
         public override string Keyword => "align";
         public override bool TerminatesChain => false;
 
@@ -101,12 +101,12 @@ namespace mc_compiled.Commands.Execute
             this.anchor = anchor;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenIdentifierEnum), "anchor")
             )
-        };
+        ];
         public override string Keyword => "anchored";
         public override bool TerminatesChain => false;
 
@@ -131,12 +131,12 @@ namespace mc_compiled.Commands.Execute
             this.entity = entity;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "target")
             )
-        };
+        ];
         public override string Keyword => "as";
         public override bool TerminatesChain => false;
 
@@ -157,12 +157,12 @@ namespace mc_compiled.Commands.Execute
             this.entity = entity;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "target")
             )
-        };
+        ];
         public override string Keyword => "at";
         public override bool TerminatesChain => false;
 
@@ -171,7 +171,7 @@ namespace mc_compiled.Commands.Execute
             TokenSelectorLiteral selector = tokens.Next<TokenSelectorLiteral>("entity");
             this.entity = selector.selector;
         }
-        public override string ToMinecraft() => $"at {this.entity.ToString()}";
+        public override string ToMinecraft() => $"at {this.entity}";
     }
     internal class SubcommandFacing : Subcommand
     {
@@ -194,8 +194,8 @@ namespace mc_compiled.Commands.Execute
             this.z = z;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             // coordinate
             new TypePattern(
                 new NamedType(typeof(TokenCoordinateLiteral), "x"),
@@ -207,7 +207,7 @@ namespace mc_compiled.Commands.Execute
                 new NamedType(typeof(TokenSelectorLiteral), "entity"),
                 new NamedType(typeof(TokenIdentifierEnum), "anchor")
             )
-        };
+        ];
         public override string Keyword => "facing";
         public override bool TerminatesChain => false;
 
@@ -236,7 +236,7 @@ namespace mc_compiled.Commands.Execute
         public override string ToMinecraft()
         {
             if (this.isEntity)
-                return $"facing entity {this.entity.ToString()} {this.anchor}";
+                return $"facing entity {this.entity} {this.anchor}";
 
             return $"facing {this.x} {this.y} {this.z}";
         }
@@ -251,12 +251,12 @@ namespace mc_compiled.Commands.Execute
             this.dimension = dimension;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenIdentifierEnum), "dimension")
             )
-        };
+        ];
         public override string Keyword => "in";
         public override bool TerminatesChain => false;
 
@@ -287,8 +287,8 @@ namespace mc_compiled.Commands.Execute
             this.z = z;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             // coordinate
             new TypePattern(
                 new NamedType(typeof(TokenCoordinateLiteral), "x"),
@@ -299,7 +299,7 @@ namespace mc_compiled.Commands.Execute
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "entity")
             )
-        };
+        ];
         public override string Keyword => "positioned";
         public override bool TerminatesChain => false;
 
@@ -321,7 +321,7 @@ namespace mc_compiled.Commands.Execute
         public override string ToMinecraft()
         {
             if (this.asEntity)
-                return $"positioned as {this.entity.ToString()}";
+                return $"positioned as {this.entity}";
 
             return $"positioned {this.x} {this.y} {this.z}";
         }
@@ -341,8 +341,8 @@ namespace mc_compiled.Commands.Execute
             this.pitch = pitch;
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             // coordinate
             new TypePattern(
                 new NamedType(typeof(TokenCoordinateLiteral), "yaw"),
@@ -352,7 +352,7 @@ namespace mc_compiled.Commands.Execute
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "entity")
             )
-        };
+        ];
         public override string Keyword => "rotated";
         public override bool TerminatesChain => false;
 
@@ -398,11 +398,12 @@ namespace mc_compiled.Commands.Execute
             this.command = "";
         }
 
-        public override TypePattern[] Patterns => new TypePattern[] {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenStringLiteral), "command")
             )
-        };
+        ];
         public override string Keyword => "run";
         public override bool TerminatesChain => true;
 
@@ -427,8 +428,9 @@ namespace mc_compiled.Commands.Execute
         {
             get
             {
-                IEnumerable<TypePattern> validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
-
+                IEnumerable<TypePattern> _validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
+                TypePattern[] validPatterns = _validPatterns as TypePattern[] ?? _validPatterns.ToArray();
+                
                 foreach (TypePattern pattern in validPatterns)
                     pattern.PrependAnd(new NamedType(typeof(TokenIdentifier)), "subcommand");
 
@@ -464,8 +466,9 @@ namespace mc_compiled.Commands.Execute
         {
             get
             {
-                IEnumerable<TypePattern> validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
-
+                IEnumerable<TypePattern> _validPatterns = ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
+                TypePattern[] validPatterns = _validPatterns as TypePattern[] ?? _validPatterns.ToArray();
+                
                 foreach (TypePattern pattern in validPatterns)
                     pattern.PrependAnd(new NamedType(typeof(TokenIdentifier)), "subcommand");
 

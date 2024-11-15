@@ -9,7 +9,7 @@ namespace mc_compiled.Commands.Execute
     {
         internal Coordinate x, y, z;
         internal string block;
-        internal int? data = null;
+        internal int? data;
 
         public ConditionalSubcommandBlock() { }
         private ConditionalSubcommandBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data)
@@ -35,15 +35,15 @@ namespace mc_compiled.Commands.Execute
             return new ConditionalSubcommandBlock(x, y, z, block, data);
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenCoordinateLiteral), "x"),
                 new NamedType(typeof(TokenCoordinateLiteral), "y"),
                 new NamedType(typeof(TokenCoordinateLiteral), "z"),
                 new NamedType(typeof(TokenStringLiteral), "block")
             )
-        };
+        ];
         public override string Keyword => "block";
 
         public override void FromTokens(Statement tokens)
@@ -115,8 +115,8 @@ namespace mc_compiled.Commands.Execute
 
         
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenCoordinateLiteral), "begin x"),
                 new NamedType(typeof(TokenCoordinateLiteral), "begin y"),
@@ -129,7 +129,7 @@ namespace mc_compiled.Commands.Execute
                 new NamedType(typeof(TokenCoordinateLiteral), "dest z"),
                 new NamedType(typeof(TokenIdentifierEnum), "scan mode")
             )
-        };
+        ];
         public override string Keyword => "block";
 
         public override void FromTokens(Statement tokens)
@@ -173,12 +173,12 @@ namespace mc_compiled.Commands.Execute
             return new ConditionalSubcommandEntity(entity);
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenSelectorLiteral), "target")
             )
-        };
+        ];
         public override string Keyword => "entity";
         public override bool TerminatesChain => false;
 
@@ -294,8 +294,8 @@ namespace mc_compiled.Commands.Execute
             return new ConditionalSubcommandScore(false, sourceSelector, sourceObjective, Range.zero, type, otherSelector, otherObjective);
         }
 
-        public override TypePattern[] Patterns => new TypePattern[]
-        {
+        public override TypePattern[] Patterns =>
+        [
             new TypePattern(
                 new NamedType(typeof(TokenIdentifierValue), "source"),
                 new NamedType(typeof(TokenIdentifier), "matches"),
@@ -306,7 +306,7 @@ namespace mc_compiled.Commands.Execute
                 new NamedType(typeof(TokenCompare), "comparison"),
                 new NamedType(typeof(TokenIdentifierValue), "other")
             )
-        };
+        ];
         public override string Keyword => "score";
         public override bool TerminatesChain => false;
 

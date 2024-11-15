@@ -1,6 +1,6 @@
-﻿using mc_compiled.MCC.Functions.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using mc_compiled.MCC.Functions.Types;
 
 namespace mc_compiled.MCC.Compiler.Implementations.Functions
 {

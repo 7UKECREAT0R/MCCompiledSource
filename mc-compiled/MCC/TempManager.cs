@@ -1,7 +1,7 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
 // ReSharper disable MemberCanBePrivate.Global
@@ -46,11 +46,9 @@ namespace mc_compiled.MCC
 
             this.localTemps = new Dictionary<Typedef, int>();
             this.globalTemps = new Dictionary<Typedef, int>();
-            this.DefinedTemps = new HashSet<string>();
-            this.DefinedTempsRecord = new HashSet<string>();
-            this.Contracts = new List<TempStateContract>();
-
-            Array valueTypes = Enum.GetValues(typeof(ScoreboardManager.ValueType));
+            this.DefinedTemps = [];
+            this.DefinedTempsRecord = [];
+            this.Contracts = [];
 
             foreach (Typedef type in Typedef.ALL_TYPES)
             {
@@ -319,7 +317,7 @@ namespace mc_compiled.MCC
             {
                 this.parent = parent;
 
-                this.definedTempsState = new HashSet<string>(parent.DefinedTemps);
+                this.definedTempsState = [..parent.DefinedTemps];
                 this.localTempState = new Dictionary<Typedef, int>(parent.localTemps);
                 this.globalTempState = new Dictionary<Typedef, int>(parent.globalTemps);
             }

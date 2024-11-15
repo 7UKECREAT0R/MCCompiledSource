@@ -1,6 +1,8 @@
-﻿using mc_compiled.Commands;
-using Newtonsoft.Json.Linq;
+﻿using System;
 using System.Linq;
+using mc_compiled.Commands;
+using mc_compiled.MCC.CustomEntities;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors.Lists
 {
@@ -15,7 +17,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:addrider";
         public override JObject _GetValue()
         {
-            var json = new JObject()
+            var json = new JObject
             {
                 ["entity_type"] = this.entityType
             };
@@ -35,7 +37,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:admire_item";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["cooldown_after_being_attacked"] = this.cooldownAfterBeingAttacked,
                 ["duration"] = this.duration
@@ -53,14 +55,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:ageable";
         public override JObject _GetValue()
         {
-            var json = new JObject()
+            var json = new JObject
             {
                 ["duration"] = this.duration
             };
             if (this.dropItems != null)
-                json["drop_items"] = new JArray(this.dropItems);
+                json["drop_items"] = new JArray(this.dropItems.Cast<object>().ToArray());
             if (this.feedItems != null)
-                json["feed_items"] = new JArray(this.feedItems);
+                json["feed_items"] = new JArray(this.feedItems.Cast<object>().ToArray());
             if (this.growUpEvent != null)
                 json["grow_up"] = this.growUpEvent.ToComponentJSON();
 
@@ -84,7 +86,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:angry";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["broadcast_anger"] = this.broadcastAnger,
                 ["broadcast_anger_on_attack"] = this.broadcastAngerOnAttack,
@@ -98,7 +100,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if (this.broadcastFilters != null)
                 json["broadcast_filters"] = this.broadcastFilters.ToJSON();
             if (this.broadcastFamilies != null)
-                json["broadcast_targets"] = new JArray(this.broadcastFamilies);
+                json["broadcast_targets"] = new JArray(this.broadcastFamilies.Cast<object>().ToArray());
             if (this.ignoreEntities != null)
                 json["filters"] = this.ignoreEntities.ToJSON();
 
@@ -114,7 +116,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:annotation.break_door";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["break_time"] = this.breakTime,
                 ["min_difficulty"] = this.difficulty.ToString()
@@ -127,7 +129,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:annotation.open_door";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentAreaAttack : EntityComponent
@@ -141,7 +143,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:area_attack";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["damage_per_tick"] = this.damagePerTick,
                 ["damage_range"] = this.damageRange
@@ -164,10 +166,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:attack_cooldown";
         public override JObject _GetValue()
         {
-            JObject json = new JObject();
+            var json = new JObject();
 
             if (this.minCooldownTime.HasValue)
-                json["attack_cooldown_time"] = new JArray(new float[]
+                json["attack_cooldown_time"] = new JArray(new[]
                 {
                     this.minCooldownTime.Value, this.primaryCooldownTime });
             else
@@ -187,7 +189,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:barter";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["barter_table"] = this.barterTable.ResourcePath,
                 ["cooldown_after_being_attacked"] = this.cooldownAfterBeingAttacked
@@ -200,7 +202,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:block_climber";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentBlockSensor : EntityComponent
@@ -217,9 +219,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
-                    ["block_list"] = new JArray(this.blockList),
+                    ["block_list"] = new JArray(this.blockList.Cast<object>().ToArray()),
                     ["on_block_broken"] = this.onBlockBroken
                 };
             }
@@ -232,7 +234,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:block_sensor";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["sensor_radius"] = this.sensorRadius,
                 ["on_break"] = new JArray(this.pools.Select(sp => sp.ToJSON()))
@@ -255,7 +257,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["item"] = this.identifier,
                     ["damage"] = this.damage,
@@ -272,7 +274,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:boostable";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["duration"] = this.boostDuration,
                 ["speed_multiplier"] = this.speedMultiplier,
@@ -290,7 +292,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:boss";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["hud_range"] = this.hudRange,
                 ["name"] = this.bossbarText,
@@ -305,9 +307,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:break_blocks";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
-                ["breakable_blocks"] = new JArray(this.breakableBlocks)
+                ["breakable_blocks"] = new JArray(this.breakableBlocks.Cast<object>().ToArray())
             };
         }
     }
@@ -329,7 +331,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:breathable";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["breathes_air"] = this.breathesAir,
                 ["breathes_lava"] = this.breathesLava,
@@ -341,9 +343,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["total_supply"] = this.totalSupply
             };
             if (this.breatheBlocks != null)
-                json["breathe_blocks"] = new JArray(this.breatheBlocks);
+                json["breathe_blocks"] = new JArray(this.breatheBlocks.Cast<object>().ToArray());
             if (this.nonBreatheBlocks != null)
-                json["non_breathe_blocks"] = new JArray(this.nonBreatheBlocks);
+                json["non_breathe_blocks"] = new JArray(this.nonBreatheBlocks.Cast<object>().ToArray());
 
             return json;
         }
@@ -364,7 +366,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["baby_type"] = this.babyType,
                     ["mate_type"] = this.mateType
@@ -390,7 +392,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["chance"] = this.chance,
                     ["max_variant"] = this.maxVariant,
@@ -412,9 +414,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
-                    ["blocks"] = new JArray(this.nearbyBlocks),
+                    ["blocks"] = new JArray(this.nearbyBlocks.Cast<object>().ToArray()),
                     ["count"] = this.count,
                     ["radius"] = this.radius
                 };
@@ -435,7 +437,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["color"] = this.colorChance,
                     ["extra_variant"] = this.extraVariantChance,
@@ -464,7 +466,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:breedable";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["allow_sitting"] = this.canBreedWhileSitting,
                 ["blend_attributes"] = this.blendAttributes,
@@ -477,7 +479,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.breedItems != null)
-                json["breed_items"] = new JArray(this.breedItems);
+                json["breed_items"] = new JArray(this.breedItems.Cast<object>().ToArray());
             if (this.breedsWith != null)
                 json["breeds_with"] = new JArray(this.breedsWith.Select(be => be.ToJSON()));
             if (this.denyParents.HasValue)
@@ -501,10 +503,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:bribeable";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["bribe_cooldown"] = this.bribeCooldown,
-                ["bribe_items"] = new JArray(this.bribeItems)
+                ["bribe_items"] = new JArray(this.bribeItems.Cast<object>().ToArray())
             };
         }
     }
@@ -522,14 +524,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:buoyant";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["apply_gravity"] = this.applyGravity,
                 ["base_buoyancy"] = this.baseBuoyancy,
                 ["big_wave_probability"] = this.bigWaveProbability,
                 ["big_wave_speed"] = this.bigWaveSpeed,
                 ["drag_down_on_buoyancy_removed"] = this.dragDownOnBuoyancyRemoved,
-                ["liquid_blocks"] = new JArray(this.liquidBlocks),
+                ["liquid_blocks"] = new JArray(this.liquidBlocks.Cast<object>().ToArray()),
                 ["simulate_waves"] = this.simulateWaves
             };
         }
@@ -540,7 +542,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:burns_in_daylight";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentCelebrateHunt : EntityComponent
@@ -560,12 +562,12 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:celebrate_hunt";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["broadcast"] = this.broadcast,
                 ["duration"] = this.duration,
                 ["radius"] = this.radius,
-                ["sound_interval"] = new JObject()
+                ["sound_interval"] = new JObject
                 {
                     ["range_min"] = this.minSoundInterval,
                     ["range_max"] = this.maxSoundInterval
@@ -590,7 +592,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:combat_regeneration";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["regeneration_duration"] = this.regenDuration,
                 ["apply_to_self"] = this.applyToSelf,
@@ -604,7 +606,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:conditional_bandwidth_optimization";
         public override JObject _GetValue()
         {
-            return new JObject() { };
+            return new JObject();
         }
     }
     public class ComponentCustomHitTest : EntityComponent
@@ -623,7 +625,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["pivot"] = this.pivot.ToArray(),
                     ["width"] = this.width,
@@ -637,7 +639,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:custom_hit_test";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["hitboxes"] = new JArray(this.hitboxes.Select(hb => hb.ToJSON()))
             };
@@ -652,7 +654,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:damage_over_time";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["damage_per_hurt"] = this.damagePerHurt,
                 ["time_between_hurt"] = this.timeBetweenHurt
@@ -673,7 +675,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["cause"] = this.cause.ToString(),
                     ["damage_modifier"] = this.damageModifier,
@@ -708,7 +710,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:damage_sensor";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["triggers"] = new JArray(this.triggerPool.Select(t => t.ToJSON()))
             };
@@ -733,7 +735,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:despawn";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["despawn_from_chance"] = this.despawnFromChance,
                 ["despawn_from_inactivity"] = this.despawnFromInactivity,
@@ -743,7 +745,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 ["remove_child_entities"] = this.removeChildEntities
             };
             if (this.despawnFromDistance)
-                json["despawn_from_distance"] = new JObject()
+                json["despawn_from_distance"] = new JObject
                 {
                     ["max_distance"] = this.maxDistance,
                     ["min_distance"] = this.minDistance
@@ -765,7 +767,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:drying_out_timer";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["total_time"] = this.totalTime,
                 ["water_bottle_refill_time"] = this.waterBottleRefillTime
@@ -806,7 +808,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:economy_trade_table";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["convert_trades_economy"] = this.convertTradesEconomy,
                 ["cured_discount"] = new JArray(new[] {this.curedDiscountMin, this.curedDiscountMax }),
@@ -842,7 +844,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:entity_sensor";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["event"] = this.eventToFire.ToComponentJSON(),
                 ["maximum_count"] = this.maxEntities,
@@ -873,7 +875,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["event"] = this.eventToFire.eventID,
                     ["target"] = this.eventToFire.target.ToString()
@@ -891,7 +893,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:environment_sensor";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["triggers"] = new JArray(this.triggers.Select(t => t.ToJSON()))
             };
@@ -919,7 +921,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["slot"] = this.slotNumber
                 };
@@ -975,7 +977,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
         public bool followMobGriefingRule;
         public float? maxBlockResistance;
 
-        public ComponentExplode(MCC.CustomEntities.ExploderPreset preset, bool fuseLit)
+        public ComponentExplode(ExploderPreset preset, bool fuseLit)
         {
             this.breaksBlocks = preset.breaks;
             this.causesFire = preset.fire;
@@ -1005,7 +1007,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:explode";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["breaks_blocks"] = this.breaksBlocks,
                 ["causes_fire"] = this.causesFire,
@@ -1018,7 +1020,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if(this.maxBlockResistance.HasValue)
                 json["max_resistance"] = this.maxBlockResistance.Value;
 
-            if (this.fuseMin == this.fuseMax)
+            if (Math.Abs(this.fuseMin - this.fuseMax) < 0.0001F)
                 json["fuse_length"] = this.fuseMin;
             else
                 json["fuse_length"] = new JArray(new[] {this.fuseMin, this.fuseMax });
@@ -1056,7 +1058,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:flocking";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["block_distance"] = this.blockDistance,
                 ["block_weight"] = this.blockWeight,
@@ -1091,7 +1093,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["range_max"] = this.max,
                     ["range_min"] = this.min
@@ -1109,7 +1111,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["mutation_rate"] = this.mutationRate,
                     ["both_allele"] = this.bothAllele,
@@ -1132,7 +1134,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["allele_range"] = this.alleleRange
                 };
@@ -1152,7 +1154,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:genetics";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["genes"] = new JArray(this.genes.Select(gene => gene.ToJSON())),
                 ["mutation_rate"] = this.mutationRate
@@ -1174,7 +1176,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if (this.cooldown.HasValue)
                 json["cooldown"] = this.cooldown.Value;
             if (this.acceptedItems != null)
-                json["items"] = new JArray(this.acceptedItems);
+                json["items"] = new JArray(this.acceptedItems.Cast<object>().ToArray());
             if (this.onGiveEvent != null)
                 json["on_give"] = this.onGiveEvent.ToComponentJSON();
 
@@ -1190,7 +1192,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:group_size";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["radius"] = this.radius,
                 ["filters"] = this.groupTest.ToJSON()
@@ -1206,7 +1208,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:grows_crop";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["chance"] = this.chancePerTick,
                 ["charges"] = this.charges
@@ -1227,7 +1229,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["heal_amount"] = this.healAmount,
                     ["item"] = this.item
@@ -1243,7 +1245,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:healable";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["force_use"] = this.forceUse
             };
@@ -1267,7 +1269,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:home";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["restriction_radius"] = this.restrictionRadius
             };
@@ -1288,7 +1290,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["cause"] = this.cause.ToString(),
                     ["damage_per_tick"] = this.damagePerTick
@@ -1301,12 +1303,9 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public static DamageCondition BurnInLava()
             {
-                return new DamageCondition()
+                return new DamageCondition
                 {
-                    filters = new FilterCollection()
-                    {
-                        new FilterInLava() { checkValue = true, subject = EventSubject.self }
-                    },
+                    filters = [new FilterInLava {checkValue = true, subject = EventSubject.self}],
                     cause = DamageCause.drowning,
                     damagePerTick = 4
                 };
@@ -1318,7 +1317,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:hurt_on_condition";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["damage_condition"] = new JArray(this.conditions.Select(cond => cond.ToJSON()))
             };
@@ -1367,7 +1366,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:inside_block_notifier";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["block_list"] = new JArray(this.blocks.Select(block => block.ToJSON()))
             };
@@ -1381,7 +1380,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:insomnia";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["days_until_insomnia"] = this.daysUntilExperiencesInsomnia
             };
@@ -1395,7 +1394,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:instant_despawn";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["remove_child_entities"] = this.removeChildEntities
             };
@@ -1417,7 +1416,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["particle_offset_towards_interactor"] = this.offsetTowardsInteractor,
                     ["particle_type"] = this.particleType,
@@ -1446,7 +1445,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:interact";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["cooldown"] = this.cooldown,
                 ["cooldown_after_being_attacked"] = this.cooldownAfterBeingAttacked,
@@ -1457,7 +1456,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.addItems != null)
-                json["add_items"] = new JObject() { ["table"] = this.addItems.ResourcePath };
+                json["add_items"] = new JObject { ["table"] = this.addItems.ResourcePath };
             if (this.interactText != null)
                 json["interact_text"] = this.interactText;
             if (this.onInteractEvent != null)
@@ -1494,7 +1493,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:inventory";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["additional_slots_per_strength"] = this.additionalSlotsPerStrength,
                 ["can_be_siphoned_from"] = this.canBeSiphonedFrom,
@@ -1531,7 +1530,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:jump.static";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["jump_power"] = this.jumpPower
             };
@@ -1552,7 +1551,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:leashable";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["can_be_stolen"] = this.canBeStolen,
                 ["soft_distance"] = this.softDistance,
@@ -1583,7 +1582,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:lookat";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["allow_invulnerable"] = this.allowInvulnerable,
                 ["look_cooldown"] = new JArray(new[] {this.lookCooldownMin, this.lookCooldownMax }),
@@ -1619,7 +1618,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:mob_effect";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["effect_range"] = this.effectRange,
                 ["effect_time"] = this.effectTime,
@@ -1640,7 +1639,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.amphibious";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_turn"] = this.maxTurn
             };
@@ -1654,7 +1653,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.basic";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_turn"] = this.maxTurn
             };
@@ -1668,7 +1667,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.fly";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_turn"] = this.maxTurn
             };
@@ -1682,7 +1681,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.generic";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_turn"] = this.maxTurn
             };
@@ -1696,7 +1695,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.hover";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_turn"] = this.maxTurn
             };
@@ -1712,7 +1711,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.jump";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["jump_delay"] = new JArray(new[] {this.jumpDelayMin, this.jumpDelayMax }),
                 ["max_turn"] = this.maxTurn
@@ -1727,7 +1726,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.skip";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_turn"] = this.maxTurn
             };
@@ -1743,7 +1742,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:movement.sway";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_turn"] = this.maxTurn,
                 ["sway_amplitude"] = this.swayAmplitude,
@@ -1770,16 +1769,16 @@ namespace mc_compiled.Modding.Behaviors.Lists
             {
                 if (this.specialNames.Length == 1)
                 {
-                    return new JObject()
+                    return new JObject
                     {
                         ["name_filter"] = this.specialNames[0],
                         ["on_named"] = this.onNamedEvent.ToComponentJSON()
                     };
                 }
 
-                return new JObject()
+                return new JObject
                 {
-                    ["name_filter"] = new JArray(this.specialNames),
+                    ["name_filter"] = new JArray(this.specialNames.Cast<object>().ToArray()),
                     ["on_named"] = this.onNamedEvent.ToComponentJSON()
                 };
             }
@@ -1794,7 +1793,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:nameable";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["allow_name_tag_renaming"] = this.allowNametags,
                 ["always_show"] = this.alwaysShowName
@@ -1835,7 +1834,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:navigation.climb";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["avoid_damage_blocks"] = this.avoidDamageBlocks,
                 ["avoid_portals"] = this.avoidPortals,
@@ -1890,7 +1889,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:navigation.float";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["avoid_damage_blocks"] = this.avoidDamageBlocks,
                 ["avoid_portals"] = this.avoidPortals,
@@ -1913,7 +1912,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid.Cast<object>().ToArray());
 
             return json;
         }
@@ -1945,7 +1944,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:navigation.fly";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["avoid_damage_blocks"] = this.avoidDamageBlocks,
                 ["avoid_portals"] = this.avoidPortals,
@@ -1968,7 +1967,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid.Cast<object>().ToArray());
 
             return json;
         }
@@ -2000,7 +1999,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:navigation.generic";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["avoid_damage_blocks"] = this.avoidDamageBlocks,
                 ["avoid_portals"] = this.avoidPortals,
@@ -2023,7 +2022,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid.Cast<object>().ToArray());
 
             return json;
         }
@@ -2055,7 +2054,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:navigation.hover";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["avoid_damage_blocks"] = this.avoidDamageBlocks,
                 ["avoid_portals"] = this.avoidPortals,
@@ -2078,7 +2077,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid.Cast<object>().ToArray());
 
             return json;
         }
@@ -2110,7 +2109,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:navigation.swim";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["avoid_damage_blocks"] = this.avoidDamageBlocks,
                 ["avoid_portals"] = this.avoidPortals,
@@ -2133,7 +2132,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid.Cast<object>().ToArray());
 
             return json;
         }
@@ -2165,7 +2164,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:navigation.walk";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["avoid_damage_blocks"] = this.avoidDamageBlocks,
                 ["avoid_portals"] = this.avoidPortals,
@@ -2188,7 +2187,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.blocksToAvoid != null)
-                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid);
+                json["blocks_to_avoid"] = new JArray(this.blocksToAvoid.Cast<object>().ToArray());
 
             return json;
         }
@@ -2214,7 +2213,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:peek";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["on_close"] = this.stopPeekingEvent.ToComponentJSON(),
                 ["on_open"] = this.startPeekingEvent.ToComponentJSON(),
@@ -2240,7 +2239,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:physics";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["has_collision"] = this.collision,
                 ["has_gravity"] = this.gravity
@@ -2261,10 +2260,10 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["cost"] = this.cost,
-                    ["blocks"] = new JArray(this.blocks)
+                    ["blocks"] = new JArray(this.blocks.Cast<object>().ToArray())
                 };
             }
         }
@@ -2279,7 +2278,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:prefered_path";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["default_block_cost"] = this.defaultBlockCost,
                 ["jump_cost"] = this.jumpCost,
@@ -2332,7 +2331,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:projectile";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["angle_offset"] = this.angleOffset,
                 ["catch_fire"] = this.catchFire,
@@ -2381,7 +2380,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:pushable";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["is_pushable"] = this.isPushableByEntity,
                 ["is_pushable_by_piston"] = this.isPushableByPiston
@@ -2411,7 +2410,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:rail_movement";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["max_speed"] = this.maxSpeed
             };
@@ -2433,7 +2432,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:rail_sensor";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["check_block_types"] = this.checkBlockTypes,
                 ["eject_on_activate"] = this.ejectOnActivate,
@@ -2464,7 +2463,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["weight"] = this.weight
                 };
@@ -2482,7 +2481,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:ravager_blocked";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["knockback_strength"] = this.knockbackStrength
             };
@@ -2505,7 +2504,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["min_rider_count"] = this.minRiderCount,
                     ["position"] = new JArray(new[] {this.posX, this.posY, this.posZ }),
@@ -2539,7 +2538,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:rideable";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["controlling_seat"] = this.controllingSeat,
                 ["crouching_skip_interact"] = this.crouchingSkipInteract,
@@ -2550,7 +2549,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             };
 
             if (this.allowedFamilyTypes != null)
-                json["family_types"] = new JArray(this.allowedFamilyTypes);
+                json["family_types"] = new JArray(this.allowedFamilyTypes.Cast<object>().ToArray());
             if (this.interactText != null)
                 json["interact_text"] = this.interactText;
             if (this.seats != null)
@@ -2577,7 +2576,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:scale_by_age";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["start_scale"] = this.startScale,
                 ["end_scale"] = this.endScale
@@ -2598,7 +2597,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["event"] = this.call.ToComponentJSON(),
                     ["filters"] = new JArray(this.tests.Select(test => test.ToJSON()))
@@ -2616,7 +2615,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:scheduler";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["scheduled_events"] = new JArray(this.events.Select(e => e.ToJSON()))
             };
@@ -2648,7 +2647,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["admire"] = this.admire,
                     ["barter"] = this.barter,
@@ -2681,7 +2680,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:shareables";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["all_items"] = this.allItems,
                 ["all_items_max_amount"] = this.allItemsMaxAmount,
@@ -2704,7 +2703,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:shooter";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["aux_val"] = this.passEffectToProjectile.HasValue ? (int) this.passEffectToProjectile.Value : -1,
                 ["def"] = this.projectileEntity
@@ -2751,7 +2750,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["min_wait_time"] = this.minWaitTime,
                     ["max_wait_time"] = this.maxWaitTime,
@@ -2784,7 +2783,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:spawn_entity";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["entities"] = new JArray(this.entities.Select(entity => entity.ToJSON()))
             };
@@ -2800,7 +2799,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:tameable";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["probability"] = this.probability
             };
@@ -2808,7 +2807,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             if (this.tameEvent != null)
                 json["tame_event"] = this.tameEvent.ToComponentJSON();
             if (this.tameItems != null)
-                json["tame_items"] = new JArray(this.tameItems);
+                json["tame_items"] = new JArray(this.tameItems.Cast<object>().ToArray());
 
             return json;
         }
@@ -2825,7 +2824,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["item"] = this.item
                 };
@@ -2843,7 +2842,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["item"] = this.item,
                     ["tempter_mod"] = this.temperMod
@@ -2864,7 +2863,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:tamemount";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["attempt_temper_mod"] = this.attemptTemperMod,
                 ["min_temper"] = this.minTemper,
@@ -2899,7 +2898,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:target_nearby_sensor";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["inside_range"] = this.insideRange,
                 ["outside_range"] = this.outsideRange,
@@ -2932,7 +2931,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:teleport";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["dark_teleport_chance"] = this.darkTeleportChance,
                 ["light_teleport_chance"] = this.lightTeleportChance,
@@ -2957,13 +2956,13 @@ namespace mc_compiled.Modding.Behaviors.Lists
         {
             if (this.neverDespawn)
             {
-                return new JObject()
+                return new JObject
                 {
                     ["never_despawn"] = true,
                     ["radius"] = this.tickRadius
                 };
             }
-            return new JObject()
+            return new JObject
             {
                 ["distance_to_players"] = this.distanceToPlayers,
                 ["never_despawn"] = false,
@@ -2994,14 +2993,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:timer";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["looping"] = this.looping,
                 ["randomInterval"] = this.randomInterval,
                 ["time_down_event"] = this.call.ToComponentJSON()
             };
 
-            if (this.timeMin == this.timeMax)
+            if (Math.Abs(this.timeMin - this.timeMax) < 0.0001F)
                 json["time"] = this.timeMin;
             else
                 json["time"] = new JArray(new[] {this.timeMin, this.timeMax });
@@ -3022,7 +3021,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:trade_table";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["table"] = this.table.ResourcePath,
                 ["convert_trades_economy"] = this.convertEconomy,
@@ -3046,7 +3045,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:trail";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["block_type"] = this.block,
                 ["spawn_offset"] = new JArray(new[] {this.offsetX, this.offsetY, this.offsetZ })
@@ -3069,7 +3068,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             }
             public JObject ToJSON()
             {
-                return new JObject()
+                return new JObject
                 {
                     ["component_groups"] = new JArray(this.groups.Select(group => group.name))
                 };
@@ -3086,7 +3085,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
 
             public JObject ToJSON()
             {
-                JObject json = new JObject()
+                JObject json = new JObject
                 {
                     ["block_assist_chance"] = this.blockAssistChance,
                     ["block_chance"] = this.blockChance,
@@ -3096,7 +3095,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
                 };
 
                 if (this.speedUpBlocks != null)
-                    json["block_type"] = new JArray(this.speedUpBlocks);
+                    json["block_type"] = new JArray(this.speedUpBlocks.Cast<object>().ToArray());
 
                 return json;
             }
@@ -3119,7 +3118,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:transformation";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["drop_equipment"] = this.dropEquipment,
                 ["drop_inventory"] = this.dropInventory,
@@ -3152,14 +3151,14 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:trusting";
         public override JObject _GetValue()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["probability"] = this.probability,
                 ["trust_event"] = this.trustEvent.ToComponentJSON()
             };
 
             if (this.trustItems != null)
-                json["trust_items"] = new JArray(this.trustItems);
+                json["trust_items"] = new JArray(this.trustItems.Cast<object>().ToArray());
 
             return json;
         }
@@ -3172,7 +3171,7 @@ namespace mc_compiled.Modding.Behaviors.Lists
             "minecraft:water_movement";
         public override JObject _GetValue()
         {
-            return new JObject()
+            return new JObject
             {
                 ["drag_factor"] = this.dragFactor
             };

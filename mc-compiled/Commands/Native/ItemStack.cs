@@ -1,8 +1,7 @@
 ﻿using System;
-using mc_compiled.NBT;
-using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using mc_compiled.NBT;
 
 namespace mc_compiled.Commands.Native
 {
@@ -58,7 +57,7 @@ namespace mc_compiled.Commands.Native
                 if(string.IsNullOrWhiteSpace(this.displayName))
                 {
                     baseName.Append("item_");
-                    baseName.Append(Command.UTIL.StripNamespace(this.id).ToLower());
+                    baseName.Append(Command.Util.StripNamespace(this.id).ToLower());
                     baseName.Append('_');
                 }
                 else
@@ -121,7 +120,7 @@ namespace mc_compiled.Commands.Native
                     baseName.Append("dyed_");
 
                 int len = baseName.Length;
-                return baseName.ToString().Substring(0, len - 1);
+                return baseName.ToString()[..(len - 1)];
             }
         } 
         public bool Equals(ItemStack other)

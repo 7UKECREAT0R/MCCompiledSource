@@ -13,7 +13,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <returns></returns>
         public static Dictionary<string, string> ParseHTTP(this string data)
         {
-            string[] lines = data.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = data.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
             Dictionary<string, string> entries = new Dictionary<string, string>();
 
             // load into dictionary
@@ -22,9 +22,9 @@ namespace mc_compiled.MCC.ServerWebSocket
                 int index = line.IndexOf(':');
                 if (index == -1)
                     continue;
-                string key = line.Substring(0, index);
+                string key = line[..index];
                 int offset = char.IsWhiteSpace(line[index + 1]) ? 2 : 1;
-                string value = line.Substring(index + offset);
+                string value = line[(index + offset)..];
 
                 entries[key] = value;
             }
@@ -34,20 +34,19 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <summary>
         /// Returns a string representing a properly constructed HTTP request from this dictionary's data.
         /// </summary>
-        /// <param name="entries"></param>
-        /// <returns></returns>
+        /// <param name="entries">The dictionary containing HTTP header keys and values.</param>
+        /// <param name="header">The HTTP request line or response status line to include in the generated request.</param>
+        /// <returns>A string representing the complete HTTP request.</returns>
         public static string ToHTTP(this Dictionary<string, string> entries, string header)
         {
             const string nl = "\r\n";
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.Append(header);
             sb.Append(nl);
 
-            foreach(KeyValuePair<string, string> entry in entries)
+            foreach((string a, string b) in entries)
             {
-                string a = entry.Key;
-                string b = entry.Value;
                 sb.Append(a);
                 sb.Append(": ");
                 sb.Append(b);
@@ -67,7 +66,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
             byte reversed = 0;
 
-            for(byte mask = 0b10000000; ((int)mask) > 0; mask >>= 1)
+            for(byte mask = 0b10000000; mask > 0; mask >>= 1)
             {
                 reversed = (byte)(reversed >> 1);
 

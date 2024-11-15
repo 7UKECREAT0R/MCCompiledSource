@@ -1,11 +1,11 @@
-﻿using mc_compiled.Commands.Execute;
+﻿using System.Collections.Generic;
+using mc_compiled.Commands.Execute;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding.Behaviors.Dialogue;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace mc_compiled.Commands
 {
@@ -17,8 +17,6 @@ namespace mc_compiled.Commands
         /// <summary>
         /// Returns a command as its literal, chat notation for JSON fields. Escapes any unescaped characters.
         /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
         public static string ForJSON(string command)
         {
             if(command.StartsWith("/"))
@@ -29,8 +27,6 @@ namespace mc_compiled.Commands
         /// <summary>
         /// Returns this string, but surrounded with quotation marks if it contains whitespace. 
         /// </summary>
-        /// <param name="parameter"></param>
-        /// <returns></returns>
         public static string AsCommandParameterString(this string parameter)
         {
             if (parameter.Contains(' '))
@@ -40,8 +36,6 @@ namespace mc_compiled.Commands
         /// <summary>
         /// Returns the commands as literal, chat notation for animation controller fields.
         /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
         public static string[] ForJSON(string[] commands)
         {
             for (int i = 0; i < commands.Length; i++)
@@ -55,7 +49,7 @@ namespace mc_compiled.Commands
         /// </summary>
         public class Util
         {
-            internal readonly Dictionary<int, int> tags = new Dictionary<int, int>();
+            internal readonly Dictionary<int, int> tags = new();
 
             /// <summary>
             /// Get a unique tag incase used somewhere else in-scope.
@@ -67,7 +61,7 @@ namespace mc_compiled.Commands
                 int hash = tag.GetHashCode();
                 if(this.tags.TryGetValue(hash, out int index))
                 {
-                    IndexedTag ret = new IndexedTag()
+                    IndexedTag ret = new IndexedTag
                     {
                         name = tag,
                         index = index
@@ -79,7 +73,7 @@ namespace mc_compiled.Commands
                 } else
                 {
                     this.tags[hash] = 1;
-                    return new IndexedTag()
+                    return new IndexedTag
                     {
                         name = tag,
                         index = 0
@@ -103,14 +97,14 @@ namespace mc_compiled.Commands
             /// </summary>
             /// <param name="entity"></param>
             /// <returns></returns>
-            public string MakeInvisible(string entity) =>
+            public static string MakeInvisible(string entity) =>
                 Effect(entity, PotionEffect.invisibility, 99999999, 0, true);
 
             /// <summary>
             /// Prepends "minecraft:" if no namespace is identifier.
             /// </summary>
             /// <returns></returns>
-            public string RequireNamespace(string identifier)
+            public static string RequireNamespace(string identifier)
             {
                 if (identifier.Contains(':'))
                     return identifier;
@@ -123,14 +117,14 @@ namespace mc_compiled.Commands
             /// </code>
             /// </summary>
             /// <returns></returns>
-            public string StripNamespace(string identifier)
+            public static string StripNamespace(string identifier)
             {
                 if (identifier.Contains(':'))
                 {
                     int lastColon = identifier.LastIndexOf(':');
                     return lastColon + 1 >= identifier.Length ?
                         identifier.Trim(':') :
-                        identifier.Substring(lastColon + 1);
+                        identifier[(lastColon + 1)..];
                 }
 
                 return identifier;
@@ -142,30 +136,29 @@ namespace mc_compiled.Commands
             /// <param name="str"></param>
             /// <param name="invert"></param>
             /// <returns></returns>
-            public string MakeInvertedString(string str, bool invert)
+            public static string MakeInvertedString(string str, bool invert)
             {
-                bool isInverted = str.StartsWith("!");
+                bool isInverted = str.StartsWith('!');
 
                 if (isInverted == invert)
                     return str;
 
                 if (isInverted)
-                    return str.Substring(1);
+                    return str[1..];
                 else
                     return '!' + str;
             }
             /// <summary>
             /// Makes a string inverted/not depending on a boolean. "!thing" or "thing"
             /// </summary>
-            /// <param name="str"></param>
-            /// <param name="invert"></param>
-            /// <returns></returns>
+            /// <param name="str">The string to invert.</param>
+            /// <returns>The inverted string. Will never return the same <c>string</c> instance.</returns>
             public string ToggleInversion(string str)
             {
                 bool isInverted = str.StartsWith("!");
 
                 if (isInverted)
-                    return str.Substring(1);
+                    return str[1..];
                 else
                     return '!' + str;
             }
@@ -180,31 +173,21 @@ namespace mc_compiled.Commands
         public static string String(this ItemSlot slot) => slot.ToString().Replace('_', '.');
         public static string String(this ScoreboardOp op)
         {
-            switch (op)
+            return op switch
             {
-                case ScoreboardOp.SET:
-                    return "=";
-                case ScoreboardOp.ADD:
-                    return "+=";
-                case ScoreboardOp.SUB:
-                    return "-=";
-                case ScoreboardOp.MUL:
-                    return "*=";
-                case ScoreboardOp.DIV:
-                    return "/=";
-                case ScoreboardOp.MOD:
-                    return "%=";
-                case ScoreboardOp.SWAP:
-                    return "><";
-                case ScoreboardOp.MIN:
-                    return "<";
-                case ScoreboardOp.MAX:
-                    return ">";
-                default:
-                    return "???";
-            }
+                ScoreboardOp.SET => "=",
+                ScoreboardOp.ADD => "+=",
+                ScoreboardOp.SUB => "-=",
+                ScoreboardOp.MUL => "*=",
+                ScoreboardOp.DIV => "/=",
+                ScoreboardOp.MOD => "%=",
+                ScoreboardOp.SWAP => "><",
+                ScoreboardOp.MIN => "<",
+                ScoreboardOp.MAX => ">",
+                _ => "???"
+            };
         }
-        public static string String(this StructureRotation rot) => rot.ToString().Substring(1);
+        public static string String(this StructureRotation rot) => rot.ToString()[1..];
 
         public static string AlwaysDay(bool enabled) =>
             $"alwaysday {enabled.ToString().ToLower()}";
@@ -688,9 +671,9 @@ namespace mc_compiled.Commands
         public static string Tellraw(string targets, string jsonMessage) =>
             $"tellraw {targets} {jsonMessage}";
         public static string Tellraw(JObject jsonMessage) =>
-            $"tellraw @a {jsonMessage.ToString(Newtonsoft.Json.Formatting.None)}";
+            $"tellraw @a {jsonMessage.ToString(Formatting.None)}";
         public static string Tellraw(string targets, JObject jsonMessage) =>
-            $"tellraw {targets} {jsonMessage.ToString(Newtonsoft.Json.Formatting.None)}";
+            $"tellraw {targets} {jsonMessage.ToString(Formatting.None)}";
 
 
         public static string TestFor(string targets) =>
@@ -784,7 +767,7 @@ namespace mc_compiled.Commands
         public string name;
         public int index;
 
-        public string Tag { get => this.name + this.index; }
+        public string Tag => this.name + this.index;
         public static implicit operator string(IndexedTag tag) => tag.Tag;
     }
     public enum CameraShakeType
@@ -796,7 +779,7 @@ namespace mc_compiled.Commands
         force, move, normal
     }
     [EnumParsable(typeof(DifficultyMode))]
-    public enum DifficultyMode : int
+    public enum DifficultyMode
     {
         peaceful = 0,
         easy = 1,

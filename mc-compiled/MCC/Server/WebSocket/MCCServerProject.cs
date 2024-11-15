@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using TinyDialogsNet;
 
 namespace mc_compiled.MCC.ServerWebSocket
 {
@@ -19,7 +21,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <summary>
         /// The properties for this project.
         /// </summary>
-        internal Dictionary<string, string> properties = new Dictionary<string, string>();
+        internal readonly Dictionary<string, string> properties = new();
         /// <summary>
         /// Get or set by the base64 representation of the project's properties.
         /// </summary>
@@ -35,7 +37,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 foreach (JProperty prop in props)
                     json.Add(prop);
 
-                return json.ToString(Newtonsoft.Json.Formatting.None).Base64Encode();
+                return json.ToString(Formatting.None).Base64Encode();
             }
 
             set
@@ -124,68 +126,52 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// <summary>
         /// Allows the user to choose a location/filename to write their project to.
         /// </summary>
-        /// <returns>True if they chose a file, false if they cancelled.</returns>
-        internal bool RunSaveFileDialog(string defaultName = "web_project.mcc")
+        /// <returns>True if they chose a file, false if they canceled.</returns>
+        internal bool RunSaveFileDialog(out bool unsupported, string defaultName = "web_project.mcc")
         {
-            using (SaveFileDialog dialog = new SaveFileDialog())
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT || Environment.OSVersion.Version.Major < 6)
             {
-                dialog.Filter = "MCC Source File (.mcc)|*.mcc";
-                dialog.AddExtension = true;
-                dialog.DefaultExt = "mcc";
-                dialog.DereferenceLinks = true;
-                dialog.Title = "Save project...";
-                dialog.FileName = defaultName;
-
-                using (Form zSetter = new Form())
-                {
-                    zSetter.TopMost = true;
-                    zSetter.TopLevel = true;
-                    zSetter.WindowState = FormWindowState.Minimized;
-                    zSetter.Show();
-                    
-                    bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
-
-                    if (!selected)
-                        return false;
-                    
-                    // did choose file
-                    this.File = dialog.FileName;
-                    return true;
-                }
+                unsupported = true;
+                return false;
             }
+
+            unsupported = false;
+
+            (bool canceled, string path) = TinyDialogs.SaveFileDialog("Saving code...", defaultName,
+                new FileFilter("MCCompiled File (.mcc)", ["*.mcc"])
+            );
+
+            if (canceled)
+                return false;
+            
+            this.File = path;
+            return true;
         }
         /// <summary>
         /// Allows the user to choose a location/filename to write their project to.
         /// </summary>
-        /// <returns>True if they chose a file, false if they cancelled.</returns>
-        internal bool RunLoadFileDialog()
+        /// <returns>True if they chose a file, false if they canceled.</returns>
+        internal bool RunLoadFileDialog(out bool unsupported)
         {
-            using (OpenFileDialog dialog = new OpenFileDialog())
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT || Environment.OSVersion.Version.Major < 6)
             {
-                dialog.Filter = "MCC Source File (.mcc)|*.mcc";
-                dialog.CheckPathExists = true;
-                dialog.CheckFileExists = true;
-                dialog.DereferenceLinks = true;
-                dialog.Title = "Load project...";
-                dialog.FileName = "web_project.mcc";
-
-                using (Form zSetter = new Form())
-                {
-                    zSetter.TopMost = true;
-                    zSetter.TopLevel = true;
-                    zSetter.WindowState = FormWindowState.Minimized;
-                    zSetter.Show();
-                    
-                    bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
-
-                    if (!selected)
-                        return false;
-                    
-                    // did choose file
-                    this.File = dialog.FileName;
-                    return true;
-                }
+                unsupported = true;
+                return false;
             }
+
+            unsupported = false;
+
+            (bool canceled, IEnumerable<string> paths) = TinyDialogs.OpenFileDialog("Loading code...", "/", false,
+                new FileFilter("MCCompiled File (.mcc)", ["*.mcc"])
+            );
+
+            string[] pathsArray = paths as string[] ?? paths.ToArray();
+            
+            if (canceled || pathsArray.Length < 1)
+                return false;
+            
+            this.File = pathsArray[0];
+            return true;
         }
 
     }

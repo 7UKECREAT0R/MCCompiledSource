@@ -15,7 +15,7 @@ namespace mc_compiled.NBT
 
         public FileWriterNBT(string fileName)
         {
-            this.nodes = new List<NBTNode>();
+            this.nodes = [];
             this.fileName = fileName;
         }
         public FileWriterNBT(string fileName, List<NBTNode> nodes)
@@ -25,7 +25,7 @@ namespace mc_compiled.NBT
         }
         public FileWriterNBT(string fileName, params NBTNode[] nodes)
         {
-            this.nodes = new List<NBTNode>(nodes);
+            this.nodes = [..nodes];
             this.fileName = fileName;
         }
 
@@ -34,16 +34,14 @@ namespace mc_compiled.NBT
         /// </summary>
         public void Write()
         {
-            using (FileStream stream = File.OpenWrite(this.fileName))
-            using (BinaryWriter writer = new BinaryWriter(stream))
-            {
-                NBTNode[] queue = new NBTNode[]
-                {
-                    new NBTCompound() { name = "", values = this.nodes.ToArray() },
-                    new NBTEnd()
-                };
-                WriteToExisting(queue, writer);
-            }
+            using FileStream stream = File.OpenWrite(this.fileName);
+            using BinaryWriter writer = new BinaryWriter(stream);
+            NBTNode[] queue =
+            [
+                new NBTCompound { name = "", values = this.nodes.ToArray() },
+                new NBTEnd()
+            ];
+            WriteToExisting(queue, writer);
         }
         public static void WriteToExisting(NBTNode[] nodes, BinaryWriter writer)
         {
@@ -66,17 +64,15 @@ namespace mc_compiled.NBT
         }
         public static byte[] GetBytes(NBTNode[] nodes)
         {
-            using (MemoryStream stream = new MemoryStream())
-            using (BinaryWriter writer = new BinaryWriter(stream))
-            {
-                NBTNode[] queue = new NBTNode[]
-                {
-                    new NBTCompound() { name = "", values = nodes.ToArray() },
-                    new NBTEnd()
-                };
-                WriteToExisting(queue, writer);
-                return stream.ToArray();
-            }
+            using MemoryStream stream = new MemoryStream();
+            using BinaryWriter writer = new BinaryWriter(stream);
+            NBTNode[] queue =
+            [
+                new NBTCompound { name = "", values = nodes.ToArray() },
+                new NBTEnd()
+            ];
+            WriteToExisting(queue, writer);
+            return stream.ToArray();
         }
     }
 }

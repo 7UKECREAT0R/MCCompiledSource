@@ -1,4 +1,6 @@
-﻿namespace mc_compiled.Modding.Behaviors
+﻿using Newtonsoft.Json.Linq;
+
+namespace mc_compiled.Modding.Behaviors
 {
     public abstract class EntityComponent
     {
@@ -13,7 +15,7 @@
         /// Get the object inside this component without priority.
         /// </summary>
         /// <returns>A non-null JObject that holds the data for this component.</returns>
-        public abstract Newtonsoft.Json.Linq.JObject _GetValue();
+        public abstract JObject _GetValue();
 
 
 
@@ -21,7 +23,7 @@
         /// Get the object to be used inside this component.
         /// </summary>
         /// <returns></returns>
-        public Newtonsoft.Json.Linq.JObject GetValue()
+        public JObject GetValue()
         {
             var value = _GetValue();
             if (this.priority.HasValue)

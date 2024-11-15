@@ -22,13 +22,13 @@ namespace mc_compiled.MCC.Compiler.TypeSystem
         /// </summary>
         public static readonly Typedef TIME = new TypedefTime();
         
-        public static readonly Typedef[] ALL_TYPES = new Typedef[]
-        {
+        public static readonly Typedef[] ALL_TYPES =
+        [
             INTEGER,
             FIXED_DECIMAL,
             BOOLEAN,
             TIME
-        };
+        ];
         
         /// <summary>
         /// Attempts to get a typedef bound to the given value type.

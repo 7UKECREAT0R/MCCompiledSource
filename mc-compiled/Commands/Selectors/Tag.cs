@@ -21,7 +21,7 @@ namespace mc_compiled.Commands.Selectors
         public Tag(string tagName)
         {
             this.not = tagName.StartsWith("!");
-            this.tagName = this.not ? tagName.Substring(1) : tagName;
+            this.tagName = this.not ? tagName[1..] : tagName;
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace mc_compiled.Commands.Selectors
             if (str.Length == 1)
                 return new Tag("", true);
             
-            return new Tag(str.Substring(1), true);
+            return new Tag(str[1..], true);
         }
 
         public string GetSection()

@@ -3,37 +3,33 @@
 namespace mc_compiled.Commands.Selectors
 {
     /// <summary>
-    /// Represents selection option that limits based off of entity properties.
+    /// Represents a selection option that limits based off of entity properties.
     /// </summary>
-    public struct Entity
+    public struct Entity(
+        string name,
+        string type,
+        IEnumerable<string> families,
+        int? rotXMin = null,
+        int? rotXMax = null,
+        int? rotYMin = null,
+        int? rotYMax = null)
     {
-        public string name;     // The name of this entity/player.
-        public string type;     // The type of this entity.
+        public string name = name;     // The name of this entity/player.
+        public string type = type;     // The type of this entity.
 
-        public List<string> families;   // The family(s) this entity is in.
+        public List<string> families = [..families];   // The family(s) this entity is in.
 
-        private int? rotXMin;
-        private int? rotXMax;
-        private int? rotYMin;
-        private int? rotYMax;
+        private int? rotXMin = rotXMin;
+        private int? rotXMax = rotXMax;
+        private int? rotYMin = rotYMin;
+        private int? rotYMax = rotYMax;
 
-        public Entity(string name, string type, IEnumerable<string> families,
-            int? rotXMin = null, int? rotXMax = null, int? rotYMin = null, int? rotYMax = null)
-        {
-            this.name = name;
-            this.type = type;
-            this.families = new List<string>(families);
-            this.rotXMin = rotXMin;
-            this.rotXMax = rotXMax;
-            this.rotYMin = rotYMin;
-            this.rotYMax = rotYMax;
-        }
         public static Entity Parse(string[] chunks)
         {
             string name = null;
             string type = null;
 
-            List<string> families = new List<string>();
+            List<string> families = [];
 
             int?
                 rotXMin = null,
@@ -46,8 +42,8 @@ namespace mc_compiled.Commands.Selectors
                 int index = chunk.IndexOf('=');
                 if (index == -1)
                     continue;
-                string a = chunk.Substring(0, index).Trim().ToUpper();
-                string b = chunk.Substring(index + 1).Trim();
+                string a = chunk[..index].Trim().ToUpper();
+                string b = chunk[(index + 1)..].Trim();
 
                 switch (a)
                 {
@@ -104,7 +100,7 @@ namespace mc_compiled.Commands.Selectors
 
         public string[] GetSections()
         {
-            List<string> parts = new List<string>();
+            List<string> parts = [];
 
             if (this.name != null)
                 parts.Add("name=\"" + this.name + "\"");
@@ -140,6 +136,16 @@ namespace mc_compiled.Commands.Selectors
             if (a.rotYMax == null)
                 a.rotYMax = other.rotYMax;
             return a;
+        }
+
+        public static bool operator ==(Entity left, Entity right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Entity left, Entity right)
+        {
+            return !(left == right);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace mc_compiled.NBT
+﻿using mc_compiled.Commands.Native;
+
+namespace mc_compiled.NBT
 {
     /// <summary>
     /// A Minecraft structure represented in NBT format.
@@ -16,21 +18,21 @@
 
         public NBTNode[] ToNBT()
         {
-            return new NBTNode[]
-            {
-                new NBTInt() { name = "format_version", value = this.formatVersion }, this.size.ToNBT("size"),
-                new NBTCompound()
+            return
+            [
+                new NBTInt { name = "format_version", value = this.formatVersion }, this.size.ToNBT("size"),
+                new NBTCompound
                 {
                     name = "structure",
-                    values = new NBTNode[]
-                    {
+                    values =
+                    [
                         this.indices.ToNBT(), this.entities.ToNBT(), this.palette.ToNBT(),
                         new NBTEnd()
-                    }
+                    ]
                 },
                 this.worldOrigin.ToNBT("structure_world_origin"),
                 new NBTEnd()
-            };
+            ];
         }
 
         /// <summary>
@@ -38,18 +40,18 @@
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public static StructureNBT SingleItem(Commands.Native.ItemStack item)
+        public static StructureNBT SingleItem(ItemStack item)
         {
-            return new StructureNBT()
+            return new StructureNBT
             {
                 formatVersion = 1,
                 size = new VectorIntNBT(1, 1, 1),
                 worldOrigin = new VectorIntNBT(0, 0, 0),
 
                 indices = new BlockIndicesNBT(new int[1, 1, 1]),
-                palette = new PaletteNBT()
+                palette = new PaletteNBT
                 {
-                    block_palette = new PaletteEntryNBT[] { new PaletteEntryNBT("minecraft:air") }
+                    block_palette = [new PaletteEntryNBT("minecraft:air")]
                 },
 
                 entities = new EntityListNBT(new EntityNBT(

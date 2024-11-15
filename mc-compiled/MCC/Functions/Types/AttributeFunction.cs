@@ -1,8 +1,8 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Attributes;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC.Functions.Types
 {
@@ -25,7 +25,7 @@ namespace mc_compiled.MCC.Functions.Types
             this.internalName = internalName;
             this.documentation = documentation;
 
-            this.parameters = new List<CompiletimeFunctionParameter>();
+            this.parameters = [];
         }
         /// <summary>
         /// Returns this function with a given call action.

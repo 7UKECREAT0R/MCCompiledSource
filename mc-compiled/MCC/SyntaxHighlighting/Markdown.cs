@@ -1,9 +1,9 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {

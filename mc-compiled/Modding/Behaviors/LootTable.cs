@@ -1,21 +1,21 @@
-﻿using mc_compiled.Commands.Native;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using mc_compiled.Commands.Native;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors
 {
     /// <summary>
     /// Represents a loot table.
     /// </summary>
-    public sealed class LootTable : IAddonFile
+    public sealed class LootTable(string name, string subdirectory = null) : IAddonFile
     {
-        public string name;
-        public string subdirectory;
-        public List<LootPool> pools;
+        public string name = name;
+        public string subdirectory = subdirectory;
+        public List<LootPool> pools = [];
 
         public string CommandReference
         {
@@ -26,13 +26,6 @@ namespace mc_compiled.Modding.Behaviors
 
                 return this.subdirectory + '/' + this.name;
             }
-        }
-
-        public LootTable(string name, string subdirectory = null)
-        {
-            this.name = name;
-            this.subdirectory = subdirectory;
-            this.pools = new List<LootPool>();
         }
 
         /// <summary>
@@ -51,10 +44,10 @@ namespace mc_compiled.Modding.Behaviors
         }
         public byte[] GetOutputData()
         {
-            JArray pools = new JArray(this.pools.Select(pool => pool.ToJSON()));
-            JObject root = new JObject()
+            var jsonPools = new JArray(this.pools.Select(pool => pool.ToJSON()));
+            var root = new JObject
             {
-                ["pools"] = pools
+                ["pools"] = jsonPools
             };
             return Encoding.UTF8.GetBytes(root.ToString());
         }
@@ -63,6 +56,7 @@ namespace mc_compiled.Modding.Behaviors
         public OutputLocation GetOutputLocation() =>
             OutputLocation.b_LOOT_TABLES;
     }
+
     /// <summary>
     /// Represents a pool in a loot table. Use LootPoolWeighted or LootPoolTiered.
     /// </summary>
@@ -78,9 +72,9 @@ namespace mc_compiled.Modding.Behaviors
             this.rollsMax = null;
 
             if (entries == null || entries.Length < 1)
-                this.entries = new List<LootEntry>();
+                this.entries = [];
             else
-                this.entries = new List<LootEntry>(entries);
+                this.entries = [..entries];
         }
         public LootPool(int rollsMin, int rollsMax, params LootEntry[] entries)
         {
@@ -88,19 +82,20 @@ namespace mc_compiled.Modding.Behaviors
             this.rollsMax = rollsMax;
 
             if (entries == null || entries.Length < 1)
-                this.entries = new List<LootEntry>();
+                this.entries = [];
             else
-                this.entries = new List<LootEntry>(entries);
+                this.entries = [..entries];
         }
         public void AddLoot(LootEntry entry) => this.entries.Add(entry);
 
         public JObject ToJSON()
         {
             JArray pool = new JArray(this.entries.Select(entry => entry.ToJSON()));
-            if (this.rollsMax.HasValue) {
-                return new JObject()
+            if (this.rollsMax.HasValue)
+            {
+                return new JObject
                 {
-                    ["rolls"] = new JObject()
+                    ["rolls"] = new JObject
                     {
                         ["min"] = this.rollsMin,
                         ["max"] = this.rollsMax.Value
@@ -109,35 +104,29 @@ namespace mc_compiled.Modding.Behaviors
                 };
             }
 
-            return new JObject()
+            return new JObject
             {
                 ["rolls"] = this.rollsMin,
                 ["entries"] = pool
             };
         }
     }
+
     /// <summary>
     /// Represents an item drop in a loot pool.
     /// </summary>
-    public class LootEntry
+    public class LootEntry(LootEntry.EntryType type, string name, int weight = 1, params LootFunction[] functions)
     {
         public enum EntryType
         {
             item
         }
-        
-        public readonly EntryType type;
-        public readonly string name;
-        public readonly int weight;
-        public List<LootFunction> functions;
 
-        public LootEntry(EntryType type, string name, int weight = 1, params LootFunction[] functions)
-        {
-            this.type = type;
-            this.name = name;
-            this.weight = weight;
-            this.functions = new List<LootFunction>(functions);
-        }
+        public readonly EntryType type = type;
+        public readonly string name = name;
+        public readonly int weight = weight;
+        public List<LootFunction> functions = [..functions];
+
         /// <summary>
         /// Add a function to this loot entry.
         /// </summary>
@@ -151,7 +140,7 @@ namespace mc_compiled.Modding.Behaviors
 
         public JObject ToJSON()
         {
-            JObject json = new JObject()
+            JObject json = new JObject
             {
                 ["type"] = this.type.ToString(),
                 ["name"] = this.name,
@@ -167,6 +156,7 @@ namespace mc_compiled.Modding.Behaviors
             return json;
         }
     }
+
     /// <summary>
     /// Function which will run on loot before being dropped.
     /// </summary>
@@ -182,16 +172,16 @@ namespace mc_compiled.Modding.Behaviors
             json["function"] = GetFunctionName();
             foreach (JObject function in GetFunctionFields())
             {
-                foreach(JProperty property in function.Properties())
+                foreach (JProperty property in function.Properties())
                     json.Add(property);
             }
+
             return json;
         }
 
         public abstract string GetFunctionName();
         public abstract JObject[] GetFunctionFields();
     }
-
 
     /// <summary>
     /// Sets the count of the item.
@@ -215,67 +205,75 @@ namespace mc_compiled.Modding.Behaviors
         {
             if (this.max.HasValue)
             {
-                return new[] { new JObject()
-                {
-                    ["count"] = new JObject()
+                return
+                [
+                    new JObject
                     {
-                        ["min"] = this.min,
-                        ["max"] = this.max.Value
+                        ["count"] = new JObject
+                        {
+                            ["min"] = this.min,
+                            ["max"] = this.max.Value
+                        }
                     }
-                } };
-            } else
+                ];
+            }
+            else
             {
-                return new[] { new JObject()
-                {
-                    ["count"] = this.min
-                } };
+                return
+                [
+                    new JObject
+                    {
+                        ["count"] = this.min
+                    }
+                ];
             }
         }
         public override string GetFunctionName() =>
             "set_count";
     }
+
     /// <summary>
     /// Sets the display name of the item.
     /// </summary>
-    public sealed class LootFunctionName : LootFunction
+    public sealed class LootFunctionName(string name) : LootFunction
     {
-        public readonly string name;
-        public LootFunctionName(string name)
-        {
-            this.name = name;
-        }
+        public readonly string name = name;
 
         public override JObject[] GetFunctionFields()
         {
-            return new[] { new JObject()
-            {
-                ["name"] = this.name
-            } };
+            return
+            [
+                new JObject
+                {
+                    ["name"] = this.name
+                }
+            ];
         }
         public override string GetFunctionName() =>
             "set_name";
     }
+
     /// <summary>
     /// Sets the lore of the item.
     /// </summary>
-    public sealed class LootFunctionLore : LootFunction
+    public sealed class LootFunctionLore(params object[] lore) : LootFunction
     {
-        public readonly string[] lore;
-        public LootFunctionLore(params string[] lore)
-        {
-            this.lore = lore;
-        }
+        public readonly object[] lore = lore;
 
         public override JObject[] GetFunctionFields()
         {
-            return new[] { new JObject()
-            {
-                ["lore"] = new JArray(this.lore)
-            } };
+            return
+            [
+                new JObject
+                {
+                    ["lore"] = new JArray(this.lore)
+                }
+            ];
         }
         public override string GetFunctionName() =>
             "set_lore";
     }
+
     /// <summary>
     /// Sets the data of the item.
     /// </summary>
@@ -300,27 +298,35 @@ namespace mc_compiled.Modding.Behaviors
 
         public override JObject[] GetFunctionFields()
         {
-            if(this.dataMax.HasValue)
+            if (this.dataMax.HasValue)
             {
-                return new[] { new JObject()
-                {
-                    ["data"] = new JObject()
+                return
+                [
+                    new JObject
                     {
-                        ["min"] = this.dataMin,
-                        ["max"] = this.dataMax.Value
+                        ["data"] = new JObject
+                        {
+                            ["min"] = this.dataMin,
+                            ["max"] = this.dataMax.Value
+                        }
                     }
-                } };
-            } else
+                ];
+            }
+            else
             {
-                return new[] { new JObject()
-                {
-                    ["data"] = this.dataMin
-                } };
+                return
+                [
+                    new JObject
+                    {
+                        ["data"] = this.dataMin
+                    }
+                ];
             }
         }
         public override string GetFunctionName() =>
             "set_data";
     }
+
     /// <summary>
     /// Sets the durability of the item. 0 is max damage and 1 is pristeen.
     /// </summary>
@@ -353,26 +359,33 @@ namespace mc_compiled.Modding.Behaviors
         {
             if (this.maxDurability.HasValue)
             {
-                return new[] { new JObject()
-                {
-                    ["damage"] = new JObject()
+                return
+                [
+                    new JObject
                     {
-                        ["min"] = this.minDurability,
-                        ["max"] = this.maxDurability.Value
+                        ["damage"] = new JObject
+                        {
+                            ["min"] = this.minDurability,
+                            ["max"] = this.maxDurability.Value
+                        }
                     }
-                } };
+                ];
             }
             else
             {
-                return new[] { new JObject()
-                {
-                    ["damage"] = this.minDurability
-                } };
+                return
+                [
+                    new JObject
+                    {
+                        ["damage"] = this.minDurability
+                    }
+                ];
             }
         }
         public override string GetFunctionName() =>
             "set_damage";
     }
+
     /// <summary>
     /// Sets book contents if it's a book.
     /// </summary>
@@ -401,17 +414,17 @@ namespace mc_compiled.Modding.Behaviors
 
         public override JObject[] GetFunctionFields()
         {
-            return new[]
-            {
-                new JObject() { ["title"] = this.title },
-                new JObject() { ["author"] = this.author },
-                new JObject() { ["pages"] = new JArray(this.pages) },
-
-            };
+            return
+            [
+                new JObject {["title"] = this.title},
+                new JObject {["author"] = this.author},
+                new JObject {["pages"] = new JArray(this.pages)}
+            ];
         }
         public override string GetFunctionName() =>
             "set_book_contents";
     }
+
     /// <summary>
     /// Randomly dyes the item if it is leather armor.
     /// </summary>
@@ -421,117 +434,102 @@ namespace mc_compiled.Modding.Behaviors
 
         public override JObject[] GetFunctionFields()
         {
-            return new JObject[0];
+            return [];
         }
         public override string GetFunctionName() =>
             "random_dye";
     }
+
     /// <summary>
     /// Give specific enchants to the item.
     /// </summary>
-    public sealed class LootFunctionEnchant : LootFunction
+    public sealed class LootFunctionEnchant(params EnchantmentEntry[] enchantments) : LootFunction
     {
-        public readonly List<EnchantmentEntry> enchantments;
-
-        public LootFunctionEnchant(params EnchantmentEntry[] enchantments)
-        {
-            this.enchantments = new List<EnchantmentEntry>(enchantments);
-        }
+        public readonly List<EnchantmentEntry> enchantments = [..enchantments];
 
         public override JObject[] GetFunctionFields()
         {
-            JArray json = new JArray();
-            this.enchantments.ForEach(e => json.Add(new JObject()
+            JArray json = [];
+            this.enchantments.ForEach(e => json.Add(new JObject
             {
                 ["id"] = e.id,
                 ["level"] = e.level
             }));
-            return new[] { new JObject()
-            {
-                ["enchants"] = json
-            } };
+            return
+            [
+                new JObject
+                {
+                    ["enchants"] = json
+                }
+            ];
         }
         public override string GetFunctionName() =>
             "specific_enchants";
     }
+
     /// <summary>
     /// Simulates enchanting on an enchantment table.
     /// </summary>
-    public sealed class LootFunctionSimulateEnchant : LootFunction
+    public sealed class LootFunctionSimulateEnchant(int minLevel, int maxLevel, bool treasure = false) : LootFunction
     {
-        public readonly int minLevel;
-        public readonly int maxLevel;
+        public readonly int minLevel = minLevel;
+        public readonly int maxLevel = maxLevel;
         /// <summary>
         /// If this should include "treasure" enchants (curses, soul speed, frost walker, etc...)
         /// </summary>
-        public readonly bool treasure;
-
-        public LootFunctionSimulateEnchant(int minLevel, int maxLevel, bool treasure = false)
-        {
-            this.minLevel = minLevel;
-            this.maxLevel = maxLevel;
-            this.treasure = treasure;
-        }
+        public readonly bool treasure = treasure;
 
         public override JObject[] GetFunctionFields()
         {
-            return new[]
-            {
-                new JObject() { ["treasure"] = this.treasure },
-                new JObject()
+            return
+            [
+                new JObject {["treasure"] = this.treasure},
+                new JObject
                 {
                     ["min"] = this.minLevel,
                     ["max"] = this.maxLevel
                 }
-            };
+            ];
         }
         public override string GetFunctionName() =>
             "enchant_with_levels";
     }
+
     /// <summary>
     /// Puts a random compatible enchant on this item.
     /// </summary>
-    public sealed class LootFunctionRandomEnchant : LootFunction
+    public sealed class LootFunctionRandomEnchant(bool treasure = false) : LootFunction
     {
         /// <summary>
         /// If this should include "treasure" enchants (curses, soul speed, frost walker, etc...)
         /// </summary>
-        public readonly bool treasure;
-
-        public LootFunctionRandomEnchant(bool treasure = false)
-        {
-            this.treasure = treasure;
-        }
+        public readonly bool treasure = treasure;
 
         public override JObject[] GetFunctionFields()
         {
-            return new[]
-            {
-                new JObject() { ["treasure"] = this.treasure }
-            };
+            return
+            [
+                new JObject {["treasure"] = this.treasure}
+            ];
         }
         public override string GetFunctionName() =>
             "enchant_randomly";
     }
+
     /// <summary>
     /// Puts a random gear enchantment on this, if armor. Algorithm used by randomly spawning mobs.
     /// </summary>
-    public sealed class LootFunctionRandomEnchantGear : LootFunction
+    public sealed class LootFunctionRandomEnchantGear(float chance) : LootFunction
     {
         // Difficulty can affect this. 2.0 will always enchant even on normal mode.
-        public readonly float chance;
-
-        public LootFunctionRandomEnchantGear(float chance)
-        {
-            this.chance = chance;
-        }
+        public readonly float chance = chance;
 
         public override JObject[] GetFunctionFields()
         {
-            return new[]
-            {
-                new JObject() { ["chance"] = this.chance }
-            };
+            return
+            [
+                new JObject {["chance"] = this.chance}
+            ];
         }
         public override string GetFunctionName() =>
             "enchant_random_gear";

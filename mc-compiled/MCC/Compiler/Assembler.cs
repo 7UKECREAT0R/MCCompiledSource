@@ -37,8 +37,8 @@ namespace mc_compiled.MCC.Compiler
                     {
                         case TokenOpenBlock _:
                         {
-                            var block = new StatementOpenBlock(statements.Count + 1, null);
-                            block.SetSource(new[] { current.lineNumber }, "{");
+                            var block = new StatementOpenBlock(statements.Count + 1);
+                            block.SetSource([current.lineNumber], "{");
 
                             statements.Add(block);
                             blocks.Push(block);
@@ -55,18 +55,18 @@ namespace mc_compiled.MCC.Compiler
                         case TokenCloseBlock _:
                         {
                             var closer = new StatementCloseBlock();
-                            closer.SetSource(new[] { current.lineNumber }, "}");
+                            closer.SetSource([current.lineNumber], "}");
 
                             if (blocks.Count == 0)
                             {
-                                throw new TokenizerException("Unused closing bracket.", new[] { current.lineNumber });
+                                throw new TokenizerException("Unused closing bracket.", [current.lineNumber]);
                             }
 
                             StatementOpenBlock opener = blocks.Pop();
                             int statementCountRaw = statements.Count - opener.statementsInside;
                             int statementCount = statements
                                 .Skip(opener.statementsInside)
-                                .Count(s => !(s is StatementComment));
+                                .Count(s => s is not StatementComment);
 
                             opener.statementsInside = statementCountRaw;
                             opener.meaningfulStatementsInside = statementCount;
@@ -86,7 +86,8 @@ namespace mc_compiled.MCC.Compiler
             }
 
             if(blocks.Count > 0)
-                throw new TokenizerException("No closing bracket for opening bracket.", highestLevelOpener?.Lines ?? new[] {-1});
+                throw new TokenizerException("No closing bracket for opening bracket.", highestLevelOpener?.Lines ?? [-1
+                ]);
 
             if (buffer.Count <= 0)
                 return statements.ToArray();
@@ -108,7 +109,7 @@ namespace mc_compiled.MCC.Compiler
                 {
                     Statement add = new StatementComment(comment.contents);
                     if(includeSource)
-                        add.SetSource(new[] { comment.lineNumber }, "#" + comment.contents);
+                        add.SetSource([comment.lineNumber], "#" + comment.contents);
                     return add;
                 }
                 case TokenDirective tokenDirective:
@@ -117,16 +118,16 @@ namespace mc_compiled.MCC.Compiler
                     Directive directive = tokenDirective.directive;
                     var add = new StatementDirective(directive, rest);
                     if(includeSource)
-                        add.SetSource(new[] { tokenDirective.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                        add.SetSource([tokenDirective.lineNumber], string.Join(" ", from t in line select t.AsString()));
                     return add;
                 }
             }
 
-            if (line.Length <= 1 || !(firstToken is TokenIdentifier identifier))
+            if (line.Length <= 1 || firstToken is not TokenIdentifier identifier)
             {
                 var unknown = new StatementUnknown(line);
                 if(includeSource)
-                    unknown.SetSource(new[] { firstToken.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    unknown.SetSource([firstToken.lineNumber], string.Join(" ", from t in line select t.AsString()));
                 return unknown;
             }
 
@@ -156,12 +157,12 @@ namespace mc_compiled.MCC.Compiler
                 }
                 
                 // want to find an assignment token
-                if (!(currentToken is IAssignment))
+                if (currentToken is not IAssignment)
                     continue;
                 
                 var statement = new StatementOperation(line);
                 if(includeSource)
-                    statement.SetSource(new[] { identifier.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    statement.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()));
                 return statement;
             }
             
@@ -169,14 +170,14 @@ namespace mc_compiled.MCC.Compiler
             {
                 var statement = new StatementFunctionCall(line);
                 if (includeSource)
-                    statement.SetSource(new[] { identifier.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    statement.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()));
                 return statement;
             }
             else
             {
                 var unknown = new StatementUnknown(line);
                 if (includeSource)
-                    unknown.SetSource(new[] { identifier.lineNumber }, string.Join(" ", from t in line select t.AsString()));
+                    unknown.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()));
                 return unknown;
             }
         }

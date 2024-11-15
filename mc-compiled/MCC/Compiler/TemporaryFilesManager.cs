@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -70,14 +72,14 @@ namespace mc_compiled.MCC.Compiler
         private static bool DownloadNewest(PackType packType, params string[] pathEntries)
         {
             string path = BuildTraversalPath(packType, pathEntries);
-            return DownloadNewest(path);
+            return DownloadNewest(path).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Download the newest file from the remote source, overwriting the old one if it exists.
         /// Returns boolean indicating if the download was success.
         /// </summary>
         /// <param name="traversalPath">The relative path of the file to be downloaded.</param>
-        private static bool DownloadNewest(string traversalPath)
+        private static async Task<bool> DownloadNewest(string traversalPath)
         {
             try
             {
@@ -88,8 +90,8 @@ namespace mc_compiled.MCC.Compiler
 
                 // ensure the directory exists for the file to be placed in.
                 string directory = Path.GetDirectoryName(destPath);
-                if (directory == null)
-                    throw new ArgumentNullException(nameof(directory));
+                if (destPath == null || directory == null)
+                    throw new ArgumentException("Path was invalid.", nameof(traversalPath));
                 Directory.CreateDirectory(directory);
 
                 // delete the old file
@@ -97,8 +99,15 @@ namespace mc_compiled.MCC.Compiler
                     File.Delete(destPath);
 
                 // Download the file from the remote source.
-                using (WebClient client = new WebClient())
-                    client.DownloadFile(sourcePath, destPath);
+                using (var client = new HttpClient())
+                using (var response = await client.GetAsync(sourcePath))
+                {
+                    response.EnsureSuccessStatusCode();
+                    await using (var fs = new FileStream(destPath, FileMode.CreateNew))
+                    {
+                        await response.Content.CopyToAsync(fs);
+                    }
+                }
 
                 Console.WriteLine("[DefaultPackManager] Complete: {0}.", destPath);
 
@@ -107,7 +116,7 @@ namespace mc_compiled.MCC.Compiler
             catch (Exception ex)
             {
                 Console.WriteLine("[DefaultPackManager] Exception: {0}.", ex.Message);
-                return false; // return false if an exception occurred we conclude that download was unsuccessful
+                return false; // return false if an exception occurred, we conclude that the download was unsuccessful
             }
         }
 

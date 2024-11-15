@@ -1,8 +1,9 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using mc_compiled.MCC.Attributes.Implementations;
+using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
@@ -19,7 +20,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public const bool COMMENT_FOLDING = true;
         public const bool COMPACT_FOLDING = false;
 
-        internal static readonly Dictionary<string, SyntaxTarget> syntaxTargets = new Dictionary<string, SyntaxTarget>()
+        internal static readonly Dictionary<string, SyntaxTarget> syntaxTargets = new()
         {
             { "notepadplusplus", new UDL2() },
             { "monarch", new Monarch() },
@@ -41,17 +42,17 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public const string multilineOpen = "/*";
         public const string multilineClose = "*/";
         
-        public static readonly string[] numberPrefixes = new string[] { "~", "^", "!", ".." };
-        public static readonly string[] numberSuffixes = new string[] { "h", "m", "s", "t" };
+        public static readonly string[] numberPrefixes = ["~", "^", "!", ".."];
+        public static readonly string[] numberSuffixes = ["h", "m", "s", "t"];
 
-        public static readonly Highlight commentColor = new Highlight(62, 140, 66, HighlightStyle.NONE);
-        public static readonly Highlight numberColor = new Highlight(224, 193, 255, HighlightStyle.NONE);
-        public static readonly Highlight stringColor = new Highlight(221, 179, 255, HighlightStyle.NONE);
-        public static readonly Highlight selectorColor = new Highlight(192, 192, 192, HighlightStyle.NONE);
+        public static readonly Highlight commentColor = new(62, 140, 66, HighlightStyle.NONE);
+        public static readonly Highlight numberColor = new(224, 193, 255, HighlightStyle.NONE);
+        public static readonly Highlight stringColor = new(221, 179, 255, HighlightStyle.NONE);
+        public static readonly Highlight selectorColor = new(192, 192, 192, HighlightStyle.NONE);
 
         static Keyword[] KeywordsFromDirectives(IEnumerable<Directive> directives)
         {
-            List<Keyword> keywords = new List<Keyword>();
+            List<Keyword> keywords = [];
 
             foreach(Directive directive in directives)
             {
@@ -72,39 +73,41 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         internal static Dictionary<string, string> categories;  // set when processing language.json
         internal static Dictionary<string, NamedType> mappings; // set when processing language.json
         
-        public static readonly Keywords operators = new Keywords()
+        public static readonly Keywords operators = new()
         {
-            KeywordsUndocumented = new[] { "<", ">", "{", "}", "=", "(", ")", "+", "-", "*", "/", "%", "!" },
+            KeywordsUndocumented = ["<", ">", "{", "}", "=", "(", ")", "+", "-", "*", "/", "%", "!"],
             style = new Highlight(224, 193, 255, HighlightStyle.NONE)
         };
-        public static readonly Keywords selectors = new Keywords()
+        public static readonly Keywords selectors = new()
         {
-            keywords = new[] {
+            keywords =
+            [
                 new Keyword("@e", "References all entities in the world."),
                 new Keyword("@a", "References all players in the world."),
                 new Keyword("@s", "References the executing entity/player."),
                 new Keyword("@p", "References the nearest player."),
                 new Keyword("@r", "References a random entity.")
-            },
+            ],
             style = new Highlight(255, 79, 79, HighlightStyle.BOLD)
         };
         public static Keywords preprocessor =>
-            new Keywords() {
+            new()
+            {
                 keywords = KeywordsFromDirectives(Directives.PreprocessorDirectives),
                 style = new Highlight(11, 164, 221, HighlightStyle.NONE)
             };
 
         public static Keywords commands =>
-            new Keywords()
+            new()
             {
                 keywords = KeywordsFromDirectives(Directives.RegularDirectives),
                 style = new Highlight(238, 91, 175, HighlightStyle.NONE)
             };
 
-        public static readonly Keywords literals = new Keywords()
+        public static readonly Keywords literals = new()
         {
-            keywords = new[]
-            {
+            keywords =
+            [
                 new Keyword("true", "A boolean value representing true/yes."),
                 new Keyword("false", "A boolean value representing false/no."),
                 new Keyword("not", "Invert the following comparison."),
@@ -112,12 +115,12 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("null", "No value. Goes to 0/false under all types."),
                 new Keyword("~", "Relative to executor's position."),
                 new Keyword("^", "Relative to executor's direction.")
-            },
+            ],
             style = new Highlight(224, 193, 255, HighlightStyle.NONE)
         };
-        public static readonly Keywords types = new Keywords()
+        public static readonly Keywords types = new()
         {
-            keywords = new Keyword[]
+            keywords = new[]
             {
                 new Keyword("int", "An integer, representing any whole value between -2147483648 to 2147483647."),
                 new Keyword("decimal", "A decimal number with a pre-specified level of precision."),
@@ -134,21 +137,23 @@ namespace mc_compiled.MCC.SyntaxHighlighting
 
             style = new Highlight(255, 128, 128, HighlightStyle.NONE)
         };
-        public static readonly Keywords comparisons = new Keywords()
+        public static readonly Keywords comparisons = new()
         {
-            keywords = new[] {
+            keywords =
+            [
                 new Keyword("until", "Used in the 'await' command to wait UNTIL a condition is true."),
                 new Keyword("count", "Compare the number of entities that match a selector."),
                 new Keyword("any", "Check if any entities match a selector."),
                 new Keyword("block", "Check for a block."),
                 new Keyword("blocks", "Check for an area of blocks matching another."),
                 new Keyword("positioned", "Position the next comparison.")
-            },
+            ],
             style = new Highlight(217, 130, 80, HighlightStyle.NONE)
         };
-        public static readonly Keywords options = new Keywords()
+        public static readonly Keywords options = new()
         {
-            keywords = new[] {
+            keywords =
+            [
                 // features
                 new Keyword("dummies", "Feature: Create dummy entity behavior/resource files and allow them to be spawned in the world."),
                 new Keyword("autoinit", "Feature: Runs the initialization file automatically in new worlds, and every time a new build is compiled. Requires a check-function to be run every tick."),
@@ -217,15 +222,15 @@ namespace mc_compiled.MCC.SyntaxHighlighting
                 new Keyword("positioned", "Execute subcommand: Runs at a given position."),
                 new Keyword("positioned as", "Execute subcommand: Runs at the position of the given entity."),
                 new Keyword("rotated", "Execute subcommand: Runs at the given rotation."),
-                new Keyword("rotated as", "Execute subcommand: Runs at the rotation of the given entity."),
-            },
+                new Keyword("rotated as", "Execute subcommand: Runs at the rotation of the given entity.")
+            ],
             style = new Highlight(215, 174, 255, HighlightStyle.NONE)
         };
 
     }
     internal interface SyntaxTarget
     {
-        void Write(System.IO.TextWriter writer);
+        void Write(TextWriter writer);
         string Describe();
         string GetFile();
     }
@@ -254,7 +259,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         {
             set
             {
-                this.keywords = value.Select(v => new Keyword()
+                this.keywords = value.Select(v => new Keyword
                 {
                     documentation = null,
                     name = v
@@ -275,7 +280,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
     }
 
     [Flags]
-    internal enum HighlightStyle : int
+    internal enum HighlightStyle
     {
         NONE = 0,
         BOLD = 1 << 0,
@@ -294,10 +299,10 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         public string HexWithHash => $"#{this.r:X2}{this.g:X2}{this.b:X2}";
         public JObject ToJson()
         {
-            return new JObject()
+            return new JObject
             {
                 ["style"] = this.style.ToString(),
-                ["color"] = new JObject()
+                ["color"] = new JObject
                 {
                     ["red"] = this.r,
                     ["green"] = this.g,

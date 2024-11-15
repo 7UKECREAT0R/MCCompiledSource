@@ -1,10 +1,10 @@
-﻿using mc_compiled.Commands;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler
 {
@@ -54,7 +54,7 @@ namespace mc_compiled.MCC.Compiler
         /// <returns>A shallow clone of this Statement which has its tokens resolved.</returns>
         public Statement ClonePrepare(Executor activeExecutor)
         {
-            if (!(MemberwiseClone() is Statement statement))
+            if (MemberwiseClone() is not Statement statement)
                 return null;
             
             statement.PrepareThis(activeExecutor);
@@ -209,7 +209,7 @@ namespace mc_compiled.MCC.Compiler
             if (this.RemainingTokens == 0)
                 return;
             
-            Token[] remainingUsefulTokens = GetRemainingTokens().Where(t => !(t is IUselessInformation)).ToArray();
+            Token[] remainingUsefulTokens = GetRemainingTokens().Where(t => t is not IUselessInformation).ToArray();
 
             if (remainingUsefulTokens.Length == 0)
                 return;
@@ -224,7 +224,7 @@ namespace mc_compiled.MCC.Compiler
             for(int i = 0; i < squashTokens.Count; i++)
             {
                 Token token = squashTokens[i];
-                if (!(token is TokenOpenGroupingBracket opener))
+                if (token is not TokenOpenGroupingBracket opener)
                     continue;
                 if (opener.hasBeenSquashed)
                     continue;
@@ -321,17 +321,17 @@ namespace mc_compiled.MCC.Compiler
                             replacementLocation = -1;
                             replacementLength = numberMax.HasValue ? 3 : 2;
                             int numberMin = back1Literal;
-                            var range = new Range(numberMin, numberMax, false);
+                            var range = new Range(numberMin, numberMax);
                             replacement = new TokenRangeLiteral(range, token.lineNumber);
                         }
                         else
                         {
-                            if (!(next1 is TokenIntegerLiteral next1Literal))
+                            if (next1 is not TokenIntegerLiteral next1Literal)
                                 throw new TokenizerException("Range argument only accepts integers.");
                             replacementLocation = 0;
                             replacementLength = 2;
                             int number = next1Literal;
-                            var range = new Range(null, number, false);
+                            var range = new Range(null, number);
                             replacement = new TokenRangeLiteral(range, token.lineNumber);
                         }
 
@@ -350,7 +350,7 @@ namespace mc_compiled.MCC.Compiler
                     case TokenRangeInvert _:
                     {
                         Token after = After(1);
-                        if (!(after is TokenIntegerLiteral afterLiteral))
+                        if (after is not TokenIntegerLiteral afterLiteral)
                             throw new TokenizerException("You can only invert integers.");
                         squashTokens.RemoveRange(i, 2);
                         int number = afterLiteral;
@@ -400,10 +400,10 @@ namespace mc_compiled.MCC.Compiler
         }
         private void Squash<T>(List<Token> squashTokens, Executor activeExecutor)
         {
-            for (int i = 1; i < (squashTokens.Count() - 1); i++)
+            for (int i = 1; i < squashTokens.Count - 1; i++)
             {
                 Token selected = squashTokens[i];
-                if (!(selected is T))
+                if (selected is not T)
                     continue;
                 if (selected is IAssignment)
                     continue; // dont squash assignments
@@ -417,7 +417,7 @@ namespace mc_compiled.MCC.Compiler
                 Token _left = squashTokens[i - 1];
                 Token _right = squashTokens[i + 1];
 
-                bool squashToGlobal = false;
+                bool squashToGlobal;
                 bool leftIsLiteral = _left is TokenLiteral;
                 bool rightIsLiteral = _right is TokenLiteral;
                 bool leftIsValue = _left is TokenIdentifierValue;
@@ -425,32 +425,19 @@ namespace mc_compiled.MCC.Compiler
 
                 if (leftIsLiteral & rightIsLiteral)
                 {
-                    squashToGlobal = false;
                     var left = _left as TokenLiteral;
                     var right = _right as TokenLiteral;
 
-                    switch (op)
+                    squashedToken = op switch
                     {
-                        case TokenArithmetic.Type.ADD:
-                            squashedToken = left.AddWithOther(right);
-                            break;
-                        case TokenArithmetic.Type.SUBTRACT:
-                            squashedToken = left.SubWithOther(right);
-                            break;
-                        case TokenArithmetic.Type.MULTIPLY:
-                            squashedToken = left.MulWithOther(right);
-                            break;
-                        case TokenArithmetic.Type.DIVIDE:
-                            squashedToken = left.DivWithOther(right);
-                            break;
-                        case TokenArithmetic.Type.MODULO:
-                            squashedToken = left.ModWithOther(right);
-                            break;
-                        case TokenArithmetic.Type.SWAP:
-                            throw new StatementException(this, "Attempting to swap literals");
-                        default:
-                            break;
-                    }
+                        TokenArithmetic.Type.ADD => left.AddWithOther(right),
+                        TokenArithmetic.Type.SUBTRACT => left.SubWithOther(right),
+                        TokenArithmetic.Type.MULTIPLY => left.MulWithOther(right),
+                        TokenArithmetic.Type.DIVIDE => left.DivWithOther(right),
+                        TokenArithmetic.Type.MODULO => left.ModWithOther(right),
+                        TokenArithmetic.Type.SWAP => throw new StatementException(this, "Attempting to swap literals"),
+                        _ => null
+                    };
                 }
                 else if (leftIsValue & rightIsValue)
                 {
@@ -498,8 +485,6 @@ namespace mc_compiled.MCC.Compiler
                     if (leftIsLiteral)
                     {
                         b = (_right as TokenIdentifierValue).value;
-                        squashToGlobal = b.clarifier.IsGlobal;
-
                         a = activeExecutor.scoreboard.temps.Request(_left as TokenLiteral, this, true);
                         aAccessor = a.Name;
                         commands.AddRange(a.AssignLiteral(_left as TokenLiteral, this));
@@ -578,7 +563,7 @@ namespace mc_compiled.MCC.Compiler
                 Token second = (squashTokens.Count > (i + 1)) ? squashTokens[i + 1] : null;
                 Token third = (squashTokens.Count > (i + 2)) ? squashTokens[i + 2] : null;
 
-                if (!(selected is TokenIdentifierFunction identifierFunction))
+                if (selected is not TokenIdentifierFunction identifierFunction)
                     continue;
                 
                 Function[] functions = identifierFunction.functions;
@@ -592,12 +577,12 @@ namespace mc_compiled.MCC.Compiler
                 bool useImplicit = false;
                 if (!functions.Any(f => f.ImplicitCall))
                 {
-                    if (!(second is TokenOpenParenthesis))
+                    if (second is not TokenOpenParenthesis)
                         continue; // might just be regular identifier
                 }
                 else
                 {
-                    if (!(second is TokenOpenParenthesis))
+                    if (second is not TokenOpenParenthesis)
                         useImplicit = true; // call to an implicit function
                 }
 
@@ -605,7 +590,7 @@ namespace mc_compiled.MCC.Compiler
 
                 // if its not parameterless() or implicit, fetch until level <= 0
                 var _tokensInside = new List<Token>();
-                if (!useImplicit && !(third is TokenCloseParenthesis))
+                if (!useImplicit && third is not TokenCloseParenthesis)
                 {
                     for(int z = x; z < squashTokens.Count; z++)
                     {
@@ -701,12 +686,12 @@ namespace mc_compiled.MCC.Compiler
             {
                 Token iToken = squashTokens[i];
 
-                if (!(iToken is TokenDeref))
+                if (iToken is not TokenDeref)
                     continue;
                 
                 // get the next token and see if it's a preprocessor variable
                 Token nextToken = squashTokens[i + 1];
-                if (!(nextToken is TokenIdentifierPreprocessor preprocessorToken))
+                if (nextToken is not TokenIdentifierPreprocessor preprocessorToken)
                     throw new StatementException(this, $"Cannot dereference token: {nextToken.AsString()}");
                 
                 PreprocessorVariable ppv = preprocessorToken.variable;
@@ -738,7 +723,7 @@ namespace mc_compiled.MCC.Compiler
             {
                 Token token = squashTokens[i];
 
-                if (!(token is TokenCloseIndexer closer))
+                if (token is not TokenCloseIndexer closer)
                     continue;
                 
                 // pull tokens until we find an opener
@@ -799,7 +784,7 @@ namespace mc_compiled.MCC.Compiler
                     {
                         indexer = indexerBuffer.Pop();
 
-                        if (!(current is IIndexable indexable))
+                        if (current is not IIndexable indexable)
                             throw new StatementException(this, $"Cannot index token '{current.AsString()}'. (indexer: {indexer.AsString()})");
 
                         current = indexable.Index(indexer, this);

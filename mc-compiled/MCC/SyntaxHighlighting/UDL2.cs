@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace mc_compiled.MCC.SyntaxHighlighting
 {
@@ -64,7 +63,7 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         }
         public void Content(Keywords keywords, string name, bool numbered = false)
         {
-            List<string> items = new List<string>();
+            List<string> items = [];
 
             int index = 0;
             foreach (Keyword keyword in keywords.keywords)
@@ -87,9 +86,9 @@ namespace mc_compiled.MCC.SyntaxHighlighting
         }
         public string YN(bool v) => v ? "\"yes\"" : "\"no\"";
 
-        public void Write(TextWriter writer)
+        public void Write(TextWriter inputWriter)
         {
-            this.writer = writer;
+            this.writer = inputWriter;
 
             Open("NotepadPlus");
                 Open("UserLang", $@"name=""MCCompiled"" ext=""{Syntax.EXTENSION}"" udlVersion=""2.1""");

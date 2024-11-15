@@ -1,7 +1,7 @@
-﻿using mc_compiled.MCC.Compiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC
 {
@@ -15,7 +15,7 @@ namespace mc_compiled.MCC
         /// <summary>
         /// Dictionary of features and their actions to perform on an executor when enabled.
         /// </summary>
-        private static readonly Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>()
+        private static readonly Dictionary<Feature, Action<Executor>> ENABLE_ACTIONS = new Dictionary<Feature, Action<Executor>>
         {
             {
                 Feature.DUMMIES, (executor) =>

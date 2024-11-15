@@ -59,7 +59,7 @@ namespace mc_compiled.Modding.Behaviors.Dialogue
 
         public JObject Build()
         {
-            return new JObject()
+            return new JObject
             {
                 ["name"] = this._name.Build(),
                 ["commands"] = new JArray(this.commands?.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd) ?? Array.Empty<string>())

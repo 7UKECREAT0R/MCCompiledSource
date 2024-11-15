@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Text;
+﻿using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Resources
 {
@@ -18,10 +18,10 @@ namespace mc_compiled.Modding.Resources
 
         public JObject ToJSON()
         {
-            return new JObject()
+            return new JObject
             {
                 ["format_version"] = FormatVersion.r_ENTITY.ToString(),
-                ["minecraft:client_entity"] = new JObject()
+                ["minecraft:client_entity"] = new JObject
                 {
                     ["description"] = this.description.ToJSON()
                 }
@@ -48,14 +48,14 @@ namespace mc_compiled.Modding.Resources
 
         public JObject ToJSON()
         {
-            return new JObject()
+            return new JObject
             {
                 ["identifier"] = this.identifier,
-                ["materials"] = new JObject()
+                ["materials"] = new JObject
                 {
                     ["default"] = this.material
                 },
-                ["geometry"] = new JObject() {
+                ["geometry"] = new JObject {
                     ["default"] = this.geometry.identifier
                 }
             };

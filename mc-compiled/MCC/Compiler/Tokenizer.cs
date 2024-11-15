@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
 using JetBrains.Annotations;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
@@ -15,7 +15,7 @@ namespace mc_compiled.MCC.Compiler
     public class Tokenizer
     {
         public static int CURRENT_LINE = 1;
-        private static readonly char[] TOKENIZER_IGNORE_CHARS = { ' ', '\t', ',' };
+        private static readonly char[] TOKENIZER_IGNORE_CHARS = [' ', '\t', ','];
         private static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
         private static readonly char[] LETTERS = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
         private static readonly char[] IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM#$_:.".ToCharArray();
@@ -123,7 +123,7 @@ namespace mc_compiled.MCC.Compiler
                             else
                             {
                                 all.Add(new TokenDeref(CURRENT_LINE));
-                                token = new TokenIdentifier(word.Substring(1), CURRENT_LINE);
+                                token = new TokenIdentifier(word[1..], CURRENT_LINE);
                             }
                         }
                         break;
@@ -528,41 +528,33 @@ namespace mc_compiled.MCC.Compiler
             {
                 return orEqual ?
                     new TokenLessThanEqual(CURRENT_LINE) :
-                    (TokenCompare)new TokenLessThan(CURRENT_LINE);
+                    new TokenLessThan(CURRENT_LINE);
             }
 
             return orEqual ?
                 new TokenGreaterThanEqual(CURRENT_LINE) :
-                (TokenCompare)new TokenGreaterThan(CURRENT_LINE);
+                new TokenGreaterThan(CURRENT_LINE);
         }
         [PublicAPI]
         public static TokenArithmetic ArithmeticIdentifier(char a, bool assignment)
         {
-            switch (a)
+            return a switch
             {
-                case '+':
-                    return assignment ?
-                        new TokenAddAssignment(CURRENT_LINE) :
-                        (TokenArithmetic)new TokenAdd(CURRENT_LINE);
-                case '-':
-                    return assignment ?
-                        new TokenSubtractAssignment(CURRENT_LINE) :
-                        (TokenArithmetic)new TokenSubtract(CURRENT_LINE);
-                case '*':
-                    return assignment ?
-                        new TokenMultiplyAssignment(CURRENT_LINE) :
-                        (TokenArithmetic)new TokenMultiply(CURRENT_LINE);
-                case '/':
-                    return assignment ?
-                        new TokenDivideAssignment(CURRENT_LINE) :
-                        (TokenArithmetic)new TokenDivide(CURRENT_LINE);
-                case '%':
-                    return assignment ?
-                        new TokenModuloAssignment(CURRENT_LINE) :
-                        (TokenArithmetic)new TokenModulo(CURRENT_LINE);
-                default:
-                    throw new TokenizerException("Couldn't parse identifier?");
-            }
+                '+' => assignment ? new TokenAddAssignment(CURRENT_LINE) : new TokenAdd(CURRENT_LINE),
+                '-' => assignment
+                    ? new TokenSubtractAssignment(CURRENT_LINE)
+                    : new TokenSubtract(CURRENT_LINE),
+                '*' => assignment
+                    ? new TokenMultiplyAssignment(CURRENT_LINE)
+                    : new TokenMultiply(CURRENT_LINE),
+                '/' => assignment
+                    ? new TokenDivideAssignment(CURRENT_LINE)
+                    : new TokenDivide(CURRENT_LINE),
+                '%' => assignment
+                    ? new TokenModuloAssignment(CURRENT_LINE)
+                    : new TokenModulo(CURRENT_LINE),
+                _ => throw new TokenizerException("Couldn't parse identifier?")
+            };
         }
     }
     
@@ -578,7 +570,7 @@ namespace mc_compiled.MCC.Compiler
         }
         public TokenizerException(string message) : base(message)
         {
-            this.lines = new[] { Tokenizer.CURRENT_LINE };
+            this.lines = [Tokenizer.CURRENT_LINE];
         }
     }
 }

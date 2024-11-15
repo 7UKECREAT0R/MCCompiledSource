@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.CustomEntities;
 
@@ -19,10 +20,7 @@ namespace mc_compiled.MCC
             this.dummies = new DummyManager(executor);
             this.exploders = new ExploderManager(executor);
 
-            this.allProviders = new List<ISelectorProvider>()
-            {
-                this.dummies, this.exploders
-            };
+            this.allProviders = [this.dummies, this.exploders];
         }
         /// <summary>
         /// Returns if any managed entities have this name.
@@ -40,7 +38,7 @@ namespace mc_compiled.MCC
         /// <param name="name">The name of the entity to search for.</param>
         /// <param name="selector">The selector for this entity.</param>
         /// <returns>If the entity was found and "selector" was set.</returns>
-        public bool Search(string name, out Commands.Selectors.Selector selector)
+        public bool Search(string name, out Selector selector)
         {
             foreach (ISelectorProvider provider in this.allProviders)
             {
@@ -70,7 +68,7 @@ namespace mc_compiled.MCC
         /// <param name="name"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
-        bool Search(string name, out Commands.Selectors.Selector selector);
+        bool Search(string name, out Selector selector);
         
     }
 }

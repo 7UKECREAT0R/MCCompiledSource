@@ -33,7 +33,7 @@ namespace mc_compiled.Modding.Behaviors
         /// Convert to the appropriate JSON token.
         /// </summary>
         /// <returns></returns>
-        public JToken ToJSON() => this.isExpression ? (JToken) this._valueExpr : (JToken) this._valueNum;
+        public JToken ToJSON() => this.isExpression ? this._valueExpr : this._valueNum;
 
         /// <summary>
         /// Convert to a string representing this expression.

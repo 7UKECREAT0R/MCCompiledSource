@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors
 {
@@ -23,7 +23,7 @@ namespace mc_compiled.Modding.Behaviors
             this.action = action;
         }
         public JObject ToComponentJSON() =>
-            new JObject()
+            new JObject
             {
                 ["event"] = this.eventID,
                 ["target"] = this.target.ToString()
@@ -47,7 +47,7 @@ namespace mc_compiled.Modding.Behaviors
 
         public EventActionAddGroup(params string[] groups)
         {
-            this.groups = new List<string>(groups);
+            this.groups = [..groups];
         }
         public EventActionAddGroup(params EntityComponentGroup[] groups)
         {
@@ -55,7 +55,7 @@ namespace mc_compiled.Modding.Behaviors
         }
         public override JProperty ToJSON()
         {
-            return new JProperty("add", new JObject()
+            return new JProperty("add", new JObject
             {
                 ["component_groups"] = new JArray(this.groups)
             });
@@ -67,7 +67,7 @@ namespace mc_compiled.Modding.Behaviors
 
         public EventActionRemoveGroup(params string[] groups)
         {
-            this.groups = new List<string>(groups);
+            this.groups = [..groups];
         }
         public EventActionRemoveGroup(params EntityComponentGroup[] groups)
         {
@@ -75,7 +75,7 @@ namespace mc_compiled.Modding.Behaviors
         }
         public override JProperty ToJSON()
         {
-            return new JProperty("remove", new JObject()
+            return new JProperty("remove", new JObject
             {
                 ["component_groups"] = new JArray(this.groups)
             });
@@ -87,15 +87,14 @@ namespace mc_compiled.Modding.Behaviors
 
         public EventActionSequence(params EntityEventAction[] actions)
         {
-            this.actions = new List<EntityEventAction>(actions);
+            this.actions = [..actions];
         }
         public override JProperty ToJSON()
         {
-            JObject[] objects = new JObject[this.actions.Count];
+            object[] objects = new object[this.actions.Count];
             for (int i = 0; i < this.actions.Count; i++)
             {
-                JObject json = new JObject();
-                json.Add(this.actions[i].ToJSON());
+                var json = new JObject {this.actions[i].ToJSON()};
                 objects[i] = json;
             }
 

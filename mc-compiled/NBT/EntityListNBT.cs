@@ -13,11 +13,11 @@ namespace mc_compiled.NBT
 
         public NBTList ToNBT()
         {
-            return new NBTList()
+            return new NBTList
             {
                 name = "entities",
                 listType = TAG.Compound,
-                values = (from entity in this.entities select entity.ToNBT("")).ToArray()
+                values = (from entity in this.entities select entity.ToNBT("")).ToArray<NBTNode>()
             };
         }
     }

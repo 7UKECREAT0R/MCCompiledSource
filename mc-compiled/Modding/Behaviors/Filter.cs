@@ -1,4 +1,6 @@
-﻿namespace mc_compiled.Modding.Behaviors
+﻿using Newtonsoft.Json.Linq;
+
+namespace mc_compiled.Modding.Behaviors
 {
     public abstract class Filter
     {
@@ -17,14 +19,14 @@
         /// Get any extra properties that go with this filter.
         /// </summary>
         /// <returns></returns>
-        public abstract Newtonsoft.Json.Linq.JProperty[] GetExtraProperties();
+        public abstract JProperty[] GetExtraProperties();
 
         public EventSubject subject;
         public FilterOperator check;
 
-        public Newtonsoft.Json.Linq.JObject ToJSON()
+        public JObject ToJSON()
         {
-            var json = new Newtonsoft.Json.Linq.JObject();
+            var json = new JObject();
             json["test"] = GetTest();
             json["subject"] = this.subject.ToString();
 
@@ -64,23 +66,16 @@
     {
         public static string String(this FilterOperator @operator)
         {
-            switch (@operator)
+            return @operator switch
             {
-                case FilterOperator.EQUAL:
-                    return "equals";
-                case FilterOperator.UNEQUAL:
-                    return "not";
-                case FilterOperator.LESS:
-                    return "<";
-                case FilterOperator.GREATER:
-                    return ">";
-                case FilterOperator.LESS_EQUAL:
-                    return "<=";
-                case FilterOperator.GREATER_EQUAL:
-                    return ">=";
-                default:
-                    return "??";
-            }
+                FilterOperator.EQUAL => "equals",
+                FilterOperator.UNEQUAL => "not",
+                FilterOperator.LESS => "<",
+                FilterOperator.GREATER => ">",
+                FilterOperator.LESS_EQUAL => "<=",
+                FilterOperator.GREATER_EQUAL => ">=",
+                _ => "??"
+            };
         }
     }
 }

@@ -39,7 +39,7 @@ namespace mc_compiled.MCC.Scheduling.Implementations
         }
         public override string[] PerTickCommands()
         {
-            return new[] {Command.Function(this.thisFunction)};
+            return [Command.Function(this.thisFunction)];
         }
     }
 }

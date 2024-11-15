@@ -1,11 +1,10 @@
-﻿using mc_compiled.Modding;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.Async;
+using mc_compiled.Modding;
+using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Scheduling
 {
@@ -88,14 +87,14 @@ namespace mc_compiled.MCC.Scheduling
         }
         internal TickScheduler(Executor executor)
         {
-            this.tasks = new List<ScheduledTask>();
-            this.tickJSONEntries = new List<string>();
+            this.tasks = [];
+            this.tickJSONEntries = [];
             this.existingFiles = new Dictionary<string, CommandFile>();
             this.executor = executor;
         }
         public byte[] GetOutputData()
         {
-            var json = new JObject()
+            var json = new JObject
             {
                 // ReSharper disable once CoVariantArrayConversion
                 // (library handles this already)
