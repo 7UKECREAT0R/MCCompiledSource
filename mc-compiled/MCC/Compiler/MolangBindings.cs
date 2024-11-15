@@ -390,7 +390,7 @@ namespace mc_compiled.MCC.Compiler
         }
         private static void Load(bool debug)
         {
-            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyDir = Path.GetDirectoryName(AppContext.BaseDirectory);
             Debug.Assert(assemblyDir != null, "Application is in an inaccessible directory.");
             string path = Path.Combine(assemblyDir, Executor.BINDINGS_FILE);
 

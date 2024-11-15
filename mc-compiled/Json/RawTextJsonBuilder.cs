@@ -100,7 +100,7 @@ namespace mc_compiled.Json
                 if(key.Key == ConsoleKey.C)
                 {
                     this.copiedString = Build().ToString(Formatting.None);
-                    Clipboard.SetText(this.copiedString);
+                    TextCopy.ClipboardService.SetText(this.copiedString);
                     continue;
                 }
 

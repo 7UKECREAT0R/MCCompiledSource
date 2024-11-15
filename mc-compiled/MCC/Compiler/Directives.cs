@@ -180,7 +180,7 @@ namespace mc_compiled.MCC.Compiler
 
         public static void LoadFromLanguage(bool debug)
         {
-            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyDir = Path.GetDirectoryName(AppContext.BaseDirectory);
             Debug.Assert(assemblyDir != null, nameof(assemblyDir) + " was null");
             
             string path = Path.Combine(assemblyDir, Executor.LANGUAGE_FILE);

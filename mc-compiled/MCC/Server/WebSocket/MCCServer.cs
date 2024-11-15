@@ -479,11 +479,9 @@ namespace mc_compiled.MCC.ServerWebSocket
                 {
                     "current" => Directory.GetCurrentDirectory(),
                     "user" => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "bp" => this.outputBehaviorPack.Replace("?project_BP", "") // no project
-                    ,
-                    "rp" => this.outputResourcePack.Replace("?project_RP", "") // no project
-                    ,
-                    "install" => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                    "bp" => this.outputBehaviorPack.Replace("?project_BP", ""), // no project
+                    "rp" => this.outputResourcePack.Replace("?project_RP", ""), // no project
+                    "install" => Path.GetDirectoryName(AppContext.BaseDirectory),
                     _ => null
                 };
 
@@ -601,7 +599,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                     package.SendFrame(CreateBusyFrame(false));
                 });
 
-                if(Environment.OSVersion.Platform == PlatformID.Win32NT)
+                if(OperatingSystem.IsWindows())
                     thread.SetApartmentState(ApartmentState.STA);
                 thread.Start();
 
@@ -693,7 +691,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                         Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata);
                 });
 
-                if(Environment.OSVersion.Platform == PlatformID.Win32NT)
+                if(OperatingSystem.IsWindows())
                     thread.SetApartmentState(ApartmentState.STA);
                 thread.Start();
 

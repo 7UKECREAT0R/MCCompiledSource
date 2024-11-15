@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using TinyDialogsNet;
 
 namespace mc_compiled.MCC.ServerWebSocket
 {
@@ -137,28 +137,14 @@ namespace mc_compiled.MCC.ServerWebSocket
 
             unsupported = false;
 
-            using var dialog = new SaveFileDialog();
-            
-            dialog.Filter = "MCC Source File (.mcc)|*.mcc";
-            dialog.AddExtension = true;
-            dialog.DefaultExt = "mcc";
-            dialog.DereferenceLinks = true;
-            dialog.Title = "Save project...";
-            dialog.FileName = defaultName;
+            (bool canceled, string path) = TinyDialogs.SaveFileDialog("Saving code...", defaultName,
+                new FileFilter("MCCompiled File (.mcc)", ["*.mcc"])
+            );
 
-            using Form zSetter = new Form();
-            zSetter.TopMost = true;
-            zSetter.TopLevel = true;
-            zSetter.WindowState = FormWindowState.Minimized;
-            zSetter.Show();
-                    
-            bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
-
-            if (!selected)
+            if (canceled)
                 return false;
-                    
-            // did choose file
-            this.File = dialog.FileName;
+            
+            this.File = path;
             return true;
         }
         /// <summary>
@@ -174,28 +160,17 @@ namespace mc_compiled.MCC.ServerWebSocket
             }
 
             unsupported = false;
+
+            (bool canceled, IEnumerable<string> paths) = TinyDialogs.OpenFileDialog("Loading code...", "/", false,
+                new FileFilter("MCCompiled File (.mcc)", ["*.mcc"])
+            );
+
+            string[] pathsArray = paths as string[] ?? paths.ToArray();
             
-            using var dialog = new OpenFileDialog();
-            dialog.Filter = "MCC Source File (.mcc)|*.mcc";
-            dialog.CheckPathExists = true;
-            dialog.CheckFileExists = true;
-            dialog.DereferenceLinks = true;
-            dialog.Title = "Load project...";
-            dialog.FileName = "web_project.mcc";
-
-            using Form zSetter = new Form();
-            zSetter.TopMost = true;
-            zSetter.TopLevel = true;
-            zSetter.WindowState = FormWindowState.Minimized;
-            zSetter.Show();
-                    
-            bool selected = dialog.ShowDialog(zSetter) == DialogResult.OK;
-
-            if (!selected)
+            if (canceled || pathsArray.Length < 1)
                 return false;
-                    
-            // did choose file
-            this.File = dialog.FileName;
+            
+            this.File = pathsArray[0];
             return true;
         }
 

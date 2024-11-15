@@ -32,7 +32,7 @@ namespace mc_compiled.MCC
         public Definitions(bool debugInfo)
         {
             this.defs = new Dictionary<string, string>();
-            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyDir = Path.GetDirectoryName(AppContext.BaseDirectory);
             string path = Path.Combine(assemblyDir, FILE);
             if (!File.Exists(path))
             {

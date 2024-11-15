@@ -247,7 +247,7 @@ namespace mc_compiled
                 }
                 case "--INFO":
                     Console.WriteLine("V{0}", Executor.MCC_VERSION);
-                    Console.WriteLine("L{0}", Assembly.GetExecutingAssembly().Location);
+                    Console.WriteLine("L{0}", AppContext.BaseDirectory);
                     return;
                 case "--FROMPROTOCOL":
                 {

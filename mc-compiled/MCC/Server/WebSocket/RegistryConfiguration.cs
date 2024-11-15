@@ -14,12 +14,6 @@ namespace mc_compiled.MCC.ServerWebSocket
         internal const string PROGRAM_ARG = "--fromProtocol";
         internal const string NAME = "MCCompiled Server Protocol";
         internal const string URL_PROTOCOL = "URL Protocol";
-
-        private static void EnsureWindowsPlatform()
-        {
-            if(Environment.OSVersion.Platform != PlatformID.Win32NT)
-                throw new PlatformNotSupportedException("This feature is only supported on Windows.");
-        }
         
         public bool hasBeenRegistered;
 
@@ -28,7 +22,8 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal RegistryConfiguration()
         {
-            EnsureWindowsPlatform();
+            if(!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("This feature is only supported on Windows.");
             
             try
             {
@@ -57,7 +52,8 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal void Install()
         {
-            EnsureWindowsPlatform();
+            if(!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("This feature is only supported on Windows.");
 
             try
             {
@@ -68,7 +64,7 @@ namespace mc_compiled.MCC.ServerWebSocket
                 subkey = subkey.CreateSubKey("shell");
                 subkey = subkey.CreateSubKey("open");
                 subkey = subkey.CreateSubKey("command");
-                subkey.SetValue("", Assembly.GetExecutingAssembly().Location + ' ' + PROGRAM_ARG);
+                subkey.SetValue("", AppContext.BaseDirectory + ' ' + PROGRAM_ARG);
 
                 ConsoleColor old = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -97,7 +93,8 @@ namespace mc_compiled.MCC.ServerWebSocket
         /// </summary>
         internal void Uninstall()
         {
-            EnsureWindowsPlatform();
+            if(!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("This feature is only supported on Windows.");
 
             try
             {
