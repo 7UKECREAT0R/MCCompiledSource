@@ -5,7 +5,7 @@ using System.Linq;
 namespace mc_compiled.MCC.ServerWebSocket
 {
     /// <summary>
-    /// Implementations of all of the properties that should be handled by the compiler.
+    /// Implementations of all the properties that should be handled by the compiler.
     /// </summary>
     internal static class PropertyImplementations
     {
@@ -20,11 +20,7 @@ namespace mc_compiled.MCC.ServerWebSocket
         internal static void TrySetProperty(string name, string value, MCCServerProject currentProject)
         {
             PropertyImpl find = ALL_PROPERTIES.FirstOrDefault(impl => impl.InvokeName.Equals(name));
-
-            if (find == null)
-                return;
-
-            find.Call(value, currentProject);
+            find?.Call(value, currentProject);
         }
         /// <summary>
         /// Reset all property implementations and set the passed in project's properties to their defaults.
