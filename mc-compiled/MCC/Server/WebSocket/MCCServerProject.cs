@@ -69,7 +69,7 @@ namespace mc_compiled.MCC.ServerWebSocket
             PropertyImplementations.TrySetProperty(property, value, this);
         }
         /// <summary>
-        /// Resets all of the properties in this project and their implementations.
+        /// Resets all the properties in this project and their implementations.
         /// </summary>
         internal void ResetProperties()
         {

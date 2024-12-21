@@ -149,7 +149,7 @@ namespace mc_compiled.MCC.ServerWebSocket
 
             var server = (Socket)state;
             Debug.Assert(server != null, nameof(server) + " != null");
-            server.ReceiveBufferSize = CHUNK_SIZE;
+            server!.ReceiveBufferSize = CHUNK_SIZE;
 
             Socket client = server.EndAccept(result);
 

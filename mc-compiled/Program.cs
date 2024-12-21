@@ -223,8 +223,8 @@ namespace mc_compiled
                     _ = new Definitions(debug);
                     string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                     string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
-                    obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
-                    orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
+                    obp = Path.Combine(comMojang, "development_behavior_packs", "?project_BP");
+                    orp = Path.Combine(comMojang, "development_resource_packs", "?project_RP");
                     NO_PAUSE = true;
 
                     DEBUG = debug;
@@ -260,8 +260,8 @@ namespace mc_compiled
                     _ = new Definitions(debug);
                     string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                     string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
-                    obp = Path.Combine(comMojang, "development_behavior_packs") + "\\?project_BP";
-                    orp = Path.Combine(comMojang, "development_resource_packs") + "\\?project_RP";
+                    obp = Path.Combine(comMojang, "development_behavior_packs", "?project_BP");
+                    orp = Path.Combine(comMojang, "development_resource_packs", "?project_RP");
                     DECORATE = false;
                     NO_PAUSE = true;
                     DEBUG = debug;
