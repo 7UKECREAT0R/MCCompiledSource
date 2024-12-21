@@ -9,19 +9,20 @@ public class HoverHandler(ILanguageServerFacade router) : IHoverHandler
 {
     private readonly ILanguageServerFacade _router = router;
 
-    public HoverRegistrationOptions GetRegistrationOptions(HoverCapability capability, ClientCapabilities clientCapabilities)
+    public HoverRegistrationOptions GetRegistrationOptions(HoverCapability capability,
+        ClientCapabilities clientCapabilities)
     {
-        return new HoverRegistrationOptions()
+        return new HoverRegistrationOptions
         {
             DocumentSelector = new TextDocumentSelector(
-                new TextDocumentFilter()
+                new TextDocumentFilter
                 {
                     Pattern = MCCompiledLanguageServer.EXTENSION_PATTERN,
                     Language = MCCompiledLanguageServer.LANGUAGE_ID
                 })
         };
     }
-    
+
     public Task<Hover?> Handle(HoverParams request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();

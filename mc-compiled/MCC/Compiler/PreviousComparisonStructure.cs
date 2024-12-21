@@ -2,55 +2,55 @@
 using mc_compiled.Commands.Execute;
 using mc_compiled.MCC.Compiler.TypeSystem;
 
-namespace mc_compiled.MCC.Compiler
+namespace mc_compiled.MCC.Compiler;
+
+/// <summary>
+///     Represents a comparison and how it was carried out. Used for if/else statements. Allocates one BOOL global temp
+///     variable, which is released on disposal.
+/// </summary>
+internal class PreviousComparisonStructure : IDisposable
 {
+    internal readonly bool cancel;
+
+    internal readonly string previousComparisonString;
+    internal readonly ScoreboardValue resultStore;
+    internal readonly int scope;
+    internal readonly Statement sourceStatement;
+
+    private readonly TempManager tempManager;
+
+    private bool _disposed;
+    internal ConditionalSubcommand conditionalUsed;
+
     /// <summary>
-    /// Represents a comparison and how it was carried out. Used for if/else statements. Allocates one BOOL global temp variable, which is released on disposal.
+    ///     Allocates one BOOL global temp variable, which is released on disposal.
     /// </summary>
-    internal class PreviousComparisonStructure : IDisposable
+    /// <param name="tempManager"></param>
+    /// <param name="caller"></param>
+    /// <param name="scope"></param>
+    /// <param name="previousComparisonString"></param>
+    /// <param name="conditionalUsed"></param>
+    internal PreviousComparisonStructure(TempManager tempManager, Statement caller, int scope,
+        string previousComparisonString, ConditionalSubcommand conditionalUsed = null)
     {
-        internal readonly bool cancel;
+        this.conditionalUsed = conditionalUsed;
+        this.tempManager = tempManager;
+        this.sourceStatement = caller;
+        this.scope = scope;
+        this.previousComparisonString = previousComparisonString;
+        this.resultStore = tempManager.RequestGlobal(Typedef.BOOLEAN);
+    }
 
-        private readonly TempManager tempManager;
-        internal readonly Statement sourceStatement;
-        internal readonly int scope;
-        internal ConditionalSubcommand conditionalUsed;
+    internal PreviousComparisonStructure(bool cancel)
+    {
+        this.cancel = cancel;
+    }
+    public void Dispose()
+    {
+        if (this._disposed)
+            return;
 
-        internal readonly string previousComparisonString;
-        internal readonly ScoreboardValue resultStore;
-
-        /// <summary>
-        /// Allocates one BOOL global temp variable, which is released on disposal.
-        /// </summary>
-        /// <param name="tempManager"></param>
-        /// <param name="caller"></param>
-        /// <param name="scope"></param>
-        /// <param name="previousComparisonString"></param>
-        /// <param name="conditionalUsed"></param>
-        internal PreviousComparisonStructure(TempManager tempManager, Statement caller, int scope, string previousComparisonString, ConditionalSubcommand conditionalUsed = null)
-        {
-            this.conditionalUsed = conditionalUsed;
-            this.tempManager = tempManager;
-            this.sourceStatement = caller;
-            this.scope = scope;
-            this.previousComparisonString = previousComparisonString;
-            this.resultStore = tempManager.RequestGlobal(Typedef.BOOLEAN);
-        }
-
-
-        internal PreviousComparisonStructure(bool cancel)
-        {
-            this.cancel = cancel;
-        }
-
-        private bool _disposed = false;
-        public void Dispose()
-        {
-            if (this._disposed)
-                return;
-
-            this._disposed = true;
-            //tempManager?.Release(resultStore.type, resultStore.clarifier.IsGlobal);
-        }
+        this._disposed = true;
+        //tempManager?.Release(resultStore.type, resultStore.clarifier.IsGlobal);
     }
 }

@@ -11,17 +11,17 @@ namespace mc_compiled_language_server.MCC;
 
 public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandler
 {
-    private readonly ILanguageServerFacade _router = router;
     private const TextDocumentSyncKind DOCUMENT_SYNC_KIND = TextDocumentSyncKind.Incremental;
-    
+    private readonly ILanguageServerFacade _router = router;
+
     TextDocumentChangeRegistrationOptions
         IRegistration<TextDocumentChangeRegistrationOptions, TextSynchronizationCapability>.GetRegistrationOptions(
             TextSynchronizationCapability capability, ClientCapabilities clientCapabilities)
     {
-        return new TextDocumentChangeRegistrationOptions()
+        return new TextDocumentChangeRegistrationOptions
         {
             DocumentSelector = new TextDocumentSelector(
-                new TextDocumentFilter()
+                new TextDocumentFilter
                 {
                     Pattern = MCCompiledLanguageServer.EXTENSION_PATTERN,
                     Language = MCCompiledLanguageServer.LANGUAGE_ID
@@ -34,10 +34,10 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
         .GetRegistrationOptions(TextSynchronizationCapability capability,
             ClientCapabilities clientCapabilities)
     {
-        return new TextDocumentOpenRegistrationOptions()
+        return new TextDocumentOpenRegistrationOptions
         {
             DocumentSelector = new TextDocumentSelector(
-                new TextDocumentFilter()
+                new TextDocumentFilter
                 {
                     Pattern = MCCompiledLanguageServer.EXTENSION_PATTERN,
                     Language = MCCompiledLanguageServer.LANGUAGE_ID
@@ -49,10 +49,10 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
         .GetRegistrationOptions(TextSynchronizationCapability capability,
             ClientCapabilities clientCapabilities)
     {
-        return new TextDocumentCloseRegistrationOptions()
+        return new TextDocumentCloseRegistrationOptions
         {
             DocumentSelector = new TextDocumentSelector(
-                new TextDocumentFilter()
+                new TextDocumentFilter
                 {
                     Pattern = MCCompiledLanguageServer.EXTENSION_PATTERN,
                     Language = MCCompiledLanguageServer.LANGUAGE_ID
@@ -64,10 +64,10 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
         .GetRegistrationOptions(TextSynchronizationCapability capability,
             ClientCapabilities clientCapabilities)
     {
-        return new TextDocumentSaveRegistrationOptions()
+        return new TextDocumentSaveRegistrationOptions
         {
             DocumentSelector = new TextDocumentSelector(
-                new TextDocumentFilter()
+                new TextDocumentFilter
                 {
                     Pattern = MCCompiledLanguageServer.EXTENSION_PATTERN,
                     Language = MCCompiledLanguageServer.LANGUAGE_ID
@@ -88,16 +88,17 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
         {
             Range? range = change.Range;
             string text = change.Text;
-            
+
             project.UpdateCodeSection(range, text);
         }
+
         return Unit.Task;
     }
     public Task<Unit> Handle(DidOpenTextDocumentParams request, CancellationToken cancellationToken)
     {
         TextDocumentItem document = request.TextDocument;
-        
-        if(document.LanguageId != MCCompiledLanguageServer.LANGUAGE_ID)
+
+        if (document.LanguageId != MCCompiledLanguageServer.LANGUAGE_ID)
             return Unit.Task;
 
         try

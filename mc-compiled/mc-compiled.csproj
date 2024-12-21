@@ -1,39 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>mc_compiled</RootNamespace>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UseWindowsForms>false</UseWindowsForms>
-    <UseWPF>false</UseWPF>
-    <ImportWindowsDesktopTargets>false</ImportWindowsDesktopTargets>
-    <LangVersion>13</LangVersion>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="..\.editorconfig">
-      <Link>.editorconfig</Link>
-    </None>
-    <AdditionalFiles Include="language.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </AdditionalFiles>
-    <AdditionalFiles Include="bindings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </AdditionalFiles>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="definitions.def">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="update-regolith-filter.bat" />
-    <Content Include="update-website.bat" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
-    <PackageReference Include="Matarillo.IO" Version="1.0.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="TextCopy" Version="6.2.1" />
-    <PackageReference Include="TinyDialogsNet" Version="2.0.0" />
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <RootNamespace>mc_compiled</RootNamespace>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <UseWindowsForms>false</UseWindowsForms>
+        <UseWPF>false</UseWPF>
+        <ImportWindowsDesktopTargets>false</ImportWindowsDesktopTargets>
+        <LangVersion>13</LangVersion>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="..\.editorconfig">
+            <Link>.editorconfig</Link>
+        </None>
+        <AdditionalFiles Include="language.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+        <AdditionalFiles Include="bindings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="definitions.def">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="update-regolith-filter.bat"/>
+        <Content Include="update-website.bat"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2024.3.0"/>
+        <PackageReference Include="Matarillo.IO" Version="1.0.0"/>
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="TextCopy" Version="6.2.1"/>
+        <PackageReference Include="TinyDialogsNet" Version="2.0.0"/>
+    </ItemGroup>
 </Project>

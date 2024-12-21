@@ -14,7 +14,7 @@ public class SemanticTokensHandler(ILanguageServerFacade router) : ISemanticToke
     {
         throw new NotImplementedException();
     }
-    
+
     public Task<SemanticTokens?> Handle(SemanticTokensParams request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();

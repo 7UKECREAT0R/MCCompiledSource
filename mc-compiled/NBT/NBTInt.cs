@@ -1,16 +1,18 @@
 ﻿using System.IO;
 
-namespace mc_compiled.NBT
+namespace mc_compiled.NBT;
+
+public class NBTInt : NBTNode
 {
-    public class NBTInt : NBTNode
+    public int value;
+
+    public NBTInt()
     {
-        public int value;
+        this.tagType = TAG.Int;
+    }
 
-        public NBTInt() => this.tagType = TAG.Int;
-
-        public override void Write(BinaryWriter writer)
-        {
-            writer.Write(this.value);
-        }
+    public override void Write(BinaryWriter writer)
+    {
+        writer.Write(this.value);
     }
 }

@@ -1,38 +1,46 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace mc_compiled.Modding
+namespace mc_compiled.Modding;
+
+/// <summary>
+///     A 2D offset.
+/// </summary>
+public struct Offset2
 {
-    /// <summary>
-    /// A 2D offset.
-    /// </summary>
-    public struct Offset2
+    public int x, y;
+    public Offset2(int x, int y)
     {
-        public int x, y;
-        public Offset2(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-        public JProperty ToProperty(string name) =>
-            new JProperty(name, new JArray(new[] {this.x, this.y }));
-        public JArray ToArray() =>
-            new JArray(new[] {this.x, this.y });
+        this.x = x;
+        this.y = y;
     }
-    /// <summary>
-    /// A 3D offset.
-    /// </summary>
-    public struct Offset3
+    public JProperty ToProperty(string name)
     {
-        public int x, y, z;
-        public Offset3(int x, int y, int z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-        public JProperty ToProperty(string name) =>
-            new JProperty(name, new JArray(new[] {this.x, this.y, this.z }));
-        public JArray ToArray() =>
-            new JArray(new[] {this.x, this.y, this.z });
+        return new JProperty(name, new JArray(new[] {this.x, this.y}));
+    }
+    public JArray ToArray()
+    {
+        return new JArray(new[] {this.x, this.y});
+    }
+}
+
+/// <summary>
+///     A 3D offset.
+/// </summary>
+public struct Offset3
+{
+    public int x, y, z;
+    public Offset3(int x, int y, int z)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+    public JProperty ToProperty(string name)
+    {
+        return new JProperty(name, new JArray(new[] {this.x, this.y, this.z}));
+    }
+    public JArray ToArray()
+    {
+        return new JArray(new[] {this.x, this.y, this.z});
     }
 }

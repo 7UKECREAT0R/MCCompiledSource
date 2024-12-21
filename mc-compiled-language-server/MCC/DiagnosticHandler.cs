@@ -12,10 +12,10 @@ public class DiagnosticHandler(ILanguageServerFacade router) : IDocumentDiagnost
     public DiagnosticsRegistrationOptions GetRegistrationOptions(DiagnosticClientCapabilities capability,
         ClientCapabilities clientCapabilities)
     {
-        return new DiagnosticsRegistrationOptions()
+        return new DiagnosticsRegistrationOptions
         {
             DocumentSelector = new TextDocumentSelector(
-                new TextDocumentFilter()
+                new TextDocumentFilter
                 {
                     Pattern = MCCompiledLanguageServer.EXTENSION_PATTERN,
                     Language = MCCompiledLanguageServer.LANGUAGE_ID
@@ -24,8 +24,9 @@ public class DiagnosticHandler(ILanguageServerFacade router) : IDocumentDiagnost
             Identifier = MCCompiledLanguageServer.LANGUAGE_ID
         };
     }
-    
-    public Task<RelatedDocumentDiagnosticReport> Handle(DocumentDiagnosticParams request, CancellationToken cancellationToken)
+
+    public Task<RelatedDocumentDiagnosticReport> Handle(DocumentDiagnosticParams request,
+        CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

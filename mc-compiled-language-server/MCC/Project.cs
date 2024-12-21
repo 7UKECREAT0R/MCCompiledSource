@@ -1,15 +1,47 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace mc_compiled_language_server.MCC;
 
 /// <summary>
-/// Represents an open MCCompiled project. Each file is its own project.
+///     Represents an open MCCompiled project. Each file is its own project.
 /// </summary>
 public class Project
 {
     private const string MinecraftUWP = "Microsoft.MinecraftUWP_8wekyb3d8bbwe";
-    
+
+    /// <summary>
+    ///     The current code this project's working with. Represented as individual lines.
+    /// </summary>
+    private readonly List<StringBuilder> code;
+    /// <summary>
+    ///     The location where the behavior pack will be emitted.
+    /// </summary>
+    private readonly string outputBehaviorPack;
+
+    /// <summary>
+    ///     The location where the resource pack will be emitted.
+    /// </summary>
+    private readonly string outputResourcePack;
+    /// <summary>
+    ///     The directory the loaded file resides in.
+    /// </summary>
+    internal string fileDirectory;
+
+    /// <summary>
+    ///     The location of the loaded file.
+    /// </summary>
+    internal string fileLocation;
+    /// <summary>
+    ///     Is the current version of <see cref="code" /> processed?
+    /// </summary>
+    private bool isCodeProcessed;
+    /// <summary>
+    ///     The name of this project; if unspecified, this usually ends up at the stripped file name.
+    /// </summary>
+    internal string projectName;
+
     public Project(string file, string code, string? projectName)
     {
         this.fileLocation = file;
@@ -32,31 +64,9 @@ public class Project
             this.outputBehaviorPack = Path.Combine(AppContext.BaseDirectory, "mccompiled", $"{this.projectName}_BP");
         }
     }
-    
-    /// <summary>
-    /// The location of the loaded file.
-    /// </summary>
-    internal string fileLocation;
-    /// <summary>
-    /// The directory the loaded file resides in.
-    /// </summary>
-    internal string fileDirectory;
-    /// <summary>
-    /// The name of this project; if unspecified, this usually ends up at the stripped file name.
-    /// </summary>
-    internal string projectName;
 
     /// <summary>
-    /// The current code this project's working with. Represented as individual lines.
-    /// </summary>
-    private readonly List<StringBuilder> code;
-    /// <summary>
-    /// Is the current version of <see cref="code"/> processed?
-    /// </summary>
-    private bool isCodeProcessed = false;
-    
-    /// <summary>
-    /// Updates the code, completely discarding the old code.
+    ///     Updates the code, completely discarding the old code.
     /// </summary>
     /// <param name="newCode"></param>
     public void UpdateCode(string newCode)
@@ -73,7 +83,7 @@ public class Project
         this.isCodeProcessed = false;
     }
     /// <summary>
-    /// Updates the code's lines, completely discarding the old code.
+    ///     Updates the code's lines, completely discarding the old code.
     /// </summary>
     /// <param name="newCode"></param>
     public void UpdateCode(List<string> newCode)
@@ -84,14 +94,14 @@ public class Project
             string trimmedLine = line.Trim('\r');
             this.code.Add(new StringBuilder(trimmedLine));
         }
-        
+
         this.isCodeProcessed = false;
     }
     private void UpdateCodeSection(int line, int startCharacter, int endCharacter, string newCode)
     {
         if (startCharacter > endCharacter)
             (startCharacter, endCharacter) = (endCharacter, startCharacter);
-        
+
         // expand the list if needed
         if (line >= this.code.Count)
         {
@@ -99,23 +109,23 @@ public class Project
             for (int i = 0; i < diff; i++)
                 this.code.Add(new StringBuilder());
         }
-        
+
         StringBuilder lineBuilder = this.code[line];
         if (startCharacter > lineBuilder.Length)
             startCharacter = lineBuilder.Length;
-        if(endCharacter > lineBuilder.Length)
+        if (endCharacter > lineBuilder.Length)
             endCharacter = lineBuilder.Length;
-        
+
         // remove from startCharacter to endCharacter
         int areaToRemove = endCharacter - startCharacter;
         if (areaToRemove > 0)
             lineBuilder.Remove(startCharacter, areaToRemove);
-        
+
         // insert newCode at startCharacter
         lineBuilder.Insert(startCharacter, newCode);
         this.isCodeProcessed = false;
     }
-    public void UpdateCodeSection(OmniSharp.Extensions.LanguageServer.Protocol.Models.Range? range, string codeToChange)
+    public void UpdateCodeSection(Range? range, string codeToChange)
     {
         if (range == null)
         {
@@ -139,7 +149,7 @@ public class Project
         {
             string[] codeToChangeLines = codeToChange.Split('\n');
 
-            Debug.Assert(codeToChangeLines.Length == (endLine - startLine + 1),
+            Debug.Assert(codeToChangeLines.Length == endLine - startLine + 1,
                 "codeToChange did not match the region given to change.");
 
             int a = 0;
@@ -148,32 +158,20 @@ public class Project
                 UpdateCodeSection(i, 0, this.code[i].Length, codeToChangeLines[a++]);
             UpdateCodeSection(endLine, 0, endCharacter, codeToChangeLines[a]);
         }
+
         this.isCodeProcessed = false;
     }
-    
+
     /// <summary>
-    /// The location where the resource pack will be emitted.
-    /// </summary>
-    private readonly string outputResourcePack;
-    /// <summary>
-    /// The location where the behavior pack will be emitted.
-    /// </summary>
-    private readonly string outputBehaviorPack;
-    
-    /// <summary>
-    /// Processes the code; i.e., linting
+    ///     Processes the code; i.e., linting
     /// </summary>
     internal void Process()
     {
         if (this.isCodeProcessed)
             return;
-        
     }
     /// <summary>
-    /// Runs the code.
+    ///     Runs the code.
     /// </summary>
-    internal void Run()
-    {
-        
-    }
+    internal void Run() { }
 }

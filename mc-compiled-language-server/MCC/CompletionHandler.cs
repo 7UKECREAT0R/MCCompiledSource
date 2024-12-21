@@ -7,18 +7,18 @@ namespace mc_compiled_language_server.MCC;
 
 public class CompletionHandler(ILanguageServerFacade router) : ICompletionHandler
 {
-    private readonly ILanguageServerFacade _router = router;
     private static readonly string[] TRIGGER_CHARACTERS =
         "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890$"
             .ToCharArray().Select(c => c.ToString()).ToArray();
-    
+    private readonly ILanguageServerFacade _router = router;
+
     public CompletionRegistrationOptions GetRegistrationOptions(CompletionCapability capability,
         ClientCapabilities clientCapabilities)
     {
-        return new CompletionRegistrationOptions()
+        return new CompletionRegistrationOptions
         {
             DocumentSelector = new TextDocumentSelector(
-                new TextDocumentFilter()
+                new TextDocumentFilter
                 {
                     Pattern = MCCompiledLanguageServer.EXTENSION_PATTERN,
                     Language = MCCompiledLanguageServer.LANGUAGE_ID
@@ -26,7 +26,7 @@ public class CompletionHandler(ILanguageServerFacade router) : ICompletionHandle
             TriggerCharacters = new Container<string>(TRIGGER_CHARACTERS)
         };
     }
-    
+
     public Task<CompletionList> Handle(CompletionParams request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();

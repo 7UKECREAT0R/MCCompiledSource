@@ -1,18 +1,20 @@
 ﻿using System.IO;
 
-namespace mc_compiled.NBT
+namespace mc_compiled.NBT;
+
+public class NBTByteArray : NBTNode
 {
-    public class NBTByteArray : NBTNode
+    public byte[] values;
+
+    public NBTByteArray()
     {
-        public byte[] values;
+        this.tagType = TAG.ByteArray;
+    }
 
-        public NBTByteArray() => this.tagType = TAG.ByteArray;
-
-        public override void Write(BinaryWriter writer)
-        {
-            writer.Write(this.values.Length);
-            foreach(var value in this.values)
-                writer.Write(value);
-        }
+    public override void Write(BinaryWriter writer)
+    {
+        writer.Write(this.values.Length);
+        foreach (byte value in this.values)
+            writer.Write(value);
     }
 }

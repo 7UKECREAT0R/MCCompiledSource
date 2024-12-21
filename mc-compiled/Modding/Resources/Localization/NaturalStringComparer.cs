@@ -3,40 +3,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace mc_compiled.Modding.Resources.Localization
+namespace mc_compiled.Modding.Resources.Localization;
+
+public class NaturalStringComparer : IComparer<string>
 {
-    public class NaturalStringComparer : IComparer<string>
+    private static readonly Regex _regex = new(@"(\d+|\D+)", RegexOptions.Compiled);
+
+    public int Compare(string x, string y)
     {
-        private static readonly Regex _regex = new Regex(@"(\d+|\D+)", RegexOptions.Compiled);
+        if (x == null || y == null)
+            return string.Compare(x, y, StringComparison.Ordinal);
 
-        public int Compare(string x, string y)
+        string[] xParts = _regex.Matches(x).Select(m => m.Value).ToArray();
+        string[] yParts = _regex.Matches(y).Select(m => m.Value).ToArray();
+
+        for (int i = 0; i < Math.Min(xParts.Length, yParts.Length); i++)
         {
-            if (x == null || y == null)
-                return string.Compare(x, y, StringComparison.Ordinal);
+            bool xPartIsNumber = int.TryParse(xParts[i], out int xPartNumber);
+            bool yPartIsNumber = int.TryParse(yParts[i], out int yPartNumber);
 
-            string[] xParts = _regex.Matches(x).Select(m => m.Value).ToArray();
-            string[] yParts = _regex.Matches(y).Select(m => m.Value).ToArray();
-
-            for (int i = 0; i < Math.Min(xParts.Length, yParts.Length); i++)
+            if (xPartIsNumber && yPartIsNumber)
             {
-                bool xPartIsNumber = int.TryParse(xParts[i], out int xPartNumber);
-                bool yPartIsNumber = int.TryParse(yParts[i], out int yPartNumber);
-
-                if (xPartIsNumber && yPartIsNumber)
-                {
-                    int comparison = xPartNumber.CompareTo(yPartNumber);
-                    if (comparison != 0)
-                        return comparison;
-                }
-                else
-                {
-                    int comparison = string.Compare(xParts[i], yParts[i], StringComparison.Ordinal);
-                    if (comparison != 0)
-                        return comparison;
-                }
+                int comparison = xPartNumber.CompareTo(yPartNumber);
+                if (comparison != 0)
+                    return comparison;
             }
-
-            return xParts.Length.CompareTo(yParts.Length);
+            else
+            {
+                int comparison = string.Compare(xParts[i], yParts[i], StringComparison.Ordinal);
+                if (comparison != 0)
+                    return comparison;
+            }
         }
+
+        return xParts.Length.CompareTo(yParts.Length);
     }
 }

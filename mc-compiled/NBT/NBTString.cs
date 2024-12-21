@@ -1,21 +1,23 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace mc_compiled.NBT
+namespace mc_compiled.NBT;
+
+public class NBTString : NBTNode
 {
-    public class NBTString : NBTNode
+    public string value;
+
+    public NBTString()
     {
-        public string value;
+        this.tagType = TAG.String;
+    }
 
-        public NBTString() => this.tagType = TAG.String;
+    public override void Write(BinaryWriter writer)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(this.value);
+        ushort len = (ushort) bytes.Length;
 
-        public override void Write(BinaryWriter writer)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(this.value);
-            ushort len = (ushort)bytes.Length;
-
-            writer.Write(len);
-            writer.Write(bytes);
-        }
+        writer.Write(len);
+        writer.Write(bytes);
     }
 }

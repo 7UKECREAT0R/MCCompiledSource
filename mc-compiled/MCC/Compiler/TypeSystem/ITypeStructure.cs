@@ -1,19 +1,18 @@
-﻿namespace mc_compiled.MCC.Compiler.TypeSystem
+﻿namespace mc_compiled.MCC.Compiler.TypeSystem;
+
+/// <summary>
+///     Includes traits necessary on a type's data structure.
+/// </summary>
+public interface ITypeStructure
 {
     /// <summary>
-    /// Includes traits necessary on a type's data structure.
+    ///     Return an identical copy of the data structure, but with all of its members properly cloned.
     /// </summary>
-    public interface ITypeStructure
-    {
-        /// <summary>
-        /// Return an identical copy of the data structure, but with all of its members properly cloned.
-        /// </summary>
-        /// <returns></returns>
-        ITypeStructure DeepClone();
-        /// <summary>
-        /// Returns the hashcode for this data structure. Used to enforce hashcode implementation for these types.
-        /// </summary>
-        /// <returns></returns>
-        int TypeHashCode();
-    }
+    /// <returns></returns>
+    ITypeStructure DeepClone();
+    /// <summary>
+    ///     Returns the hashcode for this data structure. Used to enforce hashcode implementation for these types.
+    /// </summary>
+    /// <returns></returns>
+    int TypeHashCode();
 }

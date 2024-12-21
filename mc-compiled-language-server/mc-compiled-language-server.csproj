@@ -9,12 +9,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="0.19.9" />
-      <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.9" />
+        <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="0.19.9"/>
+        <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.9"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\mc-compiled\mc-compiled.csproj" />
+        <ProjectReference Include="..\mc-compiled\mc-compiled.csproj"/>
     </ItemGroup>
 
 </Project>

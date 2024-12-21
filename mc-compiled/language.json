@@ -1,5 +1,5 @@
 {
-  "version": 1.19,
+  "version": 1.20,
   "preprocessor_variables": [
     "_compiler",
     "_minecraft",
@@ -81,9 +81,15 @@
       "category": "preprocessor",
       "function": "_var",
       "patterns": [
-        [ "id:variable", "?object:values" ]
+        [
+          "id:variable",
+          "?object:values"
+        ]
       ],
-      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
     },
     "$inc": {
       "description": "Increment Preprocessor Variable",
@@ -92,9 +98,13 @@
       "category": "preprocessor",
       "function": "_inc",
       "patterns": [
-        [ "id:variable" ]
+        [
+          "id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$dec": {
       "description": "Decrement Preprocessor Variable",
@@ -103,9 +113,13 @@
       "category": "preprocessor",
       "function": "_dec",
       "patterns": [
-        [ "id:variable" ]
+        [
+          "id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$add": {
       "description": "Add to Preprocessor Variable",
@@ -114,9 +128,14 @@
       "category": "preprocessor",
       "function": "_add",
       "patterns": [
-        [ "id:variable", "object:values" ]
+        [
+          "id:variable",
+          "object:values"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$sub": {
       "description": "Subtract from Preprocessor Variable",
@@ -125,9 +144,14 @@
       "category": "preprocessor",
       "function": "_sub",
       "patterns": [
-        [ "id:variable", "object:values" ]
+        [
+          "id:variable",
+          "object:values"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$mul": {
       "description": "Multiply with Preprocessor Variable",
@@ -136,9 +160,14 @@
       "category": "preprocessor",
       "function": "_mul",
       "patterns": [
-        [ "id:variable", "object:values" ]
+        [
+          "id:variable",
+          "object:values"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$div": {
       "description": "Divide Preprocessor Variable",
@@ -147,9 +176,14 @@
       "category": "preprocessor",
       "function": "_div",
       "patterns": [
-        [ "id:variable", "object:values" ]
+        [
+          "id:variable",
+          "object:values"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$mod": {
       "description": "Modulo Preprocessor Variable",
@@ -158,9 +192,14 @@
       "category": "preprocessor",
       "function": "_mod",
       "patterns": [
-        [ "id:variable", "object:values" ]
+        [
+          "id:variable",
+          "object:values"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$pow": {
       "description": "Exponentiate Preprocessor Variable",
@@ -169,9 +208,14 @@
       "category": "preprocessor",
       "function": "_pow",
       "patterns": [
-        [ "id:variable", "object:values" ]
+        [
+          "id:variable",
+          "object:values"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$swap": {
       "description": "Swap Preprocessor Variables",
@@ -180,9 +224,14 @@
       "category": "preprocessor",
       "function": "_swap",
       "patterns": [
-        [ "id:a", "id:b" ]
+        [
+          "id:a",
+          "id:b"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$append": {
       "description": "Append to Preprocessor Variable",
@@ -191,10 +240,18 @@
       "category": "preprocessor",
       "function": "_append",
       "patterns": [
-        [ "id:to modify", "object:items" ],
-        [ "id:to modify", "id:other" ]
+        [
+          "id:to modify",
+          "object:items"
+        ],
+        [
+          "id:to modify",
+          "id:other"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$prepend": {
       "description": "Prepend to Preprocessor Variable",
@@ -203,10 +260,18 @@
       "category": "preprocessor",
       "function": "_prepend",
       "patterns": [
-        [ "id:to modify", "object:items" ],
-        [ "id:to modify", "id:other" ]
+        [
+          "id:to modify",
+          "object:items"
+        ],
+        [
+          "id:to modify",
+          "id:other"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$if": {
       "description": "Preprocessor If",
@@ -215,12 +280,30 @@
       "category": "preprocessor",
       "function": "_if",
       "patterns": [
-        [ "object:a", "compare:comparison", "object:b" ],
-        [ "id:a", "compare:comparison", "object:b" ],
-        [ "object:a", "compare:comparison", "id:b" ],
-        [ "id:a", "compare:comparison", "id:b" ]
+        [
+          "object:a",
+          "compare:comparison",
+          "object:b"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "object:b"
+        ],
+        [
+          "object:a",
+          "compare:comparison",
+          "id:b"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "id:b"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$else": {
       "description": "Preprocessor Else",
@@ -228,7 +311,9 @@
       "details": "Directly inverts the result of the last $if call at this level in scope.",
       "category": "preprocessor",
       "function": "_else",
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$assert": {
       "description": "Preprocessor Assertion",
@@ -237,12 +322,31 @@
       "category": "debug",
       "function": "_assert",
       "patterns": [
-        [ "object:a", "compare:comparison", "object:b" ],
-        [ "id:a", "compare:comparison", "object:b" ],
-        [ "object:a", "compare:comparison", "id:b" ],
-        [ "id:a", "compare:comparison", "id:b" ]
+        [
+          "object:a",
+          "compare:comparison",
+          "object:b"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "object:b"
+        ],
+        [
+          "object:a",
+          "compare:comparison",
+          "id:b"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "id:b"
+        ]
       ],
-      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
     },
     "$repeat": {
       "description": "Preprocessor Repeat",
@@ -251,8 +355,14 @@
       "category": "preprocessor",
       "function": "_repeat",
       "patterns": [
-        [ "int:amount", "?id:indicator" ],
-        [ "range:amount", "?id:indicator" ]
+        [
+          "int:amount",
+          "?id:indicator"
+        ],
+        [
+          "range:amount",
+          "?id:indicator"
+        ]
       ]
     },
     "$log": {
@@ -262,9 +372,13 @@
       "category": "preprocessor",
       "function": "_log",
       "patterns": [
-        [ "*:message" ]
+        [
+          "*:message"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$macro": {
       "description": "Define/Call Macro",
@@ -273,9 +387,15 @@
       "category": "preprocessor",
       "function": "_macro",
       "patterns": [
-        [ "id:name" ]
+        [
+          "id:name"
+        ]
       ],
-      "attributes": [ "DONT_DEREFERENCE", "DONT_DECORATE", "DOCUMENTABLE" ]
+      "attributes": [
+        "DONT_DEREFERENCE",
+        "DONT_DECORATE",
+        "DOCUMENTABLE"
+      ]
     },
     "$include": {
       "description": "Include File",
@@ -284,9 +404,13 @@
       "category": "preprocessor",
       "function": "_include",
       "patterns": [
-        [ "string:file" ]
+        [
+          "string:file"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$strfriendly": {
       "description": "Preprocessor String Friendly Name",
@@ -295,9 +419,14 @@
       "category": "preprocessor",
       "function": "_strfriendly",
       "patterns": [
-        [ "id:result", "?id:variable" ]
+        [
+          "id:result",
+          "?id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$strupper": {
       "description": "Preprocessor String Uppercase",
@@ -306,9 +435,14 @@
       "category": "preprocessor",
       "function": "_strupper",
       "patterns": [
-        [ "id:result", "?id:variable" ]
+        [
+          "id:result",
+          "?id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$strlower": {
       "description": "Preprocessor String Lowercase",
@@ -317,9 +451,14 @@
       "category": "preprocessor",
       "function": "_strlower",
       "patterns": [
-        [ "id:result", "?id:variable" ]
+        [
+          "id:result",
+          "?id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$sum": {
       "description": "Preprocessor Array Sum",
@@ -328,9 +467,14 @@
       "category": "preprocessor",
       "function": "_sum",
       "patterns": [
-        [ "id:result", "?id:variable" ]
+        [
+          "id:result",
+          "?id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$median": {
       "description": "Preprocessor Array Median",
@@ -339,9 +483,14 @@
       "category": "preprocessor",
       "function": "_median",
       "patterns": [
-        [ "id:result", "?id:variable" ]
+        [
+          "id:result",
+          "?id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$mean": {
       "description": "Preprocessor Array Mean",
@@ -350,9 +499,14 @@
       "category": "preprocessor",
       "function": "_mean",
       "patterns": [
-        [ "id:result", "?id:variable" ]
+        [
+          "id:result",
+          "?id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$sort": {
       "description": "Preprocessor Array Sort",
@@ -361,9 +515,14 @@
       "category": "preprocessor",
       "function": "_sort",
       "patterns": [
-        [ "id:ascending or descending", "id:variable" ]
+        [
+          "id:ascending or descending",
+          "id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$reverse": {
       "description": "Preprocessor Reverse",
@@ -372,9 +531,13 @@
       "category": "preprocessor",
       "function": "_reverse",
       "patterns": [
-        [ "id:variable" ]
+        [
+          "id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$unique": {
       "description": "Preprocessor Array Unique",
@@ -383,9 +546,13 @@
       "category": "preprocessor",
       "function": "_unique",
       "patterns": [
-        [ "id:variable" ]
+        [
+          "id:variable"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$iterate": {
       "description": "Iterate Preprocessor Array",
@@ -393,10 +560,19 @@
       "category": "preprocessor",
       "function": "_iterate",
       "patterns": [
-        [ "id:variable", "id:current" ],
-        [ "json:array or object", "id:current"]
+        [
+          "id:variable",
+          "id:current"
+        ],
+        [
+          "json:array or object",
+          "id:current"
+        ]
       ],
-      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
     },
     "$len": {
       "description": "Preprocessor Length",
@@ -405,11 +581,23 @@
       "category": "preprocessor",
       "function": "_len",
       "patterns": [
-        [ "id:result", "id:variable" ],
-        [ "id:result", "json:array" ],
-        [ "id:result", "string:text" ]
+        [
+          "id:result",
+          "id:variable"
+        ],
+        [
+          "id:result",
+          "json:array"
+        ],
+        [
+          "id:result",
+          "string:text"
+        ]
       ],
-      "attributes": [ "DONT_FLATTEN_ARRAYS", "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
     },
     "$json": {
       "description": "Preprocessor Load JSON Value",
@@ -418,10 +606,20 @@
       "category": "preprocessor",
       "function": "_json",
       "patterns": [
-        [ "string:file name", "id:result", "?string:path" ],
-        [ "json:existing json", "id:result", "?string:path" ]
+        [
+          "string:file name",
+          "id:result",
+          "?string:path"
+        ],
+        [
+          "json:existing json",
+          "id:result",
+          "?string:path"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "$call": {
       "description": "Preprocessor Call Function",
@@ -430,18 +628,28 @@
       "category": "preprocessor",
       "function": "_call",
       "patterns": [
-        [ "string:function name", "?*:parameters" ]
+        [
+          "string:function name",
+          "?*:parameters"
+        ]
       ]
     },
     "mc": {
       "description": "Minecraft Command",
-      "aliases": [ "command", "cmd" ],
+      "aliases": [
+        "command",
+        "cmd"
+      ],
       "details": "Places a plain command in the output file, used for when the language lacks a certain feature.",
       "category": "other",
       "patterns": [
-        [ "string:command" ]
+        [
+          "string:command"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "globalprint": {
       "description": "Print to All Players",
@@ -449,9 +657,14 @@
       "details": "Prints a chat message to all players in the game.",
       "category": "text",
       "patterns": [
-        [ "string:text" ]
+        [
+          "string:text"
+        ]
       ],
-      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
     },
     "print": {
       "description": "Print to Player",
@@ -459,10 +672,18 @@
       "details": "Prints a chat message to the executing player, or to the given one if specified.",
       "category": "text",
       "patterns": [
-        [ "selector:entity", "string:text" ],
-        [ "string:text" ]
+        [
+          "selector:entity",
+          "string:text"
+        ],
+        [
+          "string:text"
+        ]
       ],
-      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
     },
     "lang": {
       "description": "Set Active Language",
@@ -470,9 +691,13 @@
       "details": "Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including format-strings.",
       "category": "text",
       "patterns": [
-        [ "id:locale" ]
+        [
+          "id:locale"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "define": {
       "description": "Define Variable",
@@ -480,20 +705,31 @@
       "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
       "category": "values",
       "patterns": [
-        [ "*:args" ]
+        [
+          "*:args"
+        ]
       ],
-      "attributes": [ "DOCUMENTABLE", "DONT_DECORATE" ]
+      "attributes": [
+        "DOCUMENTABLE",
+        "DONT_DECORATE"
+      ]
     },
     "init": {
       "description": "Initialize Variable",
       "wiki_link": "Values.md#initializing-values",
-      "aliases": [ "initialize" ],
+      "aliases": [
+        "initialize"
+      ],
       "details": "Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]`",
       "category": "values",
       "patterns": [
-        [ "value:value" ]
+        [
+          "value:value"
+        ]
       ],
-      "attributes": [ "DOCUMENTABLE" ]
+      "attributes": [
+        "DOCUMENTABLE"
+      ]
     },
     "if": {
       "description": "If Statement",
@@ -508,7 +744,9 @@
       "details": "Inverts the comparison given by the previous if-statement at this scope level.",
       "category": "logic",
       "function": "elseStatement",
-      "attributes": [ "INVERTS_COMPARISON" ]
+      "attributes": [
+        "INVERTS_COMPARISON"
+      ]
     },
     "while": {
       "description": "While Statement",
@@ -521,8 +759,14 @@
       "details": "Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.",
       "category": "logic",
       "patterns": [
-        [ "int:repetitions", "?id:current" ],
-        [ "value:repetitions", "?id:current" ]
+        [
+          "int:repetitions",
+          "?id:current"
+        ],
+        [
+          "value:repetitions",
+          "?id:current"
+        ]
       ]
     },
     "assert": {
@@ -538,9 +782,13 @@
       "category": "debug",
       "function": "throwError",
       "patterns": [
-        [ "string:error" ]
+        [
+          "string:error"
+        ]
       ],
-      "attributes": [ "USES_FSTRING" ]
+      "attributes": [
+        "USES_FSTRING"
+      ]
     },
     "give": {
       "description": "Give Item",
@@ -548,23 +796,92 @@
       "details": "Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.",
       "category": "items",
       "patterns": [
-        [ "selector:entity", "string:item", "?int:amount", "?int:data" ]
+        [
+          "selector:entity",
+          "string:item",
+          "?int:amount",
+          "?int:data"
+        ]
       ]
     },
     "tp": {
       "description": "Teleport Entity",
-      "aliases": [ "teleport" ],
+      "aliases": [
+        "teleport"
+      ],
       "details": "Teleports the executing/given entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "category": "entities",
       "patterns": [
-        [ "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ],
-        [ "selector:source", "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "selector:source", "coordinate:x", "coordinate:y", "coordinate:z", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ],
-        [ "selector:source", "selector:other", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "selector:source", "selector:other", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ],
-        [ "selector:source", "string:other", "?id:facing", "?selector:face entity", "?bool:check for blocks" ],
-        [ "selector:source", "string:other", "?id:facing", "?coordinate:facing x", "?coordinate:facing y", "?coordinate:facing z", "?bool:check for blocks" ]
+        [
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "selector:other",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "selector:other",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "string:other",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "string:other",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ]
       ]
     },
     "move": {
@@ -572,18 +889,36 @@
       "details": "Moves the specified entity in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.",
       "category": "entities",
       "patterns": [
-        [ "selector:source", "id:direction", "number:amount", "?bool:check for blocks" ]
+        [
+          "selector:source",
+          "id:direction",
+          "number:amount",
+          "?bool:check for blocks"
+        ]
       ]
     },
     "face": {
       "description": "Face Towards...",
-      "aliases": [ "lookat" ],
+      "aliases": [
+        "lookat"
+      ],
       "details": "Faces the given entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "category": "entities",
       "patterns": [
-        [ "selector:source", "coordinate:x", "coordinate:y", "coordinate:z" ],
-        [ "selector:source", "selector:other" ],
-        [ "selector:source", "string:other" ]
+        [
+          "selector:source",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z"
+        ],
+        [
+          "selector:source",
+          "selector:other"
+        ],
+        [
+          "selector:source",
+          "string:other"
+        ]
       ]
     },
     "rotate": {
@@ -591,7 +926,11 @@
       "details": "Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.",
       "category": "entities",
       "patterns": [
-        [ "selector:source", "int:y", "int:x" ]
+        [
+          "selector:source",
+          "int:y",
+          "int:x"
+        ]
       ]
     },
     "setblock": {
@@ -599,7 +938,14 @@
       "details": "Sets the block at a specific position, optionally using a replace mode.",
       "category": "blocks",
       "patterns": [
-        [ "coordinate:x", "coordinate:y", "coordinate:z", "string:block", "?int:data", "?id:replace mode" ]
+        [
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "string:block",
+          "?int:data",
+          "?id:replace mode"
+        ]
       ]
     },
     "fill": {
@@ -607,7 +953,17 @@
       "details": "Fills blocks in a specific region, optionally using a replace mode.",
       "category": "blocks",
       "patterns": [
-        [ "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "string:block", "?enum:fill mode", "?int:data" ]
+        [
+          "coordinate:x1",
+          "coordinate:y1",
+          "coordinate:z1",
+          "coordinate:x2",
+          "coordinate:y2",
+          "coordinate:z2",
+          "string:block",
+          "?enum:fill mode",
+          "?int:data"
+        ]
       ]
     },
     "scatter": {
@@ -616,7 +972,17 @@
       "details": "Randomly scatters blocks throughout a region with a certain percentage.",
       "category": "blocks",
       "patterns": [
-        [ "string:block", "int:percent", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "?string:seed" ]
+        [
+          "string:block",
+          "int:percent",
+          "coordinate:x1",
+          "coordinate:y1",
+          "coordinate:z1",
+          "coordinate:x2",
+          "coordinate:y2",
+          "coordinate:z2",
+          "?string:seed"
+        ]
       ]
     },
     "replace": {
@@ -624,7 +990,18 @@
       "details": "Replaces all source blocks with a result block in a specific region.",
       "category": "blocks",
       "patterns": [
-        [ "string:source block", "?int:data", "coordinate:x1", "coordinate:y1", "coordinate:z1", "coordinate:x2", "coordinate:y2", "coordinate:z2", "string:result block", "?int:data" ]
+        [
+          "string:source block",
+          "?int:data",
+          "coordinate:x1",
+          "coordinate:y1",
+          "coordinate:z1",
+          "coordinate:x2",
+          "coordinate:y2",
+          "coordinate:z2",
+          "string:result block",
+          "?int:data"
+        ]
       ]
     },
     "kill": {
@@ -632,7 +1009,9 @@
       "details": "Kills the given entities, causing the death animation, sounds, and particles to appear.",
       "category": "entities",
       "patterns": [
-        [ "?selector:target" ]
+        [
+          "?selector:target"
+        ]
       ]
     },
     "remove": {
@@ -640,7 +1019,9 @@
       "details": "Teleports the given entities deep into the void, causing a silent death. Looking to rewrite this in the future to generate entity code for real removal.",
       "category": "entities",
       "patterns": [
-        [ "?selector:target" ]
+        [
+          "?selector:target"
+        ]
       ]
     },
     "clear": {
@@ -648,7 +1029,12 @@
       "details": "Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.",
       "category": "items",
       "patterns": [
-        [ "?selector:target", "?string:item", "?int:data", "?int:max count" ]
+        [
+          "?selector:target",
+          "?string:item",
+          "?int:data",
+          "?int:max count"
+        ]
       ]
     },
     "globaltitle": {
@@ -657,11 +1043,24 @@
       "details": "Displays a title on the screen of all players in the game. Can also be used to set the timings of the title.",
       "category": "text",
       "patterns": [
-        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
-        [ "id:subtitle", "string:text" ],
-        [ "string:text" ]
+        [
+          "id:times",
+          "int:fade in",
+          "int:stay",
+          "int:fade out"
+        ],
+        [
+          "id:subtitle",
+          "string:text"
+        ],
+        [
+          "string:text"
+        ]
       ],
-      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
     },
     "title": {
       "description": "Show Title",
@@ -669,14 +1068,40 @@
       "details": "Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title.",
       "category": "text",
       "patterns": [
-        [ "selector:target", "id:times", "int:fade in", "int:stay", "int:fade out" ],
-        [ "selector:target", "id:subtitle", "string:text" ],
-        [ "selector:target", "string:text" ],
-        [ "id:times", "int:fade in", "int:stay", "int:fade out" ],
-        [ "id:subtitle", "string:text" ],
-        [ "string:text" ]
+        [
+          "selector:target",
+          "id:times",
+          "int:fade in",
+          "int:stay",
+          "int:fade out"
+        ],
+        [
+          "selector:target",
+          "id:subtitle",
+          "string:text"
+        ],
+        [
+          "selector:target",
+          "string:text"
+        ],
+        [
+          "id:times",
+          "int:fade in",
+          "int:stay",
+          "int:fade out"
+        ],
+        [
+          "id:subtitle",
+          "string:text"
+        ],
+        [
+          "string:text"
+        ]
       ],
-      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
     },
     "globalactionbar": {
       "description": "Show Actionbar to All Players",
@@ -684,9 +1109,14 @@
       "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar.",
       "category": "text",
       "patterns": [
-        [ "string:text" ]
+        [
+          "string:text"
+        ]
       ],
-      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
     },
     "actionbar": {
       "description": "Show Actionbar",
@@ -694,16 +1124,23 @@
       "details": "Displays an actionbar on the screen of the executing player, or to the given one if specified.",
       "category": "text",
       "patterns": [
-        [ "string:text" ]
+        [
+          "string:text"
+        ]
       ],
-      "attributes": [ "DONT_RESOLVE_STRINGS", "USES_FSTRING" ]
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
     },
     "say": {
       "description": "Say",
       "details": "Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.",
       "category": "text",
       "patterns": [
-        [ "string:message" ]
+        [
+          "string:message"
+        ]
       ]
     },
     "halt": {
@@ -717,11 +1154,48 @@
       "details": "Summons an entity; matches Minecraft vanilla syntax.",
       "category": "entities",
       "patterns": [
-        [ "id:type" ],
-        [ "id:type", "string:name tag", "?coordinate:x", "?coordinate:y", "?coordinate:z" ],
-        [ "id:type", "coordinate:x", "coordinate:y", "coordinate:z", "coordinate:y rotation", "coordinate:x rotation", "?string:spawn event", "?string:name tag" ],
-        [ "id:type", "coordinate:x", "coordinate:y", "coordinate:z", "id:facing", "selector:entity to face", "?string:spawn event", "?string:name tag" ],
-        [ "id:type", "coordinate:x", "coordinate:y", "coordinate:z", "id:facing", "coordinate:face x", "coordinate:face y", "coordinate:face z", "?string:spawn event", "?string:name tag" ]
+        [
+          "id:type"
+        ],
+        [
+          "id:type",
+          "string:name tag",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z"
+        ],
+        [
+          "id:type",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "coordinate:y rotation",
+          "coordinate:x rotation",
+          "?string:spawn event",
+          "?string:name tag"
+        ],
+        [
+          "id:type",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "id:facing",
+          "selector:entity to face",
+          "?string:spawn event",
+          "?string:name tag"
+        ],
+        [
+          "id:type",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "id:facing",
+          "coordinate:face x",
+          "coordinate:face y",
+          "coordinate:face z",
+          "?string:spawn event",
+          "?string:name tag"
+        ]
       ]
     },
     "damage": {
@@ -729,10 +1203,31 @@
       "details": "Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
       "category": "entities",
       "patterns": [
-        [ "selector:target", "int:amount", "?enum:damage cause" ],
-        [ "selector:target", "int:amount", "?enum:damage cause", "selector:blame" ],
-        [ "selector:target", "int:amount", "?enum:damage cause", "string:blame" ],
-        [ "selector:target", "int:amount", "?enum:damage cause", "coordinate:from x", "coordinate:from y", "coordinate: from z" ]
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause"
+        ],
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause",
+          "selector:blame"
+        ],
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause",
+          "string:blame"
+        ],
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause",
+          "coordinate:from x",
+          "coordinate:from y",
+          "coordinate: from z"
+        ]
       ]
     },
     "effect": {
@@ -740,8 +1235,17 @@
       "details": "Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect \\<selector\\> clear'.",
       "category": "entities",
       "patterns": [
-        [ "selector:target", "id:clear" ],
-        [ "selector:target", "enum:effect", "?int:seconds", "?int:amplifier", "?bool:hide" ]
+        [
+          "selector:target",
+          "id:clear"
+        ],
+        [
+          "selector:target",
+          "enum:effect",
+          "?int:seconds",
+          "?int:amplifier",
+          "?bool:hide"
+        ]
       ]
     },
     "playsound": {
@@ -750,7 +1254,16 @@
       "details": "Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.",
       "category": "cosmetic",
       "patterns": [
-        [ "string:sound", "?selector:who", "?coordinate:x", "?coordinate:y", "?coordinate:z", "?number:volume", "?number:pitch", "?number:minimum volume" ]
+        [
+          "string:sound",
+          "?selector:who",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z",
+          "?number:volume",
+          "?number:pitch",
+          "?number:minimum volume"
+        ]
       ]
     },
     "particle": {
@@ -758,7 +1271,12 @@
       "details": "Spawns a particle effect in the world.",
       "category": "cosmetic",
       "patterns": [
-        [ "string:effect", "?coordinate:x", "?coordinate:y", "?coordinate:z" ]
+        [
+          "string:effect",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z"
+        ]
       ]
     },
     "dummy": {
@@ -768,10 +1286,31 @@
       "category": "features",
       "features": 1,
       "patterns": [
-        [ "id:create", "string:name", "?string:tag", "?coordinate:x", "?coordinate:y", "?coordinate:x" ],
-        [ "id:single", "string:name", "?string:tag", "?coordinate:x", "?coordinate:y", "?coordinate:x" ],
-        [ "id:removeall", "?string:tag" ],
-        [ "id:remove", "string:name", "?string:tag" ]
+        [
+          "id:create",
+          "string:name",
+          "?string:tag",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:x"
+        ],
+        [
+          "id:single",
+          "string:name",
+          "?string:tag",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:x"
+        ],
+        [
+          "id:removeall",
+          "?string:tag"
+        ],
+        [
+          "id:remove",
+          "string:name",
+          "?string:tag"
+        ]
       ]
     },
     "tag": {
@@ -779,7 +1318,11 @@
       "details": "Add and remove tags from the given entity.",
       "category": "entities",
       "patterns": [
-        [ "selector:target", "id:mode", "string:name" ]
+        [
+          "selector:target",
+          "id:mode",
+          "string:name"
+        ]
       ]
     },
     "explode": {
@@ -789,7 +1332,15 @@
       "category": "features",
       "features": 4,
       "patterns": [
-        [ "?coordinate:x", "?coordinate:y", "?coordinate:z", "?int:power", "?int:delay", "?bool:causes fire", "?bool:breaks blocks" ]
+        [
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z",
+          "?int:power",
+          "?int:delay",
+          "?bool:causes fire",
+          "?bool:breaks blocks"
+        ]
       ]
     },
     "feature": {
@@ -798,20 +1349,31 @@
       "details": "Enables a feature to be used for this project, generating any of the necessary files.",
       "category": "features",
       "patterns": [
-        [ "id:feature name" ]
+        [
+          "id:feature name"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE" ]
+      "attributes": [
+        "DONT_DECORATE"
+      ]
     },
     "function": {
       "description": "Define Function",
       "wiki_link": "Functions.md#defining-functions",
-      "aliases": [ "fn" ],
+      "aliases": [
+        "fn"
+      ],
       "details": "Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`",
       "category": "logic",
       "patterns": [
-        [ "*:args" ]
+        [
+          "*:args"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE", "DOCUMENTABLE" ]
+      "attributes": [
+        "DONT_DECORATE",
+        "DOCUMENTABLE"
+      ]
     },
     "test": {
       "description": "Define Test",
@@ -819,9 +1381,14 @@
       "details": "Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.",
       "category": "debug",
       "patterns": [
-        [ "id:test name" ]
+        [
+          "id:test name"
+        ]
       ],
-      "attributes": [ "DONT_DECORATE", "DOCUMENTABLE" ]
+      "attributes": [
+        "DONT_DECORATE",
+        "DOCUMENTABLE"
+      ]
     },
     "return": {
       "description": "Set Return Value",
@@ -830,8 +1397,12 @@
       "category": "logic",
       "function": "returnFromFunction",
       "patterns": [
-        [ "value:variable" ],
-        [ "any:return value" ]
+        [
+          "value:variable"
+        ],
+        [
+          "any:return value"
+        ]
       ]
     },
     "dialogue": {
@@ -840,9 +1411,22 @@
       "details": "If followed by a block, defines a new dialogue scene with the given name.",
       "category": "text",
       "patterns": [
-        [ "id:new", "string:scene tag" ],
-        [ "id:open", "selector:npc", "selector:player", "?string:scene tag" ],
-        [ "id:change", "selector:npc", "string:scene tag", "?selector:player" ]
+        [
+          "id:new",
+          "string:scene tag"
+        ],
+        [
+          "id:open",
+          "selector:npc",
+          "selector:player",
+          "?string:scene tag"
+        ],
+        [
+          "id:change",
+          "selector:npc",
+          "string:scene tag",
+          "?selector:player"
+        ]
       ]
     },
     "for": {
@@ -852,8 +1436,16 @@
       "category": "logic",
       "function": "forEntities",
       "patterns": [
-        [ "selector:entities", "id:at", "coordinate:x", "coordinate:y", "coordinate:z" ],
-        [ "selector:entities" ]
+        [
+          "selector:entities",
+          "id:at",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z"
+        ],
+        [
+          "selector:entities"
+        ]
       ]
     },
     "execute": {
@@ -861,7 +1453,10 @@
       "details": "Begins a vanilla Minecraft execute chain. Can be followed by a statement or code-block, but does not explicitly support the 'run' subcommand.",
       "category": "logic",
       "patterns": [
-        [ "id:subcommand", "*:subcommand arguments" ]
+        [
+          "id:subcommand",
+          "*:subcommand arguments"
+        ]
       ]
     },
     "await": {
@@ -870,12 +1465,24 @@
       "details": "Works in async functions. Awaits a certain amount of time, for a condition to be met, or another async function to complete executing.",
       "category": "logic",
       "patterns": [
-        [ "int:ticks" ],
-        [ "id:until", "*:conditions" ],
-        [ "id:while", "*:conditions" ],
-        [ "awaitable:awaitable" ]
+        [
+          "int:ticks"
+        ],
+        [
+          "id:until",
+          "*:conditions"
+        ],
+        [
+          "id:while",
+          "*:conditions"
+        ],
+        [
+          "awaitable:awaitable"
+        ]
       ],
-      "attributes": [ "CAUSES_ASYNC_SPLIT" ]
+      "attributes": [
+        "CAUSES_ASYNC_SPLIT"
+      ]
     }
   }
 }
