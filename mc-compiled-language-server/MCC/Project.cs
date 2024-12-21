@@ -113,6 +113,7 @@ public class Project
         
         // insert newCode at startCharacter
         lineBuilder.Insert(startCharacter, newCode);
+        this.isCodeProcessed = false;
     }
     public void UpdateCodeSection(OmniSharp.Extensions.LanguageServer.Protocol.Models.Range? range, string codeToChange)
     {
@@ -147,6 +148,7 @@ public class Project
                 UpdateCodeSection(i, 0, this.code[i].Length, codeToChangeLines[a++]);
             UpdateCodeSection(endLine, 0, endCharacter, codeToChangeLines[a]);
         }
+        this.isCodeProcessed = false;
     }
     
     /// <summary>
