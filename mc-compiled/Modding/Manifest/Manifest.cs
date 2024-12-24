@@ -43,7 +43,7 @@ public class Manifest : IAddonFile
         this.modules = [];
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
 
     public byte[] GetOutputData()
     {

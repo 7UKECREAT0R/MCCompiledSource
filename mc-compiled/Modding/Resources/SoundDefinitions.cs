@@ -28,7 +28,7 @@ public class SoundDefinitions : IAddonFile
             AddSoundDefinition(definition);
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
     public string GetExtendedDirectory()
     {
         return null;

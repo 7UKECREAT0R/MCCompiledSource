@@ -86,7 +86,7 @@ public abstract partial class Typedef
     /// <exception cref="NotImplementedException"></exception>
     public virtual ITypeStructure AcceptPattern(Statement statement)
     {
-        throw new NotImplementedException();
+        throw new Exception("Not implemented. This is a bug if you're seeing this and should be reported.");
     }
     /// <summary>
     ///     Accepts the given literal as input for this type's pattern.
@@ -97,7 +97,7 @@ public abstract partial class Typedef
     /// <exception cref="NotImplementedException"></exception>
     public virtual ITypeStructure AcceptLiteral(TokenLiteral literal)
     {
-        throw new NotImplementedException();
+        throw new Exception("Not implemented. This is a bug if you're seeing this and should be reported.");
     }
 
     /// <summary>

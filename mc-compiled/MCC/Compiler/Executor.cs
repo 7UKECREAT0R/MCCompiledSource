@@ -70,6 +70,7 @@ public class Executor
 
     internal int depth;
     private DialogueManager dialogueDefinitions;
+    internal bool isLibrary = false;
 
     /// <summary>
     ///     The number of iterations until the <see cref="deferredActions" /> are processed in order of newest-to-oldest.

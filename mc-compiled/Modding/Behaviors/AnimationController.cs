@@ -33,7 +33,7 @@ public class AnimationController : IAddonFile
 
     public string Identifier => "controller.animation." + this.name;
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
 
     public string GetExtendedDirectory()
     {

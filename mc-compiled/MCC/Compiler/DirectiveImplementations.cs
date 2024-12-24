@@ -499,8 +499,24 @@ public static class DirectiveImplementations
         TokenCompare.Type compare = tokens.Next<TokenCompare>("comparison operator").GetCompareType();
         dynamic[] tokensB = FetchPPVOrDynamics(executor, tokens, true);
 
+        string message = tokens.NextIs<TokenStringLiteral>(true)
+            ? tokens.Next<TokenStringLiteral>("message").text
+            : null;
+
         // if the assertion passed
         bool result = true;
+
+        // the 'message' parameter may have gotten swept up in the
+        // FetchPPVOrDynamics call, so we'll try to extract it here.
+        if (tokensA.Length == tokensB.Length - 1)
+        {
+            dynamic lastToken = tokensB.Last();
+            if (lastToken is string messageLiteral)
+            {
+                tokensB = tokensB.Take(tokensB.Length - 1).ToArray();
+                message = messageLiteral;
+            }
+        }
 
         if (tokensA.Length != tokensB.Length)
         {
@@ -538,9 +554,14 @@ public static class DirectiveImplementations
         if (result)
             return;
 
-        string leftSide = tokensA.Length > 1 ? $"[{string.Join(", ", tokensA)}]" : tokensA[0].ToString();
-        string rightSide = tokensB.Length > 1 ? $"[{string.Join(", ", tokensB)}]" : tokensB[0].ToString();
-        throw new StatementException(tokens, $"Assertion failed: {leftSide} {compare} {rightSide}");
+        if (message == null)
+        {
+            string leftSide = tokensA.Length > 1 ? $"[{string.Join(", ", tokensA)}]" : tokensA[0].ToString();
+            string rightSide = tokensB.Length > 1 ? $"[{string.Join(", ", tokensB)}]" : tokensB[0].ToString();
+            throw new StatementException(tokens, $"Assertion failed: {leftSide} {compare} {rightSide}");
+        }
+
+        throw new StatementException(tokens, message);
     }
     [UsedImplicitly]
     public static void _repeat(Executor executor, Statement tokens)
@@ -643,7 +664,7 @@ public static class DirectiveImplementations
             executor.Next(); // skip over those
 
         executor.Next<StatementCloseBlock>();
-        var macro = new Macro(macroName, docs, args.ToArray(), statements);
+        var macro = new Macro(macroName, docs, args.ToArray(), statements, executor.isLibrary);
         executor.RegisterMacro(macro);
     }
     private static void _macrocall(Executor executor, Statement tokens)
@@ -697,10 +718,19 @@ public static class DirectiveImplementations
         }
         catch (StatementException e)
         {
-            // set it so that the error is placed at the location of the call and the macro.
-            int[] exceptionLines = e.statement.Lines.Concat(tokens.Lines).ToArray();
-            string exceptionSource = tokens.Source + ": " + e.statement.Source;
-            e.statement.SetSource(exceptionLines, exceptionSource);
+            if (lookedUp.isFromLibrary)
+            {
+                // only show the error at the call site, since the macro's code is located out-of-file.
+                e.statement.SetSource(tokens.Lines, tokens.Source + ": " + e.statement.Source);
+            }
+            else
+            {
+                // set it so that the error is placed at the location of the call and the macro.
+                int[] exceptionLines = e.statement.Lines.Concat(tokens.Lines).ToArray();
+                string exceptionSource = tokens.Source + ": " + e.statement.Source;
+                e.statement.SetSource(exceptionLines, exceptionSource);
+            }
+
             throw;
         }
 
@@ -750,10 +780,15 @@ public static class DirectiveImplementations
         }
 
         string previousDirectory = Environment.CurrentDirectory;
+        bool previousIsLibrary = executor.isLibrary;
+
         Environment.CurrentDirectory = Path.GetDirectoryName(file) ?? previousDirectory;
 
+        executor.isLibrary = true;
         executor.ExecuteSubsection(statements);
+
         Environment.CurrentDirectory = previousDirectory;
+        executor.isLibrary = previousIsLibrary;
     }
     [UsedImplicitly]
     public static void _strfriendly(Executor executor, Statement tokens)
@@ -1631,12 +1666,6 @@ public static class DirectiveImplementations
         executor.AddCommands(startLoopCommands, "beginRepeat",
             $"Begins a loop that repeats {repetitionsString} times. Located in {file.CommandReference} line {executor.NextLineNumber}.");
 
-        // async handling
-        /*if (!executor.async.IsInAsync)
-        {
-            executor
-        }*/
-
         if (nextStatement is StatementOpenBlock openBlock)
         {
             openBlock.SetLangContext("repeat");
@@ -2361,6 +2390,174 @@ public static class DirectiveImplementations
     {
         string str = tokens.Next<TokenStringLiteral>("text");
         executor.AddCommand(Command.Say(str));
+    }
+    [UsedImplicitly]
+    public static void camera(Executor executor, Statement tokens)
+    {
+        string players = tokens.Next<TokenSelectorLiteral>("players").ToString();
+        string rootSubcommand = tokens.Next<TokenIdentifier>("subcommand").word.ToUpper();
+
+        string finalCommand = null;
+
+        switch (rootSubcommand)
+        {
+            case "CLEAR":
+            {
+                finalCommand = Command.CameraClear(players);
+                break;
+            }
+            case "FADE":
+            {
+                bool hasTime = false, hasColor = false;
+                decimal fadeInSeconds = 0.0M,
+                    holdSeconds = 0.0M,
+                    fadeOutSeconds = 0.0M;
+                int red = 0, green = 0, blue = 0;
+
+                while (tokens.NextIs<TokenIdentifier>(true))
+                {
+                    string fadeSubcommand = tokens.Next<TokenIdentifier>("fade subcommand").word.ToUpper();
+
+                    if (fadeSubcommand.Equals("TIME"))
+                    {
+                        if (hasTime)
+                            throw new StatementException(tokens,
+                                "Camera fade subcommand 'time' may only be used once.");
+
+                        fadeInSeconds = tokens.Next<TokenNumberLiteral>("fade in seconds").GetNumber();
+                        holdSeconds = tokens.Next<TokenNumberLiteral>("hold seconds").GetNumber();
+                        fadeOutSeconds = tokens.Next<TokenNumberLiteral>("fade out seconds").GetNumber();
+                        hasTime = true;
+                    }
+                    else if (fadeSubcommand.Equals("COLOR"))
+                    {
+                        if (hasColor)
+                            throw new StatementException(tokens,
+                                "Camera fade subcommand 'color' may only be used once.");
+
+                        red = tokens.Next<TokenIntegerLiteral>("red").number;
+                        green = tokens.Next<TokenIntegerLiteral>("green").number;
+                        blue = tokens.Next<TokenIntegerLiteral>("blue").number;
+                        hasColor = true;
+                    }
+                    else
+                    {
+                        throw new StatementException(tokens,
+                            "Invalid camera fade subcommand '" + fadeSubcommand + "'. Must be 'time' or 'color'.");
+                    }
+                }
+
+                if (hasTime && hasColor)
+                    finalCommand = Command.CameraFade(players, fadeInSeconds, holdSeconds, fadeOutSeconds, red, green,
+                        blue);
+                else if (hasTime)
+                    finalCommand = Command.CameraFade(players, fadeInSeconds, holdSeconds, fadeOutSeconds);
+                else if (hasColor)
+                    finalCommand = Command.CameraFade(players, red, green, blue);
+                else
+                    finalCommand = Command.CameraFade(players);
+                break;
+            }
+            case "SET":
+            {
+                string preset = tokens.Next<TokenStringLiteral>("preset").text;
+
+                if (preset.IndexOf(':') == -1)
+                {
+                    // try to parse a minecraft-defined CameraPreset
+                    if (Enum.TryParse(preset, true, out CameraPreset cameraPreset))
+                        preset = "minecraft:" + cameraPreset;
+                    else
+                        throw new StatementException(tokens,
+                            "Invalid camera preset '" + preset + "'. Did you forget the namespace?");
+                }
+
+                CameraBuilder builder = Command.Camera(players, preset);
+
+                while (tokens.NextIs<TokenIdentifier>(true, false))
+                {
+                    string subcommand = tokens.Next<TokenIdentifier>("camera set subcommand").word.ToUpper();
+                    switch (subcommand)
+                    {
+                        case "DEFAULT":
+                            goto done;
+                        case "ENTITY_OFFSET":
+                        {
+                            decimal x = tokens.Next<TokenCoordinateLiteral>("entity offset x").GetNumber();
+                            decimal y = tokens.Next<TokenCoordinateLiteral>("entity offset y").GetNumber();
+                            decimal z = tokens.Next<TokenCoordinateLiteral>("entity offset z").GetNumber();
+                            builder = builder.WithEntityOffset(x, y, z, tokens);
+                            break;
+                        }
+                        case "VIEW_OFFSET":
+                        {
+                            decimal x = tokens.Next<TokenCoordinateLiteral>("view offset x").GetNumber();
+                            decimal y = tokens.Next<TokenCoordinateLiteral>("view offset y").GetNumber();
+                            builder = builder.WithViewOffset(x, y, tokens);
+                            break;
+                        }
+                        case "EASE":
+                        {
+                            decimal duration = tokens.Next<TokenNumberLiteral>("ease duration").GetNumber();
+                            ParsedEnumValue _easeType = tokens.Next<TokenIdentifierEnum>("ease type").value;
+                            _easeType.RequireType<Easing>(tokens);
+                            var easeType = (Easing) _easeType.value;
+                            builder = builder.WithEasing(easeType, duration);
+                            break;
+                        }
+                        case "FACING":
+                        {
+                            if (tokens.NextIs<TokenSelectorLiteral>(false, false))
+                            {
+                                Selector faceEntity = tokens.Next<TokenSelectorLiteral>(null);
+                                if (faceEntity.SelectsMultiple)
+                                    throw new StatementException(tokens,
+                                        "Camera set subcommand 'facing' can't target multiple entities. Perhaps use [c=1]?");
+                                builder = builder.WithFacing(faceEntity.ToString(), tokens);
+                            }
+                            else
+                            {
+                                Coordinate x = tokens.Next<TokenCoordinateLiteral>("facing x or entity");
+                                Coordinate y = tokens.Next<TokenCoordinateLiteral>("facing y");
+                                Coordinate z = tokens.Next<TokenCoordinateLiteral>("facing z");
+                                builder = builder.WithFacing(x, y, z, tokens);
+                            }
+
+                            break;
+                        }
+                        case "POSITIONED":
+                        case "POSITION":
+                        case "POS":
+                        {
+                            Coordinate x = tokens.Next<TokenCoordinateLiteral>("position x");
+                            Coordinate y = tokens.Next<TokenCoordinateLiteral>("position y");
+                            Coordinate z = tokens.Next<TokenCoordinateLiteral>("position z");
+                            builder = builder.WithPosition(x, y, z);
+                            break;
+                        }
+                        case "ROTATED":
+                        case "ROTATION":
+                        case "ROT":
+                        {
+                            decimal x = tokens.Next<TokenCoordinateLiteral>("rotation x").GetNumber();
+                            decimal y = tokens.Next<TokenCoordinateLiteral>("rotation y").GetNumber();
+                            builder = builder.WithRotation(x, y, tokens);
+                            break;
+                        }
+                    }
+                }
+
+                done:
+
+                finalCommand = builder.Build();
+                break;
+            }
+            default:
+                throw new StatementException(tokens,
+                    $"Invalid camera subcommand '{rootSubcommand}'. Must be 'clear', 'fade', or 'set'.");
+        }
+
+        executor.AddCommand(finalCommand);
     }
 
     [UsedImplicitly]

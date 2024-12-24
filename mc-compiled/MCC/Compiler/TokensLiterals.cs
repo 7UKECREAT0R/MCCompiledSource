@@ -208,12 +208,14 @@ public sealed class TokenAttribute(IAttribute attribute, int lineNumber) : Token
 
     public override TokenLiteral Clone()
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot clone an attribute.");
     }
 
     public override string ToString()
     {
-        throw new NotImplementedException();
+        if (this.attribute == null)
+            return "[attribute: none]";
+        return "[attribute: " + this.attribute.GetCodeRepresentation() + ']';
     }
 
     public override Typedef GetTypedef()
@@ -634,7 +636,7 @@ public sealed class TokenBooleanLiteral(bool boolean, int lineNumber)
     }
     public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
     {
-        throw new NotImplementedException("Cannot compare boolean to another type.");
+        throw new TokenException(this, "Cannot compare a boolean to another type.");
     }
 }
 
@@ -1348,27 +1350,27 @@ public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
 
     public override TokenLiteral AddWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with selectors.");
     }
     public override TokenLiteral SubWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with selectors.");
     }
     public override TokenLiteral MulWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with selectors.");
     }
     public override TokenLiteral DivWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with selectors.");
     }
     public override TokenLiteral ModWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with selectors.");
     }
     public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
     {
-        throw new NotImplementedException("Cannot compare selector to another type.");
+        throw new TokenException(this, "Cannot compare a selector to another type.");
     }
 }
 
@@ -1464,26 +1466,26 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
     }
     public override TokenLiteral AddWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with JSON tokens.");
     }
     public override TokenLiteral SubWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with JSON tokens.");
     }
     public override TokenLiteral MulWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with JSON tokens.");
     }
     public override TokenLiteral DivWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with JSON tokens.");
     }
     public override TokenLiteral ModWithOther(TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform operations like this with JSON tokens.");
     }
     public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
     {
-        throw new NotImplementedException();
+        throw new TokenException(this, "Cannot perform comparisons with JSON tokens.");
     }
 }

@@ -318,29 +318,33 @@
     "$assert": {
       "description": "Preprocessor Assertion",
       "wiki_link": "Debugging.md#assertions",
-      "details": "Asserts that the input comparison is true, and throws a compiler error if not.",
+      "details": "Asserts that the input comparison is true, and throws a compiler error if not. Allows a custom error message.",
       "category": "debug",
       "function": "_assert",
       "patterns": [
         [
           "object:a",
           "compare:comparison",
-          "object:b"
+          "object:b",
+          "?string:message"
         ],
         [
           "id:a",
           "compare:comparison",
-          "object:b"
+          "object:b",
+          "?string:message"
         ],
         [
           "object:a",
           "compare:comparison",
-          "id:b"
+          "id:b",
+          "?string:message"
         ],
         [
           "id:a",
           "compare:comparison",
-          "id:b"
+          "id:b",
+          "?string:message"
         ]
       ],
       "attributes": [
@@ -1140,6 +1144,17 @@
       "patterns": [
         [
           "string:message"
+        ]
+      ]
+    },
+    "camera": {
+      "description": "Camera",
+      "details": "Modify the camera of the given players, identical to the vanilla command with much more fault-tolerance.",
+      "category": "cosmetic",
+      "patterns": [
+        [
+          "selector:players",
+          "id:subcommand"
         ]
       ]
     },

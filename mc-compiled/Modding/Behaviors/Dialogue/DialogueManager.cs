@@ -25,7 +25,7 @@ public class DialogueManager : IAddonFile
         this.scenes = new Dictionary<string, Scene>(StringComparer.OrdinalIgnoreCase);
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
     public string GetExtendedDirectory()
     {
         return null;

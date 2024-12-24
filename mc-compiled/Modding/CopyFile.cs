@@ -27,7 +27,7 @@ internal class CopyFile : IAddonFile
             this.outputFile = Path.GetFileName(sourceFile);
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
     public string GetExtendedDirectory()
     {
         return this.outputDirectoryExtra;
@@ -38,8 +38,8 @@ internal class CopyFile : IAddonFile
     }
     public byte[] GetOutputData()
     {
-        throw new NotImplementedException();
         // handled by ProjectManager.Instance.WriteSingleFile(..)
+        return [];
     }
     public OutputLocation GetOutputLocation()
     {

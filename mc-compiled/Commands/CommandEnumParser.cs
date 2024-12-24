@@ -90,7 +90,9 @@ public readonly struct ParsedEnumValue
             return;
 
         string reqEnumName = typeof(T).Name;
-        throw new StatementException(thrower, $"Must specify {reqEnumName}; Given {this.enumType.Name}.");
+        string[] possibleValues = Enum.GetNames(this.enumType);
+        throw new StatementException(thrower,
+            $"Must specify {reqEnumName}; Given {this.enumType.Name}. Possible values: {string.Join(", ", possibleValues)}");
     }
 }
 

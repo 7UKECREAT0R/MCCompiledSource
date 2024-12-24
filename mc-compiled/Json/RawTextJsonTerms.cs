@@ -61,15 +61,20 @@ public class JSONText : JSONRawTerm
 
     public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
+        bool hasNewlines = this.text.Contains(@"\\n");
+
         if (!executor.HasLocale)
+        {
+            if (hasNewlines)
+                this.text = this.text.Replace(@"\\n", "~LINEBREAK~");
             return [new JSONText(this.text)];
+        }
 
         // find leading/trailing whitespace
         int leadingWhitespace = this.text.TakeWhile(char.IsWhiteSpace).Count();
         int trailingWhitespace = this.text.Reverse().TakeWhile(char.IsWhiteSpace).Count();
 
         // find unescaped newlines in this.text
-        bool hasNewlines = this.text.Contains(@"\\n");
         if (hasNewlines)
             this.text = this.text.Replace(@"\\n", "%1");
         this.text = this.text.Replace("\\", ""); // this is really stupid and prone to break

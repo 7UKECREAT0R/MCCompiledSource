@@ -54,7 +54,7 @@ internal class Lang : IAddonFile
         FindHeader();
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
     public string GetExtendedDirectory()
     {
         return null;

@@ -48,7 +48,7 @@ public sealed class RawFile : IAddonFile
         this.data = data;
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
     public string GetExtendedDirectory()
     {
         return null;

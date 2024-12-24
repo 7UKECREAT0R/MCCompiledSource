@@ -68,6 +68,6 @@ public sealed class EntityScriptAnimate : EntityScript
 {
     public override JProperty AsProperty()
     {
-        throw new NotImplementedException();
+        return null;
     }
 }

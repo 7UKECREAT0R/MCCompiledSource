@@ -19,7 +19,7 @@ public class EntityGeometry : IAddonFile
         this.textureHeight = 16;
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
 
     public string GetExtendedDirectory()
     {

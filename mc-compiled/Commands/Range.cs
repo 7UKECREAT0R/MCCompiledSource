@@ -21,6 +21,9 @@ public struct Range : IEquatable<Range>
     public int? min;
     public int? max;
 
+    /// <summary>
+    ///     Returns if this range repeats forever in either direction.
+    /// </summary>
     public bool IsUnbounded => this.invert || !this.min.HasValue || !this.max.HasValue;
 
     public Range(int? min, int? max, bool not = false)

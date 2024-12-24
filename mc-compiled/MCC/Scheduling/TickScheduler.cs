@@ -27,7 +27,7 @@ public class TickScheduler : IAddonFile
         this.executor = executor;
     }
 
-    public string CommandReference => throw new NotImplementedException();
+    public string CommandReference => null;
     public byte[] GetOutputData()
     {
         var json = new JObject

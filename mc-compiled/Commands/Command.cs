@@ -79,6 +79,36 @@ public static class Command
         return $"alwaysday {enabled.ToString().ToLower()}";
     }
 
+    public static string CameraClear(string players)
+    {
+        return $"camera {players} clear";
+    }
+    public static string CameraFade(string players)
+    {
+        return $"camera {players} fade";
+    }
+    public static string CameraFade(string players, int red, int green, int blue)
+    {
+        return $"camera {players} fade color {red} {green} {blue}";
+    }
+    public static string CameraFade(string players, decimal fadeInSeconds, decimal holdSeconds, decimal fadeOutSeconds)
+    {
+        return $"camera {players} fade time {fadeInSeconds} {holdSeconds} {fadeOutSeconds}";
+    }
+    public static string CameraFade(string players, decimal fadeInSeconds, decimal holdSeconds, decimal fadeOutSeconds,
+        int red, int green, int blue)
+    {
+        return $"camera {players} fade time {fadeInSeconds} {holdSeconds} {fadeOutSeconds} color {red} {green} {blue}";
+    }
+    public static CameraBuilder Camera(string players, CameraPreset minecraftPreset)
+    {
+        return new CameraBuilder(players, "minecraft:" + minecraftPreset);
+    }
+    public static CameraBuilder Camera(string players, string namespacedPreset)
+    {
+        return new CameraBuilder(players, namespacedPreset);
+    }
+
     public static string CameraShake(string target)
     {
         return $"camerashake add {target}";
@@ -1356,6 +1386,52 @@ public enum CameraShakeType
 {
     positional,
     rotational
+}
+
+public enum CameraPreset
+{
+    first_person,
+    follow_orbit,
+    free,
+    third_person,
+    third_person_front
+}
+
+[EnumParsable(typeof(Easing))]
+public enum Easing
+{
+    linear,
+    spring,
+    in_quad,
+    out_quad,
+    in_out_quad,
+    in_cubic,
+    out_cubic,
+    in_out_cubic,
+    in_quart,
+    out_quart,
+    in_out_quart,
+    in_quint,
+    out_quint,
+    in_out_quint,
+    in_sine,
+    out_sine,
+    in_out_sine,
+    in_expo,
+    out_expo,
+    in_out_expo,
+    in_circ,
+    out_circ,
+    in_out_circ,
+    in_bounce,
+    out_bounce,
+    in_out_bounce,
+    in_back,
+    out_back,
+    in_out_back,
+    in_elastic,
+    out_elastic,
+    in_out_elastic
 }
 
 public enum CloneMode
