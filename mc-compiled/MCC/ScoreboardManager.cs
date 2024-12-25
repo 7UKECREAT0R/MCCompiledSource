@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Commands;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
@@ -200,10 +201,12 @@ public class ScoreboardManager
 
         if (name == null)
         {
-            if (!tokens.NextIs<TokenStringLiteral>(false))
+            if (!tokens.NextIs<TokenStringLiteral>(false)) // false because we throw a custom error message
                 throw new StatementException(tokens, "No name specified after type.");
             name = tokens.Next<TokenStringLiteral>(null);
         }
+
+        name.ThrowIfWhitespace("value name", tokens);
 
         // the default value to set it to.
         Token defaultValue = null;
@@ -222,7 +225,7 @@ public class ScoreboardManager
             return definition;
         if (defaultValue == null)
             throw new StatementException(tokens,
-                $"Cannot infer value \"{name}\"s type because there is no default value in its declaration. Hint: 'define name = 123'");
+                $"Cannot infer value \"{name}\"s type because there is no default value in its declaration. Hint: 'define name = ...'");
 
         definition.InferType(tokens);
 

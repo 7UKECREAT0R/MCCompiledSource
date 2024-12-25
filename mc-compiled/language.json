@@ -9,6 +9,227 @@
     "_true",
     "_false"
   ],
+  "syntax": {
+    "extension": "mcc",
+    "ignore_case": false,
+    "comment_folding": true,
+    "compact_folding": false,
+    "special_characters": {
+      "range_delimiter": "..",
+      "invert_delimiter": "!",
+      "bracket_open": "[",
+      "bracket_close": "]",
+      "block_open": "{",
+      "block_close": "}",
+      "string_delimiters": [
+        "\"",
+        "'"
+      ],
+      "escape": "\\",
+      "line_comment": "//",
+      "multiline_open": "/*",
+      "multiline_close": "*/",
+      "number_prefixes": [
+        "~",
+        "^",
+        "!",
+        ".."
+      ],
+      "number_suffixes": [
+        "h",
+        "m",
+        "s",
+        "t"
+      ],
+      "operators": [
+        "<",
+        ">",
+        "{",
+        "}",
+        "=",
+        "(",
+        ")",
+        "+",
+        "-",
+        "*",
+        "/",
+        "%",
+        "!"
+      ]
+    },
+    "global_keywords": {
+      "selectors": {
+        "@e": "References all entities in the world.",
+        "@a": "References all players in the world.",
+        "@s": "References the executing entity/player.",
+        "@p": "References the nearest player.",
+        "@r": "References a random entity."
+      },
+      "literals": {
+        "true": "A boolean value representing true/yes.",
+        "false": "A boolean value representing false/no.",
+        "not": "Invert the following comparison.",
+        "and": "Includes on another comparison.",
+        "null": "No value. Goes to 0/false under all types.",
+        "~": "Relative to executor's position.",
+        "^": "Relative to executor's direction."
+      },
+      "types": {
+        "int": "An integer, representing any whole value between -2147483648 to 2147483647.",
+        "decimal": "A decimal number with a pre-specified level of precision.",
+        "bool": "A true or false value. Displayed as whatever is set in the '_true' and '_false' preprocessor variables respectively.",
+        "time": "A value representing a number of ticks. Displayed as MM:SS."
+      }
+    },
+    "directive_specific_keywords": {
+      "feature": {
+        "dummies": "Enables the 'dummy' command.",
+        "autoinit": "Automatically re-runs the 'init' function when changes are made.",
+        "exploders": "Enables the 'explode' command.",
+        "uninstall": "Automatically generates an 'uninstall' function which will uninstall the addon.",
+        "tests": "Enables tests and generates a 'test' function.",
+        "audiofiles": "Enables support for 'playsound' command to accept audio files."
+      },
+      "$sort": {
+        "ascending": "Sorts the values, starting with the lowest.",
+        "descending": "Sorts the values, starting with the highest."
+      },
+      "tp": {
+        "facing": "Face the teleported entity towards a specific entity/position."
+      },
+      "give": {
+        "keep": "Item will stay in the player's inventory even after death.",
+        "lockinventory": "Lock the item in the player's inventory.",
+        "lockslot": "Lock the item in the slot it's located in inside the player's inventory.",
+        "canplaceon: ": "Adds a block that this block can be placed on in adventure mode.",
+        "candestroy: ": "Adds a block that this tool/item can break in adventure mode.",
+        "enchant: ": "Adds an enchantment to the item.",
+        "name: ": "Sets the display name of the item.",
+        "lore: ": "Adds a line of lore to the item.",
+        "title: ": "If the item is a written book, sets the title of the book.",
+        "author: ": "If the item is a written book, sets the author of the book.",
+        "page: ": "If the item is a written book, adds a page of text to the book.",
+        "dye: ": "If the item is leather armor, sets the dye color of the armor."
+      },
+      "move": {
+        "left": "Move the entity left relative to where it's looking.",
+        "right": "Move the entity right relative to where it's looking.",
+        "up": "Move the entity upwards.",
+        "down": "Move the entity downwards.",
+        "forward": "Move the entity forward relative to where it's looking.",
+        "backward": "Move the entity backward relative to where it's looking."
+      },
+      "scatter": {
+        "10": "Blocks will fill only 10% of the region randomly.",
+        "20": "Blocks will fill only 20% of the region randomly.",
+        "30": "Blocks will fill only 30% of the region randomly.",
+        "40": "Blocks will fill only 40% of the region randomly.",
+        "50": "Blocks will fill only 50% of the region randomly.",
+        "60": "Blocks will fill only 60% of the region randomly.",
+        "70": "Blocks will fill only 70% of the region randomly.",
+        "80": "Blocks will fill only 80% of the region randomly.",
+        "90": "Blocks will fill only 90% of the region randomly.",
+        "100": "Blocks will fill the entire region."
+      },
+      "globaltitle": {
+        "times": "Set the timings for future titles that are displayed.",
+        "subtitle": "Set the subtitle for the next title that's displayed."
+      },
+      "title": {
+        "times": "Set the timings for future titles that are displayed.",
+        "subtitle": "Set the subtitle for the next title that's displayed."
+      },
+      "camera": {
+        "clear": "Reset the camera to the default.",
+        "fade": "Fade the camera in and out with a given color.",
+        "set": "Set the camera.",
+        "set.default": "Sets the camera to its default settings.",
+        "set.entity_offset": "Offset the camera relative to its entity (world space).",
+        "set.view_offset": "Offset the camera relative to its entity (screen space).",
+        "set.ease": "Causes the camera to smoothly transition from its previous setting.",
+        "set.facing": "Rotate the camera to face either an entity, or a position in the world.",
+        "set.pos": "Sets the camera's position. Only really relevant when using the 'minecraft:free' preset.",
+        "set.rot": "Sets the camera's rotation. Only really relevant when using the 'minecraft:free' preset."
+      },
+      "summon": {
+        "facing": "Sets the entity/position the entity will face towards upon spawning."
+      },
+      "dummy": {
+        "create": "Create a new dummy.",
+        "single": "Create a new dummy, removing previous ones with the same name/tag as specified.",
+        "removeall": "Remove all dummies from the world.",
+        "remove": "Remove all dummies with the same name/tag as specified."
+      },
+      "tag": {
+        "add": "Adds a tag to the given entity.",
+        "remove": "Removes a tag from the given entity."
+      },
+      "effect": {
+        "clear": "Clear all effects from the given entity."
+      },
+      "if": {
+        "not": "Invert the next comparison.",
+        "and": "Add another comparison into this if-statement.",
+        "count": "Compare the number of entities that match the given selector.",
+        "any": "Check if any entities match the given selector.",
+        "block": "Check if a block matches a given filter.",
+        "blocks": "Check if two regions of blocks are identical."
+      },
+      "execute": {
+        "align": "Aligns the current position of the command to the block grid.",
+        "align.x": "Align to the X axis of the block grid.",
+        "align.y": "Align to the Y axis of the block grid.",
+        "align.z": "Align to the Z axis of the block grid.",
+        "align.xy": "Align to the X and Y axes of the block grid.",
+        "align.xz": "Align to the X and Z axes of the block grid.",
+        "align.yz": "Align to the Y and Z axes of the block grid.",
+        "align.xyz": "Align to the X, Y, and Z axes of the block grid.",
+        "anchored": "Execute at the location of a specific part of the executing entity.",
+        "anchored.eyes": "Set the executing position to the entity's eyes.",
+        "anchored.feet": "Set the executing position to the entity's feet.",
+        "as": "Execute as the given entity.",
+        "at": "Execute at the position of the given entity.",
+        "facing": "Execute facing another position/entity.",
+        "facing.entity": "Execute facing another entity.",
+        "if": "Execute if a certain condition passes.",
+        "if.score": "Execute if a value/scoreboard objective matches a condition.",
+        "if.entity": "Execute if a selector matches.",
+        "if.blocks": "Execute if two regions of blocks match.",
+        "if.block": "Execute if a block is present.",
+        "unless": "Execute unless a certain condition passes.",
+        "unless.score": "Execute unless a value/scoreboard objective matches a condition.",
+        "unless.entity": "Execute unless a selector matches.",
+        "unless.blocks": "Execute unless two regions of blocks match.",
+        "unless.block": "Execute unless a block is present.",
+        "in": "Execute in a specific dimension.",
+        "in.nether": "Execute in the Nether.",
+        "in.overworld": "Execute in the Overworld.",
+        "in.the_end": "Execute in The End.",
+        "positioned": "Execute at a specific position or relative to the current position.",
+        "positioned.as": "Execute at the position of the given entity, keep the current rotation though.",
+        "rotated": "Execute at a specific rotation or relative to the current rotation.",
+        "rotated.as": "Execute at the rotation of the given entity, keep the current position though.",
+        "run": "Followed by a block containing what to do under these execution rules."
+      },
+      "dialogue": {
+        "open": "Open a dialogue scene.",
+        "change": "Change the dialogue for a specific NPC.",
+        "new": "Define a new dialogue scene.",
+        "new.name: ": "Sets the name of the NPC when it has this dialogue.",
+        "new.text: ": "Sets the text content of this dialogue.",
+        "new.button: ": "Adds a button to this dialogue. Followed by a code block of what to do when clicked.",
+        "new.onopen: ": "Followed by a code block that will run when the dialogue is opened by a player.",
+        "new.onclose: ": "Followed by a code block that will run when the dialogue is opened by a player."
+      },
+      "for": {
+        "at": "Allows you to specify the position offset for each entity that's looped over."
+      },
+      "await": {
+        "until": "Wait until a condition returns true.",
+        "while": "Wait while a condition continues to return true."
+      }
+    }
+  },
   "features": {
     "DUMMIES": {
       "description": "Dummy Entities",

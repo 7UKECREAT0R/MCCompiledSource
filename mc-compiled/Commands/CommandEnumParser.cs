@@ -58,11 +58,18 @@ public static class CommandEnumParser
 
 public readonly struct ParsedEnumValue
 {
+    public static ParsedEnumValue None(string word)
+    {
+        return new ParsedEnumValue(null, word, true);
+    }
+
+    public readonly bool isNone = false;
     public readonly Type enumType;
     public readonly object value;
 
-    public ParsedEnumValue(Type enumType, object value)
+    public ParsedEnumValue(Type enumType, object value, bool isNone = false)
     {
+        this.isNone = isNone;
         this.enumType = enumType;
         this.value = value;
     }
@@ -73,6 +80,9 @@ public readonly struct ParsedEnumValue
     /// <returns></returns>
     public bool IsType<T>() where T : Enum
     {
+        if (this.isNone)
+            return false;
+
         string src = typeof(T).Name;
         return this.enumType.Name.Equals(src);
     }
@@ -86,13 +96,15 @@ public readonly struct ParsedEnumValue
     [Pure]
     public void RequireType<T>(Statement thrower) where T : Enum
     {
-        if (IsType<T>())
+        if (!this.isNone && IsType<T>())
             return;
 
         string reqEnumName = typeof(T).Name;
-        string[] possibleValues = Enum.GetNames(this.enumType);
+        string givenEnumName = this.enumType?.Name ?? (this.value == null ? "unknown" : $"text \"{this.value}\"");
+
+        string[] possibleValues = Enum.GetNames(typeof(T));
         throw new StatementException(thrower,
-            $"Must specify {reqEnumName}; Given {this.enumType.Name}. Possible values: {string.Join(", ", possibleValues)}");
+            $"Must specify {reqEnumName}; Given {givenEnumName}. Possible values: {string.Join(", ", possibleValues)}");
     }
 }
 
@@ -107,7 +119,7 @@ internal sealed class EnumParsableAttribute : Attribute
         IEnumerable<object> array = type.GetEnumValues().Cast<object>();
         foreach (object value in array)
         {
-            string key = value.ToString();
+            string key = value.ToString()!;
             var finalValue = new ParsedEnumValue(type, value);
             CommandEnumParser.Put(key, finalValue);
 

@@ -112,6 +112,7 @@ public static class DirectiveImplementations
     public static void _var(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
 
         if (tokens.NextIs<IPreprocessor>(true))
         {
@@ -130,6 +131,8 @@ public static class DirectiveImplementations
     public static void _inc(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         if (executor.TryGetPPV(varName, out PreprocessorVariable value))
             try
             {
@@ -147,6 +150,8 @@ public static class DirectiveImplementations
     public static void _dec(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         if (executor.TryGetPPV(varName, out PreprocessorVariable value))
             try
             {
@@ -164,6 +169,8 @@ public static class DirectiveImplementations
     public static void _add(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         dynamic[] a = FetchPPVOrDynamics(executor, tokens, false, varName);
         dynamic[] b = FetchPPVOrDynamics(executor, tokens, true);
 
@@ -192,6 +199,8 @@ public static class DirectiveImplementations
     public static void _sub(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         dynamic[] a = FetchPPVOrDynamics(executor, tokens, false, varName);
         dynamic[] b = FetchPPVOrDynamics(executor, tokens, true);
 
@@ -220,6 +229,8 @@ public static class DirectiveImplementations
     public static void _mul(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         dynamic[] a = FetchPPVOrDynamics(executor, tokens, false, varName);
         dynamic[] b = FetchPPVOrDynamics(executor, tokens, true);
 
@@ -248,6 +259,8 @@ public static class DirectiveImplementations
     public static void _div(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         dynamic[] a = FetchPPVOrDynamics(executor, tokens, false, varName);
         dynamic[] b = FetchPPVOrDynamics(executor, tokens, true);
 
@@ -276,6 +289,8 @@ public static class DirectiveImplementations
     public static void _mod(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         dynamic[] a = FetchPPVOrDynamics(executor, tokens, false, varName);
         dynamic[] b = FetchPPVOrDynamics(executor, tokens, true);
 
@@ -304,6 +319,8 @@ public static class DirectiveImplementations
     public static void _pow(Executor executor, Statement tokens)
     {
         string varName = tokens.Next<TokenIdentifier>("variable name").word;
+        varName.ThrowIfWhitespace("variable name", tokens);
+
         dynamic[] a = FetchPPVOrDynamics(executor, tokens, false, varName);
         dynamic[] b = FetchPPVOrDynamics(executor, tokens, true);
 
@@ -339,6 +356,9 @@ public static class DirectiveImplementations
         string aName = tokens.Next<TokenIdentifier>("variable name a").word;
         string bName = tokens.Next<TokenIdentifier>("variable name b").word;
 
+        aName.ThrowIfWhitespace("variable name a", tokens);
+        bName.ThrowIfWhitespace("variable name b", tokens);
+
         if (aName.Equals(bName))
             return;
 
@@ -363,6 +383,7 @@ public static class DirectiveImplementations
     public static void _append(Executor executor, Statement tokens)
     {
         string ppvName = tokens.Next<TokenIdentifier>("variable name").word;
+        ppvName.ThrowIfWhitespace("variable name", tokens);
 
         if (!executor.TryGetPPV(ppvName, out PreprocessorVariable modify))
             throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{ppvName}'.");
@@ -378,6 +399,7 @@ public static class DirectiveImplementations
     public static void _prepend(Executor executor, Statement tokens)
     {
         string ppvName = tokens.Next<TokenIdentifier>("variable name").word;
+        ppvName.ThrowIfWhitespace("variable name", tokens);
 
         if (!executor.TryGetPPV(ppvName, out PreprocessorVariable modify))
             throw new StatementException(tokens, $"Couldn't find preprocessor variable named '{ppvName}'.");
@@ -588,7 +610,10 @@ public static class DirectiveImplementations
         string tracker = null;
 
         if (tokens.NextIs<TokenIdentifier>(true))
+        {
             tracker = tokens.Next<TokenIdentifier>("variable name").word;
+            tracker.ThrowIfWhitespace("variable name", tokens);
+        }
 
         Statement[] statements = executor.NextExecutionSet(true);
 
@@ -649,11 +674,16 @@ public static class DirectiveImplementations
     private static void _macrodefine(Executor executor, Statement tokens)
     {
         string macroName = tokens.Next<TokenIdentifier>("macro name").word;
+        macroName.ThrowIfWhitespace("macro name", tokens);
         string docs = executor.GetDocumentationString(out _);
 
         var args = new List<string>();
         while (tokens.NextIs<TokenIdentifier>(false))
-            args.Add(tokens.Next<TokenIdentifier>("macro argument name").word);
+        {
+            string argName = tokens.Next<TokenIdentifier>("macro argument name").word;
+            argName.ThrowIfWhitespace("macro argument name", tokens);
+            args.Add(argName);
+        }
 
         var block = executor.Next<StatementOpenBlock>();
         block.ignoreAsync = true;
@@ -670,6 +700,7 @@ public static class DirectiveImplementations
     private static void _macrocall(Executor executor, Statement tokens)
     {
         string macroName = tokens.Next<TokenIdentifier>("macro name").word;
+        macroName.ThrowIfWhitespace("macro name", tokens);
         Macro? _lookedUp = executor.LookupMacro(macroName);
 
         if (!_lookedUp.HasValue)
@@ -794,6 +825,7 @@ public static class DirectiveImplementations
     public static void _strfriendly(Executor executor, Statement tokens)
     {
         string output = tokens.Next<TokenIdentifier>("output/input").word;
+        output.ThrowIfWhitespace("output", tokens);
         string input = tokens.NextIs<TokenIdentifier>(false, false)
             ? tokens.Next<TokenIdentifier>("input").word
             : output;
@@ -856,6 +888,7 @@ public static class DirectiveImplementations
     public static void _strupper(Executor executor, Statement tokens)
     {
         string output = tokens.Next<TokenIdentifier>("output/input").word;
+        output.ThrowIfWhitespace("output", tokens);
         string input = tokens.NextIs<TokenIdentifier>(false, false)
             ? tokens.Next<TokenIdentifier>("input").word
             : output;
@@ -881,6 +914,7 @@ public static class DirectiveImplementations
     public static void _strlower(Executor executor, Statement tokens)
     {
         string output = tokens.Next<TokenIdentifier>("output/input").word;
+        output.ThrowIfWhitespace("output", tokens);
         string input = tokens.NextIs<TokenIdentifier>(false, false)
             ? tokens.Next<TokenIdentifier>("input").word
             : output;
@@ -906,6 +940,7 @@ public static class DirectiveImplementations
     public static void _sum(Executor executor, Statement tokens)
     {
         string output = tokens.Next<TokenIdentifier>("output/input").word;
+        output.ThrowIfWhitespace("output", tokens);
         string input = tokens.NextIs<TokenIdentifier>(false, false)
             ? tokens.Next<TokenIdentifier>("input").word
             : output;
@@ -929,6 +964,7 @@ public static class DirectiveImplementations
     public static void _median(Executor executor, Statement tokens)
     {
         string output = tokens.Next<TokenIdentifier>("output/input").word;
+        output.ThrowIfWhitespace("output", tokens);
         string input = tokens.NextIs<TokenIdentifier>(false, false)
             ? tokens.Next<TokenIdentifier>("input").word
             : output;
@@ -966,6 +1002,7 @@ public static class DirectiveImplementations
     public static void _mean(Executor executor, Statement tokens)
     {
         string output = tokens.Next<TokenIdentifier>("output/input").word;
+        output.ThrowIfWhitespace("output", tokens);
         string input = tokens.NextIs<TokenIdentifier>(false, false)
             ? tokens.Next<TokenIdentifier>("input").word
             : output;
@@ -997,8 +1034,9 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void _sort(Executor executor, Statement tokens)
     {
-        string sortDirection = tokens.Next<TokenIdentifier>("output/input").word.ToUpper();
-        string variable = tokens.Next<TokenIdentifier>("input").word;
+        string sortDirection = tokens.Next<TokenIdentifier>("sort direction").word.ToUpper();
+        string variable = tokens.Next<TokenIdentifier>("output").word;
+        variable.ThrowIfWhitespace("output", tokens);
 
         if (executor.TryGetPPV(variable, out PreprocessorVariable values))
             try
@@ -1022,6 +1060,7 @@ public static class DirectiveImplementations
     public static void _reverse(Executor executor, Statement tokens)
     {
         string variable = tokens.Next<TokenIdentifier>("variable name").word;
+        variable.ThrowIfWhitespace("variable name", tokens);
 
         if (executor.TryGetPPV(variable, out PreprocessorVariable values))
         {
@@ -1053,6 +1092,7 @@ public static class DirectiveImplementations
     public static void _unique(Executor executor, Statement tokens)
     {
         string variable = tokens.Next<TokenIdentifier>("variable name").word;
+        variable.ThrowIfWhitespace("variable name", tokens);
 
         if (executor.TryGetPPV(variable, out PreprocessorVariable values))
         {
@@ -1082,6 +1122,7 @@ public static class DirectiveImplementations
         {
             var json = tokens.Next<TokenJSONLiteral>("json");
             current = tokens.Next<TokenIdentifier>("current token name").word;
+            current.ThrowIfWhitespace("current token name", tokens);
             statements = executor.NextExecutionSet(true);
 
             JToken jsonToken = json.token;
@@ -1102,6 +1143,7 @@ public static class DirectiveImplementations
         {
             string input = tokens.Next<TokenIdentifier>("variable name").word;
             current = tokens.Next<TokenIdentifier>("current token name").word;
+            current.ThrowIfWhitespace("current token name", tokens);
 
             if (!executor.TryGetPPV(input, out PreprocessorVariable values))
                 throw new StatementException(tokens, "Preprocessor variable '" + input + "' does not exist.");
@@ -1149,6 +1191,7 @@ public static class DirectiveImplementations
     public static void _len(Executor executor, Statement tokens)
     {
         string output = tokens.Next<TokenIdentifier>("output").word;
+        output.ThrowIfWhitespace("output", tokens);
 
         // JSON Array
         if (tokens.NextIs<TokenJSONLiteral>(false))
@@ -1172,6 +1215,7 @@ public static class DirectiveImplementations
 
         // Preprocessor Variable
         string input = tokens.Next<TokenIdentifier>("ppv").word;
+        input.ThrowIfWhitespace("ppv", tokens);
 
         if (executor.TryGetPPV(input, out PreprocessorVariable values))
         {
@@ -1199,6 +1243,7 @@ public static class DirectiveImplementations
         }
 
         string output = tokens.Next<TokenIdentifier>("output").word;
+        output.ThrowIfWhitespace("output", tokens);
 
         if (tokens.NextIs<TokenStringLiteral>(false))
         {
@@ -1268,6 +1313,7 @@ public static class DirectiveImplementations
     public static void _call(Executor executor, Statement tokens)
     {
         string functionName = tokens.Next<TokenStringLiteral>("function name").text;
+        functionName.ThrowIfWhitespace("function name", tokens);
 
         if (!executor.functions.TryGetFunctions(functionName, out Function[] functions))
             throw new StatementException(tokens, $"Could not find a function by the name '{functionName}'");
@@ -1334,6 +1380,7 @@ public static class DirectiveImplementations
     public static void lang(Executor executor, Statement tokens)
     {
         string locale = tokens.Next<TokenIdentifier>("locale").word;
+        locale.ThrowIfWhitespace("locale", tokens);
 
         if (Program.DEBUG)
             Console.WriteLine("Set locale to '{0}'", locale);
@@ -1581,6 +1628,7 @@ public static class DirectiveImplementations
         if (tokens.NextIs<TokenIdentifier>(false))
         {
             string storeInIdentifier = tokens.Next<TokenIdentifier>("store in").word;
+            storeInIdentifier.ThrowIfWhitespace("store in", tokens);
 
             // check if that name is in use already by another scoreboard value
             if (executor.scoreboard.TryGetByUserFacingName(storeInIdentifier, out ScoreboardValue existing))
@@ -1733,6 +1781,7 @@ public static class DirectiveImplementations
         Selector player = tokens.Next<TokenSelectorLiteral>("player");
 
         string itemName = tokens.Next<TokenStringLiteral>("item");
+        itemName.ThrowIfWhitespace("item", tokens);
         string itemNameComp = itemName.ToUpper();
         bool needsStructure = false;
 
@@ -1777,10 +1826,10 @@ public static class DirectiveImplementations
                     lockSlot = true;
                     break;
                 case "CANPLACEON":
-                    canPlaceOn.Add(tokens.Next<TokenStringLiteral>("block"));
+                    canPlaceOn.Add(tokens.Next<TokenStringLiteral>("can place on block"));
                     break;
                 case "CANDESTROY":
-                    canDestroy.Add(tokens.Next<TokenStringLiteral>("block"));
+                    canDestroy.Add(tokens.Next<TokenStringLiteral>("can destroy block"));
                     break;
                 case "ENCHANT":
                     ParsedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>("enchantment").value;
@@ -2080,6 +2129,7 @@ public static class DirectiveImplementations
         Coordinate y = tokens.Next<TokenCoordinateLiteral>("y");
         Coordinate z = tokens.Next<TokenCoordinateLiteral>("z");
         string block = tokens.Next<TokenStringLiteral>("block");
+        block.ThrowIfWhitespace("block", tokens);
         var handling = OldHandling.replace;
 
         int data = 0;
@@ -2132,6 +2182,7 @@ public static class DirectiveImplementations
     public static void scatter(Executor executor, Statement tokens)
     {
         string block = tokens.Next<TokenStringLiteral>("block");
+        block.ThrowIfWhitespace("block", tokens);
         int percent = tokens.Next<TokenIntegerLiteral>("percentage");
         Coordinate x1 = tokens.Next<TokenCoordinateLiteral>("x1");
         Coordinate y1 = tokens.Next<TokenCoordinateLiteral>("y1");
@@ -2197,7 +2248,8 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void replace(Executor executor, Statement tokens)
     {
-        string src = tokens.Next<TokenStringLiteral>("source");
+        string src = tokens.Next<TokenStringLiteral>("source block");
+        src.ThrowIfWhitespace("source block", tokens);
         int srcData = -1;
         if (tokens.NextIs<TokenIntegerLiteral>(false))
             srcData = tokens.Next<TokenIntegerLiteral>("source data");
@@ -2209,7 +2261,8 @@ public static class DirectiveImplementations
         Coordinate y2 = tokens.Next<TokenCoordinateLiteral>("y2");
         Coordinate z2 = tokens.Next<TokenCoordinateLiteral>("z2");
 
-        string dst = tokens.Next<TokenStringLiteral>("destination");
+        string dst = tokens.Next<TokenStringLiteral>("destination block");
+        dst.ThrowIfWhitespace("destination block", tokens);
         int dstData = -1;
         if (tokens.NextIs<TokenIntegerLiteral>(true))
             dstData = tokens.Next<TokenIntegerLiteral>("destination data");
@@ -2394,10 +2447,14 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void camera(Executor executor, Statement tokens)
     {
-        string players = tokens.Next<TokenSelectorLiteral>("players").ToString();
+        Selector playersSelector = tokens.Next<TokenSelectorLiteral>("players").selector;
+        string players = playersSelector.ToString();
         string rootSubcommand = tokens.Next<TokenIdentifier>("subcommand").word.ToUpper();
 
-        string finalCommand = null;
+        if (playersSelector.AnyNonPlayers)
+            throw new StatementException(tokens, $"The selector {players} may target non-players.");
+
+        string finalCommand;
 
         switch (rootSubcommand)
         {
@@ -2443,7 +2500,8 @@ public static class DirectiveImplementations
                     else
                     {
                         throw new StatementException(tokens,
-                            "Invalid camera fade subcommand '" + fadeSubcommand + "'. Must be 'time' or 'color'.");
+                            "Invalid camera fade subcommand '" + fadeSubcommand.ToLower() +
+                            "'. Must be 'time' or 'color'.");
                     }
                 }
 
@@ -2461,7 +2519,7 @@ public static class DirectiveImplementations
             case "SET":
             {
                 string preset = tokens.Next<TokenStringLiteral>("preset").text;
-
+                preset.ThrowIfWhitespace("preset", tokens);
                 if (preset.IndexOf(':') == -1)
                 {
                     // try to parse a minecraft-defined CameraPreset
@@ -2500,9 +2558,11 @@ public static class DirectiveImplementations
                         {
                             decimal duration = tokens.Next<TokenNumberLiteral>("ease duration").GetNumber();
                             ParsedEnumValue _easeType = tokens.Next<TokenIdentifierEnum>("ease type").value;
+
                             _easeType.RequireType<Easing>(tokens);
+
                             var easeType = (Easing) _easeType.value;
-                            builder = builder.WithEasing(easeType, duration);
+                            builder = builder.WithEasing(easeType, duration, tokens);
                             break;
                         }
                         case "FACING":
@@ -2532,7 +2592,7 @@ public static class DirectiveImplementations
                             Coordinate x = tokens.Next<TokenCoordinateLiteral>("position x");
                             Coordinate y = tokens.Next<TokenCoordinateLiteral>("position y");
                             Coordinate z = tokens.Next<TokenCoordinateLiteral>("position z");
-                            builder = builder.WithPosition(x, y, z);
+                            builder = builder.WithPosition(x, y, z, tokens);
                             break;
                         }
                         case "ROTATED":
@@ -2544,6 +2604,9 @@ public static class DirectiveImplementations
                             builder = builder.WithRotation(x, y, tokens);
                             break;
                         }
+                        default:
+                            throw new StatementException(tokens,
+                                $"Invalid camera set subcommand '{subcommand.ToLower()}'.");
                     }
                 }
 
@@ -2554,7 +2617,7 @@ public static class DirectiveImplementations
             }
             default:
                 throw new StatementException(tokens,
-                    $"Invalid camera subcommand '{rootSubcommand}'. Must be 'clear', 'fade', or 'set'.");
+                    $"Invalid camera subcommand '{rootSubcommand.ToLower()}'. Must be 'clear', 'fade', or 'set'.");
         }
 
         executor.AddCommand(finalCommand);
@@ -2596,6 +2659,7 @@ public static class DirectiveImplementations
     public static void summon(Executor executor, Statement tokens)
     {
         string entityType = tokens.Next<TokenIdentifier>("entity type").word;
+        entityType.ThrowIfWhitespace("entity type", tokens);
         Coordinate x = Coordinate.here;
         Coordinate y = Coordinate.here;
         Coordinate z = Coordinate.here;
@@ -2632,6 +2696,7 @@ public static class DirectiveImplementations
             if (tokens.NextIs<TokenStringLiteral>(true, false))
             {
                 string spawnEvent = tokens.Next<TokenStringLiteral>("spawn event");
+                spawnEvent.ThrowIfWhitespace("spawn event", tokens);
 
                 // summon <entityType> <spawnPosition: x y z> <rotation: y x> <spawnEvent> <nameTag>
                 if (tokens.NextIs<TokenStringLiteral>(true, false))
@@ -2671,6 +2736,7 @@ public static class DirectiveImplementations
                 if (tokens.NextIs<TokenStringLiteral>(true, false))
                 {
                     string spawnEvent = tokens.Next<TokenStringLiteral>("spawn event");
+                    spawnEvent.ThrowIfWhitespace("spawn event", tokens);
 
                     // summon <entityType> <spawnPosition: x y z> facing <entity> <spawnEvent> <nameTag>
                     if (tokens.NextIs<TokenStringLiteral>(true, false))
@@ -2701,6 +2767,7 @@ public static class DirectiveImplementations
                 if (tokens.NextIs<TokenStringLiteral>(true, false))
                 {
                     string spawnEvent = tokens.Next<TokenStringLiteral>("spawn event");
+                    spawnEvent.ThrowIfWhitespace("spawn event", tokens);
 
                     // summon <entityType> <spawnPosition: x y z> facing <face: x y z> <spawnEvent> <nameTag>
                     if (tokens.NextIs<TokenStringLiteral>(true, false))
@@ -2814,7 +2881,10 @@ public static class DirectiveImplementations
             {
                 name = tokens.Next<TokenStringLiteral>("name");
                 if (tokens.NextIs<TokenStringLiteral>(false))
+                {
                     tag = tokens.Next<TokenStringLiteral>("tag");
+                    tag.ThrowIfWhitespace("tag", tokens);
+                }
 
                 Coordinate x = Coordinate.here;
                 Coordinate y = Coordinate.here;
@@ -2853,7 +2923,10 @@ public static class DirectiveImplementations
             {
                 name = tokens.Next<TokenStringLiteral>("name");
                 if (tokens.NextIs<TokenStringLiteral>(false))
+                {
                     tag = tokens.Next<TokenStringLiteral>("tag");
+                    tag.ThrowIfWhitespace("tag", tokens);
+                }
 
                 Coordinate x = Coordinate.here;
                 Coordinate y = Coordinate.here;
@@ -2892,13 +2965,21 @@ public static class DirectiveImplementations
             }
             case "REMOVEALL":
                 if (tokens.NextIs<TokenStringLiteral>(true, false))
+                {
                     tag = tokens.Next<TokenStringLiteral>("tag");
+                    tag.ThrowIfWhitespace("tag", tokens);
+                }
+
                 executor.AddCommand(executor.entities.dummies.DestroyAll(tag));
                 break;
             case "REMOVE":
                 name = tokens.Next<TokenStringLiteral>("name");
                 if (tokens.NextIs<TokenStringLiteral>(true, false))
+                {
                     tag = tokens.Next<TokenStringLiteral>("tag");
+                    tag.ThrowIfWhitespace("tag", tokens);
+                }
+
                 executor.AddCommand(executor.entities.dummies.Destroy(name, false, tag));
                 break;
             default:
@@ -2917,6 +2998,8 @@ public static class DirectiveImplementations
             case "ADD":
             {
                 string tag = tokens.Next<TokenStringLiteral>("tag");
+                tag.ThrowIfWhitespace("tag", tokens);
+
                 executor.definedTags.Add(tag);
                 executor.AddCommand(Command.Tag(selected, tag));
                 break;
@@ -2924,12 +3007,14 @@ public static class DirectiveImplementations
             case "REMOVE":
             {
                 string tag = tokens.Next<TokenStringLiteral>("tag");
+                tag.ThrowIfWhitespace("tag", tokens);
+
                 executor.AddCommand(Command.TagRemove(selected, tag));
                 break;
             }
             default:
                 throw new StatementException(tokens,
-                    $"Invalid mode for tag command: {word}. Valid options are ADD, REMOVE");
+                    $"Invalid mode for tag command: '{word.ToLower()}'. Valid options are 'add' and 'remove'.");
         }
     }
     [UsedImplicitly]
@@ -3003,6 +3088,7 @@ public static class DirectiveImplementations
             if (tokens.NextIs<TokenStringLiteral>(true))
             {
                 string item = tokens.Next<TokenStringLiteral>("item");
+                item.ThrowIfWhitespace("item", tokens);
 
                 if (tokens.NextIs<TokenIntegerLiteral>(true))
                 {
@@ -3100,6 +3186,7 @@ public static class DirectiveImplementations
     public static void playsound(Executor executor, Statement tokens)
     {
         string soundId = tokens.Next<TokenStringLiteral>("sound");
+        soundId.ThrowIfWhitespace("sound", tokens);
 
         Selector filter = tokens.NextIs<TokenSelectorLiteral>(true)
             ? tokens.Next<TokenSelectorLiteral>("filter")
@@ -3199,6 +3286,7 @@ public static class DirectiveImplementations
     public static void particle(Executor executor, Statement tokens)
     {
         string particleId = tokens.Next<TokenStringLiteral>("particle");
+        particleId.ThrowIfWhitespace("particle", tokens);
 
         if (tokens.NextIs<TokenCoordinateLiteral>(true))
         {
@@ -3348,6 +3436,8 @@ public static class DirectiveImplementations
 
         // normal definition
         string functionName = tokens.Next<TokenIdentifier>("function name").word;
+        functionName.ThrowIfWhitespace("function name", tokens);
+
         bool usesFolders = functionName.Contains('.');
         string[] folders = null;
 
@@ -3582,6 +3672,7 @@ public static class DirectiveImplementations
 
         // normal definition
         string testName = tokens.Next<TokenIdentifier>("test name").word;
+        testName.ThrowIfWhitespace("test name", tokens);
 
         bool usesFolders = testName.Contains('.');
         string[] folders = null;
@@ -3674,6 +3765,8 @@ public static class DirectiveImplementations
                 if (tokens.NextIs<TokenStringLiteral>(false))
                 {
                     string sceneTag = tokens.Next<TokenStringLiteral>("scene");
+                    sceneTag.ThrowIfWhitespace("scene", tokens);
+
                     executor.AddCommand(dialogueRegistry.TryGetScene(sceneTag, out Scene scene)
                         ? Command.DialogueOpen(npc.ToString(), players.ToString(), scene)
                         : Command.DialogueOpen(npc.ToString(), players.ToString(), sceneTag));
@@ -3687,6 +3780,7 @@ public static class DirectiveImplementations
             {
                 Selector npc = tokens.Next<TokenSelectorLiteral>("npc");
                 string sceneTag = tokens.Next<TokenStringLiteral>("scene");
+                sceneTag.ThrowIfWhitespace("scene", tokens);
 
                 if (!npc.AnyNonPlayers)
                     throw new StatementException(tokens, $"Selector '{npc}' will never target an NPC.");
@@ -3708,6 +3802,8 @@ public static class DirectiveImplementations
             case "NEW":
             {
                 string newSceneTag = tokens.Next<TokenStringLiteral>("scene name");
+                newSceneTag.ThrowIfWhitespace("scene name", tokens);
+
                 if (dialogueRegistry.TryGetScene(newSceneTag, out _))
                     throw new StatementException(tokens, $"Dialogue scene '{newSceneTag}' already exists.");
                 if (!executor.NextIs<StatementOpenBlock>())

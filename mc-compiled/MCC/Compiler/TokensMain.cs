@@ -107,6 +107,10 @@ public class TokenIdentifier : Token, IPreprocessor, IImplicitToken
     ///     Convert to BUILDER token.
     /// </summary>
     public const int CONVERT_BUILDER = 1;
+    /// <summary>
+    ///     Convert to ENUM token.
+    /// </summary>
+    public const int CONVERT_ENUM = 2;
     public readonly string word;
     public TokenIdentifier(string word, int lineNumber) : base(lineNumber)
     {
@@ -118,7 +122,8 @@ public class TokenIdentifier : Token, IPreprocessor, IImplicitToken
         return
         [
             typeof(TokenStringLiteral),
-            typeof(TokenBuilderIdentifier)
+            typeof(TokenBuilderIdentifier),
+            typeof(TokenIdentifierEnum)
         ];
     }
     public Token Convert(Executor executor, int index)
@@ -127,6 +132,7 @@ public class TokenIdentifier : Token, IPreprocessor, IImplicitToken
         {
             CONVERT_STRING => new TokenStringLiteral(this.word, this.lineNumber),
             CONVERT_BUILDER => new TokenBuilderIdentifier(this.word, this.lineNumber),
+            CONVERT_ENUM => new TokenIdentifierEnum(this.word, ParsedEnumValue.None(this.word), this.lineNumber),
             _ => null
         };
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using mc_compiled.Commands.Execute;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
@@ -47,6 +48,24 @@ public static class Command
     public static void ResetState()
     {
         UTIL.tags.Clear();
+    }
+
+    /// <summary>
+    ///     Throws a <see cref="StatementException" /> if the provided string contains any whitespace characters.
+    /// </summary>
+    /// <param name="text">
+    ///     The string to validate for the absence of whitespace.
+    /// </param>
+    /// <param name="parameterName">
+    ///     The name of the parameter being validated, to include in the exception message if thrown.
+    /// </param>
+    /// <param name="callingStatement">
+    ///     The statement that initiated the validation, to include in the exception if thrown.
+    /// </param>
+    public static void ThrowIfWhitespace(this string text, string parameterName, Statement callingStatement)
+    {
+        if (text.Any(char.IsWhiteSpace))
+            throw new StatementException(callingStatement, $"The parameter {parameterName} cannot contain whitespace.");
     }
 
     public static string String(this ItemSlot slot)

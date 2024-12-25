@@ -52,8 +52,13 @@ public class CameraBuilder
         this.useRotation = false;
         this.useViewOffset = false;
     }
-    public CameraBuilder WithEasing(Easing easing, decimal duration)
+    private static string EntityOffsetAllowedString => string.Join(", ", ENTITY_OFFSET_ALLOWED);
+    private static string ViewOffsetAllowedString => string.Join(", ", VIEW_OFFSET_ALLOWED);
+    public CameraBuilder WithEasing(Easing easing, decimal duration, Statement callingStatement)
     {
+        if (this.useViewOffset || this.useEntityOffset)
+            throw new StatementException(callingStatement, "Cannot use easing alongside view_offset or entity_offset.");
+
         this.useEasing = true;
         this.easePreset = easing;
         this.easeDuration = duration;
@@ -62,9 +67,15 @@ public class CameraBuilder
 
     public CameraBuilder WithEntityOffset(decimal x, decimal y, decimal z, Statement callingStatement)
     {
+        if (this.usePosition)
+            throw new StatementException(callingStatement, "Cannot use position alongside entity_offset.");
+        if (this.useEasing)
+            throw new StatementException(callingStatement, "Cannot use easing alongside entity_offset.");
         if (!ENTITY_OFFSET_ALLOWED.Contains(this.preset))
-            throw new StatementException(callingStatement, $"Cannot use entity offset with preset '{this.preset}'.");
+            throw new StatementException(callingStatement,
+                $"Cannot use entity offset with preset '{this.preset}'. Allowed presets: {EntityOffsetAllowedString}.");
 
+        this.useDefault = false;
         this.useEntityOffset = true;
         this.entityOffsetX = x;
         this.entityOffsetY = y;
@@ -73,9 +84,15 @@ public class CameraBuilder
     }
     public CameraBuilder WithEntityOffset(Coordinate x, Coordinate y, Coordinate z, Statement callingStatement)
     {
+        if (this.usePosition)
+            throw new StatementException(callingStatement, "Cannot use position alongside entity_offset.");
+        if (this.useEasing)
+            throw new StatementException(callingStatement, "Cannot use easing alongside entity_offset.");
         if (!ENTITY_OFFSET_ALLOWED.Contains(this.preset))
-            throw new StatementException(callingStatement, $"Cannot use entity offset with preset '{this.preset}'.");
+            throw new StatementException(callingStatement,
+                $"Cannot use entity offset with preset '{this.preset}'. Allowed presets: {EntityOffsetAllowedString}.");
 
+        this.useDefault = false;
         this.useEntityOffset = true;
         this.entityOffsetX = x.isDecimal ? x.valueDecimal : x.valueInteger;
         this.entityOffsetY = y.isDecimal ? y.valueDecimal : y.valueInteger;
@@ -84,9 +101,15 @@ public class CameraBuilder
     }
     public CameraBuilder WithViewOffset(decimal x, decimal y, Statement callingStatement)
     {
+        if (this.usePosition)
+            throw new StatementException(callingStatement, "Cannot use position alongside view_offset.");
+        if (this.useEasing)
+            throw new StatementException(callingStatement, "Cannot use easing alongside view_offset.");
         if (!VIEW_OFFSET_ALLOWED.Contains(this.preset))
-            throw new StatementException(callingStatement, $"Cannot use view offset with preset '{this.preset}'.");
+            throw new StatementException(callingStatement,
+                $"Cannot use view offset with preset '{this.preset}'. Allowed presets: {ViewOffsetAllowedString}.");
 
+        this.useDefault = false;
         this.useViewOffset = true;
         this.viewOffsetX = x;
         this.viewOffsetY = y;
@@ -94,9 +117,15 @@ public class CameraBuilder
     }
     public CameraBuilder WithViewOffset(Coordinate x, Coordinate y, Statement callingStatement)
     {
+        if (this.usePosition)
+            throw new StatementException(callingStatement, "Cannot use position alongside view_offset.");
+        if (this.useEasing)
+            throw new StatementException(callingStatement, "Cannot use easing alongside view_offset.");
         if (!VIEW_OFFSET_ALLOWED.Contains(this.preset))
-            throw new StatementException(callingStatement, $"Cannot use view offset with preset '{this.preset}'.");
+            throw new StatementException(callingStatement,
+                $"Cannot use view offset with preset '{this.preset}'. Allowed presets: {ViewOffsetAllowedString}.");
 
+        this.useDefault = false;
         this.useViewOffset = true;
         this.viewOffsetX = x.isDecimal ? x.valueDecimal : x.valueInteger;
         this.viewOffsetY = y.isDecimal ? y.valueDecimal : y.valueInteger;
@@ -109,6 +138,7 @@ public class CameraBuilder
             throw new StatementException(callingStatement,
                 "Cannot use rotation and facing parameters at the same time.");
 
+        this.useDefault = false;
         this.useFacing = true;
         this.facingEntity = null;
         this.facingX = x;
@@ -122,6 +152,7 @@ public class CameraBuilder
             throw new StatementException(callingStatement,
                 "Cannot use rotation and facing parameters at the same time.");
 
+        this.useDefault = false;
         this.useFacing = true;
         this.facingEntity = entity;
         this.facingX = null;
@@ -129,8 +160,13 @@ public class CameraBuilder
         this.facingZ = null;
         return this;
     }
-    public CameraBuilder WithPosition(Coordinate x, Coordinate y, Coordinate z)
+    public CameraBuilder WithPosition(Coordinate x, Coordinate y, Coordinate z, Statement callingStatement)
     {
+        if (this.useViewOffset || this.useEntityOffset)
+            throw new StatementException(callingStatement,
+                "Cannot use position alongside view_offset or entity_offset.");
+
+        this.useDefault = false;
         this.usePosition = true;
         this.positionX = x;
         this.positionY = y;
@@ -143,6 +179,7 @@ public class CameraBuilder
             throw new StatementException(callingStatement,
                 "Cannot use rotation and facing parameters at the same time.");
 
+        this.useDefault = false;
         this.useRotation = true;
         this.rotationX = xRotation;
         this.rotationY = yRotation;
@@ -215,6 +252,7 @@ public class CameraBuilder
             sb.Append(this.viewOffsetX!.Value);
             sb.Append(' ');
             sb.Append(this.viewOffsetY!.Value);
+            sb.Append(' ');
         }
 
         if (this.useEasing)
