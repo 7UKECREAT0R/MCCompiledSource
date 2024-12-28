@@ -22,7 +22,10 @@ public static class Language
     public static Dictionary<string, NamedType> nameToTypeMappings;
     public static Dictionary<Type, NamedType> namedEntries;
 
+    public static Dictionary<string, Keyword[]> nameToEnumMappings;
+
     public static Dictionary<string, string> categories;
+    public static LanguageSyntax syntax;
 
     static Language()
     {
@@ -49,24 +52,34 @@ public static class Language
 
         IsLoaded = true;
     }
-    public static bool IsLoaded { get; private set; }
+    public static bool IsLoaded { get; }
     private static void LoadFromJSON(JObject json)
     {
+        if (IsLoaded)
+            return;
+
         // load built-in preprocessor variables
-        builtinPreprocessorVariables = json["preprocessor_variables"]?.ToObject<string[]>();
+        builtinPreprocessorVariables = json["preprocessor_variables"]?.ToObject<string[]>() ??
+                                       throw new Exception("language.json/preprocessor_variables was null.");
+
+        // load syntax
+        syntax = json["syntax"]?.ToObject<LanguageSyntax>() ??
+                 throw new Exception("language.json/syntax was null.");
 
         // load features
         features = (json["features"] as JObject)?
-            .Properties()
-            .Select(FeatureDefinition.FromJSONProperty)
-            .ToImmutableList();
+                   .Properties()
+                   .Select(FeatureDefinition.FromJSONProperty)
+                   .ToImmutableList() ??
+                   throw new Exception("language.json/features was null.");
 
         // load type mappings
         const string TYPE_PREFIX = "mc_compiled.MCC.Compiler.";
         nameToTypeMappings = new Dictionary<string, NamedType>();
         namedEntries = new Dictionary<Type, NamedType>();
-        JObject mappings = json["mappings"] as JObject ?? [];
-        foreach ((string key, JToken mappingToken) in mappings)
+        JObject typeMappings = json["mappings"] as JObject ??
+                               throw new Exception("language.json/mappings was null.");
+        foreach ((string key, JToken mappingToken) in typeMappings)
         {
             var value = Type.GetType(TYPE_PREFIX + mappingToken, true, false);
             var namedType = new NamedType(value, key);
@@ -74,9 +87,47 @@ public static class Language
             namedEntries[value] = namedType;
         }
 
+        // load enum mappings
+        nameToEnumMappings = new Dictionary<string, Keyword[]>();
+        JObject enumMappings = json["enums"] as JObject ??
+                               throw new Exception("language.json/enums was null.");
+        foreach ((string enumName, JToken value) in enumMappings)
+            if (value.Type == JTokenType.Array)
+            {
+                IEnumerable<JToken> values = (value as JArray)!.Values<JToken>();
+                nameToEnumMappings[enumName] = values.Select(jt =>
+                {
+                    if (jt.Type == JTokenType.String)
+                        return new Keyword(jt.Value<string>());
+                    throw new Exception($"Unexpected type in enum definition's array: {jt.Type}");
+                }).ToArray();
+            }
+            else if (value.Type == JTokenType.Object)
+            {
+                var keywords = new List<Keyword>();
+                foreach ((string entryName, JToken entryValue) in (value as JObject)!)
+                    keywords.Add(new Keyword(entryName, entryValue.ToString()));
+                nameToEnumMappings[enumName] = keywords.ToArray();
+            }
+            else if (value.Type == JTokenType.String)
+            {
+                string typeIdentifier = value.ToString();
+                Array valuesRaw = Enum.GetValues(Type.GetType(typeIdentifier, true, true));
+                var values = new Keyword[valuesRaw.Length];
+                for (int i = 0; i < values.Length; i++)
+                    values[i] = new Keyword(valuesRaw.GetValue(i)?.ToString() ??
+                                            throw new Exception("Everything blew up."));
+                nameToEnumMappings[enumName] = values;
+            }
+            else
+            {
+                throw new Exception($"Unexpected type in enum definition: {value.Type}");
+            }
+
         // directive categories
         categories = new Dictionary<string, string>();
-        JObject categoriesToken = json["categories"] as JObject ?? [];
+        JObject categoriesToken = json["categories"] as JObject ??
+                                  throw new Exception("language.json/categories was null.");
         foreach ((string name, JToken value) in categoriesToken)
         {
             string description = value.ToString();

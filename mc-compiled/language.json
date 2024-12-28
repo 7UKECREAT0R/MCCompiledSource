@@ -27,8 +27,8 @@
       ],
       "escape": "\\",
       "line_comment": "//",
-      "multiline_open": "/*",
-      "multiline_close": "*/",
+      "multiline_comment_open": "/*",
+      "multiline_comment_close": "*/",
       "number_prefixes": [
         "~",
         "^",
