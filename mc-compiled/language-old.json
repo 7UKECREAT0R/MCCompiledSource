@@ -1,0 +1,1714 @@
+{
+  "version": 1.20,
+  "preprocessor_variables": [
+    "_compiler",
+    "_minecraft",
+    "_realtime",
+    "_realdate",
+    "_timeformat",
+    "_true",
+    "_false"
+  ],
+  "syntax": {
+    "extension": "mcc",
+    "ignore_case": false,
+    "comment_folding": true,
+    "compact_folding": false,
+    "special_characters": {
+      "range_delimiter": "..",
+      "invert_delimiter": "!",
+      "bracket_open": "[",
+      "bracket_close": "]",
+      "block_open": "{",
+      "block_close": "}",
+      "string_delimiters": [
+        "\"",
+        "'"
+      ],
+      "escape": "\\",
+      "line_comment": "//",
+      "multiline_open": "/*",
+      "multiline_close": "*/",
+      "number_prefixes": [
+        "~",
+        "^",
+        "!",
+        ".."
+      ],
+      "number_suffixes": [
+        "h",
+        "m",
+        "s",
+        "t"
+      ],
+      "operators": [
+        "<",
+        ">",
+        "{",
+        "}",
+        "=",
+        "(",
+        ")",
+        "+",
+        "-",
+        "*",
+        "/",
+        "%",
+        "!"
+      ]
+    },
+    "global_keywords": {
+      "selectors": {
+        "@e": "References all entities in the world.",
+        "@a": "References all players in the world.",
+        "@s": "References the executing entity/player.",
+        "@p": "References the nearest player.",
+        "@r": "References a random entity."
+      },
+      "literals": {
+        "true": "A boolean value representing true/yes.",
+        "false": "A boolean value representing false/no.",
+        "not": "Invert the following comparison.",
+        "and": "Includes on another comparison.",
+        "null": "No value. Goes to 0/false under all types.",
+        "~": "Relative to executor's position.",
+        "^": "Relative to executor's direction."
+      },
+      "types": {
+        "int": "An integer, representing any whole value between -2147483648 to 2147483647.",
+        "decimal": "A decimal number with a pre-specified level of precision.",
+        "bool": "A true or false value. Displayed as whatever is set in the '_true' and '_false' preprocessor variables respectively.",
+        "time": "A value representing a number of ticks. Displayed as MM:SS."
+      }
+    },
+    "directive_specific_keywords": {
+      "feature": {
+        "dummies": "Enables the 'dummy' command.",
+        "autoinit": "Automatically re-runs the 'init' function when changes are made.",
+        "exploders": "Enables the 'explode' command.",
+        "uninstall": "Automatically generates an 'uninstall' function which will uninstall the addon.",
+        "tests": "Enables tests and generates a 'test' function.",
+        "audiofiles": "Enables support for 'playsound' command to accept audio files."
+      },
+      "$sort": {
+        "ascending": "Sorts the values, starting with the lowest.",
+        "descending": "Sorts the values, starting with the highest."
+      },
+      "tp": {
+        "facing": "Face the teleported entity towards a specific entity/position."
+      },
+      "give": {
+        "keep": "Item will stay in the player's inventory even after death.",
+        "lockinventory": "Lock the item in the player's inventory.",
+        "lockslot": "Lock the item in the slot it's located in inside the player's inventory.",
+        "canplaceon: ": "Adds a block that this block can be placed on in adventure mode.",
+        "candestroy: ": "Adds a block that this tool/item can break in adventure mode.",
+        "enchant: ": "Adds an enchantment to the item.",
+        "name: ": "Sets the display name of the item.",
+        "lore: ": "Adds a line of lore to the item.",
+        "title: ": "If the item is a written book, sets the title of the book.",
+        "author: ": "If the item is a written book, sets the author of the book.",
+        "page: ": "If the item is a written book, adds a page of text to the book.",
+        "dye: ": "If the item is leather armor, sets the dye color of the armor."
+      },
+      "move": {
+        "left": "Move the entity left relative to where it's looking.",
+        "right": "Move the entity right relative to where it's looking.",
+        "up": "Move the entity upwards.",
+        "down": "Move the entity downwards.",
+        "forward": "Move the entity forward relative to where it's looking.",
+        "backward": "Move the entity backward relative to where it's looking."
+      },
+      "scatter": {
+        "10": "Blocks will fill only 10% of the region randomly.",
+        "20": "Blocks will fill only 20% of the region randomly.",
+        "30": "Blocks will fill only 30% of the region randomly.",
+        "40": "Blocks will fill only 40% of the region randomly.",
+        "50": "Blocks will fill only 50% of the region randomly.",
+        "60": "Blocks will fill only 60% of the region randomly.",
+        "70": "Blocks will fill only 70% of the region randomly.",
+        "80": "Blocks will fill only 80% of the region randomly.",
+        "90": "Blocks will fill only 90% of the region randomly.",
+        "100": "Blocks will fill the entire region."
+      },
+      "globaltitle": {
+        "times": "Set the timings for future titles that are displayed.",
+        "subtitle": "Set the subtitle for the next title that's displayed."
+      },
+      "title": {
+        "times": "Set the timings for future titles that are displayed.",
+        "subtitle": "Set the subtitle for the next title that's displayed."
+      },
+      "camera": {
+        "clear": "Reset the camera to the default.",
+        "fade": "Fade the camera in and out with a given color.",
+        "set": "Set the camera.",
+        "set.default": "Sets the camera to its default settings.",
+        "set.entity_offset": "Offset the camera relative to its entity (world space).",
+        "set.view_offset": "Offset the camera relative to its entity (screen space).",
+        "set.ease": "Causes the camera to smoothly transition from its previous setting.",
+        "set.facing": "Rotate the camera to face either an entity, or a position in the world.",
+        "set.pos": "Sets the camera's position. Only really relevant when using the 'minecraft:free' preset.",
+        "set.rot": "Sets the camera's rotation. Only really relevant when using the 'minecraft:free' preset."
+      },
+      "summon": {
+        "facing": "Sets the entity/position the entity will face towards upon spawning."
+      },
+      "dummy": {
+        "create": "Create a new dummy.",
+        "single": "Create a new dummy, removing previous ones with the same name/tag as specified.",
+        "removeall": "Remove all dummies from the world.",
+        "remove": "Remove all dummies with the same name/tag as specified."
+      },
+      "tag": {
+        "add": "Adds a tag to the given entity.",
+        "remove": "Removes a tag from the given entity."
+      },
+      "effect": {
+        "clear": "Clear all effects from the given entity."
+      },
+      "if": {
+        "not": "Invert the next comparison.",
+        "and": "Add another comparison into this if-statement.",
+        "count": "Compare the number of entities that match the given selector.",
+        "any": "Check if any entities match the given selector.",
+        "block": "Check if a block matches a given filter.",
+        "blocks": "Check if two regions of blocks are identical."
+      },
+      "execute": {
+        "align": "Aligns the current position of the command to the block grid.",
+        "align.x": "Align to the X axis of the block grid.",
+        "align.y": "Align to the Y axis of the block grid.",
+        "align.z": "Align to the Z axis of the block grid.",
+        "align.xy": "Align to the X and Y axes of the block grid.",
+        "align.xz": "Align to the X and Z axes of the block grid.",
+        "align.yz": "Align to the Y and Z axes of the block grid.",
+        "align.xyz": "Align to the X, Y, and Z axes of the block grid.",
+        "anchored": "Execute at the location of a specific part of the executing entity.",
+        "anchored.eyes": "Set the executing position to the entity's eyes.",
+        "anchored.feet": "Set the executing position to the entity's feet.",
+        "as": "Execute as the given entity.",
+        "at": "Execute at the position of the given entity.",
+        "facing": "Execute facing another position/entity.",
+        "facing.entity": "Execute facing another entity.",
+        "if": "Execute if a certain condition passes.",
+        "if.score": "Execute if a value/scoreboard objective matches a condition.",
+        "if.entity": "Execute if a selector matches.",
+        "if.blocks": "Execute if two regions of blocks match.",
+        "if.block": "Execute if a block is present.",
+        "unless": "Execute unless a certain condition passes.",
+        "unless.score": "Execute unless a value/scoreboard objective matches a condition.",
+        "unless.entity": "Execute unless a selector matches.",
+        "unless.blocks": "Execute unless two regions of blocks match.",
+        "unless.block": "Execute unless a block is present.",
+        "in": "Execute in a specific dimension.",
+        "in.nether": "Execute in the Nether.",
+        "in.overworld": "Execute in the Overworld.",
+        "in.the_end": "Execute in The End.",
+        "positioned": "Execute at a specific position or relative to the current position.",
+        "positioned.as": "Execute at the position of the given entity, keep the current rotation though.",
+        "rotated": "Execute at a specific rotation or relative to the current rotation.",
+        "rotated.as": "Execute at the rotation of the given entity, keep the current position though.",
+        "run": "Followed by a block containing what to do under these execution rules."
+      },
+      "dialogue": {
+        "open": "Open a dialogue scene.",
+        "change": "Change the dialogue for a specific NPC.",
+        "new": "Define a new dialogue scene.",
+        "new.name: ": "Sets the name of the NPC when it has this dialogue.",
+        "new.text: ": "Sets the text content of this dialogue.",
+        "new.button: ": "Adds a button to this dialogue. Followed by a code block of what to do when clicked.",
+        "new.onopen: ": "Followed by a code block that will run when the dialogue is opened by a player.",
+        "new.onclose: ": "Followed by a code block that will run when the dialogue is opened by a player."
+      },
+      "for": {
+        "at": "Allows you to specify the position offset for each entity that's looped over."
+      },
+      "await": {
+        "until": "Wait until a condition returns true.",
+        "while": "Wait while a condition continues to return true."
+      }
+    }
+  },
+  "features": {
+    "DUMMIES": {
+      "description": "Dummy Entities",
+      "details": "Allows the creation of dummy entity behavior/resource files, as well as placing them in the world.",
+      "min-version": 1.10,
+      "value": 1
+    },
+    "AUTOINIT": {
+      "description": "Auto-Initialization",
+      "details": "Runs the initialization file automatically in new worlds, and every time a new build is compiled. Requires a check-function to be run every tick.",
+      "min-version": 1.16,
+      "value": 2
+    },
+    "EXPLODE": {
+      "description": "Exploding Entities",
+      "details": "Allows the creation of exploder entity behavior/resource files. Allows the use of the explode command by generating presets for the entity.",
+      "min-version": 1.10,
+      "value": 4
+    },
+    "UNINSTALL": {
+      "description": "Uninstall Function",
+      "details": "Creates a function that will 'uninstall' the addon from the world; removes tags, scoreboard objectives, dummy entities, etc.",
+      "min-version": 1.12,
+      "value": 8
+    },
+    "AUDIOFILES": {
+      "description": "Audio Files",
+      "details": "Enables support for the 'playsound' command to accept audio files. Definitions will be automatically created and files will be copied to their resulting locations.",
+      "min-version": 1.17,
+      "value": 16
+    }
+  },
+  "mappings": {
+    "*": "Token",
+    "any": "TokenLiteral",
+    "id": "TokenIdentifier",
+    "object": "IPreprocessor",
+    "compare": "TokenCompare",
+    "int": "TokenIntegerLiteral",
+    "number": "TokenNumberLiteral",
+    "string": "TokenStringLiteral",
+    "bool": "TokenBooleanLiteral",
+    "selector": "TokenSelectorLiteral",
+    "value": "TokenIdentifierValue",
+    "coordinate": "TokenCoordinateLiteral",
+    "enum": "TokenIdentifierEnum",
+    "range": "TokenRangeLiteral",
+    "json": "TokenJSONLiteral",
+    "not": "TokenNot",
+    "awaitable": "TokenAwaitable"
+  },
+  "categories": {
+    "preprocessor": "Commands that allow the user to do things at compile time. Preprocessor commands generally start with a `$` and are highlighted differently than regular commands.",
+    "text": "Commands which display text to players through format-strings, or manipulate text otherwise.",
+    "entities": "Commands which manipulate, spawn, and transform entities in various ways.",
+    "blocks": "Commands which interact with the Minecraft world's blocks.",
+    "items": "Commands relating to entity/player items and inventories.",
+    "cosmetic": "Commands that add visual and auditory appeal to the user's code.",
+    "values": "Commands tied directly to values. Values can be used in if-statements, format-strings, and many other places.",
+    "logic": "Commands which handle logic and code flow. The butter for all the bread (code).",
+    "debug": "Commands related to testing, debugging and all-around solidifying code.",
+    "features": "Commands related to the optionally enable-able features in the language.",
+    "other": "The other commands that don't have a good designation."
+  },
+  "directives": {
+    "$var": {
+      "description": "Set Preprocessor Variable",
+      "wiki_link": "Preprocessor.md",
+      "details": "Sets a preprocessor variable to the value(s) provided.",
+      "category": "preprocessor",
+      "function": "_var",
+      "patterns": [
+        [
+          "id:variable",
+          "?object:values"
+        ]
+      ],
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
+    },
+    "$inc": {
+      "description": "Increment Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#inc-dec",
+      "details": "Increments the given preprocessor variable by one. If multiple values are held, they are all incremented.",
+      "category": "preprocessor",
+      "function": "_inc",
+      "patterns": [
+        [
+          "id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$dec": {
+      "description": "Decrement Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#inc-dec",
+      "details": "Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.",
+      "category": "preprocessor",
+      "function": "_dec",
+      "patterns": [
+        [
+          "id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$add": {
+      "description": "Add to Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
+      "details": "Adds two preprocessor variables/values together, changing only the first one. A += B",
+      "category": "preprocessor",
+      "function": "_add",
+      "patterns": [
+        [
+          "id:variable",
+          "object:values"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$sub": {
+      "description": "Subtract from Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
+      "details": "Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B",
+      "category": "preprocessor",
+      "function": "_sub",
+      "patterns": [
+        [
+          "id:variable",
+          "object:values"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$mul": {
+      "description": "Multiply with Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
+      "details": "Multiplies two preprocessor variables/values together, changing only the first one. A *= B",
+      "category": "preprocessor",
+      "function": "_mul",
+      "patterns": [
+        [
+          "id:variable",
+          "object:values"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$div": {
+      "description": "Divide Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
+      "details": "Divides two preprocessor variables/values from each other, changing only the first one. A /= B",
+      "category": "preprocessor",
+      "function": "_div",
+      "patterns": [
+        [
+          "id:variable",
+          "object:values"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$mod": {
+      "description": "Modulo Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
+      "details": "Divides two preprocessor variables/values from each other, setting only the first one to the remainder of the operation. A %= B",
+      "category": "preprocessor",
+      "function": "_mod",
+      "patterns": [
+        [
+          "id:variable",
+          "object:values"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$pow": {
+      "description": "Exponentiate Preprocessor Variable",
+      "wiki_link": "Simple-Variable-Commands.md#all-of-them",
+      "details": "Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B",
+      "category": "preprocessor",
+      "function": "_pow",
+      "patterns": [
+        [
+          "id:variable",
+          "object:values"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$swap": {
+      "description": "Swap Preprocessor Variables",
+      "wiki_link": "Simple-Variable-Commands.md#other-variable-operations",
+      "details": "Swaps the values of two preprocessor variables",
+      "category": "preprocessor",
+      "function": "_swap",
+      "patterns": [
+        [
+          "id:a",
+          "id:b"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$append": {
+      "description": "Append to Preprocessor Variable",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
+      "details": "Adds the given item(s) to the end of the given preprocessor variable, or contents of another preprocessor variable if specified.",
+      "category": "preprocessor",
+      "function": "_append",
+      "patterns": [
+        [
+          "id:to modify",
+          "object:items"
+        ],
+        [
+          "id:to modify",
+          "id:other"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$prepend": {
+      "description": "Prepend to Preprocessor Variable",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
+      "details": "Adds the given item(s) to the start of the given preprocessor variable.",
+      "category": "preprocessor",
+      "function": "_prepend",
+      "patterns": [
+        [
+          "id:to modify",
+          "object:items"
+        ],
+        [
+          "id:to modify",
+          "id:other"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$if": {
+      "description": "Preprocessor If",
+      "wiki_link": "Comparison-compile-time.md#using-if",
+      "details": "Compares a preprocessor variable and another value/variable. If the source variable contains multiple values, they all must match the condition.",
+      "category": "preprocessor",
+      "function": "_if",
+      "patterns": [
+        [
+          "object:a",
+          "compare:comparison",
+          "object:b"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "object:b"
+        ],
+        [
+          "object:a",
+          "compare:comparison",
+          "id:b"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "id:b"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$else": {
+      "description": "Preprocessor Else",
+      "wiki_link": "Comparison-compile-time.md#using-else",
+      "details": "Directly inverts the result of the last $if call at this level in scope.",
+      "category": "preprocessor",
+      "function": "_else",
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$assert": {
+      "description": "Preprocessor Assertion",
+      "wiki_link": "Debugging.md#assertions",
+      "details": "Asserts that the input comparison is true, and throws a compiler error if not. Allows a custom error message.",
+      "category": "debug",
+      "function": "_assert",
+      "patterns": [
+        [
+          "object:a",
+          "compare:comparison",
+          "object:b",
+          "?string:message"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "object:b",
+          "?string:message"
+        ],
+        [
+          "object:a",
+          "compare:comparison",
+          "id:b",
+          "?string:message"
+        ],
+        [
+          "id:a",
+          "compare:comparison",
+          "id:b",
+          "?string:message"
+        ]
+      ],
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
+    },
+    "$repeat": {
+      "description": "Preprocessor Repeat",
+      "wiki_link": "Compile-Time-Loops.md#repeat_number",
+      "details": "Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.",
+      "category": "preprocessor",
+      "function": "_repeat",
+      "patterns": [
+        [
+          "int:amount",
+          "?id:indicator"
+        ],
+        [
+          "range:amount",
+          "?id:indicator"
+        ]
+      ]
+    },
+    "$log": {
+      "description": "Log to Console",
+      "wiki_link": "Debugging.md#logging",
+      "details": "Sends a message to stdout with a line terminator at the end.",
+      "category": "preprocessor",
+      "function": "_log",
+      "patterns": [
+        [
+          "*:message"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$macro": {
+      "description": "Define/Call Macro",
+      "wiki_link": "Macros.md#defining-a-macro",
+      "details": "If a code-block follows this call, it is treated as a definition. Arguments are passed in as preprocessor variables. If no code-block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.",
+      "category": "preprocessor",
+      "function": "_macro",
+      "patterns": [
+        [
+          "id:name"
+        ]
+      ],
+      "attributes": [
+        "DONT_DEREFERENCE",
+        "DONT_DECORATE",
+        "DOCUMENTABLE"
+      ]
+    },
+    "$include": {
+      "description": "Include File",
+      "wiki_link": "Including-Other-Files.md",
+      "details": "Places the contents of the given file in replacement for this statement. Not intended for production use yet.",
+      "category": "preprocessor",
+      "function": "_include",
+      "patterns": [
+        [
+          "string:file"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$strfriendly": {
+      "description": "Preprocessor String Friendly Name",
+      "wiki_link": "Advanced-Variable-Commands.md#string-manipulation",
+      "details": "Convert the given preprocessor variable value(s) to a string in 'Title Case'.",
+      "category": "preprocessor",
+      "function": "_strfriendly",
+      "patterns": [
+        [
+          "id:result",
+          "?id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$strupper": {
+      "description": "Preprocessor String Uppercase",
+      "wiki_link": "Advanced-Variable-Commands.md#string-manipulation",
+      "details": "Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.",
+      "category": "preprocessor",
+      "function": "_strupper",
+      "patterns": [
+        [
+          "id:result",
+          "?id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$strlower": {
+      "description": "Preprocessor String Lowercase",
+      "wiki_link": "Advanced-Variable-Commands.md#string-manipulation",
+      "details": "Convert the given preprocessor variable value(s) to a string in 'lowercase'.",
+      "category": "preprocessor",
+      "function": "_strlower",
+      "patterns": [
+        [
+          "id:result",
+          "?id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$sum": {
+      "description": "Preprocessor Array Sum",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
+      "details": "Adds all values in the given preprocessor variable together into one value and stores it in a result variable.",
+      "category": "preprocessor",
+      "function": "_sum",
+      "patterns": [
+        [
+          "id:result",
+          "?id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$median": {
+      "description": "Preprocessor Array Median",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
+      "details": "Gets the middle value/average of the two middle values and stores it in a result variable.",
+      "category": "preprocessor",
+      "function": "_median",
+      "patterns": [
+        [
+          "id:result",
+          "?id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$mean": {
+      "description": "Preprocessor Array Mean",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
+      "details": "Averages all values in the given preprocessor variable together into one value and stores it in a result variable.",
+      "category": "preprocessor",
+      "function": "_mean",
+      "patterns": [
+        [
+          "id:result",
+          "?id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$sort": {
+      "description": "Preprocessor Array Sort",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
+      "details": "Sorts the order of the values in the given preprocessor variable either 'ascending' or 'descending'. Values must be comparable.",
+      "category": "preprocessor",
+      "function": "_sort",
+      "patterns": [
+        [
+          "id:ascending or descending",
+          "id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$reverse": {
+      "description": "Preprocessor Reverse",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
+      "details": "Reverses the order of the values in the given preprocessor variable.",
+      "category": "preprocessor",
+      "function": "_reverse",
+      "patterns": [
+        [
+          "id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$unique": {
+      "description": "Preprocessor Array Unique",
+      "wiki_link": "Advanced-Variable-Commands.md#array-specific-manipulation",
+      "details": "Flattens the given preprocessor array to only unique values.",
+      "category": "preprocessor",
+      "function": "_unique",
+      "patterns": [
+        [
+          "id:variable"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$iterate": {
+      "description": "Iterate Preprocessor Array",
+      "details": "Runs the following statement/code-block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.",
+      "category": "preprocessor",
+      "function": "_iterate",
+      "patterns": [
+        [
+          "id:variable",
+          "id:current"
+        ],
+        [
+          "json:array or object",
+          "id:current"
+        ]
+      ],
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
+    },
+    "$len": {
+      "description": "Preprocessor Length",
+      "wiki_link": "Advanced-Variable-Commands.md#data-manipulation",
+      "details": "If a preprocessor variable identifier or JSON array is specified, the number of elements it holds is gotten. If a string is given, its length is gotten.",
+      "category": "preprocessor",
+      "function": "_len",
+      "patterns": [
+        [
+          "id:result",
+          "id:variable"
+        ],
+        [
+          "id:result",
+          "json:array"
+        ],
+        [
+          "id:result",
+          "string:text"
+        ]
+      ],
+      "attributes": [
+        "DONT_FLATTEN_ARRAYS",
+        "DONT_DECORATE"
+      ]
+    },
+    "$json": {
+      "description": "Preprocessor Load JSON Value",
+      "wiki_link": "JSON-Processing.md",
+      "details": "Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.",
+      "category": "preprocessor",
+      "function": "_json",
+      "patterns": [
+        [
+          "string:file name",
+          "id:result",
+          "?string:path"
+        ],
+        [
+          "json:existing json",
+          "id:result",
+          "?string:path"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "$call": {
+      "description": "Preprocessor Call Function",
+      "wiki_link": "Metaprogramming.md#calling",
+      "details": "Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.",
+      "category": "preprocessor",
+      "function": "_call",
+      "patterns": [
+        [
+          "string:function name",
+          "?*:parameters"
+        ]
+      ]
+    },
+    "mc": {
+      "description": "Minecraft Command",
+      "aliases": [
+        "command",
+        "cmd"
+      ],
+      "details": "Places a plain command in the output file, used for when the language lacks a certain feature.",
+      "category": "other",
+      "patterns": [
+        [
+          "string:command"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "globalprint": {
+      "description": "Print to All Players",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Prints a chat message to all players in the game.",
+      "category": "text",
+      "patterns": [
+        [
+          "string:text"
+        ]
+      ],
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
+    },
+    "print": {
+      "description": "Print to Player",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Prints a chat message to the executing player, or to the given one if specified.",
+      "category": "text",
+      "patterns": [
+        [
+          "selector:entity",
+          "string:text"
+        ],
+        [
+          "string:text"
+        ]
+      ],
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
+    },
+    "lang": {
+      "description": "Set Active Language",
+      "wiki_link": "Localization.md",
+      "details": "Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including format-strings.",
+      "category": "text",
+      "patterns": [
+        [
+          "id:locale"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "define": {
+      "description": "Define Variable",
+      "wiki_link": "Values.md#defining-values",
+      "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
+      "category": "values",
+      "patterns": [
+        [
+          "*:args"
+        ]
+      ],
+      "attributes": [
+        "DOCUMENTABLE",
+        "DONT_DECORATE"
+      ]
+    },
+    "init": {
+      "description": "Initialize Variable",
+      "wiki_link": "Values.md#initializing-values",
+      "aliases": [
+        "initialize"
+      ],
+      "details": "Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use clarifiers to pick who the variable is initialized for: e.g., `variableName[@a]`",
+      "category": "values",
+      "patterns": [
+        [
+          "value:value"
+        ]
+      ],
+      "attributes": [
+        "DOCUMENTABLE"
+      ]
+    },
+    "if": {
+      "description": "If Statement",
+      "wiki_link": "Comparison.md",
+      "details": "Performs a comparison, only running the proceeding statement/code-block if the comparisons(s) are true. Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'",
+      "category": "logic",
+      "function": "ifStatement"
+    },
+    "else": {
+      "description": "Else Statement",
+      "wiki_link": "Comparison.md#else",
+      "details": "Inverts the comparison given by the previous if-statement at this scope level.",
+      "category": "logic",
+      "function": "elseStatement",
+      "attributes": [
+        "INVERTS_COMPARISON"
+      ]
+    },
+    "while": {
+      "description": "While Statement",
+      "details": "Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'",
+      "category": "logic",
+      "function": "whileLoop"
+    },
+    "repeat": {
+      "description": "Repeat N Times",
+      "details": "Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.",
+      "category": "logic",
+      "patterns": [
+        [
+          "int:repetitions",
+          "?id:current"
+        ],
+        [
+          "value:repetitions",
+          "?id:current"
+        ]
+      ]
+    },
+    "assert": {
+      "description": "Assert Statement",
+      "wiki_link": "Testing.md#writing-a-test",
+      "details": "Asserts that the given condition evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).",
+      "category": "debug"
+    },
+    "throw": {
+      "description": "Throw Error",
+      "wiki_link": "Debugging.md#throwing-errors",
+      "details": "Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw.",
+      "category": "debug",
+      "function": "throwError",
+      "patterns": [
+        [
+          "string:error"
+        ]
+      ],
+      "attributes": [
+        "USES_FSTRING"
+      ]
+    },
+    "give": {
+      "description": "Give Item",
+      "wiki_link": "Giving-Items.md",
+      "details": "Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.",
+      "category": "items",
+      "patterns": [
+        [
+          "selector:entity",
+          "string:item",
+          "?int:amount",
+          "?int:data"
+        ]
+      ]
+    },
+    "tp": {
+      "description": "Teleport Entity",
+      "aliases": [
+        "teleport"
+      ],
+      "details": "Teleports the executing/given entities to a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
+      "category": "entities",
+      "patterns": [
+        [
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "selector:other",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "selector:other",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "string:other",
+          "?id:facing",
+          "?selector:face entity",
+          "?bool:check for blocks"
+        ],
+        [
+          "selector:source",
+          "string:other",
+          "?id:facing",
+          "?coordinate:facing x",
+          "?coordinate:facing y",
+          "?coordinate:facing z",
+          "?bool:check for blocks"
+        ]
+      ]
+    },
+    "move": {
+      "description": "Move Entity",
+      "details": "Moves the specified entity in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.",
+      "category": "entities",
+      "patterns": [
+        [
+          "selector:source",
+          "id:direction",
+          "number:amount",
+          "?bool:check for blocks"
+        ]
+      ]
+    },
+    "face": {
+      "description": "Face Towards...",
+      "aliases": [
+        "lookat"
+      ],
+      "details": "Faces the given entities towards a specific position, selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
+      "category": "entities",
+      "patterns": [
+        [
+          "selector:source",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z"
+        ],
+        [
+          "selector:source",
+          "selector:other"
+        ],
+        [
+          "selector:source",
+          "string:other"
+        ]
+      ]
+    },
+    "rotate": {
+      "description": "Rotate Entity",
+      "details": "Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.",
+      "category": "entities",
+      "patterns": [
+        [
+          "selector:source",
+          "int:y",
+          "int:x"
+        ]
+      ]
+    },
+    "setblock": {
+      "description": "Set Block",
+      "details": "Sets the block at a specific position, optionally using a replace mode.",
+      "category": "blocks",
+      "patterns": [
+        [
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "string:block",
+          "?int:data",
+          "?id:replace mode"
+        ]
+      ]
+    },
+    "fill": {
+      "description": "Fill Region",
+      "details": "Fills blocks in a specific region, optionally using a replace mode.",
+      "category": "blocks",
+      "patterns": [
+        [
+          "coordinate:x1",
+          "coordinate:y1",
+          "coordinate:z1",
+          "coordinate:x2",
+          "coordinate:y2",
+          "coordinate:z2",
+          "string:block",
+          "?enum:fill mode",
+          "?int:data"
+        ]
+      ]
+    },
+    "scatter": {
+      "description": "Scatter Blocks in Region",
+      "wiki_link": "Scatter.md",
+      "details": "Randomly scatters blocks throughout a region with a certain percentage.",
+      "category": "blocks",
+      "patterns": [
+        [
+          "string:block",
+          "int:percent",
+          "coordinate:x1",
+          "coordinate:y1",
+          "coordinate:z1",
+          "coordinate:x2",
+          "coordinate:y2",
+          "coordinate:z2",
+          "?string:seed"
+        ]
+      ]
+    },
+    "replace": {
+      "description": "Replace in Region",
+      "details": "Replaces all source blocks with a result block in a specific region.",
+      "category": "blocks",
+      "patterns": [
+        [
+          "string:source block",
+          "?int:data",
+          "coordinate:x1",
+          "coordinate:y1",
+          "coordinate:z1",
+          "coordinate:x2",
+          "coordinate:y2",
+          "coordinate:z2",
+          "string:result block",
+          "?int:data"
+        ]
+      ]
+    },
+    "kill": {
+      "description": "Kill Entity",
+      "details": "Kills the given entities, causing the death animation, sounds, and particles to appear.",
+      "category": "entities",
+      "patterns": [
+        [
+          "?selector:target"
+        ]
+      ]
+    },
+    "clear": {
+      "description": "Clear Entity",
+      "details": "Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.",
+      "category": "items",
+      "patterns": [
+        [
+          "?selector:target",
+          "?string:item",
+          "?int:data",
+          "?int:max count"
+        ]
+      ]
+    },
+    "globaltitle": {
+      "description": "Show Title to All Players",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays a title on the screen of all players in the game. Can also be used to set the timings of the title.",
+      "category": "text",
+      "patterns": [
+        [
+          "id:times",
+          "int:fade in",
+          "int:stay",
+          "int:fade out"
+        ],
+        [
+          "id:subtitle",
+          "string:text"
+        ],
+        [
+          "string:text"
+        ]
+      ],
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
+    },
+    "title": {
+      "description": "Show Title",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title.",
+      "category": "text",
+      "patterns": [
+        [
+          "selector:target",
+          "id:times",
+          "int:fade in",
+          "int:stay",
+          "int:fade out"
+        ],
+        [
+          "selector:target",
+          "id:subtitle",
+          "string:text"
+        ],
+        [
+          "selector:target",
+          "string:text"
+        ],
+        [
+          "id:times",
+          "int:fade in",
+          "int:stay",
+          "int:fade out"
+        ],
+        [
+          "id:subtitle",
+          "string:text"
+        ],
+        [
+          "string:text"
+        ]
+      ],
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
+    },
+    "globalactionbar": {
+      "description": "Show Actionbar to All Players",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar.",
+      "category": "text",
+      "patterns": [
+        [
+          "string:text"
+        ]
+      ],
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
+    },
+    "actionbar": {
+      "description": "Show Actionbar",
+      "wiki_link": "Text-Commands.md#commands",
+      "details": "Displays an actionbar on the screen of the executing player, or to the given one if specified.",
+      "category": "text",
+      "patterns": [
+        [
+          "string:text"
+        ]
+      ],
+      "attributes": [
+        "DONT_RESOLVE_STRINGS",
+        "USES_FSTRING"
+      ]
+    },
+    "say": {
+      "description": "Say",
+      "details": "Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.",
+      "category": "text",
+      "patterns": [
+        [
+          "string:message"
+        ]
+      ]
+    },
+    "camera": {
+      "description": "Camera",
+      "details": "Modify the camera of the given players, identical to the vanilla command with much more fault-tolerance.",
+      "category": "cosmetic",
+      "patterns": [
+        [
+          "selector:players",
+          "id:subcommand"
+        ]
+      ]
+    },
+    "halt": {
+      "description": "Halt Execution",
+      "wiki_link": "Debugging.md#halting-code",
+      "details": "Ends the execution of the code entirely by hitting the function command limit.",
+      "category": "logic"
+    },
+    "summon": {
+      "description": "Summon Entity",
+      "details": "Summons an entity; matches Minecraft vanilla syntax.",
+      "category": "entities",
+      "patterns": [
+        [
+          "id:type"
+        ],
+        [
+          "id:type",
+          "string:name tag",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z"
+        ],
+        [
+          "id:type",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "coordinate:y rotation",
+          "coordinate:x rotation",
+          "?string:spawn event",
+          "?string:name tag"
+        ],
+        [
+          "id:type",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "id:facing",
+          "selector:entity to face",
+          "?string:spawn event",
+          "?string:name tag"
+        ],
+        [
+          "id:type",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z",
+          "id:facing",
+          "coordinate:face x",
+          "coordinate:face y",
+          "coordinate:face z",
+          "?string:spawn event",
+          "?string:name tag"
+        ]
+      ]
+    },
+    "damage": {
+      "description": "Damage Entity",
+      "details": "Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, \"name:type\" of entity, or name of another managed entity (e.g., dummy entities).",
+      "category": "entities",
+      "patterns": [
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause"
+        ],
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause",
+          "selector:blame"
+        ],
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause",
+          "string:blame"
+        ],
+        [
+          "selector:target",
+          "int:amount",
+          "?enum:damage cause",
+          "coordinate:from x",
+          "coordinate:from y",
+          "coordinate:from z"
+        ]
+      ]
+    },
+    "effect": {
+      "description": "Give Effect to Entity",
+      "details": "Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect \\<selector\\> clear'.",
+      "category": "entities",
+      "patterns": [
+        [
+          "selector:target",
+          "id:clear"
+        ],
+        [
+          "selector:target",
+          "enum:effect",
+          "?int:seconds",
+          "?int:amplifier",
+          "?bool:hide"
+        ]
+      ]
+    },
+    "playsound": {
+      "description": "Play Sound",
+      "wiki_link": "Playsound.md",
+      "details": "Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.",
+      "category": "cosmetic",
+      "patterns": [
+        [
+          "string:sound",
+          "?selector:who",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z",
+          "?number:volume",
+          "?number:pitch",
+          "?number:minimum volume"
+        ]
+      ]
+    },
+    "particle": {
+      "description": "Spawn Particle",
+      "details": "Spawns a particle effect in the world.",
+      "category": "cosmetic",
+      "patterns": [
+        [
+          "string:effect",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z"
+        ]
+      ]
+    },
+    "dummy": {
+      "description": "Manage Dummy Entities",
+      "wiki_link": "Optional-Features.md#dummies",
+      "details": "Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.",
+      "category": "features",
+      "features": 1,
+      "patterns": [
+        [
+          "id:create",
+          "string:name",
+          "?string:tag",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:x"
+        ],
+        [
+          "id:single",
+          "string:name",
+          "?string:tag",
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:x"
+        ],
+        [
+          "id:removeall",
+          "?string:tag"
+        ],
+        [
+          "id:remove",
+          "string:name",
+          "?string:tag"
+        ]
+      ]
+    },
+    "tag": {
+      "description": "Tag Entity",
+      "details": "Add and remove tags from the given entity.",
+      "category": "entities",
+      "patterns": [
+        [
+          "selector:target",
+          "id:mode",
+          "string:name"
+        ]
+      ]
+    },
+    "explode": {
+      "description": "Create Explosion",
+      "wiki_link": "Optional-Features.md#exploders",
+      "details": "Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.",
+      "category": "features",
+      "features": 4,
+      "patterns": [
+        [
+          "?coordinate:x",
+          "?coordinate:y",
+          "?coordinate:z",
+          "?int:power",
+          "?int:delay",
+          "?bool:causes fire",
+          "?bool:breaks blocks"
+        ]
+      ]
+    },
+    "feature": {
+      "description": "Enable Feature",
+      "wiki_link": "Optional-Features.md",
+      "details": "Enables a feature to be used for this project, generating any of the necessary files.",
+      "category": "features",
+      "patterns": [
+        [
+          "id:feature name"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE"
+      ]
+    },
+    "function": {
+      "description": "Define Function",
+      "wiki_link": "Functions.md#defining-functions",
+      "aliases": [
+        "fn"
+      ],
+      "details": "Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`",
+      "category": "logic",
+      "patterns": [
+        [
+          "*:args"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE",
+        "DOCUMENTABLE"
+      ]
+    },
+    "test": {
+      "description": "Define Test",
+      "wiki_link": "Testing.md#writing-a-test",
+      "details": "Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.",
+      "category": "debug",
+      "patterns": [
+        [
+          "id:test name"
+        ]
+      ],
+      "attributes": [
+        "DONT_DECORATE",
+        "DOCUMENTABLE"
+      ]
+    },
+    "return": {
+      "description": "Set Return Value",
+      "wiki_link": "Functions.md#return-values",
+      "details": "Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.",
+      "category": "logic",
+      "function": "returnFromFunction",
+      "patterns": [
+        [
+          "value:variable"
+        ],
+        [
+          "any:return value"
+        ]
+      ]
+    },
+    "dialogue": {
+      "description": "Define/Open Dialogue",
+      "wiki_link": "Dialogue.md",
+      "details": "If followed by a block, defines a new dialogue scene with the given name.",
+      "category": "text",
+      "patterns": [
+        [
+          "id:new",
+          "string:scene tag"
+        ],
+        [
+          "id:open",
+          "selector:npc",
+          "selector:player",
+          "?string:scene tag"
+        ],
+        [
+          "id:change",
+          "selector:npc",
+          "string:scene tag",
+          "?selector:player"
+        ]
+      ]
+    },
+    "for": {
+      "description": "For Each Entity",
+      "wiki_link": "Loops.md#for",
+      "details": "Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>`",
+      "category": "logic",
+      "function": "forEntities",
+      "patterns": [
+        [
+          "selector:entities",
+          "id:at",
+          "coordinate:x",
+          "coordinate:y",
+          "coordinate:z"
+        ],
+        [
+          "selector:entities"
+        ]
+      ]
+    },
+    "execute": {
+      "description": "Execute",
+      "details": "Begins a vanilla Minecraft execute chain. Can be followed by a statement or code-block, but does not explicitly support the 'run' subcommand.",
+      "category": "logic",
+      "patterns": [
+        [
+          "id:subcommand",
+          "*:subcommand arguments"
+        ]
+      ]
+    },
+    "await": {
+      "description": "Await (async)",
+      "wiki_link": "Async.md#awaiting",
+      "details": "Works in async functions. Awaits a certain amount of time, for a condition to be met, or another async function to complete executing.",
+      "category": "logic",
+      "patterns": [
+        [
+          "int:ticks"
+        ],
+        [
+          "id:until",
+          "*:conditions"
+        ],
+        [
+          "id:while",
+          "*:conditions"
+        ],
+        [
+          "awaitable:awaitable"
+        ]
+      ],
+      "attributes": [
+        "CAUSES_ASYNC_SPLIT"
+      ]
+    }
+  }
+}

@@ -17,6 +17,9 @@
         <AdditionalFiles Include="language.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+        <AdditionalFiles Include="language-old.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
         <AdditionalFiles Include="bindings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>

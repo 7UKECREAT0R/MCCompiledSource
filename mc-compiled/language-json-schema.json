@@ -1,0 +1,120 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "directives": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "syntax": {
+            "oneOf": [
+              {
+                "type": "array",
+                "description": "Simple syntax format using array of parameters",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_ ]+:[a-zA-Z0-9_*]+(?:<[a-zA-Z_]+>)?(?:\\[(?:[0-9]+\\.\\.)?(?:\\.[0-9]+)?\\]|\\?)?$"
+                }
+              },
+              {
+                "type": "object",
+                "description": "Advanced syntax format using groups",
+                "properties": {
+                  "repeatable": {
+                    "type": "boolean",
+                    "description": "If true, allow the user to repeat these groups while keeping sequential order."
+                  }
+                },
+                "additionalProperties": {
+                  "$ref": "#/definitions/group"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "group": {
+      "type": "object",
+      "properties": {
+        "optional": {
+          "type": "boolean",
+          "description": "If this group is optional. If not present, assumed false."
+        },
+        "blocking": {
+          "type": "boolean",
+          "description": "If true, this group is optional for the command to be valid, but must be specified to continue parsing further groups. If false or not present, the parser may continue to subsequent groups whether this group is used or not."
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Required keyword to activate this group."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of this group."
+        },
+        "patterns": {
+          "type": "array",
+          "description": "Array of parameter patterns that can satisfy this group.",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_ ]+:[a-zA-Z0-9_*]+(?:<[a-zA-Z_]+>)?(?:\\[(?:[0-9]+\\.\\.)?(?:\\.[0-9]+)?\\]|\\?)?$"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_ ]+:[a-zA-Z0-9_*]+(?:<[a-zA-Z_]+>)?(?:\\[(?:[0-9]+\\.\\.)?(?:\\.[0-9]+)?\\]|\\?)?$"
+                }
+              }
+            ]
+          }
+        },
+        "children": {
+          "type": "object",
+          "description": "Subgroups that this group can lead into",
+          "properties": {
+            "repeatable": {
+              "type": "boolean",
+              "description": "If true, allows subgroups to be repeated. All subgroups must have keywords if this is true."
+            },
+            "sequential": {
+              "type": "boolean",
+              "description": "If true, the groups will be evaluated sequentially, same as the base group. Default false."
+            }
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/group"
+          }
+        },
+        "ref": {
+          "type": "string",
+          "description": "A reference to another directive's syntax. Starts with the directive's name, then uses dots to make reference to subgroups.",
+          "pattern": "[a-zA-Z_.]+"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "patterns"
+          ]
+        },
+        {
+          "required": [
+            "children"
+          ]
+        },
+        {
+          "required": [
+            "ref"
+          ]
+        }
+      ]
+    }
+  }
+}
