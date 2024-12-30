@@ -99,7 +99,7 @@ public static class Language
                 {
                     if (jt.Type == JTokenType.String)
                         return new Keyword(jt.Value<string>());
-                    throw new Exception($"Unexpected type in enum definition's array: {jt.Type}");
+                    throw new Exception($"Unexpected type in enum {enumName}'s definition: {jt.Type}");
                 }).ToArray();
             }
             else if (value.Type == JTokenType.Object)
@@ -112,7 +112,9 @@ public static class Language
             else if (value.Type == JTokenType.String)
             {
                 string typeIdentifier = value.ToString();
+                Debug.WriteLine($"Reflecting enumeration '{typeIdentifier}'...");
                 Array valuesRaw = Enum.GetValues(Type.GetType(typeIdentifier, true, true));
+                Debug.WriteLine($"\tGot {valuesRaw.Length} values in it.");
                 var values = new Keyword[valuesRaw.Length];
                 for (int i = 0; i < values.Length; i++)
                     values[i] = new Keyword(valuesRaw.GetValue(i)?.ToString() ??

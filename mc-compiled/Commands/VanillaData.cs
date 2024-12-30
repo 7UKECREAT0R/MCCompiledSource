@@ -1,0 +1,279 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using JetBrains.Annotations;
+using Newtonsoft.Json.Linq;
+
+namespace mc_compiled.Commands;
+
+/// <summary>
+///     Static collection of properties for reading the bundled vanilla data with MCCompiled.
+///     <br /><br />
+///     Some methods here are expensive, so reserve their use for cases where MCCompiled will remain open and can reuse the
+///     results of the first, expensive load.
+/// </summary>
+public static class VanillaData
+{
+    private const string _FOLDER = "vanilla-dependencies";
+    private const string BLOCKS_FILE = "mojang-blocks.json";
+    private const string CAMERA_PRESETS_FILE = "mojang-camera-presets.json";
+    private const string MOB_EFFECTS_FILE = "mojang-effects.json";
+    private const string ENCHANTMENTS_FILE = "mojang-enchantments.json";
+    private const string ENTITIES_FILE = "mojang-entities.json";
+    private const string ITEMS_FILE = "mojang-items.json";
+
+    private static readonly string FOLDER = Path.Combine(AppContext.BaseDirectory, _FOLDER);
+    public static readonly string BLOCKS_PATH = Path.Combine(FOLDER, BLOCKS_FILE);
+    public static readonly string CAMERA_PRESETS_PATH = Path.Combine(FOLDER, CAMERA_PRESETS_FILE);
+    public static readonly string MOB_EFFECTS_PATH = Path.Combine(FOLDER, MOB_EFFECTS_FILE);
+    public static readonly string ENCHANTMENTS_PATH = Path.Combine(FOLDER, ENCHANTMENTS_FILE);
+    public static readonly string ENTITIES_PATH = Path.Combine(FOLDER, ENTITIES_FILE);
+    public static readonly string ITEMS_PATH = Path.Combine(FOLDER, ITEMS_FILE);
+
+    private static bool BLOCKS_LOADED;
+    private static bool CAMERA_PRESETS_LOADED;
+    private static bool MOB_EFFECTS_LOADED;
+    private static bool ENCHANTMENTS_LOADED;
+    private static bool ENTITIES_LOADED;
+    private static bool ITEMS_LOADED;
+
+    private static readonly List<string> _blocks = [];
+    private static readonly List<string> _cameraPresets = [];
+    private static readonly List<string> _mobEffects = [];
+    private static readonly List<string> _enchantments = [];
+    private static readonly List<string> _entities = [];
+    private static readonly List<string> _items = [];
+
+    /// <summary>
+    ///     Returns an IEnumerable of every input string, but with the <c>minecraft:</c> identifier stripped off.
+    /// </summary>
+    /// <param name="identifiers">The input identifiers.</param>
+    private static IEnumerable<string> StripMinecraftIdentifier(IReadOnlyList<string> identifiers)
+    {
+        return identifiers.Select(id => id.StartsWith("minecraft:") ? id[10..] : id);
+    }
+
+    /// <summary>
+    ///     Warning: This is a VERY expensive method on the first call. Use sparingly.<br />
+    ///     <br />
+    ///     Returns all block identifiers in Minecraft Vanilla.
+    /// </summary>
+    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
+    [PublicAPI]
+    public static IEnumerable<string> Blocks(bool stripMinecraft = true)
+    {
+        EnsureBlocksLoaded();
+        return stripMinecraft ? StripMinecraftIdentifier(_blocks) : _blocks;
+    }
+    /// <summary>
+    ///     Returns all camera presets in Minecraft Vanilla.
+    /// </summary>
+    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
+    [PublicAPI]
+    public static IEnumerable<string> CameraPresets(bool stripMinecraft = true)
+    {
+        EnsureCameraPresetsLoaded();
+        return stripMinecraft ? StripMinecraftIdentifier(_cameraPresets) : _cameraPresets;
+    }
+    /// <summary>
+    ///     Returns all effects (like what's available with <c>/effect</c>) in Minecraft Vanilla.
+    /// </summary>
+    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
+    [PublicAPI]
+    public static IEnumerable<string> MobEffects(bool stripMinecraft = true)
+    {
+        EnsureMobEffectsLoaded();
+        return stripMinecraft ? StripMinecraftIdentifier(_mobEffects) : _mobEffects;
+    }
+    /// <summary>
+    ///     Returns all enchantment identifiers in Minecraft Vanilla.
+    /// </summary>
+    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
+    [PublicAPI]
+    public static IEnumerable<string> Enchantments(bool stripMinecraft = true)
+    {
+        EnsureEnchantmentsLoaded();
+        return stripMinecraft ? StripMinecraftIdentifier(_enchantments) : _enchantments;
+    }
+    /// <summary>
+    ///     Returns all entity identifiers in Minecraft Vanilla.
+    /// </summary>
+    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
+    [PublicAPI]
+    public static IEnumerable<string> Entities(bool stripMinecraft = true)
+    {
+        EnsureEntitiesLoaded();
+        return stripMinecraft ? StripMinecraftIdentifier(_entities) : _entities;
+    }
+    /// <summary>
+    ///     Warning: This is a VERY expensive method on the first call. Use sparingly.<br />
+    ///     <br />
+    ///     Returns all item identifiers in Minecraft Vanilla.
+    /// </summary>
+    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
+    [PublicAPI]
+    public static IEnumerable<string> Items(bool stripMinecraft = true)
+    {
+        EnsureItemsLoaded();
+        return stripMinecraft ? StripMinecraftIdentifier(_items) : _items;
+    }
+
+    private static void EnsureBlocksLoaded()
+    {
+        if (BLOCKS_LOADED)
+            return;
+        if (!File.Exists(BLOCKS_PATH))
+        {
+            BLOCKS_LOADED = true;
+            Console.Error.WriteLine($"Missing file './{FOLDER}/{BLOCKS_FILE}'");
+            return;
+        }
+
+        JObject root = JObject.Parse(File.ReadAllText(BLOCKS_PATH));
+        JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
+
+        foreach (JToken _dataItem in dataItems)
+        {
+            if (_dataItem is not JObject dataItem)
+                continue;
+            string name = dataItem["name"]?.Value<string>();
+            if (string.IsNullOrEmpty(name))
+                continue;
+            _blocks.Add(name);
+        }
+
+        BLOCKS_LOADED = true;
+    }
+    private static void EnsureCameraPresetsLoaded()
+    {
+        if (CAMERA_PRESETS_LOADED)
+            return;
+        if (!File.Exists(CAMERA_PRESETS_PATH))
+        {
+            CAMERA_PRESETS_LOADED = true;
+            Console.Error.WriteLine($"Missing file './{FOLDER}/{CAMERA_PRESETS_FILE}'");
+            return;
+        }
+
+        JObject root = JObject.Parse(File.ReadAllText(CAMERA_PRESETS_PATH));
+        JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
+
+        foreach (JToken _dataItem in dataItems)
+        {
+            if (_dataItem is not JObject dataItem)
+                continue;
+            string name = dataItem["name"]?.Value<string>();
+            if (string.IsNullOrEmpty(name))
+                continue;
+            _cameraPresets.Add(name);
+        }
+
+        CAMERA_PRESETS_LOADED = true;
+    }
+    private static void EnsureMobEffectsLoaded()
+    {
+        if (MOB_EFFECTS_LOADED)
+            return;
+        if (!File.Exists(MOB_EFFECTS_PATH))
+        {
+            MOB_EFFECTS_LOADED = true;
+            Console.Error.WriteLine($"Missing file './{FOLDER}/{MOB_EFFECTS_FILE}'");
+            return;
+        }
+
+        JObject root = JObject.Parse(File.ReadAllText(MOB_EFFECTS_PATH));
+        JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
+
+        foreach (JToken _dataItem in dataItems)
+        {
+            if (_dataItem is not JObject dataItem)
+                continue;
+            string name = dataItem["name"]?.Value<string>();
+            if (string.IsNullOrEmpty(name))
+                continue;
+            _mobEffects.Add(name);
+        }
+
+        MOB_EFFECTS_LOADED = true;
+    }
+    private static void EnsureEnchantmentsLoaded()
+    {
+        if (ENCHANTMENTS_LOADED)
+            return;
+        if (!File.Exists(ENCHANTMENTS_PATH))
+        {
+            ENCHANTMENTS_LOADED = true;
+            Console.Error.WriteLine($"Missing file './{FOLDER}/{ENCHANTMENTS_FILE}'");
+            return;
+        }
+
+        JObject root = JObject.Parse(File.ReadAllText(ENCHANTMENTS_PATH));
+        JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
+
+        foreach (JToken _dataItem in dataItems)
+        {
+            if (_dataItem is not JObject dataItem)
+                continue;
+
+            string name = dataItem["value"]?.Value<string>() ?? dataItem["name"]?.Value<string>();
+            if (string.IsNullOrEmpty(name))
+                continue;
+            _enchantments.Add(name);
+        }
+
+        ENCHANTMENTS_LOADED = true;
+    }
+    private static void EnsureEntitiesLoaded()
+    {
+        if (ENTITIES_LOADED)
+            return;
+        if (!File.Exists(ENTITIES_PATH))
+        {
+            ENTITIES_LOADED = true;
+            Console.Error.WriteLine($"Missing file './{FOLDER}/{ENTITIES_FILE}'");
+            return;
+        }
+
+        JObject root = JObject.Parse(File.ReadAllText(ENTITIES_PATH));
+        JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
+
+        foreach (JToken _dataItem in dataItems)
+        {
+            if (_dataItem is not JObject dataItem)
+                continue;
+            string name = dataItem["name"]?.Value<string>();
+            if (string.IsNullOrEmpty(name))
+                continue;
+            _entities.Add(name);
+        }
+
+        ENTITIES_LOADED = true;
+    }
+    private static void EnsureItemsLoaded()
+    {
+        if (ITEMS_LOADED)
+            return;
+        if (!File.Exists(ITEMS_PATH))
+        {
+            ITEMS_LOADED = true;
+            Console.Error.WriteLine($"Missing file './{FOLDER}/{ITEMS_FILE}'");
+            return;
+        }
+
+        JObject root = JObject.Parse(File.ReadAllText(ITEMS_PATH));
+        JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
+
+        foreach (JToken _dataItem in dataItems)
+        {
+            if (_dataItem is not JObject dataItem)
+                continue;
+            string name = dataItem["command_name"]?.Value<string>();
+            if (string.IsNullOrEmpty(name))
+                continue;
+            _items.Add(name);
+        }
+
+        ITEMS_LOADED = true;
+    }
+}
