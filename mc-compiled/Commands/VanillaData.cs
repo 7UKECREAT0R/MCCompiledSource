@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using mc_compiled.MCC.Language;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Commands;
@@ -39,12 +40,12 @@ public static class VanillaData
     private static bool ENTITIES_LOADED;
     private static bool ITEMS_LOADED;
 
-    private static readonly List<string> _blocks = [];
-    private static readonly List<string> _cameraPresets = [];
-    private static readonly List<string> _mobEffects = [];
-    private static readonly List<string> _enchantments = [];
-    private static readonly List<string> _entities = [];
-    private static readonly List<string> _items = [];
+    private static readonly List<EnumerationKeyword> _blocks = [];
+    private static readonly List<EnumerationKeyword> _cameraPresets = [];
+    private static readonly List<EnumerationKeyword> _mobEffects = [];
+    private static readonly List<EnumerationKeyword> _enchantments = [];
+    private static readonly List<EnumerationKeyword> _entities = [];
+    private static readonly List<EnumerationKeyword> _items = [];
 
     /// <summary>
     ///     Returns the input string, but with the <c>minecraft:</c> identifier stripped off.
@@ -61,7 +62,7 @@ public static class VanillaData
     ///     Returns all block identifiers in Minecraft Vanilla.
     /// </summary>
     [PublicAPI]
-    public static IReadOnlyList<string> Blocks()
+    public static IReadOnlyList<EnumerationKeyword> Blocks()
     {
         EnsureBlocksLoaded();
         return _blocks;
@@ -70,7 +71,7 @@ public static class VanillaData
     ///     Returns all camera presets in Minecraft Vanilla.
     /// </summary>
     [PublicAPI]
-    public static IReadOnlyList<string> CameraPresets()
+    public static IReadOnlyList<EnumerationKeyword> CameraPresets()
     {
         EnsureCameraPresetsLoaded();
         return _cameraPresets;
@@ -79,7 +80,7 @@ public static class VanillaData
     ///     Returns all effects (like what's available with <c>/effect</c>) in Minecraft Vanilla.
     /// </summary>
     [PublicAPI]
-    public static IReadOnlyList<string> MobEffects()
+    public static IReadOnlyList<EnumerationKeyword> MobEffects()
     {
         EnsureMobEffectsLoaded();
         return _mobEffects;
@@ -88,7 +89,7 @@ public static class VanillaData
     ///     Returns all enchantment identifiers in Minecraft Vanilla.
     /// </summary>
     [PublicAPI]
-    public static IReadOnlyList<string> Enchantments()
+    public static IReadOnlyList<EnumerationKeyword> Enchantments()
     {
         EnsureEnchantmentsLoaded();
         return _enchantments;
@@ -97,7 +98,7 @@ public static class VanillaData
     ///     Returns all entity identifiers in Minecraft Vanilla.
     /// </summary>
     [PublicAPI]
-    public static IReadOnlyList<string> Entities()
+    public static IReadOnlyList<EnumerationKeyword> Entities()
     {
         EnsureEntitiesLoaded();
         return _entities;
@@ -108,7 +109,7 @@ public static class VanillaData
     ///     Returns all item identifiers in Minecraft Vanilla.
     /// </summary>
     [PublicAPI]
-    public static IEnumerable<string> Items()
+    public static IReadOnlyList<EnumerationKeyword> Items()
     {
         EnsureItemsLoaded();
         return _items;
@@ -137,7 +138,7 @@ public static class VanillaData
                 continue;
             if (!KEEP_MINECRAFT_IDENTIFIER)
                 name = StripMinecraftIdentifier(name);
-            _blocks.Add(name);
+            _blocks.Add(new EnumerationKeyword(name));
         }
 
         BLOCKS_LOADED = true;
@@ -165,7 +166,7 @@ public static class VanillaData
                 continue;
             if (!KEEP_MINECRAFT_IDENTIFIER)
                 name = StripMinecraftIdentifier(name);
-            _cameraPresets.Add(name);
+            _cameraPresets.Add(new EnumerationKeyword(name));
         }
 
         CAMERA_PRESETS_LOADED = true;
@@ -193,7 +194,7 @@ public static class VanillaData
                 continue;
             if (!KEEP_MINECRAFT_IDENTIFIER)
                 name = StripMinecraftIdentifier(name);
-            _mobEffects.Add(name);
+            _mobEffects.Add(new EnumerationKeyword(name));
         }
 
         MOB_EFFECTS_LOADED = true;
@@ -223,7 +224,7 @@ public static class VanillaData
                 continue;
             if (!KEEP_MINECRAFT_IDENTIFIER)
                 name = StripMinecraftIdentifier(name);
-            _enchantments.Add(name);
+            _enchantments.Add(new EnumerationKeyword(name));
         }
 
         ENCHANTMENTS_LOADED = true;
@@ -251,7 +252,7 @@ public static class VanillaData
                 continue;
             if (!KEEP_MINECRAFT_IDENTIFIER)
                 name = StripMinecraftIdentifier(name);
-            _entities.Add(name);
+            _entities.Add(new EnumerationKeyword(name));
         }
 
         ENTITIES_LOADED = true;
@@ -279,7 +280,7 @@ public static class VanillaData
                 continue;
             if (!KEEP_MINECRAFT_IDENTIFIER)
                 name = StripMinecraftIdentifier(name);
-            _items.Add(name);
+            _items.Add(new EnumerationKeyword(name));
         }
 
         ITEMS_LOADED = true;
