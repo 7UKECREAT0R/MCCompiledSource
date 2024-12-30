@@ -22,10 +22,12 @@ public static class Language
     public static Dictionary<string, NamedType> nameToTypeMappings;
     public static Dictionary<Type, NamedType> namedEntries;
 
-    public static Dictionary<string, Keyword[]> nameToEnumMappings;
+    public static Dictionary<string, EnumerationKeyword[]> nameToEnumMappings;
 
     public static Dictionary<string, string> categories;
     public static LanguageSyntax syntax;
+
+    public static Dictionary<string, Directive> directives;
 
     static Language()
     {
@@ -88,7 +90,7 @@ public static class Language
         }
 
         // load enum mappings
-        nameToEnumMappings = new Dictionary<string, Keyword[]>();
+        nameToEnumMappings = new Dictionary<string, EnumerationKeyword[]>();
         JObject enumMappings = json["enums"] as JObject ??
                                throw new Exception("language.json/enums was null.");
         foreach ((string enumName, JToken value) in enumMappings)
@@ -98,15 +100,15 @@ public static class Language
                 nameToEnumMappings[enumName] = values.Select(jt =>
                 {
                     if (jt.Type == JTokenType.String)
-                        return new Keyword(jt.Value<string>());
+                        return new EnumerationKeyword(jt.Value<string>());
                     throw new Exception($"Unexpected type in enum {enumName}'s definition: {jt.Type}");
                 }).ToArray();
             }
             else if (value.Type == JTokenType.Object)
             {
-                var keywords = new List<Keyword>();
+                var keywords = new List<EnumerationKeyword>();
                 foreach ((string entryName, JToken entryValue) in (value as JObject)!)
-                    keywords.Add(new Keyword(entryName, entryValue.ToString()));
+                    keywords.Add(new EnumerationKeyword(entryName, entryValue.ToString()));
                 nameToEnumMappings[enumName] = keywords.ToArray();
             }
             else if (value.Type == JTokenType.String)
@@ -115,10 +117,10 @@ public static class Language
                 Debug.WriteLine($"Reflecting enumeration '{typeIdentifier}'...");
                 Array valuesRaw = Enum.GetValues(Type.GetType(typeIdentifier, true, true));
                 Debug.WriteLine($"\tGot {valuesRaw.Length} values in it.");
-                var values = new Keyword[valuesRaw.Length];
+                var values = new EnumerationKeyword[valuesRaw.Length];
                 for (int i = 0; i < values.Length; i++)
-                    values[i] = new Keyword(valuesRaw.GetValue(i)?.ToString() ??
-                                            throw new Exception("Everything blew up."));
+                    values[i] = new EnumerationKeyword(valuesRaw.GetValue(i)?.ToString() ??
+                                                       throw new Exception("Everything blew up."));
                 nameToEnumMappings[enumName] = values;
             }
             else
@@ -137,5 +139,13 @@ public static class Language
         }
 
         // parse directives
+        directives = new Dictionary<string, Directive>();
+        foreach (JProperty property in (json["directives"] as JObject ??
+                                        throw new Exception("language.json/directives was null.")).Properties())
+        {
+            Directive directive = Directive.Parse(property);
+            if (!directives.TryAdd(directive.name, directive))
+                throw new Exception($"Duplicate directive '{directive.name}'.");
+        }
     }
 }

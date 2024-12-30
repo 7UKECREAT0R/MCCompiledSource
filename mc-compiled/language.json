@@ -1306,7 +1306,7 @@
       "details": "Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.",
       "category": "cosmetic",
       "syntax": [
-        "sound:string<minecraft_sound>", "who:selector?",
+        "sound:string", "who:selector?",
         "x:coordinate?", "y:coordinate?", "z:coordinate?",
         "volume:number?", "pitch:number?", "minimum volume:number?"
       ]
@@ -1316,7 +1316,7 @@
       "details": "Spawns a particle effect in the world.",
       "category": "cosmetic",
       "syntax": [
-        "effect:string<minecraft_particle>",
+        "effect:string",
         "x:coordinate?", "y:coordinate?", "z:coordinate?"
       ]
     },
@@ -1597,7 +1597,7 @@
                       "description": "Execute if a block matches.",
                       "patterns": [
                         "x:coordinate", "y:coordinate", "z:coordinate",
-                        "block:id<minecraft_blocks>"
+                        "block:id<minecraft_block>"
                       ]
                     },
                     "blocks": {
@@ -1648,7 +1648,7 @@
                       "description": "Execute unless a block matches.",
                       "patterns": [
                         "x:coordinate", "y:coordinate", "z:coordinate",
-                        "block:id<minecraft_blocks>"
+                        "block:id<minecraft_block>"
                       ]
                     },
                     "blocks": {

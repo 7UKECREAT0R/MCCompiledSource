@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 
@@ -15,6 +14,8 @@ namespace mc_compiled.Commands;
 /// </summary>
 public static class VanillaData
 {
+    private const bool KEEP_MINECRAFT_IDENTIFIER = false;
+
     private const string _FOLDER = "vanilla-dependencies";
     private const string BLOCKS_FILE = "mojang-blocks.json";
     private const string CAMERA_PRESETS_FILE = "mojang-camera-presets.json";
@@ -46,12 +47,12 @@ public static class VanillaData
     private static readonly List<string> _items = [];
 
     /// <summary>
-    ///     Returns an IEnumerable of every input string, but with the <c>minecraft:</c> identifier stripped off.
+    ///     Returns the input string, but with the <c>minecraft:</c> identifier stripped off.
     /// </summary>
-    /// <param name="identifiers">The input identifiers.</param>
-    private static IEnumerable<string> StripMinecraftIdentifier(IReadOnlyList<string> identifiers)
+    /// <param name="identifier">The input identifier.</param>
+    private static string StripMinecraftIdentifier(string identifier)
     {
-        return identifiers.Select(id => id.StartsWith("minecraft:") ? id[10..] : id);
+        return identifier.StartsWith("minecraft:") ? identifier[10..] : identifier;
     }
 
     /// <summary>
@@ -59,64 +60,58 @@ public static class VanillaData
     ///     <br />
     ///     Returns all block identifiers in Minecraft Vanilla.
     /// </summary>
-    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
     [PublicAPI]
-    public static IEnumerable<string> Blocks(bool stripMinecraft = true)
+    public static IReadOnlyList<string> Blocks()
     {
         EnsureBlocksLoaded();
-        return stripMinecraft ? StripMinecraftIdentifier(_blocks) : _blocks;
+        return _blocks;
     }
     /// <summary>
     ///     Returns all camera presets in Minecraft Vanilla.
     /// </summary>
-    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
     [PublicAPI]
-    public static IEnumerable<string> CameraPresets(bool stripMinecraft = true)
+    public static IReadOnlyList<string> CameraPresets()
     {
         EnsureCameraPresetsLoaded();
-        return stripMinecraft ? StripMinecraftIdentifier(_cameraPresets) : _cameraPresets;
+        return _cameraPresets;
     }
     /// <summary>
     ///     Returns all effects (like what's available with <c>/effect</c>) in Minecraft Vanilla.
     /// </summary>
-    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
     [PublicAPI]
-    public static IEnumerable<string> MobEffects(bool stripMinecraft = true)
+    public static IReadOnlyList<string> MobEffects()
     {
         EnsureMobEffectsLoaded();
-        return stripMinecraft ? StripMinecraftIdentifier(_mobEffects) : _mobEffects;
+        return _mobEffects;
     }
     /// <summary>
     ///     Returns all enchantment identifiers in Minecraft Vanilla.
     /// </summary>
-    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
     [PublicAPI]
-    public static IEnumerable<string> Enchantments(bool stripMinecraft = true)
+    public static IReadOnlyList<string> Enchantments()
     {
         EnsureEnchantmentsLoaded();
-        return stripMinecraft ? StripMinecraftIdentifier(_enchantments) : _enchantments;
+        return _enchantments;
     }
     /// <summary>
     ///     Returns all entity identifiers in Minecraft Vanilla.
     /// </summary>
-    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
     [PublicAPI]
-    public static IEnumerable<string> Entities(bool stripMinecraft = true)
+    public static IReadOnlyList<string> Entities()
     {
         EnsureEntitiesLoaded();
-        return stripMinecraft ? StripMinecraftIdentifier(_entities) : _entities;
+        return _entities;
     }
     /// <summary>
     ///     Warning: This is a VERY expensive method on the first call. Use sparingly.<br />
     ///     <br />
     ///     Returns all item identifiers in Minecraft Vanilla.
     /// </summary>
-    /// <param name="stripMinecraft">Strip the <c>minecraft:</c> identifier off of the values. Defaults to true.</param>
     [PublicAPI]
-    public static IEnumerable<string> Items(bool stripMinecraft = true)
+    public static IEnumerable<string> Items()
     {
         EnsureItemsLoaded();
-        return stripMinecraft ? StripMinecraftIdentifier(_items) : _items;
+        return _items;
     }
 
     private static void EnsureBlocksLoaded()
@@ -140,6 +135,8 @@ public static class VanillaData
             string name = dataItem["name"]?.Value<string>();
             if (string.IsNullOrEmpty(name))
                 continue;
+            if (!KEEP_MINECRAFT_IDENTIFIER)
+                name = StripMinecraftIdentifier(name);
             _blocks.Add(name);
         }
 
@@ -166,6 +163,8 @@ public static class VanillaData
             string name = dataItem["name"]?.Value<string>();
             if (string.IsNullOrEmpty(name))
                 continue;
+            if (!KEEP_MINECRAFT_IDENTIFIER)
+                name = StripMinecraftIdentifier(name);
             _cameraPresets.Add(name);
         }
 
@@ -192,6 +191,8 @@ public static class VanillaData
             string name = dataItem["name"]?.Value<string>();
             if (string.IsNullOrEmpty(name))
                 continue;
+            if (!KEEP_MINECRAFT_IDENTIFIER)
+                name = StripMinecraftIdentifier(name);
             _mobEffects.Add(name);
         }
 
@@ -216,9 +217,12 @@ public static class VanillaData
             if (_dataItem is not JObject dataItem)
                 continue;
 
-            string name = dataItem["value"]?.Value<string>() ?? dataItem["name"]?.Value<string>();
+            string name = dataItem["value"]?.Value<string>() ??
+                          dataItem["name"]?.Value<string>();
             if (string.IsNullOrEmpty(name))
                 continue;
+            if (!KEEP_MINECRAFT_IDENTIFIER)
+                name = StripMinecraftIdentifier(name);
             _enchantments.Add(name);
         }
 
@@ -245,6 +249,8 @@ public static class VanillaData
             string name = dataItem["name"]?.Value<string>();
             if (string.IsNullOrEmpty(name))
                 continue;
+            if (!KEEP_MINECRAFT_IDENTIFIER)
+                name = StripMinecraftIdentifier(name);
             _entities.Add(name);
         }
 
@@ -271,6 +277,8 @@ public static class VanillaData
             string name = dataItem["command_name"]?.Value<string>();
             if (string.IsNullOrEmpty(name))
                 continue;
+            if (!KEEP_MINECRAFT_IDENTIFIER)
+                name = StripMinecraftIdentifier(name);
             _items.Add(name);
         }
 
