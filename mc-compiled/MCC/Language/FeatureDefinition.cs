@@ -10,6 +10,12 @@ public readonly struct FeatureDefinition(
     decimal minVersion,
     uint value)
 {
+    public readonly string name = name;
+    public readonly string description = description;
+    public readonly string details = details;
+    internal readonly decimal minVersion = minVersion;
+    internal readonly uint value = value;
+
     /// Creates a new instance of the FeatureDefinition struct from a JSON property.
     /// <param name="property">
     ///     The JSON property representing a feature. The property's value must be a JSON object

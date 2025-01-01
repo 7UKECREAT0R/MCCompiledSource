@@ -54,9 +54,20 @@ public class Directive
     [CanBeNull]
     public readonly string wiki_link;
 
-    private Directive(string[] aliases, DirectiveAttribute[] attributes, [CanBeNull] string category,
+    /// <summary>
+    ///     The syntax of this directive in MCCompiled. <see cref="Syntax" /> is the public API.
+    /// </summary>
+    internal SyntaxGroup _syntax;
+
+    private Directive(string[] aliases,
+        DirectiveAttribute[] attributes,
+        [CanBeNull] string category,
         string description,
-        string details, DirectiveImpl implementation, string name, [CanBeNull] string wikiLink)
+        string details,
+        DirectiveImpl implementation,
+        string name,
+        [CanBeNull] string wikiLink,
+        [NotNull] SyntaxGroup syntax)
     {
         this.aliases = aliases;
         this.attributes = attributes;
@@ -67,6 +78,10 @@ public class Directive
         this.name = name;
         this.wiki_link = wikiLink;
     }
+    /// <summary>
+    ///     Retrieves a reference to the syntax of this directive in MCCompiled.
+    /// </summary>
+    public SyntaxGroup Syntax => this._syntax;
 
     /// <summary>
     ///     Parses a directive from a JSON property.
@@ -106,7 +121,31 @@ public class Directive
         if (implementation == null)
             throw new ArgumentException($"Couldn't find implementation for directive {name}.");
 
-        return new Directive(aliases, attributes, category, description, details, implementation, name, wikiLink);
+        SyntaxGroup syntax;
+        JToken syntaxToken = json["syntax"];
+        JToken syntaxRefToken = json["syntax_ref"];
+        if (syntaxToken != null && syntaxRefToken != null)
+            throw new ArgumentException(
+                $"Directive {name} has both `syntax` and `syntax_ref` specified. Only one is allowed.");
+        if (syntaxToken != null)
+        {
+            syntax = SyntaxGroup.Parse(syntaxToken);
+        }
+        else if (syntaxRefToken != null)
+        {
+            string query = syntaxRefToken.Value<string>() ??
+                           throw new ArgumentException($"Syntax reference for {name} must be a string.");
+            syntax = Language.QuerySyntaxGroup(query);
+            if (syntax == null)
+                throw new ArgumentException($"Couldn't resolve syntax reference '{query}'.");
+        }
+        else
+        {
+            syntax = SyntaxGroup.NONE;
+        }
+
+        return new Directive(aliases, attributes, category, description,
+            details, implementation, name, wikiLink, syntax);
     }
 
     /// <summary>

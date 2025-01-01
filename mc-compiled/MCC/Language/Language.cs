@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
 
@@ -19,8 +20,8 @@ public static class Language
     public static string[] builtinPreprocessorVariables;
     public static ImmutableList<FeatureDefinition> features;
 
-    public static Dictionary<string, NamedType> nameToTypeMappings;
-    public static Dictionary<Type, NamedType> namedEntries;
+    public static Dictionary<string, Type> nameToTypeMappings;
+    public static Dictionary<Type, string> typeToNameMappings;
 
     public static Dictionary<string, EnumerationKeyword[]> nameToEnumMappings;
 
@@ -77,16 +78,18 @@ public static class Language
 
         // load type mappings
         const string TYPE_PREFIX = "mc_compiled.MCC.Compiler.";
-        nameToTypeMappings = new Dictionary<string, NamedType>();
-        namedEntries = new Dictionary<Type, NamedType>();
+        nameToTypeMappings = new Dictionary<string, Type>();
+        typeToNameMappings = new Dictionary<Type, string>();
         JObject typeMappings = json["mappings"] as JObject ??
                                throw new Exception("language.json/mappings was null.");
         foreach ((string key, JToken mappingToken) in typeMappings)
         {
-            var value = Type.GetType(TYPE_PREFIX + mappingToken, true, false);
-            var namedType = new NamedType(value, key);
-            nameToTypeMappings[key] = namedType;
-            namedEntries[value] = namedType;
+            string mapping = mappingToken.Value<string>();
+            Type value = mapping.Equals("_block")
+                ? typeof(StatementOpenBlock)
+                : Type.GetType(TYPE_PREFIX + mapping, true, false);
+            nameToTypeMappings[key] = value;
+            typeToNameMappings[value] = key;
         }
 
         // load enum mappings
@@ -146,6 +149,51 @@ public static class Language
             Directive directive = Directive.Parse(property);
             if (!directives.TryAdd(directive.name, directive))
                 throw new Exception($"Duplicate directive '{directive.name}'.");
+
+            if (directive.aliases != null)
+                foreach (string alias in directive.aliases)
+                    if (!directives.TryAdd(alias, directive))
+                        throw new Exception($"Duplicate directive alias '{alias}'.");
         }
+    }
+
+    /// <summary>
+    ///     Query a syntax group from a directive using dots (<c>.</c>) to separate paths.
+    /// </summary>
+    /// <param name="query">
+    ///     The query string, starting with the directive name, and then optionally traversing its children with
+    ///     dots.
+    /// </param>
+    /// <returns>A reference to the located syntax group, or <c>null</c> if it couldn't be found.</returns>
+    /// <example>
+    ///     <code>
+    /// gloaltitle.subcommand
+    /// if
+    /// if.comparison
+    /// define
+    /// </code>
+    /// </example>
+    [CanBeNull]
+    public static SyntaxGroup QuerySyntaxGroup(string query)
+    {
+        string[] _chunks = query.Split('.');
+        if (_chunks.Length == 0)
+            return null;
+
+        string directiveName = _chunks[0];
+        Directive directive = directives[directiveName];
+        if (directive == null)
+            return null;
+
+        SyntaxGroup currentGroup = directive._syntax;
+        for (int i = 1; i < _chunks.Length; i++)
+        {
+            string chunk = _chunks[i];
+            currentGroup = currentGroup.QueryChild(chunk);
+            if (currentGroup == null)
+                return null;
+        }
+
+        return currentGroup;
     }
 }

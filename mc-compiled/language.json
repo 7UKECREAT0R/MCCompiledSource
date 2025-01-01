@@ -67,8 +67,6 @@
       "gamerule": "mc_compiled.Commands.Command.GameRule",
       "damage_cause": "mc_compiled.Commands.Command.DamageCause",
       "gamemode": "mc_compiled.Commands.Command.GameMode",
-      "enchantment": "mc_compiled.Commands.Command.Enchantment",
-      "potion_effect": "mc_compiled.Commands.Command.PotionEffect",
       "old_handling": "mc_compiled.Commands.Command.OldHandling",
       "difficulty": "mc_compiled.Commands.Command.DifficultyMode",
       "clone_mode": "mc_compiled.Commands.Command.CloneMode",
@@ -873,7 +871,7 @@
             "enchant": {
               "keyword": "enchant: ",
               "description": "Adds an enchantment to the item.",
-              "patterns": ["enchantment:id<enchantment>", "level:int"]
+              "patterns": ["enchantment:id<minecraft_enchantment>", "level:int"]
             },
             "name": {
               "keyword": "name: ",
@@ -1294,7 +1292,7 @@
               "patterns": []
             },
             "give": {
-              "patterns": ["effect:id<potion_effect>", "seconds:int?", "amplifier:int?", "hide particles:bool?"]
+              "patterns": ["effect:id<minecraft_effect>", "seconds:int?", "amplifier:int?", "hide particles:bool?"]
             }
           }
         }
