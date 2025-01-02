@@ -58,20 +58,20 @@
       ]
     },
     "enums": {
-      "blocks_scan_mode": "mc_compiled.Commands.Command.BlocksScanMode",
-      "dimension": "mc_compiled.Commands.Command.Dimension",
-      "anchor_position": "mc_compiled.Commands.Command.AnchorPosition",
-      "weather": "mc_compiled.Commands.Command.WeatherState",
-      "timespec": "mc_compiled.Commands.Command.TimeSpec",
-      "item_slot": "mc_compiled.Commands.Command.ItemSlot",
-      "gamerule": "mc_compiled.Commands.Command.GameRule",
-      "damage_cause": "mc_compiled.Commands.Command.DamageCause",
-      "gamemode": "mc_compiled.Commands.Command.GameMode",
-      "old_handling": "mc_compiled.Commands.Command.OldHandling",
-      "difficulty": "mc_compiled.Commands.Command.DifficultyMode",
-      "clone_mode": "mc_compiled.Commands.Command.CloneMode",
-      "easing": "mc_compiled.Commands.Command.Easing",
-      "camera_preset": "mc_compiled.Commands.Command.CameraPreset",
+      "blocks_scan_mode": "mc_compiled.Commands.BlocksScanMode",
+      "dimension": "mc_compiled.Commands.Dimension",
+      "anchor_position": "mc_compiled.Commands.AnchorPosition",
+      "weather": "mc_compiled.Commands.WeatherState",
+      "timespec": "mc_compiled.Commands.TimeSpec",
+      "item_slot": "mc_compiled.Commands.ItemSlot",
+      "gamerule": "mc_compiled.Commands.GameRule",
+      "damage_cause": "mc_compiled.Commands.DamageCause",
+      "gamemode": "mc_compiled.Commands.GameMode",
+      "old_handling": "mc_compiled.Commands.OldHandling",
+      "difficulty": "mc_compiled.Commands.DifficultyMode",
+      "clone_mode": "mc_compiled.Commands.CloneMode",
+      "easing": "mc_compiled.Commands.Easing",
+      "camera_preset": "mc_compiled.Commands.CameraPreset",
       "move_direction": ["left", "right", "up", "down", "forwards", "backwards"],
       "grid_alignment": ["x", "y", "z", "xy", "xz", "yz", "xyz"]
     }
@@ -1075,7 +1075,7 @@
           "patterns": ["players:selector"]
         },
         "subcommand": {
-          "ref": "gloaltitle.subcommand"
+          "ref": "globaltitle.subcommand"
         }
       },
       "attributes": ["DONT_RESOLVE_STRINGS", "USES_FSTRING"]
@@ -1502,7 +1502,7 @@
       "function": "forEntities",
       "syntax": {
         "entities": {
-          "patterns": ["selector:entities"]
+          "patterns": ["entities:selector"]
         },
         "offset_position": {
           "optional": true,

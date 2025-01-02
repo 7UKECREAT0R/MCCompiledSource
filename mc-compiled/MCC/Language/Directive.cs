@@ -77,6 +77,7 @@ public class Directive
         this.implementation = implementation;
         this.name = name;
         this.wiki_link = wikiLink;
+        this._syntax = syntax;
     }
     /// <summary>
     ///     Retrieves a reference to the syntax of this directive in MCCompiled.
@@ -107,8 +108,8 @@ public class Directive
     [PublicAPI]
     public static Directive Parse(string name, JObject json)
     {
-        string[] aliases = json.Value<string[]>("aliases") ?? [];
-        DirectiveAttribute[] attributes = json.Value<DirectiveAttribute[]>("attributes") ?? [];
+        string[] aliases = json["aliases"]?.ToObject<string[]>() ?? [];
+        DirectiveAttribute[] attributes = json["attributes"]?.ToObject<DirectiveAttribute[]>() ?? [];
         string category = json.Value<string>("category");
         string description = json.Value<string>("description") ??
                              throw new ArgumentException($"Directive {name} must include `description`.");

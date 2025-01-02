@@ -9,6 +9,7 @@ using mc_compiled.Commands.Native;
 using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Language;
 using mc_compiled.MCC.ServerWebSocket;
 using mc_compiled.MCC.SyntaxHighlighting;
 using mc_compiled.Modding;
@@ -16,6 +17,7 @@ using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding.Manifest;
 using mc_compiled.Modding.Manifest.Modules;
 using mc_compiled.NBT;
+using Directive = mc_compiled.MCC.Language.Directive;
 
 // ReSharper disable CommentTypo
 
@@ -171,7 +173,7 @@ internal static class Program
 
         // load enums and directives
         CommandEnumParser.Init();
-        Directives.LoadFromLanguage(debug);
+        //Directives.LoadFromLanguage(debug);
 
         string fileUpper = files[0].ToUpper();
 
@@ -537,8 +539,12 @@ internal static class Program
     /// <param name="projectName">The name of the project being compiled. Default is null.</param>
     /// <param name="silentErrors">Determines whether error messages should be suppressed. Default is false.</param>
     /// <returns>Returns a boolean value indicating whether the compilation succeeded.</returns>
-    private static bool RunMCCompiled(string file, InputPPV[] preprocessorVariables, string outputBP,
-        string outputRP, string projectName = null, bool silentErrors = false)
+    private static bool RunMCCompiled(string file,
+        InputPPV[] preprocessorVariables,
+        string outputBP,
+        string outputRP,
+        string projectName = null,
+        bool silentErrors = false)
     {
         string content = File.ReadAllText(file);
         return RunMCCompiledCode(content, file, preprocessorVariables, outputBP, outputRP, projectName, silentErrors);
@@ -555,8 +561,13 @@ internal static class Program
     /// <param name="projectName">The name of the project. If null, the name is retrieved from the file path.</param>
     /// <param name="silentErrors">A flag indicating whether to suppress the errors during compilation. Default is false.</param>
     /// <returns>If the compilation succeeded.</returns>
-    internal static bool RunMCCompiledCode(string code, string file, InputPPV[] preprocessorVariables,
-        string outputBP, string outputRP, string projectName = null, bool silentErrors = false)
+    internal static bool RunMCCompiledCode(string code,
+        string file,
+        InputPPV[] preprocessorVariables,
+        string outputBP,
+        string outputRP,
+        string projectName = null,
+        bool silentErrors = false)
     {
         if (projectName == null)
             projectName = Path.GetFileNameWithoutExtension(file);

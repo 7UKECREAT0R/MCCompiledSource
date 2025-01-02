@@ -29,9 +29,17 @@ public static class Language
     public static LanguageSyntax syntax;
 
     public static Dictionary<string, Directive> directives;
+    public static bool IsLoaded { get; private set; }
 
-    static Language()
+    /// <summary>
+    ///     Loads `language.json` if it's not already.
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    internal static void TryLoad()
     {
+        if (IsLoaded)
+            return;
+
         string baseDirectory = Path.GetDirectoryName(AppContext.BaseDirectory);
         Debug.Assert(baseDirectory != null, nameof(baseDirectory) + " != null");
         string path = Path.Combine(baseDirectory, FILE);
@@ -50,12 +58,16 @@ public static class Language
             Console.WriteLine("Loading language.json...");
 
         string _json = File.ReadAllText(path);
-        JObject json = JObject.Parse(_json);
+        JObject json = JObject.Parse(_json, new JsonLoadSettings
+        {
+            CommentHandling = CommentHandling.Ignore,
+            DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error,
+            LineInfoHandling = LineInfoHandling.Ignore
+        });
         LoadFromJSON(json);
 
         IsLoaded = true;
     }
-    public static bool IsLoaded { get; }
     private static void LoadFromJSON(JObject json)
     {
         if (IsLoaded)
@@ -94,8 +106,9 @@ public static class Language
 
         // load enum mappings
         nameToEnumMappings = new Dictionary<string, EnumerationKeyword[]>();
-        JObject enumMappings = json["enums"] as JObject ??
-                               throw new Exception("language.json/enums was null.");
+        JObject enumMappings = json.Value<JObject>("syntax").Value<JObject>("enums") ??
+                               throw new Exception("language.json/syntax/enums was null.");
+
         foreach ((string enumName, JToken value) in enumMappings)
             if (value.Type == JTokenType.Array)
             {
@@ -185,7 +198,7 @@ public static class Language
         if (directive == null)
             return null;
 
-        SyntaxGroup currentGroup = directive._syntax;
+        SyntaxGroup currentGroup = directive.Syntax;
         for (int i = 1; i < _chunks.Length; i++)
         {
             string chunk = _chunks[i];

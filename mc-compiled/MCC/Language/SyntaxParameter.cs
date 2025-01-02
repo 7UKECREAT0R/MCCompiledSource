@@ -48,8 +48,13 @@ public readonly struct SyntaxParameter
     /// </summary>
     internal readonly IReadOnlyList<EnumerationKeyword> languageServerSuggestions;
 
-    private SyntaxParameter(string name, bool blockConstraint, [CanBeNull] Type typeConstraint, bool optional,
-        bool variadic, Range? variadicRange, IReadOnlyList<EnumerationKeyword> languageServerSuggestions = null,
+    private SyntaxParameter(string name,
+        bool blockConstraint,
+        [CanBeNull] Type typeConstraint,
+        bool optional,
+        bool variadic,
+        Range? variadicRange,
+        IReadOnlyList<EnumerationKeyword> languageServerSuggestions = null,
         string languageServerSuggestionsId = null)
     {
         this.name = name;
@@ -114,7 +119,10 @@ public readonly struct SyntaxParameter
 
         string name = input[..colon];
         string info = input[(colon + 1)..];
-        string _type = new(info.TakeWhile(c => c == '_' || char.IsLetter(c)).ToArray());
+        string _type = new(info.TakeWhile(c => c == '_' || c == '*' || char.IsAsciiLetter(c) || char.IsAsciiDigit(c))
+            .ToArray());
+        if (string.IsNullOrWhiteSpace(_type))
+            return false;
         Type type = Language.nameToTypeMappings[_type];
         bool blockConstraint = type == typeof(StatementOpenBlock);
         if (blockConstraint)

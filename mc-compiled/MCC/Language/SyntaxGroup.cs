@@ -54,9 +54,12 @@ public class SyntaxGroup
     ///     Create a new group that uses <see cref="SyntaxPatterns" /> as its content.
     /// </summary>
     /// <exception cref="ArgumentNullException">If <paramref name="patterns" /> is null.</exception>
-    private SyntaxGroup(SyntaxGroupBehavior behavior, [CanBeNull] string identifier, bool blocking,
+    private SyntaxGroup(SyntaxGroupBehavior behavior,
+        [CanBeNull] string identifier,
+        bool blocking,
         [CanBeNull] string description,
-        bool optional, bool repeatable,
+        bool optional,
+        bool repeatable,
         [NotNull] SyntaxPatterns patterns)
     {
         this.patterns = patterns ?? throw new ArgumentNullException(nameof(patterns));
@@ -75,9 +78,12 @@ public class SyntaxGroup
     ///     Create a new group that uses another <see cref="SyntaxGroup" /> as its content.
     /// </summary>
     /// <exception cref="ArgumentNullException">If <paramref name="children" /> is null.</exception>
-    private SyntaxGroup(SyntaxGroupBehavior behavior, [CanBeNull] string identifier, bool blocking,
+    private SyntaxGroup(SyntaxGroupBehavior behavior,
+        [CanBeNull] string identifier,
+        bool blocking,
         [CanBeNull] string description,
-        bool optional, bool repeatable,
+        bool optional,
+        bool repeatable,
         [NotNull] SyntaxGroup[] children)
     {
         this.children = children ?? throw new ArgumentNullException(nameof(children));
@@ -152,22 +158,30 @@ public class SyntaxGroup
             JArray patternsJSON = _patternsToken as JArray ??
                                   throw new FormatException($"'patterns' must be an array at '{_patternsToken.Path}'");
 
-            bool isMultiplePatterns = patternsJSON[0].Type == JTokenType.Array;
             SyntaxPatterns patterns;
 
-            if (isMultiplePatterns)
+            if (patternsJSON.Count == 0)
             {
-                string[][] patternsArray = patternsJSON.ToObject<string[][]>() ??
-                                           throw new FormatException(
-                                               $"Expected array of string arrays in pattern at '{_patternsToken.Path}'");
-                patterns = ParseSimplePatterns(patternsArray);
+                patterns = [];
             }
             else
             {
-                string[] patternsArray = patternsJSON.ToObject<string[]>() ??
-                                         throw new FormatException(
-                                             $"Expected array of strings in pattern at '{_patternsToken.Path}'");
-                patterns = ParseSimplePattern(patternsArray);
+                bool isMultiplePatterns = patternsJSON[0].Type == JTokenType.Array;
+
+                if (isMultiplePatterns)
+                {
+                    string[][] patternsArray = patternsJSON.ToObject<string[][]>() ??
+                                               throw new FormatException(
+                                                   $"Expected array of string arrays in pattern at '{_patternsToken.Path}'");
+                    patterns = ParseSimplePatterns(patternsArray);
+                }
+                else
+                {
+                    string[] patternsArray = patternsJSON.ToObject<string[]>() ??
+                                             throw new FormatException(
+                                                 $"Expected array of strings in pattern at '{_patternsToken.Path}'");
+                    patterns = ParseSimplePattern(patternsArray);
+                }
             }
 
             group = new SyntaxGroup(SyntaxGroupBehavior.OneOf, identifier,
@@ -287,6 +301,21 @@ public class SyntaxGroup
                 where child.identifier == null
                 select child.QueryChild(childName))
             .FirstOrDefault(subgroup => subgroup != null);
+    }
+
+    /// <summary>
+    ///     Recursively count the number of possible paths this <see cref="SyntaxGroup" /> expands into.
+    /// </summary>
+    /// <param name="runningTotal">The running total, used for recursion.</param>
+    /// <returns>The number of paths.</returns>
+    public int CountPaths(int runningTotal = 0)
+    {
+        if (this.hasChildren)
+            return runningTotal + this.children.Sum(child => child.CountPaths());
+        if (this.hasPatterns)
+            return runningTotal + this.patterns.Count;
+
+        return runningTotal; // should never happen but here we are
     }
 }
 
