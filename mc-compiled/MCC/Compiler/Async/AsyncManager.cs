@@ -34,11 +34,11 @@ public class AsyncManager
             .Cast<AsyncFunction>()
             .ToArray();
 
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
             foreach (AsyncFunction asyncFunction in asyncFunctions)
                 asyncFunction.PrintDebugGroupInfo();
 
-        if (!Program.EXPORT_ALL && !asyncFunctions.Any(f => f.file.IsInUse))
+        if (!GlobalContext.Current.exportAll && !asyncFunctions.Any(f => f.file.IsInUse))
             return;
 
         if (this.tickFile == null)
@@ -50,7 +50,7 @@ public class AsyncManager
             this.parent.GetScheduler()
                 .ScheduleTask(new ScheduledRepeatEveryTick(this.tickFile));
 
-            if (Program.DECORATE)
+            if (GlobalContext.Decorate)
             {
                 this.tickFile.Add("# Runs via tick.json; ticks the state of every running async function.");
                 this.tickFile.Add(string.Empty);
@@ -59,7 +59,7 @@ public class AsyncManager
 
         foreach (AsyncFunction asyncFunction in asyncFunctions)
         {
-            if (!Program.EXPORT_ALL && !asyncFunction.file.IsInUse)
+            if (!GlobalContext.Current.exportAll && !asyncFunction.file.IsInUse)
                 return;
 
             string command;
@@ -78,8 +78,12 @@ public class AsyncManager
             this.tickFile.Add(command);
         }
     }
-    public AsyncFunction StartNewAsyncFunction(Statement callingStatement, string name, string internalName,
-        string documentation, IAttribute[] attributes, AsyncTarget target)
+    public AsyncFunction StartNewAsyncFunction(Statement callingStatement,
+        string name,
+        string internalName,
+        string documentation,
+        IAttribute[] attributes,
+        AsyncTarget target)
     {
         this.CurrentFunction =
             new AsyncFunction(callingStatement, name, internalName, documentation, attributes, this, target);

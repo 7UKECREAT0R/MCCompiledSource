@@ -63,18 +63,12 @@ internal class ProjectManager
     /// </summary>
     /// <param name="rawName"></param>
     /// <returns></returns>
-    public string Namespace(string rawName)
-    {
-        return this.Identifier + ':' + rawName;
-    }
+    public string Namespace(string rawName) { return this.Identifier + ':' + rawName; }
     /// <summary>
     ///     Returns this project manager after setting it to lint mode, lowering memory usage
     /// </summary>
     /// <returns></returns>
-    internal void Linter()
-    {
-        this.linting = true;
-    }
+    internal void Linter() { this.linting = true; }
 
     /// <summary>
     ///     Creates the uninstall file.
@@ -243,10 +237,7 @@ internal class ProjectManager
     ///     Adds a collection of files to this project.
     /// </summary>
     /// <param name="newFiles"></param>
-    internal void AddFiles(IEnumerable<IAddonFile> newFiles)
-    {
-        this.files.AddRange(newFiles);
-    }
+    internal void AddFiles(IEnumerable<IAddonFile> newFiles) { this.files.AddRange(newFiles); }
     /// <summary>
     ///     Returns if this project has any file name containing a set of text.
     /// </summary>
@@ -268,7 +259,7 @@ internal class ProjectManager
         }
 
         // get manifests
-        if (!Program.IGNORE_MANIFESTS)
+        if (!GlobalContext.Current.ignoreManifests)
             ProcessManifests();
 
         // uninstall feature
@@ -293,7 +284,7 @@ internal class ProjectManager
                 // traces
                 bool isDirectlyFromTickJson = this.parentExecutor.HasScheduler() &&
                                               this.parentExecutor.GetScheduler().IsFileAuto(cmd);
-                if (Program.TRACE && !isDirectlyFromTickJson)
+                if (GlobalContext.Current.trace && !isDirectlyFromTickJson)
                 {
                     cmd.AddTop("");
                     cmd.AddTop(Command.Tellraw(Selector.ALL_PLAYERS.ToString(),
@@ -303,7 +294,7 @@ internal class ProjectManager
             }
 
             // log the write to console
-            if (Program.DEBUG && file.GetOutputFile() != null)
+            if (GlobalContext.Debug && file.GetOutputFile() != null)
             {
                 string partialPath = GetOutputFileLocationFull(file, true);
                 string fullPath = Path.GetFullPath(partialPath);
@@ -538,18 +529,12 @@ internal class ProjectManager
     ///     Enable a feature for this project.
     /// </summary>
     /// <param name="feature"></param>
-    internal void EnableFeature(Feature feature)
-    {
-        this.features |= feature;
-    }
+    internal void EnableFeature(Feature feature) { this.features |= feature; }
     /// <summary>
     ///     Check if this project has a feature enabled.
     /// </summary>
     /// <param name="feature"></param>
-    internal bool HasFeature(Feature feature)
-    {
-        return (this.features & feature) != Feature.NO_FEATURES;
-    }
+    internal bool HasFeature(Feature feature) { return (this.features & feature) != Feature.NO_FEATURES; }
 }
 
 /// <summary>

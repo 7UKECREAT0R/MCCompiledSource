@@ -32,14 +32,8 @@ public sealed class StatementDirective : Statement, IExecutionSetPart
             $"[DIRECTIVE] {this.directive.description} -> {string.Join(" ", from t in this.tokens select t.DebugString())}";
     }
 
-    protected override TypePattern[] GetValidPatterns()
-    {
-        return this.directive.patterns;
-    }
-    protected override void Run(Executor runningExecutor)
-    {
-        this.directive.call(runningExecutor, this);
-    }
+    protected override TypePattern[] GetValidPatterns() { return this.directive.patterns; }
+    protected override void Run(Executor runningExecutor) { this.directive.call(runningExecutor, this); }
 }
 
 public sealed class StatementComment : Statement
@@ -53,22 +47,13 @@ public sealed class StatementComment : Statement
     }
     public override bool Skip => true;
     public override bool DoesAsyncSplit => false;
-    public override bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return false;
-    }
-    public override string ToString()
-    {
-        return $"[COMMENT] {this.comment}";
-    }
-    protected override TypePattern[] GetValidPatterns()
-    {
-        return [];
-    }
+    public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
+    public override string ToString() { return $"[COMMENT] {this.comment}"; }
+    protected override TypePattern[] GetValidPatterns() { return []; }
 
     protected override void Run(Executor runningExecutor)
     {
-        if (!Program.DECORATE)
+        if (!GlobalContext.Decorate)
             return;
 
         // peek at the next to determine if this comment will be used as documentation or not.
@@ -149,10 +134,7 @@ public sealed class StatementOpenBlock : Statement
         get => this.closer?.closeAction;
         set => this.closer.closeAction = value;
     }
-    public override bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return false;
-    }
+    public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
 
     public override string ToString()
     {
@@ -161,10 +143,7 @@ public sealed class StatementOpenBlock : Statement
             : $"[OPEN BLOCK: {this.statementsInside} STATEMENTS]";
     }
 
-    protected override TypePattern[] GetValidPatterns()
-    {
-        return [];
-    }
+    protected override TypePattern[] GetValidPatterns() { return []; }
     protected override void Run(Executor runningExecutor)
     {
         // start a new group of async stages
@@ -239,19 +218,10 @@ public sealed class StatementCloseBlock : Statement
         get => this.opener?.openAction;
         set => this.opener.openAction = value;
     }
-    public override bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return false;
-    }
-    public override string ToString()
-    {
-        return "[CLOSE BLOCK]";
-    }
+    public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
+    public override string ToString() { return "[CLOSE BLOCK]"; }
 
-    protected override TypePattern[] GetValidPatterns()
-    {
-        return [];
-    }
+    protected override TypePattern[] GetValidPatterns() { return []; }
     protected override void Run(Executor runningExecutor)
     {
         // start a new group of async stages
@@ -287,10 +257,7 @@ public sealed class StatementOperation : Statement, IExecutionSetPart
     public StatementOperation(Token[] tokens) : base(tokens) { }
     public override bool Skip => false;
     public override bool DoesAsyncSplit => false;
-    public override bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return false;
-    }
+    public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
     public override string ToString()
     {
         return $"[OPERATION] {string.Join(" ", from t in this.tokens select t.AsString())}";
@@ -394,10 +361,7 @@ public sealed class StatementFunctionCall : Statement, IExecutionSetPart
     public StatementFunctionCall(Token[] tokens) : base(tokens) { }
     public override bool Skip => false;
     public override bool DoesAsyncSplit => false;
-    public override bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return false;
-    }
+    public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
     public override string ToString()
     {
         return $"[CALL FUNCTION {this.tokens[0]} WITH {this.tokens.Length - 3} PARAMETERS]";
@@ -509,30 +473,18 @@ public sealed class StatementFunctionCall : Statement, IExecutionSetPart
 /// </summary>
 public sealed class StatementUnknown : Statement
 {
-    public StatementUnknown(Token[] tokens) : base(tokens)
-    {
-        this.DecorateInSource = false;
-    }
+    public StatementUnknown(Token[] tokens) : base(tokens) { this.DecorateInSource = false; }
     public override bool Skip => true;
     public override bool DoesAsyncSplit => false;
-    public override bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return false;
-    }
+    public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
     public override string ToString()
     {
         return $"[UNKNOWN] {string.Join(" ", from t in this.tokens select t.AsString())}";
     }
 
-    public Token[] GetTokens()
-    {
-        return this.tokens;
-    }
+    public Token[] GetTokens() { return this.tokens; }
 
-    protected override TypePattern[] GetValidPatterns()
-    {
-        return [];
-    } // always valid
+    protected override TypePattern[] GetValidPatterns() { return []; } // always valid
     protected override void Run(Executor runningExecutor) { } // no operation
 }
 

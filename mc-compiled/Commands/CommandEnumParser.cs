@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
+using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.Commands;
@@ -16,14 +17,8 @@ public static class CommandEnumParser
         return parser.TryGetValue(input.ToUpper(), out result);
     }
 
-    public static void Put(ParsedEnumValue value)
-    {
-        parser[value.ToString().ToUpper()] = value;
-    }
-    public static void Put(string key, ParsedEnumValue value)
-    {
-        parser[key.ToUpper()] = value;
-    }
+    public static void Put(ParsedEnumValue value) { parser[value.ToString().ToUpper()] = value; }
+    public static void Put(string key, ParsedEnumValue value) { parser[key.ToUpper()] = value; }
 
     /// <summary>
     ///     Initialize the global CommandEnumParser.
@@ -32,7 +27,7 @@ public static class CommandEnumParser
     {
         parser.Clear();
 
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Initializing enum parser...");
@@ -47,7 +42,7 @@ public static class CommandEnumParser
             thisEnum.GetCustomAttributes(); // calls their constructors
 
         // ReSharper disable once InvertIf
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Registered " + parser.Count + " unique parser identifiers.");
@@ -58,10 +53,7 @@ public static class CommandEnumParser
 
 public readonly struct ParsedEnumValue
 {
-    public static ParsedEnumValue None(string word)
-    {
-        return new ParsedEnumValue(null, word, true);
-    }
+    public static ParsedEnumValue None(string word) { return new ParsedEnumValue(null, word, true); }
 
     public readonly bool isNone = false;
     public readonly Type enumType;

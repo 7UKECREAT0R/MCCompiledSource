@@ -88,7 +88,7 @@ public static class AttributeFunctions
                 givenTargets.Add(target);
             }
 
-            MolangBindings.EnsureLoaded(Program.DEBUG);
+            MolangBindings.EnsureLoaded(GlobalContext.Debug);
 
             if (!MolangBindings.BINDINGS.TryGetValue(queryString, out MolangBinding binding))
                 throw new StatementException(statement, $"No binding could be found under the name '{queryString}'.");
@@ -133,9 +133,6 @@ public static class AttributeFunctions
 
     private class AttributeProvider : IFunctionProvider
     {
-        IEnumerable<Function> IFunctionProvider.ProvideFunctions(ScoreboardManager manager)
-        {
-            return ALL_ATTRIBUTES;
-        }
+        IEnumerable<Function> IFunctionProvider.ProvideFunctions(ScoreboardManager manager) { return ALL_ATTRIBUTES; }
     }
 }

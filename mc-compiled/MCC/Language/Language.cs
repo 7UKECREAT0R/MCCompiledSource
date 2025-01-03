@@ -54,7 +54,7 @@ public static class Language
             throw new Exception("Missing file 'language.json' in executable directory.");
         }
 
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
             Console.WriteLine("Loading language.json...");
 
         string _json = File.ReadAllText(path);

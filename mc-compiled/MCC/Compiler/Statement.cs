@@ -32,10 +32,7 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// </summary>
     public abstract bool DoesAsyncSplit { get; }
 
-    public object Clone()
-    {
-        return MemberwiseClone();
-    }
+    public object Clone() { return MemberwiseClone(); }
     /// <summary>
     ///     Returns if this statement type is a directive and it has this attribute.
     /// </summary>
@@ -159,7 +156,7 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// </summary>
     public void Decorate(Executor activeExecutor)
     {
-        if (!Program.DECORATE || !this.DecorateInSource || this.Source == null)
+        if (!GlobalContext.Decorate || !this.DecorateInSource || this.Source == null)
             return;
         if (this is StatementDirective std)
         {
@@ -830,14 +827,8 @@ public sealed class StatementHusk : Statement
     {
         throw new StatementException(this, "Compiler tried to run a Husk statement. Have a dev look at this.");
     }
-    protected override TypePattern[] GetValidPatterns()
-    {
-        return null;
-    }
-    public override bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return false;
-    }
+    protected override TypePattern[] GetValidPatterns() { return null; }
+    public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
 }
 
 /// <summary>
@@ -858,8 +849,5 @@ public class StatementException : FeederException
 public class FeederException : Exception
 {
     public readonly TokenFeeder feeder;
-    public FeederException(TokenFeeder feeder, string message) : base(message)
-    {
-        this.feeder = feeder;
-    }
+    public FeederException(TokenFeeder feeder, string message) : base(message) { this.feeder = feeder; }
 }

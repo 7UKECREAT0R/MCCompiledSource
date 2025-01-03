@@ -440,7 +440,7 @@ public class MCCServer : IDisposable
         {
             bool enable = json["debug"].Value<bool>();
             this.debug = enable;
-            Program.DEBUG = enable;
+            GlobalContext.Current.debug = enable;
 
             if (enable)
             {
@@ -467,16 +467,18 @@ public class MCCServer : IDisposable
             return true;
         if (action.Equals("info"))
         {
-            var info = new JObject();
-            info["action"] = "menu";
-            info["html"] = CreateGenericMenu("Server Info",
-                    "Language Server Version: " + STANDARD_VERSION,
-                    "MCCompiled Version: " + Executor.MCC_VERSION,
-                    "Made for Minecraft Version: " + Executor.MINECRAFT_VERSION,
-                    "",
-                    "Fakeplayer Name: " + Executor.FAKE_PLAYER_NAME,
-                    "Maximum Code Depth: " + Executor.MAXIMUM_DEPTH)
-                .Base64Encode();
+            var info = new JObject
+            {
+                ["action"] = "menu",
+                ["html"] = CreateGenericMenu("Server Info",
+                        "Language Server Version: " + STANDARD_VERSION,
+                        "MCCompiled Version: " + Executor.MCC_VERSION,
+                        "Made for Minecraft Version: " + Executor.MINECRAFT_VERSION,
+                        "",
+                        "Fakeplayer Name: " + Executor.FAKE_PLAYER_NAME,
+                        "Maximum Code Depth: " + Executor.MAXIMUM_DEPTH)
+                    .Base64Encode()
+            };
 
             WebSocketFrame frame = WebSocketFrame.JSON(info);
             package.SendFrame(frame);
@@ -719,7 +721,7 @@ public class MCCServer : IDisposable
     {
         try
         {
-            Program.DEBUG = this.debug;
+            GlobalContext.Current.debug = this.debug;
             Program.PrepareToCompile();
             Token[] tokens = new Tokenizer(code).Tokenize();
             Statement[] statements = Assembler.AssembleTokens(tokens);
@@ -775,7 +777,7 @@ public class MCCServer : IDisposable
     {
         try
         {
-            Program.DEBUG = this.debug;
+            GlobalContext.Current.debug = this.debug;
             Program.PrepareToCompile();
             Token[] tokens = new Tokenizer(code).Tokenize();
             Statement[] statements = Assembler.AssembleTokens(tokens);
@@ -842,7 +844,7 @@ public class MCCServer : IDisposable
     }
     private void Compile(string code, string projectName, WebSocketPackage package)
     {
-        Program.DEBUG = this.debug;
+        GlobalContext.Current.debug = this.debug;
         Program.PrepareToCompile();
         bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", [], this.outputBehaviorPack,
             this.outputResourcePack, projectName);

@@ -76,10 +76,7 @@ internal class ExploderManager : CustomEntityManager
         this.files = EntityBehavior.CreateExploder(this.exploderType);
         return this.files.AddonFiles;
     }
-    public override bool HasEntity(string name)
-    {
-        return false;
-    }
+    public override bool HasEntity(string name) { return false; }
     public override bool Search(string name, out Selector selector)
     {
         selector = null;
@@ -99,7 +96,7 @@ internal class ExploderManager : CustomEntityManager
         string groupName = GroupExplode(entry);
         string eventName = EventExplode(entry);
 
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
             Console.WriteLine("Registered exploder preset: " + groupName);
 
         var group = new EntityComponentGroup(groupName, new ComponentExplode(entry, true));
@@ -127,8 +124,13 @@ internal class ExploderManager : CustomEntityManager
     ///     properties.
     /// </summary>
     /// <returns></returns>
-    public string CreateExplosion(Coordinate x, Coordinate y, Coordinate z, int power = 3, int delay = 0,
-        bool fire = false, bool breaksBlocks = true)
+    public string CreateExplosion(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        int power = 3,
+        int delay = 0,
+        bool fire = false,
+        bool breaksBlocks = true)
     {
         // Register the preset if needed and get the event name to trigger it.
         string eventName = GetPreset(power, delay, fire, breaksBlocks);
@@ -173,10 +175,7 @@ public readonly struct ExploderPreset
         return this.power == other.power && this.delay == other.delay && this.fire == other.fire &&
                this.breaks == other.breaks;
     }
-    public override bool Equals(object obj)
-    {
-        return obj is ExploderPreset other && Equals(other);
-    }
+    public override bool Equals(object obj) { return obj is ExploderPreset other && Equals(other); }
     public override int GetHashCode()
     {
         unchecked

@@ -9,7 +9,6 @@ using mc_compiled.Commands.Native;
 using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
-using mc_compiled.MCC.Language;
 using mc_compiled.MCC.ServerWebSocket;
 using mc_compiled.MCC.SyntaxHighlighting;
 using mc_compiled.Modding;
@@ -17,7 +16,6 @@ using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding.Manifest;
 using mc_compiled.Modding.Manifest.Modules;
 using mc_compiled.NBT;
-using Directive = mc_compiled.MCC.Language.Directive;
 
 // ReSharper disable CommentTypo
 
@@ -26,15 +24,6 @@ namespace mc_compiled;
 internal static class Program
 {
     private const string APP_ID = "Microsoft.MinecraftUWP_8wekyb3d8bbwe";
-
-    private static bool NO_PAUSE;
-    private static bool REGOLITH;
-
-    public static bool TRACE;
-    public static bool DECORATE;
-    public static bool EXPORT_ALL;
-    public static bool DEBUG;
-    public static bool IGNORE_MANIFESTS;
 
     private static readonly string[] CLEAN_FILTERS =
     [
@@ -92,12 +81,11 @@ internal static class Program
 
         string[] files = [args[0]];
         var inputPPVs = new List<InputPPV>();
-        bool debug = false;
-        bool search = false;
-        bool daemon = false;
         string obp = "?project_BP"; // ?project is the only part that changes.
         string orp = "?project_RP"; // ?project is the only part that changes.
         string projectName = null;
+
+        using ContextContract contract = GlobalContext.NewInherit();
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -106,31 +94,31 @@ internal static class Program
             {
                 case "-EA":
                 case "--EXPORT_ALL":
-                    EXPORT_ALL = true;
+                    contract.heldContext.exportAll = true;
                     break;
                 case "-IM":
                 case "--IGNORE_MANIFESTS":
-                    IGNORE_MANIFESTS = true;
+                    contract.heldContext.ignoreManifests = true;
                     break;
                 case "--TRACE":
-                    TRACE = true;
+                    contract.heldContext.trace = true;
                     break;
                 case "--DEBUG":
                 case "-DB":
-                    debug = true;
+                    contract.heldContext.debug = true;
                     break;
                 case "--NOPAUSE":
                 case "-NP":
-                    NO_PAUSE = true;
+                    contract.heldContext.noPause = true;
                     break;
                 case "--DECORATE":
                 case "-DC":
-                    DECORATE = true;
+                    contract.heldContext.decorate = true;
                     break;
                 case "--DAEMON":
                 case "-DM":
-                    daemon = true;
-                    NO_PAUSE = true;
+                    contract.heldContext.daemon = true;
+                    contract.heldContext.noPause = true;
                     break;
                 case "--OUTPUTBP":
                 case "-OBP":
@@ -240,14 +228,13 @@ internal static class Program
             }
             case "--SERVER":
             {
-                _ = new Definitions(debug);
+                _ = new Definitions(contract.heldContext.debug);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
                 obp = Path.Combine(comMojang, "development_behavior_packs", "?project_BP");
                 orp = Path.Combine(comMojang, "development_resource_packs", "?project_RP");
-                NO_PAUSE = true;
+                contract.heldContext.noPause = true;
 
-                DEBUG = debug;
                 using var server = new MCCServer(orp, obp);
                 server.StartServer();
 
@@ -277,21 +264,20 @@ internal static class Program
                     return;
 
                 // okay... step up to the job.
-                _ = new Definitions(debug);
+                _ = new Definitions(contract.heldContext.debug);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games", "com.mojang");
                 obp = Path.Combine(comMojang, "development_behavior_packs", "?project_BP");
                 orp = Path.Combine(comMojang, "development_resource_packs", "?project_RP");
-                DECORATE = false;
-                NO_PAUSE = true;
-                DEBUG = debug;
+                contract.heldContext.decorate = false;
+                contract.heldContext.noPause = true;
                 using var server = new MCCServer(orp, obp);
                 server.StartServer();
                 return;
             }
             case "--JSONBUILDER":
             {
-                _ = new Definitions(debug);
+                _ = new Definitions(contract.heldContext.debug);
                 var builder = new RawTextJsonBuilder();
                 builder.ConsoleInterface();
                 return;
@@ -317,7 +303,7 @@ internal static class Program
             }
             case "--TESTLOOT":
             {
-                _ = new Definitions(debug);
+                _ = new Definitions(contract.heldContext.debug);
                 var table = new LootTable("test");
                 table.pools.Add(new LootPool(6, new LootEntry(LootEntry.EntryType.item, "minecraft:iron_sword")
                         .WithFunction(new LootFunctionEnchant(new EnchantmentEntry("sharpness", 20)))
@@ -359,9 +345,9 @@ internal static class Program
             }
             case "--SEARCH":
             {
-                REGOLITH = false;
-                search = true;
-                NO_PAUSE = true;
+                contract.heldContext.regolith = false;
+                contract.heldContext.search = true;
+                contract.heldContext.noPause = true;
                 files = GetMCCFilesInDirectory();
 
                 if (files.Length == 0)
@@ -376,9 +362,9 @@ internal static class Program
             {
                 obp = "BP";
                 orp = "RP";
-                REGOLITH = true;
-                search = true;
-                NO_PAUSE = true;
+                contract.heldContext.regolith = true;
+                contract.heldContext.search = true;
+                contract.heldContext.noPause = true;
                 files = GetMCCFilesInDirectory();
 
                 if (files.Length == 0)
@@ -391,33 +377,30 @@ internal static class Program
             }
         }
 
-        if (debug)
+        if (contract.heldContext.debug)
         {
-            DEBUG = true;
             ConsoleColor oldColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Debug Enabled");
             Console.ForegroundColor = oldColor;
         }
 
-        if (daemon & !REGOLITH)
+        // load definitions.def
+        _ = new Definitions(contract.heldContext.debug);
+
+        bool firstRun = true;
+
+        if (contract.heldContext.daemon & !contract.heldContext.regolith)
         {
             ConsoleColor oldColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(search
+            Console.WriteLine(contract.heldContext.search
                 ? $"[daemon] Watching directory: {Directory.GetCurrentDirectory()}"
                 : $"[daemon] Watching files: {string.Join("\n", files.Select(f => "\t- " + f))}");
             Console.ForegroundColor = oldColor;
-        }
 
-        // load definitions.def
-        _ = new Definitions(debug);
-
-        bool firstRun = true;
-        if (daemon & !REGOLITH)
-        {
             FileSystemWatcher watcher;
-            if (search)
+            if (contract.heldContext.search)
             {
                 watcher = new FileSystemWatcher(Directory.GetCurrentDirectory());
                 watcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -455,7 +438,7 @@ internal static class Program
                     RunMCCompiled(changedFile, inputPPVs.ToArray(), obp, orp, projectName);
                 }
 
-                ConsoleColor oldColor = Console.ForegroundColor;
+                oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("[daemon] listening for next update...");
                 Console.ForegroundColor = oldColor;
@@ -489,7 +472,7 @@ internal static class Program
 
         PrepareToCompile();
 
-        if (REGOLITH)
+        if (contract.heldContext.regolith)
         {
             foreach (string file in files)
                 if (RunMCCompiled(file, inputPPVs.ToArray(), obp, orp, projectName))
@@ -569,9 +552,7 @@ internal static class Program
         string projectName = null,
         bool silentErrors = false)
     {
-        if (projectName == null)
-            projectName = Path.GetFileNameWithoutExtension(file);
-
+        projectName ??= Path.GetFileNameWithoutExtension(file);
         outputBP = outputBP.Replace("?project", projectName);
         outputRP = outputRP.Replace("?project", projectName);
 
@@ -580,7 +561,7 @@ internal static class Program
             var stopwatch = Stopwatch.StartNew();
             Token[] tokens = new Tokenizer(code).Tokenize();
 
-            if (DEBUG)
+            if (GlobalContext.Debug)
             {
                 Console.WriteLine("\tA detailed overview of the tokenization results follows:");
                 Console.WriteLine(string.Join("", from t in tokens select t.DebugString()));
@@ -592,7 +573,7 @@ internal static class Program
 
             Statement[] statements = Assembler.AssembleTokens(tokens);
 
-            if (DEBUG)
+            if (GlobalContext.Debug)
             {
                 Console.WriteLine("\tThe overview of assembled statements is as follows:");
                 Console.WriteLine(string.Join("\n", from s in statements select s.ToString()));
@@ -610,14 +591,14 @@ internal static class Program
 
             Console.WriteLine("Completed.");
 
-            if (!NO_PAUSE)
+            if (!GlobalContext.Current.noPause)
                 Console.ReadLine();
 
             return true;
         }
         catch (TokenizerException exc)
         {
-            if (DEBUG && Debugger.IsAttached)
+            if (GlobalContext.Debug && Debugger.IsAttached)
                 throw;
             if (silentErrors)
                 return false;
@@ -630,13 +611,13 @@ internal static class Program
             Console.Error.WriteLine("Problem encountered during tokenization of file:\n" +
                                     $"\t{Path.GetFileName(file)}:{lines} -- {message}\n\nTokenization cannot be continued.");
             Console.ForegroundColor = oldColor;
-            if (!NO_PAUSE)
+            if (!GlobalContext.Current.noPause)
                 Console.ReadLine();
             return false;
         }
         catch (StatementException exc)
         {
-            if (DEBUG && Debugger.IsAttached)
+            if (GlobalContext.Debug && Debugger.IsAttached)
                 throw;
             if (silentErrors)
                 return false;
@@ -651,13 +632,13 @@ internal static class Program
             Console.Error.WriteLine("An error has occurred during compilation:\n" +
                                     $"\t{Path.GetFileName(file)}:{lines} -- {thrower}:\n\t\t{message}\n\nCompilation cannot be continued.");
             Console.ForegroundColor = oldColor;
-            if (!NO_PAUSE)
+            if (!GlobalContext.Current.noPause)
                 Console.ReadLine();
             return false;
         }
         catch (FeederException exc)
         {
-            if (DEBUG && Debugger.IsAttached)
+            if (GlobalContext.Debug && Debugger.IsAttached)
                 throw;
             if (silentErrors)
                 return false;
@@ -672,7 +653,7 @@ internal static class Program
             Console.Error.WriteLine("An error has occurred during compilation:\n" +
                                     $"\t{Path.GetFileName(file)}:{lines} -- {thrower}:\n\t\t{message}\n\nCompilation cannot be continued.");
             Console.ForegroundColor = oldColor;
-            if (!NO_PAUSE)
+            if (!GlobalContext.Current.noPause)
                 Console.ReadLine();
             return false;
         }

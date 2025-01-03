@@ -97,7 +97,7 @@ public class CommandFile : IAddonFile
     /// </summary>
     internal bool DoNotWrite
     {
-        get => this._doNotWrite || (!this.isInUse && !Program.EXPORT_ALL);
+        get => this._doNotWrite || (!this.isInUse && !GlobalContext.Current.exportAll);
         set => this._doNotWrite = value;
     }
 
@@ -148,10 +148,7 @@ public class CommandFile : IAddonFile
         string text = string.Join("\n", this.commands);
         return Encoding.UTF8.GetBytes(text);
     }
-    public OutputLocation GetOutputLocation()
-    {
-        return OutputLocation.b_FUNCTIONS;
-    }
+    public OutputLocation GetOutputLocation() { return OutputLocation.b_FUNCTIONS; }
     /// <summary>
     ///     Add a reference to the given CommandFile to this CommandFile. Indicates that this file calls the other file.
     ///     <code>
@@ -178,10 +175,7 @@ public class CommandFile : IAddonFile
     ///     Returns this CommandFile with isInUse set to true.
     /// </summary>
     /// <returns></returns>
-    public void AsInUse()
-    {
-        this.IsInUse = true;
-    }
+    public void AsInUse() { this.IsInUse = true; }
     /// <summary>
     ///     Returns this CommandFile with isTest set to true.
     /// </summary>
@@ -201,17 +195,11 @@ public class CommandFile : IAddonFile
     /// <summary>
     ///     Mark this file as containing a test assertion.
     /// </summary>
-    internal void MarkAssertion()
-    {
-        this.hasAssertions = true;
-    }
+    internal void MarkAssertion() { this.hasAssertions = true; }
     /// <summary>
     ///     Mark this file as an async stage; used in static analysis for async control flow.
     /// </summary>
-    internal void MarkAsync()
-    {
-        this.IsAsync = true;
-    }
+    internal void MarkAsync() { this.IsAsync = true; }
 
     public override bool Equals(object obj)
     {
@@ -227,27 +215,12 @@ public class CommandFile : IAddonFile
         return hashCode;
     }
 
-    public void Add(string command)
-    {
-        this.commands.Add(command);
-    }
-    public void Add(IEnumerable<string> newCommands)
-    {
-        this.commands.AddRange(newCommands);
-    }
-    public void CopyFrom(CommandFile sustainLoop)
-    {
-        this.commands.AddRange(sustainLoop.commands);
-    }
+    public void Add(string command) { this.commands.Add(command); }
+    public void Add(IEnumerable<string> newCommands) { this.commands.AddRange(newCommands); }
+    public void CopyFrom(CommandFile sustainLoop) { this.commands.AddRange(sustainLoop.commands); }
 
-    public void AddTop(string command)
-    {
-        this.commands.Insert(0, command);
-    }
-    public void AddTop(IEnumerable<string> newCommands)
-    {
-        this.commands.InsertRange(0, newCommands);
-    }
+    public void AddTop(string command) { this.commands.Insert(0, command); }
+    public void AddTop(IEnumerable<string> newCommands) { this.commands.InsertRange(0, newCommands); }
 
     /// <summary>
     ///     Adds the following standard comment to the file: "Located at (callingFile) line (callingFile.Length)"
@@ -278,8 +251,5 @@ public class CommandFile : IAddonFile
         // correct path separators
         return this.folder?.Replace('/', Path.DirectorySeparatorChar);
     }
-    public string GetOutputFileIDoNotCareIfYouDontWantToWriteIt()
-    {
-        return $"{this.name}.mcfunction";
-    }
+    public string GetOutputFileIDoNotCareIfYouDontWantToWriteIt() { return $"{this.name}.mcfunction"; }
 }

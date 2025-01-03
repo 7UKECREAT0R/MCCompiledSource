@@ -32,10 +32,7 @@ public class ComparisonSet : List<Comparison>
 
     private bool IsEmpty => this.Count == 0;
 
-    public string GetDescription()
-    {
-        return "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']';
-    }
+    public string GetDescription() { return "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']'; }
     /// <summary>
     ///     Returns all targets (scoreboard values) which should show up in an assertion of this comparison.
     /// </summary>
@@ -256,7 +253,7 @@ public class ComparisonSet : List<Comparison>
         if (commands.Count > 0 || usesElse || executor.async.IsInAsync)
         {
             prepFile = Executor.GetNextGeneratedFile("comparisonSetup", false);
-            if (Program.DECORATE)
+            if (GlobalContext.Decorate)
             {
                 // attempt to add extra detail to the output file for reading users
                 string comparisonString = "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']';
@@ -305,7 +302,7 @@ public class ComparisonSet : List<Comparison>
         if (commands.Count > 0)
         {
             CommandFile prepFile = Executor.GetNextGeneratedFile("comparisonSetup", false);
-            if (Program.DECORATE)
+            if (GlobalContext.Decorate)
             {
                 // attempt to add extra detail to the output file for reading users
                 string comparisonString = "[if " + string.Join(", ", this.Select(c => c.GetDescription())) + ']';
@@ -365,8 +362,11 @@ public class ComparisonSet : List<Comparison>
     /// <param name="forExceptions">For exceptions.</param>
     /// <param name="executor">The executor to modify.</param>
     /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
-    private void ApplyComparisonToWithElse(IEnumerable<Subcommand> chunks, CommandFile setupFile,
-        Statement forExceptions, Executor executor, bool cancel)
+    private void ApplyComparisonToWithElse(IEnumerable<Subcommand> chunks,
+        CommandFile setupFile,
+        Statement forExceptions,
+        Executor executor,
+        bool cancel)
     {
         var record = new PreviousComparisonStructure(executor.scoreboard.temps, forExceptions, executor.ScopeLevel,
             GetDescription());
@@ -386,7 +386,9 @@ public class ComparisonSet : List<Comparison>
         InjectBranch(executor, executePrefix, cancel, record);
     }
 
-    private void InjectBranch(Executor executor, string prepend, bool cancel,
+    private void InjectBranch(Executor executor,
+        string prepend,
+        bool cancel,
         PreviousComparisonStructure elseInfo = null)
     {
         // get the next statement to determine how to inject the comparison
@@ -397,7 +399,10 @@ public class ComparisonSet : List<Comparison>
         else
             InjectBranchSingle(executor, prepend, cancel, elseInfo);
     }
-    private void InjectBranchBlock(Executor executor, string prepend, bool cancel, StatementOpenBlock openBlock,
+    private void InjectBranchBlock(Executor executor,
+        string prepend,
+        bool cancel,
+        StatementOpenBlock openBlock,
         PreviousComparisonStructure elseInfo = null)
     {
         if (cancel)
@@ -462,7 +467,7 @@ public class ComparisonSet : List<Comparison>
 
         CommandFile blockFile = Executor.GetNextGeneratedFile("branch", false);
 
-        if (Program.DECORATE)
+        if (GlobalContext.Decorate)
         {
             blockFile.Add($"# Run after comparison {GetDescription()}");
             blockFile.AddTrace(executor.CurrentFile);
@@ -471,10 +476,18 @@ public class ComparisonSet : List<Comparison>
         string command = prepend + Command.Function(blockFile);
         executor.AddCommand(command);
 
-        openBlock.openAction = e => { e.PushFile(blockFile); };
-        openBlock.CloseAction = e => { e.PopFile(); };
+        openBlock.openAction = e =>
+        {
+            e.PushFile(blockFile);
+        };
+        openBlock.CloseAction = e =>
+        {
+            e.PopFile();
+        };
     }
-    private static void InjectBranchSingle(Executor executor, string prepend, bool cancel,
+    private static void InjectBranchSingle(Executor executor,
+        string prepend,
+        bool cancel,
         PreviousComparisonStructure elseInfo = null)
     {
         if (cancel)
@@ -498,7 +511,7 @@ public class ComparisonSet : List<Comparison>
                 int nextStage = executor.async.CurrentFunction.NextStageIndex;
                 string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
                 executor.AddCommand(prepend + Command.Function(nextStageName));
-                
+
                 // start the new one
                 executor.async.CurrentFunction.FinishStageImmediate();
                 executor.async.CurrentFunction.StartNewStage();
@@ -581,7 +594,9 @@ public abstract class Comparison
     ///     Output parameter signaling to cancel the entire statement, like if a compile-time comparison
     ///     fails.
     /// </param>
-    public abstract IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public abstract IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel);
     /// <summary>
     ///     Gets the execute chunk needed to perform this comparison. May return null.
@@ -593,7 +608,9 @@ public abstract class Comparison
     ///     Output parameter signaling to cancel the entire statement, like if a compile-time comparison
     ///     fails.
     /// </param>
-    public abstract Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public abstract Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel);
 
     public abstract string GetDescription();

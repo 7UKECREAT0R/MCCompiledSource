@@ -20,12 +20,9 @@ internal static class PropertyImplementations
                     return;
 
                 project.server.debug = value;
-                Program.DEBUG = value;
+                GlobalContext.Current.debug = value;
 
-                if (Program.DEBUG)
-                    Console.WriteLine("Debug enabled by remote client.");
-                else
-                    Console.WriteLine("Debug disabled by remote client.");
+                Console.WriteLine(value ? "Debug enabled by remote client." : "Debug disabled by remote client.");
             }));
         ALL_PROPERTIES.Add(new PropertyImpl("decorate", false,
             (_value, _) =>
@@ -33,7 +30,7 @@ internal static class PropertyImplementations
                 if (!bool.TryParse(_value, out bool value))
                     return;
 
-                Program.DECORATE = value;
+                GlobalContext.Current.decorate = value;
             }));
         ALL_PROPERTIES.Add(new PropertyImpl("export_all", false,
             (_value, _) =>
@@ -41,7 +38,7 @@ internal static class PropertyImplementations
                 if (!bool.TryParse(_value, out bool value))
                     return;
 
-                Program.EXPORT_ALL = value;
+                GlobalContext.Current.exportAll = value;
             }));
         ALL_PROPERTIES.Add(new PropertyImpl("ignore_manifests", false,
             (_value, _) =>
@@ -49,7 +46,7 @@ internal static class PropertyImplementations
                 if (!bool.TryParse(_value, out bool value))
                     return;
 
-                Program.IGNORE_MANIFESTS = value;
+                GlobalContext.Current.ignoreManifests = value;
             }));
     }
 
@@ -117,8 +114,5 @@ internal class PropertyImpl
     ///     Resets this PropertyImpl to its default value.
     /// </summary>
     /// <param name="project"></param>
-    internal void Reset(MCCServerProject project)
-    {
-        Call(this.DefaultValue, project);
-    }
+    internal void Reset(MCCServerProject project) { Call(this.DefaultValue, project); }
 }

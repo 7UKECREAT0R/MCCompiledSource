@@ -87,8 +87,11 @@ public class Executor
     private int testCount;
     private int unreachableCode = -1;
 
-    internal Executor(Statement[] statements, IReadOnlyCollection<Program.InputPPV> inputPPVs,
-        string projectName, string bpBase, string rpBase)
+    internal Executor(Statement[] statements,
+        IReadOnlyCollection<Program.InputPPV> inputPPVs,
+        string projectName,
+        string bpBase,
+        string rpBase)
     {
         this.statements = statements;
         this.project = new ProjectManager(projectName, bpBase, rpBase, this);
@@ -433,8 +436,12 @@ public class Executor
     /// <param name="commands">Used for recursion, set to null.</param>
     /// <param name="copy">The existing terms to copy from.</param>
     /// <returns></returns>
-    public static string[] ResolveRawText(List<JSONRawTerm> terms, string command, bool root = true,
-        ExecuteBuilder builder = null, List<string> commands = null, RawTextJsonBuilder copy = null)
+    public static string[] ResolveRawText(List<JSONRawTerm> terms,
+        string command,
+        bool root = true,
+        ExecuteBuilder builder = null,
+        List<string> commands = null,
+        RawTextJsonBuilder copy = null)
     {
         var jb = new RawTextJsonBuilder(copy);
 
@@ -648,10 +655,7 @@ public class Executor
     /// <summary>
     ///     Tells the executor that the next line in the current block is be unreachable.
     /// </summary>
-    public void UnreachableCode()
-    {
-        this.unreachableCode = 1;
-    }
+    public void UnreachableCode() { this.unreachableCode = 1; }
     /// <summary>
     ///     Throw a StatementException if a feature is not enabled.
     /// </summary>
@@ -854,10 +858,7 @@ public class Executor
     /// </summary>
     /// <param name="file">The CommandFile object to check for.</param>
     /// <returns>True if the CommandFile exists in the definedStdFiles list; otherwise, false.</returns>
-    public bool HasSTDFile(CommandFile file)
-    {
-        return this.definedStdFiles.Contains(file.GetHashCode());
-    }
+    public bool HasSTDFile(CommandFile file) { return this.definedStdFiles.Contains(file.GetHashCode()); }
 
     /// <summary>
     ///     Tries to fetch a documentation string based whether the last statement was a comment or not. Returns
@@ -887,10 +888,7 @@ public class Executor
     ///     Peek at the next statement.
     /// </summary>
     /// <returns></returns>
-    public Statement Peek()
-    {
-        return this.statements[this.readIndex];
-    }
+    public Statement Peek() { return this.statements[this.readIndex]; }
     /// <summary>
     ///     Peek at the statement N statements in front of the read index. 0: current, 1: next, etc...
     ///     Does perform bounds checking, and returns null if outside bounds.
@@ -911,19 +909,13 @@ public class Executor
     ///     Peek at the last statement that was gotten, if any.
     /// </summary>
     /// <returns><b>null</b> if no statements have been gotten yet.</returns>
-    public Statement PeekLast()
-    {
-        return this.readIndex > 1 ? this.statements[this.readIndex - 2] : null;
-    }
+    public Statement PeekLast() { return this.readIndex > 1 ? this.statements[this.readIndex - 2] : null; }
 
     /// <summary>
     ///     Seek for the next statement that has valid executable data. Returns null if outside of bounds.
     /// </summary>
     /// <returns></returns>
-    public Statement Seek()
-    {
-        return SeekSkip(0);
-    }
+    public Statement Seek() { return SeekSkip(0); }
     /// <summary>
     ///     Seek forward from the statement N statements in front of the read index until it finds one with valid executable
     ///     data. 0: current, 1: next, etc...
@@ -973,49 +965,34 @@ public class Executor
     ///     Get the next statement to be read and then increment the read index.
     /// </summary>
     /// <returns></returns>
-    public Statement Next()
-    {
-        return this.statements[this.readIndex++];
-    }
+    public Statement Next() { return this.statements[this.readIndex++]; }
     /// <summary>
     ///     Returns the next statement to be read as a certain type. Increments the read index.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T Next<T>() where T : Statement
-    {
-        return this.statements[this.readIndex++] as T;
-    }
+    public T Next<T>() where T : Statement { return this.statements[this.readIndex++] as T; }
 
     /// <summary>
     ///     Peek at the next statement as a certain type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T Peek<T>() where T : Statement
-    {
-        return this.statements[this.readIndex] as T;
-    }
+    public T Peek<T>() where T : Statement { return this.statements[this.readIndex] as T; }
     /// <summary>
     ///     Peek a certain number of statements into the future as a certain type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="skip"></param>
     /// <returns></returns>
-    public T Peek<T>(int skip) where T : Statement
-    {
-        return this.statements[this.readIndex + skip] as T;
-    }
+    public T Peek<T>(int skip) where T : Statement { return this.statements[this.readIndex + skip] as T; }
 
     /// <summary>
     ///     Returns if there's another statement available and it's of a certain type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public bool NextIs<T>() where T : Statement
-    {
-        return this.HasNext && this.statements[this.readIndex] is T;
-    }
+    public bool NextIs<T>() where T : Statement { return this.HasNext && this.statements[this.readIndex] is T; }
     /// <summary>
     ///     Returns if the next statement is an unknown statement with builder field(s) in it.
     /// </summary>
@@ -1184,7 +1161,7 @@ public class Executor
             // tick deferred processes
             TickDeferredActions();
 
-            if (Program.DEBUG)
+            if (GlobalContext.Debug)
                 Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement);
         }
 
@@ -1223,7 +1200,7 @@ public class Executor
             // tick deferred processes
             TickDeferredActions();
 
-            if (Program.DEBUG)
+            if (GlobalContext.Debug)
                 Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement);
         }
 
@@ -1236,18 +1213,12 @@ public class Executor
     ///     Set the result of the last preprocessor-if comparison in this scope.
     /// </summary>
     /// <param name="value"></param>
-    public void SetLastIfResult(bool value)
-    {
-        this.lastPreprocessorCompare[this.ScopeLevel] = value;
-    }
+    public void SetLastIfResult(bool value) { this.lastPreprocessorCompare[this.ScopeLevel] = value; }
     /// <summary>
     ///     Get the result of the last preprocessor-if comparison in this scope.
     /// </summary>
     /// <returns></returns>
-    public bool GetLastIfResult()
-    {
-        return this.lastPreprocessorCompare[this.ScopeLevel];
-    }
+    public bool GetLastIfResult() { return this.lastPreprocessorCompare[this.ScopeLevel]; }
 
     /// <summary>
     ///     Set the last comparison data used at the given/current scope level.
@@ -1277,10 +1248,7 @@ public class Executor
     ///     Register a macro to be looked up later.
     /// </summary>
     /// <param name="macro">The macro to register.</param>
-    public void RegisterMacro(Macro macro)
-    {
-        this.macros.Add(macro);
-    }
+    public void RegisterMacro(Macro macro) { this.macros.Add(macro); }
     /// <summary>
     ///     Look for a macro present in this project.
     /// </summary>
@@ -1334,7 +1302,9 @@ public class Executor
     /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
     /// <param name="friendlyDescription">The description to be placed at the top of the generated file, if any.</param>
     /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
-    public void AddCommands(IEnumerable<string> commands, string friendlyName, string friendlyDescription,
+    public void AddCommands(IEnumerable<string> commands,
+        string friendlyName,
+        string friendlyDescription,
         bool inline = false)
     {
         if (this.linting)
@@ -1386,7 +1356,9 @@ public class Executor
     /// <param name="friendlyName">The friendly name to give the generated file, if any.</param>
     /// <param name="friendlyDescription">The description to be placed at the top of the generated file, if any.</param>
     /// <param name="inline">Force the commands to be inlined rather than sent to a generated file.</param>
-    public void AddCommandsClean(IEnumerable<string> commands, string friendlyName, string friendlyDescription,
+    public void AddCommandsClean(IEnumerable<string> commands,
+        string friendlyName,
+        string friendlyDescription,
         bool inline = false)
     {
         if (this.linting || commands == null)
@@ -1423,10 +1395,7 @@ public class Executor
     ///     Add a file on its own to the list.
     /// </summary>
     /// <param name="file"></param>
-    public void AddExtraFile(IAddonFile file)
-    {
-        this.project.AddFile(file);
-    }
+    public void AddExtraFile(IAddonFile file) { this.project.AddFile(file); }
     /// <summary>
     ///     Add a file to the list, removing any other file that has a matching name/directory.
     /// </summary>
@@ -1440,10 +1409,7 @@ public class Executor
     ///     Add a set of files on their own to the list.
     /// </summary>
     /// <param name="files">The files to add.</param>
-    public void AddExtraFiles(IEnumerable<IAddonFile> files)
-    {
-        this.project.AddFiles(files);
-    }
+    public void AddExtraFiles(IEnumerable<IAddonFile> files) { this.project.AddFiles(files); }
     /// <summary>
     ///     Add a set of files on their own to the list, removing any other files that have a matching name/directory.
     /// </summary>
@@ -1458,10 +1424,7 @@ public class Executor
     /// </summary>
     /// <param name="text">The text to check for.</param>
     /// <returns></returns>
-    public bool HasExtraFileContaining(string text)
-    {
-        return this.project.HasFileContaining(text);
-    }
+    public bool HasExtraFileContaining(string text) { return this.project.HasFileContaining(text); }
     /// <summary>
     ///     Add a command to the 'init' file. Does not affect the prepend buffer.
     /// </summary>
@@ -1507,10 +1470,7 @@ public class Executor
     ///     Returns if this Executor has a tick scheduler yet.
     /// </summary>
     /// <returns></returns>
-    public bool HasScheduler()
-    {
-        return this.scheduler != null;
-    }
+    public bool HasScheduler() { return this.scheduler != null; }
 
     /// <summary>
     ///     Set the content that will prepend the next added command.
@@ -1531,18 +1491,12 @@ public class Executor
     ///     Append to the content to the prepend buffer.
     /// </summary>
     /// <param name="content"></param>
-    public void AppendCommandPrepend(string content)
-    {
-        this.prependBuffer.Append(content);
-    }
+    public void AppendCommandPrepend(string content) { this.prependBuffer.Append(content); }
     /// <summary>
     ///     Prepend content to the prepend buffer.
     /// </summary>
     /// <param name="content"></param>
-    public void PrependCommandPrepend(string content)
-    {
-        this.prependBuffer.Insert(0, content);
-    }
+    public void PrependCommandPrepend(string content) { this.prependBuffer.Insert(0, content); }
 
     /// <summary>
     ///     Try to get a preprocessor variable.
@@ -1669,10 +1623,7 @@ public class Executor
         return literals;
     }
 
-    public void PushFile(CommandFile file)
-    {
-        this.currentFiles.Push(file);
-    }
+    public void PushFile(CommandFile file) { this.currentFiles.Push(file); }
     public void PopFileDiscard()
     {
         this.unreachableCode = -1;
@@ -1796,7 +1747,7 @@ public class Executor
         this.InitFile.AddTop("");
         this.InitFile.AddTop(this.initCommands);
 
-        if (Program.DECORATE)
+        if (GlobalContext.Decorate)
         {
             this.InitFile.AddTop(
                 "# The purpose of this file is to prevent constantly re-calling `objective add` commands when it's not needed. If you're having strange issues, re-running this may fix it.");
@@ -1836,10 +1787,7 @@ public class Executor
         string name = GetNextGeneratedName(friendlyName, true, oneIndexed);
         return new CommandFile(true, name, MCC_GENERATED_FOLDER);
     }
-    public static void ResetGeneratedNames()
-    {
-        generatedNames.Clear();
-    }
+    public static void ResetGeneratedNames() { generatedNames.Clear(); }
 
     /// <summary>
     ///     Do a cleanup of the massive amount of resources this thing takes up as soon as possible.

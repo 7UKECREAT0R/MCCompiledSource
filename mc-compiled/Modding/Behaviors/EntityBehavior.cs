@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using mc_compiled.Commands;
+using mc_compiled.MCC;
 using mc_compiled.MCC.CustomEntities;
 using mc_compiled.Modding.Behaviors.Lists;
 using mc_compiled.Modding.Resources;
@@ -36,24 +37,15 @@ public class EntityBehavior : IAddonFile
 
     public string CommandReference => this.description.identifier;
 
-    public string GetExtendedDirectory()
-    {
-        return null;
-    }
+    public string GetExtendedDirectory() { return null; }
     public byte[] GetOutputData()
     {
         JObject full = ToJSON();
         string str = full.ToString();
         return Encoding.UTF8.GetBytes(str);
     }
-    public string GetOutputFile()
-    {
-        return this.description.GetEntityName() + ".json";
-    }
-    public OutputLocation GetOutputLocation()
-    {
-        return OutputLocation.b_ENTITIES;
-    }
+    public string GetOutputFile() { return this.description.GetEntityName() + ".json"; }
+    public OutputLocation GetOutputLocation() { return OutputLocation.b_ENTITIES; }
     /// <summary>
     ///     Create a new event and register it into this behavior.
     /// </summary>
@@ -145,7 +137,7 @@ public class EntityBehavior : IAddonFile
                         new ComponentNameable
                         {
                             allowNametags = true,
-                            alwaysShowName = Program.DEBUG
+                            alwaysShowName = GlobalContext.Debug
                         },
                         new ComponentCustomHitTest
                         {

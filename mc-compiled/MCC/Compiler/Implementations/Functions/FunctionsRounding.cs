@@ -17,7 +17,9 @@ internal class FunctionRoundCompiletime : CompiletimeFunction
             new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
         );
     }
-    public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+    public override Token CallFunction(List<string> commandBuffer,
+        Token[] allParameters,
+        Executor executor,
         Statement statement)
     {
         decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue)
@@ -38,7 +40,10 @@ internal class FunctionRoundRuntime : GenerativeFunction
                 .WithAcceptedTypes(Typedef.FIXED_DECIMAL)
         );
     }
-    public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement,
+    public override void GenerateCode(CommandFile output,
+        int uniqueIdentifier,
+        Executor executor,
+        Statement statement,
         out ScoreboardValue resultValue)
     {
         ScoreboardValue input = ((RuntimeFunctionParameterDynamic) this.parameters[0]).RuntimeDestination;
@@ -68,7 +73,7 @@ internal class FunctionRoundRuntime : GenerativeFunction
         output.RegisterCall(roundUp);
 
         executor.AddExtraFile(roundUp);
-        if (Program.DECORATE)
+        if (GlobalContext.Decorate)
             roundUp.AddTrace(output, statement.Lines[0]);
         roundUp.Add(Command.ScoreboardOpSub(resultValue, temp2));
         roundUp.Add(Command.ScoreboardAdd(resultValue, coefficient));
@@ -90,7 +95,9 @@ internal class FunctionFloorCompiletime : CompiletimeFunction
             new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
         );
     }
-    public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+    public override Token CallFunction(List<string> commandBuffer,
+        Token[] allParameters,
+        Executor executor,
         Statement statement)
     {
         decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue)
@@ -111,7 +118,10 @@ internal class FunctionFloorRuntime : GenerativeFunction
                 Typedef.FIXED_DECIMAL)
         );
     }
-    public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement,
+    public override void GenerateCode(CommandFile output,
+        int uniqueIdentifier,
+        Executor executor,
+        Statement statement,
         out ScoreboardValue resultValue)
     {
         ScoreboardValue input = ((RuntimeFunctionParameterDynamic) this.parameters[0]).RuntimeDestination;
@@ -146,7 +156,9 @@ internal class FunctionCeilingCompiletime : CompiletimeFunction
             new CompiletimeFunctionParameter<TokenNumberLiteral>("number")
         );
     }
-    public override Token CallFunction(List<string> commandBuffer, Token[] allParameters, Executor executor,
+    public override Token CallFunction(List<string> commandBuffer,
+        Token[] allParameters,
+        Executor executor,
         Statement statement)
     {
         decimal number = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue)
@@ -167,7 +179,10 @@ internal class FunctionCeilingRuntime : GenerativeFunction
                 Typedef.FIXED_DECIMAL)
         );
     }
-    public override void GenerateCode(CommandFile output, int uniqueIdentifier, Executor executor, Statement statement,
+    public override void GenerateCode(CommandFile output,
+        int uniqueIdentifier,
+        Executor executor,
+        Statement statement,
         out ScoreboardValue resultValue)
     {
         ScoreboardValue input = ((RuntimeFunctionParameterDynamic) this.parameters[0]).RuntimeDestination;
@@ -193,7 +208,7 @@ internal class FunctionCeilingRuntime : GenerativeFunction
         // needs branch for logic
         var roundUp = new CommandFile(output.IsInUse, output.name + "roundUp", output.folder);
         executor.AddExtraFile(roundUp);
-        if (Program.DECORATE)
+        if (GlobalContext.Decorate)
             roundUp.AddTrace(output, statement.Lines[0]);
         roundUp.Add(Command.ScoreboardOpSub(temp1, temp2));
         roundUp.Add(Command.ScoreboardOpAdd(resultValue, temp1));

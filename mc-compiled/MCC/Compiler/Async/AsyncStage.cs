@@ -51,22 +51,13 @@ public class AsyncStage
     ///     Sets the tick delay for the current stage.
     /// </summary>
     /// <param name="delay">The number of ticks to delay before moving to the next stage.</param>
-    public void SetTickDelay(int delay)
-    {
-        this.ticksUntilNextStage = delay;
-    }
-    public void RemoveTickDelay()
-    {
-        this.ticksUntilNextStage = null;
-    }
+    public void SetTickDelay(int delay) { this.ticksUntilNextStage = delay; }
+    public void RemoveTickDelay() { this.ticksUntilNextStage = null; }
 
     /// <summary>
     ///     Begins this stage and applies it to the given <see cref="Executor" />.
     /// </summary>
-    public void Begin(Executor executor)
-    {
-        executor.PushFile(this.file);
-    }
+    public void Begin(Executor executor) { executor.PushFile(this.file); }
     /// <summary>
     ///     Finishes this stage by terminating the async state machine.
     /// </summary>
@@ -75,7 +66,7 @@ public class AsyncStage
     {
         executor.PopFile();
 
-        if (Program.DECORATE)
+        if (GlobalContext.Decorate)
         {
             if (this.file.Length > 0)
                 this.file.Add("");
@@ -90,7 +81,7 @@ public class AsyncStage
     /// </summary>
     public void Finish(Executor executor)
     {
-        if (Program.DECORATE)
+        if (GlobalContext.Decorate)
         {
             if (this.file.Length > 0)
                 this.file.Add("");
@@ -127,7 +118,7 @@ public class AsyncStage
     /// <param name="callingStatement">The calling statement</param>
     public void FinishUnderCondition(Executor executor, ComparisonSet conditions, Statement callingStatement)
     {
-        if (Program.DECORATE)
+        if (GlobalContext.Decorate)
         {
             if (this.file.Length > 0)
                 this.file.Add("");
@@ -145,8 +136,5 @@ public class AsyncStage
         executor.PopFile();
     }
 
-    public override string ToString()
-    {
-        return $"stage {this.index}: {this.file.commands.Count} commands";
-    }
+    public override string ToString() { return $"stage {this.index}: {this.file.commands.Count} commands"; }
 }

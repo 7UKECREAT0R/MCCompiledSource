@@ -46,7 +46,9 @@ public static class DirectiveImplementations
     /// <param name="forcePPV">Optional. The name of the preprocessor variable to force fetch rather than pull from `tokens`.</param>
     /// <returns>An array of dynamic values.</returns>
     /// <exception cref="StatementException">Thrown when a preprocessor variable with the provided identifier is not found.</exception>
-    private static dynamic[] FetchPPVOrDynamics(Executor executor, Statement tokens, bool allowUnwrapping,
+    private static dynamic[] FetchPPVOrDynamics(Executor executor,
+        Statement tokens,
+        bool allowUnwrapping,
         string forcePPV = null)
     {
         string ppvName = null;
@@ -791,7 +793,7 @@ public static class DirectiveImplementations
 
         Token[] includedTokens = Tokenizer.TokenizeFile(file);
 
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
         {
             Console.WriteLine("\t[INCLUDE]\tA detailed overview of the tokenization results follows:");
             Console.WriteLine(string.Join("", from t in includedTokens select t.DebugString()));
@@ -803,7 +805,7 @@ public static class DirectiveImplementations
 
         Statement[] statements = Assembler.AssembleTokens(includedTokens);
 
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
         {
             Console.WriteLine("\t[INCLUDE]\tThe overview of assembled statements is as follows:");
             Console.WriteLine(string.Join("\n", from s in statements select s.ToString()));
@@ -1382,7 +1384,7 @@ public static class DirectiveImplementations
         string locale = tokens.Next<TokenIdentifier>("locale").word;
         locale.ThrowIfWhitespace("locale", tokens);
 
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
             Console.WriteLine("Set locale to '{0}'", locale);
 
         const bool DEFAULT_MERGE = true;
@@ -1433,7 +1435,7 @@ public static class DirectiveImplementations
 
         bool inline = commands.Count == 1;
 
-        if (hadDocumentation && Program.DECORATE)
+        if (hadDocumentation && GlobalContext.Decorate)
             commands.AddRange(docs.Trim().Split('\n').Select(str => "# " + str.Trim()));
 
         // add the commands to the executor.
@@ -1514,13 +1516,16 @@ public static class DirectiveImplementations
                         // modify prepend buffer as if 1 statement was there
                         executor.AppendCommandPrepend(prefix);
                         openBlock.openAction = null;
-                        openBlock.CloseAction = _ => { set.Dispose(); };
+                        openBlock.CloseAction = _ =>
+                        {
+                            set.Dispose();
+                        };
                     }
                     else
                     {
                         CommandFile blockFile = Executor.GetNextGeneratedFile("branch", false);
 
-                        if (Program.DECORATE)
+                        if (GlobalContext.Decorate)
                         {
                             blockFile.Add($"# Run if the previous condition {set.sourceStatement} did not run.");
                             blockFile.AddTrace(executor.CurrentFile);
@@ -1529,7 +1534,10 @@ public static class DirectiveImplementations
                         string command = prefix + Command.Function(blockFile);
                         executor.AddCommand(command);
 
-                        openBlock.openAction = e => { e.PushFile(blockFile); };
+                        openBlock.openAction = e =>
+                        {
+                            e.PushFile(blockFile);
+                        };
                         openBlock.CloseAction = e =>
                         {
                             set.Dispose();
@@ -1543,7 +1551,10 @@ public static class DirectiveImplementations
                 openBlock.openAction = null;
                 openBlock.CloseAction = null;
 
-                executor.DeferAction(_ => { set.Dispose(); });
+                executor.DeferAction(_ =>
+                {
+                    set.Dispose();
+                });
             }
         }
         else
@@ -1559,7 +1570,10 @@ public static class DirectiveImplementations
                 executor.AppendCommandPrepend(prefix);
             }
 
-            executor.DeferAction(_ => { set.Dispose(); });
+            executor.DeferAction(_ =>
+            {
+                set.Dispose();
+            });
         }
     }
     [UsedImplicitly]
@@ -1597,7 +1611,10 @@ public static class DirectiveImplementations
         if (nextStatement is StatementOpenBlock openBlock)
         {
             openBlock.SetLangContext("while");
-            openBlock.openAction = exec => { exec.PushFile(loopCode); };
+            openBlock.openAction = exec =>
+            {
+                exec.PushFile(loopCode);
+            };
             openBlock.CloseAction = whenCodeIsOver;
         }
         else
@@ -1717,7 +1734,10 @@ public static class DirectiveImplementations
         if (nextStatement is StatementOpenBlock openBlock)
         {
             openBlock.SetLangContext("repeat");
-            openBlock.openAction = exec => { exec.PushFile(loopCode); };
+            openBlock.openAction = exec =>
+            {
+                exec.PushFile(loopCode);
+            };
             openBlock.CloseAction = whenCodeIsOver;
         }
         else
@@ -3384,7 +3404,7 @@ public static class DirectiveImplementations
             {
                 CommandFile blockFile = Executor.GetNextGeneratedFile("execute", false);
 
-                if (Program.DECORATE)
+                if (GlobalContext.Decorate)
                 {
                     CommandFile file = executor.CurrentFile;
                     string subcommandsString = builder.BuildClean(out _);
@@ -3395,8 +3415,14 @@ public static class DirectiveImplementations
                 string command = finalExecute + Command.Function(blockFile);
                 executor.AddCommand(command);
 
-                openBlock.openAction = e => { e.PushFile(blockFile); };
-                openBlock.CloseAction = e => { e.PopFile(); };
+                openBlock.openAction = e =>
+                {
+                    e.PushFile(blockFile);
+                };
+                openBlock.CloseAction = e =>
+                {
+                    e.PopFile();
+                };
             }
         }
         else
@@ -3421,7 +3447,7 @@ public static class DirectiveImplementations
         executor.project.EnableFeature(feature);
         FeatureManager.OnFeatureEnabled(executor, feature);
 
-        if (Program.DEBUG && !executor.project.linting)
+        if (GlobalContext.Debug && !executor.project.linting)
             Console.WriteLine("Feature enabled: {0}", feature);
     }
     [UsedImplicitly]
@@ -3534,7 +3560,7 @@ public static class DirectiveImplementations
                 parameter.RuntimeDestination.ForceHash(functionName);
 
             // add decoration to it if documentation was given
-            if (hadDocumentation && Program.DECORATE)
+            if (hadDocumentation && GlobalContext.Decorate)
             {
                 function.AddCommands(docs.Trim().Split('\n').Select(str => "# " + str.Trim()));
                 function.AddCommand("");
@@ -3717,8 +3743,14 @@ public static class DirectiveImplementations
         var openBlock = executor.Peek<StatementOpenBlock>();
 
         openBlock.SetLangContext("test_" + testName.ToLower());
-        openBlock.openAction = e => { e.PushFile(test.file); };
-        openBlock.CloseAction = e => { e.PopFile(); };
+        openBlock.openAction = e =>
+        {
+            e.PushFile(test.file);
+        };
+        openBlock.CloseAction = e =>
+        {
+            e.PopFile();
+        };
     }
     [UsedImplicitly]
     public static void returnFromFunction(Executor executor, Statement tokens)
@@ -3900,17 +3932,16 @@ public static class DirectiveImplementations
                         // skip close block
                         i += 1;
 
-                        // turn decoration off.
-                        bool oldDecorate = Program.DECORATE;
-                        Program.DECORATE = false;
+                        // turn decoration off temporarily.
+                        // contract-release pattern.
+                        using ContextContract context = GlobalContext.NewInherit();
+                        context.heldContext.decorate = false;
 
                         // create virtual file to hold commands inside code
                         var tempFile = new CommandFile(true, "temp");
                         executor.PushFile(tempFile);
                         executor.ExecuteSubsection(inside);
                         executor.PopFileDiscard();
-
-                        Program.DECORATE = oldDecorate;
                         return tempFile.commands.ToArray();
                     }
                 }
@@ -3991,7 +4022,7 @@ public static class DirectiveImplementations
             CommandFile file = Executor.GetNextGeneratedFile(fileName, false);
             executor.AddExtraFile(file);
 
-            if (Program.DECORATE)
+            if (GlobalContext.Decorate)
             {
                 file.Add("# " + decoratorDescription);
                 file.Add("");
@@ -4042,7 +4073,7 @@ public static class DirectiveImplementations
 
             CommandFile file = Executor.GetNextGeneratedFile("for", false);
 
-            if (Program.DECORATE)
+            if (GlobalContext.Decorate)
             {
                 if (x.HasEffect || y.HasEffect || z.HasEffect)
                     file.Add($"# Run for every entity that matches {selector}, and is run at ({x} {y} {z}).");
@@ -4060,8 +4091,14 @@ public static class DirectiveImplementations
 
             executor.AddCommand(command);
 
-            block.openAction = e => { e.PushFile(file); };
-            block.CloseAction = e => { e.PopFile(); };
+            block.openAction = e =>
+            {
+                e.PushFile(file);
+            };
+            block.CloseAction = e =>
+            {
+                e.PopFile();
+            };
         }
         else
         {

@@ -48,17 +48,14 @@ public class WebSocketPackage : IDisposable
     ///     Reads an ASCII string from the buffer with the specified number of bytes.
     /// </summary>
     /// <returns></returns>
-    public string ReadStringASCII(int bytes)
-    {
-        return Encoding.ASCII.GetString(this.buffer, 0, bytes);
-    }
+    public string ReadStringASCII(int bytes) { return Encoding.ASCII.GetString(this.buffer, 0, bytes); }
     /// <summary>
     ///     Sends an ASCII string to the client.
     /// </summary>
     /// <param name="str"></param>
     public void SendStringASCII(string str)
     {
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
             Console.WriteLine("Sending string '{0}'", str);
 
         try
@@ -79,7 +76,7 @@ public class WebSocketPackage : IDisposable
     /// <param name="frame"></param>
     public void SendFrame(WebSocketFrame frame)
     {
-        if (Program.DEBUG)
+        if (GlobalContext.Debug)
             Console.WriteLine("Sending frame {0}", frame);
 
         if (this._isDisposed || this.client == null)
