@@ -166,6 +166,10 @@ public readonly struct SyntaxParameter
                 string contents = info[(arrayOpenIndex + 1)..arrayCloseIndex];
                 variadicRange = Range.Parse(contents);
             }
+            else
+            {
+                variadicRange = new Range(0, null);
+            }
         }
 
         parsed = new SyntaxParameter(name, blockConstraint, type, optional, variadic, variadicRange,

@@ -69,10 +69,7 @@ public struct Range : IEquatable<Range>
     /// <summary>
     ///     Returns a range which matches only the given input number.
     /// </summary>
-    public static Range Of(int number)
-    {
-        return new Range(number, false);
-    }
+    public static Range Of(int number) { return new Range(number, false); }
     /// <summary>
     ///     Parse a range input into a Range structure.
     /// </summary>
@@ -488,15 +485,34 @@ public struct Range : IEquatable<Range>
         return number < a.min || number > a.max;
     }
 
+    /// <summary>
+    ///     Determines whether a given number is within the range defined by the current <see cref="Range" /> instance.
+    /// </summary>
+    /// <param name="number">
+    ///     The number to check against the range.
+    ///     If the <paramref name="number" /> is less than the minimum value of the range or greater than the maximum value,
+    ///     the method returns a value determined by the range's invert state.
+    /// </param>
+    /// <returns>
+    ///     Returns <see langword="true" /> if the <paramref name="number" /> is inside the range and the range is not
+    ///     inverted;
+    ///     or if the <paramref name="number" /> is outside a bounded range and the range is inverted.
+    ///     Otherwise, returns <see langword="false" />.
+    /// </returns>
+    public bool IsInside(int number)
+    {
+        if (this.min.HasValue && number < this.min.Value)
+            return this.invert;
+        if (this.max.HasValue && number > this.max.Value)
+            return this.invert;
+        return !this.invert;
+    }
     public bool Equals(Range other)
     {
         return this.invert == other.invert && this.single == other.single && this.min == other.min &&
                this.max == other.max;
     }
-    public override bool Equals(object obj)
-    {
-        return obj is Range other && Equals(other);
-    }
+    public override bool Equals(object obj) { return obj is Range other && Equals(other); }
     public override int GetHashCode()
     {
         unchecked

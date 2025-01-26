@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using mc_compiled.Commands;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC.Language;
 
@@ -15,10 +17,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
     ///     Create a new <see cref="SyntaxPatterns" /> with one valid pattern.
     /// </summary>
     /// <param name="parameters"></param>
-    public SyntaxPatterns(params SyntaxParameter[] parameters)
-    {
-        Add(parameters);
-    }
+    public SyntaxPatterns(params SyntaxParameter[] parameters) { Add(parameters); }
     /// <summary>
     ///     Create a new <see cref="SyntaxPatterns" /> with multiple valid patterns that can match it.
     /// </summary>
@@ -91,6 +90,186 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
         }
 
         parsed = new SyntaxPatterns(parsedPatterns);
+        return true;
+    }
+
+    /// <summary>
+    ///     Validates the remaining tokens in <paramref name="feeder" /> and returns if they match this pattern.
+    /// </summary>
+    /// <param name="executor">The executor running this validation.</param>
+    /// <param name="feeder">
+    ///     The remaining tokens to sample.
+    ///     This <b>will</b> mutate the <see cref="TokenFeeder" />.
+    /// </param>
+    /// <param name="failReasons">
+    ///     The parameters which are blocking this statement from validating,
+    ///     if returning <c>false</c>.
+    /// </param>
+    /// <param name="outputConfidence">The confidence in this match, even if returning false.</param>
+    /// <returns>True if a match was made.</returns>
+    public bool Validate(Executor executor,
+        TokenFeeder feeder,
+        out IEnumerable<SyntaxValidationError> failReasons,
+        out int outputConfidence)
+    {
+        List<SyntaxValidationError> errors = [];
+        int highestConfidence = -1;
+        int count = this.Count;
+
+        if (count == 0)
+        {
+            failReasons = [];
+            outputConfidence = 1;
+            return true; // technically a match, as there are no constraints.
+        }
+
+        if (count == 1)
+        {
+            failReasons = errors;
+            return ValidateSinglePattern(executor, feeder, this[0], errors, out outputConfidence);
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            errors.Clear();
+            bool last = i == count - 1; // if this is the last iteration
+            TokenFeeder temporaryFeeder = last ? feeder : (TokenFeeder) feeder.Clone();
+            List<SyntaxValidationError> temporaryErrors = [];
+
+            if (ValidateSinglePattern(executor, temporaryFeeder, this[i], temporaryErrors, out int confidence))
+            {
+                failReasons = [];
+                outputConfidence = confidence;
+                return true;
+            }
+
+            if (confidence > highestConfidence)
+            {
+                errors.Clear();
+                errors.AddRange(temporaryErrors);
+                highestConfidence = confidence;
+            }
+        }
+
+        failReasons = errors;
+        outputConfidence = highestConfidence;
+        return false;
+    }
+    private bool ValidateSinglePattern(Executor executor,
+        TokenFeeder feeder,
+        SyntaxParameter[] pattern,
+        List<SyntaxValidationError> errors,
+        out int confidence,
+        int startingIndex = 0)
+    {
+        confidence = 0;
+
+        if (pattern.Length == 0)
+            return true; // technically a match, as there are no constraints.
+
+        int patternIndex = startingIndex - 1;
+
+        while (feeder.HasNext)
+        {
+            patternIndex++;
+
+            if (patternIndex >= pattern.Length)
+                return true; // matched all parameters in this pattern.
+
+            SyntaxParameter currentParameter = pattern[patternIndex];
+            bool variadic = currentParameter.variadic;
+            Range? variadicRange = currentParameter.variadicRange;
+            bool optional = currentParameter.optional;
+            if (optional == false && variadic && variadicRange.HasValue)
+                // if the variadic accepts 0 parameters, this is technically optional as well.
+                if (variadicRange.Value.IsInside(0))
+                    optional = true;
+
+            if (currentParameter.blockConstraint)
+            {
+                if (executor.NextIs<StatementOpenBlock>())
+                {
+                    confidence += 1;
+                    continue;
+                }
+
+                errors.Add(new SyntaxValidationError("Missing block {}"));
+                return false;
+            }
+
+            if (variadic)
+            {
+                int minInclusive = variadicRange?.min ?? 0;
+                int maxInclusive = variadicRange?.max ?? int.MaxValue;
+                SyntaxParameter? breakoutParameter =
+                    patternIndex + 1 < pattern.Length ? pattern[patternIndex + 1] : null;
+                int totalMatches = 0;
+
+                // edge case: breakout parameter is specified immediately
+                if (breakoutParameter.HasValue && feeder.NextMatchesParameter(breakoutParameter.Value, false))
+                {
+                    if (!optional)
+                    {
+                        errors.Add(new SyntaxValidationError(
+                            $"Minimum number of parameters for '{currentParameter.name}' is {minInclusive}"));
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                while (feeder.NextMatchesParameter(currentParameter))
+                {
+                    totalMatches++;
+                    feeder.Next();
+
+                    if (totalMatches >= maxInclusive)
+                        break;
+                    if (breakoutParameter.HasValue && feeder.NextMatchesParameter(breakoutParameter.Value, false))
+                        break;
+                }
+
+                if (totalMatches < minInclusive)
+                {
+                    errors.Add(new SyntaxValidationError(
+                        $"Minimum number of parameters for '{currentParameter.name}' is {minInclusive}"));
+                    return false;
+                }
+
+                if (totalMatches > maxInclusive)
+                {
+                    // technically can't happen, but you never know
+                    errors.Add(new SyntaxValidationError(
+                        $"Maximum number of parameters for '{currentParameter.name}' is {maxInclusive}"));
+                    return false;
+                }
+
+                confidence += totalMatches;
+                continue;
+            }
+
+            // basic match. does the next token in the feeder match this parameter?
+            bool simpleMatch = feeder.NextMatchesParameter(currentParameter);
+
+            if (!simpleMatch)
+            {
+                // it's okay, but only if the parameter is optional.
+                if (optional)
+                {
+                    patternIndex--; // keep the same parameter
+                    continue;
+                }
+
+                errors.Add(new SyntaxValidationError($"Required parameter '{currentParameter.name}'"));
+                return false;
+            }
+
+            // match!
+            confidence += 1;
+            feeder.Next();
+        }
+
+        // got through the whole thing without returning false
         return true;
     }
 }
