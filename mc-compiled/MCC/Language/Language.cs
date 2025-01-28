@@ -62,7 +62,7 @@ public static class Language
         {
             CommentHandling = CommentHandling.Ignore,
             DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error,
-            LineInfoHandling = LineInfoHandling.Ignore
+            LineInfoHandling = LineInfoHandling.Load
         });
         LoadFromJSON(json);
 

@@ -94,6 +94,34 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
     }
 
     /// <summary>
+    ///     Validates a given sequence of <see cref="Token" /> objects against a single pattern
+    ///     specified by an array of <see cref="SyntaxParameter" />.
+    /// </summary>
+    /// <param name="executor">
+    ///     The <see cref="Executor" /> instance used to execute and evaluate the details of the validation
+    ///     process. This parameter provides context and tools necessary for the validation.
+    /// </param>
+    /// <param name="tokens">
+    ///     An array of <see cref="Token" /> objects representing the sequence to be validated.
+    ///     Each token in this array is checked against the provided syntax pattern.
+    /// </param>
+    /// <param name="pattern">
+    ///     An array of <see cref="SyntaxParameter" /> objects that specifies the pattern to validate
+    ///     the input tokens against. Each parameter in the pattern represents a specific aspect or
+    ///     structure required for validation.
+    /// </param>
+    /// <returns>
+    ///     A <see cref="bool" /> value indicating whether the sequence of <paramref name="tokens" />
+    ///     matches the provided <paramref name="pattern" /> entirely. Returns <c>true</c> if the sequence
+    ///     is valid, otherwise <c>false</c>.
+    /// </returns>
+    public static bool NewValidateSingle(Executor executor, Token[] tokens, params SyntaxParameter[] pattern)
+    {
+        var feeder = new TokenFeeder(tokens);
+        return ValidateSinglePattern(executor, feeder, pattern, [], out _);
+    }
+
+    /// <summary>
     ///     Validates the remaining tokens in <paramref name="feeder" /> and returns if they match this pattern.
     /// </summary>
     /// <param name="executor">The executor running this validation.</param>
@@ -155,7 +183,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
         outputConfidence = highestConfidence;
         return false;
     }
-    private bool ValidateSinglePattern(Executor executor,
+    private static bool ValidateSinglePattern(Executor executor,
         TokenFeeder feeder,
         SyntaxParameter[] pattern,
         List<SyntaxValidationError> errors,
