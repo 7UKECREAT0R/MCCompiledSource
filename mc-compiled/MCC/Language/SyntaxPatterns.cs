@@ -221,7 +221,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
                     continue;
                 }
 
-                errors.Add(new SyntaxValidationError("Missing block {}"));
+                errors.Add(new SyntaxValidationError("missing block {}", null));
                 return false;
             }
 
@@ -238,8 +238,8 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
                 {
                     if (!optional)
                     {
-                        errors.Add(new SyntaxValidationError(
-                            $"Minimum number of parameters for '{currentParameter.name}' is {minInclusive}"));
+                        errors.Add(new SyntaxValidationError($"minimum number of parameters is {minInclusive}",
+                            breakoutParameter.Value));
                         return false;
                     }
 
@@ -259,16 +259,16 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
 
                 if (totalMatches < minInclusive)
                 {
-                    errors.Add(new SyntaxValidationError(
-                        $"Minimum number of parameters for '{currentParameter.name}' is {minInclusive}"));
+                    errors.Add(new SyntaxValidationError($"minimum number of parameters is {minInclusive}",
+                        currentParameter));
                     return false;
                 }
 
                 if (totalMatches > maxInclusive)
                 {
                     // technically can't happen, but you never know
-                    errors.Add(new SyntaxValidationError(
-                        $"Maximum number of parameters for '{currentParameter.name}' is {maxInclusive}"));
+                    errors.Add(new SyntaxValidationError($"maximum number of parameters is {maxInclusive}",
+                        currentParameter));
                     return false;
                 }
 
@@ -288,7 +288,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
                     continue;
                 }
 
-                errors.Add(new SyntaxValidationError($"Required parameter '{currentParameter.name}'"));
+                errors.Add(new SyntaxValidationError("required", currentParameter));
                 return false;
             }
 

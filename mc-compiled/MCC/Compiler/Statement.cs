@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
+using mc_compiled.MCC.Language;
 using Newtonsoft.Json.Linq;
 using Range = mc_compiled.Commands.Range;
 
@@ -40,7 +41,7 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// <returns></returns>
     public abstract bool HasAttribute(DirectiveAttribute attribute);
 
-    protected abstract TypePattern[] GetValidPatterns();
+    protected abstract SyntaxGroup GetValidPatterns();
     /// <summary>
     ///     Run this statement/continue where it left off.
     /// </summary>
@@ -827,7 +828,7 @@ public sealed class StatementHusk : Statement
     {
         throw new StatementException(this, "Compiler tried to run a Husk statement. Have a dev look at this.");
     }
-    protected override TypePattern[] GetValidPatterns() { return null; }
+    protected override SyntaxGroup GetValidPatterns() { return null; }
     public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
 }
 

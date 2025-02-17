@@ -1400,7 +1400,7 @@ public static class DirectiveImplementations
     {
         string docs = executor.GetDocumentationString(out bool hadDocumentation);
 
-        ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(tokens);
+        ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(TODO, tokens);
 
         // create the new scoreboard value.
         ScoreboardValue value = def.Create(executor.scoreboard, tokens);
@@ -3497,7 +3497,7 @@ public static class DirectiveImplementations
         while (tokens.NextIs<TokenIdentifier>(false))
         {
             // fetch a parameter definition
-            ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(tokens);
+            ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(TODO, tokens);
 
             // don't let users define non-optional parameters if they already specified one.
             if (def.defaultValue == null && hasBegunOptionals)

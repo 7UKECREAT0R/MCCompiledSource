@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
+using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem;
 
@@ -27,17 +29,20 @@ public abstract partial class Typedef
     /// </summary>
     public abstract bool CanCompareAlone { get; }
     /// <summary>
-    ///     The pattern needed after using this typedef keyword to populate its data, such as with `decimal N` where `N` is the
+    ///     The syntax group needed after using this typedef keyword to populate its data, such as with `decimal N` where `N`
+    ///     is the
     ///     pattern.<br />
     ///     If <b>null</b> is returned, then this Typedef does not use data, and its <see cref="AcceptPattern" /> method should
     ///     not be called.
     /// </summary>
-    public virtual TypePattern SpecifyPattern => null;
+    [CanBeNull]
+    public virtual SyntaxGroup SpecifyPattern => null;
     /// <summary>
     ///     A scoreboard exception with formatted text: "Literal [{src}] could not be converted to {dst}"
     /// </summary>
     /// <returns></returns>
-    protected static StatementException LiteralConversionError(ScoreboardValue value, TokenLiteral literal,
+    protected static StatementException LiteralConversionError(ScoreboardValue value,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         return new StatementException(callingStatement,
@@ -48,7 +53,8 @@ public abstract partial class Typedef
     /// </summary>
     /// <returns></returns>
     protected static StatementException UnsupportedOperationError(ScoreboardValue value,
-        UnsupportedOperationType operation, Statement callingStatement)
+        UnsupportedOperationType operation,
+        Statement callingStatement)
     {
         return new StatementException(callingStatement,
             $"Operation '{operation}' is unsupported by type {value.type.TypeKeyword}.");
@@ -63,19 +69,13 @@ public abstract partial class Typedef
     ///     Returns the HashCode of this type. Short for: <code>this.TypeEnum.GetHashCode();</code>
     /// </summary>
     /// <returns></returns>
-    public override int GetHashCode()
-    {
-        return this.TypeEnum.GetHashCode();
-    }
+    public override int GetHashCode() { return this.TypeEnum.GetHashCode(); }
     /// <summary>
     ///     Returns if the given literal value can be accepted to construct data from.
     /// </summary>
     /// <param name="literal"></param>
     /// <returns></returns>
-    public virtual bool CanAcceptLiteralForData(TokenLiteral literal)
-    {
-        return false;
-    }
+    public virtual bool CanAcceptLiteralForData(TokenLiteral literal) { return false; }
 
     /// <summary>
     ///     Accepts the given statement as input for this type's pattern.
@@ -163,7 +163,8 @@ public abstract partial class Typedef
     /// <param name="literal">The literal to assign.</param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal abstract IEnumerable<string> AssignLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement);
 
     /// <summary>
@@ -173,7 +174,8 @@ public abstract partial class Typedef
     /// <param name="literal">The literal to assign.</param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal abstract IEnumerable<string> AddLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement);
 
     /// <summary>
@@ -183,7 +185,8 @@ public abstract partial class Typedef
     /// <param name="literal">The literal to assign.</param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal abstract IEnumerable<string> SubtractLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement);
 
     /// <summary>
@@ -196,7 +199,8 @@ public abstract partial class Typedef
     /// <param name="other"></param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other,
+    internal abstract IEnumerable<string> _Assign(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement);
 
     /// <summary>
@@ -219,7 +223,10 @@ public abstract partial class Typedef
     /// <param name="callingStatement"></param>
     /// <returns></returns>
     internal abstract Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
-        TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement);
+        TokenCompare.Type comparisonType,
+        ScoreboardValue self,
+        TokenLiteral literal,
+        Statement callingStatement);
 
     /// <summary>
     ///     Returns the commands needed to add another value to self, given that they are both the same type and compatible.
@@ -231,7 +238,8 @@ public abstract partial class Typedef
     /// <param name="other"></param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other,
+    internal abstract IEnumerable<string> _Add(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement);
 
     /// <summary>
@@ -245,7 +253,8 @@ public abstract partial class Typedef
     /// <param name="other"></param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other,
+    internal abstract IEnumerable<string> _Subtract(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement);
 
     /// <summary>
@@ -259,7 +268,8 @@ public abstract partial class Typedef
     /// <param name="other"></param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other,
+    internal abstract IEnumerable<string> _Multiply(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement);
 
     /// <summary>
@@ -272,7 +282,8 @@ public abstract partial class Typedef
     /// <param name="other"></param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other,
+    internal abstract IEnumerable<string> _Divide(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement);
 
     /// <summary>
@@ -286,7 +297,8 @@ public abstract partial class Typedef
     /// <param name="other"></param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    internal abstract IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other,
+    internal abstract IEnumerable<string> _Modulo(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement);
 
     protected enum UnsupportedOperationType

@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using JetBrains.Annotations;
 using mc_compiled.Commands;
-using mc_compiled.MCC.SyntaxHighlighting;
+using mc_compiled.MCC.Language;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Compiler;
@@ -35,11 +34,17 @@ public class Directive
     public readonly ParsedEnumValue? enumValue;
 
     public readonly string identifier;
-    public readonly TypePattern[] patterns;
+    public readonly SyntaxGroup syntax;
     public readonly string wikiLink;
     public DirectiveAttribute attributes;
-    public Directive(DirectiveImpl call, string identifier, string[] aliases, string description, string documentation,
-        string wikiLink, string category, params TypePattern[] patterns)
+    public Directive(DirectiveImpl call,
+        string identifier,
+        string[] aliases,
+        string description,
+        string documentation,
+        string wikiLink,
+        string category,
+        SyntaxGroup syntax)
     {
         nextIndex++;
         this.call = call;
@@ -49,7 +54,7 @@ public class Directive
         this.documentation = documentation;
         this.wikiLink = wikiLink;
         this.category = category;
-        this.patterns = patterns;
+        this.syntax = syntax;
 
         // cache if this directive overlaps an enum
         if (CommandEnumParser.TryParse(identifier, out ParsedEnumValue result))
@@ -103,18 +108,13 @@ public class Directive
             this.attributes |= attribute;
         return this;
     }
-    public bool HasAttribute(DirectiveAttribute attribute)
-    {
-        return (this.attributes & attribute) != 0;
-    }
+    public bool HasAttribute(DirectiveAttribute attribute) { return (this.attributes & attribute) != 0; }
 
-    public override int GetHashCode()
-    {
-        return this.identifier.GetHashCode();
-    }
+    public override int GetHashCode() { return this.identifier.GetHashCode(); }
     public override string ToString()
     {
-        return $"{this.DirectiveOverview} - patterns: {this.patterns.Length} - desc: {this.description}";
+        return
+            $"{this.DirectiveOverview} - syntax: ({this.syntax.CountPaths()} possible paths) - desc: {this.description}";
     }
 }
 
@@ -181,10 +181,7 @@ public static class Directives
     /// <summary>
     ///     Sorts all the directives by name.
     /// </summary>
-    private static void SortDirectives()
-    {
-        REGISTRY = REGISTRY.OrderBy(directive => directive.identifier).ToList();
-    }
+    private static void SortDirectives() { REGISTRY = REGISTRY.OrderBy(directive => directive.identifier).ToList(); }
 
     public static void LoadFromLanguage(bool debug)
     {
@@ -230,12 +227,12 @@ public static class Directives
     }
 
     /// <summary>
-    ///     Read all directives from the language.json root object.
+    ///     Read all directives from the language.json root object. LEGACY IMPLEMENTATION!
     /// </summary>
     /// <param name="root">The root object of the language.json file.</param>
     private static void ReadJSON(JObject root)
     {
-        const string IDENTIFIER_PREFIX = "mc_compiled.MCC.Compiler.";
+        /*const string IDENTIFIER_PREFIX = "mc_compiled.MCC.Compiler.";
 
         // read type mappings
         var mappings = new Dictionary<string, NamedType>();
@@ -415,6 +412,6 @@ public static class Directives
             RegisterDirective(directive);
         }
 
-        SortDirectives();
+        SortDirectives();*/
     }
 }

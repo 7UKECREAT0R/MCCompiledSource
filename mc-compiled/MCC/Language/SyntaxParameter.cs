@@ -207,4 +207,70 @@ public readonly struct SyntaxParameter
 
         return sb.ToString();
     }
+    public string UserFriendlyString
+    {
+        // TODO revisit and give types proper naming using an interface or something
+        get
+        {
+            string originalTypeId = this.blockConstraint ? "block" : Language.typeToNameMappings[this.typeConstraint!];
+            return $"{this.name}: {originalTypeId}";
+        }
+    }
+
+    /// <summary>
+    ///     Returns a simple <see cref="SyntaxParameter" /> that matches the given type.
+    /// </summary>
+    /// <param name="type">The type to match.</param>
+    /// <param name="name">The name of this parameter, or null to default to the input type's name.</param>
+    /// <param name="optional">If this parameter is optional. Defaults to false.</param>
+    public static SyntaxParameter Simple(Type type, string name = null, bool optional = false)
+    {
+        return new SyntaxParameter(name ?? type.Name, false, type, optional, false, null);
+    }
+    /// <summary>
+    ///     Returns a simple <see cref="SyntaxParameter" /> that matches the given type one or more times.
+    /// </summary>
+    /// <param name="type">The type to match.</param>
+    /// <param name="variadicRange">
+    ///     The constraint on the number of parameters
+    ///     that can/must match this parameter.
+    /// </param>
+    /// <param name="name">The name of this parameter, or null to default to the input type's name.</param>
+    /// <param name="optional">If this parameter is optional. Defaults to false.</param>
+    public static SyntaxParameter SimpleVariadic(Type type,
+        Range? variadicRange = null,
+        string name = null,
+        bool optional = false)
+    {
+        return new SyntaxParameter(name ?? type.Name, false, type, optional, true, variadicRange);
+    }
+
+    /// <summary>
+    ///     Returns a simple <see cref="SyntaxParameter" /> that matches the given type.
+    /// </summary>
+    /// <param name="name">The name of this parameter, or null to default to the input type's name.</param>
+    /// <param name="optional">If this parameter is optional. Defaults to false.</param>
+    /// <typeparam name="T">The type to match.</typeparam>
+    /// <returns></returns>
+    public static SyntaxParameter Simple<T>(string name = null, bool optional = false)
+    {
+        return new SyntaxParameter(name ?? nameof(T), false, typeof(T), optional, false, null);
+    }
+    /// <summary>
+    ///     Returns a simple <see cref="SyntaxParameter" /> that matches the given type one or more times.
+    /// </summary>
+    /// <param name="variadicRange">
+    ///     The constraint on the number of parameters
+    ///     that can/must match this parameter.
+    /// </param>
+    /// <param name="name">The name of this parameter, or null to default to the input type's name.</param>
+    /// <param name="optional">If this parameter is optional. Defaults to false.</param>
+    /// <typeparam name="T">The type to match.</typeparam>
+    /// <returns></returns>
+    public static SyntaxParameter SimpleVariadic<T>(Range? variadicRange = null,
+        string name = null,
+        bool optional = false)
+    {
+        return new SyntaxParameter(name ?? nameof(T), false, typeof(T), optional, true, variadicRange);
+    }
 }

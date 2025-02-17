@@ -12,7 +12,7 @@ public class SyntaxGroup
     /// <summary>
     ///     A syntax group with no constraints; will match no tokens and always pass validation.
     /// </summary>
-    public static readonly SyntaxGroup NONE = new(SyntaxGroupBehavior.OneOf, null, false, null, false, false,
+    public static readonly SyntaxGroup EMPTY = new(SyntaxGroupBehavior.OneOf, null, false, null, false, false,
         new SyntaxPatterns());
 
     /// <summary>
@@ -110,6 +110,12 @@ public class SyntaxGroup
     ///     Returns if this group is <see cref="optional" />, or optional <see cref="blocking" />
     /// </summary>
     public bool IsOptional => this.optional || this.blocking;
+    /// <summary>
+    ///     Returns if this group has no validation constraints, and thus should always match.
+    /// </summary>
+    private bool AlwaysMatches =>
+        !string.IsNullOrEmpty(this.Keyword) &&
+        (this.hasChildren ? this.children.Length == 0 : this.patterns.Count == 0);
 
     private static SyntaxPatterns ParseSimplePattern(string[] parameters,
         SyntaxGroupBehavior behavior = SyntaxGroupBehavior.OneOf)
@@ -310,6 +316,23 @@ public class SyntaxGroup
                 select child.QueryChild(childName))
             .FirstOrDefault(subgroup => subgroup != null);
     }
+    /// <summary>
+    ///     Creates a new <see cref="SyntaxGroup" /> containing the specified patterns.
+    ///     The group will choose only one of the given patterns that best fit.
+    /// </summary>
+    public static SyntaxGroup WrapPatterns(bool groupOptional, params SyntaxParameter[][] groupPatterns)
+    {
+        return new SyntaxGroup(SyntaxGroupBehavior.OneOf, null, false, null, groupOptional, false,
+            new SyntaxPatterns(groupPatterns));
+    }
+    /// <summary>
+    ///     Creates a new <see cref="SyntaxGroup" /> containing one pattern.
+    /// </summary>
+    public static SyntaxGroup WrapPattern(bool groupOptional, params SyntaxParameter[] groupPattern)
+    {
+        return new SyntaxGroup(SyntaxGroupBehavior.OneOf, null, false, null, groupOptional, false,
+            new SyntaxPatterns(groupPattern));
+    }
 
     /// <summary>
     ///     Recursively count the number of possible paths this <see cref="SyntaxGroup" /> expands into.
@@ -389,6 +412,13 @@ public class SyntaxGroup
         out IEnumerable<SyntaxValidationError> failReasons,
         out int outputConfidence)
     {
+        if (this.AlwaysMatches)
+        {
+            outputConfidence = 0;
+            failReasons = null;
+            return true;
+        }
+
         if (!string.IsNullOrEmpty(this.Keyword))
         {
             if (tokens.NextMatchesKeyword(this.Keyword))
@@ -397,7 +427,7 @@ public class SyntaxGroup
             }
             else
             {
-                failReasons = [new SyntaxValidationError($"Missing required keyword '{this.Keyword}'.")];
+                failReasons = [new SyntaxValidationError($"missing keyword '{this.Keyword}'", null)];
                 outputConfidence = 0;
                 return false;
             }

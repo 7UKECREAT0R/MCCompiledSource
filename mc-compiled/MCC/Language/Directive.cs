@@ -142,7 +142,7 @@ public class Directive
         }
         else
         {
-            syntax = SyntaxGroup.NONE;
+            syntax = SyntaxGroup.EMPTY;
         }
 
         return new Directive(aliases, attributes, category, description,
