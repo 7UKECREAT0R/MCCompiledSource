@@ -15,10 +15,7 @@ namespace mc_compiled.MCC.Compiler;
 public sealed class TokenNewline : Token, ITerminating
 {
     public TokenNewline(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "\n";
-    }
+    public override string AsString() { return "\n"; }
 }
 
 /// <summary>
@@ -26,16 +23,16 @@ public sealed class TokenNewline : Token, ITerminating
 /// </summary>
 public sealed class TokenDirective : Token, IImplicitToken
 {
-    public readonly Directive directive;
+    public readonly Language.Directive directive;
 
-    public TokenDirective(Directive directive, int lineNumber) : base(lineNumber)
+    public TokenDirective(Language.Directive directive, int lineNumber) : base(lineNumber)
     {
         this.directive = directive;
     }
 
     public Type[] GetImplicitTypes()
     {
-        if (this.directive.enumValue.HasValue)
+        if (this.directive.overlappingEnumValue.HasValue)
             return [typeof(TokenIdentifier), typeof(TokenIdentifierEnum)];
         return [typeof(TokenIdentifier)];
     }
@@ -44,37 +41,28 @@ public sealed class TokenDirective : Token, IImplicitToken
         switch (index)
         {
             case 0:
-                return new TokenIdentifier(this.directive.identifier, this.lineNumber);
+                return new TokenIdentifier(this.directive.name, this.lineNumber);
             case 1:
-                Debug.Assert(this.directive.enumValue != null, "directive.enumValue was null");
-                return new TokenIdentifierEnum(this.directive.identifier, this.directive.enumValue.Value,
+                Debug.Assert(this.directive.overlappingEnumValue.HasValue, "directive.overlappingEnumValue was null");
+                return new TokenIdentifierEnum(this.directive.name, this.directive.overlappingEnumValue.Value,
                     this.lineNumber);
         }
 
         return null;
     }
 
-    public override string AsString()
-    {
-        return this.directive.identifier;
-    }
+    public override string AsString() { return this.directive.name; }
 }
 
 /// <summary>
-///     Represents a comment that was made using two slashes.
+///     Represents a comment in the user's source code.
 /// </summary>
 public sealed class TokenComment : Token, IUselessInformation
 {
     public readonly string contents;
-    public TokenComment(string contents, int lineNumber) : base(lineNumber)
-    {
-        this.contents = contents;
-    }
+    public TokenComment(string contents, int lineNumber) : base(lineNumber) { this.contents = contents; }
 
-    public override string AsString()
-    {
-        return "// " + this.contents;
-    }
+    public override string AsString() { return "// " + this.contents; }
 }
 
 /// <summary>
@@ -83,14 +71,8 @@ public sealed class TokenComment : Token, IUselessInformation
 public sealed class TokenAwaitable : Token
 {
     public readonly AsyncFunction function;
-    public TokenAwaitable(AsyncFunction function, int lineNumber) : base(lineNumber)
-    {
-        this.function = function;
-    }
-    public override string AsString()
-    {
-        return $"[awaitable: {this.function.escapedFunctionName}]";
-    }
+    public TokenAwaitable(AsyncFunction function, int lineNumber) : base(lineNumber) { this.function = function; }
+    public override string AsString() { return $"[awaitable: {this.function.escapedFunctionName}]"; }
 }
 
 /// <summary>
@@ -112,10 +94,7 @@ public class TokenIdentifier : Token, IPreprocessor, IImplicitToken
     /// </summary>
     public const int CONVERT_ENUM = 2;
     public readonly string word;
-    public TokenIdentifier(string word, int lineNumber) : base(lineNumber)
-    {
-        this.word = word;
-    }
+    public TokenIdentifier(string word, int lineNumber) : base(lineNumber) { this.word = word; }
 
     public Type[] GetImplicitTypes()
     {
@@ -136,15 +115,9 @@ public class TokenIdentifier : Token, IPreprocessor, IImplicitToken
             _ => null
         };
     }
-    public object GetValue()
-    {
-        return this.word;
-    }
+    public object GetValue() { return this.word; }
 
-    public override string AsString()
-    {
-        return this.word;
-    }
+    public override string AsString() { return this.word; }
 }
 
 /// <summary>
@@ -157,10 +130,7 @@ public sealed class TokenUnresolvedSelector : Token
     {
         this.unresolvedSelector = unresolvedSelector;
     }
-    public override string AsString()
-    {
-        return $"{this.unresolvedSelector}";
-    }
+    public override string AsString() { return $"{this.unresolvedSelector}"; }
 
     public TokenSelectorLiteral Resolve(Executor executor)
     {
@@ -205,10 +175,7 @@ public sealed class TokenIdentifierEnum : TokenIdentifier, IDocumented
     {
         return "Usually a specific keyword in a subset of possible keywords. This type is entirely context dependent.";
     }
-    public override string AsString()
-    {
-        return this.value.value.ToString();
-    }
+    public override string AsString() { return this.value.value.ToString(); }
 }
 
 /// <summary>
@@ -338,10 +305,7 @@ public sealed class TokenIdentifierMacro : TokenIdentifier
     /// </summary>
     public readonly Macro macro;
 
-    public TokenIdentifierMacro(Macro macro, int lineNumber) : base(macro.name, lineNumber)
-    {
-        this.macro = macro;
-    }
+    public TokenIdentifierMacro(Macro macro, int lineNumber) : base(macro.name, lineNumber) { this.macro = macro; }
 }
 
 /// <summary>

@@ -5,6 +5,7 @@ using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Compiler.Async;
+using mc_compiled.MCC.Language;
 using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler;

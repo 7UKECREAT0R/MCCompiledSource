@@ -9,9 +9,9 @@ namespace mc_compiled.MCC.Compiler;
 
 public sealed class StatementDirective : Statement, IExecutionSetPart
 {
-    public readonly Directive directive;
+    public readonly Language.Directive directive;
 
-    public StatementDirective(Directive directive, Token[] tokens) : base(tokens, true)
+    public StatementDirective(Language.Directive directive, Token[] tokens) : base(tokens, true)
     {
         this.directive = directive;
         this.DecorateInSource = !directive.IsPreprocessor;
@@ -26,15 +26,13 @@ public sealed class StatementDirective : Statement, IExecutionSetPart
     }
     public override string ToString()
     {
-        if (this.directive == null)
-            return "[DIRECTIVE] [PARSING ERROR]";
-
-        return
-            $"[DIRECTIVE] {this.directive.description} -> {string.Join(" ", from t in this.tokens select t.DebugString())}";
+        return this.directive == null
+            ? "[DIRECTIVE] [PARSING ERROR]"
+            : $"[DIRECTIVE] {this.directive.description} -> {string.Join(" ", from t in this.tokens select t.DebugString())}";
     }
 
-    protected override SyntaxGroup GetValidPatterns() { return this.directive.syntax; }
-    protected override void Run(Executor runningExecutor) { this.directive.call(runningExecutor, this); }
+    protected override SyntaxGroup GetValidPatterns() { return this.directive.Syntax; }
+    protected override void Run(Executor runningExecutor) { this.directive.implementation(runningExecutor, this); }
 }
 
 public sealed class StatementComment : Statement

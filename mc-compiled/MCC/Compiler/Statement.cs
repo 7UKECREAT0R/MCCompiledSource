@@ -553,7 +553,7 @@ public abstract class Statement : TokenFeeder, ICloneable
     {
         // be careful if this is a function definition, might be in the same format.
         bool isFunctionDefinition = this is StatementDirective directive &&
-                                    directive.directive.call == DirectiveImplementations.function;
+                                    directive.directive.implementation == DirectiveImplementations.function;
 
         int startAt = 0;
 

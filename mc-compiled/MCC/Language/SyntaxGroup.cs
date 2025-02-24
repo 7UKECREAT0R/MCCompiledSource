@@ -114,7 +114,7 @@ public class SyntaxGroup
     ///     Returns if this group has no validation constraints, and thus should always match.
     /// </summary>
     public bool AlwaysMatches =>
-        !string.IsNullOrEmpty(this.Keyword) &&
+        string.IsNullOrEmpty(this.Keyword) &&
         (this.hasChildren ? this.children.Length == 0 : this.patterns.Count == 0);
 
     private static SyntaxPatterns ParseSimplePattern(string[] parameters,
@@ -256,12 +256,13 @@ public class SyntaxGroup
             .Select(property => property.Name is "sequential" or "repeatable" ? null : ParseSingleComplex(property))
             .Where(g => g != null));
 
-        // validation: if repeatable, all subgroups must have keywords
+        // validation: if repeatable, all subgroups must not always match.
+        // there needs to only ever be one branch that fully matches. 
         if (isRepeatable)
             foreach (SyntaxGroup child in children)
-                if (child.Keyword == null)
+                if (child.AlwaysMatches)
                     throw new FormatException(
-                        $"Syntax group {child.identifier ?? "(unknown)"}'s parent was marked as repeatable, but had no keyword. This is an issue with the syntax in language.json, not user error.");
+                        $"Syntax group {child.identifier ?? "(unknown)"}'s parent was marked as repeatable, but always matches. This is an issue with the syntax in language.json, not user error.");
 
         return (children.ToArray(), isSequential, isRepeatable);
     }

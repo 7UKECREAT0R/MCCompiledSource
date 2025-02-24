@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
 using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Language;
 
 /// <summary>
-///     A directive in MCCompiled, defined in <c>language.json</c>. Also known as a command on the user-facing side.
+///     Represents a directive in MCCompiled, as defined in <c>language.json</c>.
+///     Commonly referred to as a command in the user-facing implementation.
 /// </summary>
 public class Directive
 {
@@ -20,7 +23,7 @@ public class Directive
     /// <summary>
     ///     The attributes applied to this directive that modify how it works.
     /// </summary>
-    public readonly DirectiveAttribute[] attributes;
+    public readonly DirectiveAttribute attributes;
 
     /// <summary>
     ///     If present, the name of the category this directive lies under.
@@ -47,12 +50,20 @@ public class Directive
     /// </summary>
     public readonly string name;
 
+    // Directive might overlap an enum value.
+    // In the case this happens, it can use this field to help convert itself.
+    /// <summary>
+    ///     This directive might overlap a <see cref="ParsedEnumValue" />. In the case
+    ///     this happens, it can use this field to help convert itself over.
+    /// </summary>
+    public readonly ParsedEnumValue? overlappingEnumValue;
+
     /// <summary>
     ///     If present, the link to the wiki page which details this directive and how the user should use it.
     ///     For example: <c>Debugging.md#assertions</c>
     /// </summary>
     [CanBeNull]
-    public readonly string wiki_link;
+    public readonly string wikiLink;
 
     /// <summary>
     ///     The syntax of this directive in MCCompiled. <see cref="Syntax" /> is the public API.
@@ -60,7 +71,7 @@ public class Directive
     internal SyntaxGroup _syntax;
 
     private Directive(string[] aliases,
-        DirectiveAttribute[] attributes,
+        DirectiveAttribute attributes,
         [CanBeNull] string category,
         string description,
         string details,
@@ -76,9 +87,17 @@ public class Directive
         this.details = details;
         this.implementation = implementation;
         this.name = name;
-        this.wiki_link = wikiLink;
+        this.wikiLink = wikiLink;
         this._syntax = syntax;
+
+        if (CommandEnumParser.TryParse(name, out ParsedEnumValue result))
+            this.overlappingEnumValue = result;
     }
+
+    /// <summary>
+    ///     Returns if this directive is a preprocessor directive based on whether it begins with a dollar sign ($).
+    /// </summary>
+    public bool IsPreprocessor => !string.IsNullOrEmpty(this.name) && this.name[0].Equals('$');
     /// <summary>
     ///     Retrieves a reference to the syntax of this directive in MCCompiled.
     /// </summary>
@@ -109,7 +128,8 @@ public class Directive
     public static Directive Parse(string name, JObject json)
     {
         string[] aliases = json["aliases"]?.ToObject<string[]>() ?? [];
-        DirectiveAttribute[] attributes = json["attributes"]?.ToObject<DirectiveAttribute[]>() ?? [];
+        DirectiveAttribute[] _attributes = json["attributes"]?.ToObject<DirectiveAttribute[]>() ?? [];
+        DirectiveAttribute attributes = _attributes is {Length: > 0} ? _attributes.Aggregate((a, b) => a | b) : 0;
         string category = json.Value<string>("category");
         string description = json.Value<string>("description") ??
                              throw new ArgumentException($"Directive {name} must include `description`.");

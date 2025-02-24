@@ -32,6 +32,19 @@ public static class Language
     public static bool IsLoaded { get; private set; }
 
     /// <summary>
+    ///     Retrieves a <see cref="Directive" /> instance associated with the specified <paramref name="token" />.
+    /// </summary>
+    /// <param name="token">
+    ///     A <see cref="string" /> representing the token used to identify the desired <see cref="Directive" />.
+    ///     This is typically the command or keyword for the directive.
+    /// </param>
+    /// <returns>
+    ///     Returns the <see cref="Directive" /> associated with the given <paramref name="token" />,
+    ///     if found in the <c>directives</c> dictionary; otherwise, <c>null</c>.
+    /// </returns>
+    public static Directive QueryDirective(string token) { return directives.GetValueOrDefault(token); }
+
+    /// <summary>
     ///     Loads `language.json` if it's not already.
     /// </summary>
     /// <exception cref="Exception"></exception>

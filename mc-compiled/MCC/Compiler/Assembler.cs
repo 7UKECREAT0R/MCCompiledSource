@@ -118,7 +118,7 @@ public static class Assembler
             case TokenDirective tokenDirective:
             {
                 Token[] rest = line.Skip(1).ToArray();
-                Directive directive = tokenDirective.directive;
+                Language.Directive directive = tokenDirective.directive;
                 var add = new StatementDirective(directive, rest);
                 if (includeSource)
                     add.SetSource([tokenDirective.lineNumber], string.Join(" ", from t in line select t.AsString()));

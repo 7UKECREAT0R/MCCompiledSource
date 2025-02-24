@@ -9,6 +9,7 @@ using mc_compiled.Commands.Native;
 using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Language;
 using mc_compiled.MCC.ServerWebSocket;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
@@ -160,7 +161,7 @@ internal static class Program
 
         // load enums and directives
         CommandEnumParser.Init();
-        //Directives.LoadFromLanguage(debug);
+        Language.TryLoad(); // previously Directives.LoadFromLanguage(debug);
 
         string fileUpper = files[0].ToUpper();
 

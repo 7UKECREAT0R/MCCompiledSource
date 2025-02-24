@@ -52,10 +52,7 @@ public class Tokenizer
     }
 
     private bool HasNext => this.index < this.content.Length;
-    private static bool IsIgnored(char c)
-    {
-        return TOKENIZER_IGNORE_CHARS.Any(test => test == c);
-    }
+    private static bool IsIgnored(char c) { return TOKENIZER_IGNORE_CHARS.Any(test => test == c); }
 
     /// <summary>
     ///     Tokenize a file after reading it by path.
@@ -71,20 +68,14 @@ public class Tokenizer
         string content = File.ReadAllText(file);
         return new Tokenizer(content).Tokenize();
     }
-    private char Peek()
-    {
-        return this.content[this.index];
-    }
+    private char Peek() { return this.content[this.index]; }
     private char Peek(int amount)
     {
         if (this.index + amount >= this.content.Length)
             return '\0';
         return this.content[this.index + amount];
     }
-    private char NextChar()
-    {
-        return this.content[this.index++];
-    }
+    private char NextChar() { return this.content[this.index++]; }
     private void FlushIgnoredCharacters()
     {
         while (this.HasNext && IsIgnored(Peek()))
@@ -378,7 +369,7 @@ public class Tokenizer
             return new TokenBuilderIdentifier(word, CURRENT_LINE);
 
         // check for directive
-        Directive directive = Directives.Query(word);
+        Language.Directive directive = Language.Language.QueryDirective(word);
         if (directive != null)
             return new TokenDirective(directive, CURRENT_LINE);
 
@@ -575,12 +566,6 @@ public class Tokenizer
 public class TokenizerException : Exception
 {
     public readonly int[] lines;
-    public TokenizerException(string message, int[] lines) : base(message)
-    {
-        this.lines = lines;
-    }
-    public TokenizerException(string message) : base(message)
-    {
-        this.lines = [Tokenizer.CURRENT_LINE];
-    }
+    public TokenizerException(string message, int[] lines) : base(message) { this.lines = lines; }
+    public TokenizerException(string message) : base(message) { this.lines = [Tokenizer.CURRENT_LINE]; }
 }
