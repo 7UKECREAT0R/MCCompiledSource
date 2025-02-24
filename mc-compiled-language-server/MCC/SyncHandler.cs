@@ -16,7 +16,8 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
 
     TextDocumentChangeRegistrationOptions
         IRegistration<TextDocumentChangeRegistrationOptions, TextSynchronizationCapability>.GetRegistrationOptions(
-            TextSynchronizationCapability capability, ClientCapabilities clientCapabilities)
+            TextSynchronizationCapability capability,
+            ClientCapabilities clientCapabilities)
     {
         return new TextDocumentChangeRegistrationOptions
         {
@@ -107,7 +108,7 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
             string uri = document.Uri.GetFileSystemPath();
             if (MCCompiledLanguageServer.PROJECTS.ContainsKey(uri))
             {
-                Console.Error.WriteLine($"Already has project {uri} open.");
+                Console.Error.WriteLineAsync($"Already has project {uri} open.");
                 return Unit.Task;
             }
 
@@ -116,7 +117,7 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
         }
         catch (Exception e)
         {
-            Console.Error.WriteLine($"Error opening document {document.Uri.GetFileSystemPath()}: {e.Message}");
+            Console.Error.WriteLineAsync($"Error opening document {document.Uri.GetFileSystemPath()}: {e.Message}");
             return Unit.Task;
         }
     }

@@ -14,14 +14,14 @@ namespace mc_compiled.MCC.Compiler;
 /// </summary>
 public abstract class Statement : TokenFeeder, ICloneable
 {
-    private TypePattern[] patterns;
+    private SyntaxGroup validationGroup;
 
     protected Statement(Token[] tokens, bool waitForPatterns = false) : base(tokens)
     {
         if (!waitForPatterns)
             // ReSharper disable once VirtualMemberCallInConstructor
             // DNC
-            this.patterns = GetValidPatterns();
+            this.validationGroup = GetValidPatterns();
         this.DecorateInSource = true;
     }
     /// <summary>
@@ -33,7 +33,6 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// </summary>
     public abstract bool DoesAsyncSplit { get; }
 
-    public object Clone() { return MemberwiseClone(); }
     /// <summary>
     ///     Returns if this statement type is a directive and it has this attribute.
     /// </summary>
@@ -149,7 +148,7 @@ public abstract class Statement : TokenFeeder, ICloneable
         SquashAll(allResolved, activeExecutor);
 
         this.tokens = allResolved.ToArray();
-        this.patterns = GetValidPatterns();
+        this.validationGroup = GetValidPatterns();
     }
 
     /// <summary>
@@ -188,25 +187,24 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// </summary>
     public void Run0(Executor activeExecutor)
     {
-        if (this.patterns != null && this.patterns.Length > 0)
+        if (this.validationGroup is {AlwaysMatches: false})
         {
-            IEnumerable<MatchResult> results = this.patterns.Select(
-                pattern => pattern.Check(this.tokens));
-            IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
+            bool success = this.validationGroup.Validate(activeExecutor, (TokenFeeder) Clone(),
+                out IEnumerable<SyntaxValidationError> failReasons,
+                out int _);
 
-            if (matchResults.All(result => !result.match))
+            if (!success)
             {
                 // get the closest matched pattern
-                MatchResult closest = matchResults.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
-                IEnumerable<string> missingArgs = closest.missing.Select(m => m.ToString());
-                throw new StatementException(this, "Missing argument(s): " + string.Join(", ", missingArgs));
+                string list = string.Join(", ", failReasons.Select(m => m.ParameterString));
+                throw new StatementException(this, $"Missing argument(s): {list}");
             }
         }
 
         this.currentToken = 0;
         Run(activeExecutor);
 
-        // if there's tokens left in this statement, then the user likely expected them to be used.
+        // if there are tokens left in this statement, then the user likely expected them to be used.
         // throwing a helpful exception if this is the case. I would emit a warning if I could (do this when LSP is implemented pls)
 
         if (this.RemainingTokens == 0)

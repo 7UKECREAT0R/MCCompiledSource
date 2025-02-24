@@ -113,7 +113,7 @@ public class SyntaxGroup
     /// <summary>
     ///     Returns if this group has no validation constraints, and thus should always match.
     /// </summary>
-    private bool AlwaysMatches =>
+    public bool AlwaysMatches =>
         !string.IsNullOrEmpty(this.Keyword) &&
         (this.hasChildren ? this.children.Length == 0 : this.patterns.Count == 0);
 

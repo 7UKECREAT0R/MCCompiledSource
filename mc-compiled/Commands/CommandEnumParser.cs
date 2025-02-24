@@ -17,7 +17,7 @@ public static class CommandEnumParser
         return parser.TryGetValue(input.ToUpper(), out result);
     }
 
-    public static void Put(ParsedEnumValue value) { parser[value.ToString().ToUpper()] = value; }
+    public static void Put(ParsedEnumValue value) { parser[value.value.ToString()!.ToUpper()] = value; }
     public static void Put(string key, ParsedEnumValue value) { parser[key.ToUpper()] = value; }
 
     /// <summary>

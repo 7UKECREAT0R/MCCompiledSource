@@ -1400,7 +1400,7 @@ public static class DirectiveImplementations
     {
         string docs = executor.GetDocumentationString(out bool hadDocumentation);
 
-        ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(TODO, tokens);
+        ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(executor, tokens);
 
         // create the new scoreboard value.
         ScoreboardValue value = def.Create(executor.scoreboard, tokens);
@@ -3335,24 +3335,6 @@ public static class DirectiveImplementations
                 throw new StatementException(tokens,
                     $"Subcommand '{_subcommand}' is not allowed here as it terminates the chain.");
 
-            // match subcommand pattern now, if any
-            TypePattern[] patterns = subcommand.Patterns;
-            if (patterns != null && patterns.Length > 0)
-            {
-                IEnumerable<MatchResult> results =
-                    patterns.Select(pattern => pattern.Check(tokens.GetRemainingTokens().ToArray()));
-                IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
-
-                if (matchResults.All(result => !result.match))
-                {
-                    // get the closest matched pattern
-                    MatchResult closest = matchResults.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
-                    IEnumerable<string> missingArgs = closest.missing.Select(m => m.ToString());
-                    throw new StatementException(tokens,
-                        "Subcommand - Missing argument(s): " + string.Join(", ", missingArgs));
-                }
-            }
-
             // parse from tokens
             subcommand.FromTokens(tokens);
 
@@ -3497,7 +3479,7 @@ public static class DirectiveImplementations
         while (tokens.NextIs<TokenIdentifier>(false))
         {
             // fetch a parameter definition
-            ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(TODO, tokens);
+            ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(executor, tokens);
 
             // don't let users define non-optional parameters if they already specified one.
             if (def.defaultValue == null && hasBegunOptionals)

@@ -10,7 +10,6 @@ using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.ServerWebSocket;
-using mc_compiled.MCC.SyntaxHighlighting;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding.Manifest;
@@ -167,7 +166,7 @@ internal static class Program
 
         switch (fileUpper)
         {
-            case "--SYNTAX":
+            /*case "--SYNTAX":
             {
                 string _target = args.Length == 1 ? null : args[1];
 
@@ -225,7 +224,7 @@ internal static class Program
                 }
 
                 return;
-            }
+            }*/
             case "--SERVER":
             {
                 _ = new Definitions(contract.heldContext.debug);

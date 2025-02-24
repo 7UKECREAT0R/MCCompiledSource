@@ -21,15 +21,6 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
         this.data = data;
     }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenCoordinateLiteral), "x"),
-            new NamedType(typeof(TokenCoordinateLiteral), "y"),
-            new NamedType(typeof(TokenCoordinateLiteral), "z"),
-            new NamedType(typeof(TokenStringLiteral), "block")
-        )
-    ];
     public override string Keyword => "block";
 
     /// <summary>
@@ -41,7 +32,10 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
     /// <param name="block"></param>
     /// <param name="data"></param>
     /// <returns></returns>
-    internal static ConditionalSubcommandBlock New(Coordinate x, Coordinate y, Coordinate z, string block,
+    internal static ConditionalSubcommandBlock New(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
         int? data = null)
     {
         return new ConditionalSubcommandBlock(x, y, z, block, data);
@@ -75,9 +69,15 @@ internal class ConditionalSubcommandBlocks : ConditionalSubcommand
 
     public ConditionalSubcommandBlocks() { }
     private ConditionalSubcommandBlocks(
-        Coordinate beginX, Coordinate beginY, Coordinate beginZ,
-        Coordinate endX, Coordinate endY, Coordinate endZ,
-        Coordinate destX, Coordinate destY, Coordinate destZ,
+        Coordinate beginX,
+        Coordinate beginY,
+        Coordinate beginZ,
+        Coordinate endX,
+        Coordinate endY,
+        Coordinate endZ,
+        Coordinate destX,
+        Coordinate destY,
+        Coordinate destZ,
         BlocksScanMode scanMode)
     {
         this.beginX = beginX;
@@ -92,21 +92,6 @@ internal class ConditionalSubcommandBlocks : ConditionalSubcommand
         this.scanMode = scanMode;
     }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenCoordinateLiteral), "begin x"),
-            new NamedType(typeof(TokenCoordinateLiteral), "begin y"),
-            new NamedType(typeof(TokenCoordinateLiteral), "begin z"),
-            new NamedType(typeof(TokenCoordinateLiteral), "end x"),
-            new NamedType(typeof(TokenCoordinateLiteral), "end y"),
-            new NamedType(typeof(TokenCoordinateLiteral), "end z"),
-            new NamedType(typeof(TokenCoordinateLiteral), "dest x"),
-            new NamedType(typeof(TokenCoordinateLiteral), "dest y"),
-            new NamedType(typeof(TokenCoordinateLiteral), "dest z"),
-            new NamedType(typeof(TokenIdentifierEnum), "scan mode")
-        )
-    ];
     public override string Keyword => "block";
 
     /// <summary>
@@ -124,9 +109,15 @@ internal class ConditionalSubcommandBlocks : ConditionalSubcommand
     /// <param name="scanMode"></param>
     /// <returns></returns>
     internal static ConditionalSubcommandBlocks New(
-        Coordinate beginX, Coordinate beginY, Coordinate beginZ,
-        Coordinate endX, Coordinate endY, Coordinate endZ,
-        Coordinate destX, Coordinate destY, Coordinate destZ,
+        Coordinate beginX,
+        Coordinate beginY,
+        Coordinate beginZ,
+        Coordinate endX,
+        Coordinate endY,
+        Coordinate endZ,
+        Coordinate destX,
+        Coordinate destY,
+        Coordinate destZ,
         BlocksScanMode scanMode)
     {
         return new ConditionalSubcommandBlocks(beginX, beginY, beginZ, endX, endY, endZ, destX, destY, destZ, scanMode);
@@ -162,17 +153,8 @@ internal class ConditionalSubcommandEntity : ConditionalSubcommand
     internal Selector entity;
 
     public ConditionalSubcommandEntity() { }
-    private ConditionalSubcommandEntity(Selector entity)
-    {
-        this.entity = entity;
-    }
+    private ConditionalSubcommandEntity(Selector entity) { this.entity = entity; }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenSelectorLiteral), "target")
-        )
-    ];
     public override string Keyword => "entity";
     public override bool TerminatesChain => false;
 
@@ -181,27 +163,18 @@ internal class ConditionalSubcommandEntity : ConditionalSubcommand
     /// </summary>
     /// <param name="entity">The entity(ies) to check for existing.</param>
     /// <returns></returns>
-    internal static ConditionalSubcommandEntity New(Selector entity)
-    {
-        return new ConditionalSubcommandEntity(entity);
-    }
+    internal static ConditionalSubcommandEntity New(Selector entity) { return new ConditionalSubcommandEntity(entity); }
 
-    public override void FromTokens(Statement tokens)
-    {
-        this.entity = tokens.Next<TokenSelectorLiteral>("entity");
-    }
-    public override string ToMinecraft()
-    {
-        return $"entity {this.entity}";
-    }
+    public override void FromTokens(Statement tokens) { this.entity = tokens.Next<TokenSelectorLiteral>("entity"); }
+    public override string ToMinecraft() { return $"entity {this.entity}"; }
 }
 
 internal class ConditionalSubcommandScore : ConditionalSubcommand
 {
     private readonly string otherSelector;
 
-    // The reason this isn't a ScoreboardValue is because sometimes the user
-    // uses a different selector and it's not worth cloning it.
+    // The reason this isn't a ScoreboardValue is that sometimes the user
+    // uses a different selector, and it's not worth cloning it.
     private readonly string sourceSelector;
     internal bool comparesRange;
 
@@ -214,8 +187,11 @@ internal class ConditionalSubcommandScore : ConditionalSubcommand
     internal string sourceValue;
 
     public ConditionalSubcommandScore() { }
-    private ConditionalSubcommandScore(bool comparesRange, ScoreboardValue sourceValue, Range range,
-        TokenCompare.Type comparisonType, ScoreboardValue otherValue)
+    private ConditionalSubcommandScore(bool comparesRange,
+        ScoreboardValue sourceValue,
+        Range range,
+        TokenCompare.Type comparisonType,
+        ScoreboardValue otherValue)
     {
         this.comparesRange = comparesRange;
 
@@ -236,8 +212,13 @@ internal class ConditionalSubcommandScore : ConditionalSubcommand
             this.otherValue = null;
         }
     }
-    private ConditionalSubcommandScore(bool comparesRange, string sourceSelector, string sourceValue, Range range,
-        TokenCompare.Type comparisonType, string otherSelector, string otherValue)
+    private ConditionalSubcommandScore(bool comparesRange,
+        string sourceSelector,
+        string sourceValue,
+        Range range,
+        TokenCompare.Type comparisonType,
+        string otherSelector,
+        string otherValue)
     {
         this.comparesRange = comparesRange;
 
@@ -257,19 +238,6 @@ internal class ConditionalSubcommandScore : ConditionalSubcommand
     private bool OtherIsGlobal => this.otherSelector.Equals(Executor.FAKE_PLAYER_NAME);
     internal Clarifier OtherClarifier => new(this.OtherIsGlobal, this.otherSelector);
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenIdentifierValue), "source"),
-            new NamedType(typeof(TokenIdentifier), "matches"),
-            new NamedType(typeof(TokenRangeLiteral), "range")
-        ),
-        new(
-            new NamedType(typeof(TokenIdentifierValue), "source"),
-            new NamedType(typeof(TokenCompare), "comparison"),
-            new NamedType(typeof(TokenIdentifierValue), "other")
-        )
-    ];
     public override string Keyword => "score";
     public override bool TerminatesChain => false;
 
@@ -290,7 +258,8 @@ internal class ConditionalSubcommandScore : ConditionalSubcommand
     /// <param name="type">The comparison type/operator used.</param>
     /// <param name="other">The other value.</param>
     /// <returns></returns>
-    internal static ConditionalSubcommandScore New(ScoreboardValue source, TokenCompare.Type type,
+    internal static ConditionalSubcommandScore New(ScoreboardValue source,
+        TokenCompare.Type type,
         ScoreboardValue other)
     {
         return new ConditionalSubcommandScore(false, source, Range.zero, type, other);
@@ -317,8 +286,11 @@ internal class ConditionalSubcommandScore : ConditionalSubcommand
     /// <param name="otherSelector">The selector to use for the other value.</param>
     /// <param name="otherObjective">The other value.</param>
     /// <returns></returns>
-    internal static ConditionalSubcommandScore New(string sourceSelector, string sourceObjective,
-        TokenCompare.Type type, string otherSelector, string otherObjective)
+    internal static ConditionalSubcommandScore New(string sourceSelector,
+        string sourceObjective,
+        TokenCompare.Type type,
+        string otherSelector,
+        string otherObjective)
     {
         return new ConditionalSubcommandScore(false, sourceSelector, sourceObjective, Range.zero, type, otherSelector,
             otherObjective);
