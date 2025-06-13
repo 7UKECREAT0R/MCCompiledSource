@@ -156,7 +156,7 @@ public class Directive
         {
             string query = syntaxRefToken.Value<string>() ??
                            throw new ArgumentException($"Syntax reference for {name} must be a string.");
-            syntax = Language.QuerySyntaxGroup(query);
+            syntax = Language.QuerySyntaxGroup(query, false);
             if (syntax == null)
                 throw new ArgumentException($"Couldn't resolve syntax reference '{query}'.");
         }

@@ -175,8 +175,8 @@ public abstract class Statement : TokenFeeder, ICloneable
         {
             string lastLine = file.commands[length - 1];
             if (!lastLine.StartsWith("#") && lastLine.Length > 0 &&
-                !lastLine.All(c =>
-                    char.IsWhiteSpace(c))) // create newline if the last line was not a comment and not whitespace
+                !lastLine.All(char
+                    .IsWhiteSpace)) // create newline if the last line was not a comment and not whitespace
                 file.Add("");
         }
 
@@ -189,7 +189,8 @@ public abstract class Statement : TokenFeeder, ICloneable
     {
         if (this.validationGroup is {AlwaysMatches: false})
         {
-            bool success = this.validationGroup.Validate(activeExecutor, (TokenFeeder) Clone(),
+            var feederClone = (TokenFeeder) Clone();
+            bool success = this.validationGroup.Validate(activeExecutor, feederClone,
                 out IEnumerable<SyntaxValidationError> failReasons,
                 out int _);
 

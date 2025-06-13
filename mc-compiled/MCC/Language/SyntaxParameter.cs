@@ -225,7 +225,7 @@ public readonly struct SyntaxParameter
     /// <param name="optional">If this parameter is optional. Defaults to false.</param>
     public static SyntaxParameter Simple(Type type, string name = null, bool optional = false)
     {
-        return new SyntaxParameter(name ?? type.Name, false, type, optional, false, null);
+        return new SyntaxParameter(name ?? type.Name, type == typeof(StatementOpenBlock), type, optional, false, null);
     }
     /// <summary>
     ///     Returns a simple <see cref="SyntaxParameter" /> that matches the given type one or more times.
@@ -242,7 +242,8 @@ public readonly struct SyntaxParameter
         string name = null,
         bool optional = false)
     {
-        return new SyntaxParameter(name ?? type.Name, false, type, optional, true, variadicRange);
+        return new SyntaxParameter(name ?? type.Name, type == typeof(StatementOpenBlock), type, optional, true,
+            variadicRange);
     }
 
     /// <summary>
@@ -254,7 +255,8 @@ public readonly struct SyntaxParameter
     /// <returns></returns>
     public static SyntaxParameter Simple<T>(string name = null, bool optional = false)
     {
-        return new SyntaxParameter(name ?? nameof(T), false, typeof(T), optional, false, null);
+        return new SyntaxParameter(name ?? nameof(T), typeof(T) == typeof(StatementOpenBlock), typeof(T), optional,
+            false, null);
     }
     /// <summary>
     ///     Returns a simple <see cref="SyntaxParameter" /> that matches the given type one or more times.
@@ -271,6 +273,7 @@ public readonly struct SyntaxParameter
         string name = null,
         bool optional = false)
     {
-        return new SyntaxParameter(name ?? nameof(T), false, typeof(T), optional, true, variadicRange);
+        return new SyntaxParameter(name ?? nameof(T), typeof(T) == typeof(StatementOpenBlock), typeof(T), optional,
+            true, variadicRange);
     }
 }

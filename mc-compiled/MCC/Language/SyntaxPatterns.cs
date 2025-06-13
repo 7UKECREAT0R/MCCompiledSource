@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
-using mc_compiled.Commands;
+﻿using System;
+using System.Collections.Generic;
 using mc_compiled.MCC.Compiler;
+using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Language;
 
 /// <summary>
 ///     A list of <see cref="SyntaxParameter" /> arrays with which one can match a list of tokens.
 /// </summary>
-public class SyntaxPatterns : List<SyntaxParameter[]>
+public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
 {
     /// <summary>
     ///     Create a new empty <see cref="SyntaxPatterns" />
@@ -24,6 +25,8 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
     /// <param name="parameters"></param>
     public SyntaxPatterns(IEnumerable<SyntaxParameter[]> parameters) :
         base(parameters) { }
+
+    public object Clone() { return new SyntaxPatterns(this); }
 
     /// <summary>
     ///     Attempts to parse a single string array into a <see cref="SyntaxPatterns" /> object with a single pattern inside.
@@ -283,10 +286,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
             {
                 // it's okay, but only if the parameter is optional.
                 if (optional)
-                {
-                    patternIndex--; // keep the same parameter
                     continue;
-                }
 
                 errors.Add(new SyntaxValidationError("required", currentParameter));
                 return false;
@@ -295,6 +295,34 @@ public class SyntaxPatterns : List<SyntaxParameter[]>
             // match!
             confidence += 1;
             feeder.Next();
+        }
+
+        // iterate over any remaining Syntax Parameters and
+        // find out if they're not optional.
+        for (int i = patternIndex + 1; i < pattern.Length; i++)
+        {
+            SyntaxParameter currentParameter = pattern[i];
+            if (currentParameter.optional)
+                continue;
+            if (currentParameter.variadic)
+            {
+                if (currentParameter.variadicRange.HasValue)
+                {
+                    if (currentParameter.variadicRange.Value.IsInside(0))
+                        continue;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            // don't forget the block constraint
+            if (currentParameter.blockConstraint && executor.NextIs<StatementOpenBlock>())
+                continue;
+
+            errors.Add(new SyntaxValidationError("required", currentParameter));
+            return false;
         }
 
         // got through the whole thing without returning false

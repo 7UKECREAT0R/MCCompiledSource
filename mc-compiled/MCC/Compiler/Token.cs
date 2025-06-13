@@ -51,8 +51,7 @@ public abstract class Token
         if (allowImplicit && this is IImplicitToken implicitToken)
         {
             Type[] otherTypes = implicitToken.GetImplicitTypes();
-            if (otherTypes.Any(t => typeConstraint.IsAssignableFrom(t)))
-                return true;
+            return otherTypes.Any(t => typeConstraint.IsAssignableFrom(t));
         }
 
         return false;

@@ -190,6 +190,10 @@ public static class Language
     ///     The query string, starting with the directive name, and then optionally traversing its children with
     ///     dots.
     /// </param>
+    /// <param name="clone">
+    ///     If true, the syntax group will be deep-cloned before being returned.
+    ///     Enable this option if you plan on mutating the accessed group in any way.
+    /// </param>
     /// <returns>A reference to the located syntax group, or <c>null</c> if it couldn't be found.</returns>
     /// <example>
     ///     <code>
@@ -200,7 +204,7 @@ public static class Language
     /// </code>
     /// </example>
     [CanBeNull]
-    public static SyntaxGroup QuerySyntaxGroup(string query)
+    public static SyntaxGroup QuerySyntaxGroup(string query, bool clone)
     {
         string[] _chunks = query.Split('.');
         if (_chunks.Length == 0)
@@ -220,6 +224,8 @@ public static class Language
                 return null;
         }
 
+        if (clone)
+            return (SyntaxGroup) currentGroup.Clone();
         return currentGroup;
     }
 }

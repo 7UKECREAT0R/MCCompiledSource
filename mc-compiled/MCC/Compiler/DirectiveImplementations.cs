@@ -467,20 +467,15 @@ public static class DirectiveImplementations
             block.ignoreAsync = true;
 
             if (result)
-            {
                 block.openAction = null;
-                block.CloseAction = null;
-            }
             else
-            {
                 block.openAction = e =>
                 {
                     for (int i = 0; i < block.statementsInside; i++)
                         e.Next();
                 };
-                block.CloseAction = null;
-            }
 
+            block.CloseAction = null;
             return;
         }
 

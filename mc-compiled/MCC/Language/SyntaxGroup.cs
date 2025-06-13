@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Language;
 
-public class SyntaxGroup
+public class SyntaxGroup : ICloneable
 {
     /// <summary>
     ///     A syntax group with no constraints; will match no tokens and always pass validation.
@@ -117,6 +118,27 @@ public class SyntaxGroup
         string.IsNullOrEmpty(this.Keyword) &&
         (this.hasChildren ? this.children.Length == 0 : this.patterns.Count == 0);
 
+    public object Clone()
+    {
+        if (this.hasChildren)
+        {
+            SyntaxGroup[] clonedChildren = this.children.Select(child => (SyntaxGroup) child.Clone()).ToArray();
+            return new SyntaxGroup(this.behavior, this.identifier, this.blocking, this.description, this.optional,
+                this.repeatable, clonedChildren);
+        }
+
+        if (this.hasPatterns)
+        {
+            var clonedPatterns = (SyntaxPatterns) this.patterns.Clone();
+            return new SyntaxGroup(this.behavior, this.identifier, this.blocking, this.description, this.optional,
+                this.repeatable, clonedPatterns);
+        }
+
+        throw new InvalidOperationException(
+            "Attempted to clone a syntax group that has no children or patterns. Identifier: " +
+            (this.identifier ?? "unknown"));
+    }
+
     private static SyntaxPatterns ParseSimplePattern(string[] parameters,
         SyntaxGroupBehavior behavior = SyntaxGroupBehavior.OneOf)
     {
@@ -220,18 +242,23 @@ public class SyntaxGroup
                 children);
         }
 
+        // IMPORTANT: change this if you modify the method to change any more of the referenced SyntaxGroups.
+        // in this case, the `Keyword` property is changed if keyword != null, so it's cloned if that's going to happen.
+        bool shouldCloneRefGroups = keyword != null;
+
         // reference case, terminating
         if (hasRef)
         {
             string refName = _refToken.Value<string>() ??
                              throw new FormatException($"'ref' must be a string at '{_refToken.Path}'");
-            group = Language.QuerySyntaxGroup(refName) ??
+            group = Language.QuerySyntaxGroup(refName, shouldCloneRefGroups) ??
                     throw new FormatException(
                         $"Syntax group by reference '{refName}' could not be found. At '{_refToken.Path}'");
         }
 
         if (keyword != null)
             group.Keyword = keyword;
+
         return group;
     }
     /// <summary>
@@ -245,11 +272,11 @@ public class SyntaxGroup
     private static (SyntaxGroup[], bool, bool) ParseManyComplex(JObject json,
         SyntaxGroupBehavior? behaviorOverride = null)
     {
-        bool isSequential = json["sequential"]?.Value<bool>() ?? false;
+        // the behavior override kicks in only if it's not overridden in the JSON source
+        bool isSequential = json.ContainsKey("sequential")
+            ? json["sequential"].Value<bool>()
+            : behaviorOverride == SyntaxGroupBehavior.Sequential;
         bool isRepeatable = json["repeatable"]?.Value<bool>() ?? false;
-
-        SyntaxGroupBehavior behavior = behaviorOverride ??
-                                       (isSequential ? SyntaxGroupBehavior.Sequential : SyntaxGroupBehavior.OneOf);
 
         List<SyntaxGroup> children = [];
         children.AddRange(json.Properties()
@@ -289,7 +316,8 @@ public class SyntaxGroup
         if (token.Type == JTokenType.Object)
         {
             var obj = token as JObject;
-            (SyntaxGroup[] groups, bool isSequential, bool isRepeatable) = ParseManyComplex(obj);
+            (SyntaxGroup[] groups, bool isSequential, bool isRepeatable) =
+                ParseManyComplex(obj, SyntaxGroupBehavior.Sequential);
             return new SyntaxGroup(isSequential ? SyntaxGroupBehavior.Sequential : SyntaxGroupBehavior.OneOf, null,
                 false, null, false, isRepeatable, groups);
         }
@@ -466,6 +494,7 @@ public class SyntaxGroup
                     if (group.Validate(executor, copy, out IEnumerable<SyntaxValidationError> errors,
                             out int confidence))
                     {
+                        tokens = copy; // update the feeder state.
                         outputConfidence += confidence;
                         continue;
                     }
@@ -500,36 +529,89 @@ public class SyntaxGroup
             // match only one of the child groups.
             case SyntaxGroupBehavior.OneOf:
             {
-                (bool result, IEnumerable<SyntaxValidationError> errors, int confidence)[] results = groups
-                    .Select(g =>
-                    {
-                        bool result = g.Validate(executor, tokens, out IEnumerable<SyntaxValidationError> errors,
-                            out int confidence);
-                        return (result, errors, confidence);
-                    }).ToArray();
+                (bool validated, IEnumerable<SyntaxValidationError> errors, int confidence, TokenFeeder feederAfter)[]
+                    results = groups
+                        .Select(g =>
+                        {
+                            var clone = (TokenFeeder) tokens.Clone();
+                            bool result = g.Validate(executor, clone,
+                                out IEnumerable<SyntaxValidationError> errors,
+                                out int confidence);
+                            return (result, errors, confidence, clone);
+                        }).ToArray();
 
-                if (!results.Any(tuple => tuple.result))
+                if (!results.Any(tuple => tuple.validated))
                 {
-                    (bool result, IEnumerable<SyntaxValidationError> errors, int confidence) highestConfidence =
-                        results.MaxBy(t => t.confidence);
+                    (bool validated, IEnumerable<SyntaxValidationError> errors, int confidence, TokenFeeder feederAfter)
+                        highestConfidence =
+                            results.MaxBy(t => t.confidence);
                     failReasons = highestConfidence.errors;
                     outputConfidence = highestConfidence.confidence;
                     return false;
                 }
 
                 // choose the highest confidence match
-                (bool result, IEnumerable<SyntaxValidationError> errors, int confidence) highestConfidenceMatch =
-                    results
-                        .Where(t => t.result)
-                        .MaxBy(t => t.confidence);
+                (bool validated, IEnumerable<SyntaxValidationError> errors, int confidence, TokenFeeder feederAfter)
+                    highestConfidenceMatch =
+                        results
+                            .Where(t => t.validated)
+                            .MaxBy(t => t.confidence);
                 failReasons = highestConfidenceMatch.errors;
                 outputConfidence = highestConfidenceMatch.confidence;
+                tokens = highestConfidenceMatch.feederAfter; // update the feeder state to after the accepted match
                 return true;
             }
             default:
                 throw new ArgumentOutOfRangeException(nameof(this.behavior), this.behavior,
                     "Syntax group behavior was not set?");
         }
+    }
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder("Group ");
+
+        if (!string.IsNullOrEmpty(this.identifier))
+        {
+            sb.Append('\'');
+            sb.Append(this.identifier);
+            sb.Append("' ");
+        }
+
+        if (!string.IsNullOrEmpty(this.Keyword))
+        {
+            sb.Append("keyword \"");
+            sb.Append(this.Keyword);
+            sb.Append('"');
+        }
+
+        sb.Append(" - ");
+
+        if (this.AlwaysMatches)
+        {
+            sb.Append("always matches");
+            return sb.ToString();
+        }
+
+        if (this.hasChildren)
+        {
+            sb.Append(this.children.Length);
+            sb.Append(" subgroups");
+        }
+        else
+        {
+            sb.Append(this.patterns.Count);
+            sb.Append(" patterns");
+        }
+
+        if (this.optional)
+            sb.Append(" (optional)");
+        if (this.blocking)
+            sb.Append(" (blocking)");
+        if (this.repeatable)
+            sb.Append(" (repeatable)");
+
+        return sb.ToString();
     }
 }
 
