@@ -150,7 +150,7 @@ public class Directive
                 $"Directive {name} has both `syntax` and `syntax_ref` specified. Only one is allowed.");
         if (syntaxToken != null)
         {
-            syntax = SyntaxGroup.Parse(syntaxToken);
+            syntax = SyntaxGroup.Parse(syntaxToken, SyntaxGroupBehavior.Sequential);
         }
         else if (syntaxRefToken != null)
         {

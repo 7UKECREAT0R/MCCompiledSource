@@ -177,7 +177,7 @@ public class ScoreboardManager
                 {
                     Token[] remaining = tokens.GetRemainingTokens().ToArray();
                     bool match = pattern.Validate(executor, new TokenFeeder(remaining),
-                        out IEnumerable<SyntaxValidationError> failReasons, out _);
+                        out IEnumerable<SyntaxValidationError> failReasons, out _, out _);
 
                     if (match)
                     {
@@ -299,7 +299,7 @@ public class ScoreboardManager
                     // check pattern
                     Token[] remaining = tokens.GetRemainingTokens().ToArray();
                     bool result = this.type.SpecifyPattern.Validate(sb.executor, new TokenFeeder(remaining),
-                        out IEnumerable<SyntaxValidationError> failReasons, out _);
+                        out IEnumerable<SyntaxValidationError> failReasons, out _, out _);
 
                     if (!result)
                     {

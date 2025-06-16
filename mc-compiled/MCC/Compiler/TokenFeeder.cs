@@ -36,7 +36,31 @@ public class TokenFeeder(Token[] tokens) : ICloneable
                 .Count(t => t is not IUselessInformation);
         }
     }
-
+    /// <summary>
+    ///     Gets or sets the current position in the token stream managed by the <see cref="TokenFeeder" />.
+    ///     Modifying this property directly changes the index of the current token
+    ///     being processed within the internal token array. This allows for manual adjustment of the token
+    ///     processing position, such as rewinding or skipping ahead.
+    /// </summary>
+    /// <remarks>
+    ///     The value is zero-based and must be within the bounds of the tokens array.
+    ///     Invalid values (e.g., negative indices or indices exceeding the token array bounds) may lead to undesired
+    ///     behavior or exceptions during subsequent operations on the <see cref="TokenFeeder" />.
+    /// </remarks>
+    /// <value>
+    ///     An integer representing the zero-based index of the current token in the managed token stream.
+    /// </value>
+    /// <seealso cref="HasNext" />
+    /// <seealso cref="RemainingTokens" />
+    public int Location
+    {
+        get => this.currentToken;
+        set => this.currentToken = value;
+    }
+    /// <summary>
+    ///     Properly clones this TokenFeeder. Has a minor bit of overhead.
+    /// </summary>
+    /// <returns></returns>
     public object Clone()
     {
         return new TokenFeeder(this.tokens)
@@ -48,6 +72,12 @@ public class TokenFeeder(Token[] tokens) : ICloneable
             DecorateInSource = this.DecorateInSource
         };
     }
+
+    /// <summary>
+    ///     Copies the current token index from another <see cref="TokenFeeder" /> instance.
+    /// </summary>
+    /// <param name="other">The source <see cref="TokenFeeder" /> whose location should be copied.</param>
+    public void CopyLocationOf(TokenFeeder other) { this.currentToken = other.currentToken; }
 
     /// <summary>
     ///     Set the executor of this TokenFeeder.
@@ -214,11 +244,23 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     ///     Returns if the next token matches the given <see cref="SyntaxParameter" />.
     /// </summary>
     /// <param name="parameter">The parameter to match against.</param>
+    /// <param name="uselessTokensConsumed">
+    ///     The number of tokens consumed by this method.
+    ///     This method doesn't generally mutate the <see cref="TokenFeeder" />, but it does skip over useless tokens (such as
+    ///     comments.)
+    /// </param>
     /// <param name="allowImplicit">Allow implicit conversions for the validation.</param>
-    public bool NextMatchesParameter(SyntaxParameter parameter, bool allowImplicit = true)
+    public bool NextMatchesParameter(SyntaxParameter parameter,
+        out int uselessTokensConsumed,
+        bool allowImplicit = true)
     {
+        uselessTokensConsumed = 0;
         while (NextIsUseless())
+        {
             this.currentToken++;
+            uselessTokensConsumed++;
+        }
+
         if (!this.HasNext)
             return false;
         if (parameter.blockConstraint)
@@ -233,10 +275,13 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     /// <param name="keyword">
     ///     The keyword to compare against the next meaningful token. The comparison is case-insensitive.
     /// </param>
+    /// <param name="uselessTokensConsumed">
+    ///     The number of tokens consumed by this method.
+    ///     This method doesn't generally mutate the <see cref="TokenFeeder" />, but it does skip over useless tokens (such as
+    ///     comments.)
+    /// </param>
     /// <returns>
-    ///     True if the next meaningful token is a <see cref="TokenIdentifier" /> whose
-    ///     word matches the specified <paramref name="keyword" />;
-    ///     otherwise, false.
+    ///     True if the next meaningful token matches the specified <paramref name="keyword" />; otherwise, false.
     /// </returns>
     /// <remarks>
     ///     The method skips over any tokens that implement <see cref="IUselessInformation" /> before
@@ -244,19 +289,20 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     ///     If no meaningful tokens remain in the sequence or the next meaningful
     ///     token is not a <see cref="TokenIdentifier" />, the method returns false.
     /// </remarks>
-    public bool NextMatchesKeyword(string keyword)
+    public bool NextMatchesKeyword(string keyword, out int uselessTokensConsumed)
     {
+        uselessTokensConsumed = 0;
         while (NextIsUseless())
+        {
             this.currentToken++;
+            uselessTokensConsumed++;
+        }
+
         if (!this.HasNext)
             return false;
-        if (!NextIs<TokenIdentifier>(false, false))
-            return false;
 
-        var next = (TokenIdentifier) Peek();
-        string word = next.word;
-
-        return word.Equals(keyword, StringComparison.OrdinalIgnoreCase);
+        string nextTokenWord = Peek().AsString();
+        return nextTokenWord.Equals(keyword, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

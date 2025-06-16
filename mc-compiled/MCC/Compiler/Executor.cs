@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -45,7 +46,7 @@ public class Executor
     public static string MINECRAFT_VERSION = "0.00.000"; // _minecraft
     public static int MAXIMUM_DEPTH = 100;
 
-    private static readonly Dictionary<string, int> generatedNames = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, int> generatedNames = new(StringComparer.OrdinalIgnoreCase);
     internal readonly AsyncManager async;
 
     internal readonly Stack<string> currentLocaleEntryPath = new();

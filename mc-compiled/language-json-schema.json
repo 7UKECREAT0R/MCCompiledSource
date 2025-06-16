@@ -90,6 +90,21 @@
           },
           "additionalProperties": {
             "$ref": "#/definitions/group"
+          },
+          "if": {
+            "properties": {
+              "repeatable": {
+                "const": true
+              }
+            },
+            "required": [
+              "repeatable"
+            ]
+          },
+          "then": {
+            "required": [
+              "sequential"
+            ]
           }
         },
         "ref": {

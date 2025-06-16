@@ -231,7 +231,8 @@ public class SyntaxGroup : ICloneable
                 throw new FormatException(
                     $"'children' had no groups inside. Must have at least one at '{_childrenToken.Path}'");
 
-            (SyntaxGroup[] children, bool isSequential, bool isRepeatable) = ParseManyComplex(childrenJSON);
+            (SyntaxGroup[] children, bool isSequential, bool isRepeatable) =
+                ParseManyComplex(childrenJSON, SyntaxGroupBehavior.OneOf);
 
             group = new SyntaxGroup(isSequential ? SyntaxGroupBehavior.Sequential : SyntaxGroupBehavior.OneOf,
                 identifier,
@@ -266,17 +267,21 @@ public class SyntaxGroup : ICloneable
     ///     Returns all the groups in order,
     ///     as well as if <c>sequential</c> or <c>repeatable</c> were specified respectively.
     /// </summary>
-    /// <param name="json"></param>
-    /// <param name="behaviorOverride"></param>
-    /// <returns>(An array of the parsed groups --- if they're sequential --- if they're repeatable.)</returns>
-    private static (SyntaxGroup[], bool, bool) ParseManyComplex(JObject json,
-        SyntaxGroupBehavior? behaviorOverride = null)
+    /// <param name="json">The JSON object to parse.</param>
+    /// <param name="defaultBehavior">The default behavior if unspecified.</param>
+    /// <returns>A tuple of values representing the parsed SyntaxGroup.</returns>
+    private static (SyntaxGroup[] parsedGroups, bool isSequential, bool isRepeatable) ParseManyComplex(JObject json,
+        SyntaxGroupBehavior defaultBehavior)
     {
         // the behavior override kicks in only if it's not overridden in the JSON source
         bool isSequential = json.ContainsKey("sequential")
             ? json["sequential"].Value<bool>()
-            : behaviorOverride == SyntaxGroupBehavior.Sequential;
+            : defaultBehavior == SyntaxGroupBehavior.Sequential;
         bool isRepeatable = json["repeatable"]?.Value<bool>() ?? false;
+
+        if (isRepeatable && !json.ContainsKey("sequential"))
+            throw new FormatException(
+                $"Definition at {json.Path} is marked as repeatable, but no 'sequential' property was specified. Please add one to be explicit in purpose.");
 
         List<SyntaxGroup> children = [];
         children.AddRange(json.Properties()
@@ -297,9 +302,10 @@ public class SyntaxGroup : ICloneable
     ///     Parses a new <see cref="SyntaxGroup" /> from the given JSON token.
     ///     Works with a simple string array or an object containing multiple groups.
     /// </summary>
-    /// <param name="token">The token to parse from.</param>
+    /// <param name="token">The JSON token to parse a <see cref="SyntaxGroup" /> from.</param>
+    /// <param name="defaultBehavior">The default behavior for the syntax group, if unspecified by the JSON.</param>
     /// <returns></returns>
-    public static SyntaxGroup Parse(JToken token)
+    public static SyntaxGroup Parse(JToken token, SyntaxGroupBehavior defaultBehavior)
     {
         if (token.Type == JTokenType.Array)
         {
@@ -317,7 +323,7 @@ public class SyntaxGroup : ICloneable
         {
             var obj = token as JObject;
             (SyntaxGroup[] groups, bool isSequential, bool isRepeatable) =
-                ParseManyComplex(obj, SyntaxGroupBehavior.Sequential);
+                ParseManyComplex(obj, defaultBehavior);
             return new SyntaxGroup(isSequential ? SyntaxGroupBehavior.Sequential : SyntaxGroupBehavior.OneOf, null,
                 false, null, false, isRepeatable, groups);
         }
@@ -395,176 +401,353 @@ public class SyntaxGroup : ICloneable
 
     private (bool, IEnumerable<SyntaxValidationError>) ValidatePatterns(Executor executor,
         TokenFeeder tokens,
-        out int confidence)
+        out int confidence,
+        out int tokensConsumed)
     {
         bool result = this.patterns.Validate(
             executor,
             tokens,
             out IEnumerable<SyntaxValidationError> failReasons,
-            out confidence);
+            out confidence,
+            out tokensConsumed);
 
         return (result, failReasons);
     }
     /// <summary>
-    ///     Validates the syntax group based on its configured behavior, patterns, or child groups.
+    ///     Validate this group against an input <see cref="TokenFeeder" />.
     /// </summary>
-    /// <param name="executor">
-    ///     An instance of the <see cref="Executor" /> class used to execute syntax-related logic or
-    ///     validations required during syntax group evaluation.
-    /// </param>
+    /// <param name="executor">The <see cref="Executor" />, for context.</param>
     /// <param name="tokens">
-    ///     A <see cref="TokenFeeder" /> instance representing the sequence of tokens to be processed.
-    ///     The method may clone or consume tokens from this feeder depending on the syntax group behavior.
+    ///     The tokens to pull from to match against this <see cref="SyntaxGroup" />.
+    ///     This will never be modified.
     /// </param>
-    /// <param name="failReasons">
-    ///     An output parameter that will contain a collection of <see cref="SyntaxValidationError" />
-    ///     objects if the syntax group fails validation. If validation passes, this parameter will be null.
-    /// </param>
-    /// <param name="outputConfidence">
-    ///     An output parameter representing the confidence level of the validation result. Higher values
-    ///     indicate stronger adherence of the input tokens to the defined syntax group structure.
-    /// </param>
+    /// <param name="failReasons">If the validation fails (returned false), a list of reasons that it failed.</param>
+    /// <param name="outputConfidence">If the method returns <c>true</c>, the confidence in this match.</param>
+    /// <param name="tokensConsumed">If the method returns <c>true</c>, the number of tokens it should consume from the feeder.</param>
     /// <returns>
-    ///     A boolean value indicating whether the syntax group was successfully validated. Returns true
-    ///     if the group passes validation, false otherwise.
+    ///     True if the tokens were validated, false if the validation failed for whatever reason.
     /// </returns>
-    /// <exception cref="FormatException">
-    ///     Thrown if the syntax group has no patterns or children. This indicates a configuration issue
-    ///     with the syntax in the underlying language definition file.
-    /// </exception>
-    /// <exception cref="ArgumentOutOfRangeException">
-    ///     Thrown if an unsupported or undefined <see cref="SyntaxGroupBehavior" /> is encountered during
-    ///     validation.
-    /// </exception>
-    public bool Validate(Executor executor,
+    /// <remarks>
+    ///     If two or more <see cref="SyntaxGroup" />s match, you can always choose the one with the higher confidence output
+    ///     as the determining factor. This method does NOT take the group's <see cref="optional" /> or <see cref="blocking" />
+    ///     value into account.
+    /// </remarks>
+    public bool Validate(
+        Executor executor,
         TokenFeeder tokens,
         out IEnumerable<SyntaxValidationError> failReasons,
-        out int outputConfidence)
+        out int outputConfidence,
+        out int tokensConsumed)
     {
         if (this.AlwaysMatches)
         {
             outputConfidence = 0;
+            tokensConsumed = 0;
             failReasons = null;
             return true;
         }
 
+        int initialTokenFeederLocation = tokens.Location;
+        int keywordTokensConsmed = 0;
+
+        // check for keyword token first, since that always takes precedent
+        bool matchedKeyword = false;
         if (!string.IsNullOrEmpty(this.Keyword))
         {
-            if (tokens.NextMatchesKeyword(this.Keyword))
+            if (tokens.NextMatchesKeyword(this.Keyword, out keywordTokensConsmed))
             {
-                tokens.Next();
+                keywordTokensConsmed += 1; // include the keyword token itself
+                tokens.Location += keywordTokensConsmed; // move the TokenFeeder forward as well
+                matchedKeyword = true;
             }
             else
             {
-                failReasons = [new SyntaxValidationError($"missing keyword '{this.Keyword}'", null)];
                 outputConfidence = 0;
+                tokensConsumed = 0;
+                failReasons = [new SyntaxValidationError($"missing keyword '{this.Keyword}'", this.Keyword, null)];
+                tokens.Location = initialTokenFeederLocation;
                 return false;
             }
         }
 
         if (this.hasPatterns)
         {
-            (bool matched, IEnumerable<SyntaxValidationError> errorsIfNot) =
-                ValidatePatterns(executor, tokens, out outputConfidence);
-            failReasons = errorsIfNot;
-            return matched;
+            bool patternsResult = this.patterns.Validate(
+                executor,
+                tokens,
+                out failReasons,
+                out outputConfidence,
+                out tokensConsumed);
+
+            if (matchedKeyword)
+            {
+                outputConfidence += 100;
+                tokensConsumed += keywordTokensConsmed;
+                tokens.Location = initialTokenFeederLocation;
+            }
+
+            return patternsResult;
         }
 
         if (!this.hasChildren)
             throw new FormatException(
                 $"Syntax group '{this.identifier ?? "(unknown)"}', brought up by source `{tokens.Source}`, had no patterns or children. This is an issue with the syntax in language.json, not user error.");
 
-        // by process of elimination, this group uses children
-        SyntaxGroup[] groups = this.children;
-
         switch (this.behavior)
         {
-            // match groups from start-to-finish.
             case SyntaxGroupBehavior.Sequential:
             {
-                outputConfidence = 0;
-                for (int groupIndex = 0; groupIndex < groups.Length; groupIndex++)
+                bool result = this.repeatable
+                    ? ValidateSequentialWithRepetition(executor, tokens,
+                        out failReasons, out outputConfidence, out tokensConsumed)
+                    : ValidateSequentialWithoutRepetition(executor, tokens,
+                        out failReasons, out outputConfidence, out tokensConsumed);
+                if (matchedKeyword)
                 {
-                    bool last = groupIndex == groups.Length - 1;
-
-                    SyntaxGroup group = groups[groupIndex];
-                    bool isOptional = group.optional;
-                    TokenFeeder copy = last ? tokens : (TokenFeeder) tokens.Clone();
-
-                    if (group.Validate(executor, copy, out IEnumerable<SyntaxValidationError> errors,
-                            out int confidence))
-                    {
-                        tokens = copy; // update the feeder state.
-                        outputConfidence += confidence;
-                        continue;
-                    }
-
-                    if (group.blocking)
-                    {
-                        if (groups
-                            .Skip(groupIndex)
-                            .Any(g => !g.IsOptional))
-                        {
-                            failReasons = errors;
-                            return false;
-                        }
-
-                        // there are no more required groups after this
-                        // blocking group, so it's okay, this group matches.
-                        failReasons = null;
-                        return true;
-                    }
-
-                    if (isOptional)
-                        continue;
-
-                    // not optional, failed validation
-                    failReasons = errors;
-                    return false;
+                    outputConfidence += 100;
+                    tokensConsumed += keywordTokensConsmed;
+                    tokens.Location = initialTokenFeederLocation;
                 }
 
-                failReasons = null;
-                return true;
+                return result;
             }
-            // match only one of the child groups.
             case SyntaxGroupBehavior.OneOf:
             {
-                (bool validated, IEnumerable<SyntaxValidationError> errors, int confidence, TokenFeeder feederAfter)[]
-                    results = groups
-                        .Select(g =>
-                        {
-                            var clone = (TokenFeeder) tokens.Clone();
-                            bool result = g.Validate(executor, clone,
-                                out IEnumerable<SyntaxValidationError> errors,
-                                out int confidence);
-                            return (result, errors, confidence, clone);
-                        }).ToArray();
-
-                if (!results.Any(tuple => tuple.validated))
+                bool result = this.repeatable
+                    ? ValidateOneOfWithRepetition(executor, tokens,
+                        out failReasons, out outputConfidence, out tokensConsumed)
+                    : ValidateOneOfWithoutRepetition(executor, tokens,
+                        out failReasons, out outputConfidence, out tokensConsumed);
+                if (matchedKeyword)
                 {
-                    (bool validated, IEnumerable<SyntaxValidationError> errors, int confidence, TokenFeeder feederAfter)
-                        highestConfidence =
-                            results.MaxBy(t => t.confidence);
-                    failReasons = highestConfidence.errors;
-                    outputConfidence = highestConfidence.confidence;
+                    outputConfidence += 100;
+                    tokensConsumed += keywordTokensConsmed;
+                    tokens.Location = initialTokenFeederLocation;
+                }
+
+                return result;
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(this.behavior),
+                    $"SyntaxGroupBehavior not implemented: `{this.behavior}`.");
+        }
+    }
+
+    /// <summary>
+    ///     Validate this group sequentially, repeatedly.
+    ///     This method does not take <see cref="optional" /> into account, only for the <see cref="children" />.
+    /// </summary>
+    private bool ValidateSequentialWithRepetition(Executor executor,
+        TokenFeeder tokens,
+        out IEnumerable<SyntaxValidationError> failReasons,
+        out int outputConfidence,
+        out int tokensConsumed)
+    {
+        int initialTokenFeederLocation = tokens.Location;
+        failReasons = [];
+        outputConfidence = 0;
+        tokensConsumed = 0;
+        int successfulPasses = 0;
+
+        do
+        {
+            bool result = ValidateSequentialWithoutRepetition(executor, tokens,
+                out IEnumerable<SyntaxValidationError> currentFailReasons,
+                out int currentConfidence,
+                out int currentTokensConsumed);
+
+            if (!result)
+            {
+                // we only want to return a syntax error if it's clear the user's actually trying to specify a repetition of this group.
+                // let's assume this if (currentTokensConsumed > 0).
+                if (successfulPasses == 0 || (successfulPasses > 0 && currentTokensConsumed > 0))
+                {
+                    failReasons = currentFailReasons;
+                    outputConfidence += currentConfidence;
+                    tokensConsumed += currentTokensConsumed;
                     return false;
                 }
 
-                // choose the highest confidence match
-                (bool validated, IEnumerable<SyntaxValidationError> errors, int confidence, TokenFeeder feederAfter)
-                    highestConfidenceMatch =
-                        results
-                            .Where(t => t.validated)
-                            .MaxBy(t => t.confidence);
-                failReasons = highestConfidenceMatch.errors;
-                outputConfidence = highestConfidenceMatch.confidence;
-                tokens = highestConfidenceMatch.feederAfter; // update the feeder state to after the accepted match
+                break;
+            }
+
+            successfulPasses += 1;
+            outputConfidence += currentConfidence;
+            tokensConsumed += currentTokensConsumed;
+
+            // advance the feeder temporarily
+            tokens.Location += currentTokensConsumed;
+        } while (tokens.HasNext);
+
+        tokens.Location = initialTokenFeederLocation;
+        return successfulPasses > 0;
+    }
+    /// <summary>
+    ///     Validate this group sequentially once, without repetition.
+    ///     This method does not take <see cref="optional" /> into account, only for the <see cref="children" />.
+    /// </summary>
+    private bool ValidateSequentialWithoutRepetition(Executor executor,
+        TokenFeeder tokens,
+        out IEnumerable<SyntaxValidationError> failReasons,
+        out int outputConfidence,
+        out int tokensConsumed)
+    {
+        int initialTokenFeederLocation = tokens.Location;
+        List<SyntaxValidationError> errors = [];
+        failReasons = errors;
+        outputConfidence = 0;
+        tokensConsumed = 0;
+
+        int numChildren = this.children.Length;
+
+        for (int childIndex = 0; childIndex < numChildren; childIndex++)
+        {
+            SyntaxGroup child = this.children[childIndex];
+            bool childIsOptional = child.optional;
+
+            if (child.Validate(executor, tokens,
+                    out IEnumerable<SyntaxValidationError> childFailReasons,
+                    out int childConfidence,
+                    out int childTokensConsumed)
+               )
+            {
+                tokensConsumed += childTokensConsumed;
+                tokens.Location += childTokensConsumed;
+                outputConfidence += childConfidence;
+                continue;
+            }
+
+            tokensConsumed += childTokensConsumed;
+            outputConfidence += childConfidence;
+
+            // failed to validate
+            if (child.blocking)
+            {
+                // check if there are any non-optional parameters after this
+                if (this.children.Skip(childIndex + 1).Any(g => !g.IsOptional))
+                {
+                    errors.AddRange(childFailReasons);
+                    tokens.Location = initialTokenFeederLocation;
+                    return false;
+                }
+
+                // there are no more required parameters after this, so it's okay, this group matches.
+                tokens.Location = initialTokenFeederLocation;
                 return true;
             }
-            default:
-                throw new ArgumentOutOfRangeException(nameof(this.behavior), this.behavior,
-                    "Syntax group behavior was not set?");
+
+            if (childIsOptional)
+                continue;
+
+            // this child is not optional, so the validation fails
+            errors.AddRange(childFailReasons);
+            tokens.Location = initialTokenFeederLocation;
+            return false;
         }
+
+        // got through without returning `false`, so this group matches.
+        tokens.Location = initialTokenFeederLocation;
+        errors.Clear();
+        return true;
+    }
+    /// <summary>
+    ///     Validate this group by repeatedly accepting any of its subgroups until there isn't a valid match.
+    ///     This method does not take <see cref="optional" /> into account.
+    /// </summary>
+    private bool ValidateOneOfWithRepetition(Executor executor,
+        TokenFeeder tokens,
+        out IEnumerable<SyntaxValidationError> failReasons,
+        out int outputConfidence,
+        out int tokensConsumed)
+    {
+        int initialTokenFeederLocation = tokens.Location;
+        failReasons = [];
+        outputConfidence = 0;
+        tokensConsumed = 0;
+        int successfulPasses = 0;
+
+        do
+        {
+            bool result = ValidateOneOfWithoutRepetition(executor, tokens,
+                out IEnumerable<SyntaxValidationError> currentFailReasons,
+                out int currentConfidence,
+                out int currentTokensConsumed);
+
+            if (!result)
+            {
+                if (successfulPasses == 0 || (successfulPasses > 0 && currentTokensConsumed > 0))
+                {
+                    failReasons = currentFailReasons;
+                    outputConfidence += currentConfidence;
+                    tokensConsumed += currentTokensConsumed;
+                    return false;
+                }
+
+                break;
+            }
+
+            successfulPasses += 1;
+            outputConfidence += currentConfidence;
+            tokensConsumed += currentTokensConsumed;
+
+            // advance the feeder temporarily
+            tokens.Location += currentTokensConsumed;
+        } while (tokens.HasNext);
+
+        tokens.Location = initialTokenFeederLocation;
+        return successfulPasses > 0;
+    }
+    /// <summary>
+    ///     Validate this group by accepting the best match of its subgroups.
+    ///     This method does not take <see cref="optional" /> into account.
+    /// </summary>
+    private bool ValidateOneOfWithoutRepetition(Executor executor,
+        TokenFeeder tokens,
+        out IEnumerable<SyntaxValidationError> failReasons,
+        out int outputConfidence,
+        out int tokensConsumed)
+    {
+        (bool result, IEnumerable<SyntaxValidationError> failReasons, int outputConfidence, int tokensConsumed)[]
+            childrenMatches = this.children.Select(c =>
+            {
+                bool result = c.Validate(executor, tokens,
+                    out IEnumerable<SyntaxValidationError> childFailReasons,
+                    out int childOutputConfidence,
+                    out int childTokensConsumed);
+                return (result, childFailReasons, childOutputConfidence, childTokensConsumed);
+            }).ToArray();
+
+        // no matches
+        if (!childrenMatches.Any(m => m.result))
+        {
+            // edge case: all children have keywords but none of them matched.
+            // it's more helpful to display all possible keywords to the user instead of just one.
+            if (childrenMatches.All(c => c.failReasons.All(f => f.keywordFix != null)))
+            {
+                string errorMessage = "possible keywords here: " + string.Join(", ", childrenMatches
+                    .SelectMany(c => c.failReasons)
+                    .Select(sve => sve.keywordFix));
+                failReasons = [new SyntaxValidationError(errorMessage, null, null)];
+                outputConfidence = 0;
+                tokensConsumed = 0;
+                return false;
+            }
+
+            (bool result, IEnumerable<SyntaxValidationError> failReasons, int outputConfidence, int tokensConsumed)
+                bestFailedMatch = childrenMatches.MaxBy(c => c.outputConfidence);
+            outputConfidence = bestFailedMatch.outputConfidence;
+            tokensConsumed = bestFailedMatch.tokensConsumed;
+            failReasons = bestFailedMatch.failReasons;
+            return false;
+        }
+
+        // there's one or more matches.
+        (bool result, IEnumerable<SyntaxValidationError> failReasons, int outputConfidence, int tokensConsumed)
+            bestMatch = childrenMatches.Where(c => c.result).MaxBy(c => c.outputConfidence);
+        outputConfidence = bestMatch.outputConfidence;
+        tokensConsumed = bestMatch.tokensConsumed;
+        failReasons = bestMatch.failReasons;
+        return true;
     }
 
     public override string ToString()

@@ -12,10 +12,7 @@ namespace mc_compiled.MCC.Compiler;
 public class TokenOperator : Token
 {
     public TokenOperator(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<? generic>";
-    }
+    public override string AsString() { return "<? generic>"; }
 }
 
 /// <summary>
@@ -28,18 +25,9 @@ public abstract class TokenIndexer : Token
     {
         this.innerTokens = innerTokens.ToArray();
     }
-    protected TokenIndexer(Token[] innerTokens, int lineNumber) : base(lineNumber)
-    {
-        this.innerTokens = innerTokens;
-    }
-    protected TokenIndexer(Token innerToken, int lineNumber) : base(lineNumber)
-    {
-        this.innerTokens = [innerToken];
-    }
-    public override string AsString()
-    {
-        return $"[{string.Join(", ", this.innerTokens.Select(t => t.AsString()))}]";
-    }
+    protected TokenIndexer(Token[] innerTokens, int lineNumber) : base(lineNumber) { this.innerTokens = innerTokens; }
+    protected TokenIndexer(Token innerToken, int lineNumber) : base(lineNumber) { this.innerTokens = [innerToken]; }
+    public override string AsString() { return $"[{string.Join(", ", this.innerTokens.Select(t => t.AsString()))}]"; }
 
     /// <summary>
     ///     Get the primary token inside this indexer, or null if there is no primary token.
@@ -146,14 +134,8 @@ public abstract class TokenIndexer : Token
 public sealed class TokenIndexerUnknown : TokenIndexer
 {
     public TokenIndexerUnknown(Token[] innerTokens, int lineNumber) : base(innerTokens, lineNumber) { }
-    public override Token GetPrimaryToken()
-    {
-        return null;
-    }
-    public override bool ActuallyIndexes()
-    {
-        return false;
-    }
+    public override Token GetPrimaryToken() { return null; }
+    public override bool ActuallyIndexes() { return false; }
 }
 
 /// <summary>
@@ -166,18 +148,9 @@ public sealed class TokenIndexerInteger : TokenIndexer
     {
         this.token = token;
     }
-    public override string AsString()
-    {
-        return $"[{this.token.number}]";
-    }
-    public override Token GetPrimaryToken()
-    {
-        return this.token;
-    }
-    public override bool ActuallyIndexes()
-    {
-        return true;
-    }
+    public override string AsString() { return $"[{this.token.number}]"; }
+    public override Token GetPrimaryToken() { return this.token; }
+    public override bool ActuallyIndexes() { return true; }
 
     internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower)
     {
@@ -195,18 +168,9 @@ public sealed class TokenIndexerString : TokenIndexer
     {
         this.token = token;
     }
-    public override string AsString()
-    {
-        return $"[\"{this.token.text}\"]";
-    }
-    public override Token GetPrimaryToken()
-    {
-        return this.token;
-    }
-    public override bool ActuallyIndexes()
-    {
-        return true;
-    }
+    public override string AsString() { return $"[\"{this.token.text}\"]"; }
+    public override Token GetPrimaryToken() { return this.token; }
+    public override bool ActuallyIndexes() { return true; }
 }
 
 /// <summary>
@@ -215,22 +179,10 @@ public sealed class TokenIndexerString : TokenIndexer
 public sealed class TokenIndexerRange : TokenIndexer
 {
     public readonly TokenRangeLiteral token;
-    public TokenIndexerRange(TokenRangeLiteral token, int lineNumber) : base(token, lineNumber)
-    {
-        this.token = token;
-    }
-    public override string AsString()
-    {
-        return $"[\"{this.token.range.ToString()}\"]";
-    }
-    public override Token GetPrimaryToken()
-    {
-        return this.token;
-    }
-    public override bool ActuallyIndexes()
-    {
-        return true;
-    }
+    public TokenIndexerRange(TokenRangeLiteral token, int lineNumber) : base(token, lineNumber) { this.token = token; }
+    public override string AsString() { return $"[\"{this.token.range.ToString()}\"]"; }
+    public override Token GetPrimaryToken() { return this.token; }
+    public override bool ActuallyIndexes() { return true; }
 
     internal Exception GetIndexOutOfBoundsException(int min, int max, Statement thrower)
     {
@@ -252,18 +204,9 @@ public sealed class TokenIndexerBlockStates : TokenIndexer
         this.blockStates = [];
         this.blockStates.AddRange(addStates);
     }
-    public override string AsString()
-    {
-        return $"[{string.Join(", ", this.blockStates.Select(bs => bs.AsString()))}]";
-    }
-    public override Token GetPrimaryToken()
-    {
-        return null;
-    }
-    public override bool ActuallyIndexes()
-    {
-        return false;
-    }
+    public override string AsString() { return $"[{string.Join(", ", this.blockStates.Select(bs => bs.AsString()))}]"; }
+    public override Token GetPrimaryToken() { return null; }
+    public override bool ActuallyIndexes() { return false; }
 }
 
 /// <summary>
@@ -276,18 +219,9 @@ public sealed class TokenIndexerSelector : TokenIndexer
     {
         this.token = token;
     }
-    public override string AsString()
-    {
-        return $"[{this.token.selector}]";
-    }
-    public override Token GetPrimaryToken()
-    {
-        return this.token;
-    }
-    public override bool ActuallyIndexes()
-    {
-        return true;
-    }
+    public override string AsString() { return $"[{this.token.selector}]"; }
+    public override Token GetPrimaryToken() { return this.token; }
+    public override bool ActuallyIndexes() { return true; }
 }
 
 /// <summary>
@@ -296,19 +230,10 @@ public sealed class TokenIndexerSelector : TokenIndexer
 public sealed class TokenIndexerAsterisk : TokenIndexer
 {
     public TokenIndexerAsterisk(int lineNumber) : base(new TokenMultiply(lineNumber), lineNumber) { }
-    public override string AsString()
-    {
-        return "*";
-    }
+    public override string AsString() { return "*"; }
 
-    public override Token GetPrimaryToken()
-    {
-        return new TokenMultiply(this.lineNumber);
-    }
-    public override bool ActuallyIndexes()
-    {
-        return true;
-    }
+    public override Token GetPrimaryToken() { return new TokenMultiply(this.lineNumber); }
+    public override bool ActuallyIndexes() { return true; }
 }
 
 /// <summary>
@@ -317,10 +242,7 @@ public sealed class TokenIndexerAsterisk : TokenIndexer
 public class TokenBracket : TokenOperator
 {
     public TokenBracket(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<? bracket>";
-    }
+    public override string AsString() { return "<? bracket>"; }
 }
 
 /// <summary>
@@ -329,10 +251,7 @@ public class TokenBracket : TokenOperator
 public class TokenOpenBracket : TokenBracket
 {
     public TokenOpenBracket(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<? bracket open>";
-    }
+    public override string AsString() { return "<? bracket open>"; }
 }
 
 /// <summary>
@@ -341,10 +260,7 @@ public class TokenOpenBracket : TokenBracket
 public class TokenCloseBracket : TokenBracket
 {
     public TokenCloseBracket(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<? bracket close>";
-    }
+    public override string AsString() { return "<? bracket close>"; }
 }
 
 /// <summary>
@@ -355,10 +271,7 @@ public abstract class TokenOpenGroupingBracket : TokenOpenBracket
     public bool hasBeenSquashed = false; // used to prevent function squashing from recursively running forever
     public TokenOpenGroupingBracket(int lineNumber) : base(lineNumber) { }
     public abstract bool IsAssociated(TokenBracket bracket);
-    public override string AsString()
-    {
-        return "<? grouping bracket open>";
-    }
+    public override string AsString() { return "<? grouping bracket open>"; }
 }
 
 /// <summary>
@@ -367,10 +280,7 @@ public abstract class TokenOpenGroupingBracket : TokenOpenBracket
 public abstract class TokenCloseGroupingBracket : TokenCloseBracket
 {
     public TokenCloseGroupingBracket(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<? grouping bracket close>";
-    }
+    public override string AsString() { return "<? grouping bracket close>"; }
 }
 
 /// <summary>
@@ -390,10 +300,7 @@ public abstract class TokenArithmetic : TokenOperator
 
     public TokenArithmetic(int lineNumber) : base(lineNumber) { }
 
-    public override string AsString()
-    {
-        return "<? arithmatic>";
-    }
+    public override string AsString() { return "<? arithmatic>"; }
 
     public abstract Type GetArithmeticType();
 }
@@ -401,19 +308,13 @@ public abstract class TokenArithmetic : TokenOperator
 public abstract class TokenArithmeticFirst : TokenArithmetic
 {
     public TokenArithmeticFirst(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<? arithmatic first>";
-    }
+    public override string AsString() { return "<? arithmatic first>"; }
 }
 
 public abstract class TokenArithmeticSecond : TokenArithmetic
 {
     public TokenArithmeticSecond(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<? arithmatic second>";
-    }
+    public override string AsString() { return "<? arithmatic second>"; }
 }
 
 /// <summary>
@@ -454,10 +355,7 @@ public abstract class TokenCompare : TokenOperator, IDocumented
     internal TokenCompare() : base(-1) { }
     public TokenCompare(int lineNumber) : base(lineNumber) { }
 
-    public string GetDocumentation()
-    {
-        return "Any comparison operator. Allowed values are: <, >, <=, >=, ==, !=";
-    }
+    public string GetDocumentation() { return "Any comparison operator. Allowed values are: <, >, <=, >=, ==, !="; }
     /// <summary>
     ///     Returns the minecraft operator for the given TokenCompare.Type
     /// </summary>
@@ -477,10 +375,7 @@ public abstract class TokenCompare : TokenOperator, IDocumented
         };
     }
 
-    public override string AsString()
-    {
-        return "<? compare>";
-    }
+    public override string AsString() { return "<? compare>"; }
 
     public abstract Type GetCompareType();
 }
@@ -503,10 +398,7 @@ public interface IUselessInformation { }
 public sealed class TokenOpenParenthesis : TokenOpenGroupingBracket
 {
     public TokenOpenParenthesis(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "(";
-    }
+    public override string AsString() { return "("; }
     public override bool IsAssociated(TokenBracket bracket)
     {
         return bracket is TokenOpenParenthesis || bracket is TokenCloseParenthesis;
@@ -516,19 +408,13 @@ public sealed class TokenOpenParenthesis : TokenOpenGroupingBracket
 public sealed class TokenCloseParenthesis : TokenCloseGroupingBracket
 {
     public TokenCloseParenthesis(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return ")";
-    }
+    public override string AsString() { return ")"; }
 }
 
 public sealed class TokenOpenIndexer : TokenOpenGroupingBracket
 {
     public TokenOpenIndexer(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "[";
-    }
+    public override string AsString() { return "["; }
     public override bool IsAssociated(TokenBracket bracket)
     {
         return bracket is TokenOpenIndexer || bracket is TokenCloseIndexer;
@@ -538,28 +424,19 @@ public sealed class TokenOpenIndexer : TokenOpenGroupingBracket
 public sealed class TokenCloseIndexer : TokenCloseGroupingBracket
 {
     public TokenCloseIndexer(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "]";
-    }
+    public override string AsString() { return "]"; }
 }
 
 public sealed class TokenOpenBlock : TokenOpenBracket, ITerminating
 {
     public TokenOpenBlock(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "{";
-    }
+    public override string AsString() { return "{"; }
 }
 
 public sealed class TokenCloseBlock : TokenCloseBracket, ITerminating
 {
     public TokenCloseBlock(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "}";
-    }
+    public override string AsString() { return "}"; }
 }
 
 /// <summary>
@@ -568,10 +445,7 @@ public sealed class TokenCloseBlock : TokenCloseBracket, ITerminating
 public sealed class TokenRangeDots : Token
 {
     public TokenRangeDots(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "..";
-    }
+    public override string AsString() { return ".."; }
 }
 
 /// <summary>
@@ -580,10 +454,7 @@ public sealed class TokenRangeDots : Token
 public sealed class TokenRangeInvert : Token
 {
     public TokenRangeInvert(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "!";
-    }
+    public override string AsString() { return "!"; }
 }
 
 /// <summary>
@@ -597,282 +468,165 @@ public abstract class TokenContinueCompareChain : TokenOperator
 public sealed class TokenAnd : TokenContinueCompareChain
 {
     public TokenAnd(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "and";
-    }
+    public override string AsString() { return "and"; }
 }
 
 public sealed class TokenOr : TokenContinueCompareChain
 {
     public TokenOr(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "or";
-    }
+    public override string AsString() { return "or"; }
 }
 
 public sealed class TokenNot : TokenOperator
 {
     public TokenNot(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "not";
-    }
+    public override string AsString() { return "not"; }
 }
 
 public sealed class TokenDeref : TokenOperator
 {
     public TokenDeref(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "$";
-    }
+    public override string AsString() { return "$"; }
 }
 
 public sealed class TokenAssignment : TokenOperator, IAssignment
 {
     public TokenAssignment(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "=";
-    }
+    public override string AsString() { return "="; }
 }
 
 public sealed class TokenAdd : TokenArithmeticSecond
 {
     public TokenAdd(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "+";
-    }
+    public override string AsString() { return "+"; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.ADD;
-    }
+    public override Type GetArithmeticType() { return Type.ADD; }
 }
 
 public sealed class TokenSubtract : TokenArithmeticSecond
 {
     public TokenSubtract(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "-";
-    }
+    public override string AsString() { return "-"; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.SUBTRACT;
-    }
+    public override Type GetArithmeticType() { return Type.SUBTRACT; }
 }
 
 public sealed class TokenMultiply : TokenArithmeticFirst
 {
     public TokenMultiply(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "*";
-    }
+    public override string AsString() { return "*"; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.MULTIPLY;
-    }
+    public override Type GetArithmeticType() { return Type.MULTIPLY; }
 }
 
 public sealed class TokenDivide : TokenArithmeticFirst
 {
     public TokenDivide(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "/";
-    }
+    public override string AsString() { return "/"; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.DIVIDE;
-    }
+    public override Type GetArithmeticType() { return Type.DIVIDE; }
 }
 
 public sealed class TokenModulo : TokenArithmeticFirst
 {
     public TokenModulo(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "%";
-    }
+    public override string AsString() { return "%"; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.MODULO;
-    }
+    public override Type GetArithmeticType() { return Type.MODULO; }
 }
 
 public sealed class TokenAddAssignment : TokenArithmeticSecond, IAssignment
 {
     public TokenAddAssignment(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "+=";
-    }
+    public override string AsString() { return "+="; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.ADD;
-    }
+    public override Type GetArithmeticType() { return Type.ADD; }
 }
 
 public sealed class TokenSubtractAssignment : TokenArithmeticSecond, IAssignment
 {
     public TokenSubtractAssignment(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "-=";
-    }
+    public override string AsString() { return "-="; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.SUBTRACT;
-    }
+    public override Type GetArithmeticType() { return Type.SUBTRACT; }
 }
 
 public sealed class TokenMultiplyAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenMultiplyAssignment(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "*=";
-    }
+    public override string AsString() { return "*="; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.MULTIPLY;
-    }
+    public override Type GetArithmeticType() { return Type.MULTIPLY; }
 }
 
 public sealed class TokenDivideAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenDivideAssignment(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "/=";
-    }
+    public override string AsString() { return "/="; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.DIVIDE;
-    }
+    public override Type GetArithmeticType() { return Type.DIVIDE; }
 }
 
 public sealed class TokenModuloAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenModuloAssignment(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "%=";
-    }
+    public override string AsString() { return "%="; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.MODULO;
-    }
+    public override Type GetArithmeticType() { return Type.MODULO; }
 }
 
 public sealed class TokenSwapAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenSwapAssignment(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "><";
-    }
+    public override string AsString() { return "><"; }
 
-    public override Type GetArithmeticType()
-    {
-        return Type.SWAP;
-    }
+    public override Type GetArithmeticType() { return Type.SWAP; }
 }
 
 public sealed class TokenEquality : TokenCompare
 {
     public TokenEquality(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "==";
-    }
+    public override string AsString() { return "=="; }
 
-    public override Type GetCompareType()
-    {
-        return Type.EQUAL;
-    }
+    public override Type GetCompareType() { return Type.EQUAL; }
 }
 
 public sealed class TokenInequality : TokenCompare
 {
     public TokenInequality(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "!=";
-    }
+    public override string AsString() { return "!="; }
 
-    public override Type GetCompareType()
-    {
-        return Type.NOT_EQUAL;
-    }
+    public override Type GetCompareType() { return Type.NOT_EQUAL; }
 }
 
 public sealed class TokenLessThan : TokenCompare
 {
     public TokenLessThan(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<";
-    }
+    public override string AsString() { return "<"; }
 
-    public override Type GetCompareType()
-    {
-        return Type.LESS;
-    }
+    public override Type GetCompareType() { return Type.LESS; }
 }
 
 public sealed class TokenGreaterThan : TokenCompare
 {
     public TokenGreaterThan(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return ">";
-    }
+    public override string AsString() { return ">"; }
 
-    public override Type GetCompareType()
-    {
-        return Type.GREATER;
-    }
+    public override Type GetCompareType() { return Type.GREATER; }
 }
 
 public sealed class TokenLessThanEqual : TokenCompare
 {
     public TokenLessThanEqual(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return "<=";
-    }
+    public override string AsString() { return "<="; }
 
-    public override Type GetCompareType()
-    {
-        return Type.LESS_OR_EQUAL;
-    }
+    public override Type GetCompareType() { return Type.LESS_OR_EQUAL; }
 }
 
 public sealed class TokenGreaterThanEqual : TokenCompare
 {
     public TokenGreaterThanEqual(int lineNumber) : base(lineNumber) { }
-    public override string AsString()
-    {
-        return ">=";
-    }
+    public override string AsString() { return ">="; }
 
-    public override Type GetCompareType()
-    {
-        return Type.GREATER_OR_EQUAL;
-    }
+    public override Type GetCompareType() { return Type.GREATER_OR_EQUAL; }
 }

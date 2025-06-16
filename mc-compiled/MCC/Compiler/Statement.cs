@@ -189,16 +189,15 @@ public abstract class Statement : TokenFeeder, ICloneable
     {
         if (this.validationGroup is {AlwaysMatches: false})
         {
-            var feederClone = (TokenFeeder) Clone();
-            bool success = this.validationGroup.Validate(activeExecutor, feederClone,
+            bool success = this.validationGroup.Validate(activeExecutor, this,
                 out IEnumerable<SyntaxValidationError> failReasons,
-                out int _);
+                out _, out _);
 
             if (!success)
             {
                 // get the closest matched pattern
                 string list = string.Join(", ", failReasons.Select(m => m.ParameterString));
-                throw new StatementException(this, $"Missing argument(s): {list}");
+                throw new StatementException(this, list);
             }
         }
 

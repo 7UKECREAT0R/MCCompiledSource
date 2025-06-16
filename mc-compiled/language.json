@@ -385,8 +385,9 @@
           ]
         },
         "code": {
+          "optional": true,
           "patterns": [
-            "code:block?"
+            "code:block"
           ]
         }
       },
@@ -458,13 +459,13 @@
       "category": "preprocessor",
       "function": "_repeat",
       "syntax": {
-        "amount": {
+        "repetitions": {
           "patterns": [
             [
-              "amount:int"
+              "repetitions:int"
             ],
             [
-              "amount:range"
+              "repetitions:range"
             ]
           ]
         },
@@ -542,16 +543,22 @@
       "category": "preprocessor",
       "function": "_strfriendly",
       "syntax": {
-        "destructive": {
-          "patterns": [
-            "variable to modify:ppv"
-          ]
-        },
-        "nondestructive": {
-          "patterns": [
-            "result:id",
-            "variable:ppv"
-          ]
+        "one_of": {
+          "description": "Choose a variant of this command.",
+          "children": {
+            "sequential": false,
+            "destructive": {
+              "patterns": [
+                "variable to modify:ppv"
+              ]
+            },
+            "nondestructive": {
+              "patterns": [
+                "result:id",
+                "variable:ppv"
+              ]
+            }
+          }
         }
       },
       "attributes": [
@@ -565,16 +572,22 @@
       "category": "preprocessor",
       "function": "_strupper",
       "syntax": {
-        "destructive": {
-          "patterns": [
-            "variable to modify:ppv"
-          ]
-        },
-        "nondestructive": {
-          "patterns": [
-            "result:id",
-            "variable:ppv"
-          ]
+        "one_of": {
+          "description": "Choose a variant of this command.",
+          "children": {
+            "sequential": false,
+            "destructive": {
+              "patterns": [
+                "variable to modify:ppv"
+              ]
+            },
+            "nondestructive": {
+              "patterns": [
+                "result:id",
+                "variable:ppv"
+              ]
+            }
+          }
         }
       },
       "attributes": [
@@ -588,16 +601,22 @@
       "category": "preprocessor",
       "function": "_strlower",
       "syntax": {
-        "destructive": {
-          "patterns": [
-            "variable to modify:ppv"
-          ]
-        },
-        "nondestructive": {
-          "patterns": [
-            "result:id",
-            "variable:ppv"
-          ]
+        "one_of": {
+          "description": "Choose a variant of this command.",
+          "children": {
+            "sequential": false,
+            "destructive": {
+              "patterns": [
+                "variable to modify:ppv"
+              ]
+            },
+            "nondestructive": {
+              "patterns": [
+                "result:id",
+                "variable:ppv"
+              ]
+            }
+          }
         }
       },
       "attributes": [
@@ -611,16 +630,22 @@
       "category": "preprocessor",
       "function": "_sum",
       "syntax": {
-        "destructive": {
-          "patterns": [
-            "variable to modify:ppv"
-          ]
-        },
-        "nondestructive": {
-          "patterns": [
-            "result:id",
-            "variable:ppv"
-          ]
+        "one_of": {
+          "description": "Choose a variant of this command.",
+          "children": {
+            "sequential": false,
+            "destructive": {
+              "patterns": [
+                "variable to modify:ppv"
+              ]
+            },
+            "nondestructive": {
+              "patterns": [
+                "result:id",
+                "variable:ppv"
+              ]
+            }
+          }
         }
       },
       "attributes": [
@@ -634,16 +659,22 @@
       "category": "preprocessor",
       "function": "_median",
       "syntax": {
-        "destructive": {
-          "patterns": [
-            "variable to modify:ppv"
-          ]
-        },
-        "nondestructive": {
-          "patterns": [
-            "result:id",
-            "variable:ppv"
-          ]
+        "one_of": {
+          "description": "Choose a variant of this command.",
+          "children": {
+            "sequential": false,
+            "destructive": {
+              "patterns": [
+                "variable to modify:ppv"
+              ]
+            },
+            "nondestructive": {
+              "patterns": [
+                "result:id",
+                "variable:ppv"
+              ]
+            }
+          }
         }
       },
       "attributes": [
@@ -657,16 +688,22 @@
       "category": "preprocessor",
       "function": "_mean",
       "syntax": {
-        "destructive": {
-          "patterns": [
-            "variable to modify:ppv"
-          ]
-        },
-        "nondestructive": {
-          "patterns": [
-            "result:id",
-            "variable:ppv"
-          ]
+        "one_of": {
+          "description": "Choose a variant of this command.",
+          "children": {
+            "sequential": false,
+            "destructive": {
+              "patterns": [
+                "variable to modify:ppv"
+              ]
+            },
+            "nondestructive": {
+              "patterns": [
+                "result:id",
+                "variable:ppv"
+              ]
+            }
+          }
         }
       },
       "attributes": [
@@ -752,8 +789,9 @@
           ]
         },
         "code": {
+          "optional": true,
           "patterns": [
-            "block to repeat:block?"
+            "block to repeat:block"
           ]
         }
       },
@@ -990,6 +1028,7 @@
         "comparison": {
           "children": {
             "repeatable": true,
+            "sequential": true,
             "invert": {
               "keyword": "not",
               "description": "Invert the next comparison.",
@@ -1131,8 +1170,9 @@
           ]
         },
         "block": {
+          "optional": true,
           "patterns": [
-            "block to repeat:block?"
+            "block to repeat:block"
           ]
         }
       }
@@ -1175,6 +1215,7 @@
           "optional": true,
           "children": {
             "repeatable": true,
+            "sequential": false,
             "keep_inventory": {
               "keyword": "keep",
               "description": "Item will stay in the player's inventory even after death.",
@@ -1287,11 +1328,11 @@
           ]
         },
         "rotation": {
-          "blocking": true,
+          "optional": true,
           "children": {
-            "repeatable": true,
+            "sequential": false,
             "manual_rotation": {
-              "description": "Manually set the rotation of the teleported entity.",
+              "description": "Manually set the angle of the teleported entity.",
               "patterns": [
                 "y rotation:coordinate",
                 "x rotation:coordinate"
@@ -1299,7 +1340,7 @@
             },
             "facing": {
               "keyword": "facing",
-              "description": "Set the position/entity the teleported entity will face.",
+              "description": "Set the position/entity the teleported entity will face towards.",
               "patterns": [
                 [
                   "look at entity:selector"
@@ -1314,7 +1355,6 @@
           }
         },
         "check_for_blocks": {
-          "optional": false,
           "blocking": true,
           "patterns": [
             "check for blocks:bool"
@@ -1567,6 +1607,7 @@
               "description": "Fade the camera in and out with a given color.",
               "children": {
                 "repeatable": true,
+                "sequential": false,
                 "fade_time": {
                   "keyword": "time",
                   "description": "Specify the in/hold/out times of the fade, in seconds.",
@@ -1600,6 +1641,7 @@
                 "camera_set_subcommands": {
                   "children": {
                     "repeatable": true,
+                    "sequential": false,
                     "default": {
                       "keyword": "default",
                       "description": "The default settings for the camera. Not necessary as it can be inferred.",
@@ -1989,6 +2031,7 @@
           "optional": true,
           "children": {
             "repeatable": true,
+            "sequential": true,
             "parameter_definition": {
               "ref": "define"
             }
@@ -2107,8 +2150,9 @@
           ]
         },
         "code": {
+          "optional": true,
           "patterns": [
-            "code to run:block?"
+            "code to run:block"
           ]
         }
       }
@@ -2121,6 +2165,7 @@
         "subcommands_collection": {
           "children": {
             "repeatable": true,
+            "sequential": false,
             "subcommand": {
               "children": {
                 "execute_align": {
@@ -2346,8 +2391,9 @@
           }
         },
         "code": {
+          "optional": true,
           "patterns": [
-            "code:block?"
+            "code:block"
           ]
         }
       }

@@ -127,13 +127,6 @@
          "serialization_name" : "minecraft:activator_rail"
       },
       {
-         "command_name" : "minecraft:air",
-         "name" : "minecraft:air",
-         "raw_id" : -158,
-         "serialization_id" : "item.air",
-         "serialization_name" : "minecraft:air"
-      },
-      {
          "command_name" : "minecraft:allay_spawn_egg",
          "name" : "minecraft:allay_spawn_egg",
          "raw_id" : 668,
@@ -736,6 +729,13 @@
          "serialization_name" : "minecraft:black_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:black_harness",
+         "name" : "minecraft:black_harness",
+         "raw_id" : 752,
+         "serialization_id" : "item.black_harness",
+         "serialization_name" : "minecraft:black_harness"
+      },
+      {
          "command_name" : "minecraft:black_shulker_box",
          "name" : "minecraft:black_shulker_box",
          "raw_id" : -627,
@@ -876,11 +876,25 @@
          "serialization_name" : "minecraft:blue_dye"
       },
       {
+         "command_name" : "minecraft:blue_egg",
+         "name" : "minecraft:blue_egg",
+         "raw_id" : 749,
+         "serialization_id" : "item.blue_egg",
+         "serialization_name" : "minecraft:blue_egg"
+      },
+      {
          "command_name" : "minecraft:blue_glazed_terracotta",
          "name" : "minecraft:blue_glazed_terracotta",
          "raw_id" : 231,
          "serialization_id" : "item.blue_glazed_terracotta",
          "serialization_name" : "minecraft:blue_glazed_terracotta"
+      },
+      {
+         "command_name" : "minecraft:blue_harness",
+         "name" : "minecraft:blue_harness",
+         "raw_id" : 753,
+         "serialization_id" : "item.blue_harness",
+         "serialization_name" : "minecraft:blue_harness"
       },
       {
          "command_name" : "minecraft:blue_ice",
@@ -1142,11 +1156,25 @@
          "serialization_name" : "minecraft:brown_dye"
       },
       {
+         "command_name" : "minecraft:brown_egg",
+         "name" : "minecraft:brown_egg",
+         "raw_id" : 750,
+         "serialization_id" : "item.brown_egg",
+         "serialization_name" : "minecraft:brown_egg"
+      },
+      {
          "command_name" : "minecraft:brown_glazed_terracotta",
          "name" : "minecraft:brown_glazed_terracotta",
          "raw_id" : 232,
          "serialization_id" : "item.brown_glazed_terracotta",
          "serialization_name" : "minecraft:brown_glazed_terracotta"
+      },
+      {
+         "command_name" : "minecraft:brown_harness",
+         "name" : "minecraft:brown_harness",
+         "raw_id" : 754,
+         "serialization_id" : "item.brown_harness",
+         "serialization_name" : "minecraft:brown_harness"
       },
       {
          "command_name" : "minecraft:brown_mushroom",
@@ -1254,11 +1282,25 @@
          "serialization_name" : "minecraft:burn_pottery_sherd"
       },
       {
+         "command_name" : "minecraft:bush",
+         "name" : "minecraft:bush",
+         "raw_id" : -1023,
+         "serialization_id" : "item.bush",
+         "serialization_name" : "minecraft:bush"
+      },
+      {
          "command_name" : "minecraft:cactus",
          "name" : "minecraft:cactus",
          "raw_id" : 81,
          "serialization_id" : "item.cactus",
          "serialization_name" : "minecraft:cactus"
+      },
+      {
+         "command_name" : "minecraft:cactus_flower",
+         "name" : "minecraft:cactus_flower",
+         "raw_id" : -1030,
+         "serialization_id" : "item.cactus_flower",
+         "serialization_name" : "minecraft:cactus_flower"
       },
       {
          "command_name" : "minecraft:cake",
@@ -2269,6 +2311,13 @@
          "serialization_name" : "minecraft:cyan_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:cyan_harness",
+         "name" : "minecraft:cyan_harness",
+         "raw_id" : 755,
+         "serialization_id" : "item.cyan_harness",
+         "serialization_name" : "minecraft:cyan_harness"
+      },
+      {
          "command_name" : "minecraft:cyan_shulker_box",
          "name" : "minecraft:cyan_shulker_box",
          "raw_id" : -621,
@@ -2906,6 +2955,13 @@
          "serialization_name" : "minecraft:dragon_head"
       },
       {
+         "command_name" : "minecraft:dried_ghast",
+         "name" : "minecraft:dried_ghast",
+         "raw_id" : -1027,
+         "serialization_id" : "item.dried_ghast",
+         "serialization_name" : "minecraft:dried_ghast"
+      },
+      {
          "command_name" : "minecraft:dried_kelp",
          "name" : "minecraft:dried_kelp",
          "raw_id" : 292,
@@ -3041,7 +3097,7 @@
       {
          "command_name" : "minecraft:end_crystal",
          "name" : "minecraft:end_crystal",
-         "raw_id" : 795,
+         "raw_id" : 814,
          "serialization_id" : "item.end_crystal",
          "serialization_name" : "minecraft:end_crystal"
       },
@@ -3291,6 +3347,13 @@
          "serialization_name" : "minecraft:fire_coral_fan"
       },
       {
+         "command_name" : "minecraft:firefly_bush",
+         "name" : "minecraft:firefly_bush",
+         "raw_id" : -1025,
+         "serialization_id" : "item.firefly_bush",
+         "serialization_name" : "minecraft:firefly_bush"
+      },
+      {
          "command_name" : "minecraft:firework_rocket",
          "name" : "minecraft:firework_rocket",
          "raw_id" : 552,
@@ -3482,7 +3545,7 @@
       {
          "command_name" : "minecraft:glow_berries",
          "name" : "minecraft:glow_berries",
-         "raw_id" : 796,
+         "raw_id" : 815,
          "serialization_id" : "item.glow_berries",
          "serialization_name" : "minecraft:glow_berries"
       },
@@ -3760,6 +3823,13 @@
          "serialization_name" : "minecraft:gray_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:gray_harness",
+         "name" : "minecraft:gray_harness",
+         "raw_id" : 756,
+         "serialization_id" : "item.gray_harness",
+         "serialization_name" : "minecraft:gray_harness"
+      },
+      {
          "command_name" : "minecraft:gray_shulker_box",
          "name" : "minecraft:gray_shulker_box",
          "raw_id" : -619,
@@ -3844,6 +3914,13 @@
          "serialization_name" : "minecraft:green_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:green_harness",
+         "name" : "minecraft:green_harness",
+         "raw_id" : 757,
+         "serialization_id" : "item.green_harness",
+         "serialization_name" : "minecraft:green_harness"
+      },
+      {
          "command_name" : "minecraft:green_shulker_box",
          "name" : "minecraft:green_shulker_box",
          "raw_id" : -625,
@@ -3919,6 +3996,13 @@
          "raw_id" : -319,
          "serialization_id" : "item.hanging_roots",
          "serialization_name" : "minecraft:hanging_roots"
+      },
+      {
+         "command_name" : "minecraft:happy_ghast_spawn_egg",
+         "name" : "minecraft:happy_ghast_spawn_egg",
+         "raw_id" : 751,
+         "serialization_id" : "item.happy_ghast_spawn_egg",
+         "serialization_name" : "minecraft:happy_ghast_spawn_egg"
       },
       {
          "command_name" : "minecraft:hardened_clay",
@@ -4460,6 +4544,13 @@
          "serialization_name" : "minecraft:lead"
       },
       {
+         "command_name" : "minecraft:leaf_litter",
+         "name" : "minecraft:leaf_litter",
+         "raw_id" : -1026,
+         "serialization_id" : "item.leaf_litter",
+         "serialization_name" : "minecraft:leaf_litter"
+      },
+      {
          "command_name" : "minecraft:leather",
          "name" : "minecraft:leather",
          "raw_id" : 407,
@@ -4677,6 +4768,13 @@
          "serialization_name" : "minecraft:light_blue_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:light_blue_harness",
+         "name" : "minecraft:light_blue_harness",
+         "raw_id" : 758,
+         "serialization_id" : "item.light_blue_harness",
+         "serialization_name" : "minecraft:light_blue_harness"
+      },
+      {
          "command_name" : "minecraft:light_blue_shulker_box",
          "name" : "minecraft:light_blue_shulker_box",
          "raw_id" : -615,
@@ -4752,6 +4850,13 @@
          "raw_id" : 428,
          "serialization_id" : "item.light_gray_dye",
          "serialization_name" : "minecraft:light_gray_dye"
+      },
+      {
+         "command_name" : "minecraft:light_gray_harness",
+         "name" : "minecraft:light_gray_harness",
+         "raw_id" : 759,
+         "serialization_id" : "item.light_gray_harness",
+         "serialization_name" : "minecraft:light_gray_harness"
       },
       {
          "command_name" : "minecraft:light_gray_shulker_box",
@@ -4864,6 +4969,13 @@
          "raw_id" : 225,
          "serialization_id" : "item.lime_glazed_terracotta",
          "serialization_name" : "minecraft:lime_glazed_terracotta"
+      },
+      {
+         "command_name" : "minecraft:lime_harness",
+         "name" : "minecraft:lime_harness",
+         "raw_id" : 760,
+         "serialization_id" : "item.lime_harness",
+         "serialization_name" : "minecraft:lime_harness"
       },
       {
          "command_name" : "minecraft:lime_shulker_box",
@@ -4997,6 +5109,13 @@
          "raw_id" : 222,
          "serialization_id" : "item.magenta_glazed_terracotta",
          "serialization_name" : "minecraft:magenta_glazed_terracotta"
+      },
+      {
+         "command_name" : "minecraft:magenta_harness",
+         "name" : "minecraft:magenta_harness",
+         "raw_id" : 761,
+         "serialization_id" : "item.magenta_harness",
+         "serialization_name" : "minecraft:magenta_harness"
       },
       {
          "command_name" : "minecraft:magenta_shulker_box",
@@ -5435,14 +5554,14 @@
       {
          "command_name" : "minecraft:music_disc_creator",
          "name" : "minecraft:music_disc_creator",
-         "raw_id" : 782,
+         "raw_id" : 801,
          "serialization_id" : "item.record_creator",
          "serialization_name" : "minecraft:music_disc_creator"
       },
       {
          "command_name" : "minecraft:music_disc_creator_music_box",
          "name" : "minecraft:music_disc_creator_music_box",
-         "raw_id" : 783,
+         "raw_id" : 802,
          "serialization_id" : "item.record_creator_music_box",
          "serialization_name" : "minecraft:music_disc_creator_music_box"
       },
@@ -5484,7 +5603,7 @@
       {
          "command_name" : "minecraft:music_disc_precipice",
          "name" : "minecraft:music_disc_precipice",
-         "raw_id" : 784,
+         "raw_id" : 803,
          "serialization_id" : "item.record_precipice",
          "serialization_name" : "minecraft:music_disc_precipice"
       },
@@ -5930,6 +6049,13 @@
          "serialization_name" : "minecraft:orange_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:orange_harness",
+         "name" : "minecraft:orange_harness",
+         "raw_id" : 762,
+         "serialization_id" : "item.orange_harness",
+         "serialization_name" : "minecraft:orange_harness"
+      },
+      {
          "command_name" : "minecraft:orange_shulker_box",
          "name" : "minecraft:orange_shulker_box",
          "raw_id" : -613,
@@ -6348,6 +6474,13 @@
          "raw_id" : 226,
          "serialization_id" : "item.pink_glazed_terracotta",
          "serialization_name" : "minecraft:pink_glazed_terracotta"
+      },
+      {
+         "command_name" : "minecraft:pink_harness",
+         "name" : "minecraft:pink_harness",
+         "raw_id" : 763,
+         "serialization_id" : "item.pink_harness",
+         "serialization_name" : "minecraft:pink_harness"
       },
       {
          "command_name" : "minecraft:pink_petals",
@@ -6861,6 +6994,13 @@
          "serialization_name" : "minecraft:purple_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:purple_harness",
+         "name" : "minecraft:purple_harness",
+         "raw_id" : 764,
+         "serialization_id" : "item.purple_harness",
+         "serialization_name" : "minecraft:purple_harness"
+      },
+      {
          "command_name" : "minecraft:purple_shulker_box",
          "name" : "minecraft:purple_shulker_box",
          "raw_id" : -622,
@@ -7125,6 +7265,13 @@
          "raw_id" : 234,
          "serialization_id" : "item.red_glazed_terracotta",
          "serialization_name" : "minecraft:red_glazed_terracotta"
+      },
+      {
+         "command_name" : "minecraft:red_harness",
+         "name" : "minecraft:red_harness",
+         "raw_id" : 765,
+         "serialization_id" : "item.red_harness",
+         "serialization_name" : "minecraft:red_harness"
       },
       {
          "command_name" : "minecraft:red_mushroom",
@@ -7559,6 +7706,13 @@
          "raw_id" : 380,
          "serialization_id" : "item.shield",
          "serialization_name" : "minecraft:shield"
+      },
+      {
+         "command_name" : "minecraft:short_dry_grass",
+         "name" : "minecraft:short_dry_grass",
+         "raw_id" : -1028,
+         "serialization_id" : "item.short_dry_grass",
+         "serialization_name" : "minecraft:short_dry_grass"
       },
       {
          "command_name" : "minecraft:short_grass",
@@ -8413,6 +8567,13 @@
          "raw_id" : 666,
          "serialization_id" : "item.tadpole_spawn_egg",
          "serialization_name" : "minecraft:tadpole_spawn_egg"
+      },
+      {
+         "command_name" : "minecraft:tall_dry_grass",
+         "name" : "minecraft:tall_dry_grass",
+         "raw_id" : -1029,
+         "serialization_id" : "item.tall_dry_grass",
+         "serialization_name" : "minecraft:tall_dry_grass"
       },
       {
          "command_name" : "minecraft:tall_grass",
@@ -9290,6 +9451,13 @@
          "serialization_name" : "minecraft:white_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:white_harness",
+         "name" : "minecraft:white_harness",
+         "raw_id" : 766,
+         "serialization_id" : "item.white_harness",
+         "serialization_name" : "minecraft:white_harness"
+      },
+      {
          "command_name" : "minecraft:white_shulker_box",
          "name" : "minecraft:white_shulker_box",
          "raw_id" : 218,
@@ -9337,6 +9505,13 @@
          "raw_id" : 721,
          "serialization_id" : "item.wild_armor_trim_smithing_template",
          "serialization_name" : "minecraft:wild_armor_trim_smithing_template"
+      },
+      {
+         "command_name" : "minecraft:wildflowers",
+         "name" : "minecraft:wildflowers",
+         "raw_id" : -1024,
+         "serialization_id" : "item.wildflowers",
+         "serialization_name" : "minecraft:wildflowers"
       },
       {
          "command_name" : "minecraft:wind_charge",
@@ -9507,6 +9682,13 @@
          "serialization_name" : "minecraft:yellow_glazed_terracotta"
       },
       {
+         "command_name" : "minecraft:yellow_harness",
+         "name" : "minecraft:yellow_harness",
+         "raw_id" : 767,
+         "serialization_id" : "item.yellow_harness",
+         "serialization_name" : "minecraft:yellow_harness"
+      },
+      {
          "command_name" : "minecraft:yellow_shulker_box",
          "name" : "minecraft:yellow_shulker_box",
          "raw_id" : -616,
@@ -9584,7 +9766,7 @@
          "serialization_name" : "minecraft:zombie_villager_spawn_egg"
       }
    ],
-   "minecraft_version" : "1.21.51",
+   "minecraft_version" : "1.21.80-beta.3",
    "module_type" : "vanilla_data",
    "name" : "mojang-item",
    "vanilla_data_type" : "item"

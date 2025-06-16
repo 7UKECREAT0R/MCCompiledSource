@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using mc_compiled.MCC.Compiler;
 using Range = mc_compiled.Commands.Range;
 
@@ -121,7 +122,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
     public static bool NewValidateSingle(Executor executor, Token[] tokens, params SyntaxParameter[] pattern)
     {
         var feeder = new TokenFeeder(tokens);
-        return ValidateSinglePattern(executor, feeder, pattern, [], out _);
+        return ValidateSinglePattern(executor, feeder, pattern, [], out _, out _);
     }
 
     /// <summary>
@@ -129,71 +130,66 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
     /// </summary>
     /// <param name="executor">The executor running this validation.</param>
     /// <param name="feeder">
-    ///     The remaining tokens to sample.
-    ///     This <b>will</b> mutate the <see cref="TokenFeeder" />.
+    ///     The remaining tokens to sample. This will <b>not</b> be modified!
     /// </param>
     /// <param name="failReasons">
-    ///     The parameters which are blocking this statement from validating,
-    ///     if returning <c>false</c>.
+    ///     The parameters which are blocking this statement from validating, if returning <c>false</c>.
     /// </param>
-    /// <param name="outputConfidence">The confidence in this match, even if returning false.</param>
+    /// <param name="outputConfidence">The confidence in this match, even if returning <c>false</c>.</param>
+    /// <param name="tokensConsumed">The number of tokens consumed by the match, if returning <c>true</c>.</param>
     /// <returns>True if a match was made.</returns>
     public bool Validate(Executor executor,
         TokenFeeder feeder,
         out IEnumerable<SyntaxValidationError> failReasons,
-        out int outputConfidence)
+        out int outputConfidence,
+        out int tokensConsumed)
     {
         List<SyntaxValidationError> errors = [];
-        int highestConfidence = -1;
+        failReasons = errors;
         int count = this.Count;
+        tokensConsumed = 0;
 
         if (count == 0)
         {
-            failReasons = [];
-            outputConfidence = 1;
+            outputConfidence = 0;
             return true; // technically a match, as there are no constraints.
         }
 
         if (count == 1)
-        {
-            failReasons = errors;
-            return ValidateSinglePattern(executor, feeder, this[0], errors, out outputConfidence);
-        }
+            return ValidateSinglePattern(executor, feeder, this[0], errors, out outputConfidence, out tokensConsumed);
 
-        for (int i = 0; i < count; i++)
-        {
-            errors.Clear();
-            bool last = i == count - 1; // if this is the last iteration
-            TokenFeeder temporaryFeeder = last ? feeder : (TokenFeeder) feeder.Clone();
-            List<SyntaxValidationError> temporaryErrors = [];
-
-            if (ValidateSinglePattern(executor, temporaryFeeder, this[i], temporaryErrors, out int confidence))
+        (bool result, int confidence, int tokensConsumed, List<SyntaxValidationError> temporaryErrors)[]
+            allVariantMatches = this.Select(p =>
             {
-                failReasons = [];
-                outputConfidence = confidence;
-                return true;
-            }
+                List<SyntaxValidationError> temporaryErrors = [];
+                bool result = ValidateSinglePattern(executor, feeder, p, temporaryErrors, out int confidence,
+                    out int tokensConsumed);
+                return (result, confidence, tokensConsumed, temporaryErrors);
+            }).ToArray();
 
-            if (confidence > highestConfidence)
-            {
-                errors.Clear();
-                errors.AddRange(temporaryErrors);
-                highestConfidence = confidence;
-            }
-        }
+        // choose the one with the highest confidence
+        (bool result, int confidence, int tokensConsumed, List<SyntaxValidationError> temporaryErrors)
+            highestConfidenceVariant =
+                allVariantMatches.Any(v => v.result)
+                    ? allVariantMatches.Where(v => v.result).MaxBy(v => v.confidence) // there was at least 1 match
+                    : allVariantMatches.MaxBy(v => v.confidence); // there were no matches
 
-        failReasons = errors;
-        outputConfidence = highestConfidence;
-        return false;
+        outputConfidence = highestConfidenceVariant.confidence;
+        errors.AddRange(highestConfidenceVariant.temporaryErrors);
+        tokensConsumed = highestConfidenceVariant.tokensConsumed;
+        return highestConfidenceVariant.result;
     }
     private static bool ValidateSinglePattern(Executor executor,
         TokenFeeder feeder,
         SyntaxParameter[] pattern,
         List<SyntaxValidationError> errors,
         out int confidence,
+        out int tokensConsumed,
         int startingIndex = 0)
     {
+        int originalFeederLocation = feeder.Location;
         confidence = 0;
+        tokensConsumed = 0;
 
         if (pattern.Length == 0)
             return true; // technically a match, as there are no constraints.
@@ -205,7 +201,10 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
             patternIndex++;
 
             if (patternIndex >= pattern.Length)
+            {
+                feeder.Location = originalFeederLocation;
                 return true; // matched all parameters in this pattern.
+            }
 
             SyntaxParameter currentParameter = pattern[patternIndex];
             bool variadic = currentParameter.variadic;
@@ -224,8 +223,14 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                     continue;
                 }
 
-                errors.Add(new SyntaxValidationError("missing block {}", null));
-                return false;
+                if (!optional)
+                {
+                    errors.Add(new SyntaxValidationError("missing block {}", null, null));
+                    feeder.Location = originalFeederLocation;
+                    return false;
+                }
+
+                continue;
             }
 
             if (variadic)
@@ -237,33 +242,44 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                 int totalMatches = 0;
 
                 // edge case: breakout parameter is specified immediately
-                if (breakoutParameter.HasValue && feeder.NextMatchesParameter(breakoutParameter.Value, false))
+                if (breakoutParameter.HasValue &&
+                    feeder.NextMatchesParameter(breakoutParameter.Value, out int c, false))
                 {
+                    tokensConsumed += c;
+
                     if (!optional)
                     {
-                        errors.Add(new SyntaxValidationError($"minimum number of parameters is {minInclusive}",
+                        errors.Add(new SyntaxValidationError($"minimum number of parameters is {minInclusive}", null,
                             breakoutParameter.Value));
+                        feeder.Location = originalFeederLocation;
                         return false;
                     }
 
                     continue;
                 }
 
-                while (feeder.NextMatchesParameter(currentParameter))
+                while (feeder.NextMatchesParameter(currentParameter, out c))
                 {
                     totalMatches++;
                     feeder.Next();
+                    tokensConsumed++;
+                    tokensConsumed += c; // the number of useless tokens consumed by the NextMatchesParameter method.
 
                     if (totalMatches >= maxInclusive)
                         break;
-                    if (breakoutParameter.HasValue && feeder.NextMatchesParameter(breakoutParameter.Value, false))
+                    if (breakoutParameter.HasValue &&
+                        feeder.NextMatchesParameter(breakoutParameter.Value, out c, false))
+                    {
+                        tokensConsumed += c;
                         break;
+                    }
                 }
 
                 if (totalMatches < minInclusive)
                 {
                     errors.Add(new SyntaxValidationError($"minimum number of parameters is {minInclusive}",
-                        currentParameter));
+                        null, currentParameter));
+                    feeder.Location = originalFeederLocation;
                     return false;
                 }
 
@@ -271,7 +287,8 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                 {
                     // technically can't happen, but you never know
                     errors.Add(new SyntaxValidationError($"maximum number of parameters is {maxInclusive}",
-                        currentParameter));
+                        null, currentParameter));
+                    feeder.Location = originalFeederLocation;
                     return false;
                 }
 
@@ -280,7 +297,8 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
             }
 
             // basic match. does the next token in the feeder match this parameter?
-            bool simpleMatch = feeder.NextMatchesParameter(currentParameter);
+            bool simpleMatch = feeder.NextMatchesParameter(currentParameter, out int uselessTokensConsumed);
+            tokensConsumed += uselessTokensConsumed;
 
             if (!simpleMatch)
             {
@@ -288,13 +306,15 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                 if (optional)
                     continue;
 
-                errors.Add(new SyntaxValidationError("required", currentParameter));
+                errors.Add(new SyntaxValidationError("required", null, currentParameter));
+                feeder.Location = originalFeederLocation;
                 return false;
             }
 
             // match!
-            confidence += 1;
             feeder.Next();
+            confidence++;
+            tokensConsumed++;
         }
 
         // iterate over any remaining Syntax Parameters and
@@ -317,15 +337,17 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                 }
             }
 
-            // don't forget the block constraint
+            // don't forget the block constraint!
             if (currentParameter.blockConstraint && executor.NextIs<StatementOpenBlock>())
                 continue;
 
-            errors.Add(new SyntaxValidationError("required", currentParameter));
+            errors.Add(new SyntaxValidationError("required", null, currentParameter));
+            feeder.Location = originalFeederLocation;
             return false;
         }
 
         // got through the whole thing without returning false
+        feeder.Location = originalFeederLocation;
         return true;
     }
 }
