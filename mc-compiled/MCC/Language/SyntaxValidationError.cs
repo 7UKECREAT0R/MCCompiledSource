@@ -15,5 +15,5 @@ public readonly struct SyntaxValidationError(string error, [CanBeNull] string ke
     public readonly string keywordFix = keywordFix;
     public readonly SyntaxParameter? parameter = parameter;
 
-    public string ParameterString => this.parameter.HasValue ? $"{this.parameter.Value} - {this.error}" : this.error;
+    public string ParameterString => this.parameter.HasValue ? $"{this.parameter.Value} {this.error}" : this.error;
 }

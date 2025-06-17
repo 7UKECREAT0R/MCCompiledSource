@@ -290,7 +290,7 @@
       "details": "Swaps the values of two preprocessor variables",
       "category": "preprocessor",
       "function": "_swap",
-      "patterns": [
+      "syntax": [
         "a:ppv",
         "b:ppv"
       ],
@@ -470,7 +470,7 @@
           ]
         },
         "indicator": {
-          "optional": true,
+          "blocking": true,
           "patterns": [
             "indicator:id"
           ]

@@ -243,7 +243,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
 
                 // edge case: breakout parameter is specified immediately
                 if (breakoutParameter.HasValue &&
-                    feeder.NextMatchesParameter(breakoutParameter.Value, out int c, false))
+                    feeder.NextMatchesParameter(breakoutParameter.Value, out int c, out _, false))
                 {
                     tokensConsumed += c;
 
@@ -258,7 +258,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                     continue;
                 }
 
-                while (feeder.NextMatchesParameter(currentParameter, out c))
+                while (feeder.NextMatchesParameter(currentParameter, out c, out _))
                 {
                     totalMatches++;
                     feeder.Next();
@@ -268,7 +268,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                     if (totalMatches >= maxInclusive)
                         break;
                     if (breakoutParameter.HasValue &&
-                        feeder.NextMatchesParameter(breakoutParameter.Value, out c, false))
+                        feeder.NextMatchesParameter(breakoutParameter.Value, out c, out _, false))
                     {
                         tokensConsumed += c;
                         break;
@@ -297,7 +297,9 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
             }
 
             // basic match. does the next token in the feeder match this parameter?
-            bool simpleMatch = feeder.NextMatchesParameter(currentParameter, out int uselessTokensConsumed);
+            bool simpleMatch = feeder.NextMatchesParameter(currentParameter,
+                out int uselessTokensConsumed,
+                out Token theToken);
             tokensConsumed += uselessTokensConsumed;
 
             if (!simpleMatch)
@@ -306,7 +308,8 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                 if (optional)
                     continue;
 
-                errors.Add(new SyntaxValidationError("required", null, currentParameter));
+                string errorMessage = theToken == null ? "required" : "expected, but got " + theToken.FriendlyTypeName;
+                errors.Add(new SyntaxValidationError(errorMessage, null, currentParameter));
                 feeder.Location = originalFeederLocation;
                 return false;
             }

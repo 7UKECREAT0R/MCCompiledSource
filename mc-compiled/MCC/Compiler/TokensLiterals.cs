@@ -84,8 +84,10 @@ public abstract class TokenLiteral(int lineNumber) : Token(lineNumber)
 /// <summary>
 ///     Represents a value which has no determined value, but is defined as 0 under every type.
 /// </summary>
+[TokenFriendlyName("")]
 public class TokenNullLiteral(int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
 {
+    public override string FriendlyTypeName => "null";
     public object GetValue() { return 0; }
     public override string AsString() { return "null"; }
     public override string ToString() { return "null"; }
@@ -174,12 +176,14 @@ public class TokenNullLiteral(int lineNumber) : TokenLiteral(lineNumber), IPrepr
 /// <summary>
 ///     A token which holds a completely constructed attribute. See <see cref="Attributes.IAttribute" />.
 /// </summary>
+[TokenFriendlyName("attribute")]
 public sealed class TokenAttribute(IAttribute attribute, int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
 {
     public readonly IAttribute attribute = attribute;
 
-    public object GetValue() { return this.attribute; }
+    public override string FriendlyTypeName => "attribute";
 
+    public object GetValue() { return this.attribute; }
     public override string AsString() { return $"[Attribute: {this.attribute.GetDebugString()}]"; }
 
     public override TokenLiteral Clone() { throw new TokenException(this, "Cannot clone an attribute."); }
@@ -228,12 +232,15 @@ public abstract class TokenNumberLiteral(int lineNumber) : TokenLiteral(lineNumb
     public override Typedef GetTypedef() { return Typedef.INTEGER; }
 }
 
+[TokenFriendlyName("string")]
 public sealed class TokenStringLiteral(string text, int lineNumber)
     : TokenLiteral(lineNumber), IPreprocessor, IImplicitToken, IIndexable, IDocumented
 {
     public readonly string text = text;
     [UsedImplicitly]
     private TokenStringLiteral() : this(null, -1) { }
+
+    public override string FriendlyTypeName => "string";
 
     public string GetDocumentation()
     {
@@ -285,7 +292,6 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
         }
     }
     public object GetValue() { return this.text; }
-
     public override string AsString() { return '"' + this.text + '"'; }
     public override TokenLiteral Clone() { return new TokenStringLiteral(this.text, this.lineNumber); }
     public override string ToString() { return this.text; }
@@ -387,6 +393,7 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
 /// <summary>
 ///     Represents a block state that has been explicitly specified.
 /// </summary>
+[TokenFriendlyName("block state")]
 public sealed class TokenBlockStateLiteral : TokenLiteral
 {
     private readonly BlockState blockState;
@@ -399,6 +406,7 @@ public sealed class TokenBlockStateLiteral : TokenLiteral
     {
         this.blockState = blockState;
     }
+    public override string FriendlyTypeName => "block state";
     public override string AsString() { return this.blockState.ToString(); }
     public override string ToString() { return this.blockState.ToString(); }
 
@@ -435,11 +443,13 @@ public sealed class TokenBlockStateLiteral : TokenLiteral
     public override TokenLiteral Clone() { return new TokenBlockStateLiteral(this.blockState, this.lineNumber); }
 }
 
+[TokenFriendlyName("true/false")]
 public sealed class TokenBooleanLiteral(bool boolean, int lineNumber)
     : TokenNumberLiteral(lineNumber), IPreprocessor, IDocumented
 {
     public readonly bool boolean = boolean;
     internal TokenBooleanLiteral() : this(false, -1) { }
+    public override string FriendlyTypeName => "true/false";
 
     public string GetDocumentation() { return "A value that can be either 'true' or 'false.'"; }
     public override object GetValue() { return this.boolean; }
@@ -482,18 +492,20 @@ public sealed class TokenBooleanLiteral(bool boolean, int lineNumber)
     }
 }
 
+[TokenFriendlyName("coordinate")]
 public class TokenCoordinateLiteral(Coordinate coordinate, int lineNumber)
     : TokenNumberLiteral(lineNumber), IDocumented
 {
     private readonly Coordinate coordinate = coordinate;
     internal TokenCoordinateLiteral() : this(new Coordinate(), -1) { }
 
+    public override string FriendlyTypeName => "coordinate";
+
     public string GetDocumentation()
     {
         return
             "A Minecraft coordinate value that can optionally be both relative and facing offset, like ~10, 40, or ^5.";
     }
-
     public override string AsString() { return this.coordinate.ToString(); }
     public override string ToString() { return this.coordinate.ToString(); }
     public override TokenLiteral Clone()
@@ -609,6 +621,7 @@ public enum IntMultiplier
     h = 72000
 }
 
+[TokenFriendlyName("integer")]
 public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
 {
     public static readonly IntMultiplier[] ALL_MULTIPLIERS = (IntMultiplier[]) Enum.GetValues(typeof(IntMultiplier));
@@ -630,6 +643,7 @@ public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
         this.multiplier = multiplier;
     }
 
+    public override string FriendlyTypeName => "integer";
     public new string GetDocumentation()
     {
         return
@@ -770,11 +784,13 @@ public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
     }
 }
 
+[TokenFriendlyName("range")]
 public sealed class TokenRangeLiteral(Range range, int lineNumber)
     : TokenLiteral(lineNumber), IPreprocessor, IIndexable, IDocumented
 {
     public Range range = range;
     internal TokenRangeLiteral() : this(new Range(), -1) { }
+    public override string FriendlyTypeName => "range";
 
     public string GetDocumentation()
     {
@@ -982,10 +998,12 @@ public sealed class TokenRangeLiteral(Range range, int lineNumber)
     }
 }
 
+[TokenFriendlyName("decimal")]
 public sealed class TokenDecimalLiteral(decimal number, int lineNumber)
     : TokenCoordinateLiteral(new Coordinate(number, true, false, false), lineNumber)
 {
     public readonly decimal number = number;
+    public override string FriendlyTypeName => "decimal";
     public override string AsString() { return this.number.ToString(); }
     public override TokenLiteral Clone() { return new TokenDecimalLiteral(this.number, this.lineNumber); }
     public override string ToString() { return this.number.ToString(); }
@@ -1043,9 +1061,7 @@ public sealed class TokenDecimalLiteral(decimal number, int lineNumber)
     }
 }
 
-/// <summary>
-///     A selector.
-/// </summary>
+[TokenFriendlyName("selector")]
 public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
 {
     public readonly Selector selector;
@@ -1065,13 +1081,14 @@ public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
         };
     }
 
+    public override string FriendlyTypeName => "selector";
+
     public string GetDocumentation()
     {
         return "A Minecraft selector that targets a specific entity or set of entities. Example: `@e[type=cow]`";
     }
 
     public object GetValue() { return this.selector; }
-
     public override string AsString() { return this.selector.ToString(); }
     /// <summary>
     ///     Validates the selector that is contained within this token and throws a <see cref="StatementException" /> if
@@ -1129,6 +1146,7 @@ public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
 /// <summary>
 ///     A literal holding a JSON value. Mostly used for indexing purposes.
 /// </summary>
+[TokenFriendlyName("JSON")]
 public class TokenJSONLiteral(JToken token, int lineNumber)
     : TokenLiteral(lineNumber), IPreprocessor, IIndexable, IDocumented
 {
@@ -1137,6 +1155,8 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
 
     public bool IsObject => this.token.Type == JTokenType.Object;
     public bool IsArray => this.token.Type == JTokenType.Array;
+
+    public override string FriendlyTypeName => "JSON";
 
     public string GetDocumentation()
     {
@@ -1187,7 +1207,6 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
     }
 
     public object GetValue() { return this.token; }
-
     public override string AsString() { return this.token.ToString(); }
     public override string ToString() { return this.token.ToString(); }
     public override TokenLiteral Clone() { return new TokenJSONLiteral(this.token, this.lineNumber); }

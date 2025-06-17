@@ -9,9 +9,11 @@ namespace mc_compiled.MCC.Compiler;
 /// <summary>
 ///     A token that represents some kind of operator like =, +=, +, %, [n], etc...
 /// </summary>
+[TokenFriendlyName("operator")]
 public class TokenOperator : Token
 {
     public TokenOperator(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "generic operator";
     public override string AsString() { return "<? generic>"; }
 }
 
@@ -131,9 +133,11 @@ public abstract class TokenIndexer : Token
 /// <summary>
 ///     Represents an unknown token indexer with some arbitrary number of tokens in it.
 /// </summary>
+[TokenFriendlyName("indexer [?]")]
 public sealed class TokenIndexerUnknown : TokenIndexer
 {
     public TokenIndexerUnknown(Token[] innerTokens, int lineNumber) : base(innerTokens, lineNumber) { }
+    public override string FriendlyTypeName => "indexer [?]";
     public override Token GetPrimaryToken() { return null; }
     public override bool ActuallyIndexes() { return false; }
 }
@@ -141,6 +145,7 @@ public sealed class TokenIndexerUnknown : TokenIndexer
 /// <summary>
 ///     An indexer giving an integer. Defaulted to this class with the value 0 when [] is given to the tokenizer.
 /// </summary>
+[TokenFriendlyName("indexer [integer]")]
 public sealed class TokenIndexerInteger : TokenIndexer
 {
     public readonly TokenIntegerLiteral token;
@@ -148,6 +153,7 @@ public sealed class TokenIndexerInteger : TokenIndexer
     {
         this.token = token;
     }
+    public override string FriendlyTypeName => "indexer [integer]";
     public override string AsString() { return $"[{this.token.number}]"; }
     public override Token GetPrimaryToken() { return this.token; }
     public override bool ActuallyIndexes() { return true; }
@@ -161,6 +167,7 @@ public sealed class TokenIndexerInteger : TokenIndexer
 /// <summary>
 ///     An indexer giving a string.
 /// </summary>
+[TokenFriendlyName("indexer [string]")]
 public sealed class TokenIndexerString : TokenIndexer
 {
     public readonly TokenStringLiteral token;
@@ -168,6 +175,7 @@ public sealed class TokenIndexerString : TokenIndexer
     {
         this.token = token;
     }
+    public override string FriendlyTypeName => "indexer [string]";
     public override string AsString() { return $"[\"{this.token.text}\"]"; }
     public override Token GetPrimaryToken() { return this.token; }
     public override bool ActuallyIndexes() { return true; }
@@ -176,10 +184,12 @@ public sealed class TokenIndexerString : TokenIndexer
 /// <summary>
 ///     An indexer indicating a range value.
 /// </summary>
+[TokenFriendlyName("indexer [range]")]
 public sealed class TokenIndexerRange : TokenIndexer
 {
     public readonly TokenRangeLiteral token;
     public TokenIndexerRange(TokenRangeLiteral token, int lineNumber) : base(token, lineNumber) { this.token = token; }
+    public override string FriendlyTypeName => "indexer [range]";
     public override string AsString() { return $"[\"{this.token.range.ToString()}\"]"; }
     public override Token GetPrimaryToken() { return this.token; }
     public override bool ActuallyIndexes() { return true; }
@@ -195,6 +205,7 @@ public sealed class TokenIndexerRange : TokenIndexer
 ///     An indexer indicating a set of block states.
 /// </summary>
 [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+[TokenFriendlyName("indexer [block state]")]
 public sealed class TokenIndexerBlockStates : TokenIndexer
 {
     public readonly List<TokenBlockStateLiteral> blockStates;
@@ -204,6 +215,8 @@ public sealed class TokenIndexerBlockStates : TokenIndexer
         this.blockStates = [];
         this.blockStates.AddRange(addStates);
     }
+    public override string FriendlyTypeName =>
+        this.blockStates.Count == 1 ? "indexer [block state]" : "indexer [block states]";
     public override string AsString() { return $"[{string.Join(", ", this.blockStates.Select(bs => bs.AsString()))}]"; }
     public override Token GetPrimaryToken() { return null; }
     public override bool ActuallyIndexes() { return false; }
@@ -212,6 +225,7 @@ public sealed class TokenIndexerBlockStates : TokenIndexer
 /// <summary>
 ///     An indexer giving a selector.
 /// </summary>
+[TokenFriendlyName("indexer [selector]")]
 public sealed class TokenIndexerSelector : TokenIndexer
 {
     public readonly TokenSelectorLiteral token;
@@ -219,6 +233,7 @@ public sealed class TokenIndexerSelector : TokenIndexer
     {
         this.token = token;
     }
+    public override string FriendlyTypeName => "indexer [selector]";
     public override string AsString() { return $"[{this.token.selector}]"; }
     public override Token GetPrimaryToken() { return this.token; }
     public override bool ActuallyIndexes() { return true; }
@@ -227,9 +242,11 @@ public sealed class TokenIndexerSelector : TokenIndexer
 /// <summary>
 ///     An indexer for a single asterisk character (*).
 /// </summary>
+[TokenFriendlyName("indexer [*]")]
 public sealed class TokenIndexerAsterisk : TokenIndexer
 {
     public TokenIndexerAsterisk(int lineNumber) : base(new TokenMultiply(lineNumber), lineNumber) { }
+    public override string FriendlyTypeName => "indexer [*]";
     public override string AsString() { return "*"; }
 
     public override Token GetPrimaryToken() { return new TokenMultiply(this.lineNumber); }
@@ -239,6 +256,7 @@ public sealed class TokenIndexerAsterisk : TokenIndexer
 /// <summary>
 ///     Represents a generic bracket, not open or closed.
 /// </summary>
+[TokenFriendlyName("bracket")]
 public class TokenBracket : TokenOperator
 {
     public TokenBracket(int lineNumber) : base(lineNumber) { }
@@ -248,6 +266,7 @@ public class TokenBracket : TokenOperator
 /// <summary>
 ///     Represents an opening bracket, extends TokenBracket.
 /// </summary>
+[TokenFriendlyName("open bracket")]
 public class TokenOpenBracket : TokenBracket
 {
     public TokenOpenBracket(int lineNumber) : base(lineNumber) { }
@@ -257,6 +276,7 @@ public class TokenOpenBracket : TokenBracket
 /// <summary>
 ///     Represents a closing bracket, extends TokenBracket.
 /// </summary>
+[TokenFriendlyName("close bracket")]
 public class TokenCloseBracket : TokenBracket
 {
     public TokenCloseBracket(int lineNumber) : base(lineNumber) { }
@@ -266,10 +286,12 @@ public class TokenCloseBracket : TokenBracket
 /// <summary>
 ///     Represents an opening bracket which groups tokens, extends TokenOpenBracket.
 /// </summary>
+[TokenFriendlyName("open bracket")]
 public abstract class TokenOpenGroupingBracket : TokenOpenBracket
 {
     public bool hasBeenSquashed = false; // used to prevent function squashing from recursively running forever
     public TokenOpenGroupingBracket(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "opening bracket";
     public abstract bool IsAssociated(TokenBracket bracket);
     public override string AsString() { return "<? grouping bracket open>"; }
 }
@@ -277,9 +299,11 @@ public abstract class TokenOpenGroupingBracket : TokenOpenBracket
 /// <summary>
 ///     Represents a closing bracket which groups tokens, extends TokenCloseBracket.
 /// </summary>
+[TokenFriendlyName("close bracket")]
 public abstract class TokenCloseGroupingBracket : TokenCloseBracket
 {
     public TokenCloseGroupingBracket(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "closing bracket";
     public override string AsString() { return "<? grouping bracket close>"; }
 }
 
@@ -308,12 +332,14 @@ public abstract class TokenArithmetic : TokenOperator
 public abstract class TokenArithmeticFirst : TokenArithmetic
 {
     public TokenArithmeticFirst(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "math operator";
     public override string AsString() { return "<? arithmatic first>"; }
 }
 
 public abstract class TokenArithmeticSecond : TokenArithmetic
 {
     public TokenArithmeticSecond(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "math operator";
     public override string AsString() { return "<? arithmatic second>"; }
 }
 
@@ -355,6 +381,8 @@ public abstract class TokenCompare : TokenOperator, IDocumented
     internal TokenCompare() : base(-1) { }
     public TokenCompare(int lineNumber) : base(lineNumber) { }
 
+    public override string FriendlyTypeName => "comparison operator";
+
     public string GetDocumentation() { return "Any comparison operator. Allowed values are: <, >, <=, >=, ==, !="; }
     /// <summary>
     ///     Returns the minecraft operator for the given TokenCompare.Type
@@ -374,7 +402,6 @@ public abstract class TokenCompare : TokenOperator, IDocumented
             _ => "??"
         };
     }
-
     public override string AsString() { return "<? compare>"; }
 
     public abstract Type GetCompareType();
@@ -395,6 +422,7 @@ public interface ITerminating { }
 /// </summary>
 public interface IUselessInformation { }
 
+[TokenFriendlyName("open parenthesis")]
 public sealed class TokenOpenParenthesis : TokenOpenGroupingBracket
 {
     public TokenOpenParenthesis(int lineNumber) : base(lineNumber) { }
@@ -405,12 +433,14 @@ public sealed class TokenOpenParenthesis : TokenOpenGroupingBracket
     }
 }
 
+[TokenFriendlyName("close parenthesis")]
 public sealed class TokenCloseParenthesis : TokenCloseGroupingBracket
 {
     public TokenCloseParenthesis(int lineNumber) : base(lineNumber) { }
     public override string AsString() { return ")"; }
 }
 
+[TokenFriendlyName("open indexer")]
 public sealed class TokenOpenIndexer : TokenOpenGroupingBracket
 {
     public TokenOpenIndexer(int lineNumber) : base(lineNumber) { }
@@ -421,18 +451,21 @@ public sealed class TokenOpenIndexer : TokenOpenGroupingBracket
     }
 }
 
+[TokenFriendlyName("close indexer")]
 public sealed class TokenCloseIndexer : TokenCloseGroupingBracket
 {
     public TokenCloseIndexer(int lineNumber) : base(lineNumber) { }
     public override string AsString() { return "]"; }
 }
 
+[TokenFriendlyName("open block")]
 public sealed class TokenOpenBlock : TokenOpenBracket, ITerminating
 {
     public TokenOpenBlock(int lineNumber) : base(lineNumber) { }
     public override string AsString() { return "{"; }
 }
 
+[TokenFriendlyName("close block")]
 public sealed class TokenCloseBlock : TokenCloseBracket, ITerminating
 {
     public TokenCloseBlock(int lineNumber) : base(lineNumber) { }
@@ -442,18 +475,22 @@ public sealed class TokenCloseBlock : TokenCloseBracket, ITerminating
 /// <summary>
 ///     The two dots in a range argument. 123..456
 /// </summary>
+[TokenFriendlyName("range dots (..)")]
 public sealed class TokenRangeDots : Token
 {
     public TokenRangeDots(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "range dots (..)";
     public override string AsString() { return ".."; }
 }
 
 /// <summary>
 ///     The inverter signaling to invert a range argument.
 /// </summary>
+[TokenFriendlyName("range invert (!)")]
 public sealed class TokenRangeInvert : Token
 {
     public TokenRangeInvert(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "range invert (!)";
     public override string AsString() { return "!"; }
 }
 
@@ -465,36 +502,44 @@ public abstract class TokenContinueCompareChain : TokenOperator
     public TokenContinueCompareChain(int lineNumber) : base(lineNumber) { }
 }
 
+[TokenFriendlyName("and")]
 public sealed class TokenAnd : TokenContinueCompareChain
 {
     public TokenAnd(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "and";
     public override string AsString() { return "and"; }
 }
 
+[TokenFriendlyName("or")]
 public sealed class TokenOr : TokenContinueCompareChain
 {
     public TokenOr(int lineNumber) : base(lineNumber) { }
+    public override string FriendlyTypeName => "or";
     public override string AsString() { return "or"; }
 }
 
+[TokenFriendlyName("not")]
 public sealed class TokenNot : TokenOperator
 {
     public TokenNot(int lineNumber) : base(lineNumber) { }
     public override string AsString() { return "not"; }
 }
 
+[TokenFriendlyName("dereference operator")]
 public sealed class TokenDeref : TokenOperator
 {
     public TokenDeref(int lineNumber) : base(lineNumber) { }
     public override string AsString() { return "$"; }
 }
 
+[TokenFriendlyName("assignment operator")]
 public sealed class TokenAssignment : TokenOperator, IAssignment
 {
     public TokenAssignment(int lineNumber) : base(lineNumber) { }
     public override string AsString() { return "="; }
 }
 
+[TokenFriendlyName("add operator")]
 public sealed class TokenAdd : TokenArithmeticSecond
 {
     public TokenAdd(int lineNumber) : base(lineNumber) { }
@@ -503,6 +548,7 @@ public sealed class TokenAdd : TokenArithmeticSecond
     public override Type GetArithmeticType() { return Type.ADD; }
 }
 
+[TokenFriendlyName("subtract operator")]
 public sealed class TokenSubtract : TokenArithmeticSecond
 {
     public TokenSubtract(int lineNumber) : base(lineNumber) { }
@@ -511,6 +557,7 @@ public sealed class TokenSubtract : TokenArithmeticSecond
     public override Type GetArithmeticType() { return Type.SUBTRACT; }
 }
 
+[TokenFriendlyName("multiply operator")]
 public sealed class TokenMultiply : TokenArithmeticFirst
 {
     public TokenMultiply(int lineNumber) : base(lineNumber) { }
@@ -519,6 +566,7 @@ public sealed class TokenMultiply : TokenArithmeticFirst
     public override Type GetArithmeticType() { return Type.MULTIPLY; }
 }
 
+[TokenFriendlyName("divide operator")]
 public sealed class TokenDivide : TokenArithmeticFirst
 {
     public TokenDivide(int lineNumber) : base(lineNumber) { }
@@ -527,6 +575,7 @@ public sealed class TokenDivide : TokenArithmeticFirst
     public override Type GetArithmeticType() { return Type.DIVIDE; }
 }
 
+[TokenFriendlyName("modulo operator")]
 public sealed class TokenModulo : TokenArithmeticFirst
 {
     public TokenModulo(int lineNumber) : base(lineNumber) { }
@@ -535,6 +584,7 @@ public sealed class TokenModulo : TokenArithmeticFirst
     public override Type GetArithmeticType() { return Type.MODULO; }
 }
 
+[TokenFriendlyName("add/assignment operator")]
 public sealed class TokenAddAssignment : TokenArithmeticSecond, IAssignment
 {
     public TokenAddAssignment(int lineNumber) : base(lineNumber) { }
@@ -543,6 +593,7 @@ public sealed class TokenAddAssignment : TokenArithmeticSecond, IAssignment
     public override Type GetArithmeticType() { return Type.ADD; }
 }
 
+[TokenFriendlyName("subtract/assignment operator")]
 public sealed class TokenSubtractAssignment : TokenArithmeticSecond, IAssignment
 {
     public TokenSubtractAssignment(int lineNumber) : base(lineNumber) { }
@@ -551,6 +602,7 @@ public sealed class TokenSubtractAssignment : TokenArithmeticSecond, IAssignment
     public override Type GetArithmeticType() { return Type.SUBTRACT; }
 }
 
+[TokenFriendlyName("multiply/assignment operator")]
 public sealed class TokenMultiplyAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenMultiplyAssignment(int lineNumber) : base(lineNumber) { }
@@ -559,6 +611,7 @@ public sealed class TokenMultiplyAssignment : TokenArithmeticFirst, IAssignment
     public override Type GetArithmeticType() { return Type.MULTIPLY; }
 }
 
+[TokenFriendlyName("divide/assignment operator")]
 public sealed class TokenDivideAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenDivideAssignment(int lineNumber) : base(lineNumber) { }
@@ -567,6 +620,7 @@ public sealed class TokenDivideAssignment : TokenArithmeticFirst, IAssignment
     public override Type GetArithmeticType() { return Type.DIVIDE; }
 }
 
+[TokenFriendlyName("modulo/assignment operator")]
 public sealed class TokenModuloAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenModuloAssignment(int lineNumber) : base(lineNumber) { }
@@ -575,6 +629,7 @@ public sealed class TokenModuloAssignment : TokenArithmeticFirst, IAssignment
     public override Type GetArithmeticType() { return Type.MODULO; }
 }
 
+[TokenFriendlyName("swap/assignment operator")]
 public sealed class TokenSwapAssignment : TokenArithmeticFirst, IAssignment
 {
     public TokenSwapAssignment(int lineNumber) : base(lineNumber) { }
@@ -583,6 +638,7 @@ public sealed class TokenSwapAssignment : TokenArithmeticFirst, IAssignment
     public override Type GetArithmeticType() { return Type.SWAP; }
 }
 
+[TokenFriendlyName("equality operator")]
 public sealed class TokenEquality : TokenCompare
 {
     public TokenEquality(int lineNumber) : base(lineNumber) { }
@@ -591,6 +647,7 @@ public sealed class TokenEquality : TokenCompare
     public override Type GetCompareType() { return Type.EQUAL; }
 }
 
+[TokenFriendlyName("inequality operator")]
 public sealed class TokenInequality : TokenCompare
 {
     public TokenInequality(int lineNumber) : base(lineNumber) { }
@@ -599,6 +656,7 @@ public sealed class TokenInequality : TokenCompare
     public override Type GetCompareType() { return Type.NOT_EQUAL; }
 }
 
+[TokenFriendlyName("less than operator")]
 public sealed class TokenLessThan : TokenCompare
 {
     public TokenLessThan(int lineNumber) : base(lineNumber) { }
@@ -607,6 +665,7 @@ public sealed class TokenLessThan : TokenCompare
     public override Type GetCompareType() { return Type.LESS; }
 }
 
+[TokenFriendlyName("greater than operator")]
 public sealed class TokenGreaterThan : TokenCompare
 {
     public TokenGreaterThan(int lineNumber) : base(lineNumber) { }
@@ -615,6 +674,7 @@ public sealed class TokenGreaterThan : TokenCompare
     public override Type GetCompareType() { return Type.GREATER; }
 }
 
+[TokenFriendlyName("less than or equal operator")]
 public sealed class TokenLessThanEqual : TokenCompare
 {
     public TokenLessThanEqual(int lineNumber) : base(lineNumber) { }
@@ -623,6 +683,7 @@ public sealed class TokenLessThanEqual : TokenCompare
     public override Type GetCompareType() { return Type.LESS_OR_EQUAL; }
 }
 
+[TokenFriendlyName("greater than or equal operator")]
 public sealed class TokenGreaterThanEqual : TokenCompare
 {
     public TokenGreaterThanEqual(int lineNumber) : base(lineNumber) { }

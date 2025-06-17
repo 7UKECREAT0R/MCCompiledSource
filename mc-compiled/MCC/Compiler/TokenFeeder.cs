@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC.Compiler;
@@ -131,7 +132,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     {
         if (this.currentToken >= this.tokens.Length)
             throw new FeederException(this,
-                $"Expected parameter '{parameterHint}' at end of line, type {typeof(T).Name}");
+                $"expected parameter '{parameterHint}' at end of line, type ");
 
         Token token = this.tokens[this.currentToken++];
 
@@ -139,7 +140,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
             return castedToken;
         if (token is not IImplicitToken implicitToken)
             throw new FeederException(this,
-                $"Invalid token type for parameter '{parameterHint}'. Expected {typeof(T).Name} but got {token.GetType().Name}");
+                $"invalid token type for parameter '{parameterHint}'. expected {typeof(T).GetFriendlyTokenName()} but got {token.FriendlyTypeName}");
 
         Type[] otherTypes = implicitToken.GetImplicitTypes();
 
@@ -148,7 +149,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
                 return implicitToken.Convert(this.executor, i) as T;
 
         throw new FeederException(this,
-            $"Invalid token type for parameter '{parameterHint}'. Expected {typeof(T).Name} but got {implicitToken.GetType().Name}");
+            $"invalid token type for parameter '{parameterHint}'. expected {typeof(T).GetFriendlyTokenName()} but got {implicitToken.GetType().GetFriendlyTokenName()}");
     }
     /// <summary>
     ///     Peeks at the next token in the feeder, casting it to the given type. Implements MCCompiled implicit conversions.
@@ -160,7 +161,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     public T Peek<T>(bool allowImplicit = true) where T : class
     {
         if (this.currentToken >= this.tokens.Length)
-            throw new FeederException(this, $"Token expected at end of line, type {typeof(T).Name}");
+            throw new FeederException(this, $"Token expected at end of line, type {typeof(T).GetFriendlyTokenName()}");
         Token token = this.tokens[this.currentToken];
 
         if (token is T validToken)
@@ -168,10 +169,11 @@ public class TokenFeeder(Token[] tokens) : ICloneable
 
         if (!allowImplicit)
             throw new FeederException(this,
-                $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType()}");
+                $"invalid token type. expected {typeof(T).GetFriendlyTokenName()} but got {token.FriendlyTypeName}");
 
         if (token is not IImplicitToken implicitToken)
-            throw new FeederException(this, $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType()}");
+            throw new FeederException(this,
+                $"invalid token type. expected {typeof(T).GetFriendlyTokenName()} but got {token.FriendlyTypeName}");
 
         Type[] otherTypes = implicitToken.GetImplicitTypes();
 
@@ -179,7 +181,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
             if (typeof(T).IsAssignableFrom(otherTypes[i]))
                 return implicitToken.Convert(this.executor, i) as T;
         throw new FeederException(this,
-            $"Invalid token type. Expected {typeof(T).Name} but got {token.GetType()}");
+            $"invalid token type. expected {typeof(T).GetFriendlyTokenName()} but got {token.FriendlyTypeName}");
     }
     /// <summary>
     ///     Returns if the next parameter (if any) is able to be casted to a certain type. Implements MCCompiled implicit
@@ -226,7 +228,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
         {
             if (enforceType)
                 throw new FeederException(this,
-                    $"Parameter here must be '{typeof(T).Name}', but got '{token.GetType().Name}'.");
+                    $"parameter here must be '{typeof(T).GetFriendlyTokenName()}', but got '{token.FriendlyTypeName}'.");
         }
     }
     /// <summary>
@@ -249,9 +251,11 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     ///     This method doesn't generally mutate the <see cref="TokenFeeder" />, but it does skip over useless tokens (such as
     ///     comments.)
     /// </param>
+    /// <param name="theToken">If there was a token to check, that token. Null if the feeder was out of tokens.</param>
     /// <param name="allowImplicit">Allow implicit conversions for the validation.</param>
     public bool NextMatchesParameter(SyntaxParameter parameter,
         out int uselessTokensConsumed,
+        [CanBeNull] out Token theToken,
         bool allowImplicit = true)
     {
         uselessTokensConsumed = 0;
@@ -262,12 +266,16 @@ public class TokenFeeder(Token[] tokens) : ICloneable
         }
 
         if (!this.HasNext)
+        {
+            theToken = null;
             return false;
-        if (parameter.blockConstraint)
-            return false;
+        }
 
-        Token next = Peek();
-        return next.MatchesParameter(parameter, allowImplicit);
+        theToken = Peek();
+
+        return parameter.blockConstraint
+            ? this.executor.NextIs<StatementOpenBlock>()
+            : theToken.MatchesParameter(parameter, allowImplicit);
     }
     /// <summary>
     ///     Determines whether the next meaningful token in the sequence matches the specified keyword. Case-insensitive.

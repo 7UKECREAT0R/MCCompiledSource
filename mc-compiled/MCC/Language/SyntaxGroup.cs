@@ -720,7 +720,7 @@ public class SyntaxGroup : ICloneable
         // no matches
         if (!childrenMatches.Any(m => m.result))
         {
-            // edge case: all children have keywords but none of them matched.
+            // edge case: all children have keywords, but none of them matched.
             // it's more helpful to display all possible keywords to the user instead of just one.
             if (childrenMatches.All(c => c.failReasons.All(f => f.keywordFix != null)))
             {

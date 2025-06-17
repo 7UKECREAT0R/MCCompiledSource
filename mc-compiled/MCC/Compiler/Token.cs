@@ -11,9 +11,14 @@ namespace mc_compiled.MCC.Compiler;
 public abstract class Token
 {
     public int lineNumber;
+    public Token() { this.lineNumber = -1; }
     public Token(int lineNumber) { this.lineNumber = lineNumber; }
     /// <summary>
-    ///     Get this token represented as it might look in the source file.
+    ///     Gets the user-friendly name of the type of token this is.
+    /// </summary>
+    public abstract string FriendlyTypeName { get; }
+    /// <summary>
+    ///     Gets this token represented as it might look in the source file.
     /// </summary>
     /// <returns></returns>
     public abstract string AsString();
@@ -55,18 +60,6 @@ public abstract class Token
         }
 
         return false;
-    }
-}
-
-public struct TokenDefinition
-{
-    public readonly Type type;
-    public readonly string keyword;
-
-    public TokenDefinition(Type type, string keyword)
-    {
-        this.type = type;
-        this.keyword = keyword;
     }
 }
 
