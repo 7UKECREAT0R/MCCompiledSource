@@ -32,6 +32,35 @@ public static class Language
     public static bool IsLoaded { get; private set; }
 
     /// <summary>
+    ///     Gets all defined directives in the language.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects
+    ///     representing all directives currently loaded in the language configuration.
+    ///     The returned collection includes both preprocessor and runtime directives.
+    /// </remarks>
+    public static IEnumerable<Directive> AllDirectives => directives.Values;
+    /// <summary>
+    ///     Gets all preprocessor directives defined in the language configuration.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects
+    ///     that are identified as preprocessor directives. A directive is considered a preprocessor directive
+    ///     if its <see cref="Directive.IsPreprocessor" /> property is <c>true</c>.
+    /// </remarks>
+    public static IEnumerable<Directive> AllPreprocessorDirectives => directives.Values.Where(d => d.IsPreprocessor);
+    /// <summary>
+    ///     Gets all runtime directives defined in the language configuration.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects,
+    ///     representing all directives that are not preprocessor directives within the language configuration.
+    ///     Runtime directives are identified as directives whose <see cref="Directive.IsPreprocessor" /> property is
+    ///     <c>false</c>.
+    /// </remarks>
+    public static IEnumerable<Directive> AllRuntimeDirectives => directives.Values.Where(d => !d.IsPreprocessor);
+
+    /// <summary>
     ///     Retrieves a <see cref="Directive" /> instance associated with the specified <paramref name="token" />.
     /// </summary>
     /// <param name="token">
@@ -194,7 +223,7 @@ public static class Language
     ///     If true, the syntax group will be deep-cloned before being returned.
     ///     Enable this option if you plan on mutating the accessed group in any way.
     /// </param>
-    /// <returns>A reference to the located syntax group, or <c>null</c> if it couldn't be found.</returns>
+    /// <returns>A reference to the located syntax group, or <c>null</c> if it could not be found.</returns>
     /// <example>
     ///     <code>
     /// gloaltitle.subcommand

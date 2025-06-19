@@ -10,6 +10,7 @@ using mc_compiled.Json;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Language;
+using mc_compiled.MCC.Language.SyntaxExporter;
 using mc_compiled.MCC.ServerWebSocket;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors;
@@ -167,65 +168,67 @@ internal static class Program
 
         switch (fileUpper)
         {
-            /*case "--SYNTAX":
+            case "--SYNTAX":
             {
                 string _target = args.Length == 1 ? null : args[1];
+                ConsoleColor originalColor = Console.ForegroundColor;
 
                 if (_target == "*")
                 {
-                    ConsoleColor color = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("Exporting all output targets...");
                     Console.ForegroundColor = ConsoleColor.White;
 
-                    foreach (KeyValuePair<string, SyntaxTarget> st in Syntax.syntaxTargets)
+                    foreach (SyntaxExporter exporter in SyntaxExporters.AllExporters)
                     {
-                        string stOutput = st.Value.GetFile();
-                        Console.WriteLine("\tExporting syntax file for target '{0}'... ({1})", st.Key, stOutput);
-
-                        using FileStream outputStream = File.Open(stOutput, FileMode.Create);
-                        using TextWriter writer = new StreamWriter(outputStream);
-                        st.Value.Write(writer);
+                        Console.WriteLine("\tExporting target '{0}'... ({1})", exporter.Identifier, exporter.FileName);
+                        exporter.ExportToFile();
                     }
 
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Completed exporting for {0} output targets.", Syntax.syntaxTargets.Count);
-                    Console.ForegroundColor = color;
+                    Console.WriteLine("Completed exporting for {0} output targets.",
+                        SyntaxExporters.AllExporters.Count);
+                    Console.ForegroundColor = originalColor;
                     return;
                 }
 
-                SyntaxTarget target = null;
+                SyntaxExporter target = null;
                 if (_target != null)
                 {
-                    Console.WriteLine("Looking up target {0}...", _target);
-                    target = Syntax.syntaxTargets[_target];
+                    Console.WriteLine("Looking up target '{0}'...", _target);
+                    target = SyntaxExporters.GetExporter(_target);
                 }
 
                 if (target == null)
                 {
-                    Console.WriteLine("Syntax Targets");
-                    Console.WriteLine("\t*: All available output targets individually.");
-                    foreach (KeyValuePair<string, SyntaxTarget> t in Syntax.syntaxTargets)
-                        Console.WriteLine("\t{0}: {1}", t.Key, t.Value.Describe());
+                    Console.WriteLine("Available Syntax Targets");
+
+                    Console.Write("\t*: ");
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine("All available output targets individually.");
+                    Console.ForegroundColor = originalColor;
+
+                    foreach (SyntaxExporter exporter in SyntaxExporters.AllExporters)
+                    {
+                        Console.Write("\t{0}: ", exporter.Identifier);
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine(exporter.Description);
+                        Console.ForegroundColor = originalColor;
+                    }
+
                     return;
                 }
 
-                string outputFile = target.GetFile();
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Exporting target '{0}'...", target.Identifier);
 
-                using (FileStream outputStream = File.Open(outputFile, FileMode.Create))
-                using (TextWriter writer = new StreamWriter(outputStream))
-                {
-                    ConsoleColor color = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("Exporting syntax file for target '{0}'...", _target);
-                    target.Write(writer);
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Completed. Output file: {0}", outputFile);
-                    Console.ForegroundColor = color;
-                }
+                target.ExportToFile();
 
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Completed. Output file: {0}", target.FileName);
+                Console.ForegroundColor = originalColor;
                 return;
-            }*/
+            }
             case "--SERVER":
             {
                 _ = new Definitions(contract.heldContext.debug);
