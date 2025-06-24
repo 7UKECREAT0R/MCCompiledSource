@@ -17,6 +17,30 @@ public static class Language
 {
     private const string FILE = "language.json";
 
+    public static readonly string[] KEYWORDS_OPERATORS =
+        ["<", ">", "{", "}", "=", "(", ")", "+", "-", "*", "/", "%", "!"];
+    public static readonly string[] KEYWORDS_SELECTORS =
+        ["@e", "@a", "@s", "@p", "@r"];
+    public static readonly string[] KEYWORDS_LITERALS =
+        ["true", "false", "not", "and", "null", "~", "^"];
+    public static readonly string[] KEYWORDS_TYPES =
+    [
+        "int", "decimal", "bool", "time", "global", "local", "extern", "export", "bind", "auto", "partial", "async"
+    ];
+    public static readonly string[] KEYWORDS_COMPARISONS =
+    [
+        "count", "any", "block", "blocks", "until", "align", "anchored", "as", "at", "facing", "if", "unless", "in",
+        "positioned", "rotated", "positioned as", "rotated as"
+    ];
+    public static readonly string[] KEYWORDS_COMMAND_OPTIONS =
+    [
+        "dummies", "autoinit", "exploders", "uninstall", "tests", "audiofiles", "up", "down", "left", "right",
+        "forward", "backward", "ascending", "descending", "survival", "creative", "adventure", "spectator", "removeall",
+        "times", "subtitle", "destroy", "replace", "hollow", "outline", "keep", "new", "open", "change",
+        "lockinventory", "lockslot", "canplaceon:", "candestroy:", "enchant:", "name:", "lore:", "author:", "title:",
+        "page:", "dye:", "text:", "button:", "onOpen:", "onClose:"
+    ];
+
     public static string[] builtinPreprocessorVariables;
     public static ImmutableList<FeatureDefinition> features;
 

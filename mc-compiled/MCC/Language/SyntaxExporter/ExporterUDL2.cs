@@ -215,7 +215,7 @@ public class ExporterUDL2() : SyntaxExporter("mcc-udl2.xml", "udl2", "Notepad++ 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Folders in comment, close"}, "");
 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords1"},
-                "@e @a @s @p @r");
+                string.Join(" ", Language.KEYWORDS_SELECTORS));
 
             string preprocessorDirectiveNames =
                 string.Join(" ", Language.AllPreprocessorDirectives.Select(d => d.name));
@@ -228,16 +228,19 @@ public class ExporterUDL2() : SyntaxExporter("mcc-udl2.xml", "udl2", "Notepad++ 
                 regularDirectiveNames);
 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords4"},
-                "true false not and null ~ ^");
+                string.Join(" ",
+                    Language.KEYWORDS_LITERALS.Select(k => k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords5"},
-                "int decimal bool time ppv extern export bind auto partial async global local");
+                string.Join(" ",
+                    Language.KEYWORDS_TYPES.Select(k => k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords6"},
-                "count any block blocks until align anchored as at facing if unless in positioned rotated");
+                string.Join(" ",
+                    Language.KEYWORDS_COMPARISONS.Select(k => k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords7"},
-                "dummies autoinit exploders uninstall tests audiofiles up down left right forward backward ascending " +
-                "descending survival creative adventure spectator removeall times subtitle destroy replace hollow outline keep " +
-                "new open change lockinventory lockslot canplaceon: candestroy: enchant: name: lore: author: title: page: dye: " +
-                "text: button: onOpen: onClose:");
+                string.Join(" ",
+                    Language.KEYWORDS_COMMAND_OPTIONS.Select(k =>
+                        k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
+
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords8"}, "");
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Delimiters"},
                 "00\" 01\\ 02((\" EOL)) 03[ 04 05((] EOL)) 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23");
