@@ -17,28 +17,63 @@ public static class Language
 {
     private const string FILE = "language.json";
 
-    public static readonly string[] KEYWORDS_OPERATORS =
-        ["<", ">", "{", "}", "=", "(", ")", "+", "-", "*", "/", "%", "!"];
-    public static readonly string[] KEYWORDS_SELECTORS =
-        ["@e", "@a", "@s", "@p", "@r"];
-    public static readonly string[] KEYWORDS_LITERALS =
-        ["true", "false", "not", "and", "null", "~", "^"];
-    public static readonly string[] KEYWORDS_TYPES =
+    public static readonly LanguageKeyword[] KEYWORDS_OPERATORS =
     [
-        "int", "decimal", "bool", "time", "global", "local", "extern", "export", "bind", "auto", "partial", "async"
+        new("<", "Checks if the current value is less than the next one."),
+        new(">", "Checks if the current value is greater than the next one."),
+        new("<=", "Checks if the current value is less than or equal to the next one."),
+        new(">=", "Checks if the current value is greater than or equal to the next one."),
+        new("{", "Opens a code block."),
+        new("}", "Closes a code block."),
+        new("=", "Assigns a value to whatever's on the left-hand side."),
+        new("==", "Checks if the current value is equal to the next one."),
+        new("!=", "Checks if the current value is not equal to the next one."),
+        new("(", "Open parenthesis."),
+        new(")", "Close parenthesis."),
+        new("+", "Adds the left and right values."),
+        new("-", "Subtracts the right value from the left value."),
+        new("*", "Multiplies the left and right values."),
+        new("/", "Divides the left value by the right value."),
+        new("%", "Divides the left value by the right value and returns the remainder."),
+        new("+=", "Adds the left and right values. Assigns the result to the left value."),
+        new("-=", "Subtracts the right value from the left value. Assigns the result to the left value."),
+        new("*=", "Multiplies the left and right values. Assigns the result to the left value."),
+        new("/=", "Divides the left value by the right value. Assigns the result to the left value."),
+        new("%=",
+            "Divides the left value by the right value and returns the remainder. Assigns the result to the left value."),
+        new("~", "Coordinate relative to the executing position."),
+        new("^", "Coordinate relative to where the executor is facing.")
     ];
-    public static readonly string[] KEYWORDS_COMPARISONS =
+    public static readonly LanguageKeyword[] KEYWORDS_SELECTORS =
     [
-        "count", "any", "block", "blocks", "until", "align", "anchored", "as", "at", "facing", "if", "unless", "in",
-        "positioned", "rotated", "positioned as", "rotated as"
+        new("@e", "Reference all entities."),
+        new("@a", "Reference all players."),
+        new("@s", "Reference the executing entity/player."),
+        new("@p", "Reference the nearest player."),
+        new("@r", "Reference a random entity.")
     ];
-    public static readonly string[] KEYWORDS_COMMAND_OPTIONS =
+    public static readonly LanguageKeyword[] KEYWORDS_LITERALS =
     [
-        "dummies", "autoinit", "exploders", "uninstall", "tests", "audiofiles", "up", "down", "left", "right",
+        new("true", "The boolean value 'true'."),
+        new("false", "The boolean value 'false'."),
+        new("null", "Defaults to 0, false, or null depending on the context. Represents nothing generically.")
+    ];
+    public static readonly List<LanguageKeyword> KEYWORDS_TYPES =
+    [
+        /*"int", "decimal", "bool", "time", "global", "local", "extern", "export", "bind", "auto", "partial", "async"*/
+    ];
+    public static readonly List<LanguageKeyword> KEYWORDS_COMPARISONS =
+    [
+        /*"count", "any", "block", "blocks", "until", "align", "anchored", "as", "at", "facing", "if", "unless", "in",
+        "positioned", "rotated", "positioned as", "rotated as"*/
+    ];
+    public static readonly List<LanguageKeyword> KEYWORDS_COMMAND_OPTIONS =
+    [
+        /*"dummies", "autoinit", "exploders", "uninstall", "tests", "audiofiles", "up", "down", "left", "right",
         "forward", "backward", "ascending", "descending", "survival", "creative", "adventure", "spectator", "removeall",
         "times", "subtitle", "destroy", "replace", "hollow", "outline", "keep", "new", "open", "change",
         "lockinventory", "lockslot", "canplaceon:", "candestroy:", "enchant:", "name:", "lore:", "author:", "title:",
-        "page:", "dye:", "text:", "button:", "onOpen:", "onClose:"
+        "page:", "dye:", "text:", "button:", "onOpen:", "onClose:"*/
     ];
 
     public static string[] builtinPreprocessorVariables;
@@ -131,8 +166,6 @@ public static class Language
             LineInfoHandling = LineInfoHandling.Load
         });
         LoadFromJSON(json);
-
-        IsLoaded = true;
     }
     private static void LoadFromJSON(JObject json)
     {
@@ -234,6 +267,29 @@ public static class Language
                     if (!directives.TryAdd(alias, directive))
                         throw new Exception($"Duplicate directive alias '{alias}'.");
         }
+
+        // harvest keywords from directives
+        foreach (Directive directive in directives.Values)
+        {
+            // type keywords are defined under the "define" command
+            if (directive.name.Equals("define"))
+            {
+                KEYWORDS_TYPES.AddRange(directive.CollectKeywords());
+                continue;
+            }
+
+            // comparison-related keywords are defined under the "if" command.
+            if (directive.name.Equals("if"))
+            {
+                KEYWORDS_COMPARISONS.AddRange(directive.CollectKeywords());
+                continue;
+            }
+
+            // everything else
+            KEYWORDS_COMMAND_OPTIONS.AddRange(directive.CollectKeywords());
+        }
+
+        IsLoaded = true;
     }
 
     /// <summary>
@@ -242,10 +298,6 @@ public static class Language
     /// <param name="query">
     ///     The query string, starting with the directive name, and then optionally traversing its children with
     ///     dots.
-    /// </param>
-    /// <param name="clone">
-    ///     If true, the syntax group will be deep-cloned before being returned.
-    ///     Enable this option if you plan on mutating the accessed group in any way.
     /// </param>
     /// <returns>A reference to the located syntax group, or <c>null</c> if it could not be found.</returns>
     /// <example>
@@ -257,7 +309,7 @@ public static class Language
     /// </code>
     /// </example>
     [CanBeNull]
-    public static SyntaxGroup QuerySyntaxGroup(string query, bool clone)
+    public static SyntaxGroup QuerySyntaxGroup(string query)
     {
         string[] _chunks = query.Split('.');
         if (_chunks.Length == 0)
@@ -277,8 +329,6 @@ public static class Language
                 return null;
         }
 
-        if (clone)
-            return (SyntaxGroup) currentGroup.Clone();
-        return currentGroup;
+        return (SyntaxGroup) currentGroup.Clone();
     }
 }

@@ -185,8 +185,8 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
     ///     The name of the array. If the name contains whitespace, it will be escaped and enclosed in double quotes.
     /// </param>
     /// <param name="values">
-    ///     An array of strings representing the values to include in the array. Each value will be wrapped in backticks and
-    ///     any backticks within the values will be escaped.
+    ///     An IEnumerable of strings representing the values to include in the array. Each value will be wrapped in
+    ///     backticks and any backticks within the values will be escaped.
     /// </param>
     /// <param name="endWithComma">
     ///     A boolean indicating whether a comma should be appended to the end of the array definition.
@@ -196,7 +196,7 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
     ///     <c>name: [value1, value2, ...]</c>. If <paramref name="endWithComma" /> is true, the output will end with a
     ///     comma. The method also ensures proper indentation is applied using the current indentation level.
     /// </remarks>
-    private void AddSimpleArray(string name, string[] values, bool endWithComma = true)
+    private void AddSimpleArray(string name, IEnumerable<string> values, bool endWithComma = true)
     {
         if (name.Any(char.IsWhiteSpace))
             name = '"' + name.Replace("\"", "\\\"") + '"';
@@ -216,7 +216,7 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
     ///     Adds a simple array of string values to the internal buffer in a JavaScript array format.
     /// </summary>
     /// <param name="values">
-    ///     An array of <see cref="string" /> values to be formatted as a JavaScript array. Each value in the array
+    ///     An IEnumerable of <see cref="string" /> values to be formatted as a JavaScript array. Each value in the array
     ///     will be enclosed in backticks (`) with escape handling for existing backticks.
     /// </param>
     /// <param name="endWithComma">
@@ -224,7 +224,7 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
     ///     If <paramref name="endWithComma" /> is <c>true</c>, a comma will be appended after the array. Otherwise, it will
     ///     not.
     /// </param>
-    private void AddSimpleArray(string[] values, bool endWithComma = true)
+    private void AddSimpleArray(IEnumerable<string> values, bool endWithComma = true)
     {
         AppendIndent();
         IEnumerable<string> stringedValues = values
@@ -288,6 +288,38 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
             this.buffer.Append(',');
         this.buffer.AppendLine();
     }
+    /// <summary>
+    ///     Adds a named constant array of keywords to the internal buffer.
+    /// </summary>
+    /// <param name="listName">
+    ///     The name of the constant array to define in the exported syntax file.
+    /// </param>
+    /// <param name="keywords">
+    ///     A collection of <see cref="LanguageKeyword" /> items that represent the keywords to include in the array.
+    ///     Each keyword contains an identifier and optional documentation.
+    /// </param>
+    /// <remarks>
+    ///     This method serializes the provided keywords into a constant array definition in the internal buffer.
+    ///     Each keyword is defined as a block with properties for the identifier and documentation.
+    ///     The array is concluded with proper syntax formatting.
+    /// </remarks>
+    private void AddKeywordList(string listName, IEnumerable<LanguageKeyword> keywords)
+    {
+        using (OpenConstArray(listName, true, false))
+        {
+            LanguageKeyword[] keywordArray = keywords.ToArray();
+            for (int i = 0; i < keywordArray.Length; i++)
+            {
+                LanguageKeyword keyword = keywordArray[i];
+                bool last = i == keywordArray.Length - 1;
+                using (OpenBlock(false, !last))
+                {
+                    AddSimpleProperty("word", keyword.identifier);
+                    AddSimpleProperty("docs", keyword.docs);
+                }
+            }
+        }
+    }
 
     public override string Export()
     {
@@ -297,18 +329,18 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
         // tokenizer definition
         using (OpenConstObject("mccompiled", true, false))
         {
-            AddSimpleArray("operators", Language.KEYWORDS_OPERATORS);
-            AddSimpleArray("selectors", Language.KEYWORDS_SELECTORS);
+            AddSimpleArray("operators", Language.KEYWORDS_OPERATORS.Select(k => k.identifier));
+            AddSimpleArray("selectors", Language.KEYWORDS_SELECTORS.Select(k => k.identifier));
 
             string[] preprocessorNames = Language.AllPreprocessorDirectives.Select(d => d.name).ToArray();
             string[] runtimeNames = Language.AllRuntimeDirectives.Select(d => d.name).ToArray();
             AddSimpleArray("preprocessor", preprocessorNames);
             AddSimpleArray("commands", runtimeNames);
 
-            AddSimpleArray("literals", Language.KEYWORDS_LITERALS);
-            AddSimpleArray("types", Language.KEYWORDS_TYPES);
-            AddSimpleArray("comparisons", Language.KEYWORDS_COMPARISONS);
-            AddSimpleArray("options", Language.KEYWORDS_COMMAND_OPTIONS);
+            AddSimpleArray("literals", Language.KEYWORDS_LITERALS.Select(k => k.identifier));
+            AddSimpleArray("types", Language.KEYWORDS_TYPES.Select(k => k.identifier));
+            AddSimpleArray("comparisons", Language.KEYWORDS_COMPARISONS.Select(k => k.identifier));
+            AddSimpleArray("options", Language.KEYWORDS_COMMAND_OPTIONS.Select(k => k.identifier));
 
             // tokenizer has a lot of static stuff that won't change, hold your horses.
             using (OpenPropertyObject("tokenizer", false, false))
@@ -446,6 +478,15 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
                 }
             }
         }
+
+        AddKeywordList("mcc_operators", Language.KEYWORDS_OPERATORS);
+        AddKeywordList("mcc_selectors", Language.KEYWORDS_SELECTORS);
+        AddKeywordList("mcc_literals", Language.KEYWORDS_LITERALS);
+        AddKeywordList("mcc_types", Language.KEYWORDS_TYPES);
+        AddKeywordList("mcc_options", Language.KEYWORDS_COMMAND_OPTIONS);
+        AddKeywordList("mcc_preprocessor", Language.AllPreprocessorDirectives.Select(d => d.AsKeyword));
+        AddKeywordList("mcc_commands", Language.AllRuntimeDirectives.Select(d => d.AsKeyword));
+        return this.buffer.ToString();
     }
 
     /// <summary>

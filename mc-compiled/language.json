@@ -141,7 +141,6 @@
     "coordinate": "TokenCoordinateLiteral",
     "range": "TokenRangeLiteral",
     "json": "TokenJSONLiteral",
-    "not": "TokenNot",
     "equals": "TokenAssignment",
     "open_paren": "TokenOpenParenthesis",
     "close_paren": "TokenCloseParenthesis",

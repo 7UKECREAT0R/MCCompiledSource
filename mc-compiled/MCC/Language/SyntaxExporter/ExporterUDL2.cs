@@ -229,17 +229,20 @@ public class ExporterUDL2() : SyntaxExporter("mcc-udl2.xml", "udl2", "Notepad++ 
 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords4"},
                 string.Join(" ",
-                    Language.KEYWORDS_LITERALS.Select(k => k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
+                    Language.KEYWORDS_LITERALS.Select(k =>
+                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords5"},
                 string.Join(" ",
-                    Language.KEYWORDS_TYPES.Select(k => k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
+                    Language.KEYWORDS_TYPES.Select(k =>
+                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords6"},
                 string.Join(" ",
-                    Language.KEYWORDS_COMPARISONS.Select(k => k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
+                    Language.KEYWORDS_COMPARISONS.Select(k =>
+                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords7"},
                 string.Join(" ",
                     Language.KEYWORDS_COMMAND_OPTIONS.Select(k =>
-                        k.Any(char.IsWhiteSpace) ? "&apos;" + k + "&apos;" : k)));
+                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords8"}, "");
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Delimiters"},

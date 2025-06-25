@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -20,6 +21,10 @@ public class Directive
     ///     The aliases for this directive; i.e., alternate names the user can use to specify it.
     /// </summary>
     public readonly string[] aliases;
+    /// <summary>
+    ///     Keywords which are associated with this directive.
+    /// </summary>
+    public readonly LanguageKeyword[] associatedKeywords = [];
     /// <summary>
     ///     The attributes applied to this directive that modify how it works.
     /// </summary>
@@ -102,6 +107,21 @@ public class Directive
     ///     Retrieves a reference to the syntax of this directive in MCCompiled.
     /// </summary>
     public SyntaxGroup Syntax => this._syntax;
+    /// <summary>
+    ///     Creates a <see cref="LanguageKeyword" /> structure representing this directive.
+    /// </summary>
+    internal LanguageKeyword AsKeyword => new(this.name, this.details);
+
+    /// <summary>
+    ///     Harvests a collection of keywords which are part of this directive's syntax.
+    /// </summary>
+    /// <returns>An <see cref="IEnumerable{T}" /> of keywords which contain an identifier and documentation respectively.</returns>
+    internal IEnumerable<LanguageKeyword> CollectKeywords()
+    {
+        List<LanguageKeyword> keywords = [];
+        this._syntax.CollectKeywords(keywords);
+        return keywords;
+    }
 
     /// <summary>
     ///     Parses a directive from a JSON property.
@@ -156,9 +176,10 @@ public class Directive
         {
             string query = syntaxRefToken.Value<string>() ??
                            throw new ArgumentException($"Syntax reference for {name} must be a string.");
-            syntax = Language.QuerySyntaxGroup(query, false);
+            syntax = Language.QuerySyntaxGroup(query);
             if (syntax == null)
                 throw new ArgumentException($"Couldn't resolve syntax reference '{query}'.");
+            syntax.isRef = true;
         }
         else
         {

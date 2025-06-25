@@ -113,6 +113,11 @@
           "pattern": "[a-zA-Z_.]+"
         }
       },
+      "dependencies": {
+        "keyword": [
+          "description"
+        ]
+      },
       "oneOf": [
         {
           "required": [

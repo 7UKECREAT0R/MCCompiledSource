@@ -51,6 +51,10 @@ public class SyntaxGroup : ICloneable
     ///     If this group's tokens are repeatable, or can only be specified once.
     /// </summary>
     public readonly bool repeatable;
+    /// <summary>
+    ///     If this group is the result of referencing another existing group.
+    /// </summary>
+    public bool isRef;
 
     /// <summary>
     ///     Create a new group that uses <see cref="SyntaxPatterns" /> as its content.
@@ -75,6 +79,7 @@ public class SyntaxGroup : ICloneable
         this.repeatable = repeatable;
         this.children = null;
         this.identifier = identifier;
+        this.isRef = false;
     }
     /// <summary>
     ///     Create a new group that uses another <see cref="SyntaxGroup" /> as its content.
@@ -99,13 +104,14 @@ public class SyntaxGroup : ICloneable
         this.repeatable = repeatable;
         this.patterns = null;
         this.identifier = identifier;
+        this.isRef = false;
     }
 
     /// <summary>
     ///     If present, the keyword required to reference this group. Keyword is documented by the group's
     ///     <see cref="description" />.
     /// </summary>
-    public string Keyword { get; private set; }
+    public LanguageKeyword? Keyword { get; private set; }
 
     /// <summary>
     ///     Returns if this group is <see cref="optional" />, or optional <see cref="blocking" />
@@ -115,7 +121,7 @@ public class SyntaxGroup : ICloneable
     ///     Returns if this group has no validation constraints, and thus should always match.
     /// </summary>
     public bool AlwaysMatches =>
-        string.IsNullOrEmpty(this.Keyword) &&
+        !this.Keyword.HasValue &&
         (this.hasChildren ? this.children.Length == 0 : this.patterns.Count == 0);
 
     public object Clone()
@@ -137,6 +143,23 @@ public class SyntaxGroup : ICloneable
         throw new InvalidOperationException(
             "Attempted to clone a syntax group that has no children or patterns. Identifier: " +
             (this.identifier ?? "unknown"));
+    }
+
+    /// <summary>
+    ///     Collects relevant keywords recursively from this syntax group.
+    /// </summary>
+    /// <param name="output">The list to output into. You can pass this down the chain.</param>
+    public void CollectKeywords(List<LanguageKeyword> output)
+    {
+        if (this.isRef)
+            return; // if this is the result of using a `ref` related operation, then there's no reason to include these keywords.
+
+        if (this.Keyword.HasValue)
+            output.Add(this.Keyword.Value);
+
+        if (this.hasChildren && this.children.Length > 0)
+            foreach (SyntaxGroup child in this.children)
+                child.CollectKeywords(output);
     }
 
     private static SyntaxPatterns ParseSimplePattern(string[] parameters,
@@ -178,6 +201,8 @@ public class SyntaxGroup : ICloneable
         if ((hasPatterns && hasChildren) || (hasPatterns && hasRef) || (hasChildren && hasRef))
             throw new FormatException(
                 $"Syntax group had multiple of `patterns`, `children`, or `ref` at '{json.Path}'");
+        if (keyword != null && description == null)
+            throw new FormatException($"Undocumented keyword at '{json.Path}'. Please add a 'description' property.");
 
         SyntaxGroup group = null;
 
@@ -243,22 +268,19 @@ public class SyntaxGroup : ICloneable
                 children);
         }
 
-        // IMPORTANT: as of now, the `Keyword` is the only thing that changes on the referenced syntax groups.
-        // if you make any more modifications to them, make sure to change this boolean as well.
-        bool shouldCloneRefGroups = keyword != null;
-
         // reference case, terminating
         if (hasRef)
         {
             string refName = _refToken.Value<string>() ??
                              throw new FormatException($"'ref' must be a string at '{_refToken.Path}'");
-            group = Language.QuerySyntaxGroup(refName, shouldCloneRefGroups) ??
+            group = Language.QuerySyntaxGroup(refName) ??
                     throw new FormatException(
                         $"Syntax group by reference '{refName}' could not be found. At '{_refToken.Path}'");
+            group.isRef = true;
         }
 
         if (keyword != null)
-            group.Keyword = keyword;
+            group.Keyword = new LanguageKeyword(keyword, description);
 
         return group;
     }
@@ -452,9 +474,10 @@ public class SyntaxGroup : ICloneable
 
         // check for keyword token first, since that always takes precedent
         bool matchedKeyword = false;
-        if (!string.IsNullOrEmpty(this.Keyword))
+        if (this.Keyword.HasValue)
         {
-            if (tokens.NextMatchesKeyword(this.Keyword, out keywordTokensConsmed))
+            string keywordRaw = this.Keyword.Value.identifier;
+            if (tokens.NextMatchesKeyword(keywordRaw, out keywordTokensConsmed))
             {
                 keywordTokensConsmed += 1; // include the keyword token itself
                 tokens.Location += keywordTokensConsmed; // move the TokenFeeder forward as well
@@ -464,7 +487,7 @@ public class SyntaxGroup : ICloneable
             {
                 outputConfidence = 0;
                 tokensConsumed = 0;
-                failReasons = [new SyntaxValidationError($"missing keyword '{this.Keyword}'", this.Keyword, null)];
+                failReasons = [new SyntaxValidationError($"missing keyword '{keywordRaw}'", keywordRaw, null)];
                 tokens.Location = initialTokenFeederLocation;
                 return false;
             }
@@ -761,7 +784,7 @@ public class SyntaxGroup : ICloneable
             sb.Append("' ");
         }
 
-        if (!string.IsNullOrEmpty(this.Keyword))
+        if (this.Keyword.HasValue)
         {
             sb.Append("keyword \"");
             sb.Append(this.Keyword);

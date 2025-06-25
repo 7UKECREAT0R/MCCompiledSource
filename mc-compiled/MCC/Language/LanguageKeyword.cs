@@ -3,12 +3,18 @@
 namespace mc_compiled.MCC.Language;
 
 /// <summary>
-/// A language keyword with optional documentation.
+///     A language keyword with optional documentation.
 /// </summary>
 /// <param name="identifier">The written identifier of this keyword.</param>
-/// <param name="docs"></param>
-public record LanguageKeyword(string identifier, string docs = null)
+/// <param name="docs">The documentation attached to this keyword. Never null.</param>
+public struct LanguageKeyword(string identifier, string docs = null)
 {
+    /// <summary>
+    ///     The written identifier of this keyword.
+    /// </summary>
     public readonly string identifier = identifier;
-    private readonly string docs = docs ?? "No documentation available for v" + Executor.MCC_VERSION;
+    /// <summary>
+    ///     The documentation attached to this keyword. Never null.
+    /// </summary>
+    public readonly string docs = docs ?? "No documentation available for v" + Executor.MCC_VERSION;
 }
