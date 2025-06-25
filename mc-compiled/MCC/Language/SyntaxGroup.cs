@@ -243,8 +243,8 @@ public class SyntaxGroup : ICloneable
                 children);
         }
 
-        // IMPORTANT: change this if you modify the method to change any more of the referenced SyntaxGroups.
-        // in this case, the `Keyword` property is changed if keyword != null, so it's cloned if that's going to happen.
+        // IMPORTANT: as of now, the `Keyword` is the only thing that changes on the referenced syntax groups.
+        // if you make any more modifications to them, make sure to change this boolean as well.
         bool shouldCloneRefGroups = keyword != null;
 
         // reference case, terminating
