@@ -137,9 +137,9 @@ internal class ConditionalSubcommandBlocks : ConditionalSubcommand
         this.destY = tokens.Next<TokenCoordinateLiteral>("destination Y");
         this.destZ = tokens.Next<TokenCoordinateLiteral>("destination Z");
 
-        ParsedEnumValue parsedEnum = tokens.Next<TokenIdentifierEnum>("scan mode").value;
-        parsedEnum.RequireType<BlocksScanMode>(tokens);
-        this.scanMode = (BlocksScanMode) parsedEnum.value;
+        RecognizedEnumValue recognizedEnum = tokens.Next<TokenIdentifierEnum>("scan mode").value;
+        recognizedEnum.RequireType<BlocksScanMode>(tokens);
+        this.scanMode = (BlocksScanMode) recognizedEnum.value;
     }
     public override string ToMinecraft()
     {

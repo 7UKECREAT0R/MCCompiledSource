@@ -6,6 +6,7 @@ using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler.Async;
 using mc_compiled.MCC.Functions;
+using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC.Compiler;
 
@@ -26,12 +27,9 @@ public sealed class TokenNewline : Token, ITerminating
 [TokenFriendlyName("command")]
 public sealed class TokenDirective : Token, IImplicitToken
 {
-    public readonly Language.Directive directive;
+    public readonly Directive directive;
 
-    public TokenDirective(Language.Directive directive, int lineNumber) : base(lineNumber)
-    {
-        this.directive = directive;
-    }
+    public TokenDirective(Directive directive, int lineNumber) : base(lineNumber) { this.directive = directive; }
 
     public override string FriendlyTypeName => "command";
 
@@ -122,7 +120,7 @@ public class TokenIdentifier : Token, IPreprocessor, IImplicitToken
         {
             CONVERT_STRING => new TokenStringLiteral(this.word, this.lineNumber),
             CONVERT_BUILDER => new TokenBuilderIdentifier(this.word, this.lineNumber),
-            CONVERT_ENUM => new TokenIdentifierEnum(this.word, ParsedEnumValue.None(this.word), this.lineNumber),
+            CONVERT_ENUM => new TokenIdentifierEnum(this.word, RecognizedEnumValue.None(this.word), this.lineNumber),
             _ => null
         };
     }
@@ -179,9 +177,9 @@ public sealed class TokenBuilderIdentifier : TokenIdentifier
 [TokenFriendlyName("enum value")]
 public sealed class TokenIdentifierEnum : TokenIdentifier, IDocumented
 {
-    public readonly ParsedEnumValue value;
+    public readonly RecognizedEnumValue value;
     internal TokenIdentifierEnum() : base(null, -1) { }
-    public TokenIdentifierEnum(string word, ParsedEnumValue value, int lineNumber) : base(word, lineNumber)
+    public TokenIdentifierEnum(string word, RecognizedEnumValue value, int lineNumber) : base(word, lineNumber)
     {
         this.value = value;
     }

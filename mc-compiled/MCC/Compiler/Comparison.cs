@@ -171,9 +171,9 @@ public class ComparisonSet : List<Comparison>
                             var scanMode = BlocksScanMode.all;
                             if (tokens.NextIs<TokenIdentifierEnum>(false))
                             {
-                                ParsedEnumValue parsed = tokens.Next<TokenIdentifierEnum>("scan mode").value;
-                                parsed.RequireType<BlocksScanMode>(tokens);
-                                scanMode = (BlocksScanMode) parsed.value;
+                                RecognizedEnumValue recognized = tokens.Next<TokenIdentifierEnum>("scan mode").value;
+                                recognized.RequireType<BlocksScanMode>(tokens);
+                                scanMode = (BlocksScanMode) recognized.value;
                             }
 
                             var blockCheck = new ComparisonBlocks(startX, startY, startZ,

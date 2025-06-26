@@ -58,10 +58,10 @@ public class Directive
     // Directive might overlap an enum value.
     // In the case this happens, it can use this field to help convert itself.
     /// <summary>
-    ///     This directive might overlap a <see cref="ParsedEnumValue" />. In the case
+    ///     This directive might overlap a <see cref="RecognizedEnumValue" />. In the case
     ///     this happens, it can use this field to help convert itself over.
     /// </summary>
-    public readonly ParsedEnumValue? overlappingEnumValue;
+    public readonly RecognizedEnumValue? overlappingEnumValue;
 
     /// <summary>
     ///     If present, the link to the wiki page which details this directive and how the user should use it.
@@ -95,7 +95,7 @@ public class Directive
         this.wikiLink = wikiLink;
         this._syntax = syntax;
 
-        if (CommandEnumParser.TryParse(name, out ParsedEnumValue result))
+        if (CommandEnumParser.TryParse(name, out RecognizedEnumValue result))
             this.overlappingEnumValue = result;
     }
 

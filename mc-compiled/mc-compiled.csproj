@@ -56,6 +56,11 @@
         <Content Include="update-website.bat"/>
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\mc-compiled.SourceGenerators\mc-compiled.SourceGenerators\mc-compiled.SourceGenerators.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false"/>
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2024.3.0"/>
         <PackageReference Include="Matarillo.IO" Version="1.0.0"/>
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>

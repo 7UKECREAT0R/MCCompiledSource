@@ -1847,7 +1847,7 @@ public static class DirectiveImplementations
                     canDestroy.Add(tokens.Next<TokenStringLiteral>("can destroy block"));
                     break;
                 case "ENCHANT":
-                    ParsedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>("enchantment").value;
+                    RecognizedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>("enchantment").value;
                     parsedEnchantment.RequireType<Enchantment>(tokens);
                     var enchantment = (Enchantment) parsedEnchantment.value;
                     int level = tokens.Next<TokenIntegerLiteral>("level");
@@ -2153,7 +2153,7 @@ public static class DirectiveImplementations
 
         if (tokens.NextIs<TokenIdentifierEnum>(true))
         {
-            ParsedEnumValue enumValue
+            RecognizedEnumValue enumValue
                 = tokens.Next<TokenIdentifierEnum>("old block handling").value;
             enumValue.RequireType<OldHandling>(tokens);
             handling = (OldHandling) enumValue.value;
@@ -2182,7 +2182,7 @@ public static class DirectiveImplementations
 
         if (tokens.NextIs<TokenIdentifierEnum>(false))
         {
-            ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
+            RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
             enumValue.RequireType<OldHandling>(tokens);
             handling = (OldHandling) enumValue.value;
         }
@@ -2572,7 +2572,7 @@ public static class DirectiveImplementations
                         case "EASE":
                         {
                             decimal duration = tokens.Next<TokenNumberLiteral>("ease duration").GetNumber();
-                            ParsedEnumValue _easeType = tokens.Next<TokenIdentifierEnum>("ease type").value;
+                            RecognizedEnumValue _easeType = tokens.Next<TokenIdentifierEnum>("ease type").value;
 
                             _easeType.RequireType<Easing>(tokens);
 
@@ -3159,7 +3159,7 @@ public static class DirectiveImplementations
 
         string command;
         var effectToken = tokens.Next<TokenIdentifierEnum>("effect");
-        ParsedEnumValue parsedEffect = effectToken.value;
+        RecognizedEnumValue parsedEffect = effectToken.value;
         parsedEffect.RequireType<PotionEffect>(tokens);
         var effect = (PotionEffect) parsedEffect.value;
 

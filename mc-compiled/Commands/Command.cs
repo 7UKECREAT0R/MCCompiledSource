@@ -45,10 +45,7 @@ public static class Command
         return commands;
     }
 
-    public static void ResetState()
-    {
-        UTIL.tags.Clear();
-    }
+    public static void ResetState() { UTIL.tags.Clear(); }
 
     /// <summary>
     ///     Throws a <see cref="StatementException" /> if the provided string contains any whitespace characters.
@@ -68,10 +65,7 @@ public static class Command
             throw new StatementException(callingStatement, $"The parameter {parameterName} cannot contain whitespace.");
     }
 
-    public static string String(this ItemSlot slot)
-    {
-        return slot.ToString().Replace('_', '.');
-    }
+    public static string String(this ItemSlot slot) { return slot.ToString().Replace('_', '.'); }
     public static string String(this ScoreboardOp op)
     {
         return op switch
@@ -88,24 +82,12 @@ public static class Command
             _ => "???"
         };
     }
-    public static string String(this StructureRotation rot)
-    {
-        return rot.ToString()[1..];
-    }
+    public static string String(this StructureRotation rot) { return rot.ToString()[1..]; }
 
-    public static string AlwaysDay(bool enabled)
-    {
-        return $"alwaysday {enabled.ToString().ToLower()}";
-    }
+    public static string AlwaysDay(bool enabled) { return $"alwaysday {enabled.ToString().ToLower()}"; }
 
-    public static string CameraClear(string players)
-    {
-        return $"camera {players} clear";
-    }
-    public static string CameraFade(string players)
-    {
-        return $"camera {players} fade";
-    }
+    public static string CameraClear(string players) { return $"camera {players} clear"; }
+    public static string CameraFade(string players) { return $"camera {players} fade"; }
     public static string CameraFade(string players, int red, int green, int blue)
     {
         return $"camera {players} fade color {red} {green} {blue}";
@@ -114,8 +96,13 @@ public static class Command
     {
         return $"camera {players} fade time {fadeInSeconds} {holdSeconds} {fadeOutSeconds}";
     }
-    public static string CameraFade(string players, decimal fadeInSeconds, decimal holdSeconds, decimal fadeOutSeconds,
-        int red, int green, int blue)
+    public static string CameraFade(string players,
+        decimal fadeInSeconds,
+        decimal holdSeconds,
+        decimal fadeOutSeconds,
+        int red,
+        int green,
+        int blue)
     {
         return $"camera {players} fade time {fadeInSeconds} {holdSeconds} {fadeOutSeconds} color {red} {green} {blue}";
     }
@@ -128,14 +115,8 @@ public static class Command
         return new CameraBuilder(players, namespacedPreset);
     }
 
-    public static string CameraShake(string target)
-    {
-        return $"camerashake add {target}";
-    }
-    public static string CameraShake(string target, float intensity)
-    {
-        return $"camerashake add {target} {intensity}";
-    }
+    public static string CameraShake(string target) { return $"camerashake add {target}"; }
+    public static string CameraShake(string target, float intensity) { return $"camerashake add {target} {intensity}"; }
     public static string CameraShake(string target, float intensity, float seconds)
     {
         return $"camerashake add {target} {intensity} {seconds}";
@@ -145,53 +126,48 @@ public static class Command
         return $"camerashake add {target} {intensity} {seconds} {shakeType}";
     }
 
-    public static string Clear()
-    {
-        return "clear";
-    }
-    public static string Clear(string target)
-    {
-        return $"clear {target}";
-    }
-    public static string Clear(string target, string item)
-    {
-        return $"clear {target} {item}";
-    }
-    public static string Clear(string target, string item, int data)
-    {
-        return $"clear {target} {item} {data}";
-    }
+    public static string Clear() { return "clear"; }
+    public static string Clear(string target) { return $"clear {target}"; }
+    public static string Clear(string target, string item) { return $"clear {target} {item}"; }
+    public static string Clear(string target, string item, int data) { return $"clear {target} {item} {data}"; }
     public static string Clear(string target, string item, int data, int maxCount)
     {
         return $"clear {target} {item} {data} {maxCount}";
     }
 
-    public static string ClearSpawnPoint(string target)
-    {
-        return $"clearspawnpoint {target}";
-    }
+    public static string ClearSpawnPoint(string target) { return $"clearspawnpoint {target}"; }
 
-    public static string Clone(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2,
-        Coordinate dstX, Coordinate dstY, Coordinate dstZ)
+    public static string Clone(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        Coordinate dstX,
+        Coordinate dstY,
+        Coordinate dstZ)
     {
         return $"clone {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ}";
     }
-    public static string Clone(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2,
-        Coordinate dstX, Coordinate dstY, Coordinate dstZ, bool copyAir, CloneMode mode)
+    public static string Clone(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        Coordinate dstX,
+        Coordinate dstY,
+        Coordinate dstZ,
+        bool copyAir,
+        CloneMode mode)
     {
         return $"clone {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ} " + (copyAir ? "replace" : "masked") +
                $" {mode}";
     }
 
-    public static string ConnectWSServer(string serverUri)
-    {
-        return $"wsserver {serverUri}";
-    }
+    public static string ConnectWSServer(string serverUri) { return $"wsserver {serverUri}"; }
 
-    public static string Damage(string target, int amount)
-    {
-        return $"damage {target} {amount}";
-    }
+    public static string Damage(string target, int amount) { return $"damage {target} {amount}"; }
     public static string Damage(string target, int amount, DamageCause cause)
     {
         return $"damage {target} {amount} {cause}";
@@ -201,10 +177,7 @@ public static class Command
         return $"damage {target} {amount} {cause} entity {damager}";
     }
 
-    public static string Deop(string target)
-    {
-        return $"deop {target}";
-    }
+    public static string Deop(string target) { return $"deop {target}"; }
 
     public static string DialogueChange(string npc, string sceneName)
     {
@@ -236,19 +209,10 @@ public static class Command
         return $"dialogue open {npc.AsCommandParameterString()} {players.AsCommandParameterString()} {scene.sceneTag}";
     }
 
-    public static string Difficulty(DifficultyMode difficulty)
-    {
-        return $"difficulty {difficulty}";
-    }
+    public static string Difficulty(DifficultyMode difficulty) { return $"difficulty {difficulty}"; }
 
-    public static string EffectClear(string target)
-    {
-        return $"effect {target} clear";
-    }
-    public static string Effect(string target, PotionEffect effect)
-    {
-        return $"effect {target} {effect}";
-    }
+    public static string EffectClear(string target) { return $"effect {target} clear"; }
+    public static string Effect(string target, PotionEffect effect) { return $"effect {target} {effect}"; }
     public static string Effect(string target, PotionEffect effect, int seconds)
     {
         return $"effect {target} {effect} {seconds}";
@@ -262,48 +226,72 @@ public static class Command
         return $"effect {target} {effect} {seconds} {amplifier} {hideParticles.ToString().ToLower()}";
     }
 
-    public static string Enchant(string target, Enchantment enchantment)
-    {
-        return $"effect {target} {enchantment}";
-    }
+    public static string Enchant(string target, Enchantment enchantment) { return $"effect {target} {enchantment}"; }
     public static string Enchant(string target, Enchantment enchantment, int level)
     {
         return $"effect {target} {enchantment} {level}";
     }
 
-    public static string Event(string target, string eventName)
-    {
-        return $"event entity {target} {eventName}";
-    }
+    public static string Event(string target, string eventName) { return $"event entity {target} {eventName}"; }
 
-    public static ExecuteBuilder Execute()
-    {
-        return new ExecuteBuilder();
-    }
+    public static ExecuteBuilder Execute() { return new ExecuteBuilder(); }
 
-    public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2,
+    public static string Fill(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
         string block)
     {
         return $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()}";
     }
-    public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2,
-        string block, int data)
+    public static string Fill(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        string block,
+        int data)
     {
         return $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} []";
     }
-    public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2,
-        string block, int data, OldHandling fillMode)
+    public static string Fill(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        string block,
+        int data,
+        OldHandling fillMode)
     {
         return $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} [] {fillMode}";
     }
-    public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2,
-        string block, int data, string replaceBlock)
+    public static string Fill(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        string block,
+        int data,
+        string replaceBlock)
     {
         return
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} [] replace {replaceBlock.AsCommandParameterString()} -1";
     }
-    public static string Fill(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2, Coordinate z2,
-        string block, int data, string replaceBlock, int replaceData)
+    public static string Fill(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        string block,
+        int data,
+        string replaceBlock,
+        int replaceData)
     {
         return
             $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} [] replace {replaceBlock.AsCommandParameterString()} {replaceData}";
@@ -322,41 +310,17 @@ public static class Command
         return $"fog {target} remove {userProvidedId.AsCommandParameterString()}";
     }
 
-    public static string Function(string name)
-    {
-        return $"function {name}";
-    }
-    public static string Function(CommandFile function)
-    {
-        return $"function {function.CommandReference}";
-    }
+    public static string Function(string name) { return $"function {name}"; }
+    public static string Function(CommandFile function) { return $"function {function.CommandReference}"; }
 
-    public static string Gamemode(string target, GameMode mode)
-    {
-        return $"gamemode {mode} {target}";
-    }
-    public static string Gamemode(string target, int mode)
-    {
-        return $"gamemode {mode} {target}";
-    }
+    public static string Gamemode(string target, GameMode mode) { return $"gamemode {mode} {target}"; }
+    public static string Gamemode(string target, int mode) { return $"gamemode {mode} {target}"; }
 
-    public static string Gamerule(GameRule rule, string value)
-    {
-        return $"gamerule {rule} {value}";
-    }
-    public static string Gamerule(string rule, string value)
-    {
-        return $"gamerule {rule} {value}";
-    }
+    public static string Gamerule(GameRule rule, string value) { return $"gamerule {rule} {value}"; }
+    public static string Gamerule(string rule, string value) { return $"gamerule {rule} {value}"; }
 
-    public static string Give(string target, string item)
-    {
-        return $"give {target} {item}";
-    }
-    public static string Give(string target, string item, int amount)
-    {
-        return $"give {target} {item} {amount}";
-    }
+    public static string Give(string target, string item) { return $"give {target} {item}"; }
+    public static string Give(string target, string item, int amount) { return $"give {target} {item} {amount}"; }
     public static string Give(string target, string item, int amount, int data)
     {
         return $"give {target} {item} {amount} {data}";
@@ -366,47 +330,20 @@ public static class Command
         return $"give {target} {item} {amount} {data} {json}";
     }
 
-    public static string Help()
-    {
-        return "help";
-    }
+    public static string Help() { return "help"; }
 
-    public static string ImmutableWorld(bool immutable)
-    {
-        return $"immutableworld {immutable.ToString().ToLower()}";
-    }
+    public static string ImmutableWorld(bool immutable) { return $"immutableworld {immutable.ToString().ToLower()}"; }
 
-    public static string Kick(string target)
-    {
-        return $"kick {target}";
-    }
-    public static string Kick(string target, string reason)
-    {
-        return $"kick {target} {reason}";
-    }
+    public static string Kick(string target) { return $"kick {target}"; }
+    public static string Kick(string target, string reason) { return $"kick {target} {reason}"; }
 
-    public static string Kill()
-    {
-        return "kill";
-    }
-    public static string Kill(string target)
-    {
-        return $"kill {target}";
-    }
+    public static string Kill() { return "kill"; }
+    public static string Kill(string target) { return $"kill {target}"; }
 
-    public static string List()
-    {
-        return "list";
-    }
+    public static string List() { return "list"; }
 
-    public static string Locate(StructureType type)
-    {
-        return $"locate {type}";
-    }
-    public static string Locate(string structureType)
-    {
-        return $"locate {structureType}";
-    }
+    public static string Locate(StructureType type) { return $"locate {type}"; }
+    public static string Locate(string structureType) { return $"locate {structureType}"; }
 
     public static string LootTable(Coordinate x, Coordinate y, Coordinate z, LootTable table)
     {
@@ -421,10 +358,7 @@ public static class Command
         return $"loot spawn {x} {y} {z} kill {entity}";
     }
 
-    public static string Me(string text)
-    {
-        return $"me {text}";
-    }
+    public static string Me(string text) { return $"me {text}"; }
 
     public static string MobEvent(MobEventType @event, bool value)
     {
@@ -434,51 +368,31 @@ public static class Command
     {
         return $"mobevent {@event} {value.ToString().ToLower()}";
     }
-    public static string MobEvent(MobEventType @event)
-    {
-        return $"mobevent minecraft:{@event}";
-    }
-    public static string MobEvent(string @event)
-    {
-        return $"mobevent {@event}";
-    }
-    public static string MobEventsDisable()
-    {
-        return "mobevent events_enabled false";
-    }
-    public static string MobEventsEnable()
-    {
-        return "mobevent events_enabled true";
-    }
+    public static string MobEvent(MobEventType @event) { return $"mobevent minecraft:{@event}"; }
+    public static string MobEvent(string @event) { return $"mobevent {@event}"; }
+    public static string MobEventsDisable() { return "mobevent events_enabled false"; }
+    public static string MobEventsEnable() { return "mobevent events_enabled true"; }
 
-    public static string Message(string target, string message)
-    {
-        return $"w {target} {message}";
-    }
+    public static string Message(string target, string message) { return $"w {target} {message}"; }
 
-    public static string MusicPlay(string track, float volume = 1f, float fadeSeconds = 0f,
+    public static string MusicPlay(string track,
+        float volume = 1f,
+        float fadeSeconds = 0f,
         MusicRepeatMode repeatMode = MusicRepeatMode.play_once)
     {
         return $"music play {track} {volume} {fadeSeconds} {repeatMode}";
     }
-    public static string MusicQueue(string track, float volume = 1f, float fadeSeconds = 0f,
+    public static string MusicQueue(string track,
+        float volume = 1f,
+        float fadeSeconds = 0f,
         MusicRepeatMode repeatMode = MusicRepeatMode.play_once)
     {
         return $"music queue {track} {volume} {fadeSeconds} {repeatMode}";
     }
-    public static string MusicStop(float fadeSeconds)
-    {
-        return $"music stop {fadeSeconds}";
-    }
-    public static string MusicVolume(float volume)
-    {
-        return $"music volume {volume}";
-    }
+    public static string MusicStop(float fadeSeconds) { return $"music stop {fadeSeconds}"; }
+    public static string MusicVolume(float volume) { return $"music volume {volume}"; }
 
-    public static string Op(string target)
-    {
-        return $"op {target}";
-    }
+    public static string Op(string target) { return $"op {target}"; }
 
     public static string Particle(string effect, Coordinate x, Coordinate y, Coordinate z)
     {
@@ -497,25 +411,26 @@ public static class Command
     {
         return $"playanimation {target} {animation} {nextState} {blendOutTime}";
     }
-    public static string PlayAnimation(string target, string animation, string nextState, float blendOutTime,
+    public static string PlayAnimation(string target,
+        string animation,
+        string nextState,
+        float blendOutTime,
         string molangStopCondition)
     {
         return $"playanimation {target} {animation} {nextState} {blendOutTime} {molangStopCondition}";
     }
-    public static string PlayAnimation(string target, string animation, string nextState, float blendOutTime,
-        string molangStopCondition, string controller)
+    public static string PlayAnimation(string target,
+        string animation,
+        string nextState,
+        float blendOutTime,
+        string molangStopCondition,
+        string controller)
     {
         return $"playanimation {target} {animation} {nextState} {blendOutTime} {molangStopCondition} {controller}";
     }
 
-    public static string PlaySound(string sound)
-    {
-        return $"playsound {sound}";
-    }
-    public static string PlaySound(string sound, string target)
-    {
-        return $"playsound {sound} {target}";
-    }
+    public static string PlaySound(string sound) { return $"playsound {sound}"; }
+    public static string PlaySound(string sound, string target) { return $"playsound {sound} {target}"; }
     public static string PlaySound(string sound, string target, Coordinate x, Coordinate y, Coordinate z)
     {
         return $"playsound {sound} {target} {x} {y} {z}";
@@ -524,13 +439,24 @@ public static class Command
     {
         return $"playsound {sound} {target} {x} {y} {z} {volume}";
     }
-    public static string PlaySound(string sound, string target, Coordinate x, Coordinate y, Coordinate z, float volume,
+    public static string PlaySound(string sound,
+        string target,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        float volume,
         float pitch)
     {
         return $"playsound {sound} {target} {x} {y} {z} {volume} {pitch}";
     }
-    public static string PlaySound(string sound, string target, Coordinate x, Coordinate y, Coordinate z, float volume,
-        float pitch, float minVolume)
+    public static string PlaySound(string sound,
+        string target,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        float volume,
+        float pitch,
+        float minVolume)
     {
         return $"playsound {sound} {target} {x} {y} {z} {volume} {pitch} {minVolume}";
     }
@@ -547,78 +473,105 @@ public static class Command
         return $"playsound {sound} {target} ~ ~ ~ {volume} {pitch} {minVolume}";
     }
 
-    public static string Reload()
-    {
-        return "reload";
-    }
+    public static string Reload() { return "reload"; }
 
-    public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling,
+    public static string ReplaceItemBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        int slot,
+        OldHandling handling,
         string item)
     {
         return $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item}";
     }
-    public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling,
-        string item, int amount)
+    public static string ReplaceItemBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        int slot,
+        OldHandling handling,
+        string item,
+        int amount)
     {
         return $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount}";
     }
-    public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling,
-        string item, int amount, int data)
+    public static string ReplaceItemBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        int slot,
+        OldHandling handling,
+        string item,
+        int amount,
+        int data)
     {
         return $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount} {data}";
     }
-    public static string ReplaceItemBlock(Coordinate x, Coordinate y, Coordinate z, int slot, OldHandling handling,
-        string item, int amount, int data, string json)
+    public static string ReplaceItemBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        int slot,
+        OldHandling handling,
+        string item,
+        int amount,
+        int data,
+        string json)
     {
         return $"replaceitem block {x} {y} {z} slot.container {slot} {handling} {item} {amount} {data} {json}";
     }
 
-    public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling,
+    public static string ReplaceItemEntity(string target,
+        ItemSlot slotType,
+        int slot,
+        OldHandling handling,
         string item)
     {
         return $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item}";
     }
-    public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling,
-        string item, int amount)
+    public static string ReplaceItemEntity(string target,
+        ItemSlot slotType,
+        int slot,
+        OldHandling handling,
+        string item,
+        int amount)
     {
         return $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount}";
     }
-    public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling,
-        string item, int amount, int data)
+    public static string ReplaceItemEntity(string target,
+        ItemSlot slotType,
+        int slot,
+        OldHandling handling,
+        string item,
+        int amount,
+        int data)
     {
         return $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount} {data}";
     }
-    public static string ReplaceItemEntity(string target, ItemSlot slotType, int slot, OldHandling handling,
-        string item, int amount, int data, string json)
+    public static string ReplaceItemEntity(string target,
+        ItemSlot slotType,
+        int slot,
+        OldHandling handling,
+        string item,
+        int amount,
+        int data,
+        string json)
     {
         return $"replaceitem entity {target} {slotType.String()} {slot} {handling} {item} {amount} {data} {json}";
     }
 
-    public static string Ride(string sources, string targets, TeleportRules tpRules = TeleportRules.teleport_rider,
+    public static string Ride(string sources,
+        string targets,
+        TeleportRules tpRules = TeleportRules.teleport_rider,
         RideFillType fillType = RideFillType.until_full)
     {
         return $"ride {sources} start_riding {targets} {tpRules} {fillType}";
     }
-    public static string RideDismount(string riders)
-    {
-        return $"ride {riders} stop_riding";
-    }
-    public static string RideEvictRiders(string rides)
-    {
-        return $"ride {rides} evict_riders";
-    }
-    public static string RideSummonRider(string rides, string entity)
-    {
-        return $"ride {rides} summon_rider {entity}";
-    }
+    public static string RideDismount(string riders) { return $"ride {riders} stop_riding"; }
+    public static string RideEvictRiders(string rides) { return $"ride {rides} evict_riders"; }
+    public static string RideSummonRider(string rides, string entity) { return $"ride {rides} summon_rider {entity}"; }
     public static string RideSummonRider(string rides, string entity, string nameTag)
     {
         return $"ride {rides} summon_rider {entity} none {nameTag.AsCommandParameterString()}";
     }
-    public static string RideSummonRide(string riders, string entity)
-    {
-        return $"ride {riders} summon_ride {entity}";
-    }
+    public static string RideSummonRide(string riders, string entity) { return $"ride {riders} summon_ride {entity}"; }
     public static string RideSummonRide(string riders, string entity, RideRules rules)
     {
         return $"ride {riders} summon_ride {entity} {rules}";
@@ -628,26 +581,19 @@ public static class Command
         return $"ride {riders} summon_ride {entity} {rules} none {nameTag.AsCommandParameterString()}";
     }
 
-    public static string SaveHold()
-    {
-        return "save hold";
-    }
-    public static string SaveQuery()
-    {
-        return "save query";
-    }
-    public static string SaveResume()
-    {
-        return "save resume";
-    }
+    public static string SaveHold() { return "save hold"; }
+    public static string SaveQuery() { return "save query"; }
+    public static string SaveResume() { return "save resume"; }
 
-    public static string Say(string message)
-    {
-        return $"say {message}";
-    }
+    public static string Say(string message) { return $"say {message}"; }
 
-    public static string ScheduleAreaLoaded(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2,
-        Coordinate z2, string function)
+    public static string ScheduleAreaLoaded(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        string function)
     {
         return $"schedule on_area_loaded add {x1} {y1} {z1} {x2} {y2} {z2}";
     }
@@ -660,10 +606,7 @@ public static class Command
         return $"schedule on_area_loaded add tickingarea {tickingArea} {function}";
     }
 
-    public static string ScoreboardCreateObjective(string name)
-    {
-        return $"scoreboard objectives add {name} dummy";
-    }
+    public static string ScoreboardCreateObjective(string name) { return $"scoreboard objectives add {name} dummy"; }
     public static string ScoreboardCreateObjective(string name, string display)
     {
         return
@@ -693,10 +636,7 @@ public static class Command
     {
         return $"scoreboard objectives setdisplay belowname {name.AsCommandParameterString()}";
     }
-    public static string ScoreboardList(string target)
-    {
-        return $"scoreboard players list {target}";
-    }
+    public static string ScoreboardList(string target) { return $"scoreboard players list {target}"; }
 
     public static string ScoreboardSet(string target, string objective, int value)
     {
@@ -859,30 +799,25 @@ public static class Command
     {
         return $"setblock {x} {y} {z} {block} []";
     }
-    public static string SetBlock(Coordinate x, Coordinate y, Coordinate z, string block, int data,
+    public static string SetBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
+        int data,
         OldHandling handling)
     {
         return $"setblock {x} {y} {z} {block} [] {handling}";
     }
 
-    public static string SetMaxPlayers(int max)
-    {
-        return $"setmaxplayers {max}";
-    }
+    public static string SetMaxPlayers(int max) { return $"setmaxplayers {max}"; }
 
     public static string SetWorldSpawn(Coordinate x, Coordinate y, Coordinate z)
     {
         return $"setworldspawn {x} {y} {z}";
     }
 
-    public static string Spawnpoint()
-    {
-        return "spawnpoint";
-    }
-    public static string Spawnpoint(string target)
-    {
-        return $"spawnpoint {target}";
-    }
+    public static string Spawnpoint() { return "spawnpoint"; }
+    public static string Spawnpoint(string target) { return $"spawnpoint {target}"; }
     public static string Spawnpoint(string target, Coordinate x, Coordinate y, Coordinate z)
     {
         return $"spawnpoint {target} {x} {y} {z}";
@@ -893,46 +828,68 @@ public static class Command
         return $"spreadplayers {x} {z} {spreadDistance} {maxRange} {targets.AsCommandParameterString()}";
     }
 
-    public static string Stop()
-    {
-        return "stop";
-    }
+    public static string Stop() { return "stop"; }
 
-    public static string StopSound(string target)
-    {
-        return $"stopsound {target}";
-    }
-    public static string StopSound(string target, string sound)
-    {
-        return $"stopsound {target} {sound}";
-    }
+    public static string StopSound(string target) { return $"stopsound {target}"; }
+    public static string StopSound(string target, string sound) { return $"stopsound {target} {sound}"; }
 
-    public static string StructureSaveDisk(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2,
-        Coordinate y2, Coordinate z2)
+    public static string StructureSaveDisk(string name,
+        Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2)
     {
         return $"structure save {name.AsCommandParameterString()} {x1} {y1} {z1} {x2} {y2} {z2} disk";
     }
-    public static string StructureSaveMemory(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2,
-        Coordinate y2, Coordinate z2)
+    public static string StructureSaveMemory(string name,
+        Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2)
     {
         return $"structure save {name.AsCommandParameterString()} {x1} {y1} {z1} {x2} {y2} {z2} memory";
     }
-    public static string StructureSaveDisk(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2,
-        Coordinate y2, Coordinate z2, bool includeEntities, bool includeBlocks = true)
+    public static string StructureSaveDisk(string name,
+        Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        bool includeEntities,
+        bool includeBlocks = true)
     {
         return
             $"structure save {name.AsCommandParameterString()} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} disk {includeBlocks.ToString().ToLower()}";
     }
-    public static string StructureSaveMemory(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2,
-        Coordinate y2, Coordinate z2, bool includeEntities, bool includeBlocks = true)
+    public static string StructureSaveMemory(string name,
+        Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        bool includeEntities,
+        bool includeBlocks = true)
     {
         return
             $"structure save {name.AsCommandParameterString()} {x1} {y1} {z1} {x2} {y2} {z2} {includeEntities} memory {includeBlocks.ToString().ToLower()}";
     }
-    public static string StructureLoad(string name, Coordinate x, Coordinate y, Coordinate z,
+    public static string StructureLoad(string name,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
         StructureRotation rotation = StructureRotation._0_degrees,
-        StructureMirror flip = StructureMirror.none, bool includeEntities = true, bool includeBlocks = true,
-        bool waterLogged = false, float integrity = 100, string seed = null)
+        StructureMirror flip = StructureMirror.none,
+        bool includeEntities = true,
+        bool includeBlocks = true,
+        bool waterLogged = false,
+        float integrity = 100,
+        string seed = null)
     {
         if (seed == null)
             return
@@ -941,12 +898,19 @@ public static class Command
         return
             $"structure load {name.AsCommandParameterString()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
     }
-    public static string StructureLoad(string name, Coordinate x, Coordinate y, Coordinate z,
+    public static string StructureLoad(string name,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
         StructureRotation rotation = StructureRotation._0_degrees,
         StructureMirror flip = StructureMirror.none,
         StructureAnimationMode animation = StructureAnimationMode.layer_by_layer,
-        float animationSeconds = 0, bool includeEntities = true, bool includeBlocks = true, bool waterLogged = false,
-        float integrity = 100, string seed = null)
+        float animationSeconds = 0,
+        bool includeEntities = true,
+        bool includeBlocks = true,
+        bool waterLogged = false,
+        float integrity = 100,
+        string seed = null)
     {
         if (seed == null)
             return
@@ -955,15 +919,9 @@ public static class Command
         return
             $"structure load {name.AsCommandParameterString()} {x} {y} {z} {rotation.String()} {flip} {animation} {animationSeconds} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
     }
-    public static string StructureDelete(string name)
-    {
-        return $"structure delete {name.AsCommandParameterString()}";
-    }
+    public static string StructureDelete(string name) { return $"structure delete {name.AsCommandParameterString()}"; }
 
-    public static string Summon(string entity)
-    {
-        return $"summon {entity}";
-    }
+    public static string Summon(string entity) { return $"summon {entity}"; }
     public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z)
     {
         return $"summon {entity} {x} {y} {z}";
@@ -972,23 +930,43 @@ public static class Command
     {
         return $"summon {entity} {nameTag.AsCommandParameterString()} {x} {y} {z}";
     }
-    public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot,
+    public static string Summon(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate yRot,
         Coordinate xRot)
     {
         return $"summon {entity} {x} {y} {z} {yRot} {xRot}";
     }
-    public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot,
-        Coordinate xRot, string nameTag)
+    public static string Summon(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate yRot,
+        Coordinate xRot,
+        string nameTag)
     {
         return $"summon {entity} {x} {y} {z} {yRot} {xRot} \"\" {nameTag.AsCommandParameterString()}";
     }
-    public static string Summon(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot,
-        Coordinate xRot, string nameTag, string spawnEvent)
+    public static string Summon(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate yRot,
+        Coordinate xRot,
+        string nameTag,
+        string spawnEvent)
     {
         return $"summon {entity} {x} {y} {z} {yRot} {xRot} {spawnEvent} {nameTag.AsCommandParameterString()}";
     }
-    public static string SummonWithEvent(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot,
-        Coordinate xRot, string spawnEvent)
+    public static string SummonWithEvent(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate yRot,
+        Coordinate xRot,
+        string spawnEvent)
     {
         return $"summon {entity} {x} {y} {z} {yRot} {xRot} {spawnEvent}";
     }
@@ -996,40 +974,77 @@ public static class Command
     {
         return $"summon {entity} {x} {y} {z} facing {facingSelector}";
     }
-    public static string SummonFacing(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate faceX,
-        Coordinate faceY, Coordinate faceZ)
+    public static string SummonFacing(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate faceX,
+        Coordinate faceY,
+        Coordinate faceZ)
     {
         return $"summon {entity} {x} {y} {z} facing {faceX} {faceY} {faceZ}";
     }
-    public static string SummonFacing(string entity, Coordinate x, Coordinate y, Coordinate z, string facingSelector,
+    public static string SummonFacing(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string facingSelector,
         string nameTag)
     {
         return $"summon {entity} {x} {y} {z} facing {facingSelector} \"\" {nameTag.AsCommandParameterString()}";
     }
-    public static string SummonFacing(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate faceX,
-        Coordinate faceY, Coordinate faceZ, string nameTag)
+    public static string SummonFacing(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate faceX,
+        Coordinate faceY,
+        Coordinate faceZ,
+        string nameTag)
     {
         return $"summon {entity} {x} {y} {z} facing {faceX} {faceY} {faceZ} \"\" {nameTag.AsCommandParameterString()}";
     }
-    public static string SummonFacing(string entity, Coordinate x, Coordinate y, Coordinate z, string facingSelector,
-        string nameTag, string spawnEvent)
+    public static string SummonFacing(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string facingSelector,
+        string nameTag,
+        string spawnEvent)
     {
         return
             $"summon {entity} {x} {y} {z} facing {facingSelector} {spawnEvent.AsCommandParameterString()} {nameTag.AsCommandParameterString()}";
     }
-    public static string SummonFacing(string entity, Coordinate x, Coordinate y, Coordinate z, Coordinate faceX,
-        Coordinate faceY, Coordinate faceZ, string nameTag, string spawnEvent)
+    public static string SummonFacing(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate faceX,
+        Coordinate faceY,
+        Coordinate faceZ,
+        string nameTag,
+        string spawnEvent)
     {
         return
             $"summon {entity} {x} {y} {z} facing {faceX} {faceY} {faceZ} {spawnEvent.AsCommandParameterString()} {nameTag.AsCommandParameterString()}";
     }
-    public static string SummonFacingWithEvent(string entity, Coordinate x, Coordinate y, Coordinate z,
-        string facingSelector, string eventName)
+    public static string SummonFacingWithEvent(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string facingSelector,
+        string eventName)
     {
         return $"summon {entity} {x} {y} {z} facing {facingSelector} {eventName.AsCommandParameterString()}";
     }
-    public static string SummonFacingWithEvent(string entity, Coordinate x, Coordinate y, Coordinate z,
-        Coordinate faceX, Coordinate faceY, Coordinate faceZ, string eventName)
+    public static string SummonFacingWithEvent(string entity,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate faceX,
+        Coordinate faceY,
+        Coordinate faceZ,
+        string eventName)
     {
         return $"summon {entity} {x} {y} {z} facing {faceX} {faceY} {faceZ} {eventName.AsCommandParameterString()}";
     }
@@ -1042,10 +1057,7 @@ public static class Command
     {
         return $"tag {targets.AsCommandParameterString()} remove {tag.AsCommandParameterString()}";
     }
-    public static string TagList(string targets)
-    {
-        return $"tag {targets.AsCommandParameterString()} list";
-    }
+    public static string TagList(string targets) { return $"tag {targets.AsCommandParameterString()} list"; }
 
     public static string Teleport(string otherEntity, bool checkForBlocks = false)
     {
@@ -1059,7 +1071,11 @@ public static class Command
     {
         return $"tp {x} {y} {z} {checkForBlocks.ToString().ToLower()}";
     }
-    public static string Teleport(Coordinate x, Coordinate y, Coordinate z, Coordinate yRot, Coordinate xRot,
+    public static string Teleport(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate yRot,
+        Coordinate xRot,
         bool checkForBlocks = false)
     {
         return $"tp {x} {y} {z} {yRot} {xRot} {checkForBlocks.ToString().ToLower()}";
@@ -1068,53 +1084,64 @@ public static class Command
     {
         return $"tp {target} {x} {y} {z} {checkForBlocks.ToString().ToLower()}";
     }
-    public static string Teleport(string target, Coordinate x, Coordinate y, Coordinate z, Coordinate yRot,
-        Coordinate xRot, bool checkForBlocks = false)
+    public static string Teleport(string target,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate yRot,
+        Coordinate xRot,
+        bool checkForBlocks = false)
     {
         return $"tp {target} {x} {y} {z} {yRot} {xRot} {checkForBlocks.ToString().ToLower()}";
     }
-    public static string TeleportFacing(Coordinate x, Coordinate y, Coordinate z, Coordinate facingX,
-        Coordinate facingY, Coordinate facingZ, bool checkForBlocks = false)
+    public static string TeleportFacing(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate facingX,
+        Coordinate facingY,
+        Coordinate facingZ,
+        bool checkForBlocks = false)
     {
         return $"tp {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks.ToString().ToLower()}";
     }
-    public static string TeleportFacing(Coordinate x, Coordinate y, Coordinate z, string facingEntity,
+    public static string TeleportFacing(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string facingEntity,
         bool checkForBlocks = false)
     {
         return $"tp {x} {y} {z} facing {facingEntity} {checkForBlocks.ToString().ToLower()}";
     }
-    public static string TeleportFacing(string target, Coordinate x, Coordinate y, Coordinate z, Coordinate facingX,
-        Coordinate facingY, Coordinate facingZ, bool checkForBlocks = false)
+    public static string TeleportFacing(string target,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        Coordinate facingX,
+        Coordinate facingY,
+        Coordinate facingZ,
+        bool checkForBlocks = false)
     {
         return $"tp {target} {x} {y} {z} facing {facingX} {facingY} {facingZ} {checkForBlocks.ToString().ToLower()}";
     }
-    public static string TeleportFacing(string target, Coordinate x, Coordinate y, Coordinate z, string facingEntity,
+    public static string TeleportFacing(string target,
+        Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string facingEntity,
         bool checkForBlocks = false)
     {
         return $"tp {target} {x} {y} {z} facing {facingEntity} {checkForBlocks.ToString().ToLower()}";
     }
 
-    public static string Tellraw(string jsonMessage)
-    {
-        return $"tellraw @a {jsonMessage}";
-    }
-    public static string Tellraw(string targets, string jsonMessage)
-    {
-        return $"tellraw {targets} {jsonMessage}";
-    }
-    public static string Tellraw(JObject jsonMessage)
-    {
-        return $"tellraw @a {jsonMessage.ToString(Formatting.None)}";
-    }
+    public static string Tellraw(string jsonMessage) { return $"tellraw @a {jsonMessage}"; }
+    public static string Tellraw(string targets, string jsonMessage) { return $"tellraw {targets} {jsonMessage}"; }
+    public static string Tellraw(JObject jsonMessage) { return $"tellraw @a {jsonMessage.ToString(Formatting.None)}"; }
     public static string Tellraw(string targets, JObject jsonMessage)
     {
         return $"tellraw {targets} {jsonMessage.ToString(Formatting.None)}";
     }
 
-    public static string TestFor(string targets)
-    {
-        return $"testfor {targets}";
-    }
+    public static string TestFor(string targets) { return $"testfor {targets}"; }
 
     public static string TestForBlock(Coordinate x, Coordinate y, Coordinate z, string block)
     {
@@ -1125,19 +1152,38 @@ public static class Command
         return $"testforblock {x} {y} {z} {block} []";
     }
 
-    public static string TestForBlocks(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2,
-        Coordinate z2, Coordinate dstX, Coordinate dstY, Coordinate dstZ)
+    public static string TestForBlocks(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        Coordinate dstX,
+        Coordinate dstY,
+        Coordinate dstZ)
     {
         return $"testforblocks {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ}";
     }
-    public static string TestForBlocksMasked(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2,
-        Coordinate z2, Coordinate dstX, Coordinate dstY, Coordinate dstZ)
+    public static string TestForBlocksMasked(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2,
+        Coordinate dstX,
+        Coordinate dstY,
+        Coordinate dstZ)
     {
         return $"testforblocks {x1} {y1} {z1} {x2} {y2} {z2} {dstX} {dstY} {dstZ} masked";
     }
 
-    public static string TickingAreaAdd(string name, Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2,
-        Coordinate y2, Coordinate z2)
+    public static string TickingAreaAdd(string name,
+        Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
+        Coordinate z2)
     {
         return $"tickingarea add {x1} {y1} {z1} {x2} {y2} {z2} {name.AsCommandParameterString()}";
     }
@@ -1153,120 +1199,45 @@ public static class Command
     {
         return $"tickingarea remove {x1} {y1} {z1}";
     }
-    public static string TickingAreaRemoveAll()
-    {
-        return "tickingarea remove_all";
-    }
-    public static string TickingAreaList()
-    {
-        return "tickingarea list";
-    }
-    public static string TickingAreaListAll()
-    {
-        return "tickingarea list all-dimensions";
-    }
+    public static string TickingAreaRemoveAll() { return "tickingarea remove_all"; }
+    public static string TickingAreaList() { return "tickingarea list"; }
+    public static string TickingAreaListAll() { return "tickingarea list all-dimensions"; }
 
-    public static string TimeAdd(int ticks)
-    {
-        return $"time add {ticks}";
-    }
-    public static string TimeSet(int ticks)
-    {
-        return $"time set {ticks}";
-    }
-    public static string TimeSet(TimeSpec spec)
-    {
-        return $"time set {spec}";
-    }
-    public static string TimeGet(TimeQuery query)
-    {
-        return $"time query {query}";
-    }
+    public static string TimeAdd(int ticks) { return $"time add {ticks}"; }
+    public static string TimeSet(int ticks) { return $"time set {ticks}"; }
+    public static string TimeSet(TimeSpec spec) { return $"time set {spec}"; }
+    public static string TimeGet(TimeQuery query) { return $"time query {query}"; }
 
-    public static string TitleClear(string target)
-    {
-        return $"titleraw {target} clear";
-    }
-    public static string TitleReset(string target)
-    {
-        return $"titleraw {target} reset";
-    }
-    public static string TitleSubtitle(string target, string json)
-    {
-        return $"titleraw {target} subtitle {json}";
-    }
-    public static string TitleActionBar(string target, string json)
-    {
-        return $"titleraw {target} actionbar {json}";
-    }
-    public static string Title(string target, string json)
-    {
-        return $"titleraw {target} title {json}";
-    }
+    public static string TitleClear(string target) { return $"titleraw {target} clear"; }
+    public static string TitleReset(string target) { return $"titleraw {target} reset"; }
+    public static string TitleSubtitle(string target, string json) { return $"titleraw {target} subtitle {json}"; }
+    public static string TitleActionBar(string target, string json) { return $"titleraw {target} actionbar {json}"; }
+    public static string Title(string target, string json) { return $"titleraw {target} title {json}"; }
     public static string TitleTimes(string target, int fadeIn, int stay, int fadeOut)
     {
         return $"titleraw {target} times {fadeIn} {stay} {fadeOut}";
     }
 
-    public static string ToggleDownfall()
-    {
-        return "toggledownfall";
-    }
+    public static string ToggleDownfall() { return "toggledownfall"; }
 
-    public static string Weather(WeatherState state)
-    {
-        return $"weather {state}";
-    }
-    public static string Weather(WeatherState state, int durationTicks)
-    {
-        return $"weather {state} {durationTicks}";
-    }
-    public static string WeatherQuery()
-    {
-        return "weather query";
-    }
+    public static string Weather(WeatherState state) { return $"weather {state}"; }
+    public static string Weather(WeatherState state, int durationTicks) { return $"weather {state} {durationTicks}"; }
+    public static string WeatherQuery() { return "weather query"; }
 
-    public static string Whitelist(string player)
-    {
-        return $"whitelist add {player.AsCommandParameterString()}";
-    }
+    public static string Whitelist(string player) { return $"whitelist add {player.AsCommandParameterString()}"; }
     public static string WhitelistRemove(string player)
     {
         return $"whitelist remove {player.AsCommandParameterString()}";
     }
-    public static string WhitelistList()
-    {
-        return "whitelist list";
-    }
-    public static string WhitelistOff()
-    {
-        return "whitelist off";
-    }
-    public static string WhitelistOn()
-    {
-        return "whitelist on";
-    }
-    public static string WhitelistReload()
-    {
-        return "whitelist reload";
-    }
+    public static string WhitelistList() { return "whitelist list"; }
+    public static string WhitelistOff() { return "whitelist off"; }
+    public static string WhitelistOn() { return "whitelist on"; }
+    public static string WhitelistReload() { return "whitelist reload"; }
 
-    public static string Xp(int amount)
-    {
-        return $"xp {amount}";
-    }
-    public static string XpL(int amount)
-    {
-        return $"xp {amount}L";
-    }
-    public static string Xp(int amount, string target)
-    {
-        return $"xp {amount} {target}";
-    }
-    public static string XpL(int amount, string target)
-    {
-        return $"xp {amount}L {target}";
-    }
+    public static string Xp(int amount) { return $"xp {amount}"; }
+    public static string XpL(int amount) { return $"xp {amount}L"; }
+    public static string Xp(int amount, string target) { return $"xp {amount} {target}"; }
+    public static string XpL(int amount, string target) { return $"xp {amount}L {target}"; }
 
     /// <summary>
     ///     Command utils that require instance stuff.
@@ -1395,16 +1366,12 @@ public struct IndexedTag
     public int index;
 
     public string Tag => this.name + this.index;
-    public static implicit operator string(IndexedTag tag)
-    {
-        return tag.Tag;
-    }
+    public static implicit operator string(IndexedTag tag) { return tag.Tag; }
 }
 
 public enum CameraShakeType
 {
-    positional,
-    rotational
+    positional, rotational
 }
 
 public enum CameraPreset
@@ -1416,7 +1383,7 @@ public enum CameraPreset
     third_person_front
 }
 
-[EnumParsable(typeof(Easing))]
+[UsableInMCC]
 public enum Easing
 {
     linear,
@@ -1455,12 +1422,10 @@ public enum Easing
 
 public enum CloneMode
 {
-    force,
-    move,
-    normal
+    force, move, normal
 }
 
-[EnumParsable(typeof(DifficultyMode))]
+[UsableInMCC]
 public enum DifficultyMode
 {
     peaceful = 0,
@@ -1469,17 +1434,23 @@ public enum DifficultyMode
     hard = 3
 }
 
-[EnumParsable(typeof(OldHandling))]
+[UsableInMCC]
 public enum OldHandling
 {
+    /// <summary>
+    ///     Destroys any previous blocks.
+    /// </summary>
     destroy,
+    /// <summary>
+    ///     Keeps any previously existing blocks.
+    /// </summary>
     keep,
     hollow,
     outline,
     replace
 }
 
-[EnumParsable(typeof(PotionEffect))]
+[UsableInMCC]
 public enum PotionEffect
 {
     speed = 1,
@@ -1514,7 +1485,7 @@ public enum PotionEffect
     darkness = -1
 }
 
-[EnumParsable(typeof(Enchantment))]
+[UsableInMCC]
 public enum Enchantment
 {
     protection,
@@ -1557,7 +1528,7 @@ public enum Enchantment
     swift_sneak
 }
 
-[EnumParsable(typeof(GameMode))]
+[UsableInMCC]
 public enum GameMode
 {
     survival = 0,
@@ -1566,7 +1537,7 @@ public enum GameMode
     spectator = 6
 }
 
-[EnumParsable(typeof(DamageCause))]
+[UsableInMCC]
 public enum DamageCause
 {
     all,
@@ -1604,7 +1575,7 @@ public enum DamageCause
     wither
 }
 
-[EnumParsable(typeof(GameRule))]
+[UsableInMCC]
 public enum GameRule
 {
     commandBlocksEnabled,
@@ -1638,7 +1609,7 @@ public enum GameRule
     showTags
 }
 
-[EnumParsable(typeof(StructureType))]
+[UsableInMCC]
 public enum StructureType
 {
     bastionremnant,
@@ -1657,20 +1628,18 @@ public enum StructureType
     village
 }
 
-[EnumParsable(typeof(MobEventType))]
+[UsableInMCC]
 public enum MobEventType
 {
-    pillager_patrols_event,
-    wandering_trader_event
+    pillager_patrols_event, wandering_trader_event
 }
 
 public enum MusicRepeatMode
 {
-    play_once,
-    loop
+    play_once, loop
 }
 
-[EnumParsable(typeof(ItemSlot))]
+[UsableInMCC]
 public enum ItemSlot
 {
     slot_armor,
@@ -1678,42 +1647,34 @@ public enum ItemSlot
     slot_armor_chest,
     slot_armor_legs,
     slot_armor_feet,
-
     slot_weapon_mainhand,
     slot_weapon_offhand,
-
     slot_container,
     slot_chest,
     slot_enderchest,
     slot_saddle,
-
     slot_hotbar,
     slot_inventory
 }
 
 public enum RideFillType
 {
-    if_group_fits,
-    until_full
+    if_group_fits, until_full
 }
 
 public enum RideRules
 {
-    no_ride_change,
-    reassign_rides,
-    skip_riders
+    no_ride_change, reassign_rides, skip_riders
 }
 
 public enum TeleportRules
 {
-    teleport_ride,
-    teleport_rider
+    teleport_ride, teleport_rider
 }
 
 public enum ScoreboardOrdering
 {
-    ascending,
-    descending
+    ascending, descending
 }
 
 public enum ScoreboardOp
@@ -1747,18 +1708,15 @@ public enum StructureMirror
 
 public enum StructureAnimationMode
 {
-    block_by_block,
-    layer_by_layer
+    block_by_block, layer_by_layer
 }
 
 public enum TimeQuery
 {
-    daytime,
-    gametime,
-    day
+    daytime, gametime, day
 }
 
-[EnumParsable(typeof(TimeSpec))]
+[UsableInMCC]
 public enum TimeSpec
 {
     day = 1000,
@@ -1771,29 +1729,23 @@ public enum TimeSpec
 
 public enum WeatherState
 {
-    clear,
-    rain,
-    thunder
+    clear, rain, thunder
 }
 
-[EnumParsable(typeof(AnchorPosition))]
+[UsableInMCC]
 public enum AnchorPosition
 {
-    eyes,
-    feet
+    eyes, feet
 }
 
-[EnumParsable(typeof(Dimension))]
+[UsableInMCC]
 public enum Dimension
 {
-    nether,
-    overworld,
-    the_end
+    nether, overworld, the_end
 }
 
-[EnumParsable(typeof(BlocksScanMode))]
+[UsableInMCC]
 public enum BlocksScanMode
 {
-    all,
-    masked
+    all, masked
 }

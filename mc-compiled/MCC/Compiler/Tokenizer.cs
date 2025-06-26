@@ -6,6 +6,7 @@ using System.Text;
 using JetBrains.Annotations;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Selectors;
+using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC.Compiler;
 
@@ -369,12 +370,12 @@ public class Tokenizer
             return new TokenBuilderIdentifier(word, CURRENT_LINE);
 
         // check for directive
-        Language.Directive directive = Language.Language.QueryDirective(word);
+        Directive directive = Language.Language.QueryDirective(word);
         if (directive != null)
             return new TokenDirective(directive, CURRENT_LINE);
 
         // check for enum constant
-        if (CommandEnumParser.TryParse(word, out ParsedEnumValue enumValue))
+        if (CommandEnumParser.TryParse(word, out RecognizedEnumValue enumValue))
             return new TokenIdentifierEnum(word, enumValue, CURRENT_LINE);
 
         return new TokenIdentifier(word, CURRENT_LINE);

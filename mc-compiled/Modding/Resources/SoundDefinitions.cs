@@ -29,23 +29,14 @@ public class SoundDefinitions : IAddonFile
     }
 
     public string CommandReference => null;
-    public string GetExtendedDirectory()
-    {
-        return null;
-    }
-    public string GetOutputFile()
-    {
-        return FILE;
-    }
+    public string GetExtendedDirectory() { return null; }
+    public string GetOutputFile() { return FILE; }
     public byte[] GetOutputData()
     {
         JObject output = ToJSON();
         return Encoding.UTF8.GetBytes(output.ToString());
     }
-    public OutputLocation GetOutputLocation()
-    {
-        return OutputLocation.r_SOUNDS;
-    }
+    public OutputLocation GetOutputLocation() { return OutputLocation.r_SOUNDS; }
 
     public void AddSoundDefinition(SoundDefinition soundDefinition)
     {
@@ -185,7 +176,7 @@ public class SoundDefinition
     }
 }
 
-[EnumParsable(typeof(SoundCategory))]
+[UsableInMCC]
 public enum SoundCategory
 {
     [UsedImplicitly]
