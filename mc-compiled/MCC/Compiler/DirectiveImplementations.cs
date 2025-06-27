@@ -3317,6 +3317,29 @@ public static class DirectiveImplementations
     }
 
     [UsedImplicitly]
+    public static void gamemode(Executor executor, Statement tokens)
+    {
+        RecognizedEnumValue gamemode = tokens.Next<TokenIdentifierEnum>("gamemode").value;
+        gamemode.RequireType<GameMode>(tokens);
+        var mode = (GameMode) gamemode.value;
+        string target;
+
+        if (tokens.NextIs<TokenSelectorLiteral>(true))
+        {
+            Selector selector = tokens.Next<TokenSelectorLiteral>("players").selector;
+            if (selector.AnyNonPlayers)
+                throw new StatementException(tokens, $"The selector {selector} may target non-players.");
+            target = selector.ToString();
+        }
+        else
+        {
+            target = Selector.SELF.ToString();
+        }
+
+        executor.AddCommand(Command.Gamemode(target, mode));
+    }
+
+    [UsedImplicitly]
     public static void execute(Executor executor, Statement tokens)
     {
         var builder = new ExecuteBuilder();

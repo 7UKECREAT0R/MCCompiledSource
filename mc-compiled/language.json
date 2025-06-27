@@ -1886,6 +1886,15 @@
         "z:coordinate?"
       ]
     },
+    "gamemode": {
+      "description": "Set Gamemode",
+      "details": "Sets the gamemode of the executing player or other players if specified.",
+      "category": "entities",
+      "syntax": [
+        "gamemode:id<gamemode>",
+        "players:selector?"
+      ]
+    },
     "dummy": {
       "description": "Manage Dummy Entities",
       "wiki_link": "Optional-Features.md#dummies",
