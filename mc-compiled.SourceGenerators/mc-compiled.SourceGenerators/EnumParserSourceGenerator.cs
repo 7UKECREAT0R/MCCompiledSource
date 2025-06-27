@@ -56,6 +56,9 @@ public class EnumParserSourceGenerator : ISourceGenerator
                 .Append("\t\t\t// members from ")
                 .AppendLine(enumFullyQualifiedName);
 
+            string? enumDocumentationRaw = enumTypeSymbol.GetDocumentationCommentXml();
+            string? enumDocumentation = enumDocumentationRaw == null ? null : GetXMLDocSummary(enumDocumentationRaw);
+
             IEnumerable<IFieldSymbol> enumMembers = enumTypeSymbol
                 .GetMembers()
                 .OfType<IFieldSymbol>()
@@ -65,10 +68,13 @@ public class EnumParserSourceGenerator : ISourceGenerator
             {
                 string memberName = enumMember.Name;
                 string? memberDocumentationRaw = enumMember.GetDocumentationCommentXml();
-                string memberDocumentation = GetXMLDocSummary(memberDocumentationRaw);
+                string? memberDocumentation = (GetXMLDocSummary(memberDocumentationRaw) ??
+                                               (enumDocumentation ?? "No documentation available."))
+                    .Replace("\"", "\\\"");
 
-                string objectCreation =
-                    $"new RecognizedEnumValue(typeof({enumFullyQualifiedName}), {enumFullyQualifiedName}.{EscapeLanguageKeyword(memberName)}, \"\"\"\n{memberDocumentation}\n\"\"\")";
+                string objectCreation = memberDocumentation.Contains("\n")
+                    ? $"new RecognizedEnumValue(typeof({enumFullyQualifiedName}), {enumFullyQualifiedName}.{EscapeLanguageKeyword(memberName)}, \"\"\"\n{memberDocumentation}\n\"\"\")"
+                    : $"new RecognizedEnumValue(typeof({enumFullyQualifiedName}), {enumFullyQualifiedName}.{EscapeLanguageKeyword(memberName)}, \"{memberDocumentation}\")";
 
                 // base entry
                 sourceBuilder.Append($"\t\t\tCommandEnumParser.Put(\"{memberName}\", ").Append(objectCreation)
@@ -101,10 +107,10 @@ public class EnumParserSourceGenerator : ISourceGenerator
         return keyword;
     }
 
-    private static string GetXMLDocSummary(string? xmlDocumentation)
+    private static string? GetXMLDocSummary(string? xmlDocumentation)
     {
         if (string.IsNullOrEmpty(xmlDocumentation))
-            return "No documentation available.";
+            return null;
 
         try
         {

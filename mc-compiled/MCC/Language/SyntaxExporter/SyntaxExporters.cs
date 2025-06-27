@@ -8,7 +8,11 @@ namespace mc_compiled.MCC.Language.SyntaxExporter;
 /// </summary>
 public static class SyntaxExporters
 {
-    private static readonly SyntaxExporter[] ALL_EXPORTERS = [];
+    private static readonly SyntaxExporter[] ALL_EXPORTERS =
+    [
+        new ExporterUDL2(),
+        new ExporterMonarch()
+    ];
     private static readonly Dictionary<string, SyntaxExporter> EXPORTERS_BY_IDENTIFIER =
         new(StringComparer.OrdinalIgnoreCase);
 

@@ -97,9 +97,9 @@ public class SoundDefinitions : IAddonFile
     /// <returns>The sound definition corresponding to the specified key.</returns>
     public SoundDefinition GetSoundDefinition(string key)
     {
-        if (!this.soundDefinitions.ContainsKey(key))
+        if (!this.soundDefinitions.TryGetValue(key, out SoundDefinition value))
             throw new KeyNotFoundException($"The key {key} does not exist in the sound definitions.");
-        return this.soundDefinitions[key];
+        return value;
     }
 }
 
@@ -176,6 +176,10 @@ public class SoundDefinition
     }
 }
 
+/// <summary>
+///     Categorization of a sound effect. This does matter if the player has the volume adjusted per-category in the
+///     settings.
+/// </summary>
 [UsableInMCC]
 public enum SoundCategory
 {

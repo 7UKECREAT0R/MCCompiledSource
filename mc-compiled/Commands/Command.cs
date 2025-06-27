@@ -559,7 +559,7 @@ public static class Command
 
     public static string Ride(string sources,
         string targets,
-        TeleportRules tpRules = TeleportRules.teleport_rider,
+        RideTeleportRules tpRules = RideTeleportRules.teleport_rider,
         RideFillType fillType = RideFillType.until_full)
     {
         return $"ride {sources} start_riding {targets} {tpRules} {fillType}";
@@ -572,13 +572,13 @@ public static class Command
         return $"ride {rides} summon_rider {entity} none {nameTag.AsCommandParameterString()}";
     }
     public static string RideSummonRide(string riders, string entity) { return $"ride {riders} summon_ride {entity}"; }
-    public static string RideSummonRide(string riders, string entity, RideRules rules)
+    public static string RideSummonRide(string riders, string entity, RideSummonRules summonRules)
     {
-        return $"ride {riders} summon_ride {entity} {rules}";
+        return $"ride {riders} summon_ride {entity} {summonRules}";
     }
-    public static string RideSummonRide(string riders, string entity, RideRules rules, string nameTag)
+    public static string RideSummonRide(string riders, string entity, RideSummonRules summonRules, string nameTag)
     {
-        return $"ride {riders} summon_ride {entity} {rules} none {nameTag.AsCommandParameterString()}";
+        return $"ride {riders} summon_ride {entity} {summonRules} none {nameTag.AsCommandParameterString()}";
     }
 
     public static string SaveHold() { return "save hold"; }
@@ -1371,18 +1371,45 @@ public struct IndexedTag
 
 public enum CameraShakeType
 {
-    positional, rotational
+    /// <summary>
+    ///     The shake effect will only affect the position of the camera.
+    /// </summary>
+    positional,
+    /// <summary>
+    ///     The shake effect will only affect the rotation of the camera.
+    /// </summary>
+    rotational
 }
 
+/// <summary>
+///     A camera preset.
+/// </summary>
 public enum CameraPreset
 {
+    /// <summary>
+    ///     The default camera preset.
+    /// </summary>
     first_person,
-    follow_orbit,
+    /// <summary>
+    ///     The camera is free to move wherever, and is not attached to any particular player.
+    /// </summary>
     free,
+    /// <summary>
+    ///     The default third-person camera preset.
+    /// </summary>
     third_person,
-    third_person_front
+    /// <summary>
+    ///     The default alternate third-person camera preset.
+    /// </summary>
+    third_person_front,
+    control_scheme_camera,
+    fixed_boom,
+    follow_orbit
 }
 
+/// <summary>
+///     Easing function used for camera movements.
+/// </summary>
 [UsableInMCC]
 public enum Easing
 {
@@ -1422,15 +1449,39 @@ public enum Easing
 
 public enum CloneMode
 {
-    force, move, normal
+    /// <summary>
+    ///     Force the clone even if the source and destination regions overlap
+    /// </summary>
+    force,
+    /// <summary>
+    ///     Clone the source region to the destination region, then replace the source region with air.
+    ///     When used in filtered mask mode, only the cloned blocks are replaced with air.
+    /// </summary>
+    move,
+    /// <summary>
+    ///     Don't move or force.
+    /// </summary>
+    normal
 }
 
 [UsableInMCC]
 public enum DifficultyMode
 {
+    /// <summary>
+    ///     The 'peaceful' difficulty.
+    /// </summary>
     peaceful = 0,
+    /// <summary>
+    ///     The 'easy' difficulty.
+    /// </summary>
     easy = 1,
+    /// <summary>
+    ///     The 'normal' difficulty.
+    /// </summary>
     normal = 2,
+    /// <summary>
+    ///     The 'hard' difficulty.
+    /// </summary>
     hard = 3
 }
 
@@ -1438,138 +1489,463 @@ public enum DifficultyMode
 public enum OldHandling
 {
     /// <summary>
-    ///     Destroys any previous blocks.
+    ///     Destroys any previously existing blocks.
     /// </summary>
     destroy,
     /// <summary>
     ///     Keeps any previously existing blocks.
     /// </summary>
     keep,
+    /// <summary>
+    ///     Hollows out the area by filling the inside with air.
+    /// </summary>
     hollow,
+    /// <summary>
+    ///     Fills only the edges of the area. Keeps the interior blocks.
+    /// </summary>
     outline,
+    /// <summary>
+    ///     Replaces all previously existing blocks. (default)
+    /// </summary>
     replace
 }
 
 [UsableInMCC]
 public enum PotionEffect
 {
-    speed = 1,
-    slowness = 2,
-    haste = 3,
-    mining_fatigue = 4,
-    strength = 5,
-    instant_health = 6,
-    instant_damage = 7,
-    jump_boost = 8,
-    nausea = 9,
-    regeneration = 10,
-    resistance = 11,
-    fire_resistance = 12,
-    water_breathing = 13,
-    invisibility = 14,
-    blindness = 15,
-    night_vision = 16,
-    hunger = 17,
-    weakness = 18,
-    poison = 19,
-    wither = 20,
-    health_boost = 21,
-    absorption = 22,
-    saturation = 23,
-    levitation = 24,
-    fatal_poison = 25,
-    conduit_power = 26,
-    slow_falling = 27,
-    bad_omen = 28,
-    hero_of_the_village = 29,
-    darkness = -1
+    /// <summary>
+    ///     Adds temporary bonus hearts to absorb damage.
+    /// </summary>
+    absorption,
+    /// <summary>
+    ///     Causes an ominous event upon entering a village or trial chamber.
+    /// </summary>
+    bad_omen,
+    /// <summary>
+    ///     Adds a thick black fog to obscure vision and prevents players from sprinting.
+    /// </summary>
+    blindness,
+    /// <summary>
+    ///     Gives vision underwater and prevents drowning.
+    /// </summary>
+    conduit_power,
+    /// <summary>
+    ///     Pulsating blindness-like effect.
+    /// </summary>
+    darkness,
+    /// <summary>
+    ///     Deals damage to the entity over time, but unlike regular poison, can kill it.
+    /// </summary>
+    fatal_poison,
+    /// <summary>
+    ///     Prevents the entity from taking fire/lava damage.
+    /// </summary>
+    fire_resistance,
+    /// <summary>
+    ///     Allows players to break blocks faster and attack faster.
+    /// </summary>
+    haste,
+    /// <summary>
+    ///     Increases the maximum health of the entity temporarily.
+    ///     Different from absorption in that the hearts can be regenerated.
+    /// </summary>
+    health_boost,
+    /// <summary>
+    ///     Causes players to lose hunger much faster.
+    /// </summary>
+    hunger,
+    /// <summary>
+    ///     Makes the entity have a chance to spawn silverfish when attacked.
+    /// </summary>
+    infested,
+    /// <summary>
+    ///     Instantly deals damage to the entity, but heals undead mobs.
+    /// </summary>
+    instant_damage,
+    /// <summary>
+    ///     Instantly heals the entity, but deals damage to undead mobs.
+    /// </summary>
+    instant_health,
+    /// <summary>
+    ///     Makes the entity invisible (but not armor, held item, etc...) and makes it harder for mobs to detect it.
+    /// </summary>
+    invisibility,
+    /// <summary>
+    ///     Makes the entity jump higher.
+    /// </summary>
+    jump_boost,
+    /// <summary>
+    ///     Makes the entity levitate into the air against their will.
+    /// </summary>
+    levitation,
+    /// <summary>
+    ///     Makes players break blocks and attack more slowly.
+    /// </summary>
+    mining_fatigue,
+    /// <summary>
+    ///     Creates a warping, dizzy effect on screen for players.
+    /// </summary>
+    nausea,
+    /// <summary>
+    ///     Allows players to see in the dark.
+    /// </summary>
+    night_vision,
+    /// <summary>
+    ///     Makes the entity spawn 2 slimes on death.
+    /// </summary>
+    oozing,
+    /// <summary>
+    ///     Deals damage to the entity over time. Cannot directly kill the entity.
+    /// </summary>
+    poison,
+    /// <summary>
+    ///     Forcefully starts a raid once the effect expires.
+    /// </summary>
+    raid_omen,
+    /// <summary>
+    ///     Makes the entity's health regenerate more quickly.
+    /// </summary>
+    regeneration,
+    /// <summary>
+    ///     Makes the entity take less damage from all sources.
+    /// </summary>
+    resistance,
+    /// <summary>
+    ///     Refills food level and saturation of players.
+    /// </summary>
+    saturation,
+    /// <summary>
+    ///     Makes the entity fall more slowly.
+    /// </summary>
+    slow_falling,
+    /// <summary>
+    ///     Makes the entity move more slowly.
+    /// </summary>
+    slowness,
+    /// <summary>
+    ///     Makes the entity move faster.
+    /// </summary>
+    speed,
+    /// <summary>
+    ///     Makes the entity deal more damage with melee attacks.
+    /// </summary>
+    strength,
+    /// <summary>
+    ///     Turns any nearby trial spawners into ominous trial spawners.
+    /// </summary>
+    trial_omen,
+    /// <summary>
+    ///     Gives players a discount on villager trades, and causes some villagers to drop free items.
+    /// </summary>
+    village_hero,
+    /// <summary>
+    ///     Allows the entity to breathe underwater.
+    /// </summary>
+    water_breathing,
+    /// <summary>
+    ///     Makes the entity deal less damage with melee attacks.
+    /// </summary>
+    weakness,
+    /// <summary>
+    ///     Entity can move faster in cobweb blocks, and will place cobweb blocks upon death.
+    /// </summary>
+    weaving,
+    /// <summary>
+    ///     Entity will emit a wind burst upon death, similar to what a wind charge does.
+    /// </summary>
+    wind_charged,
+    /// <summary>
+    ///     Deals wither damage to the entity over time, and can kill it.
+    /// </summary>
+    wither
 }
 
-[UsableInMCC]
 public enum Enchantment
 {
-    protection,
-    fire_protection,
-    feather_falling,
-    blast_protection,
-    projectile_protection,
-    respiration,
+    /// <summary>
+    ///     Intended for tools; Removes the mining speed penalty underwater.
+    /// </summary>
     aqua_affinity,
-    thorns,
-    depth_strider,
-    frost_walker,
-    binding_curse,
-    soul_speed,
-    sharpness,
-    smite,
+    /// <summary>
+    ///     Intended for weapons; Deals more damage to arthropod mobs and applies slowness to them.
+    /// </summary>
     bane_of_arthropods,
-    knockback,
-    fire_aspect,
-    looting,
-    sweeping,
-    power,
-    punch,
-    flame,
+    /// <summary>
+    ///     Curse; Intended for any armor; Prevents the item from being removed from its armor slot once equipped.
+    /// </summary>
+    binding,
+    /// <summary>
+    ///     Intended for any armor; Reduces the damage and knockback received from explosions.
+    /// </summary>
+    blast_protection,
+    /// <summary>
+    ///     Intended for bows; Makes a bow not consume standard arrows.
+    /// </summary>
     infinity,
-    efficiency,
-    silk_touch,
-    unbreaking,
-    fortune,
-    luck_of_the_sea,
-    lure,
+    /// <summary>
+    ///     Intended for weapons; Makes a weapon more effective against armor.
+    /// </summary>
+    breach,
+    /// <summary>
+    ///     Intended for tridents; makes it summon lighting if thrown during a thunderstorm.
+    /// </summary>
     channeling,
+    /// <summary>
+    ///     Intended for maces; Increases the amount of damage the smash attack does.
+    /// </summary>
+    density,
+    /// <summary>
+    ///     Intended for boots; Allows the wearer to move faster underwater.
+    /// </summary>
+    depth_strider,
+    /// <summary>
+    ///     Intended for tools; Makes the tool dig/mine faster.
+    /// </summary>
+    efficiency,
+    /// <summary>
+    ///     Intended for boots; Lowers the amount of fall damage taken.
+    /// </summary>
+    feather_falling,
+    /// <summary>
+    ///     Intended for weapons; Sets the target on fire, additionally cooking any drops.
+    /// </summary>
+    fire_aspect,
+    /// <summary>
+    ///     Intended for armor; Reduces the damage received from fire and lava.
+    /// </summary>
+    fire_protection,
+    /// <summary>
+    ///     Intended for bows; Makes fired arrows set their targets on fire.
+    /// </summary>
+    flame,
+    /// <summary>
+    ///     Intended for pickaxes; Increases the resource yield from mining.
+    /// </summary>
+    fortune,
+    /// <summary>
+    ///     Intended for boots; Makes water freeze under the wearer's feet as they walk.
+    /// </summary>
+    frost_walker,
+    /// <summary>
+    ///     Intended for tridents; Increases damage while in water/rain.
+    /// </summary>
     impaling,
+    /// <summary>
+    ///     Intended for weapons; Increases the knockback of the weapon.
+    /// </summary>
+    knockback,
+    /// <summary>
+    ///     Intended for weapons; Increases the drop yield when killing a mob.
+    /// </summary>
+    looting,
+    /// <summary>
+    ///     Intended for tridents; Will return to the thrower automatically after landing.
+    /// </summary>
     loyalty,
-    riptide,
-    multishot,
-    piercing,
-    quick_charge,
+    /// <summary>
+    ///     Intended for fishing rods; Increases the amount of treasure fished up.
+    /// </summary>
+    luck_of_the_sea,
+    /// <summary>
+    ///     Intended for fishing rods; Decreases the amount of time it takes to get a bite when fishing.
+    /// </summary>
+    lure,
+    /// <summary>
+    ///     Repairs the item when the wearer/equipper receives experience.
+    /// </summary>
     mending,
-    swift_sneak
+    /// <summary>
+    ///     Intended for crossbows; Fires three shots instead of one.
+    /// </summary>
+    multishot,
+    /// <summary>
+    ///     Intended for crossbows; Allows arrows to hit multiple mobs and be picked up after landing.
+    /// </summary>
+    piercing,
+    /// <summary>
+    ///     Intended for bows; Increases damage of fired arrows.
+    /// </summary>
+    power,
+    /// <summary>
+    ///     Intended for armor; Reduces the damage received from projectiles.
+    /// </summary>
+    projectile_protection,
+    /// <summary>
+    ///     Intended for armor; Reduces damage received overall.
+    /// </summary>
+    protection,
+    /// <summary>
+    ///     Intended for bows; Increases the amount of knockback dealt by fired arrows.
+    /// </summary>
+    punch,
+    /// <summary>
+    ///     Intended for crossbows; Decreases the amount of time required to charge the crossbow.
+    /// </summary>
+    quick_charge,
+    /// <summary>
+    ///     Intended for helmets; Increases the amount of time the wearer can breathe underwater.
+    /// </summary>
+    respiration,
+    /// <summary>
+    ///     Intended for tridents; When in the water/rain, changes the throw mechanic to launch the thrower forward instead.
+    /// </summary>
+    riptide,
+    /// <summary>
+    ///     Intended for weapons; Increases damage overall.
+    /// </summary>
+    sharpness,
+    /// <summary>
+    ///     Intended for tools; Certain blocks drop themselves rather than their typical drops (e.g., coal ore will literally
+    ///     drop coal ore).
+    /// </summary>
+    silk_touch,
+    /// <summary>
+    ///     Intended for weapons; Increases damage against undead mobs.
+    /// </summary>
+    smite,
+    /// <summary>
+    ///     Intended for boots; Increases movement speed while walking on soul sand/soil.
+    /// </summary>
+    soul_speed,
+    /// <summary>
+    ///     Intended for leggings; Increases movement speed while sneaking.
+    /// </summary>
+    swift_sneak,
+    /// <summary>
+    ///     Intended for armor; Attacks entities back that attack the wearer.
+    /// </summary>
+    thorns,
+    /// <summary>
+    ///     Increases the item's durability.
+    /// </summary>
+    unbreaking,
+    /// <summary>
+    ///     Curse; Makes the item completely disappear if a player dies with it in their inventory.
+    /// </summary>
+    vanishing,
+    /// <summary>
+    ///     Intended for maces; Launches the player upwards after using the smash attack.
+    /// </summary>
+    wind_burst
 }
 
 [UsableInMCC]
 public enum GameMode
 {
+    /// <summary>
+    ///     Survival mode. Players have health, hunger, can break blocks, etc...
+    /// </summary>
     survival = 0,
+    /// <summary>
+    ///     Creative mode. Players have no health or hunger, access to unlimited resources, can break blocks, etc...
+    /// </summary>
     creative = 1,
+    /// <summary>
+    ///     Adventure mode. Players can only break/place blocks allowed by the mapmakers.
+    /// </summary>
     adventure = 2,
+    /// <summary>
+    ///     Spectator mode. Players can fly around freely but can’t interact with the world in any way.
+    /// </summary>
     spectator = 6
 }
 
+/// <summary>
+///     A cause of damage.
+/// </summary>
 [UsableInMCC]
 public enum DamageCause
 {
+    /// <summary>
+    ///     Generic damage cause with no effect.
+    /// </summary>
     all,
     fatal,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is hit with a falling anvil.
+    /// </summary>
     anvil,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is hit with an exploding block, like TNT.
+    /// </summary>
     block_explosion,
     charging,
     contact,
+    /// <summary>
+    ///     Damage cause that's raised when the entity is out of breath and underwater.
+    /// </summary>
     drowning,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is attacked directly by another entity.
+    /// </summary>
     entity_attack,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is hit with an exploding entity, like a creeper.
+    /// </summary>
     entity_explosion,
+    /// <summary>
+    ///     Damage cause that's raised when an entity hits the ground too fast.
+    /// </summary>
     fall,
     falling_block,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is hit by any fire except being on fire actively (see fire_tick).
+    /// </summary>
     fire,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is hit by actively being on fire.
+    /// </summary>
     fire_tick,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is hit by exploding fireworks.
+    /// </summary>
     fireworks,
+    /// <summary>
+    ///     Damage cause that's raised when an entity hits a wall while flying with an elytra.
+    /// </summary>
     fly_into_wall,
+    /// <summary>
+    ///     Damage cause that's raised by being in powdered snow too long.
+    /// </summary>
     freezing,
+    /// <summary>
+    ///     Damage cause that's raised by swimming in lava.
+    /// </summary>
     lava,
+    /// <summary>
+    ///     Damage cause that's raised by being hit by lightning.
+    /// </summary>
     lightning,
     magic,
+    /// <summary>
+    ///     Damage cause that's raised when an entity stands on magma without boots or sneaking.
+    /// </summary>
     magma,
+    /// <summary>
+    ///     No specific damage cause.
+    /// </summary>
     none,
     @override,
     piston,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is hit with a projectile.
+    /// </summary>
     projectile,
     stalactite,
     stalagmite,
+    /// <summary>
+    ///     Damage cause that's raised when a player is starving.
+    /// </summary>
     starve,
+    /// <summary>
+    ///     Damage cause that's raised when an entity is stuck in a wall (or settled falling blocks) and can't breath.
+    /// </summary>
     suffocation,
     suicide,
     temperature,
+    /// <summary>
+    ///     Damage cause that's raised by the "thorns" enchantment.
+    /// </summary>
     thorns,
     @void,
     wither
@@ -1578,37 +1954,164 @@ public enum DamageCause
 [UsableInMCC]
 public enum GameRule
 {
+    /// <summary>
+    ///     Whether command blocks are enabled/runnable in-game. Default true
+    /// </summary>
     commandBlocksEnabled,
+    /// <summary>
+    ///     Whether command blocks should output their results to chat. This is generally preferred off. Default true
+    /// </summary>
     commandBlockOutput,
+    /// <summary>
+    ///     Whether the daylight cycle is enabled. Default true
+    /// </summary>
     doDaylightCycle,
+    /// <summary>
+    ///     Whether entities (not mobs) should drop items when killed/destroyed. Default true
+    /// </summary>
     doEntityDrops,
+    /// <summary>
+    ///     Whether fire should tick and spread. Default true
+    /// </summary>
     doFireTick,
-    doInsomnia,
+    /// <summary>
+    ///     Whether players should immediately respawn on death. Default false
+    /// </summary>
     doImmediateRespawn,
+    /// <summary>
+    ///     Whether phantoms spawn around players who haven't slept in a while. Default true
+    /// </summary>
+    doInsomnia,
+    /// <summary>
+    ///     Whether players should be barred from crafting items they haven't unlocked the recipes to yet. Default false
+    /// </summary>
+    doLimitedCrafting,
+    /// <summary>
+    ///     Whether mobs should drop loot/experience when killed. Default true
+    /// </summary>
     doMobLoot,
+    /// <summary>
+    ///     Whether mobs should naturally spawn. Default true
+    /// </summary>
     doMobSpawning,
+    /// <summary>
+    ///     Whether blocks should drop items when broken. Default true
+    /// </summary>
     doTileDrops,
+    /// <summary>
+    ///     Whether the weather should change. Default true
+    /// </summary>
     doWeatherCycle,
+    /// <summary>
+    ///     Whether players should take damage from drowning. Default true
+    /// </summary>
     drowningDamage,
+    /// <summary>
+    ///     Whether players should take fall damage. Default true
+    /// </summary>
     fallDamage,
+    /// <summary>
+    ///     Whether players should take fire damage. Default true
+    /// </summary>
     fireDamage,
+    /// <summary>
+    ///     Whether players should take damage from freezing (in powdered snow). Default true
+    /// </summary>
     freezeDamage,
+    /// <summary>
+    ///     The number of commands which a single function is allowed to run at one time. Default 10,000
+    /// </summary>
     functionCommandLimit,
+    /// <summary>
+    ///     Whether players shouldn't drop their inventories on death. Default false
+    /// </summary>
     keepInventory,
+    /// <summary>
+    ///     Whether the player locator bar should be shown. Default true
+    /// </summary>
+    locatorBar,
+    /// <summary>
+    ///     The maximum length of a chain of command blocks in a single tick. Default 65536
+    /// </summary>
     maxCommandChainLength,
+    /// <summary>
+    ///     Whether mobs can modify the world. Default true
+    /// </summary>
     mobGriefing,
+    /// <summary>
+    ///     Whether player health naturally regenerates (without effects). Default true
+    /// </summary>
     naturalRegeneration,
+    /// <summary>
+    ///     The percentage of players that need to sleep to progress to the next day. Default 100
+    /// </summary>
+    playersSleepingPercentage,
+    /// <summary>
+    ///     Whether projectiles can break breakable blocks (like decorated pots). Default true
+    /// </summary>
+    projectilesCanBreakBlocks,
+    /// <summary>
+    ///     Whether players can attack each other. Default true
+    /// </summary>
     pvp,
+    /// <summary>
+    ///     The speed at which random ticks occur. Default 1
+    /// </summary>
     randomTickSpeed,
+    /// <summary>
+    ///     Whether recipes can be unlocked by having players collect all the needed items. Default true
+    /// </summary>
+    recipesUnlock,
+    /// <summary>
+    ///     Whether beds/respawn anchors explode in the incorrect dimensions. Default true
+    /// </summary>
     respawnBlocksExplode,
+    /// <summary>
+    ///     Whether players should get chat feedback when running commands. Default true
+    /// </summary>
     sendCommandFeedback,
+    /// <summary>
+    ///     Whether the effect specific to border blocks shows to players. Default true
+    /// </summary>
+    showBorderEffect,
+    /// <summary>
+    ///     Whether the players' coordinates are shown to them on-screen. Default true
+    /// </summary>
     showCoordinates,
+    /// <summary>
+    ///     Whether the players' number of days played are shown to them on-screen. Default false
+    /// </summary>
+    showDaysPlayed,
+    /// <summary>
+    ///     Whether messages should be sent in chat when a player or named entity dies.
+    /// </summary>
     showDeathMessages,
+    /// <summary>
+    ///     Whether recipe unlock messages are displayed. Default true
+    /// </summary>
+    showRecipeMessages,
+    /// <summary>
+    ///     Whether the "Can place on", "Can destroy", and item lock tags are hidden. Default true
+    /// </summary>
+    showTags,
+    /// <summary>
+    ///     The number of blocks away from the world spawn-point players might spawn randomly in. Default 10
+    /// </summary>
     spawnRadius,
+    /// <summary>
+    ///     Whether TNT actually explodes.
+    /// </summary>
     tntExplodes,
-    showTags
+    /// <summary>
+    ///     Whether blocks are dropped by all blocks (false) or randomly (true) depending on how far away the block is from a
+    ///     TNT explosion.
+    /// </summary>
+    tntExplosionDropDecay
 }
 
+/// <summary>
+///     A pre-defined structure type.
+/// </summary>
 [UsableInMCC]
 public enum StructureType
 {
@@ -1631,14 +2134,35 @@ public enum StructureType
 [UsableInMCC]
 public enum MobEventType
 {
-    pillager_patrols_event, wandering_trader_event
+    /// <summary>
+    ///     Controls the event that spawns the ender dragon.
+    /// </summary>
+    ender_dragon_event,
+    /// <summary>
+    ///     Controls the event that spawns pillager patrols.
+    /// </summary>
+    pillager_patrols_event,
+    /// <summary>
+    ///     Controls the event that spawns wandering traders.
+    /// </summary>
+    wandering_trader_event
 }
 
 public enum MusicRepeatMode
 {
-    play_once, loop
+    /// <summary>
+    ///     The music will play once and then end.
+    /// </summary>
+    play_once,
+    /// <summary>
+    ///     The music will repeat until manually stopped.
+    /// </summary>
+    loop
 }
 
+/// <summary>
+///     An item slot identifier.
+/// </summary>
 [UsableInMCC]
 public enum ItemSlot
 {
@@ -1659,22 +2183,54 @@ public enum ItemSlot
 
 public enum RideFillType
 {
-    if_group_fits, until_full
+    /// <summary>
+    ///     The command will only go through if all riders will fit on the mount.
+    /// </summary>
+    if_group_fits,
+    /// <summary>
+    ///     The command will ride as many riders as possible until the mount is full.
+    /// </summary>
+    until_full
 }
 
-public enum RideRules
+public enum RideSummonRules
 {
-    no_ride_change, reassign_rides, skip_riders
+    /// <summary>
+    ///     Summons entities only for riders that aren't riding on another entity and not being ridden.
+    /// </summary>
+    no_ride_change,
+    /// <summary>
+    ///     Default value. Makes riders dismount if they're riding, then summons an entity for all of them.
+    /// </summary>
+    reassign_rides,
+    /// <summary>
+    ///     Summons entities only for riders that aren't already riding on another entity.
+    /// </summary>
+    skip_riders
 }
 
-public enum TeleportRules
+public enum RideTeleportRules
 {
-    teleport_ride, teleport_rider
+    /// <summary>
+    ///     Teleport the entity being ridden.
+    /// </summary>
+    teleport_ride,
+    /// <summary>
+    ///     Teleport the rider of the entity.
+    /// </summary>
+    teleport_rider
 }
 
 public enum ScoreboardOrdering
 {
-    ascending, descending
+    /// <summary>
+    ///     Scoreboard entries will be shown starting with the lowest first.
+    /// </summary>
+    ascending,
+    /// <summary>
+    ///     Scoreboard entries will be shown starting with the highest first.
+    /// </summary>
+    descending
 }
 
 public enum ScoreboardOp
@@ -1692,60 +2248,156 @@ public enum ScoreboardOp
 
 public enum StructureRotation
 {
+    /// <summary>
+    ///     Do not rotate the structure.
+    /// </summary>
     _0_degrees,
+    /// <summary>
+    ///     Rotate the structure 90 degrees around the Y axis.
+    /// </summary>
     _90_degrees,
+    /// <summary>
+    ///     Rotate the structure 180 degrees around the Y axis.
+    /// </summary>
     _180_degrees,
+    /// <summary>
+    ///     Rotate the structure 270 degrees around the Y axis.
+    /// </summary>
     _270_degrees
 }
 
 public enum StructureMirror
 {
+    /// <summary>
+    ///     Do not mirror the structure.
+    /// </summary>
     none,
+    /// <summary>
+    ///     Flip the structure around the X axis.
+    /// </summary>
     x,
+    /// <summary>
+    ///     Flip the structure around the Z axis.
+    /// </summary>
     z,
+    /// <summary>
+    ///     Flip the structure around the X and Z axes.
+    /// </summary>
     xz
 }
 
 public enum StructureAnimationMode
 {
-    block_by_block, layer_by_layer
+    /// <summary>
+    ///     Animate the loading of the structure by building it block-by-block.
+    /// </summary>
+    block_by_block,
+    /// <summary>
+    ///     Animate the loading of the structure by building it layer-by-layer vertically.
+    /// </summary>
+    layer_by_layer
 }
 
 public enum TimeQuery
 {
-    daytime, gametime, day
+    /// <summary>
+    ///     Query the number of ticks relative to the current day.
+    /// </summary>
+    daytime,
+    /// <summary>
+    ///     Query the number of ticks total.
+    /// </summary>
+    gametime,
+    /// <summary>
+    ///     Query the number of days played.
+    /// </summary>
+    day
 }
 
 [UsableInMCC]
 public enum TimeSpec
 {
+    /// <summary>
+    ///     Day (1000)
+    /// </summary>
     day = 1000,
+    /// <summary>
+    ///     Night (13000)
+    /// </summary>
     night = 13000,
+    /// <summary>
+    ///     Noon (6000)
+    /// </summary>
     noon = 6000,
+    /// <summary>
+    ///     Midnight (18000)
+    /// </summary>
     midnight = 18000,
+    /// <summary>
+    ///     Sunrise (23000)
+    /// </summary>
     sunrise = 23000,
+    /// <summary>
+    ///     Sunset (12000)
+    /// </summary>
     sunset = 12000
 }
 
 public enum WeatherState
 {
-    clear, rain, thunder
+    /// <summary>
+    ///     Clear weather (default).
+    /// </summary>
+    clear,
+    /// <summary>
+    ///     Raining.
+    /// </summary>
+    rain,
+    /// <summary>
+    ///     Raining + random thunder strikes.
+    /// </summary>
+    thunder
 }
 
 [UsableInMCC]
 public enum AnchorPosition
 {
-    eyes, feet
+    /// <summary>
+    ///     The command execution will be anchored to the entity's eyes, both in position and rotation.
+    /// </summary>
+    eyes,
+    /// <summary>
+    ///     The command execution will be anchored to the entity's feet.
+    /// </summary>
+    feet
 }
 
 [UsableInMCC]
 public enum Dimension
 {
-    nether, overworld, the_end
+    /// <summary>
+    ///     The overworld dimension.
+    /// </summary>
+    overworld,
+    /// <summary>
+    ///     The nether dimension. 8x smaller than the overworld.
+    /// </summary>
+    nether,
+    /// <summary>
+    ///     The end dimension.
+    /// </summary>
+    the_end
 }
 
 [UsableInMCC]
 public enum BlocksScanMode
 {
-    all, masked
+    /// <summary>
+    ///     Check for all blocks matching.
+    /// </summary>
+    all,
+    /// <summary>
+    ///     Check only non-air blocks.
+    /// </summary>
+    masked
 }
