@@ -7,7 +7,7 @@ namespace mc_compiled.MCC.Language.SyntaxExporter;
 /// <summary>
 ///     Constants for the default MCCompiled Prism theme.
 /// </summary>
-public class MCCPrismTheme
+public static class MCCPrismTheme
 {
     public const string DEFAULT_FONT = "Jetbrains Mono";
     public static readonly ThemeColor DEFAULT_TEXT = new("FFFFFF");
