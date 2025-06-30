@@ -21,9 +21,9 @@ public class ExporterUDL2() : SyntaxExporter("mcc-udl2.xml", "udl2", "Notepad++ 
     /// <returns>The escaped string.</returns>
     private static string EscapeQuotes(string str)
     {
-        return str.Replace("\"", "&quot;")
+        return str.Replace("&", "&amp;")
+            .Replace("\"", "&quot;")
             .Replace("'", "&apos;")
-            .Replace("&", "&amp;")
             .Replace("<", "&lt;")
             .Replace(">", "&gt;");
     }
@@ -215,12 +215,12 @@ public class ExporterUDL2() : SyntaxExporter("mcc-udl2.xml", "udl2", "Notepad++ 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Folders in comment, close"}, "");
 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords1"},
-                string.Join(" ", Language.KEYWORDS_SELECTORS));
+                string.Join(" ", Language.KEYWORDS_SELECTORS.Select(d => d.identifier)));
 
             string preprocessorDirectiveNames =
-                string.Join(" ", Language.AllPreprocessorDirectives.Select(d => d.name));
+                string.Join(" ", Language.AllPreprocessorDirectiveNames);
             string regularDirectiveNames =
-                string.Join(" ", Language.AllRuntimeDirectives.Select(d => d.name));
+                string.Join(" ", Language.AllRuntimeDirectiveNames);
 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords2"},
                 preprocessorDirectiveNames);
@@ -230,19 +230,19 @@ public class ExporterUDL2() : SyntaxExporter("mcc-udl2.xml", "udl2", "Notepad++ 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords4"},
                 string.Join(" ",
                     Language.KEYWORDS_LITERALS.Select(k =>
-                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
+                        k.identifier.Any(char.IsWhiteSpace) ? "'" + k.identifier + "'" : k.identifier)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords5"},
                 string.Join(" ",
                     Language.KEYWORDS_TYPES.Select(k =>
-                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
+                        k.identifier.Any(char.IsWhiteSpace) ? "'" + k.identifier + "'" : k.identifier)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords6"},
                 string.Join(" ",
                     Language.KEYWORDS_COMPARISONS.Select(k =>
-                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
+                        k.identifier.Any(char.IsWhiteSpace) ? "'" + k.identifier + "'" : k.identifier)));
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords7"},
                 string.Join(" ",
                     Language.KEYWORDS_COMMAND_OPTIONS.Select(k =>
-                        k.identifier.Any(char.IsWhiteSpace) ? "&apos;" + k.identifier + "&apos;" : k.identifier)));
+                        k.identifier.Any(char.IsWhiteSpace) ? "'" + k.identifier + "'" : k.identifier)));
 
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Keywords8"}, "");
             AddTag("Keywords", new Dictionary<string, string> {["name"] = "Delimiters"},

@@ -106,7 +106,10 @@ public static class Language
     ///     that are identified as preprocessor directives. A directive is considered a preprocessor directive
     ///     if its <see cref="Directive.IsPreprocessor" /> property is <c>true</c>.
     /// </remarks>
-    public static IEnumerable<Directive> AllPreprocessorDirectives => directives.Values.Where(d => d.IsPreprocessor);
+    public static IEnumerable<Directive> AllPreprocessorDirectives =>
+        directives.Values
+            .DistinctBy(d => d.name)
+            .Where(d => d.IsPreprocessor);
     /// <summary>
     ///     Gets all runtime directives defined in the language configuration.
     /// </summary>
@@ -116,8 +119,38 @@ public static class Language
     ///     Runtime directives are identified as directives whose <see cref="Directive.IsPreprocessor" /> property is
     ///     <c>false</c>.
     /// </remarks>
-    public static IEnumerable<Directive> AllRuntimeDirectives => directives.Values.Where(d => !d.IsPreprocessor);
-
+    public static IEnumerable<Directive> AllRuntimeDirectives =>
+        directives.Values
+            .DistinctBy(d => d.name)
+            .Where(d => !d.IsPreprocessor);
+    /// <summary>
+    ///     Gets the names of all directives that are classified as preprocessor directives.
+    /// </summary>
+    /// <remarks>
+    ///     This property filters the currently loaded <see cref="Directive" /> instances
+    ///     stored in the <see cref="Language.directives" /> dictionary to identify only those that
+    ///     are marked as preprocessor directives. A directive is considered a preprocessor directive
+    ///     if the <see cref="Directive.IsPreprocessor" /> property evaluates to <c>true</c>.
+    ///     The resulting collection contains only the <see langword="string" /> names
+    ///     of these preprocessor directives.
+    /// </remarks>
+    /// <returns>
+    ///     An <see cref="IEnumerable{T}" /> of <see langword="string" /> containing the keys (names)
+    ///     of directives defined as preprocessor directives.
+    /// </returns>
+    public static IEnumerable<string> AllPreprocessorDirectiveNames =>
+        directives.Where(kv => kv.Value.IsPreprocessor).Select(kv => kv.Key);
+    /// <summary>
+    ///     Gets the names of all runtime directives defined in the language.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="string" /> values
+    ///     representing the keys of directives that are not preprocessor directives.
+    ///     The distinction between runtime and preprocessor directives is determined
+    ///     by the <see cref="Directive.IsPreprocessor" /> property.
+    /// </remarks>
+    public static IEnumerable<string> AllRuntimeDirectiveNames =>
+        directives.Where(kv => !kv.Value.IsPreprocessor).Select(kv => kv.Key);
     /// <summary>
     ///     Retrieves a collection of <see cref="Directive" /> instances that belong to the specified category.
     /// </summary>

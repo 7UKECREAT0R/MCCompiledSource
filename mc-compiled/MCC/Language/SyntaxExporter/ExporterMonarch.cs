@@ -377,20 +377,20 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/[<>{}=()+\-*/%!]+/""");
-                        AddSimpleNodeRaw("operators", false);
+                        AddSimpleNodeRaw("\"operators\"", false);
                     }
 
                     // terminated strings
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/"(?:[^"\\]|\\.)*"/""");
-                        AddSimpleNodeRaw("string", false);
+                        AddSimpleNodeRaw("\"string\"", false);
                     }
 
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/'(?:[^"\\]|\\.)*'/""");
-                        AddSimpleNodeRaw("string", false);
+                        AddSimpleNodeRaw("\"string\"", false);
                     }
 
                     // unterminated strings
@@ -398,27 +398,27 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/"(?:[^"\\]|\\.)*$/""");
-                        AddSimpleNodeRaw("string", false);
+                        AddSimpleNodeRaw("\"string\"", false);
                     }
 
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/'(?:[^'\\]|\\.)*$/""");
-                        AddSimpleNodeRaw("string", false);
+                        AddSimpleNodeRaw("\"string\"", false);
                     }
 
                     // no advanced parsing for selector properties
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/\[.+]/""");
-                        AddSimpleNodeRaw("selectors.properties", false);
+                        AddSimpleNodeRaw("\"selectors.properties\"", false);
                     }
 
                     // parse numbers
                     using (OpenArrayBlock(false, false))
                     {
                         AddSimpleNodeRaw("""/!?(?:\.\.)?\d+(?:\.\.)?\.?\d*[hms]?/""");
-                        AddSimpleNodeRaw("numbers", false);
+                        AddSimpleNodeRaw("\"numbers\"", false);
                     }
                 }
 
@@ -428,14 +428,14 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/[^\/*]+/""");
-                        AddSimpleNodeRaw("comment", false);
+                        AddSimpleNodeRaw("\"comment\"", false);
                     }
 
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/\/\*/""");
-                        AddSimpleNodeRaw("comment");
-                        AddSimpleNodeRaw("@push", false);
+                        AddSimpleNodeRaw("\"comment\"");
+                        AddSimpleNodeRaw("\"@push\"", false);
                     }
 
                     using (OpenArrayBlock(false, true))
@@ -443,14 +443,14 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
                         AddSimpleNodeRaw("""
                                          "\\*/"
                                          """);
-                        AddSimpleNodeRaw("comment");
-                        AddSimpleNodeRaw("@pop", false);
+                        AddSimpleNodeRaw("\"comment\"");
+                        AddSimpleNodeRaw("\"@pop\"", false);
                     }
 
                     using (OpenArrayBlock(false, false))
                     {
                         AddSimpleNodeRaw("""/[\/*]/""");
-                        AddSimpleNodeRaw("comment", false);
+                        AddSimpleNodeRaw("\"comment\"", false);
                     }
                 }
 
@@ -460,20 +460,20 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/[ \t\r\n]+/""");
-                        AddSimpleNodeRaw("white", false);
+                        AddSimpleNodeRaw("\"white\"", false);
                     }
 
                     using (OpenArrayBlock(false, true))
                     {
                         AddSimpleNodeRaw("""/\/\*/""");
-                        AddSimpleNodeRaw("comment");
-                        AddSimpleNodeRaw("@comment", false);
+                        AddSimpleNodeRaw("\"comment\"");
+                        AddSimpleNodeRaw("\"@comment\"", false);
                     }
 
                     using (OpenArrayBlock(false, false))
                     {
                         AddSimpleNodeRaw("""/\/\/.*$/""");
-                        AddSimpleNodeRaw("comment", false);
+                        AddSimpleNodeRaw("\"comment\"", false);
                     }
                 }
             }
