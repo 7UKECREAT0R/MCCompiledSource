@@ -150,14 +150,14 @@
   },
   "categories": {
     "preprocessor": "Commands that allow the user to do things at compile time. Preprocessor commands generally start with a `$` and are highlighted differently than regular commands.",
-    "text": "Commands which display text to players through format-strings, or manipulate text otherwise.",
+    "text": "Commands which display text to players through format-strings or manipulate text otherwise.",
     "entities": "Commands which manipulate, spawn, and transform entities in various ways.",
     "blocks": "Commands which interact with the Minecraft world's blocks.",
     "items": "Commands relating to entity/player items and inventories.",
     "cosmetic": "Commands that add visual and auditory appeal to the user's code.",
     "values": "Commands tied directly to values. Values can be used in if-statements, format-strings, and many other places.",
     "logic": "Commands which handle logic and code flow. The butter for all the bread (code).",
-    "debug": "Commands related to testing, debugging and all-around solidifying code.",
+    "debug": "Commands related to testing, debugging, and all-around solidifying code.",
     "features": "Commands related to the optionally enable-able features in the language.",
     "other": "The other commands that don't have a good designation."
   },

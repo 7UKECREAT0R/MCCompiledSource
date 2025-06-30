@@ -144,8 +144,8 @@ internal static class Program
                     inputPPVs.Add(new InputPPV(ppvName, ppvValue));
                     break;
                 case "--VERSION":
-                    Console.WriteLine("MCCompiled Version " + Executor.MCC_VERSION);
-                    Console.WriteLine("Andrew L. Criswell II, 2023");
+                    Console.WriteLine("MCCompiled Version 1." + Executor.MCC_VERSION);
+                    Console.WriteLine("Andrew Criswell 2025");
                     return;
                 case "--CLEAR_CACHE":
                 case "-CC":
@@ -256,7 +256,7 @@ internal static class Program
                 return;
             }
             case "--INFO":
-                Console.WriteLine("V{0}", Executor.MCC_VERSION);
+                Console.WriteLine("V1.{0}", Executor.MCC_VERSION);
                 Console.WriteLine("L{0}", AppContext.BaseDirectory);
                 return;
             case "--FROMPROTOCOL":

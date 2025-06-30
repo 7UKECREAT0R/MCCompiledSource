@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -207,13 +208,36 @@ public readonly struct SyntaxParameter
 
         return sb.ToString();
     }
-    public string UserFriendlyString
+    /// <summary>
+    ///     Gets a string representation of the parameter's usage, indicating its type and name.
+    ///     If the parameter is a block constraint, the returned string will be "code block".
+    ///     Otherwise, it combines type information and the parameter name, optionally including
+    ///     details for variadic parameters with a <see cref="Range" />.
+    /// </summary>
+    /// <remarks>
+    ///     This property constructs the string based on several factors:
+    ///     - For block constraints (<see cref="SyntaxParameter.blockConstraint" />), returns "code block".
+    ///     - Maps the type constraint (<see cref="SyntaxParameter.typeConstraint" />) to its corresponding name
+    ///     using <see cref="Language.typeToNameMappings" />.
+    ///     - If the parameter is variadic (<see cref="SyntaxParameter.variadic" />) and has an associated
+    ///     <see cref="Range" />, the range's prefix (<see cref="Range.AsPrefix" />) is included
+    ///     in the string representation.
+    ///     - Combines the determined type and the parameter's <see cref="SyntaxParameter.name" />.
+    /// </remarks>
+    /// <returns>
+    ///     A string representing the usage of the parameter.
+    /// </returns>
+    public string AsUsageString
     {
-        // TODO revisit and give types proper naming using an interface or something
         get
         {
-            string originalTypeId = this.blockConstraint ? "block" : Language.typeToNameMappings[this.typeConstraint!];
-            return $"{this.name}: {originalTypeId}";
+            if (this.blockConstraint)
+                return "code block";
+
+            string type = Language.typeToNameMappings[this.typeConstraint!];
+            if (this.variadic && this.variadicRange.HasValue)
+                type = this.variadicRange.Value.AsPrefix + ' ' + type;
+            return $"{type}: {this.name}";
         }
     }
 
@@ -275,5 +299,32 @@ public readonly struct SyntaxParameter
     {
         return new SyntaxParameter(name ?? nameof(T), typeof(T) == typeof(StatementOpenBlock), typeof(T), optional,
             true, variadicRange);
+    }
+    /// <summary>
+    ///     Returns if this <see cref="SyntaxParameter" /> matches <paramref name="other" /> in everything except name.
+    /// </summary>
+    /// <param name="other">The other syntax parameter to check against.</param>
+    /// <returns><c>true</c> if both <see cref="SyntaxParameter" /> instances are equal except for name.</returns>
+    public bool FunctionallyEquals(SyntaxParameter other)
+    {
+        if (this.optional != other.optional)
+            return false;
+        if (this.blockConstraint != other.blockConstraint)
+            return false;
+        if (this.blockConstraint)
+            return true; // don't need any more checks, since block constraints are very simple like that
+
+        // these should never be hit, but here we are
+        Debug.Assert(this.typeConstraint != null);
+        Debug.Assert(other.typeConstraint != null);
+
+        if (this.typeConstraint.GUID != other.typeConstraint.GUID)
+            return false;
+        if (this.variadic != other.variadic)
+            return false;
+        if (this.variadic)
+            if (this.variadicRange != other.variadicRange)
+                return false;
+        return true;
     }
 }

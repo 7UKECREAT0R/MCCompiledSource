@@ -89,7 +89,6 @@ public static class Language
 
     public static Dictionary<string, Directive> directives;
     public static bool IsLoaded { get; private set; }
-
     /// <summary>
     ///     Gets all defined directives in the language.
     /// </summary>
@@ -118,6 +117,23 @@ public static class Language
     ///     <c>false</c>.
     /// </remarks>
     public static IEnumerable<Directive> AllRuntimeDirectives => directives.Values.Where(d => !d.IsPreprocessor);
+
+    /// <summary>
+    ///     Retrieves a collection of <see cref="Directive" /> instances that belong to the specified category.
+    /// </summary>
+    /// <param name="category">
+    ///     A <see cref="string" /> representing the category by which to filter the <see cref="Directive" /> instances.
+    ///     This parameter must match the <see cref="Directive.category" /> property of the desired directives.
+    /// </param>
+    /// <returns>
+    ///     An <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects whose <see cref="Directive.category" />
+    ///     matches
+    ///     the specified <paramref name="category" />. If no matching directives exist, returns an empty collection.
+    /// </returns>
+    public static IEnumerable<Directive> DirectivesByCategory(string category)
+    {
+        return directives.Values.Where(d => d.category != null && d.category.Equals(category));
+    }
 
     /// <summary>
     ///     Retrieves a <see cref="Directive" /> instance associated with the specified <paramref name="token" />.

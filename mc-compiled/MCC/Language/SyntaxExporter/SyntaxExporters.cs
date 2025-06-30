@@ -11,7 +11,8 @@ public static class SyntaxExporters
     private static readonly SyntaxExporter[] ALL_EXPORTERS =
     [
         new ExporterUDL2(),
-        new ExporterMonarch()
+        new ExporterMonarch(),
+        new ExporterWiki()
     ];
     private static readonly Dictionary<string, SyntaxExporter> EXPORTERS_BY_IDENTIFIER =
         new(StringComparer.OrdinalIgnoreCase);

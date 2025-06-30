@@ -124,7 +124,7 @@ public class MCCServer : IDisposable
 
         Console.WriteLine("Now listening for socket connection on " + this.ip + ".");
         Console.WriteLine("Language Server Version {0}", STANDARD_VERSION);
-        Console.WriteLine("MCCompiled Version {0}", Executor.MCC_VERSION);
+        Console.WriteLine("MCCompiled Version 1.{0}", Executor.MCC_VERSION);
 
         // begin accepting clients
         while (true)
@@ -309,7 +309,7 @@ public class MCCServer : IDisposable
         // send version info
         var json = new JObject();
         json["action"] = "version";
-        json["version"] = (int) (Executor.MCC_VERSION * 1000);
+        json["version"] = Executor.MCC_VERSION;
         package.SendFrame(WebSocketFrame.JSON(json));
 
         // send current property info
@@ -472,7 +472,7 @@ public class MCCServer : IDisposable
                 ["action"] = "menu",
                 ["html"] = CreateGenericMenu("Server Info",
                         "Language Server Version: " + STANDARD_VERSION,
-                        "MCCompiled Version: " + Executor.MCC_VERSION,
+                        "MCCompiled Version: 1." + Executor.MCC_VERSION,
                         "Made for Minecraft Version: " + Executor.MINECRAFT_VERSION,
                         "",
                         "Fakeplayer Name: " + Executor.FAKE_PLAYER_NAME,

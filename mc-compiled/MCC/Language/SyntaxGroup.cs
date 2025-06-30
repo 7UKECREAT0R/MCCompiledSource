@@ -48,7 +48,7 @@ public class SyntaxGroup : ICloneable
     public readonly bool optional;
     public readonly SyntaxPatterns patterns;
     /// <summary>
-    ///     If this group's tokens are repeatable, or can only be specified once.
+    ///     If this group's children are repeatable, or can only be specified once.
     /// </summary>
     public readonly bool repeatable;
     /// <summary>
@@ -149,7 +149,7 @@ public class SyntaxGroup : ICloneable
     ///     Collects relevant keywords recursively from this syntax group.
     /// </summary>
     /// <param name="output">The list to output into. You can pass this down the chain.</param>
-    public void CollectKeywords(List<LanguageKeyword> output)
+    internal void CollectKeywords(List<LanguageKeyword> output)
     {
         if (this.isRef)
             return; // if this is the result of using a `ref` related operation, then there's no reason to include these keywords.
@@ -161,9 +161,46 @@ public class SyntaxGroup : ICloneable
             foreach (SyntaxGroup child in this.children)
                 child.CollectKeywords(output);
     }
+    internal void BuildUsageGuide(int baseIndentLevel,
+        List<(string content, int indentLevel)> lines)
+    {
+        if (this.hasPatterns)
+        {
+            this.patterns.BuildUsageGuide(baseIndentLevel, lines);
+            return;
+        }
 
-    private static SyntaxPatterns ParseSimplePattern(string[] parameters,
-        SyntaxGroupBehavior behavior = SyntaxGroupBehavior.OneOf)
+        if (!this.hasChildren)
+            return; // *should* never happen
+
+        // this group has children instead
+        if (this.Keyword.HasValue)
+        {
+            LanguageKeyword keyword = this.Keyword.Value;
+            lines.Add(($"`{keyword.identifier}` {keyword.docs}", baseIndentLevel));
+            baseIndentLevel += 1;
+        }
+
+        bool isOneOf = this.behavior == SyntaxGroupBehavior.OneOf;
+        if (isOneOf || this.repeatable)
+        {
+            string contextString;
+            if (isOneOf && this.repeatable)
+                contextString = "**repeatable, one of:**";
+            else if (isOneOf)
+                contextString = "**one of:**";
+            else
+                contextString = "**repeatable:**";
+            lines.Add((contextString, baseIndentLevel));
+            baseIndentLevel += 1;
+        }
+
+        // now append all the children
+        foreach (SyntaxGroup child in this.children)
+            child.BuildUsageGuide(baseIndentLevel, lines);
+    }
+
+    private static SyntaxPatterns ParseSimplePattern(string[] parameters)
     {
         if (SyntaxPatterns.TryParse(parameters, out SyntaxPatterns parsed))
             return parsed;
@@ -171,8 +208,7 @@ public class SyntaxGroup : ICloneable
         throw new FormatException(
             $"Couldn't parse syntax group from the following patterns: {string.Join(", ", parameters)}");
     }
-    private static SyntaxPatterns ParseSimplePatterns(IEnumerable<string[]> _patterns,
-        SyntaxGroupBehavior behavior = SyntaxGroupBehavior.OneOf)
+    private static SyntaxPatterns ParseSimplePatterns(IEnumerable<string[]> _patterns)
     {
         string[][] patterns = _patterns.ToArray(); // prevent multiple-enumeration
         if (SyntaxPatterns.TryParse(patterns, out SyntaxPatterns parsed))
@@ -389,21 +425,6 @@ public class SyntaxGroup : ICloneable
     {
         return new SyntaxGroup(SyntaxGroupBehavior.OneOf, null, false, null, groupOptional, false,
             new SyntaxPatterns(groupPattern));
-    }
-
-    /// <summary>
-    ///     Recursively count the number of possible paths this <see cref="SyntaxGroup" /> expands into.
-    /// </summary>
-    /// <param name="runningTotal">The running total, used for recursion.</param>
-    /// <returns>The number of paths.</returns>
-    public int CountPaths(int runningTotal = 0)
-    {
-        if (this.hasChildren)
-            return runningTotal + this.children.Sum(child => child.CountPaths());
-        if (this.hasPatterns)
-            return runningTotal + this.patterns.Count;
-
-        return runningTotal; // should never happen but here we are
     }
 
     /// <summary>

@@ -72,7 +72,7 @@ internal class RegistryConfiguration
             ConsoleColor old = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(
-                $"Set up MCCompiled {Executor.MCC_VERSION} language server for use. Remember to run this command again if the location of this executable changes.");
+                $"Set up MCCompiled 1.{Executor.MCC_VERSION} language server for use. Remember to run this command again if the location of this executable changes.");
             Console.ForegroundColor = old;
             this.hasBeenRegistered = true;
         }
@@ -109,7 +109,7 @@ internal class RegistryConfiguration
 
             ConsoleColor old = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Uninstalled MCCompiled {Executor.MCC_VERSION} language server for all versions.");
+            Console.WriteLine($"Uninstalled MCCompiled 1.{Executor.MCC_VERSION} language server for all versions.");
             Console.ForegroundColor = old;
             this.hasBeenRegistered = true;
         }

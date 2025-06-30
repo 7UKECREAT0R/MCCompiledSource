@@ -16,6 +16,9 @@ public struct Range : IEquatable<Range>
     ///     A range which matches everything but 0.
     /// </summary>
     public static readonly Range notZero = new(0, true);
+    // ReSharper disable once PossibleInvalidOperationException
+    public Range Opposite =>
+        this.single ? new Range(this.min.Value!, !this.invert) : new Range(this.min, this.max, !this.invert);
 
     public bool invert, single;
     public int? min;
@@ -25,6 +28,58 @@ public struct Range : IEquatable<Range>
     ///     Returns if this range repeats forever in either direction.
     /// </summary>
     public bool IsUnbounded => this.invert || !this.min.HasValue || !this.max.HasValue;
+    /// <summary>
+    ///     Gets a string representation of the <see cref="Range" /> in its prefix notation,
+    ///     which describes the range's constraints in a concise format.
+    /// </summary>
+    /// <remarks>
+    ///     The returned string varies based on the values of the <see cref="Range" /> properties:
+    ///     <list type="bullet">
+    ///         <item>
+    ///             <term>Inverted Range (<see cref="invert" />)</term>
+    ///             <description>Returns the prefix of the <see cref="Opposite" /> range prefixed with "not".</description>
+    ///         </item>
+    ///         <item>
+    ///             <term>Single Value Range (<see cref="single" /> is true)</term>
+    ///             <description>Returns the string representation of <see cref="min" />.</description>
+    ///         </item>
+    ///         <item>
+    ///             <term>Lower Bound Unspecified (<see cref="max" /> is specified, <see cref="min" /> is null)</term>
+    ///             <description>
+    ///                 Returns "&lt;" followed by <see cref="max" /> incremented by 1.
+    ///             </description>
+    ///         </item>
+    ///         <item>
+    ///             <term>Upper Bound Unspecified (<see cref="min" /> is specified, <see cref="max" /> is null)</term>
+    ///             <description>Returns <see cref="min" /> followed by "+" to indicate no upper limit.</description>
+    ///         </item>
+    ///         <item>
+    ///             <term>Both Bounds Specified</term>
+    ///             <description>
+    ///                 Returns a range in the format "min..max", where both bounds are non-null.
+    ///             </description>
+    ///         </item>
+    ///     </list>
+    ///     This property always returns a valid string, accurately representing the constraints of the range.
+    /// </remarks>
+    public string AsPrefix
+    {
+        get
+        {
+            if (this.invert)
+                return "not " + this.Opposite.AsPrefix;
+            if (this.single)
+                return this.min.ToString();
+            if (!this.max.HasValue && this.min.HasValue)
+                return this.min.Value + "+";
+            if (!this.min.HasValue && this.max.HasValue)
+                return "<" + (this.max.Value + 1);
+            if (this.min.HasValue && this.max.HasValue)
+                return this.min.Value + ".." + this.max.Value;
+            // impossible case?
+            return ToString();
+        }
+    }
 
     public Range(int? min, int? max, bool not = false)
     {

@@ -16,5 +16,5 @@ public struct LanguageKeyword(string identifier, string docs = null)
     /// <summary>
     ///     The documentation attached to this keyword. Never null.
     /// </summary>
-    public readonly string docs = docs ?? "No documentation available for v" + Executor.MCC_VERSION;
+    public readonly string docs = docs ?? "No documentation available for v1." + Executor.MCC_VERSION;
 }

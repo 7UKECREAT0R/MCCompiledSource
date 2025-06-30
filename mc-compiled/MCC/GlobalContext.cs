@@ -28,7 +28,7 @@ public static class GlobalContext
     internal static void Pop()
     {
         contexts.Pop();
-        Current = contexts.Peek() ?? new Context();
+        Current = contexts.TryPeek(out Context currentTop) ? currentTop : new Context();
     }
 
     /// <summary>

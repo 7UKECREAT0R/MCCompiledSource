@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using mc_compiled.MCC.Compiler;
 using Range = mc_compiled.Commands.Range;
 
@@ -28,6 +29,92 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
         base(parameters) { }
 
     public object Clone() { return new SyntaxPatterns(this); }
+
+    /// <summary>
+    ///     Generates a formatted usage guide string for a single syntax pattern by processing
+    ///     the specified array of <see cref="SyntaxParameter" /> objects, distinguishing between optional
+    ///     and required parameters, and grouping similar parameters.
+    /// </summary>
+    /// <param name="pattern">
+    ///     An array of <see cref="SyntaxParameter" /> objects that defines the syntax structure
+    ///     to be represented in the usage guide. Each element in the array specifies whether a parameter
+    ///     is optional, its functional equivalence, and its usage string.
+    /// </param>
+    /// <returns>
+    ///     A formatted string that represents the usage guide for the given <paramref name="pattern" />.
+    ///     The resulting string includes properly delimited placeholders with their respective names,
+    ///     grouped appropriately for parameters that are functionally equivalent.
+    /// </returns>
+    /// <remarks>
+    ///     The method processes the provided <paramref name="pattern" /> to construct a descriptive
+    ///     usage guide by iterating over the array. Functionally equivalent parameters, as determined
+    ///     by their type and characteristics, are grouped together in the output. Optional parameters
+    ///     are wrapped with square brackets (`[]`), and required parameters are wrapped with angle brackets (`<>`).
+    /// </remarks>
+    private string BuildUsageGuideSingle(SyntaxParameter[] pattern)
+    {
+        int readIndex = 0;
+        List<SyntaxParameter> collection = []; // reused
+        StringBuilder sb = new(); // reused
+
+        while (HasNext())
+        {
+            SyntaxParameter root = Next();
+            collection.Clear();
+
+            // collect parameters with the same type but different names.
+            while (HasNext())
+                if (root.FunctionallyEquals(Peek()))
+                    collection.Add(Next());
+                else
+                    break;
+
+            // build a string for these parameter(s).
+            sb.Clear();
+            sb.Append('`');
+            sb.Append(root.optional ? '[' : '<');
+            sb.Append(root.AsUsageString);
+
+            foreach (SyntaxParameter similarParameter in collection)
+            {
+                sb.Append(", ");
+                sb.Append(similarParameter.name);
+            }
+
+            sb.Append(root.optional ? ']' : '>');
+            sb.Append('`');
+
+            if (HasNext())
+                sb.Append(' ');
+        }
+
+        return sb.ToString();
+
+        bool HasNext() { return readIndex < pattern.Length; }
+        SyntaxParameter Peek() { return pattern[readIndex]; }
+        SyntaxParameter Next() { return pattern[readIndex++]; }
+    }
+    /// <summary>
+    ///     Builds a usage guide for this set of syntax patterns and outputs it into the <paramref name="lines" /> list.
+    /// </summary>
+    /// <param name="indentLevel">The base indent level to output on.</param>
+    /// <param name="lines">The list to output into.</param>
+    public void BuildUsageGuide(int indentLevel, List<(string content, int indentLevel)> lines)
+    {
+        if (this.Count == 0)
+            return;
+        if (this.Count == 1)
+        {
+            // the pattern can be placed on a single line
+            lines.Add((BuildUsageGuideSingle(this[0]), indentLevel));
+            return;
+        }
+
+        lines.Add(("**one of:**", indentLevel));
+        lines.AddRange(this.Select(pattern =>
+            (BuildUsageGuideSingle(pattern), indentLevel + 1))
+        );
+    }
 
     /// <summary>
     ///     Attempts to parse a single string array into a <see cref="SyntaxPatterns" /> object with a single pattern inside.

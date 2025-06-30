@@ -29,7 +29,6 @@ public class Directive
     ///     The attributes applied to this directive that modify how it works.
     /// </summary>
     public readonly DirectiveAttribute attributes;
-
     /// <summary>
     ///     If present, the name of the category this directive lies under.
     /// </summary>
@@ -113,6 +112,13 @@ public class Directive
     internal LanguageKeyword AsKeyword => new(this.name, this.details);
 
     /// <summary>
+    ///     Returns if this directive has the given attribute(s).
+    /// </summary>
+    /// <param name="attribute">The attribute(s) to check for.</param>
+    /// <returns></returns>
+    public bool HasAttribute(DirectiveAttribute attribute) { return (this.attributes & attribute) != 0; }
+
+    /// <summary>
     ///     Harvests a collection of keywords which are part of this directive's syntax.
     /// </summary>
     /// <returns>An <see cref="IEnumerable{T}" /> of keywords which contain an identifier and documentation respectively.</returns>
@@ -121,6 +127,14 @@ public class Directive
         List<LanguageKeyword> keywords = [];
         this._syntax.CollectKeywords(keywords);
         return keywords;
+    }
+
+    internal (string line, int indentLevel)[] BuildUsageGuide()
+    {
+        List<(string line, int indentLevel)> lines = [];
+        this._syntax.BuildUsageGuide(0, lines);
+
+        return lines.ToArray();
     }
 
     /// <summary>

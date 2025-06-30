@@ -30,7 +30,7 @@ public class Executor
 {
     private const string _FSTRING_SELECTOR = @"@(?:[spaeri]|initiator)(?:\[.+\])?";
     private const string _FSTRING_VARIABLE = @"[\w\d_\-:]+";
-    public const decimal MCC_VERSION = 1.20M; // _compiler
+    public const int MCC_VERSION = 20; // 1.XX, _compiler
     public const string MCC_GENERATED_FOLDER = "compiler"; // folder that generated functions go into
     public const string MCC_TESTS_FOLDER = "tests"; // folder that generated tests go into
     public const string MCC_TRANSLATE_PREFIX = "mcc."; // prefix for translation keys
