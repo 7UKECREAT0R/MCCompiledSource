@@ -17,6 +17,65 @@ public static class Language
 {
     private const string FILE = "language.json";
 
+    public static readonly LanguageKeyword[] KEYWORDS_OPERATORS =
+    [
+        new("<", "Checks if the current value is less than the next one."),
+        new(">", "Checks if the current value is greater than the next one."),
+        new("<=", "Checks if the current value is less than or equal to the next one."),
+        new(">=", "Checks if the current value is greater than or equal to the next one."),
+        new("{", "Opens a code block."),
+        new("}", "Closes a code block."),
+        new("=", "Assigns a value to whatever's on the left-hand side."),
+        new("==", "Checks if the current value is equal to the next one."),
+        new("!=", "Checks if the current value is not equal to the next one."),
+        new("(", "Open parenthesis."),
+        new(")", "Close parenthesis."),
+        new("+", "Adds the left and right values."),
+        new("-", "Subtracts the right value from the left value."),
+        new("*", "Multiplies the left and right values."),
+        new("/", "Divides the left value by the right value."),
+        new("%", "Divides the left value by the right value and returns the remainder."),
+        new("+=", "Adds the left and right values. Assigns the result to the left value."),
+        new("-=", "Subtracts the right value from the left value. Assigns the result to the left value."),
+        new("*=", "Multiplies the left and right values. Assigns the result to the left value."),
+        new("/=", "Divides the left value by the right value. Assigns the result to the left value."),
+        new("%=",
+            "Divides the left value by the right value and returns the remainder. Assigns the result to the left value."),
+        new("~", "Coordinate relative to the executing position."),
+        new("^", "Coordinate relative to where the executor is facing.")
+    ];
+    public static readonly LanguageKeyword[] KEYWORDS_SELECTORS =
+    [
+        new("@e", "Reference all entities."),
+        new("@a", "Reference all players."),
+        new("@s", "Reference the executing entity/player."),
+        new("@p", "Reference the nearest player."),
+        new("@r", "Reference a random entity.")
+    ];
+    public static readonly LanguageKeyword[] KEYWORDS_LITERALS =
+    [
+        new("true", "The boolean value 'true'."),
+        new("false", "The boolean value 'false'."),
+        new("null", "Defaults to 0, false, or null depending on the context. Represents nothing generically.")
+    ];
+    public static readonly List<LanguageKeyword> KEYWORDS_TYPES =
+    [
+        /*"int", "decimal", "bool", "time", "global", "local", "extern", "export", "bind", "auto", "partial", "async"*/
+    ];
+    public static readonly List<LanguageKeyword> KEYWORDS_COMPARISONS =
+    [
+        /*"count", "any", "block", "blocks", "until", "align", "anchored", "as", "at", "facing", "if", "unless", "in",
+        "positioned", "rotated", "positioned as", "rotated as"*/
+    ];
+    public static readonly List<LanguageKeyword> KEYWORDS_COMMAND_OPTIONS =
+    [
+        /*"dummies", "autoinit", "exploders", "uninstall", "tests", "audiofiles", "up", "down", "left", "right",
+        "forward", "backward", "ascending", "descending", "survival", "creative", "adventure", "spectator", "removeall",
+        "times", "subtitle", "destroy", "replace", "hollow", "outline", "keep", "new", "open", "change",
+        "lockinventory", "lockslot", "canplaceon:", "candestroy:", "enchant:", "name:", "lore:", "author:", "title:",
+        "page:", "dye:", "text:", "button:", "onOpen:", "onClose:"*/
+    ];
+
     public static string[] builtinPreprocessorVariables;
     public static ImmutableList<FeatureDefinition> features;
 
@@ -30,6 +89,97 @@ public static class Language
 
     public static Dictionary<string, Directive> directives;
     public static bool IsLoaded { get; private set; }
+    /// <summary>
+    ///     Gets all defined directives in the language.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects
+    ///     representing all directives currently loaded in the language configuration.
+    ///     The returned collection includes both preprocessor and runtime directives.
+    /// </remarks>
+    public static IEnumerable<Directive> AllDirectives => directives.Values;
+    /// <summary>
+    ///     Gets all preprocessor directives defined in the language configuration.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects
+    ///     that are identified as preprocessor directives. A directive is considered a preprocessor directive
+    ///     if its <see cref="Directive.IsPreprocessor" /> property is <c>true</c>.
+    /// </remarks>
+    public static IEnumerable<Directive> AllPreprocessorDirectives =>
+        directives.Values
+            .DistinctBy(d => d.name)
+            .Where(d => d.IsPreprocessor);
+    /// <summary>
+    ///     Gets all runtime directives defined in the language configuration.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects,
+    ///     representing all directives that are not preprocessor directives within the language configuration.
+    ///     Runtime directives are identified as directives whose <see cref="Directive.IsPreprocessor" /> property is
+    ///     <c>false</c>.
+    /// </remarks>
+    public static IEnumerable<Directive> AllRuntimeDirectives =>
+        directives.Values
+            .DistinctBy(d => d.name)
+            .Where(d => !d.IsPreprocessor);
+    /// <summary>
+    ///     Gets the names of all directives that are classified as preprocessor directives.
+    /// </summary>
+    /// <remarks>
+    ///     This property filters the currently loaded <see cref="Directive" /> instances
+    ///     stored in the <see cref="Language.directives" /> dictionary to identify only those that
+    ///     are marked as preprocessor directives. A directive is considered a preprocessor directive
+    ///     if the <see cref="Directive.IsPreprocessor" /> property evaluates to <c>true</c>.
+    ///     The resulting collection contains only the <see langword="string" /> names
+    ///     of these preprocessor directives.
+    /// </remarks>
+    /// <returns>
+    ///     An <see cref="IEnumerable{T}" /> of <see langword="string" /> containing the keys (names)
+    ///     of directives defined as preprocessor directives.
+    /// </returns>
+    public static IEnumerable<string> AllPreprocessorDirectiveNames =>
+        directives.Where(kv => kv.Value.IsPreprocessor).Select(kv => kv.Key);
+    /// <summary>
+    ///     Gets the names of all runtime directives defined in the language.
+    /// </summary>
+    /// <remarks>
+    ///     This property returns an <see cref="IEnumerable{T}" /> of <see cref="string" /> values
+    ///     representing the keys of directives that are not preprocessor directives.
+    ///     The distinction between runtime and preprocessor directives is determined
+    ///     by the <see cref="Directive.IsPreprocessor" /> property.
+    /// </remarks>
+    public static IEnumerable<string> AllRuntimeDirectiveNames =>
+        directives.Where(kv => !kv.Value.IsPreprocessor).Select(kv => kv.Key);
+    /// <summary>
+    ///     Retrieves a collection of <see cref="Directive" /> instances that belong to the specified category.
+    /// </summary>
+    /// <param name="category">
+    ///     A <see cref="string" /> representing the category by which to filter the <see cref="Directive" /> instances.
+    ///     This parameter must match the <see cref="Directive.category" /> property of the desired directives.
+    /// </param>
+    /// <returns>
+    ///     An <see cref="IEnumerable{T}" /> of <see cref="Directive" /> objects whose <see cref="Directive.category" />
+    ///     matches
+    ///     the specified <paramref name="category" />. If no matching directives exist, returns an empty collection.
+    /// </returns>
+    public static IEnumerable<Directive> DirectivesByCategory(string category)
+    {
+        return directives.Values.Where(d => d.category != null && d.category.Equals(category));
+    }
+
+    /// <summary>
+    ///     Retrieves a <see cref="Directive" /> instance associated with the specified <paramref name="token" />.
+    /// </summary>
+    /// <param name="token">
+    ///     A <see cref="string" /> representing the token used to identify the desired <see cref="Directive" />.
+    ///     This is typically the command or keyword for the directive.
+    /// </param>
+    /// <returns>
+    ///     Returns the <see cref="Directive" /> associated with the given <paramref name="token" />,
+    ///     if found in the <c>directives</c> dictionary; otherwise, <c>null</c>.
+    /// </returns>
+    public static Directive QueryDirective(string token) { return directives.GetValueOrDefault(token); }
 
     /// <summary>
     ///     Loads `language.json` if it's not already.
@@ -65,8 +215,6 @@ public static class Language
             LineInfoHandling = LineInfoHandling.Load
         });
         LoadFromJSON(json);
-
-        IsLoaded = true;
     }
     private static void LoadFromJSON(JObject json)
     {
@@ -168,6 +316,29 @@ public static class Language
                     if (!directives.TryAdd(alias, directive))
                         throw new Exception($"Duplicate directive alias '{alias}'.");
         }
+
+        // harvest keywords from directives
+        foreach (Directive directive in directives.Values)
+        {
+            // type keywords are defined under the "define" command
+            if (directive.name.Equals("define"))
+            {
+                KEYWORDS_TYPES.AddRange(directive.CollectKeywords());
+                continue;
+            }
+
+            // comparison-related keywords are defined under the "if" command.
+            if (directive.name.Equals("if"))
+            {
+                KEYWORDS_COMPARISONS.AddRange(directive.CollectKeywords());
+                continue;
+            }
+
+            // everything else
+            KEYWORDS_COMMAND_OPTIONS.AddRange(directive.CollectKeywords());
+        }
+
+        IsLoaded = true;
     }
 
     /// <summary>
@@ -177,7 +348,7 @@ public static class Language
     ///     The query string, starting with the directive name, and then optionally traversing its children with
     ///     dots.
     /// </param>
-    /// <returns>A reference to the located syntax group, or <c>null</c> if it couldn't be found.</returns>
+    /// <returns>A reference to the located syntax group, or <c>null</c> if it could not be found.</returns>
     /// <example>
     ///     <code>
     /// gloaltitle.subcommand
@@ -207,6 +378,6 @@ public static class Language
                 return null;
         }
 
-        return currentGroup;
+        return (SyntaxGroup) currentGroup.Clone();
     }
 }

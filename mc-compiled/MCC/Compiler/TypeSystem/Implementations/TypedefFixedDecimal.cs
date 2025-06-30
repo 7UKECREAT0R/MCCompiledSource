@@ -4,6 +4,7 @@ using System.Text;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
 using mc_compiled.Json;
+using mc_compiled.MCC.Language;
 using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler.TypeSystem.Implementations;
@@ -12,14 +13,8 @@ public readonly struct FixedDecimalData : ITypeStructure
 {
     public readonly byte precision;
 
-    internal FixedDecimalData(byte precision)
-    {
-        this.precision = precision;
-    }
-    public ITypeStructure DeepClone()
-    {
-        return new FixedDecimalData(this.precision);
-    }
+    internal FixedDecimalData(byte precision) { this.precision = precision; }
+    public ITypeStructure DeepClone() { return new FixedDecimalData(this.precision); }
 
     /// <summary>
     ///     Throws an exception if the given precision is out of bounds.
@@ -37,22 +32,10 @@ public readonly struct FixedDecimalData : ITypeStructure
                 $"Precision {precision} was too low to store internally. Is this intentional?");
     }
 
-    public int TypeHashCode()
-    {
-        return this.precision.GetHashCode();
-    }
-    public bool Equals(FixedDecimalData other)
-    {
-        return this.precision == other.precision;
-    }
-    public override bool Equals(object obj)
-    {
-        return obj is FixedDecimalData other && Equals(other);
-    }
-    public override int GetHashCode()
-    {
-        return this.precision.GetHashCode();
-    }
+    public int TypeHashCode() { return this.precision.GetHashCode(); }
+    public bool Equals(FixedDecimalData other) { return this.precision == other.precision; }
+    public override bool Equals(object obj) { return obj is FixedDecimalData other && Equals(other); }
+    public override int GetHashCode() { return this.precision.GetHashCode(); }
 }
 
 internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
@@ -68,25 +51,17 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
 
     public override bool CanCompareAlone => false;
 
-    public override TypePattern SpecifyPattern => new(new NamedType(typeof(TokenIntegerLiteral), "precision"));
-    internal override string[] GetObjectives(ScoreboardValue input)
-    {
-        return [input.InternalName];
-    }
-    internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value)
-    {
-        return default;
-    }
+    public override SyntaxGroup SpecifyPattern =>
+        SyntaxGroup.WrapPattern(false, SyntaxParameter.Simple<TokenIntegerLiteral>("precision"));
+    internal override string[] GetObjectives(ScoreboardValue input) { return [input.InternalName]; }
+    internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value) { return null; }
     public override ITypeStructure AcceptPattern(Statement statement)
     {
         int precision = statement.Next<TokenNumberLiteral>("precision").GetNumberInt();
         return new FixedDecimalData((byte) precision);
     }
 
-    public override bool CanAcceptLiteralForData(TokenLiteral literal)
-    {
-        return literal is TokenDecimalLiteral;
-    }
+    public override bool CanAcceptLiteralForData(TokenLiteral literal) { return literal is TokenDecimalLiteral; }
     public override ITypeStructure AcceptLiteral(TokenLiteral literal)
     {
         return new FixedDecimalData(((TokenDecimalLiteral) literal).number.GetPrecision());
@@ -251,7 +226,10 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
         ]);
     }
     internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
-        TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement)
+        TokenCompare.Type comparisonType,
+        ScoreboardValue self,
+        TokenLiteral literal,
+        Statement callingStatement)
     {
         if (literal is not TokenNumberLiteral numberLiteral)
             throw LiteralConversionError(self, literal, callingStatement);
@@ -267,7 +245,8 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
             ]
         );
     }
-    internal override IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> AssignLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         if (literal is TokenNullLiteral)
@@ -297,7 +276,8 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
                 throw LiteralConversionError(self, literal, callingStatement);
         }
     }
-    internal override IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> AddLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         if (literal is TokenNullLiteral)
@@ -327,7 +307,8 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
                 throw LiteralConversionError(self, literal, callingStatement);
         }
     }
-    internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         if (literal is TokenNullLiteral)
@@ -359,22 +340,26 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
     }
 
     // Methods
-    internal override IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Assign(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpSet(self, other)];
     }
-    internal override IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Add(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpAdd(self, other)];
     }
-    internal override IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Subtract(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpSub(self, other)];
     }
-    internal override IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Multiply(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         int precision = ((FixedDecimalData) self.data).precision;
@@ -388,7 +373,8 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
             Command.ScoreboardOpDiv(self, tempBase)
         ];
     }
-    internal override IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Divide(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         int precision = ((FixedDecimalData) self.data).precision;
@@ -402,7 +388,8 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
             Command.ScoreboardOpDiv(self, other)
         ];
     }
-    internal override IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Modulo(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpMod(self, other)];

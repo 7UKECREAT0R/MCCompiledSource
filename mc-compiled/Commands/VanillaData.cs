@@ -13,6 +13,10 @@ namespace mc_compiled.Commands;
 ///     Some methods here are expensive, so reserve their use for cases where MCCompiled will remain open and can reuse the
 ///     results of the first, expensive load.
 /// </summary>
+/// <remarks>
+///     The files can be updated from https://github.com/Mojang/bedrock-samples/tree/main/metadata/vanilladata_modules,
+///     OR you can run `vanilla-dependencies\update.ps1` to update it automatically.
+/// </remarks>
 public static class VanillaData
 {
     private const bool KEEP_MINECRAFT_IDENTIFIER = false;

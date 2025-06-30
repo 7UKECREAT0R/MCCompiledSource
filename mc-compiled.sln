@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mc-compiled-language-server", "mc-compiled-language-server\mc-compiled-language-server.csproj", "{46FDFA89-8F71-47AD-8EAF-131AE9DEB02B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mc-compiled.SourceGenerators", "mc-compiled.SourceGenerators\mc-compiled.SourceGenerators\mc-compiled.SourceGenerators.csproj", "{3A8E0BB4-09FD-476D-A193-43E2305E479A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,14 @@ Global
 		{46FDFA89-8F71-47AD-8EAF-131AE9DEB02B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{46FDFA89-8F71-47AD-8EAF-131AE9DEB02B}.Release|x86.ActiveCfg = Release|Any CPU
 		{46FDFA89-8F71-47AD-8EAF-131AE9DEB02B}.Release|x86.Build.0 = Release|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Debug|x86.Build.0 = Debug|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Release|x86.ActiveCfg = Release|Any CPU
+		{3A8E0BB4-09FD-476D-A193-43E2305E479A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
+using mc_compiled.MCC.Language;
 using Newtonsoft.Json.Linq;
 using Range = mc_compiled.Commands.Range;
 
@@ -13,14 +14,14 @@ namespace mc_compiled.MCC.Compiler;
 /// </summary>
 public abstract class Statement : TokenFeeder, ICloneable
 {
-    private TypePattern[] patterns;
+    private SyntaxGroup validationGroup;
 
     protected Statement(Token[] tokens, bool waitForPatterns = false) : base(tokens)
     {
         if (!waitForPatterns)
             // ReSharper disable once VirtualMemberCallInConstructor
             // DNC
-            this.patterns = GetValidPatterns();
+            this.validationGroup = GetValidPatterns();
         this.DecorateInSource = true;
     }
     /// <summary>
@@ -32,7 +33,6 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// </summary>
     public abstract bool DoesAsyncSplit { get; }
 
-    public object Clone() { return MemberwiseClone(); }
     /// <summary>
     ///     Returns if this statement type is a directive and it has this attribute.
     /// </summary>
@@ -40,7 +40,7 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// <returns></returns>
     public abstract bool HasAttribute(DirectiveAttribute attribute);
 
-    protected abstract TypePattern[] GetValidPatterns();
+    protected abstract SyntaxGroup GetValidPatterns();
     /// <summary>
     ///     Run this statement/continue where it left off.
     /// </summary>
@@ -148,7 +148,7 @@ public abstract class Statement : TokenFeeder, ICloneable
         SquashAll(allResolved, activeExecutor);
 
         this.tokens = allResolved.ToArray();
-        this.patterns = GetValidPatterns();
+        this.validationGroup = GetValidPatterns();
     }
 
     /// <summary>
@@ -175,8 +175,8 @@ public abstract class Statement : TokenFeeder, ICloneable
         {
             string lastLine = file.commands[length - 1];
             if (!lastLine.StartsWith("#") && lastLine.Length > 0 &&
-                !lastLine.All(c =>
-                    char.IsWhiteSpace(c))) // create newline if the last line was not a comment and not whitespace
+                !lastLine.All(char
+                    .IsWhiteSpace)) // create newline if the last line was not a comment and not whitespace
                 file.Add("");
         }
 
@@ -187,25 +187,24 @@ public abstract class Statement : TokenFeeder, ICloneable
     /// </summary>
     public void Run0(Executor activeExecutor)
     {
-        if (this.patterns != null && this.patterns.Length > 0)
+        if (this.validationGroup is {AlwaysMatches: false})
         {
-            IEnumerable<MatchResult> results = this.patterns.Select(
-                pattern => pattern.Check(this.tokens));
-            IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
+            bool success = this.validationGroup.Validate(activeExecutor, this,
+                out IEnumerable<SyntaxValidationError> failReasons,
+                out _, out _);
 
-            if (matchResults.All(result => !result.match))
+            if (!success)
             {
                 // get the closest matched pattern
-                MatchResult closest = matchResults.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
-                IEnumerable<string> missingArgs = closest.missing.Select(m => m.ToString());
-                throw new StatementException(this, "Missing argument(s): " + string.Join(", ", missingArgs));
+                string list = string.Join(", ", failReasons.Select(m => m.ParameterString));
+                throw new StatementException(this, list);
             }
         }
 
         this.currentToken = 0;
         Run(activeExecutor);
 
-        // if there's tokens left in this statement, then the user likely expected them to be used.
+        // if there are tokens left in this statement, then the user likely expected them to be used.
         // throwing a helpful exception if this is the case. I would emit a warning if I could (do this when LSP is implemented pls)
 
         if (this.RemainingTokens == 0)
@@ -554,7 +553,7 @@ public abstract class Statement : TokenFeeder, ICloneable
     {
         // be careful if this is a function definition, might be in the same format.
         bool isFunctionDefinition = this is StatementDirective directive &&
-                                    directive.directive.call == DirectiveImplementations.function;
+                                    directive.directive.implementation == DirectiveImplementations.function;
 
         int startAt = 0;
 
@@ -827,7 +826,7 @@ public sealed class StatementHusk : Statement
     {
         throw new StatementException(this, "Compiler tried to run a Husk statement. Have a dev look at this.");
     }
-    protected override TypePattern[] GetValidPatterns() { return null; }
+    protected override SyntaxGroup GetValidPatterns() { return null; }
     public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
 }
 

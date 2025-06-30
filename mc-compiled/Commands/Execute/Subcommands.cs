@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using mc_compiled.Commands.Selectors;
@@ -22,19 +21,10 @@ public enum Axes : byte
 internal class SubcommandAlign : Subcommand
 {
     internal SubcommandAlign() { }
-    internal SubcommandAlign(Axes axes)
-    {
-        this.axes = axes;
-    }
+    internal SubcommandAlign(Axes axes) { this.axes = axes; }
 
     private Axes axes { get; set; }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenStringLiteral), "axes")
-        )
-    ];
     public override string Keyword => "align";
     public override bool TerminatesChain => false;
     /// <summary>
@@ -87,10 +77,7 @@ internal class SubcommandAlign : Subcommand
         string axesString = literal.text;
         this.axes = ParseAxes(axesString);
     }
-    public override string ToMinecraft()
-    {
-        return $"align {FromAxes(this.axes)}";
-    }
+    public override string ToMinecraft() { return $"align {FromAxes(this.axes)}"; }
 }
 
 internal class SubcommandAnchored : Subcommand
@@ -98,33 +85,21 @@ internal class SubcommandAnchored : Subcommand
     private AnchorPosition anchor;
 
     internal SubcommandAnchored() { }
-    internal SubcommandAnchored(AnchorPosition anchor)
-    {
-        this.anchor = anchor;
-    }
+    internal SubcommandAnchored(AnchorPosition anchor) { this.anchor = anchor; }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenIdentifierEnum), "anchor")
-        )
-    ];
     public override string Keyword => "anchored";
     public override bool TerminatesChain => false;
 
     public override void FromTokens(Statement tokens)
     {
         var @enum = tokens.Next<TokenIdentifierEnum>("anchor position");
-        ParsedEnumValue parsedEnum = @enum.value;
+        RecognizedEnumValue recognizedEnum = @enum.value;
 
-        parsedEnum.RequireType<AnchorPosition>(tokens);
+        recognizedEnum.RequireType<AnchorPosition>(tokens);
 
-        this.anchor = (AnchorPosition) parsedEnum.value;
+        this.anchor = (AnchorPosition) recognizedEnum.value;
     }
-    public override string ToMinecraft()
-    {
-        return $"anchored {this.anchor}";
-    }
+    public override string ToMinecraft() { return $"anchored {this.anchor}"; }
 }
 
 internal class SubcommandAs : Subcommand
@@ -132,17 +107,8 @@ internal class SubcommandAs : Subcommand
     internal Selector entity;
 
     internal SubcommandAs() { }
-    internal SubcommandAs(Selector entity)
-    {
-        this.entity = entity;
-    }
+    internal SubcommandAs(Selector entity) { this.entity = entity; }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenSelectorLiteral), "target")
-        )
-    ];
     public override string Keyword => "as";
     public override bool TerminatesChain => false;
 
@@ -151,10 +117,7 @@ internal class SubcommandAs : Subcommand
         var selector = tokens.Next<TokenSelectorLiteral>("entity");
         this.entity = selector.selector;
     }
-    public override string ToMinecraft()
-    {
-        return $"as {this.entity}";
-    }
+    public override string ToMinecraft() { return $"as {this.entity}"; }
 }
 
 internal class SubcommandAt : Subcommand
@@ -162,17 +125,8 @@ internal class SubcommandAt : Subcommand
     private Selector entity;
 
     internal SubcommandAt() { }
-    internal SubcommandAt(Selector entity)
-    {
-        this.entity = entity;
-    }
+    internal SubcommandAt(Selector entity) { this.entity = entity; }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenSelectorLiteral), "target")
-        )
-    ];
     public override string Keyword => "at";
     public override bool TerminatesChain => false;
 
@@ -181,10 +135,7 @@ internal class SubcommandAt : Subcommand
         var selector = tokens.Next<TokenSelectorLiteral>("entity");
         this.entity = selector.selector;
     }
-    public override string ToMinecraft()
-    {
-        return $"at {this.entity}";
-    }
+    public override string ToMinecraft() { return $"at {this.entity}"; }
 }
 
 internal class SubcommandFacing : Subcommand
@@ -198,7 +149,11 @@ internal class SubcommandFacing : Subcommand
     private Coordinate z;
 
     internal SubcommandFacing() { }
-    internal SubcommandFacing(bool isEntity, Selector entity, AnchorPosition anchor, Coordinate x, Coordinate y,
+    internal SubcommandFacing(bool isEntity,
+        Selector entity,
+        AnchorPosition anchor,
+        Coordinate x,
+        Coordinate y,
         Coordinate z)
     {
         this.isEntity = isEntity;
@@ -209,20 +164,6 @@ internal class SubcommandFacing : Subcommand
         this.z = z;
     }
 
-    public override TypePattern[] Patterns =>
-    [
-        // coordinate
-        new(
-            new NamedType(typeof(TokenCoordinateLiteral), "x"),
-            new NamedType(typeof(TokenCoordinateLiteral), "y"),
-            new NamedType(typeof(TokenCoordinateLiteral), "z")
-        ),
-        // entity
-        new(
-            new NamedType(typeof(TokenSelectorLiteral), "entity"),
-            new NamedType(typeof(TokenIdentifierEnum), "anchor")
-        )
-    ];
     public override string Keyword => "facing";
     public override bool TerminatesChain => false;
 
@@ -235,9 +176,9 @@ internal class SubcommandFacing : Subcommand
 
             this.entity = tokens.Next<TokenSelectorLiteral>("entity");
 
-            ParsedEnumValue parsedEnum = tokens.Next<TokenIdentifierEnum>("anchor").value;
-            parsedEnum.RequireType<AnchorPosition>(tokens);
-            this.anchor = (AnchorPosition) parsedEnum.value;
+            RecognizedEnumValue recognizedEnum = tokens.Next<TokenIdentifierEnum>("anchor").value;
+            recognizedEnum.RequireType<AnchorPosition>(tokens);
+            this.anchor = (AnchorPosition) recognizedEnum.value;
             return;
         }
 
@@ -262,33 +203,21 @@ internal class SubcommandIn : Subcommand
     private Dimension dimension;
 
     internal SubcommandIn() { }
-    internal SubcommandIn(Dimension dimension)
-    {
-        this.dimension = dimension;
-    }
+    internal SubcommandIn(Dimension dimension) { this.dimension = dimension; }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenIdentifierEnum), "dimension")
-        )
-    ];
     public override string Keyword => "in";
     public override bool TerminatesChain => false;
 
     public override void FromTokens(Statement tokens)
     {
         var @enum = tokens.Next<TokenIdentifierEnum>("dimension");
-        ParsedEnumValue parsedEnum = @enum.value;
+        RecognizedEnumValue recognizedEnum = @enum.value;
 
-        parsedEnum.RequireType<Dimension>(tokens);
+        recognizedEnum.RequireType<Dimension>(tokens);
 
-        this.dimension = (Dimension) parsedEnum.value;
+        this.dimension = (Dimension) recognizedEnum.value;
     }
-    public override string ToMinecraft()
-    {
-        return $"in {this.dimension}";
-    }
+    public override string ToMinecraft() { return $"in {this.dimension}"; }
 }
 
 internal class SubcommandPositioned : Subcommand
@@ -307,19 +236,6 @@ internal class SubcommandPositioned : Subcommand
         this.z = z;
     }
 
-    public override TypePattern[] Patterns =>
-    [
-        // coordinate
-        new(
-            new NamedType(typeof(TokenCoordinateLiteral), "x"),
-            new NamedType(typeof(TokenCoordinateLiteral), "y"),
-            new NamedType(typeof(TokenCoordinateLiteral), "z")
-        ),
-        // entity
-        new(
-            new NamedType(typeof(TokenSelectorLiteral), "entity")
-        )
-    ];
     public override string Keyword => "positioned";
     public override bool TerminatesChain => false;
 
@@ -362,18 +278,6 @@ internal class SubcommandRotated : Subcommand
         this.pitch = pitch;
     }
 
-    public override TypePattern[] Patterns =>
-    [
-        // coordinate
-        new(
-            new NamedType(typeof(TokenCoordinateLiteral), "yaw"),
-            new NamedType(typeof(TokenCoordinateLiteral), "pitch")
-        ),
-        // entity
-        new(
-            new NamedType(typeof(TokenSelectorLiteral), "entity")
-        )
-    ];
     public override string Keyword => "rotated";
     public override bool TerminatesChain => false;
 
@@ -408,24 +312,12 @@ internal class SubcommandRun : Subcommand
     ///     Create a SubcommandRun with a command given.
     /// </summary>
     /// <param name="command"></param>
-    internal SubcommandRun(string command)
-    {
-        this.command = command;
-    }
+    internal SubcommandRun(string command) { this.command = command; }
     /// <summary>
     ///     Create a SubcommandRun that leaves the command field empty.
     /// </summary>
-    internal SubcommandRun()
-    {
-        this.command = "";
-    }
+    internal SubcommandRun() { this.command = ""; }
 
-    public override TypePattern[] Patterns =>
-    [
-        new(
-            new NamedType(typeof(TokenStringLiteral), "command")
-        )
-    ];
     public override string Keyword => "run";
     public override bool TerminatesChain => true;
 
@@ -433,10 +325,7 @@ internal class SubcommandRun : Subcommand
     {
         this.command = string.Join(" ", tokens.GetRemainingTokens().Select(tok => tok.ToString()));
     }
-    public override string ToMinecraft()
-    {
-        return $"run {this.command}";
-    }
+    public override string ToMinecraft() { return $"run {this.command}"; }
 }
 
 internal class SubcommandIf : Subcommand
@@ -444,25 +333,8 @@ internal class SubcommandIf : Subcommand
     internal ConditionalSubcommand condition;
 
     internal SubcommandIf() { }
-    internal SubcommandIf(ConditionalSubcommand condition)
-    {
-        this.condition = condition;
-    }
+    internal SubcommandIf(ConditionalSubcommand condition) { this.condition = condition; }
 
-    public override TypePattern[] Patterns
-    {
-        get
-        {
-            IEnumerable<TypePattern> _validPatterns =
-                ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
-            TypePattern[] validPatterns = _validPatterns as TypePattern[] ?? _validPatterns.ToArray();
-
-            foreach (TypePattern pattern in validPatterns)
-                pattern.PrependAnd(new NamedType(typeof(TokenIdentifier)), "subcommand");
-
-            return validPatterns.ToArray();
-        }
-    }
     public override string Keyword => "if";
     public override bool TerminatesChain => false;
 
@@ -476,10 +348,7 @@ internal class SubcommandIf : Subcommand
         // load the statement's parameters based on the following input
         this.condition.FromTokens(tokens);
     }
-    public override string ToMinecraft()
-    {
-        return $"if {this.condition.ToMinecraft()}";
-    }
+    public override string ToMinecraft() { return $"if {this.condition.ToMinecraft()}"; }
 }
 
 internal class SubcommandUnless : Subcommand
@@ -487,25 +356,8 @@ internal class SubcommandUnless : Subcommand
     internal ConditionalSubcommand condition;
 
     internal SubcommandUnless() { }
-    internal SubcommandUnless(ConditionalSubcommand condition)
-    {
-        this.condition = condition;
-    }
+    internal SubcommandUnless(ConditionalSubcommand condition) { this.condition = condition; }
 
-    public override TypePattern[] Patterns
-    {
-        get
-        {
-            IEnumerable<TypePattern> _validPatterns =
-                ConditionalSubcommand.CONDITIONAL_EXAMPLES.SelectMany(c => c.Patterns);
-            TypePattern[] validPatterns = _validPatterns as TypePattern[] ?? _validPatterns.ToArray();
-
-            foreach (TypePattern pattern in validPatterns)
-                pattern.PrependAnd(new NamedType(typeof(TokenIdentifier)), "subcommand");
-
-            return validPatterns.ToArray();
-        }
-    }
     public override string Keyword => "unless";
     public override bool TerminatesChain => false;
 
@@ -519,8 +371,5 @@ internal class SubcommandUnless : Subcommand
         // load the statement's parameters based on the following input
         this.condition.FromTokens(tokens);
     }
-    public override string ToMinecraft()
-    {
-        return $"unless {this.condition.ToMinecraft()}";
-    }
+    public override string ToMinecraft() { return $"unless {this.condition.ToMinecraft()}"; }
 }

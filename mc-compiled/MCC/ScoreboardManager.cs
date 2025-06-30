@@ -4,6 +4,7 @@ using mc_compiled.Commands;
 using mc_compiled.MCC.Attributes;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.MCC.Compiler.TypeSystem;
+using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC;
 
@@ -68,10 +69,7 @@ public class ScoreboardManager
     ///     Define all of the given non-null scoreboard values if they haven't already. Places them in the 'init' file.
     /// </summary>
     /// <param name="newValues">The values to define.</param>
-    public void DefineMany(params ScoreboardValue[] newValues)
-    {
-        DefineMany((IEnumerable<ScoreboardValue>) newValues);
-    }
+    public void DefineMany(params ScoreboardValue[] newValues) { DefineMany((IEnumerable<ScoreboardValue>) newValues); }
     /// <summary>
     ///     Define all of the given non-null scoreboard values if they haven't already. Places them in the 'init' file.
     /// </summary>
@@ -131,10 +129,7 @@ public class ScoreboardManager
     ///     Add a scoreboard value to the cache.
     /// </summary>
     /// <param name="value"></param>
-    public void Add(ScoreboardValue value)
-    {
-        this.values.Add(value);
-    }
+    public void Add(ScoreboardValue value) { this.values.Add(value); }
     /// <summary>
     ///     Add a set of scoreboard values to the cache.
     /// </summary>
@@ -149,9 +144,10 @@ public class ScoreboardManager
     ///     Fetch a value/field definition from this statement. e.g., 'int coins = 3', 'decimal 3 thing', 'bool isPlaying'.
     ///     This method automatically performs type inference if possible.
     /// </summary>
-    /// <param name="tokens"></param>
+    /// <param name="executor">The calling executor, used for pattern validation context.</param>
+    /// <param name="tokens">The tokens to pull the next value definition from.</param>
     /// <returns></returns>
-    internal static ValueDefinition GetNextValueDefinition(Statement tokens)
+    internal static ValueDefinition GetNextValueDefinition(Executor executor, Statement tokens)
     {
         var attributes = new List<IAttribute>();
 
@@ -176,20 +172,20 @@ public class ScoreboardManager
             else
             {
                 // process input tokens, if needed
-                TypePattern pattern = type.SpecifyPattern;
+                SyntaxGroup pattern = type.SpecifyPattern;
                 if (pattern != null)
                 {
-                    IEnumerable<Token> remaining = tokens.GetRemainingTokens();
-                    MatchResult match = pattern.Check(remaining.ToArray());
+                    Token[] remaining = tokens.GetRemainingTokens().ToArray();
+                    bool match = pattern.Validate(executor, new TokenFeeder(remaining),
+                        out IEnumerable<SyntaxValidationError> failReasons, out _, out _);
 
-                    if (match.match)
+                    if (match)
                     {
                         data = type.AcceptPattern(tokens);
                     }
                     else
                     {
-                        MultiType[] missing = match.missing;
-                        string list = string.Join(", ", missing.Select(m => m.ToString()));
+                        string list = string.Join(", ", failReasons.Select(m => m.ParameterString));
                         throw new StatementException(tokens,
                             $"Missing argument(s) for type definition '{type.TypeKeyword}': {list}");
                     }
@@ -275,8 +271,12 @@ public class ScoreboardManager
 
         internal readonly Token defaultValue;
 
-        internal ValueDefinition(IAttribute[] attributes, string name, Typedef type,
-            TokenLiteral[] data = null, ITypeStructure dataObject = null, Token defaultValue = null)
+        internal ValueDefinition(IAttribute[] attributes,
+            string name,
+            Typedef type,
+            TokenLiteral[] data = null,
+            ITypeStructure dataObject = null,
+            Token defaultValue = null)
         {
             this.attributes = attributes;
             this.name = name;
@@ -297,12 +297,13 @@ public class ScoreboardManager
                 if (this.type.SpecifyPattern != null)
                 {
                     // check pattern
-                    MatchResult result = this.type.SpecifyPattern.Check(tokens);
+                    Token[] remaining = tokens.GetRemainingTokens().ToArray();
+                    bool result = this.type.SpecifyPattern.Validate(sb.executor, new TokenFeeder(remaining),
+                        out IEnumerable<SyntaxValidationError> failReasons, out _, out _);
 
-                    if (!result.match)
+                    if (!result)
                     {
-                        MultiType[] missingTokens = result.missing;
-                        IEnumerable<string> missingTokensStrings = missingTokens.Select(mt => mt.ToString());
+                        IEnumerable<string> missingTokensStrings = failReasons.Select(mt => mt.ParameterString);
                         throw new StatementException(tokens,
                             $"Value type \"{this.type.TypeKeyword}\" missing argument(s): {string.Join(", ", missingTokensStrings)}");
                     }

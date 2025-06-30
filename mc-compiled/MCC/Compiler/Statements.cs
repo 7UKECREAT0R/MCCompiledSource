@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
+using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC.Compiler;
 
 public sealed class StatementDirective : Statement, IExecutionSetPart
 {
-    public readonly Directive directive;
+    public readonly Language.Directive directive;
 
-    public StatementDirective(Directive directive, Token[] tokens) : base(tokens, true)
+    public StatementDirective(Language.Directive directive, Token[] tokens) : base(tokens, true)
     {
         this.directive = directive;
         this.DecorateInSource = !directive.IsPreprocessor;
@@ -25,15 +26,13 @@ public sealed class StatementDirective : Statement, IExecutionSetPart
     }
     public override string ToString()
     {
-        if (this.directive == null)
-            return "[DIRECTIVE] [PARSING ERROR]";
-
-        return
-            $"[DIRECTIVE] {this.directive.description} -> {string.Join(" ", from t in this.tokens select t.DebugString())}";
+        return this.directive == null
+            ? "[DIRECTIVE] [PARSING ERROR]"
+            : $"[DIRECTIVE] {this.directive.description} -> {string.Join(" ", from t in this.tokens select t.DebugString())}";
     }
 
-    protected override TypePattern[] GetValidPatterns() { return this.directive.patterns; }
-    protected override void Run(Executor runningExecutor) { this.directive.call(runningExecutor, this); }
+    protected override SyntaxGroup GetValidPatterns() { return this.directive.Syntax; }
+    protected override void Run(Executor runningExecutor) { this.directive.implementation(runningExecutor, this); }
 }
 
 public sealed class StatementComment : Statement
@@ -49,7 +48,7 @@ public sealed class StatementComment : Statement
     public override bool DoesAsyncSplit => false;
     public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
     public override string ToString() { return $"[COMMENT] {this.comment}"; }
-    protected override TypePattern[] GetValidPatterns() { return []; }
+    protected override SyntaxGroup GetValidPatterns() { return SyntaxGroup.EMPTY; }
 
     protected override void Run(Executor runningExecutor)
     {
@@ -143,7 +142,7 @@ public sealed class StatementOpenBlock : Statement
             : $"[OPEN BLOCK: {this.statementsInside} STATEMENTS]";
     }
 
-    protected override TypePattern[] GetValidPatterns() { return []; }
+    protected override SyntaxGroup GetValidPatterns() { return SyntaxGroup.EMPTY; }
     protected override void Run(Executor runningExecutor)
     {
         // start a new group of async stages
@@ -221,7 +220,7 @@ public sealed class StatementCloseBlock : Statement
     public override bool HasAttribute(DirectiveAttribute attribute) { return false; }
     public override string ToString() { return "[CLOSE BLOCK]"; }
 
-    protected override TypePattern[] GetValidPatterns() { return []; }
+    protected override SyntaxGroup GetValidPatterns() { return SyntaxGroup.EMPTY; }
     protected override void Run(Executor runningExecutor)
     {
         // start a new group of async stages
@@ -263,15 +262,15 @@ public sealed class StatementOperation : Statement, IExecutionSetPart
         return $"[OPERATION] {string.Join(" ", from t in this.tokens select t.AsString())}";
     }
 
-    protected override TypePattern[] GetValidPatterns()
+    protected override SyntaxGroup GetValidPatterns()
     {
-        return
-        [
-            new TypePattern(
-                new NamedType(typeof(TokenIdentifierValue)),
-                new NamedType(typeof(IAssignment))
-            )
-        ];
+        return SyntaxGroup.WrapPatterns(false,
+            [SyntaxParameter.Simple(typeof(TokenIdentifierValue))],
+            [SyntaxParameter.Simple(typeof(IAssignment))]);
+        /*new TypePattern(
+            new NamedType(typeof(TokenIdentifierValue)),
+            new NamedType(typeof(IAssignment))
+        )*/
     }
     protected override void Run(Executor runningExecutor)
     {
@@ -367,15 +366,11 @@ public sealed class StatementFunctionCall : Statement, IExecutionSetPart
         return $"[CALL FUNCTION {this.tokens[0]} WITH {this.tokens.Length - 3} PARAMETERS]";
     }
 
-    protected override TypePattern[] GetValidPatterns()
+    protected override SyntaxGroup GetValidPatterns()
     {
-        return
-        [
-            new TypePattern(
-                new NamedType(typeof(TokenIdentifier)),
-                new NamedType(typeof(TokenOpenParenthesis))
-            )
-        ];
+        return SyntaxGroup.WrapPattern(false,
+            SyntaxParameter.Simple<TokenIdentifier>("function name"),
+            SyntaxParameter.Simple<TokenOpenParenthesis>("open parenthesis"));
     }
     protected override void Run(Executor runningExecutor)
     {
@@ -484,7 +479,7 @@ public sealed class StatementUnknown : Statement
 
     public Token[] GetTokens() { return this.tokens; }
 
-    protected override TypePattern[] GetValidPatterns() { return []; } // always valid
+    protected override SyntaxGroup GetValidPatterns() { return SyntaxGroup.EMPTY; } // always valid
     protected override void Run(Executor runningExecutor) { } // no operation
 }
 

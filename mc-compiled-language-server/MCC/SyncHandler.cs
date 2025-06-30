@@ -16,7 +16,8 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
 
     TextDocumentChangeRegistrationOptions
         IRegistration<TextDocumentChangeRegistrationOptions, TextSynchronizationCapability>.GetRegistrationOptions(
-            TextSynchronizationCapability capability, ClientCapabilities clientCapabilities)
+            TextSynchronizationCapability capability,
+            ClientCapabilities clientCapabilities)
     {
         return new TextDocumentChangeRegistrationOptions
         {
@@ -94,12 +95,12 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
 
         return Unit.Task;
     }
-    public Task<Unit> Handle(DidOpenTextDocumentParams request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(DidOpenTextDocumentParams request, CancellationToken cancellationToken)
     {
         TextDocumentItem document = request.TextDocument;
 
         if (document.LanguageId != MCCompiledLanguageServer.LANGUAGE_ID)
-            return Unit.Task;
+            return await Unit.Task;
 
         try
         {
@@ -107,17 +108,18 @@ public class SyncHandler(ILanguageServerFacade router) : ITextDocumentSyncHandle
             string uri = document.Uri.GetFileSystemPath();
             if (MCCompiledLanguageServer.PROJECTS.ContainsKey(uri))
             {
-                Console.Error.WriteLine($"Already has project {uri} open.");
-                return Unit.Task;
+                await Console.Error.WriteLineAsync($"Already has project {uri} open.");
+                return await Unit.Task;
             }
 
             MCCompiledLanguageServer.PROJECTS[uri] = new Project(uri, code, Path.GetFileNameWithoutExtension(uri));
-            return Unit.Task;
+            return await Unit.Task;
         }
         catch (Exception e)
         {
-            Console.Error.WriteLine($"Error opening document {document.Uri.GetFileSystemPath()}: {e.Message}");
-            return Unit.Task;
+            await Console.Error.WriteLineAsync(
+                $"Error opening document {document.Uri.GetFileSystemPath()}: {e.Message}");
+            return await Unit.Task;
         }
     }
     public Task<Unit> Handle(DidCloseTextDocumentParams request, CancellationToken cancellationToken)

@@ -21,7 +21,8 @@ public class ManifestHeader
     ///     The version of this pack.
     /// </summary>
     public ManifestVersion version;
-    public ManifestHeader(string name, string description,
+    public ManifestHeader(string name,
+        string description,
         Guid? uuid = null,
         ManifestVersion version = null,
         ManifestVersion minEngineVersion = null)
@@ -56,7 +57,7 @@ public class ManifestHeader
     {
         return new ManifestHeader(
             $"{projectName} {type}",
-            $"MCCompiled {Executor.MCC_VERSION} Project. ({type})",
+            $"MCCompiled 1.{Executor.MCC_VERSION} Project. ({type})",
             uuid);
     }
 

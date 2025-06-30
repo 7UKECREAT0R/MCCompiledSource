@@ -10,14 +10,8 @@ public struct HasItems
     private static readonly Regex MATCHER = new(@"hasitem=\[?([\w\d=:,.{}]+)\]?");
     public List<HasItemEntry> entries;
 
-    public HasItems(params HasItemEntry[] start)
-    {
-        this.entries = [..start];
-    }
-    public HasItems(List<HasItemEntry> start)
-    {
-        this.entries = [..start];
-    }
+    public HasItems(params HasItemEntry[] start) { this.entries = [..start]; }
+    public HasItems(List<HasItemEntry> start) { this.entries = [..start]; }
 
     public string GetSection()
     {
@@ -73,7 +67,7 @@ public struct HasItems
                         break;
                     case "L":
                     case "LOCATION":
-                        if (CommandEnumParser.TryParse(_value, out ParsedEnumValue enumValue))
+                        if (CommandEnumParser.TryParse(_value, out RecognizedEnumValue enumValue))
                             if (enumValue.IsType<ItemSlot>())
                                 entry.location = (ItemSlot) enumValue.value;
                         break;
@@ -102,18 +96,9 @@ public struct HasItems
         return hasitem;
     }
 
-    public bool Equals(HasItems other)
-    {
-        return Equals(this.entries, other.entries);
-    }
-    public override bool Equals(object obj)
-    {
-        return obj is HasItems other && Equals(other);
-    }
-    public override int GetHashCode()
-    {
-        return this.entries != null ? this.entries.GetHashCode() : 0;
-    }
+    public bool Equals(HasItems other) { return Equals(this.entries, other.entries); }
+    public override bool Equals(object obj) { return obj is HasItems other && Equals(other); }
+    public override int GetHashCode() { return this.entries != null ? this.entries.GetHashCode() : 0; }
 
     public static HasItems operator +(HasItems a, HasItems other)
     {
@@ -123,15 +108,9 @@ public struct HasItems
         return clone;
     }
 
-    public static bool operator ==(HasItems left, HasItems right)
-    {
-        return left.Equals(right);
-    }
+    public static bool operator ==(HasItems left, HasItems right) { return left.Equals(right); }
 
-    public static bool operator !=(HasItems left, HasItems right)
-    {
-        return !(left == right);
-    }
+    public static bool operator !=(HasItems left, HasItems right) { return !(left == right); }
 }
 
 public struct HasItemEntry

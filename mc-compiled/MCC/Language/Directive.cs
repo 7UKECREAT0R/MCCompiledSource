@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
 using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Language;
 
 /// <summary>
-///     A directive in MCCompiled, defined in <c>language.json</c>. Also known as a command on the user-facing side.
+///     Represents a directive in MCCompiled, as defined in <c>language.json</c>.
+///     Commonly referred to as a command in the user-facing implementation.
 /// </summary>
 public class Directive
 {
@@ -18,10 +22,13 @@ public class Directive
     /// </summary>
     public readonly string[] aliases;
     /// <summary>
+    ///     Keywords which are associated with this directive.
+    /// </summary>
+    public readonly LanguageKeyword[] associatedKeywords = [];
+    /// <summary>
     ///     The attributes applied to this directive that modify how it works.
     /// </summary>
-    public readonly DirectiveAttribute[] attributes;
-
+    public readonly DirectiveAttribute attributes;
     /// <summary>
     ///     If present, the name of the category this directive lies under.
     /// </summary>
@@ -47,12 +54,20 @@ public class Directive
     /// </summary>
     public readonly string name;
 
+    // Directive might overlap an enum value.
+    // In the case this happens, it can use this field to help convert itself.
+    /// <summary>
+    ///     This directive might overlap a <see cref="RecognizedEnumValue" />. In the case
+    ///     this happens, it can use this field to help convert itself over.
+    /// </summary>
+    public readonly RecognizedEnumValue? overlappingEnumValue;
+
     /// <summary>
     ///     If present, the link to the wiki page which details this directive and how the user should use it.
     ///     For example: <c>Debugging.md#assertions</c>
     /// </summary>
     [CanBeNull]
-    public readonly string wiki_link;
+    public readonly string wikiLink;
 
     /// <summary>
     ///     The syntax of this directive in MCCompiled. <see cref="Syntax" /> is the public API.
@@ -60,7 +75,7 @@ public class Directive
     internal SyntaxGroup _syntax;
 
     private Directive(string[] aliases,
-        DirectiveAttribute[] attributes,
+        DirectiveAttribute attributes,
         [CanBeNull] string category,
         string description,
         string details,
@@ -76,13 +91,51 @@ public class Directive
         this.details = details;
         this.implementation = implementation;
         this.name = name;
-        this.wiki_link = wikiLink;
+        this.wikiLink = wikiLink;
         this._syntax = syntax;
+
+        if (CommandEnumParser.TryParse(name, out RecognizedEnumValue result))
+            this.overlappingEnumValue = result;
     }
+
+    /// <summary>
+    ///     Returns if this directive is a preprocessor directive based on whether it begins with a dollar sign ($).
+    /// </summary>
+    public bool IsPreprocessor => !string.IsNullOrEmpty(this.name) && this.name[0].Equals('$');
     /// <summary>
     ///     Retrieves a reference to the syntax of this directive in MCCompiled.
     /// </summary>
     public SyntaxGroup Syntax => this._syntax;
+    /// <summary>
+    ///     Creates a <see cref="LanguageKeyword" /> structure representing this directive.
+    /// </summary>
+    internal LanguageKeyword AsKeyword => new(this.name, this.details);
+
+    /// <summary>
+    ///     Returns if this directive has the given attribute(s).
+    /// </summary>
+    /// <param name="attribute">The attribute(s) to check for.</param>
+    /// <returns></returns>
+    public bool HasAttribute(DirectiveAttribute attribute) { return (this.attributes & attribute) != 0; }
+
+    /// <summary>
+    ///     Harvests a collection of keywords which are part of this directive's syntax.
+    /// </summary>
+    /// <returns>An <see cref="IEnumerable{T}" /> of keywords which contain an identifier and documentation respectively.</returns>
+    internal IEnumerable<LanguageKeyword> CollectKeywords()
+    {
+        List<LanguageKeyword> keywords = [];
+        this._syntax.CollectKeywords(keywords);
+        return keywords;
+    }
+
+    internal (string line, int indentLevel)[] BuildUsageGuide()
+    {
+        List<(string line, int indentLevel)> lines = [];
+        this._syntax.BuildUsageGuide(0, lines);
+
+        return lines.ToArray();
+    }
 
     /// <summary>
     ///     Parses a directive from a JSON property.
@@ -109,7 +162,8 @@ public class Directive
     public static Directive Parse(string name, JObject json)
     {
         string[] aliases = json["aliases"]?.ToObject<string[]>() ?? [];
-        DirectiveAttribute[] attributes = json["attributes"]?.ToObject<DirectiveAttribute[]>() ?? [];
+        DirectiveAttribute[] _attributes = json["attributes"]?.ToObject<DirectiveAttribute[]>() ?? [];
+        DirectiveAttribute attributes = _attributes is {Length: > 0} ? _attributes.Aggregate((a, b) => a | b) : 0;
         string category = json.Value<string>("category");
         string description = json.Value<string>("description") ??
                              throw new ArgumentException($"Directive {name} must include `description`.");
@@ -130,7 +184,7 @@ public class Directive
                 $"Directive {name} has both `syntax` and `syntax_ref` specified. Only one is allowed.");
         if (syntaxToken != null)
         {
-            syntax = SyntaxGroup.Parse(syntaxToken);
+            syntax = SyntaxGroup.Parse(syntaxToken, SyntaxGroupBehavior.Sequential);
         }
         else if (syntaxRefToken != null)
         {
@@ -139,10 +193,11 @@ public class Directive
             syntax = Language.QuerySyntaxGroup(query);
             if (syntax == null)
                 throw new ArgumentException($"Couldn't resolve syntax reference '{query}'.");
+            syntax.isRef = true;
         }
         else
         {
-            syntax = SyntaxGroup.NONE;
+            syntax = SyntaxGroup.EMPTY;
         }
 
         return new Directive(aliases, attributes, category, description,

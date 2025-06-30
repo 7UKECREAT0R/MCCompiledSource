@@ -90,6 +90,21 @@
           },
           "additionalProperties": {
             "$ref": "#/definitions/group"
+          },
+          "if": {
+            "properties": {
+              "repeatable": {
+                "const": true
+              }
+            },
+            "required": [
+              "repeatable"
+            ]
+          },
+          "then": {
+            "required": [
+              "sequential"
+            ]
           }
         },
         "ref": {
@@ -97,6 +112,11 @@
           "description": "A reference to another directive's syntax. Starts with the directive's name, then uses dots to make reference to subgroups.",
           "pattern": "[a-zA-Z_.]+"
         }
+      },
+      "dependencies": {
+        "keyword": [
+          "description"
+        ]
       },
       "oneOf": [
         {

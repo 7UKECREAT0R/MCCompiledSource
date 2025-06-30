@@ -467,20 +467,15 @@ public static class DirectiveImplementations
             block.ignoreAsync = true;
 
             if (result)
-            {
                 block.openAction = null;
-                block.CloseAction = null;
-            }
             else
-            {
                 block.openAction = e =>
                 {
                     for (int i = 0; i < block.statementsInside; i++)
                         e.Next();
                 };
-                block.CloseAction = null;
-            }
 
+            block.CloseAction = null;
             return;
         }
 
@@ -1400,7 +1395,7 @@ public static class DirectiveImplementations
     {
         string docs = executor.GetDocumentationString(out bool hadDocumentation);
 
-        ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(tokens);
+        ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(executor, tokens);
 
         // create the new scoreboard value.
         ScoreboardValue value = def.Create(executor.scoreboard, tokens);
@@ -1852,7 +1847,7 @@ public static class DirectiveImplementations
                     canDestroy.Add(tokens.Next<TokenStringLiteral>("can destroy block"));
                     break;
                 case "ENCHANT":
-                    ParsedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>("enchantment").value;
+                    RecognizedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>("enchantment").value;
                     parsedEnchantment.RequireType<Enchantment>(tokens);
                     var enchantment = (Enchantment) parsedEnchantment.value;
                     int level = tokens.Next<TokenIntegerLiteral>("level");
@@ -2158,7 +2153,7 @@ public static class DirectiveImplementations
 
         if (tokens.NextIs<TokenIdentifierEnum>(true))
         {
-            ParsedEnumValue enumValue
+            RecognizedEnumValue enumValue
                 = tokens.Next<TokenIdentifierEnum>("old block handling").value;
             enumValue.RequireType<OldHandling>(tokens);
             handling = (OldHandling) enumValue.value;
@@ -2187,7 +2182,7 @@ public static class DirectiveImplementations
 
         if (tokens.NextIs<TokenIdentifierEnum>(false))
         {
-            ParsedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
+            RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
             enumValue.RequireType<OldHandling>(tokens);
             handling = (OldHandling) enumValue.value;
         }
@@ -2577,7 +2572,7 @@ public static class DirectiveImplementations
                         case "EASE":
                         {
                             decimal duration = tokens.Next<TokenNumberLiteral>("ease duration").GetNumber();
-                            ParsedEnumValue _easeType = tokens.Next<TokenIdentifierEnum>("ease type").value;
+                            RecognizedEnumValue _easeType = tokens.Next<TokenIdentifierEnum>("ease type").value;
 
                             _easeType.RequireType<Easing>(tokens);
 
@@ -3164,7 +3159,7 @@ public static class DirectiveImplementations
 
         string command;
         var effectToken = tokens.Next<TokenIdentifierEnum>("effect");
-        ParsedEnumValue parsedEffect = effectToken.value;
+        RecognizedEnumValue parsedEffect = effectToken.value;
         parsedEffect.RequireType<PotionEffect>(tokens);
         var effect = (PotionEffect) parsedEffect.value;
 
@@ -3322,6 +3317,29 @@ public static class DirectiveImplementations
     }
 
     [UsedImplicitly]
+    public static void gamemode(Executor executor, Statement tokens)
+    {
+        RecognizedEnumValue gamemode = tokens.Next<TokenIdentifierEnum>("gamemode").value;
+        gamemode.RequireType<GameMode>(tokens);
+        var mode = (GameMode) gamemode.value;
+        string target;
+
+        if (tokens.NextIs<TokenSelectorLiteral>(true))
+        {
+            Selector selector = tokens.Next<TokenSelectorLiteral>("players").selector;
+            if (selector.AnyNonPlayers)
+                throw new StatementException(tokens, $"The selector {selector} may target non-players.");
+            target = selector.ToString();
+        }
+        else
+        {
+            target = Selector.SELF.ToString();
+        }
+
+        executor.AddCommand(Command.Gamemode(target, mode));
+    }
+
+    [UsedImplicitly]
     public static void execute(Executor executor, Statement tokens)
     {
         var builder = new ExecuteBuilder();
@@ -3334,24 +3352,6 @@ public static class DirectiveImplementations
             if (subcommand.TerminatesChain)
                 throw new StatementException(tokens,
                     $"Subcommand '{_subcommand}' is not allowed here as it terminates the chain.");
-
-            // match subcommand pattern now, if any
-            TypePattern[] patterns = subcommand.Patterns;
-            if (patterns != null && patterns.Length > 0)
-            {
-                IEnumerable<MatchResult> results =
-                    patterns.Select(pattern => pattern.Check(tokens.GetRemainingTokens().ToArray()));
-                IEnumerable<MatchResult> matchResults = results as MatchResult[] ?? results.ToArray();
-
-                if (matchResults.All(result => !result.match))
-                {
-                    // get the closest matched pattern
-                    MatchResult closest = matchResults.Aggregate((a, b) => a.accuracy > b.accuracy ? a : b);
-                    IEnumerable<string> missingArgs = closest.missing.Select(m => m.ToString());
-                    throw new StatementException(tokens,
-                        "Subcommand - Missing argument(s): " + string.Join(", ", missingArgs));
-                }
-            }
 
             // parse from tokens
             subcommand.FromTokens(tokens);
@@ -3497,7 +3497,7 @@ public static class DirectiveImplementations
         while (tokens.NextIs<TokenIdentifier>(false))
         {
             // fetch a parameter definition
-            ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(tokens);
+            ScoreboardManager.ValueDefinition def = ScoreboardManager.GetNextValueDefinition(executor, tokens);
 
             // don't let users define non-optional parameters if they already specified one.
             if (def.defaultValue == null && hasBegunOptionals)

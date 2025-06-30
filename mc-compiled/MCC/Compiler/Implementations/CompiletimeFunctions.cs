@@ -19,6 +19,10 @@ public static class CompiletimeFunctions
                 new FunctionGlyphE1(),
                 new FunctionGetValueByName(),
                 new FunctionCountEntities(),
+                new FunctionParseInteger(),
+                new FunctionParseNumber(),
+                new FunctionParseSelector(),
+                new FunctionParseBoolean(),
 
                 // compile-time functions
                 new FunctionRandomCompiletime(),

@@ -41,6 +41,12 @@
         <None Update="vanilla-dependencies\mojang-items.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="vanilla-dependencies\README.md">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="vanilla-dependencies\update.ps1">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Content Include="definitions.def">
@@ -48,6 +54,11 @@
         </Content>
         <Content Include="update-regolith-filter.bat"/>
         <Content Include="update-website.bat"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\mc-compiled.SourceGenerators\mc-compiled.SourceGenerators\mc-compiled.SourceGenerators.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false"/>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2024.3.0"/>

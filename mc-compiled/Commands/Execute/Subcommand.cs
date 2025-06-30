@@ -5,10 +5,6 @@ namespace mc_compiled.Commands.Execute;
 public abstract class Subcommand
 {
     /// <summary>
-    ///     The pattern(s) that must be matched to complete this subcommand. Return null to disable pattern matching.
-    /// </summary>
-    public abstract TypePattern[] Patterns { get; }
-    /// <summary>
     ///     The keyword used to invoke this subcommand.
     /// </summary>
     public abstract string Keyword { get; }

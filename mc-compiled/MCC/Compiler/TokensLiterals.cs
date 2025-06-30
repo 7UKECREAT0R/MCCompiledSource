@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Native;
@@ -20,10 +19,7 @@ public abstract class TokenLiteral(int lineNumber) : Token(lineNumber)
     protected const string DEFAULT_ERROR = "Invalid literal operation.";
 
     public abstract TokenLiteral Clone();
-    public override string AsString()
-    {
-        return "<? literal>";
-    }
+    public override string AsString() { return "<? literal>"; }
     public abstract override string ToString();
 
     /// <summary>
@@ -40,7 +36,8 @@ public abstract class TokenLiteral(int lineNumber) : Token(lineNumber)
     /// <param name="global"></param>
     /// <param name="tokens"></param>
     /// <returns></returns>
-    public abstract ScoreboardValue CreateValue(string name, bool global,
+    public abstract ScoreboardValue CreateValue(string name,
+        bool global,
         Statement tokens);
 
     /// <summary>
@@ -87,29 +84,16 @@ public abstract class TokenLiteral(int lineNumber) : Token(lineNumber)
 /// <summary>
 ///     Represents a value which has no determined value, but is defined as 0 under every type.
 /// </summary>
+[TokenFriendlyName("")]
 public class TokenNullLiteral(int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
 {
-    public object GetValue()
-    {
-        return 0;
-    }
-    public override string AsString()
-    {
-        return "null";
-    }
-    public override string ToString()
-    {
-        return "null";
-    }
-    public override TokenLiteral Clone()
-    {
-        return new TokenNullLiteral(this.lineNumber);
-    }
+    public override string FriendlyTypeName => "null";
+    public object GetValue() { return 0; }
+    public override string AsString() { return "null"; }
+    public override string ToString() { return "null"; }
+    public override TokenLiteral Clone() { return new TokenNullLiteral(this.lineNumber); }
 
-    public override Typedef GetTypedef()
-    {
-        return Typedef.INTEGER;
-    }
+    public override Typedef GetTypedef() { return Typedef.INTEGER; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
         return new ScoreboardValue(name, global, Typedef.INTEGER, tokens.executor.scoreboard);
@@ -192,24 +176,17 @@ public class TokenNullLiteral(int lineNumber) : TokenLiteral(lineNumber), IPrepr
 /// <summary>
 ///     A token which holds a completely constructed attribute. See <see cref="Attributes.IAttribute" />.
 /// </summary>
+[TokenFriendlyName("attribute")]
 public sealed class TokenAttribute(IAttribute attribute, int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
 {
     public readonly IAttribute attribute = attribute;
 
-    public object GetValue()
-    {
-        return this.attribute;
-    }
+    public override string FriendlyTypeName => "attribute";
 
-    public override string AsString()
-    {
-        return $"[Attribute: {this.attribute.GetDebugString()}]";
-    }
+    public object GetValue() { return this.attribute; }
+    public override string AsString() { return $"[Attribute: {this.attribute.GetDebugString()}]"; }
 
-    public override TokenLiteral Clone()
-    {
-        throw new TokenException(this, "Cannot clone an attribute.");
-    }
+    public override TokenLiteral Clone() { throw new TokenException(this, "Cannot clone an attribute."); }
 
     public override string ToString()
     {
@@ -218,35 +195,17 @@ public sealed class TokenAttribute(IAttribute attribute, int lineNumber) : Token
         return "[attribute: " + this.attribute.GetCodeRepresentation() + ']';
     }
 
-    public override Typedef GetTypedef()
-    {
-        return null;
-    }
+    public override Typedef GetTypedef() { return null; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
         throw new StatementException(tokens, $"Cannot create a value to hold the literal '{AsString()}'");
     }
 
-    public override TokenLiteral AddWithOther(TokenLiteral other)
-    {
-        throw new TokenException(this, DEFAULT_ERROR);
-    }
-    public override TokenLiteral SubWithOther(TokenLiteral other)
-    {
-        throw new TokenException(this, DEFAULT_ERROR);
-    }
-    public override TokenLiteral MulWithOther(TokenLiteral other)
-    {
-        throw new TokenException(this, DEFAULT_ERROR);
-    }
-    public override TokenLiteral DivWithOther(TokenLiteral other)
-    {
-        throw new TokenException(this, DEFAULT_ERROR);
-    }
-    public override TokenLiteral ModWithOther(TokenLiteral other)
-    {
-        throw new TokenException(this, DEFAULT_ERROR);
-    }
+    public override TokenLiteral AddWithOther(TokenLiteral other) { throw new TokenException(this, DEFAULT_ERROR); }
+    public override TokenLiteral SubWithOther(TokenLiteral other) { throw new TokenException(this, DEFAULT_ERROR); }
+    public override TokenLiteral MulWithOther(TokenLiteral other) { throw new TokenException(this, DEFAULT_ERROR); }
+    public override TokenLiteral DivWithOther(TokenLiteral other) { throw new TokenException(this, DEFAULT_ERROR); }
+    public override TokenLiteral ModWithOther(TokenLiteral other) { throw new TokenException(this, DEFAULT_ERROR); }
     public override bool CompareWithOther(TokenCompare.Type cType, TokenLiteral other)
     {
         throw new TokenException(this, DEFAULT_ERROR);
@@ -270,12 +229,10 @@ public abstract class TokenNumberLiteral(int lineNumber) : TokenLiteral(lineNumb
     /// <returns></returns>
     public abstract decimal GetNumber();
 
-    public override Typedef GetTypedef()
-    {
-        return Typedef.INTEGER;
-    }
+    public override Typedef GetTypedef() { return Typedef.INTEGER; }
 }
 
+[TokenFriendlyName("string")]
 public sealed class TokenStringLiteral(string text, int lineNumber)
     : TokenLiteral(lineNumber), IPreprocessor, IImplicitToken, IIndexable, IDocumented
 {
@@ -283,75 +240,21 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
     [UsedImplicitly]
     private TokenStringLiteral() : this(null, -1) { }
 
+    public override string FriendlyTypeName => "string";
+
     public string GetDocumentation()
     {
         return "A block of text on a single line, surrounded with either 'single quotes' or \"double quotes.\"";
     }
 
-    public Type[] GetImplicitTypes()
-    {
-        return [typeof(TokenSelectorLiteral), typeof(TokenIdentifier)];
-    }
+    public Type[] GetImplicitTypes() { return [typeof(TokenIdentifier)]; }
     public Token Convert(Executor executor, int index)
     {
-        switch (index)
+        return index switch
         {
-            case 0:
-            {
-                // try parsing selector from string
-                int len = this.text.Length;
-
-                if (len == 0)
-                    return new TokenSelectorLiteral(Selector.Core.s, this.lineNumber);
-
-                if (len > 1 && this.text[0] == '@')
-                {
-                    char _core = this.text[1];
-                    Selector.Core core = Selector.ParseCore(_core);
-
-                    if (len > 2)
-                    {
-                        Selector parsed = Selector.Parse(core, this.text[2..]);
-                        return new TokenSelectorLiteral(parsed, this.lineNumber);
-                    }
-
-                    var single = new Selector {core = core};
-                    return new TokenSelectorLiteral(single, this.lineNumber);
-                }
-
-                string name = this.text;
-
-                // try finding by managed entity name
-                if (executor.entities.Search(name, out Selector find))
-                    return new TokenSelectorLiteral(find, this.lineNumber);
-
-                // use name:type format
-                string type = null;
-                int colon = name.IndexOf(':');
-                if (colon != -1)
-                {
-                    string old = name;
-                    name = old[..colon];
-                    if (old.Length >= colon)
-                        type = old[(colon + 1)..];
-                }
-
-                if (string.IsNullOrEmpty(name))
-                    name = null;
-                if (string.IsNullOrEmpty(type))
-                    type = null;
-
-                return new TokenSelectorLiteral(new Selector
-                {
-                    core = Selector.Core.e,
-                    entity = new Entity(name, type, new List<string>())
-                }, this.lineNumber);
-            }
-            case 1:
-                return new TokenIdentifier(this.text, this.lineNumber);
-            default:
-                return null;
-        }
+            0 => new TokenIdentifier(this.text, this.lineNumber),
+            _ => (Token) null
+        };
     }
 
     public Token Index(TokenIndexer indexer, Statement forExceptions)
@@ -388,33 +291,14 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
                 throw indexer.GetException(this, forExceptions);
         }
     }
-    public object GetValue()
-    {
-        return this.text;
-    }
+    public object GetValue() { return this.text; }
+    public override string AsString() { return '"' + this.text + '"'; }
+    public override TokenLiteral Clone() { return new TokenStringLiteral(this.text, this.lineNumber); }
+    public override string ToString() { return this.text; }
 
-    public override string AsString()
-    {
-        return '"' + this.text + '"';
-    }
-    public override TokenLiteral Clone()
-    {
-        return new TokenStringLiteral(this.text, this.lineNumber);
-    }
-    public override string ToString()
-    {
-        return this.text;
-    }
+    public static implicit operator string(TokenStringLiteral literal) { return literal.text; }
 
-    public static implicit operator string(TokenStringLiteral literal)
-    {
-        return literal.text;
-    }
-
-    public override Typedef GetTypedef()
-    {
-        return null;
-    }
+    public override Typedef GetTypedef() { return null; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
         throw new StatementException(tokens, $"Cannot create a value to hold the literal '{AsString()}'");
@@ -509,6 +393,7 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
 /// <summary>
 ///     Represents a block state that has been explicitly specified.
 /// </summary>
+[TokenFriendlyName("block state")]
 public sealed class TokenBlockStateLiteral : TokenLiteral
 {
     private readonly BlockState blockState;
@@ -521,14 +406,9 @@ public sealed class TokenBlockStateLiteral : TokenLiteral
     {
         this.blockState = blockState;
     }
-    public override string AsString()
-    {
-        return this.blockState.ToString();
-    }
-    public override string ToString()
-    {
-        return this.blockState.ToString();
-    }
+    public override string FriendlyTypeName => "block state";
+    public override string AsString() { return this.blockState.ToString(); }
+    public override string ToString() { return this.blockState.ToString(); }
 
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
@@ -559,56 +439,28 @@ public sealed class TokenBlockStateLiteral : TokenLiteral
         throw new TokenException(this, "Invalid literal operation.");
     }
 
-    public override Typedef GetTypedef()
-    {
-        return null;
-    }
-    public override TokenLiteral Clone()
-    {
-        return new TokenBlockStateLiteral(this.blockState, this.lineNumber);
-    }
+    public override Typedef GetTypedef() { return null; }
+    public override TokenLiteral Clone() { return new TokenBlockStateLiteral(this.blockState, this.lineNumber); }
 }
 
+[TokenFriendlyName("true/false")]
 public sealed class TokenBooleanLiteral(bool boolean, int lineNumber)
     : TokenNumberLiteral(lineNumber), IPreprocessor, IDocumented
 {
     public readonly bool boolean = boolean;
     internal TokenBooleanLiteral() : this(false, -1) { }
+    public override string FriendlyTypeName => "true/false";
 
-    public string GetDocumentation()
-    {
-        return "A value that can be either 'true' or 'false.'";
-    }
-    public override object GetValue()
-    {
-        return this.boolean;
-    }
-    public override string AsString()
-    {
-        return this.boolean.ToString();
-    }
-    public override TokenLiteral Clone()
-    {
-        return new TokenBooleanLiteral(this.boolean, this.lineNumber);
-    }
-    public override string ToString()
-    {
-        return this.boolean.ToString();
-    }
-    public override decimal GetNumber()
-    {
-        return this.boolean ? 1M : 0M;
-    }
+    public string GetDocumentation() { return "A value that can be either 'true' or 'false.'"; }
+    public override object GetValue() { return this.boolean; }
+    public override string AsString() { return this.boolean.ToString(); }
+    public override TokenLiteral Clone() { return new TokenBooleanLiteral(this.boolean, this.lineNumber); }
+    public override string ToString() { return this.boolean.ToString(); }
+    public override decimal GetNumber() { return this.boolean ? 1M : 0M; }
 
-    public static implicit operator bool(TokenBooleanLiteral literal)
-    {
-        return literal.boolean;
-    }
+    public static implicit operator bool(TokenBooleanLiteral literal) { return literal.boolean; }
 
-    public override Typedef GetTypedef()
-    {
-        return Typedef.BOOLEAN;
-    }
+    public override Typedef GetTypedef() { return Typedef.BOOLEAN; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
         return new ScoreboardValue(name, global, Typedef.BOOLEAN, tokens.executor.scoreboard);
@@ -640,26 +492,22 @@ public sealed class TokenBooleanLiteral(bool boolean, int lineNumber)
     }
 }
 
+[TokenFriendlyName("coordinate")]
 public class TokenCoordinateLiteral(Coordinate coordinate, int lineNumber)
     : TokenNumberLiteral(lineNumber), IDocumented
 {
     private readonly Coordinate coordinate = coordinate;
     internal TokenCoordinateLiteral() : this(new Coordinate(), -1) { }
 
+    public override string FriendlyTypeName => "coordinate";
+
     public string GetDocumentation()
     {
         return
             "A Minecraft coordinate value that can optionally be both relative and facing offset, like ~10, 40, or ^5.";
     }
-
-    public override string AsString()
-    {
-        return this.coordinate.ToString();
-    }
-    public override string ToString()
-    {
-        return this.coordinate.ToString();
-    }
+    public override string AsString() { return this.coordinate.ToString(); }
+    public override string ToString() { return this.coordinate.ToString(); }
     public override TokenLiteral Clone()
     {
         return new TokenCoordinateLiteral(new Coordinate(this.coordinate), this.lineNumber);
@@ -670,31 +518,16 @@ public class TokenCoordinateLiteral(Coordinate coordinate, int lineNumber)
             return this.coordinate.valueDecimal;
         return this.coordinate.valueInteger;
     }
-    public override object GetValue()
-    {
-        return this.coordinate;
-    }
-    public override Typedef GetTypedef()
-    {
-        return null;
-    }
+    public override object GetValue() { return this.coordinate; }
+    public override Typedef GetTypedef() { return null; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
         throw new StatementException(tokens, $"Cannot create a value to hold the literal '{AsString()}'");
     }
 
-    public static implicit operator Coordinate(TokenCoordinateLiteral literal)
-    {
-        return literal.coordinate;
-    }
-    public static implicit operator int(TokenCoordinateLiteral literal)
-    {
-        return literal.coordinate.valueInteger;
-    }
-    public static implicit operator decimal(TokenCoordinateLiteral literal)
-    {
-        return literal.coordinate.valueDecimal;
-    }
+    public static implicit operator Coordinate(TokenCoordinateLiteral literal) { return literal.coordinate; }
+    public static implicit operator int(TokenCoordinateLiteral literal) { return literal.coordinate.valueInteger; }
+    public static implicit operator decimal(TokenCoordinateLiteral literal) { return literal.coordinate.valueDecimal; }
 
     public override TokenLiteral AddWithOther(TokenLiteral other)
     {
@@ -788,6 +621,7 @@ public enum IntMultiplier
     h = 72000
 }
 
+[TokenFriendlyName("integer")]
 public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
 {
     public static readonly IntMultiplier[] ALL_MULTIPLIERS = (IntMultiplier[]) Enum.GetValues(typeof(IntMultiplier));
@@ -809,6 +643,7 @@ public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
         this.multiplier = multiplier;
     }
 
+    public override string FriendlyTypeName => "integer";
     public new string GetDocumentation()
     {
         return
@@ -835,40 +670,22 @@ public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
         return this.number / (int) scale;
     }
 
-    public override string AsString()
-    {
-        return this.number.ToString();
-    }
+    public override string AsString() { return this.number.ToString(); }
     public override TokenLiteral Clone()
     {
         return new TokenIntegerLiteral(this.number, this.multiplier, this.lineNumber);
     }
-    public override string ToString()
-    {
-        return this.number.ToString();
-    }
-    public override object GetValue()
-    {
-        return this.number;
-    }
-    public override decimal GetNumber()
-    {
-        return this.number;
-    }
+    public override string ToString() { return this.number.ToString(); }
+    public override object GetValue() { return this.number; }
+    public override decimal GetNumber() { return this.number; }
 
-    public override Typedef GetTypedef()
-    {
-        return Typedef.INTEGER;
-    }
+    public override Typedef GetTypedef() { return Typedef.INTEGER; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
         return new ScoreboardValue(name, global, Typedef.INTEGER, tokens.executor.scoreboard);
     }
 
-    public static implicit operator int(TokenIntegerLiteral literal)
-    {
-        return literal.number;
-    }
+    public static implicit operator int(TokenIntegerLiteral literal) { return literal.number; }
 
     public override TokenLiteral AddWithOther(TokenLiteral other)
     {
@@ -967,11 +784,13 @@ public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
     }
 }
 
+[TokenFriendlyName("range")]
 public sealed class TokenRangeLiteral(Range range, int lineNumber)
     : TokenLiteral(lineNumber), IPreprocessor, IIndexable, IDocumented
 {
     public Range range = range;
     internal TokenRangeLiteral() : this(new Range(), -1) { }
+    public override string FriendlyTypeName => "range";
 
     public string GetDocumentation()
     {
@@ -1029,23 +848,11 @@ public sealed class TokenRangeLiteral(Range range, int lineNumber)
 
         return this.range;
     }
-    public override string AsString()
-    {
-        return this.range.ToString();
-    }
-    public override string ToString()
-    {
-        return this.range.ToString();
-    }
-    public override TokenLiteral Clone()
-    {
-        return new TokenRangeLiteral(new Range(this.range), this.lineNumber);
-    }
+    public override string AsString() { return this.range.ToString(); }
+    public override string ToString() { return this.range.ToString(); }
+    public override TokenLiteral Clone() { return new TokenRangeLiteral(new Range(this.range), this.lineNumber); }
 
-    public override Typedef GetTypedef()
-    {
-        return null;
-    }
+    public override Typedef GetTypedef() { return null; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement forExceptions)
     {
         throw new StatementException(forExceptions, $"Cannot create a value to hold the literal '{AsString()}'");
@@ -1191,40 +998,21 @@ public sealed class TokenRangeLiteral(Range range, int lineNumber)
     }
 }
 
+[TokenFriendlyName("decimal")]
 public sealed class TokenDecimalLiteral(decimal number, int lineNumber)
     : TokenCoordinateLiteral(new Coordinate(number, true, false, false), lineNumber)
 {
     public readonly decimal number = number;
-    public override string AsString()
-    {
-        return this.number.ToString();
-    }
-    public override TokenLiteral Clone()
-    {
-        return new TokenDecimalLiteral(this.number, this.lineNumber);
-    }
-    public override string ToString()
-    {
-        return this.number.ToString();
-    }
-    public override object GetValue()
-    {
-        return this.number;
-    }
-    public override decimal GetNumber()
-    {
-        return this.number;
-    }
+    public override string FriendlyTypeName => "decimal";
+    public override string AsString() { return this.number.ToString(); }
+    public override TokenLiteral Clone() { return new TokenDecimalLiteral(this.number, this.lineNumber); }
+    public override string ToString() { return this.number.ToString(); }
+    public override object GetValue() { return this.number; }
+    public override decimal GetNumber() { return this.number; }
 
-    public static implicit operator decimal(TokenDecimalLiteral literal)
-    {
-        return literal.number;
-    }
+    public static implicit operator decimal(TokenDecimalLiteral literal) { return literal.number; }
 
-    public override Typedef GetTypedef()
-    {
-        return Typedef.FIXED_DECIMAL;
-    }
+    public override Typedef GetTypedef() { return Typedef.FIXED_DECIMAL; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
         var data = new FixedDecimalData(this.number.GetPrecision());
@@ -1273,9 +1061,7 @@ public sealed class TokenDecimalLiteral(decimal number, int lineNumber)
     }
 }
 
-/// <summary>
-///     A selector.
-/// </summary>
+[TokenFriendlyName("selector")]
 public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
 {
     public readonly Selector selector;
@@ -1295,20 +1081,15 @@ public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
         };
     }
 
+    public override string FriendlyTypeName => "selector";
+
     public string GetDocumentation()
     {
         return "A Minecraft selector that targets a specific entity or set of entities. Example: `@e[type=cow]`";
     }
 
-    public object GetValue()
-    {
-        return this.selector;
-    }
-
-    public override string AsString()
-    {
-        return this.selector.ToString();
-    }
+    public object GetValue() { return this.selector; }
+    public override string AsString() { return this.selector.ToString(); }
     /// <summary>
     ///     Validates the selector that is contained within this token and throws a <see cref="StatementException" /> if
     ///     it does not pass.
@@ -1325,24 +1106,12 @@ public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
     {
         return new TokenSelectorLiteral(new Selector(this.selector), this.lineNumber);
     }
-    public override string ToString()
-    {
-        return this.selector.ToString();
-    }
+    public override string ToString() { return this.selector.ToString(); }
 
-    public static implicit operator Selector(TokenSelectorLiteral t)
-    {
-        return t.selector;
-    }
-    public static implicit operator Selector.Core(TokenSelectorLiteral t)
-    {
-        return t.selector.core;
-    }
+    public static implicit operator Selector(TokenSelectorLiteral t) { return t.selector; }
+    public static implicit operator Selector.Core(TokenSelectorLiteral t) { return t.selector.core; }
 
-    public override Typedef GetTypedef()
-    {
-        return null;
-    }
+    public override Typedef GetTypedef() { return null; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement forExceptions)
     {
         throw new StatementException(forExceptions, $"Cannot create a value to hold the literal '{AsString()}'");
@@ -1377,6 +1146,7 @@ public class TokenSelectorLiteral : TokenLiteral, IPreprocessor, IDocumented
 /// <summary>
 ///     A literal holding a JSON value. Mostly used for indexing purposes.
 /// </summary>
+[TokenFriendlyName("JSON")]
 public class TokenJSONLiteral(JToken token, int lineNumber)
     : TokenLiteral(lineNumber), IPreprocessor, IIndexable, IDocumented
 {
@@ -1385,6 +1155,8 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
 
     public bool IsObject => this.token.Type == JTokenType.Object;
     public bool IsArray => this.token.Type == JTokenType.Array;
+
+    public override string FriendlyTypeName => "JSON";
 
     public string GetDocumentation()
     {
@@ -1434,32 +1206,13 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
         }
     }
 
-    public object GetValue()
-    {
-        return this.token;
-    }
+    public object GetValue() { return this.token; }
+    public override string AsString() { return this.token.ToString(); }
+    public override string ToString() { return this.token.ToString(); }
+    public override TokenLiteral Clone() { return new TokenJSONLiteral(this.token, this.lineNumber); }
+    public static implicit operator JToken(TokenJSONLiteral t) { return t.token; }
 
-    public override string AsString()
-    {
-        return this.token.ToString();
-    }
-    public override string ToString()
-    {
-        return this.token.ToString();
-    }
-    public override TokenLiteral Clone()
-    {
-        return new TokenJSONLiteral(this.token, this.lineNumber);
-    }
-    public static implicit operator JToken(TokenJSONLiteral t)
-    {
-        return t.token;
-    }
-
-    public override Typedef GetTypedef()
-    {
-        return null;
-    }
+    public override Typedef GetTypedef() { return null; }
     public override ScoreboardValue CreateValue(string name, bool global, Statement forExceptions)
     {
         throw new StatementException(forExceptions, $"Cannot create a value to hold the literal '{AsString()}'");

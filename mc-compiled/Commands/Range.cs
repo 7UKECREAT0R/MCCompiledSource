@@ -16,6 +16,9 @@ public struct Range : IEquatable<Range>
     ///     A range which matches everything but 0.
     /// </summary>
     public static readonly Range notZero = new(0, true);
+    // ReSharper disable once PossibleInvalidOperationException
+    public Range Opposite =>
+        this.single ? new Range(this.min.Value!, !this.invert) : new Range(this.min, this.max, !this.invert);
 
     public bool invert, single;
     public int? min;
@@ -25,6 +28,52 @@ public struct Range : IEquatable<Range>
     ///     Returns if this range repeats forever in either direction.
     /// </summary>
     public bool IsUnbounded => this.invert || !this.min.HasValue || !this.max.HasValue;
+    /// <summary>
+    ///     Gets the string representation of the <see cref="Range" /> as a prefix expression,
+    ///     describing its constraints in human-readable terms.
+    /// </summary>
+    /// <remarks>
+    ///     The prefix representation is constructed based on the properties of the <see cref="Range" />:
+    ///     <ul>
+    ///         <li>If the range is inverted (<see cref="Range.invert" />), it prefixes "not" to the opposite range's prefix.</li>
+    ///         <li>
+    ///             If the range is a single number (<see cref="Range.single" />), the string representation of the minimum
+    ///             value is returned.
+    ///         </li>
+    ///         <li>If only the minimum value is defined, the prefix describes it as a lower bound:</li>
+    ///         <li>"any number of" if the minimum is 0.</li>
+    ///         <li>"{min value} or more" otherwise.</li>
+    ///         <li>If only the maximum value is defined, "1 + max value or fewer" is returned.</li>
+    ///         <li>If both minimum and maximum values are defined, the prefix uses the "{min}..{max}" format.</li>
+    ///         <li>If none of these cases apply, the output falls back to the result of <see cref="Range.ToString" />.</li>
+    ///     </ul>
+    /// </remarks>
+    /// <returns>
+    ///     A string representing the range as a prefix.
+    /// </returns>
+    public string AsPrefix
+    {
+        get
+        {
+            if (this.invert)
+                return "not " + this.Opposite.AsPrefix;
+            if (this.single)
+                return this.min.ToString();
+            if (!this.max.HasValue && this.min.HasValue)
+            {
+                if (this.min.Value == 0)
+                    return "any number of";
+                return this.min.Value + " or more";
+            }
+
+            if (!this.min.HasValue && this.max.HasValue)
+                return this.max.Value + 1 + "or fewer";
+            if (this.min.HasValue && this.max.HasValue)
+                return this.min.Value + ".." + this.max.Value;
+            // impossible case?
+            return ToString();
+        }
+    }
 
     public Range(int? min, int? max, bool not = false)
     {
