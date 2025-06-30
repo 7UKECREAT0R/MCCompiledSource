@@ -36,23 +36,23 @@ public class ExporterWiki() : SyntaxExporter("mcc-cheatsheet.md", "wiki", "Wiki 
         AddLine("Descriptions of the upcoming types that will be present in the various command arguments.");
         AddDefinitionList(new List<KeyValuePair<string, string>>
         {
-            new("id",
+            new("identifier",
                 "An identifier that either has meaning or doesn't. An identifier can be the name of anything defined in the language. It's usually self-explanatory when it's required."),
-            new("int",
+            new("integer",
                 "Any integral number, like 5, 10, 5291, or -40. Use time suffixes to scale the integer accordingly, like with 4s -> 80."),
             new("string",
                 "A block of text on a single line, surrounded with either 'single quotes' or \"double quotes.\""),
-            new("bool", "A value that can be either 'true' or 'false.'"),
+            new("true/false", "A value that can be either 'true' or 'false.'"),
             new("selector",
                 "A Minecraft selector that targets a specific entity or set of entities. Example: `@e[type=cow]`"),
             new("value", "The name of a runtime value that was defined using the `define` command."),
-            new("ppv",
+            new("preprocessor variable",
                 "The name of a preprocessor variable that was defined using the `$var` command or similar, **without** the `$` symbol."),
             new("coordinate",
                 "A Minecraft coordinate value that can optionally be both relative and facing offset, like ~10, 40, or ^5."),
             new("range",
                 "A Minecraft number that specifies a range of integers (inclusive). Omitting a number from one side makes the number unbounded. `4..` means four and up. `1..5` means one through five."),
-            new("json", "A JSON object achieved by $dereferencing a preprocessor variable holding one.")
+            new("JSON", "A JSON object achieved by $dereferencing a preprocessor variable holding one.")
         });
 
         AddHeader(2, "Commands", "commands-root");
@@ -159,7 +159,11 @@ public class ExporterWiki() : SyntaxExporter("mcc-cheatsheet.md", "wiki", "Wiki 
     public void AddBulletPoint(string text, int indentLevel = 0)
     {
         if (indentLevel == 0)
+        {
             this.sb.Append("- ").AppendLine(text);
+            return;
+        }
+
         this.sb.Append('\t', indentLevel).Append("- ").AppendLine(text);
     }
     /// <summary>

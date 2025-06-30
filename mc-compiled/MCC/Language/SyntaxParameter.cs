@@ -234,7 +234,10 @@ public readonly struct SyntaxParameter
             if (this.blockConstraint)
                 return "code block";
 
-            string type = Language.typeToNameMappings[this.typeConstraint!];
+            string type = this.languageServerSuggestionsId?.Replace("_", " ") ??
+                          this.typeConstraint!.GetFriendlyTokenNameOrDefault() ??
+                          Language.typeToNameMappings[this.typeConstraint!];
+
             if (this.variadic && this.variadicRange.HasValue)
                 type = this.variadicRange.Value.AsPrefix + ' ' + type;
             return $"{type}: {this.name}";

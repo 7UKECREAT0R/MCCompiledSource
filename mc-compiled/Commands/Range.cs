@@ -29,39 +29,28 @@ public struct Range : IEquatable<Range>
     /// </summary>
     public bool IsUnbounded => this.invert || !this.min.HasValue || !this.max.HasValue;
     /// <summary>
-    ///     Gets a string representation of the <see cref="Range" /> in its prefix notation,
-    ///     which describes the range's constraints in a concise format.
+    ///     Gets the string representation of the <see cref="Range" /> as a prefix expression,
+    ///     describing its constraints in human-readable terms.
     /// </summary>
     /// <remarks>
-    ///     The returned string varies based on the values of the <see cref="Range" /> properties:
-    ///     <list type="bullet">
-    ///         <item>
-    ///             <term>Inverted Range (<see cref="invert" />)</term>
-    ///             <description>Returns the prefix of the <see cref="Opposite" /> range prefixed with "not".</description>
-    ///         </item>
-    ///         <item>
-    ///             <term>Single Value Range (<see cref="single" /> is true)</term>
-    ///             <description>Returns the string representation of <see cref="min" />.</description>
-    ///         </item>
-    ///         <item>
-    ///             <term>Lower Bound Unspecified (<see cref="max" /> is specified, <see cref="min" /> is null)</term>
-    ///             <description>
-    ///                 Returns "&lt;" followed by <see cref="max" /> incremented by 1.
-    ///             </description>
-    ///         </item>
-    ///         <item>
-    ///             <term>Upper Bound Unspecified (<see cref="min" /> is specified, <see cref="max" /> is null)</term>
-    ///             <description>Returns <see cref="min" /> followed by "+" to indicate no upper limit.</description>
-    ///         </item>
-    ///         <item>
-    ///             <term>Both Bounds Specified</term>
-    ///             <description>
-    ///                 Returns a range in the format "min..max", where both bounds are non-null.
-    ///             </description>
-    ///         </item>
-    ///     </list>
-    ///     This property always returns a valid string, accurately representing the constraints of the range.
+    ///     The prefix representation is constructed based on the properties of the <see cref="Range" />:
+    ///     <ul>
+    ///         <li>If the range is inverted (<see cref="Range.invert" />), it prefixes "not" to the opposite range's prefix.</li>
+    ///         <li>
+    ///             If the range is a single number (<see cref="Range.single" />), the string representation of the minimum
+    ///             value is returned.
+    ///         </li>
+    ///         <li>If only the minimum value is defined, the prefix describes it as a lower bound:</li>
+    ///         <li>"any number of" if the minimum is 0.</li>
+    ///         <li>"{min value} or more" otherwise.</li>
+    ///         <li>If only the maximum value is defined, "1 + max value or fewer" is returned.</li>
+    ///         <li>If both minimum and maximum values are defined, the prefix uses the "{min}..{max}" format.</li>
+    ///         <li>If none of these cases apply, the output falls back to the result of <see cref="Range.ToString" />.</li>
+    ///     </ul>
     /// </remarks>
+    /// <returns>
+    ///     A string representing the range as a prefix.
+    /// </returns>
     public string AsPrefix
     {
         get
@@ -71,9 +60,14 @@ public struct Range : IEquatable<Range>
             if (this.single)
                 return this.min.ToString();
             if (!this.max.HasValue && this.min.HasValue)
-                return this.min.Value + "+";
+            {
+                if (this.min.Value == 0)
+                    return "any number of";
+                return this.min.Value + " or more";
+            }
+
             if (!this.min.HasValue && this.max.HasValue)
-                return "<" + (this.max.Value + 1);
+                return this.max.Value + 1 + "or fewer";
             if (this.min.HasValue && this.max.HasValue)
                 return this.min.Value + ".." + this.max.Value;
             // impossible case?

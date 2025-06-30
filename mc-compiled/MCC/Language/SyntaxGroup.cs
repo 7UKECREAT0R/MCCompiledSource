@@ -164,6 +164,13 @@ public class SyntaxGroup : ICloneable
     internal void BuildUsageGuide(int baseIndentLevel,
         List<(string content, int indentLevel)> lines)
     {
+        if (this.Keyword.HasValue)
+        {
+            LanguageKeyword keyword = this.Keyword.Value;
+            lines.Add(($"`{keyword.identifier}` {keyword.docs}", baseIndentLevel));
+            baseIndentLevel += 1;
+        }
+
         if (this.hasPatterns)
         {
             this.patterns.BuildUsageGuide(baseIndentLevel, lines);
@@ -174,26 +181,24 @@ public class SyntaxGroup : ICloneable
             return; // *should* never happen
 
         // this group has children instead
-        if (this.Keyword.HasValue)
+
+        List<string> modifiers = [];
+        if (this.optional || this.blocking)
+            modifiers.Add("optional");
+        if (this.repeatable)
+            modifiers.Add("repeatable");
+
+        if (this.children.Length > 1)
         {
-            LanguageKeyword keyword = this.Keyword.Value;
-            lines.Add(($"`{keyword.identifier}` {keyword.docs}", baseIndentLevel));
-            baseIndentLevel += 1;
+            if (this.behavior == SyntaxGroupBehavior.OneOf)
+                modifiers.Add("one of");
+            if (this.behavior == SyntaxGroupBehavior.Sequential)
+                modifiers.Add("in order");
         }
 
-        bool isOneOf = this.behavior == SyntaxGroupBehavior.OneOf;
-        if (isOneOf || this.repeatable)
-        {
-            string contextString;
-            if (isOneOf && this.repeatable)
-                contextString = "**repeatable, one of:**";
-            else if (isOneOf)
-                contextString = "**one of:**";
-            else
-                contextString = "**repeatable:**";
-            lines.Add((contextString, baseIndentLevel));
-            baseIndentLevel += 1;
-        }
+        string modifiersString = $"{string.Join(", ", modifiers)}:";
+        lines.Add((modifiersString, baseIndentLevel));
+        baseIndentLevel += 1;
 
         // now append all the children
         foreach (SyntaxGroup child in this.children)

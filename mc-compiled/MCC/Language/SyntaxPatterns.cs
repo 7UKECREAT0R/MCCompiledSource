@@ -49,13 +49,13 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
     ///     The method processes the provided <paramref name="pattern" /> to construct a descriptive
     ///     usage guide by iterating over the array. Functionally equivalent parameters, as determined
     ///     by their type and characteristics, are grouped together in the output. Optional parameters
-    ///     are wrapped with square brackets (`[]`), and required parameters are wrapped with angle brackets (`<>`).
+    ///     are wrapped with square brackets, and required parameters are wrapped with angle brackets.
     /// </remarks>
     private string BuildUsageGuideSingle(SyntaxParameter[] pattern)
     {
         int readIndex = 0;
         List<SyntaxParameter> collection = []; // reused
-        StringBuilder sb = new(); // reused
+        StringBuilder sb = new();
 
         while (HasNext())
         {
@@ -70,7 +70,6 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
                     break;
 
             // build a string for these parameter(s).
-            sb.Clear();
             sb.Append('`');
             sb.Append(root.optional ? '[' : '<');
             sb.Append(root.AsUsageString);
@@ -110,7 +109,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
             return;
         }
 
-        lines.Add(("**one of:**", indentLevel));
+        lines.Add(("one of:", indentLevel));
         lines.AddRange(this.Select(pattern =>
             (BuildUsageGuideSingle(pattern), indentLevel + 1))
         );
