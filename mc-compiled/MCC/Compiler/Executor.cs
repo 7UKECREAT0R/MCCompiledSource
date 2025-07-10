@@ -109,7 +109,7 @@ public partial class Executor
 
     internal Executor(Statement[] statements)
     {
-        string projectName = GlobalContext.Current.projectName;
+        string projectName = GlobalContext.Current.projectName ?? "unknown";
         string bpPath = GlobalContext.Current.behaviorPackOutputPath.Replace(Context.PROJECT_REPLACER, projectName);
         string rpPath = GlobalContext.Current.resourcePackOutputPath.Replace(Context.PROJECT_REPLACER, projectName);
 

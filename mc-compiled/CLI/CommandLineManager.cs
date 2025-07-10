@@ -5,6 +5,7 @@ using System.Linq;
 using mc_compiled.CLI.Commands;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Language;
 
 namespace mc_compiled.CLI;
 
@@ -127,13 +128,23 @@ public static class CommandLineManager
                 return; // no files to compile, so stop execution here.
         }
 
-        // parse definitions.def
+        // parse definitions.def and language.json
         Definitions.TryInitialize(context.heldContext.debug);
+        Language.TryLoad();
 
         if (filesToCompile == null || filesToCompile.Length == 0)
         {
             Console.Error.WriteLine("No file was given to compile.");
             return;
+        }
+
+        if (filesToCompile.Length > 1 && context.heldContext.projectName != null)
+        {
+            // we can't compile multiple files with the same project name,
+            // so in this case, we'll just have to ignore the user's wishes and use the file names instead.
+            Executor.Warn(
+                $"Ignoring manually set project name \"{context.heldContext.projectName}\" because multiple ({filesToCompile.Length}) files were provided and can't be compiled with the same name.");
+            context.heldContext.projectName = null;
         }
 
         // generally will be only one file, but the --search or --regolith options could cause more.
@@ -148,12 +159,23 @@ public static class CommandLineManager
             // reset static stuff because this is the ROOT of a compilation.
             WorkspaceManager.ResetStaticStates();
 
+            // maybe find a better solution to this some day, but for now, we'll just set the project name
+            // temporarily and restore it back to `null` once the compilation of this file is over.
+            bool projectNameWasNull = context.heldContext.projectName == null;
+            context.heldContext.projectName = Path.GetFileNameWithoutExtension(fileToCompile);
+
             // use the shiny new compilation API!
-            workspaceManager.OpenFile(fileToCompile);
-            bool success = workspaceManager.CompileFileWithSimpleErrorHandler(fileToCompile, false, false,
-                out Emission emission);
+            bool success = workspaceManager.CompileFileWithSimpleErrorHandler(fileToCompile,
+                false,
+                false,
+                true,
+                out Emission emission
+            );
+
             if (success)
-                emission?.WriteAllFiles();
+                emission.WriteAllFiles();
+            if (projectNameWasNull)
+                context.heldContext.projectName = null; // set back to null for the next iteration
         }
     }
     private static void Help()

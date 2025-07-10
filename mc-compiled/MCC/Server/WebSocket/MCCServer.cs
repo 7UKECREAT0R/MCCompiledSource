@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using mc_compiled.MCC.Compiler;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -165,17 +166,18 @@ public class MCCServer : IDisposable
         var package = new WebSocketPackage
             (server, client, this);
 
-        // run the reception loop for the connected client. 
-        var thread = new Thread(ReceiveLoop);
-        thread.Start(package);
+        // run the reception loop for the connected client.
+        Task.Factory.StartNew(() =>
+        {
+            ReceiveLoop(package);
+        }, TaskCreationOptions.LongRunning);
     }
     /// <summary>
     ///     Called when an open connection is sent a TCP packet to be processed.
     /// </summary>
-    /// <param name="result"></param>
-    public void ReceiveLoop(object result)
+    /// <param name="package">The WebSocket-related context for the executing thread to use.</param>
+    public void ReceiveLoop(WebSocketPackage package)
     {
-        var package = (WebSocketPackage) result;
         byte[] tempBuffer = new byte[READ_SIZE];
 
         Debug.WriteLine("Started thread! Client handle " + package.client.Handle);
@@ -717,13 +719,14 @@ public class MCCServer : IDisposable
     {
         bool debuggerAttached = Debugger.IsAttached;
         GlobalContext.Current.debug = this.debug;
+        GlobalContext.Current.projectName = null;
 
         // lint the code
         WorkspaceManager.ResetStaticStates();
         string virtualFileName = this.project.hasFile ? this.project.fileLocation : "anonymous.mcc";
         this.workspaceManager.OpenCodeAsFile(virtualFileName, code);
         Exception exception = this.workspaceManager.CompileFileAndCaptureExceptions
-            (virtualFileName, true, !debuggerAttached, out Emission emission);
+            (virtualFileName, true, !debuggerAttached, false, out Emission emission);
 
         // gather information.
         LegacyLintStructure lint = LegacyLintStructure.Harvest(emission);
@@ -789,7 +792,7 @@ public class MCCServer : IDisposable
 
         this.workspaceManager.OpenCodeAsFile(virtualFileName, code);
         bool success = this.workspaceManager.CompileFileWithSimpleErrorHandler
-            (virtualFileName, false, false, out Emission emission);
+            (virtualFileName, false, false, false, out Emission emission);
 
         if (this.debug)
             Console.WriteLine("Compilation Succeeded: {0}", success);

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.MCC.Language;
 using mc_compiled.MCC.ServerWebSocket;
 using Range = mc_compiled.Commands.Range;
 
@@ -31,6 +32,8 @@ public class ServerFromProtocolCommand() : CommandLineOption([])
 
         // step up to the job
         Definitions.TryInitialize(context.debug);
+        Language.TryLoad();
+
         context.SetOutputToDevelopmentFolders();
         using var server = new MCCServer(context.behaviorPackOutputPath, context.resourcePackOutputPath);
         server.StartServer(); // never returns

@@ -45,9 +45,10 @@ public class WorkspaceManager
         return this.openFiles.Contains(path);
     }
 
-    public Executor CreateExecutorForFile(string file)
+    public Executor CreateExecutorForFile(string file, bool openFileIfNotOpen)
     {
-        OpenFileIfNotOpen(file);
+        if (openFileIfNotOpen)
+            OpenFileIfNotOpen(file);
         Statement[] code = this.openFilesParsed[file];
         return new Executor(code)
             .SetPPVsFromInput(GlobalContext.Current.inputPPVs);
@@ -109,6 +110,10 @@ public class WorkspaceManager
     ///     A boolean flag indicating whether linting should be enabled during the compilation process. If set to true,
     ///     linting-specific optimizations will be enabled and no files will be written.
     /// </param>
+    /// <param name="openFileIfNotOpen">
+    ///     Should the given file be opened if it's not yet open?
+    ///     If <c>false</c>, the compiler will just trust your word that it's open.
+    /// </param>
     /// <param name="resultEmission">
     ///     An <see cref="Emission" /> object that will hold the results of the compilation.
     ///     The parameter is provided as an <c>out</c>, meaning the method will initialize and populate
@@ -117,15 +122,17 @@ public class WorkspaceManager
     [PublicAPI]
     public void CompileFile(string file,
         bool lint,
+        bool openFileIfNotOpen,
         out Emission resultEmission)
     {
-        OpenFileIfNotOpen(file);
+        if (openFileIfNotOpen)
+            OpenFileIfNotOpen(file);
 
         long tokenizationMilliseconds = this.assemblyTimesMs[file];
         var stopwatch = Stopwatch.StartNew();
 
         // build an executor containing the file's tokenized contents
-        Executor executor = CreateExecutorForFile(file);
+        Executor executor = CreateExecutorForFile(file, openFileIfNotOpen);
         executor.Execute(lint, out resultEmission);
 
         stopwatch.Stop();
@@ -160,6 +167,10 @@ public class WorkspaceManager
     ///     linting-specific optimizations will be enabled and no files will be written.
     /// </param>
     /// <param name="catchUnmanagedExceptions">Should this method catch unmanaged exceptions as well?</param>
+    /// <param name="openFileIfNotOpen">
+    ///     Should the given file be opened if it's not yet open? If <c>false</c>, the compiler
+    ///     will just trust your word that it's open.
+    /// </param>
     /// <param name="resultEmission">
     ///     An <see cref="Emission" /> object that will hold the results of the compilation.
     ///     The parameter is provided as an <c>out</c>, meaning the method will initialize and populate
@@ -169,13 +180,14 @@ public class WorkspaceManager
     public Exception CompileFileAndCaptureExceptions(string file,
         bool lint,
         bool catchUnmanagedExceptions,
+        bool openFileIfNotOpen,
         out Emission resultEmission)
     {
         resultEmission = null;
 
         try
         {
-            CompileFile(file, lint, out resultEmission);
+            CompileFile(file, lint, openFileIfNotOpen, out resultEmission);
             return null; // no exceptions
         }
         catch (TokenizerException exc)
@@ -216,6 +228,10 @@ public class WorkspaceManager
     ///     true,
     ///     diagnostic errors will not be displayed in the console upon failures.
     /// </param>
+    /// <param name="openFileIfNotOpen">
+    ///     Should the given file be opened if it's not yet open? If <c>false</c>, the compiler
+    ///     will just trust your word that it's open.
+    /// </param>
     /// <param name="resultEmission">
     ///     An <see cref="Emission" /> object that will hold the results of the compilation.
     ///     The parameter is provided as an <c>out</c>, meaning the method will initialize and populate
@@ -226,13 +242,14 @@ public class WorkspaceManager
     public bool CompileFileWithSimpleErrorHandler(string file,
         bool lint,
         bool suppressConsoleOutput,
+        bool openFileIfNotOpen,
         out Emission resultEmission)
     {
         resultEmission = null;
 
         try
         {
-            CompileFile(file, lint, out resultEmission);
+            CompileFile(file, lint, openFileIfNotOpen, out resultEmission);
             return true;
         }
         catch (TokenizerException exc)
@@ -302,7 +319,7 @@ public class WorkspaceManager
     }
     /// <summary>
     ///     Reset static states. This should be called before a compilation but only at the <b>highest</b> level.
-    ///     If a child file is being compiled with <c>$include [file]</c>, for example, then this should NOT be called to
+    ///     If a child file is being compiled with <c>$include [file]</c>, for example, then this shouldn’t be called to
     ///     prevent overlap.
     /// </summary>
     public static void ResetStaticStates()
@@ -334,7 +351,7 @@ public class WorkspaceManager
     ///     collects debugging information if enabled, and updates the internal workspace state to track the file.
     /// </summary>
     /// <param name="file">
-    ///     The absolute or relative file path of the file to be opened. If the file does not exist, a
+    ///     The absolute or relative file path of the file to be opened. If the file doesn’t exist, a
     ///     <see cref="System.IO.FileNotFoundException" /> is thrown. The file's content is tokenized, parsed into
     ///     statements, and stored within the workspace to simulate opening and preparing the file for compilation.
     /// </param>
@@ -347,7 +364,8 @@ public class WorkspaceManager
 
         // get content
         if (!File.Exists(file))
-            throw new FileNotFoundException("Couldn't find file: \"{0}\"", file);
+            throw new FileNotFoundException($"Couldn't find file: \"{file}\"");
+
         string content = File.ReadAllText(file);
 
         // tokenize/assemble content
