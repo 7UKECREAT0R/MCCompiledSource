@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -13,7 +14,7 @@ namespace mc_compiled.MCC.Compiler;
 public class CommandFile : IAddonFile
 {
     /// <summary>
-    ///     A list of all of the other CommandFiles that this file makes reference to.
+    ///     A list of all the other CommandFiles that this file makes reference to.
     /// </summary>
     private readonly List<CommandFile> calls = [];
     /// <summary>
@@ -206,14 +207,9 @@ public class CommandFile : IAddonFile
         return obj is CommandFile file && this.folder == file.folder && this.name == file.name;
     }
 
+    protected bool Equals(CommandFile other) { return this.folder == other.folder && this.name == other.name; }
     [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
-    public override int GetHashCode()
-    {
-        int hashCode = -172474549;
-        hashCode = hashCode * -1521134295 + (this.folder?.GetHashCode()).GetValueOrDefault(); // folder could be null
-        hashCode = hashCode * -1521134295 + this.name.GetHashCode();
-        return hashCode;
-    }
+    public override int GetHashCode() { return HashCode.Combine(this.folder, this.name); }
 
     public void Add(string command) { this.commands.Add(command); }
     public void Add(IEnumerable<string> newCommands) { this.commands.AddRange(newCommands); }

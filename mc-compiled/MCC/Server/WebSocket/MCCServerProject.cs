@@ -83,7 +83,7 @@ internal class MCCServerProject
             this.fileLocation = value;
             this.fileDirectory = Path.GetDirectoryName(value);
 
-            // set working directory
+            // set the working directory
             if (this.fileDirectory != null)
                 Directory.SetCurrentDirectory(this.fileDirectory);
         }

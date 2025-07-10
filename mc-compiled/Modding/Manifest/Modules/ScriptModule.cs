@@ -6,26 +6,17 @@ namespace mc_compiled.Modding.Manifest.Modules;
 /// <summary>
 ///     Represents a module which routes to/enables Script API in a project.
 /// </summary>
-public class ScriptModule : Module
+public class ScriptModule(Guid? uuid, ScriptLanguage language, string entry)
+    : Module(ModuleType.script, uuid, ManifestVersion.DEFAULT)
 {
-    private readonly string entry;
-    private readonly ScriptLanguage language;
-
-    public ScriptModule(Guid? uuid, ScriptLanguage language, string entry) :
-        base(ModuleType.script, uuid, ManifestVersion.DEFAULT)
-    {
-        this.language = language;
-        this.entry = entry;
-    }
-
     public override JObject ToJSON()
     {
         return new JObject
         {
-            ["type"] = ModuleType.script.ToString(),
-            ["language"] = this.language.ToString(),
+            ["type"] = nameof(ModuleType.script),
+            ["language"] = language.ToString(),
             ["uuid"] = this.uuid.ToString(),
-            ["entry"] = this.entry,
+            ["entry"] = entry,
             ["version"] = this.moduleVersion.ToJSON()
         };
     }

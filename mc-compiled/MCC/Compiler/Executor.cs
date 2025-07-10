@@ -26,24 +26,44 @@ namespace mc_compiled.MCC.Compiler;
 /// <summary>
 ///     The final stage of the compilation process. Runs statements and holds state.
 /// </summary>
-public class Executor
+public partial class Executor
 {
     private const string _FSTRING_SELECTOR = @"@(?:[spaeri]|initiator)(?:\[.+\])?";
     private const string _FSTRING_VARIABLE = @"[\w\d_\-:]+";
+
+    /// <summary>
+    ///     The current major version of MCCompiled.
+    /// </summary>
     public const int MCC_VERSION = 20; // 1.XX, _compiler
-    public const string MCC_GENERATED_FOLDER = "compiler"; // folder that generated functions go into
-    public const string MCC_TESTS_FOLDER = "tests"; // folder that generated tests go into
-    public const string MCC_TRANSLATE_PREFIX = "mcc."; // prefix for translation keys
+    /// <summary>
+    ///     Folder name that compiler-generated functions fall into.
+    /// </summary>
+    public const string MCC_GENERATED_FOLDER = "compiler";
+    /// <summary>
+    ///     Folder name that tests (made with the <c>test</c> command) fall into.
+    /// </summary>
+    public const string MCC_TESTS_FOLDER = "tests";
+    /// <summary>
+    ///     Prefix to be prepended to any translation keys made by the compiler.
+    /// </summary>
+    public const string MCC_TRANSLATE_PREFIX = "mcc.";
+    /// <summary>
+    ///     Text used to describe a symbol without any documentation.
+    /// </summary>
     public const string UNDOCUMENTED_TEXT = "This symbol has no documentation.";
-    public const string FAKE_PLAYER_NAME = "_"; // the name of the "fake player" used for globals.
+    /// <summary>
+    ///     The name of the fake-player used for global values.
+    /// </summary>
+    public const string FAKE_PLAYER_NAME = "_";
 
-    internal const string LANGUAGE_FILE = "language.json";
-    internal const string BINDINGS_FILE = "bindings.json";
-    private static readonly Regex PPV_FMT = new(@"\\*\$[\w\d]+");
+    private static readonly Regex PPV_FMT = PPVFormatRegex();
 
-    public static readonly Regex FSTRING_SELECTOR = new(_FSTRING_SELECTOR);
-    public static readonly Regex FSTRING_VARIABLE = new(_FSTRING_VARIABLE);
+    public static readonly Regex FSTRING_SELECTOR = FStringSelectorRegex();
+    public static readonly Regex FSTRING_VARIABLE = FStringVariableRegex();
     public static string MINECRAFT_VERSION = "0.00.000"; // _minecraft
+    /// <summary>
+    ///     Defines the maximum branch depth of the compiler will accept (and pre-allocate arrays for, etc...)
+    /// </summary>
     public static int MAXIMUM_DEPTH = 100;
 
     private static readonly ConcurrentDictionary<string, int> generatedNames = new(StringComparer.OrdinalIgnoreCase);
@@ -55,6 +75,7 @@ public class Executor
     private readonly List<int> definedStdFiles;
     internal readonly HashSet<string> definedTags;
 
+    internal readonly Emission emission;
     internal readonly EntityManager entities;
     internal readonly FunctionManager functions;
 
@@ -65,7 +86,6 @@ public class Executor
     internal readonly List<Macro> macros;
     internal readonly Dictionary<string, PreprocessorVariable> ppv;
     private readonly StringBuilder prependBuffer;
-    internal readonly ProjectManager project;
     internal readonly ScoreboardManager scoreboard;
     private Stack<CommandFile> currentFiles;
 
@@ -78,7 +98,6 @@ public class Executor
     /// </summary>
     private int iterationsUntilDeferProcess;
     private LanguageManager languageManager;
-    internal bool linting;
     private int readIndex;
 
     private TickScheduler scheduler;
@@ -88,14 +107,14 @@ public class Executor
     private int testCount;
     private int unreachableCode = -1;
 
-    internal Executor(Statement[] statements,
-        IReadOnlyCollection<Program.InputPPV> inputPPVs,
-        string projectName,
-        string bpBase,
-        string rpBase)
+    internal Executor(Statement[] statements)
     {
+        string projectName = GlobalContext.Current.projectName;
+        string bpPath = GlobalContext.Current.behaviorPackOutputPath.Replace(Context.PROJECT_REPLACER, projectName);
+        string rpPath = GlobalContext.Current.resourcePackOutputPath.Replace(Context.PROJECT_REPLACER, projectName);
+
         this.statements = statements;
-        this.project = new ProjectManager(projectName, bpBase, rpBase, this);
+        this.emission = new Emission(projectName, bpPath, rpPath, this);
         this.entities = new EntityManager(this);
         this.async = new AsyncManager(this);
 
@@ -105,11 +124,7 @@ public class Executor
         this.definedTags = [];
         this.definedReturnedTypes = [];
 
-        if (inputPPVs != null && inputPPVs.Count > 0)
-            foreach (Program.InputPPV inputPPV in inputPPVs)
-                SetPPV(inputPPV.name, inputPPV.value);
-
-        // support up to MAXIMUM_SCOPE levels of scope before blowing up
+        // support up to MAXIMUM_DEPTH levels of scope before blowing up
         this.lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
         this.lastCompare = new PreviousComparisonStructure[MAXIMUM_DEPTH];
 
@@ -133,7 +148,7 @@ public class Executor
     ///     The prefix to use for locale entries at the current location of the executor.
     /// </summary>
     internal string LocaleEntryPrefix =>
-        this.currentLocaleEntryPath.Any()
+        this.currentLocaleEntryPath.Count != 0
             ? $"{MCC_TRANSLATE_PREFIX}{string.Join(".", this.currentLocaleEntryPath)}."
             : MCC_TRANSLATE_PREFIX;
     /// <summary>
@@ -171,6 +186,13 @@ public class Executor
     ///     Get the names of all registered preprocessor variables.
     /// </summary>
     public IEnumerable<string> PPVNames => this.ppv.Select(p => p.Key).ToArray();
+    internal Executor SetPPVsFromInput(IEnumerable<Context.InputPPV> inputPPVs)
+    {
+        if (inputPPVs != null)
+            foreach (Context.InputPPV inputPPV in inputPPVs)
+                SetPPV(inputPPV.name, inputPPV.value);
+        return this;
+    }
 
     /// <summary>
     ///     Display a success message regardless of debug setting.
@@ -234,7 +256,7 @@ public class Executor
     /// </summary>
     private void AcceptDeferredActions()
     {
-        while (this.deferredActions.Any())
+        while (this.deferredActions.Count != 0)
         {
             Action<Executor> action = this.deferredActions.Pop();
             action.Invoke(this);
@@ -244,11 +266,7 @@ public class Executor
     ///     Returns this executor after setting it to lint mode, lowering memory usage
     /// </summary>
     /// <returns></returns>
-    internal void Linter()
-    {
-        this.linting = true;
-        this.project.Linter();
-    }
+    internal void Linter() { this.emission.isLinting = true; }
 
     /// <summary>
     ///     Pushes to the prepend buffer the proper execute command needed to align to the given selector.
@@ -315,9 +333,9 @@ public class Executor
 
                 // tokenize and assemble the inputs (without character stripping or definitions.def)
                 var tokenizer = new Tokenizer(segment, false, false);
-                Token[] tokens = tokenizer.Tokenize();
+                Token[] tokens = tokenizer.Tokenize(forExceptions.SourceFile);
                 Statement subStatement = new StatementHusk(tokens);
-                subStatement.SetSource(forExceptions.Lines, "Inline FString Operation");
+                subStatement.SetSource(forExceptions.Lines, "Inline FString Operation", forExceptions.SourceFile);
 
                 // squash & resolve the tokens as best it can
                 subStatement.PrepareThis(this);
@@ -545,7 +563,7 @@ public class Executor
         if (this.soundDefinitions != null)
             return this.soundDefinitions;
 
-        string file = this.project.GetOutputFileLocationFull(OutputLocation.r_SOUNDS, SoundDefinitions.FILE);
+        string file = this.emission.GetOutputFileLocationFull(OutputLocation.r_SOUNDS, SoundDefinitions.FILE);
 
         if (File.Exists(file))
         {
@@ -616,7 +634,7 @@ public class Executor
         soundFolder.Append(Path.GetFileNameWithoutExtension(soundFile));
 
         string fileName = Path.GetFileName(soundFile);
-        string soundName = this.project.Identifier + '.' + Path.GetFileNameWithoutExtension(soundFile);
+        string soundName = this.emission.Identifier + '.' + Path.GetFileNameWithoutExtension(soundFile);
 
         // create CopyFile so that the sound file can be copied during file writing
         var copyFile = new CopyFile(soundFile, OutputLocation.r_SOUNDS, relativePath ?? fileName);
@@ -664,7 +682,7 @@ public class Executor
     /// <param name="feature"></param>
     internal void RequireFeature(Statement source, Feature feature)
     {
-        if (this.project.HasFeature(feature))
+        if (this.emission.HasFeature(feature))
             return;
 
         string name = feature.ToString();
@@ -788,7 +806,7 @@ public class Executor
     /// </summary>
     public JToken Fetch(IAddonFile toLocate, Statement callingStatement)
     {
-        string outputFile = this.project.GetOutputFileLocationFull(toLocate, true);
+        string outputFile = this.emission.GetOutputFileLocationFull(toLocate, true);
 
         if (outputFile == null)
             throw new StatementException(callingStatement,
@@ -862,7 +880,7 @@ public class Executor
     public bool HasSTDFile(CommandFile file) { return this.definedStdFiles.Contains(file.GetHashCode()); }
 
     /// <summary>
-    ///     Tries to fetch a documentation string based whether the last statement was a comment or not. Returns
+    ///     Tries to fetch a documentation string based on whether the last statement was a comment or not. Returns
     ///     <see cref="Executor.UNDOCUMENTED_TEXT" /> if no documentation was supplied.
     /// </summary>
     /// <returns></returns>
@@ -1122,7 +1140,7 @@ public class Executor
     }
 
     /// <summary>
-    ///     Setup the default preprocessor variables.
+    ///     Set up the default preprocessor variables.
     /// </summary>
     private void SetCompilerPPVs()
     {
@@ -1137,8 +1155,19 @@ public class Executor
     /// <summary>
     ///     Run this executor start to finish.
     /// </summary>
-    public void Execute()
+    /// <param name="lint">
+    ///     If the compilation should be cut down to improve speed.
+    ///     Used for linting or other situations where no <i>actual</i> files are going to be written.
+    /// </param>
+    /// <param name="resultEmission">
+    ///     The emission of the compilation; may or may not be <see cref="Emission.Complete()" />ed
+    ///     yet.
+    /// </param>
+    public void Execute(bool lint, out Emission resultEmission)
     {
+        resultEmission = this.emission;
+        this.emission.isLinting = lint;
+
         this.readIndex = 0;
 
         while (this.HasNext)
@@ -1156,7 +1185,7 @@ public class Executor
             if (statement.Skip)
                 continue; // ignore this statement
 
-            // check for unreachable code due to halt directive
+            // check for unreachable code due to a halt directive
             CheckUnreachable(statement);
 
             // tick deferred processes
@@ -1166,10 +1195,12 @@ public class Executor
                 Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement);
         }
 
-        while (this.currentFiles.Any())
+        while (this.currentFiles.Count != 0)
             PopFile();
 
         FinalizeInitFile();
+
+        this.emission.Complete();
     }
     /// <summary>
     ///     Temporarily run another subsection of statements then resume this executor.
@@ -1288,7 +1319,7 @@ public class Executor
     /// <param name="command"></param>
     public void AddCommand(string command)
     {
-        if (this.linting)
+        if (this.emission.isLinting)
         {
             PopPrepend();
             return;
@@ -1308,7 +1339,7 @@ public class Executor
         string friendlyDescription,
         bool inline = false)
     {
-        if (this.linting)
+        if (this.emission.isLinting)
             return;
         string[] commandsAsArray = commands as string[] ?? commands.ToArray();
         int count = commandsAsArray.Count();
@@ -1344,7 +1375,7 @@ public class Executor
     /// <param name="command"></param>
     public void AddCommandClean(string command)
     {
-        if (this.linting)
+        if (this.emission.isLinting)
             return;
         string prepend = this.prependBuffer.ToString();
         this.CurrentFile.Add(prepend + command);
@@ -1362,7 +1393,7 @@ public class Executor
         string friendlyDescription,
         bool inline = false)
     {
-        if (this.linting || commands == null)
+        if (this.emission.isLinting || commands == null)
             return;
         string buffer = this.prependBuffer.ToString();
 
@@ -1396,21 +1427,21 @@ public class Executor
     ///     Add a file on its own to the list.
     /// </summary>
     /// <param name="file"></param>
-    public void AddExtraFile(IAddonFile file) { this.project.AddFile(file); }
+    public void AddExtraFile(IAddonFile file) { this.emission.AddFile(file); }
     /// <summary>
     ///     Add a file to the list, removing any other file that has a matching name/directory.
     /// </summary>
     /// <param name="file"></param>
     public void OverwriteExtraFile(IAddonFile file)
     {
-        this.project.RemoveDuplicatesOf(file);
-        this.project.AddFile(file);
+        this.emission.RemoveDuplicatesOf(file);
+        this.emission.AddFile(file);
     }
     /// <summary>
     ///     Add a set of files on their own to the list.
     /// </summary>
     /// <param name="files">The files to add.</param>
-    public void AddExtraFiles(IEnumerable<IAddonFile> files) { this.project.AddFiles(files); }
+    public void AddExtraFiles(IEnumerable<IAddonFile> files) { this.emission.AddFiles(files); }
     /// <summary>
     ///     Add a set of files on their own to the list, removing any other files that have a matching name/directory.
     /// </summary>
@@ -1421,18 +1452,12 @@ public class Executor
             OverwriteExtraFile(file);
     }
     /// <summary>
-    ///     Returns if this executor has a file containing a specific string.
-    /// </summary>
-    /// <param name="text">The text to check for.</param>
-    /// <returns></returns>
-    public bool HasExtraFileContaining(string text) { return this.project.HasFileContaining(text); }
-    /// <summary>
     ///     Add a command to the 'init' file. Does not affect the prepend buffer.
     /// </summary>
     /// <param name="command"></param>
     public void AddCommandInit(string command)
     {
-        if (this.linting || command == null)
+        if (this.emission.isLinting || command == null)
             return;
         this.initCommands.Add(command);
     }
@@ -1442,12 +1467,12 @@ public class Executor
     /// <param name="commands"></param>
     public void AddCommandsInit(IEnumerable<string> commands)
     {
-        if (this.linting || commands == null)
+        if (this.emission.isLinting || commands == null)
             return;
 
         string[] commandsAsArray = commands as string[] ?? commands.ToArray();
 
-        if (!commandsAsArray.Any())
+        if (commandsAsArray.Length == 0)
             return;
 
         this.initCommands.AddRange(commandsAsArray);
@@ -1462,9 +1487,9 @@ public class Executor
         if (this.scheduler != null)
             return this.scheduler;
 
-        // create new one
+        // create a new one
         this.scheduler = new TickScheduler(this);
-        this.project.AddFile(this.scheduler);
+        this.emission.AddFile(this.scheduler);
         return this.scheduler;
     }
     /// <summary>
@@ -1482,11 +1507,7 @@ public class Executor
     {
         string oldContent = this.prependBuffer.ToString();
         this.prependBuffer.Clear().Append(content);
-
-        if (string.IsNullOrEmpty(oldContent))
-            return "";
-
-        return oldContent;
+        return string.IsNullOrEmpty(oldContent) ? "" : oldContent;
     }
     /// <summary>
     ///     Append to the content to the prepend buffer.
@@ -1672,7 +1693,7 @@ public class Executor
             file.Add("# empty file");
         }
 
-        this.project.AddFile(file);
+        this.emission.AddFile(file);
     }
     /// <summary>
     ///     Pops the first item off the stack that matches the given predicate, starting from the top.
@@ -1731,7 +1752,7 @@ public class Executor
             file.Add("# empty file");
         }
 
-        this.project.AddFile(file);
+        this.emission.AddFile(file);
     }
     private void FinalizeInitFile()
     {
@@ -1756,7 +1777,7 @@ public class Executor
                 "# Runtime setup is placed here in the 'init file'. Re-run this ingame to ensure new scoreboard objectives are properly created.");
         }
 
-        this.project.AddFile(this.InitFile);
+        this.emission.AddFile(this.InitFile);
     }
     /// <summary>
     ///     Construct the next available name using a sequential number to distinguish it, like input0, input1, input2, etc...
@@ -1767,8 +1788,7 @@ public class Executor
     /// <returns>friendlyName[next available index]</returns>
     public static string GetNextGeneratedName(string friendlyName, bool showNumberOnFirst, bool oneIndexed)
     {
-        if (!generatedNames.TryGetValue(friendlyName, out int index))
-            index = 0;
+        int index = generatedNames.GetValueOrDefault(friendlyName, 0);
         generatedNames[friendlyName] = index + 1;
 
         if (index == 0 && !showNumberOnFirst)
@@ -1781,8 +1801,8 @@ public class Executor
     ///     like input0, input1, input2, etc...
     /// </summary>
     /// <param name="friendlyName">A user-friendly name to mark the file by.</param>
-    /// <param name="oneIndexed"></param>
-    /// <returns>A command file titled "friendlyName[next available index]" </returns>
+    /// <param name="oneIndexed">If the file numbers should be indexed by 1 rather than 0.</param>
+    /// <returns>A command file titled <c>friendlyName[next available index]</c></returns>
     public static CommandFile GetNextGeneratedFile(string friendlyName, bool oneIndexed)
     {
         string name = GetNextGeneratedName(friendlyName, true, oneIndexed);
@@ -1791,9 +1811,9 @@ public class Executor
     public static void ResetGeneratedNames() { generatedNames.Clear(); }
 
     /// <summary>
-    ///     Do a cleanup of the massive amount of resources this thing takes up as soon as possible.
+    ///     Do a cleanup of the executor's resources and call <see cref="GC.Collect()" />
     /// </summary>
-    public void Cleanup()
+    internal void Cleanup()
     {
         this.currentFiles.Clear();
         this.loadedFiles.Clear();
@@ -1803,4 +1823,11 @@ public class Executor
         this.scoreboard.temps.Clear();
         GC.Collect();
     }
+
+    [GeneratedRegex(@"\\*\$[\w\d]+")]
+    private static partial Regex PPVFormatRegex();
+    [GeneratedRegex(_FSTRING_SELECTOR)]
+    private static partial Regex FStringSelectorRegex();
+    [GeneratedRegex(_FSTRING_VARIABLE)]
+    private static partial Regex FStringVariableRegex();
 }

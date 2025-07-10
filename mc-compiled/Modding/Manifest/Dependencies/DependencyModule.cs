@@ -22,7 +22,7 @@ public sealed class DependencyModule : Dependency
         return new JObject
         {
             ["module_name"] = this.moduleName,
-            ["version"] = this.version.ToVersionString()
+            ["version"] = this.version.ToString()
         };
     }
 }

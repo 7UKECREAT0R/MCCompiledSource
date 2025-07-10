@@ -37,7 +37,8 @@ public abstract class MolangBinding
     /// <param name="callingStatement">The calling statement, for exceptions.</param>
     /// <param name="defaultState">[OUT] The default state to use.</param>
     /// <returns>An array of <see cref="ControllerState" />s that represent this binding.</returns>
-    public abstract ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement,
+    public abstract ControllerState[] GetControllerStates(ScoreboardValue value,
+        Statement callingStatement,
         out string defaultState);
     public override string ToString()
     {
@@ -55,7 +56,8 @@ public sealed class MolangBindingBool : MolangBinding
         : base(molangQuery, targetFiles, description) { }
 
     public override BindingType Type => BindingType.boolean;
-    public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement,
+    public override ControllerState[] GetControllerStates(ScoreboardValue value,
+        Statement callingStatement,
         out string defaultState)
     {
         defaultState = "off";
@@ -104,7 +106,8 @@ public sealed class MolangBindingCustomBool : MolangBinding
     }
 
     public override BindingType Type => BindingType.custom_bool;
-    public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement,
+    public override ControllerState[] GetControllerStates(ScoreboardValue value,
+        Statement callingStatement,
         out string defaultState)
     {
         defaultState = "off";
@@ -171,7 +174,8 @@ public sealed class MolangBindingInt : MolangBinding
     public Range AsRange => new(this.min, this.max);
 
     public override BindingType Type => BindingType.integer;
-    public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement,
+    public override ControllerState[] GetControllerStates(ScoreboardValue value,
+        Statement callingStatement,
         out string defaultState)
     {
         defaultState = "direct";
@@ -220,7 +224,11 @@ public sealed class MolangBindingFloat : MolangBinding
     private readonly float min;
     private readonly float step;
 
-    public MolangBindingFloat(string molangQuery, string[] targetFiles, string description, float min, float max,
+    public MolangBindingFloat(string molangQuery,
+        string[] targetFiles,
+        string description,
+        float min,
+        float max,
         float step)
         : base(molangQuery, targetFiles, description)
     {
@@ -230,7 +238,8 @@ public sealed class MolangBindingFloat : MolangBinding
     }
 
     public override BindingType Type => BindingType.floating_point;
-    public override ControllerState[] GetControllerStates(ScoreboardValue value, Statement callingStatement,
+    public override ControllerState[] GetControllerStates(ScoreboardValue value,
+        Statement callingStatement,
         out string defaultState)
     {
         defaultState = "direct";
@@ -246,10 +255,7 @@ public sealed class MolangBindingFloat : MolangBinding
             transitions = new ControllerState.Transition[numberOfStates]
         };
 
-        float Lerp(float t)
-        {
-            return (1 - t) * this.min + t * this.max;
-        }
+        float Lerp(float t) { return (1 - t) * this.min + t * this.max; }
 
         for (int i = 0; i < numberOfStates; i++)
         {
@@ -294,7 +300,13 @@ public enum BindingType
     ///     An integer with a minimum and maximum value. Will check every index between min and max inclusive.
     /// </summary>
     integer,
+    /// <summary>
+    /// A floating point binding which is sampled at a given step resolution.
+    /// </summary>
     floating_point,
+    /// <summary>
+    /// A boolean which is defined by a Molang expression rather than a single query.
+    /// </summary>
     custom_bool
 }
 
@@ -303,6 +315,11 @@ public enum BindingType
 /// </summary>
 public static class MolangBindings
 {
+    /// <summary>
+    /// The file containing all the defined Molang bindings.
+    /// </summary>
+    private const string BINDINGS_FILE = "bindings.json";
+
     private static bool _isLoaded;
 
     public static string LAST_MC_VERSION = "unknown";
@@ -409,7 +426,7 @@ public static class MolangBindings
     {
         string assemblyDir = Path.GetDirectoryName(AppContext.BaseDirectory);
         Debug.Assert(assemblyDir != null, "Application is in an inaccessible directory.");
-        string path = Path.Combine(assemblyDir, Executor.BINDINGS_FILE);
+        string path = Path.Combine(assemblyDir, BINDINGS_FILE);
 
         if (!File.Exists(path))
         {

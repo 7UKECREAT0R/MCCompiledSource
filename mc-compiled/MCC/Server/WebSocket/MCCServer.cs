@@ -43,6 +43,7 @@ public class MCCServer : IDisposable
     private readonly MCCServerProject project;
     private readonly SHA1 sha1;
     private readonly Socket socket;
+    private readonly WorkspaceManager workspaceManager;
 
     private bool _isDisposed;
 
@@ -68,6 +69,7 @@ public class MCCServer : IDisposable
         this.connectionEstablished = new ManualResetEvent(false);
 
         this.project = new MCCServerProject(this);
+        this.workspaceManager = new WorkspaceManager();
         this.ip = new IPEndPoint(IPAddress.Loopback, PORT);
         this.socket = new Socket(this.ip.AddressFamily,
             SocketType.Stream, ProtocolType.Tcp);
@@ -515,11 +517,7 @@ public class MCCServer : IDisposable
             if (this.debug)
                 Console.WriteLine("Linting...");
 
-            if (Debugger.IsAttached)
-                LintWithDebugger(code, package);
-            else
-                Lint(code, package);
-
+            Lint(code, package);
             return false;
         }
 
@@ -558,7 +556,7 @@ public class MCCServer : IDisposable
                         package.SendFrame(unsupported
                             ? CreateNotificationFrame("Saving files is unsupported on non-Windows platforms.",
                                 "#DDDDDD")
-                            : CreateNotificationFrame("Save cancelled by user.", "#DDDDDD"));
+                            : CreateNotificationFrame("Save was canceled.", "#DDDDDD"));
                         package.SendFrame(CreateBusyFrame(false));
                         return; // stop thread
                     }
@@ -574,7 +572,7 @@ public class MCCServer : IDisposable
                 using (FileStream stream = File.OpenWrite(file))
                 {
                     bool hasMetadata = metadata != null;
-                    bool hasProperties = this.project.properties.Any();
+                    bool hasProperties = this.project.properties.Count != 0;
 
                     if (hasMetadata || hasProperties)
                     {
@@ -704,165 +702,114 @@ public class MCCServer : IDisposable
                 Lint(code, package);
 
                 if (this.debug)
-                    Console.WriteLine("\nGot metadata from load:\n{0}\n", metadata);
+                    Console.WriteLine("\nGot metadata:\n{0}\n", metadata);
             });
 
             if (OperatingSystem.IsWindows())
                 thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
-
-            return false;
         }
 
         return false;
     }
 
-    private void LintWithDebugger(string code, WebSocketPackage package)
-    {
-        try
-        {
-            GlobalContext.Current.debug = this.debug;
-            Program.PrepareToCompile();
-            Token[] tokens = new Tokenizer(code).Tokenize();
-            Statement[] statements = Assembler.AssembleTokens(tokens);
-            var executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", this.outputBehaviorPack,
-                this.outputResourcePack);
-            executor.Linter();
-            executor.Execute();
-
-            // gather information.
-            LintStructure lint = LintStructure.Harvest(executor);
-
-            if (this.debug)
-                Console.WriteLine("\tLint success. " + lint);
-
-            string json = lint.ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
-
-            // tell the client that there are no more errors
-            package.SendFrame(WebSocketFrame.String(
-                @"{""action"":""seterrors"",""errors"":[]}"
-            ));
-
-            executor.Cleanup(); // free executor resources now
-        }
-        catch (TokenizerException exc)
-        {
-            if (this.debug)
-                Console.WriteLine("\tError. " + exc.Message);
-            string json = ErrorStructure.Wrap(exc).ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
-        }
-        catch (StatementException exc)
-        {
-            if (this.debug)
-                Console.WriteLine("\tError. " + exc.Message);
-            string json = ErrorStructure.Wrap(exc).ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
-        }
-        catch (FeederException exc)
-        {
-            if (this.debug)
-                Console.WriteLine("\tError. " + exc.Message);
-            string json = ErrorStructure.Wrap(exc).ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
-        }
-        finally
-        {
-            // no longer busy
-            package.SendFrame(CreateBusyFrame(false));
-        }
-    }
     private void Lint(string code, WebSocketPackage package)
     {
-        try
-        {
-            GlobalContext.Current.debug = this.debug;
-            Program.PrepareToCompile();
-            Token[] tokens = new Tokenizer(code).Tokenize();
-            Statement[] statements = Assembler.AssembleTokens(tokens);
-            var executor = new Executor(statements, Array.Empty<Program.InputPPV>(), "lint", this.outputBehaviorPack,
-                this.outputResourcePack);
-            executor.Linter();
-            executor.Execute();
+        bool debuggerAttached = Debugger.IsAttached;
+        GlobalContext.Current.debug = this.debug;
 
-            // gather information.
-            LintStructure lint = LintStructure.Harvest(executor);
+        // lint the code
+        WorkspaceManager.ResetStaticStates();
+        string virtualFileName = this.project.hasFile ? this.project.fileLocation : "anonymous.mcc";
+        this.workspaceManager.OpenCodeAsFile(virtualFileName, code);
+        Exception exception = this.workspaceManager.CompileFileAndCaptureExceptions
+            (virtualFileName, true, !debuggerAttached, out Emission emission);
 
-            if (this.debug)
-                Console.WriteLine("\tLint success. " + lint);
+        // gather information.
+        LegacyLintStructure lint = LegacyLintStructure.Harvest(emission);
 
-            string json = lint.ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
+        if (this.debug)
+            Console.WriteLine("\tLint success. " + lint);
 
+        string json = lint.ToJSON();
+        package.SendFrame(WebSocketFrame.String(json));
+
+        if (exception == null)
             // tell the client that there are no more errors
+        {
             package.SendFrame(WebSocketFrame.String(
                 @"{""action"":""seterrors"",""errors"":[]}"
             ));
-
-            executor.Cleanup(); // free executor resources now
         }
-        catch (TokenizerException exc)
+        else
         {
-            if (this.debug)
-                Console.WriteLine("\tError. " + exc.Message);
-            string json = ErrorStructure.Wrap(exc).ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
-        }
-        catch (StatementException exc)
-        {
-            if (this.debug)
-                Console.WriteLine("\tError. " + exc.Message);
-            string json = ErrorStructure.Wrap(exc).ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
-        }
-        catch (FeederException exc)
-        {
-            if (this.debug)
-                Console.WriteLine("\tError. " + exc.Message);
-            string json = ErrorStructure.Wrap(exc).ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
-        }
-        catch (Exception exc)
-        {
-            if (Debugger.IsAttached)
-                throw;
-            if (this.debug)
+            if (exception is TokenizerException tokenizerException)
             {
-                Console.WriteLine("\tFatal Error:\n\n" + exc);
-                Console.WriteLine(exc.ToString());
+                if (this.debug)
+                    Console.Error.WriteLine("\tError. " + tokenizerException.Message);
+                json = LegacyErrorStructure.Wrap(tokenizerException).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
             }
+            else if (exception is StatementException statementException)
+            {
+                if (this.debug)
+                    Console.Error.WriteLine("\tError. " + statementException.Message);
+                json = LegacyErrorStructure.Wrap(statementException).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+            }
+            else if (exception is FeederException feederException)
+            {
+                if (this.debug)
+                    Console.Error.WriteLine("\tError. " + feederException.Message);
+                json = LegacyErrorStructure.Wrap(feederException).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+            }
+            else
+            {
+                if (this.debug)
+                {
+                    Console.Error.WriteLine("\tFatal Error:");
+                    Console.Error.WriteLine();
+                    Console.Error.WriteLine(exception.ToString());
+                }
 
-            string json = ErrorStructure.Wrap(exc, [0]).ToJSON();
-            package.SendFrame(WebSocketFrame.String(json));
+                json = LegacyErrorStructure.Wrap(exception, [0]).ToJSON();
+                package.SendFrame(WebSocketFrame.String(json));
+            }
         }
-        finally
-        {
-            // no longer busy
-            package.SendFrame(CreateBusyFrame(false));
-        }
+
+        // no longer busy
+        package.SendFrame(CreateBusyFrame(false));
     }
     private void Compile(string code, string projectName, WebSocketPackage package)
     {
         GlobalContext.Current.debug = this.debug;
-        Program.PrepareToCompile();
-        bool success = Program.RunMCCompiledCode(code, projectName + ".mcc", [], this.outputBehaviorPack,
-            this.outputResourcePack, projectName);
+        GlobalContext.Current.projectName = projectName;
+        string virtualFileName = this.project.hasFile ? this.project.fileLocation : projectName + ".mcc";
+
+        this.workspaceManager.OpenCodeAsFile(virtualFileName, code);
+        bool success = this.workspaceManager.CompileFileWithSimpleErrorHandler
+            (virtualFileName, false, false, out Emission emission);
 
         if (this.debug)
-            Console.WriteLine("Compilation Success: {0}", success);
+            Console.WriteLine("Compilation Succeeded: {0}", success);
 
         if (success)
-            package.SendFrame(CreateNotificationFrame("Compilation Completed", "#3cc741"));
+        {
+            emission?.WriteAllFiles();
+            package.SendFrame(CreateNotificationFrame("Compilation Succeeded", "#3cc741"));
+        }
         else
+        {
             package.SendFrame(CreateNotificationFrame("Compilation Failed", "#db4b35"));
+        }
 
-        // signal not busy anymore
+        // signal that we're not busy anymore
         package.SendFrame(CreateBusyFrame(false));
     }
 
     /// <summary>
-    ///     Creates a WebSocketFrame to hold a MCCompiled protocol 'notification' action.
+    ///     Creates a WebSocketFrame to hold an MCCompiled protocol 'notification' action.
     /// </summary>
     /// <param name="text">The text to display in the notification.</param>
     /// <param name="color">The color of the text; name or hexadecimal code.</param>
@@ -915,17 +862,5 @@ public class MCCServer : IDisposable
         sb.Append(@"</div>");
 
         return sb.ToString();
-    }
-}
-
-internal struct STAPackage
-{
-    internal readonly WebSocketPackage package;
-    internal readonly MCCServerProject project;
-
-    internal STAPackage(WebSocketPackage package, MCCServerProject project)
-    {
-        this.package = package;
-        this.project = project;
     }
 }

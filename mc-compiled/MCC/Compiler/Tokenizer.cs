@@ -15,6 +15,7 @@ namespace mc_compiled.MCC.Compiler;
 /// </summary>
 public class Tokenizer
 {
+    public static string CURRENT_FILE;
     public static int CURRENT_LINE = 1;
     private static readonly char[] TOKENIZER_IGNORE_CHARS = [' ', '\t', ','];
     private static readonly char[] BP_RP_IDENTIFIER_CHARS = "1234567890qwertyuiopasdfghjklzxcvbnm".ToCharArray();
@@ -31,8 +32,8 @@ public class Tokenizer
     ///     Create a new Tokenizer, optionally running cleanups and the definitions.def parser over it.
     /// </summary>
     /// <param name="content">The content to tokenize.</param>
-    /// <param name="stripCarriageReturns">Whether or not to strip carriage return characters from the input.</param>
-    /// <param name="useDefinitions">Whether or not to check and replace definitions.def references in the content.</param>
+    /// <param name="stripCarriageReturns">Whether to strip carriage return characters from the input.</param>
+    /// <param name="useDefinitions">Whether to check and replace definitions.def references in the content.</param>
     public Tokenizer(string content, bool stripCarriageReturns = true, bool useDefinitions = true)
     {
         if (useDefinitions)
@@ -67,7 +68,7 @@ public class Tokenizer
             throw new TokenizerException("File specified could not be found.");
 
         string content = File.ReadAllText(file);
-        return new Tokenizer(content).Tokenize();
+        return new Tokenizer(content).Tokenize( /* only passed for errors: */ file);
     }
     private char Peek() { return this.content[this.index]; }
     private char Peek(int amount)
@@ -86,9 +87,11 @@ public class Tokenizer
     /// <summary>
     ///     Tokenize the contents of this object.
     /// </summary>
-    /// <returns></returns>
-    public Token[] Tokenize()
+    /// <param name="fileNameForErrors">The file name that will be embedded into errors, if any.</param>
+    /// <returns>The tokenized result.</returns>
+    public Token[] Tokenize(string fileNameForErrors)
     {
+        CURRENT_FILE = fileNameForErrors;
         CURRENT_LINE = 1;
         this.index = 0;
 
@@ -566,7 +569,16 @@ public class Tokenizer
 /// </summary>
 public class TokenizerException : Exception
 {
+    public readonly string file;
     public readonly int[] lines;
-    public TokenizerException(string message, int[] lines) : base(message) { this.lines = lines; }
-    public TokenizerException(string message) : base(message) { this.lines = [Tokenizer.CURRENT_LINE]; }
+    public TokenizerException(string message, int[] lines) : base(message)
+    {
+        this.lines = lines;
+        this.file = Tokenizer.CURRENT_FILE;
+    }
+    public TokenizerException(string message) : base(message)
+    {
+        this.lines = [Tokenizer.CURRENT_LINE];
+        this.file = Tokenizer.CURRENT_FILE;
+    }
 }

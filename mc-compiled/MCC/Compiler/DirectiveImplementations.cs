@@ -654,7 +654,7 @@ public static class DirectiveImplementations
                 strings.Add(next.DebugString());
         }
 
-        if (executor.linting)
+        if (executor.emission.isLinting)
             return;
 
         Console.WriteLine("[LOG] {0}", string.Join(" ", strings));
@@ -749,14 +749,14 @@ public static class DirectiveImplementations
             if (lookedUp.isFromLibrary)
             {
                 // only show the error at the call site, since the macro's code is located out-of-file.
-                e.statement.SetSource(tokens.Lines, tokens.Source + ": " + e.statement.Source);
+                e.statement.SetSource(tokens.Lines, tokens.Source + ": " + e.statement.Source, tokens.SourceFile);
             }
             else
             {
                 // set it so that the error is placed at the location of the call and the macro.
                 int[] exceptionLines = e.statement.Lines.Concat(tokens.Lines).ToArray();
                 string exceptionSource = tokens.Source + ": " + e.statement.Source;
-                e.statement.SetSource(exceptionLines, exceptionSource);
+                e.statement.SetSource(exceptionLines, exceptionSource, tokens.SourceFile);
             }
 
             throw;
@@ -798,7 +798,7 @@ public static class DirectiveImplementations
             Console.WriteLine();
         }
 
-        Statement[] statements = Assembler.AssembleTokens(includedTokens);
+        Statement[] statements = Assembler.AssembleTokens(includedTokens, file);
 
         if (GlobalContext.Debug)
         {
@@ -1323,10 +1323,10 @@ public static class DirectiveImplementations
         Array.Copy(remainingTokens, 0, finalTokens, 2, remainingTokens.Length);
         finalTokens[0] = new TokenIdentifierFunction(functionName, functions, line);
         finalTokens[1] = new TokenOpenParenthesis(line);
-        finalTokens[finalTokens.Length - 1] = new TokenCloseParenthesis(line);
+        finalTokens[^1] = new TokenCloseParenthesis(line);
 
         var callStatement = new StatementFunctionCall(finalTokens);
-        callStatement.SetSource(tokens.Lines, tokens.Source);
+        callStatement.SetSource(tokens.Lines, tokens.Source, tokens.SourceFile);
 
         callStatement
             .ClonePrepare(executor)
@@ -1337,7 +1337,7 @@ public static class DirectiveImplementations
     public static void mc(Executor executor, Statement tokens)
     {
         string command = tokens.Next<TokenStringLiteral>("command");
-        if (command.StartsWith("/"))
+        if (command.StartsWith('/'))
             command = command[1..];
         executor.AddCommand(command);
     }
@@ -2226,7 +2226,7 @@ public static class DirectiveImplementations
                 " blocks. This could cause extreme performance problems or the command may not even work at all.",
                 tokens);
 
-        if (executor.linting)
+        if (executor.emission.isLinting)
             return; // no need to run allat when it isn't even going to be used...
 
         int[,,] blocks = new int[sizeX, sizeY, sizeZ];
@@ -2247,7 +2247,7 @@ public static class DirectiveImplementations
 
         string fileName = Executor.GetNextGeneratedName("scatter_" + Command.Util.StripNamespace(block), false, true);
         var file = new StructureFile(fileName, Executor.MCC_GENERATED_FOLDER, structure);
-        executor.project.WriteSingleFile(file);
+        executor.emission.WriteSingleFile(file);
 
         Coordinate minX = Coordinate.Min(x1, x2);
         Coordinate minY = Coordinate.Min(y1, y2);
@@ -3444,10 +3444,10 @@ public static class DirectiveImplementations
         if (feature == Feature.NO_FEATURES)
             throw new StatementException(tokens, "No valid feature specified.");
 
-        executor.project.EnableFeature(feature);
+        executor.emission.EnableFeature(feature);
         FeatureManager.OnFeatureEnabled(executor, feature);
 
-        if (GlobalContext.Debug && !executor.project.linting)
+        if (GlobalContext.Debug && !executor.emission.isLinting)
             Console.WriteLine("Feature enabled: {0}", feature);
     }
     [UsedImplicitly]

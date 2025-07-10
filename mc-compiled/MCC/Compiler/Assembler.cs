@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC.Compiler;
 
@@ -8,7 +9,17 @@ namespace mc_compiled.MCC.Compiler;
 /// </summary>
 public static class Assembler
 {
-    public static Statement[] AssembleTokens(Token[] tokens)
+    /// <summary>
+    ///     Assemble an array of tokens into a complete set of statements.
+    /// </summary>
+    /// <param name="tokens">The tokens to assemble.</param>
+    /// <param name="fileName">
+    ///     The name of the file which these tokens came from. <br />
+    ///     Used for setting <see cref="Statement.SourceFile" />.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="TokenizerException"></exception>
+    public static Statement[] AssembleTokens(Token[] tokens, string fileName)
     {
         var statements = new List<Statement>();
         var buffer = new List<Token>();
@@ -29,17 +40,17 @@ public static class Assembler
             {
                 if (buffer.Count > 0)
                 {
-                    assembledStatement = TryAssembleLine(buffer.ToArray());
+                    assembledStatement = TryAssembleLine(buffer.ToArray(), fileName);
                     statements.Add(assembledStatement);
                     buffer.Clear();
                 }
 
                 switch (current)
                 {
-                    case TokenOpenBlock _:
+                    case TokenOpenBlock:
                     {
                         var block = new StatementOpenBlock(statements.Count + 1);
-                        block.SetSource([current.lineNumber], "{");
+                        block.SetSource([current.lineNumber], "{", fileName);
 
                         statements.Add(block);
                         blocks.Push(block);
@@ -54,10 +65,10 @@ public static class Assembler
 
                         continue;
                     }
-                    case TokenCloseBlock _:
+                    case TokenCloseBlock:
                     {
                         var closer = new StatementCloseBlock();
-                        closer.SetSource([current.lineNumber], "}");
+                        closer.SetSource([current.lineNumber], "}", fileName);
 
                         if (blocks.Count == 0)
                             throw new TokenizerException("Unused closing bracket.", [current.lineNumber]);
@@ -95,14 +106,14 @@ public static class Assembler
         if (buffer.Count <= 0)
             return statements.ToArray();
 
-        assembledStatement = TryAssembleLine(buffer.ToArray());
+        assembledStatement = TryAssembleLine(buffer.ToArray(), fileName);
         statements.Add(assembledStatement);
         buffer.Clear();
 
         return statements.ToArray();
     }
 
-    private static Statement TryAssembleLine(Token[] line, bool includeSource = true)
+    private static Statement TryAssembleLine(Token[] line, string fileName)
     {
         Token firstToken = line[0];
 
@@ -111,17 +122,16 @@ public static class Assembler
             case TokenComment comment:
             {
                 Statement add = new StatementComment(comment.contents);
-                if (includeSource)
-                    add.SetSource([comment.lineNumber], "#" + comment.contents);
+                add.SetSource([comment.lineNumber], "#" + comment.contents, fileName);
                 return add;
             }
             case TokenDirective tokenDirective:
             {
                 Token[] rest = line.Skip(1).ToArray();
-                Language.Directive directive = tokenDirective.directive;
+                Directive directive = tokenDirective.directive;
                 var add = new StatementDirective(directive, rest);
-                if (includeSource)
-                    add.SetSource([tokenDirective.lineNumber], string.Join(" ", from t in line select t.AsString()));
+                add.SetSource([tokenDirective.lineNumber], string.Join(" ", from t in line select t.AsString()),
+                    fileName);
                 return add;
             }
         }
@@ -129,8 +139,7 @@ public static class Assembler
         if (line.Length <= 1 || firstToken is not TokenIdentifier identifier)
         {
             var unknown = new StatementUnknown(line);
-            if (includeSource)
-                unknown.SetSource([firstToken.lineNumber], string.Join(" ", from t in line select t.AsString()));
+            unknown.SetSource([firstToken.lineNumber], string.Join(" ", from t in line select t.AsString()), fileName);
             return unknown;
         }
 
@@ -165,23 +174,22 @@ public static class Assembler
                 continue;
 
             var statement = new StatementOperation(line);
-            if (includeSource)
-                statement.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()));
+            statement.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()),
+                fileName);
             return statement;
         }
 
         if (secondToken is TokenOpenParenthesis)
         {
             var statement = new StatementFunctionCall(line);
-            if (includeSource)
-                statement.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()));
+            statement.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()),
+                fileName);
             return statement;
         }
 
         {
             var unknown = new StatementUnknown(line);
-            if (includeSource)
-                unknown.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()));
+            unknown.SetSource([identifier.lineNumber], string.Join(" ", from t in line select t.AsString()), fileName);
             return unknown;
         }
     }

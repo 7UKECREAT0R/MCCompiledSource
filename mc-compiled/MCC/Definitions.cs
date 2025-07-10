@@ -11,27 +11,34 @@ namespace mc_compiled.MCC;
 /// <summary>
 ///     definitions.defs file parser and manager.
 /// </summary>
-public class Definitions
+public partial class Definitions
 {
     private const string FILE = "definitions.def";
     public static Definitions GLOBAL_DEFS;
-    private static readonly Regex DEF_REGEX = new(@"(\\*)\[([\w ]+):\s*([\w ,]+)\]");
+    private static readonly Regex DEF_REGEX = DefinitionRegex();
 
     internal readonly Dictionary<string, string> defs;
-    /// <summary>
-    ///     Initializes and loads a definitions instance, also setting GLOBAL_DEFS to it.
-    /// </summary>
-    /// <param name="debugInfo"></param>
-    public Definitions(bool debugInfo)
+
+    private Definitions(bool debugInfo)
     {
         this.defs = new Dictionary<string, string>();
-        string assemblyDir = Path.GetDirectoryName(AppContext.BaseDirectory);
-        string path = Path.Combine(assemblyDir, FILE);
+        string applicationBaseDirectory = Path.GetDirectoryName(AppContext.BaseDirectory);
+        if (applicationBaseDirectory == null)
+        {
+            ConsoleColor previousColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Error.WriteLine(
+                "WARNING: Couldn't figure out where the application is located. Expect everything to blow up.");
+            Console.ForegroundColor = previousColor;
+            return;
+        }
+
+        string path = Path.Combine(applicationBaseDirectory, FILE);
         if (!File.Exists(path))
         {
             ConsoleColor previousColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("WARNING: Missing definitions file at '{0}'. Expect everything to blow up.", path);
+            Console.Error.WriteLine("WARNING: Missing definitions file at '{0}'. Expect everything to blow up.", path);
             Console.ForegroundColor = previousColor;
             return;
         }
@@ -111,14 +118,20 @@ public class Definitions
 
         if (debugInfo)
             Console.ForegroundColor = previous;
-
-        GLOBAL_DEFS = this;
     }
 
-    private static string BuildKey(string category, string query)
+    /// <summary>
+    ///     Initialize the <see cref="GLOBAL_DEFS" /> singleton if it's not yet initialized.
+    /// </summary>
+    /// <param name="debugInfo"></param>
+    public static void TryInitialize(bool debugInfo)
     {
-        return (category + ':' + query).ToUpper();
+        if (GLOBAL_DEFS != null)
+            return;
+        GLOBAL_DEFS = new Definitions(debugInfo);
     }
+
+    private static string BuildKey(string category, string query) { return (category + ':' + query).ToUpper(); }
 
     /// <summary>
     ///     Replace all definition queries with their resulting values.<br />
@@ -170,4 +183,7 @@ public class Definitions
 
         return input;
     }
+
+    [GeneratedRegex(@"(\\*)\[([\w ]+):\s*([\w ,]+)\]")]
+    private static partial Regex DefinitionRegex();
 }

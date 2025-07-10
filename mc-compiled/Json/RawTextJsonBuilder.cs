@@ -16,10 +16,7 @@ public class RawTextJsonBuilder
     private readonly List<JSONRawTerm> terms;
     private string copiedString;
 
-    public RawTextJsonBuilder()
-    {
-        this.terms = [];
-    }
+    public RawTextJsonBuilder() { this.terms = []; }
     public RawTextJsonBuilder(RawTextJsonBuilder copy)
     {
         this.terms = [];
@@ -27,10 +24,7 @@ public class RawTextJsonBuilder
         if (copy != null)
             this.terms.AddRange(copy.terms);
     }
-    public void ClearTerms()
-    {
-        this.terms.Clear();
-    }
+    public void ClearTerms() { this.terms.Clear(); }
     public RawTextJsonBuilder AddTerm(JSONRawTerm term)
     {
         this.terms.Add(term);
@@ -68,26 +62,29 @@ public class RawTextJsonBuilder
     ///     Returns <see cref="Build" />, but as a minimized JSON string.
     /// </summary>
     /// <returns></returns>
-    public string BuildString()
-    {
-        return Build().ToString(Formatting.None);
-    }
+    public string BuildString() { return Build().ToString(Formatting.None); }
 
+    /// <summary>
+    ///     A pretty old module which lets users build this <see cref="RawTextJsonBuilder" /> interactively through the
+    ///     console.
+    /// </summary>
     public void ConsoleInterface()
     {
         while (true)
         {
             Console.Clear();
             Console.WriteLine(
-                @"┌─ JSON RawText Builder ──────────┐
-│ {0}
-├─────────────────────────────────┐
-│ [A] Add Item                    │
-│ [R] Remove Item                 │
-│                                 │
-│ [Q] Quit                        │
-│ [C] Copy Text                   │
-└─────────────────────────────────┘", BuildPreviewString());
+                """
+                ┌─ JSON RawText Builder ──────────┐
+                │ {0}
+                ├─────────────────────────────────┐
+                │ [A] Add Item                    │
+                │ [R] Remove Item                 │
+                │                                 │
+                │ [Q] Quit                        │
+                │ [C] Copy Text                   │
+                └─────────────────────────────────┘
+                """, BuildPreviewString());
 
             if (this.copiedString != null)
             {
@@ -108,14 +105,16 @@ public class RawTextJsonBuilder
             if (key.Key == ConsoleKey.A)
             {
                 Console.WriteLine(
-                    @"┌─────────────────────────────────┬───────────────────────┐
-│ Enter the item you want to add. │      Description      │
-│                                 │                       │
-│ TEXT <text>                     │ Regular text.         │
-│ SCORE <objective> <selector>    │ A scoreboard value.   │
-│ SELECTOR <selector>             │ The name of a target. │
-│ TRANSLATE <key>                 │ A translation key.    │
-└─────────────────────────────────┴───────────────────────┘");
+                    """
+                    ┌─────────────────────────────────┬───────────────────────┐
+                    │ Enter the item you want to add. │      Description      │
+                    │                                 │                       │
+                    │ TEXT <text>                     │ Regular text.         │
+                    │ SCORE <objective> <selector>    │ A scoreboard value.   │
+                    │ SELECTOR <selector>             │ The name of a target. │
+                    │ TRANSLATE <key>                 │ A translation key.    │
+                    └─────────────────────────────────┴───────────────────────┘
+                    """);
                 Console.Write("> ");
                 string text = Console.ReadLine();
                 string comp = text.ToUpper();

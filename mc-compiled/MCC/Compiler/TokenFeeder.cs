@@ -15,9 +15,19 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     public Executor executor;
     protected Token[] tokens = tokens;
 
+    /// <summary>
+    ///     The line(s) which this statement is defined at.
+    /// </summary>
     public int[] Lines { get; private set; }
     public bool DecorateInSource { get; protected set; }
+    /// <summary>
+    ///     The source code line which produced this statement.
+    /// </summary>
     public string Source { get; private set; }
+    /// <summary>
+    ///     The name of the source file which contains this statement.
+    /// </summary>
+    public string SourceFile { get; private set; }
 
     /// <summary>
     ///     Returns if this feeder has another available token.
@@ -70,6 +80,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
             currentToken = this.currentToken,
             Lines = this.Lines,
             Source = this.Source,
+            SourceFile = this.SourceFile,
             DecorateInSource = this.DecorateInSource
         };
     }
@@ -91,10 +102,12 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     /// </summary>
     /// <param name="lines">An array of integers representing the line numbers associated with the line.</param>
     /// <param name="code">A string representing the source code</param>
-    public void SetSource(int[] lines, string code)
+    /// <param name="fileName">The name of the file this statement is contained within.</param>
+    public void SetSource(int[] lines, string code, string fileName)
     {
         this.Lines = lines;
         this.Source = code;
+        this.SourceFile = fileName;
     }
     /// <summary>
     ///     Pulls the next token in the feeder.

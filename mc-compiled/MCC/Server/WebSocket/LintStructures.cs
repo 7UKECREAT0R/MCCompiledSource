@@ -8,40 +8,38 @@ using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.ServerWebSocket;
 
-public class ErrorStructure
+public class LegacyErrorStructure
 {
     public enum During
     {
-        tokenizer,
-        execution,
-        unknown
+        tokenizer, execution, unknown
     }
 
     public readonly During during;
     public readonly int[] lines;
     public readonly string message;
 
-    public ErrorStructure(During during, int[] lines, string message)
+    public LegacyErrorStructure(During during, int[] lines, string message)
     {
         this.during = during;
         this.lines = lines;
         this.message = message;
     }
-    public static ErrorStructure Wrap(TokenizerException exception)
+    public static LegacyErrorStructure Wrap(TokenizerException exception)
     {
-        return new ErrorStructure(During.tokenizer, exception.lines, exception.Message);
+        return new LegacyErrorStructure(During.tokenizer, exception.lines, exception.Message);
     }
-    public static ErrorStructure Wrap(StatementException exception)
+    public static LegacyErrorStructure Wrap(StatementException exception)
     {
-        return new ErrorStructure(During.execution, exception.statement.Lines, exception.Message);
+        return new LegacyErrorStructure(During.execution, exception.statement.Lines, exception.Message);
     }
-    public static ErrorStructure Wrap(FeederException exception)
+    public static LegacyErrorStructure Wrap(FeederException exception)
     {
-        return new ErrorStructure(During.tokenizer, exception.feeder.Lines, exception.Message);
+        return new LegacyErrorStructure(During.tokenizer, exception.feeder.Lines, exception.Message);
     }
-    public static ErrorStructure Wrap(Exception exception, int[] lines)
+    public static LegacyErrorStructure Wrap(Exception exception, int[] lines)
     {
-        return new ErrorStructure(During.unknown, lines, exception.ToString());
+        return new LegacyErrorStructure(During.unknown, lines, exception.ToString());
     }
 
     public string ToJSON()
@@ -64,33 +62,31 @@ public class ErrorStructure
     }
 }
 
-public class LintStructure
+public class LegacyLintStructure
 {
-    internal List<FunctionStructure> functions = [];
-    internal List<MacroStructure> macros = [];
-    internal List<string> ppvs = [];
-    internal List<VariableStructure> variables = [];
+    private readonly List<LegacyFunctionStructure> functions = [];
+    private readonly List<LegacyMacroStructure> macros = [];
+    private readonly List<string> ppvs = [];
+    private readonly List<LegacyVariableStructure> variables = [];
 
-    public static LintStructure Harvest(Executor executor)
+    public static LegacyLintStructure Harvest(Emission emission)
     {
-        var lint = new LintStructure();
+        var lint = new LegacyLintStructure();
 
         // harvest PPVs
-        lint.ppvs.AddRange(executor.PPVNames);
+        lint.ppvs.AddRange(emission.DefinedPPVs);
 
         // harvest variables
-        lint.variables.AddRange(executor.scoreboard.values.Select(sb => VariableStructure.Wrap(sb)));
+        lint.variables.AddRange(emission.DefinedValues.Select(LegacyVariableStructure.Wrap));
 
         // harvest functions
-        lint.functions.AddRange(executor.functions
-            .FetchAll()
+        lint.functions.AddRange(emission.DefinedFunctions
             .Where(func => func.AdvertiseOverLSP)
-            .Select(func => FunctionStructure.Wrap(func, lint))
+            .Select(func => LegacyFunctionStructure.Wrap(func, lint))
             .Distinct());
 
         // harvest macros
-        lint.macros.AddRange(executor.macros
-            .Select(macro => MacroStructure.Wrap(macro)));
+        lint.macros.AddRange(emission.DefinedMacros.Select(LegacyMacroStructure.Wrap));
         return lint;
     }
 
@@ -104,14 +100,14 @@ public class LintStructure
     private JArray FunctionsToJSON()
     {
         JArray array = [];
-        foreach (FunctionStructure function in this.functions)
+        foreach (LegacyFunctionStructure function in this.functions)
             array.Add(function.ToJSON());
         return array;
     }
     private JArray MacrosToJSON()
     {
         JArray array = [];
-        foreach (MacroStructure macro in this.macros)
+        foreach (LegacyMacroStructure macro in this.macros)
             array.Add(macro.ToJSON());
         return array;
     }
@@ -120,7 +116,7 @@ public class LintStructure
         var json = new JObject();
         json["action"] = "setsymbols";
         json["ppvs"] = PPVToJSON();
-        json["variables"] = VariableStructure.Join(this.variables);
+        json["variables"] = LegacyVariableStructure.Join(this.variables);
         json["functions"] = FunctionsToJSON();
         json["macros"] = MacrosToJSON();
         return json.ToString();
@@ -133,28 +129,28 @@ public class LintStructure
     }
 }
 
-public readonly struct FunctionStructure : IEquatable<FunctionStructure>
+public readonly struct LegacyFunctionStructure : IEquatable<LegacyFunctionStructure>
 {
     public readonly string name;
     public readonly string returnType;
     public readonly string docs;
-    public readonly List<VariableStructure> args;
+    public readonly List<LegacyVariableStructure> args;
 
-    public FunctionStructure(string name, string returnType, string docs, params VariableStructure[] args)
+    public LegacyFunctionStructure(string name, string returnType, string docs, params LegacyVariableStructure[] args)
     {
         this.name = name;
         this.returnType = returnType;
         this.docs = docs;
         this.args = [..args];
     }
-    public static FunctionStructure Wrap(Function function, LintStructure parent)
+    public static LegacyFunctionStructure Wrap(Function function, LegacyLintStructure parent)
     {
         // now readable :)
         // thanks past luke :ok_hand:
         string returnType = function.Returns;
 
         int count = function.ParameterCount;
-        List<VariableStructure> variables = [];
+        List<LegacyVariableStructure> variables = [];
         FunctionParameter[] parameters = function.Parameters;
 
         for (int i = 0; i < count; i++)
@@ -164,25 +160,25 @@ public readonly struct FunctionStructure : IEquatable<FunctionStructure>
             switch (parameter)
             {
                 case RuntimeFunctionParameterDynamic runtimeParameterAny:
-                    variables.Add(VariableStructure.Any(runtimeParameterAny.aliasName));
+                    variables.Add(LegacyVariableStructure.Any(runtimeParameterAny.aliasName));
                     break;
                 case RuntimeFunctionParameter runtimeParameter:
-                    variables.Add(VariableStructure.Wrap(runtimeParameter.RuntimeDestination));
+                    variables.Add(LegacyVariableStructure.Wrap(runtimeParameter.RuntimeDestination));
                     break;
                 case CompiletimeFunctionParameter compileTimeParameter:
-                    variables.Add(new VariableStructure(compileTimeParameter.name,
+                    variables.Add(new LegacyVariableStructure(compileTimeParameter.name,
                         compileTimeParameter.GetRequiredTypeName(), Executor.UNDOCUMENTED_TEXT));
                     break;
             }
         }
 
         string docs = function.Documentation ?? Executor.UNDOCUMENTED_TEXT;
-        return new FunctionStructure(function.Keyword, returnType, docs, variables.ToArray());
+        return new LegacyFunctionStructure(function.Keyword, returnType, docs, variables.ToArray());
     }
 
     public override bool Equals(object obj)
     {
-        if (obj is not FunctionStructure structure)
+        if (obj is not LegacyFunctionStructure structure)
             return false;
         if (!this.name.Equals(structure.name))
             return false;
@@ -204,7 +200,7 @@ public readonly struct FunctionStructure : IEquatable<FunctionStructure>
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.name);
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(this.returnType);
 
-        foreach (VariableStructure structure in this.args)
+        foreach (LegacyVariableStructure structure in this.args)
             hashCode ^= structure.GetHashCode();
 
         return hashCode;
@@ -214,52 +210,52 @@ public readonly struct FunctionStructure : IEquatable<FunctionStructure>
     {
         var json = new JObject();
         json["name"] = this.name;
-        json["arguments"] = VariableStructure.Join(this.args);
+        json["arguments"] = LegacyVariableStructure.Join(this.args);
         json["docs"] = this.docs.Base64Encode();
         json["return"] = this.returnType;
         return json;
     }
 
-    public bool Equals(FunctionStructure other)
+    public bool Equals(LegacyFunctionStructure other)
     {
         return this.name == other.name && this.returnType == other.returnType && this.docs == other.docs &&
                Equals(this.args, other.args);
     }
-    public static bool operator ==(FunctionStructure left, FunctionStructure right)
+    public static bool operator ==(LegacyFunctionStructure left, LegacyFunctionStructure right)
     {
         return left.Equals(right);
     }
-    public static bool operator !=(FunctionStructure left, FunctionStructure right)
+    public static bool operator !=(LegacyFunctionStructure left, LegacyFunctionStructure right)
     {
         return !(left == right);
     }
 }
 
-public readonly struct VariableStructure : IEquatable<VariableStructure>
+public readonly struct LegacyVariableStructure : IEquatable<LegacyVariableStructure>
 {
     public readonly string name;
     public readonly string type;
     public readonly string docs;
 
-    public VariableStructure(string name, string type, string docs)
+    public LegacyVariableStructure(string name, string type, string docs)
     {
         this.name = name;
         this.type = type;
         this.docs = docs;
     }
-    public static VariableStructure Any(string name, string docs = null)
+    public static LegacyVariableStructure Any(string name, string docs = null)
     {
-        return new VariableStructure(name, "T", docs ?? Executor.UNDOCUMENTED_TEXT);
+        return new LegacyVariableStructure(name, "T", docs ?? Executor.UNDOCUMENTED_TEXT);
     }
-    public static VariableStructure Wrap(ScoreboardValue value)
+    public static LegacyVariableStructure Wrap(ScoreboardValue value)
     {
-        var structure = new VariableStructure(value.Name, value.GetExtendedTypeKeyword(), value.Documentation);
+        var structure = new LegacyVariableStructure(value.Name, value.GetExtendedTypeKeyword(), value.Documentation);
         return structure;
     }
-    public static VariableStructure Wrap(RuntimeFunctionParameter parameter)
+    public static LegacyVariableStructure Wrap(RuntimeFunctionParameter parameter)
     {
         ScoreboardValue value = parameter.RuntimeDestination;
-        var structure = new VariableStructure(value.Name, value.GetExtendedTypeKeyword(), value.Documentation);
+        var structure = new LegacyVariableStructure(value.Name, value.GetExtendedTypeKeyword(), value.Documentation);
 
         return structure;
     }
@@ -271,13 +267,13 @@ public readonly struct VariableStructure : IEquatable<VariableStructure>
         json["docs"] = this.docs.Base64Encode();
         return json;
     }
-    public static JArray Join(List<VariableStructure> variables)
+    public static JArray Join(List<LegacyVariableStructure> variables)
     {
         return new JArray(variables.Select(variable => variable.ToJSON()).ToArray<object>());
     }
     public override bool Equals(object obj)
     {
-        return obj is VariableStructure structure && this.name == structure.name && this.type == structure.type;
+        return obj is LegacyVariableStructure structure && this.name == structure.name && this.type == structure.type;
     }
     public override int GetHashCode()
     {
@@ -287,29 +283,29 @@ public readonly struct VariableStructure : IEquatable<VariableStructure>
         return hashCode;
     }
 
-    public static bool operator ==(VariableStructure left, VariableStructure right)
+    public static bool operator ==(LegacyVariableStructure left, LegacyVariableStructure right)
     {
         return left.Equals(right);
     }
-    public static bool operator !=(VariableStructure left, VariableStructure right)
+    public static bool operator !=(LegacyVariableStructure left, LegacyVariableStructure right)
     {
         return !(left == right);
     }
-    public bool Equals(VariableStructure other)
+    public bool Equals(LegacyVariableStructure other)
     {
         return this.name == other.name && this.type == other.type && this.docs == other.docs;
     }
 }
 
-public readonly struct MacroStructure(string name, string[] arguments, string docs)
+public readonly struct LegacyMacroStructure(string name, string[] arguments, string docs)
 {
     public readonly string name = name;
     public readonly string[] arguments = arguments;
     public readonly string docs = docs;
 
-    public static MacroStructure Wrap(Macro macro)
+    public static LegacyMacroStructure Wrap(Macro macro)
     {
-        return new MacroStructure(macro.name, macro.argNames,
+        return new LegacyMacroStructure(macro.name, macro.argNames,
             macro.documentation ?? Executor.UNDOCUMENTED_TEXT);
     }
 

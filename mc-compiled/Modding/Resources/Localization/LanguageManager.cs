@@ -31,10 +31,7 @@ internal class LanguageManager : IAddonFile
     }
 
     public string CommandReference => null;
-    public string GetExtendedDirectory()
-    {
-        return null;
-    }
+    public string GetExtendedDirectory() { return null; }
 
     public byte[] GetOutputData()
     {
@@ -42,10 +39,7 @@ internal class LanguageManager : IAddonFile
         string json = array.ToString(Formatting.Indented);
         return Encoding.UTF8.GetBytes(json);
     }
-    public string GetOutputFile()
-    {
-        return "languages.json";
-    }
+    public string GetOutputFile() { return "languages.json"; }
     public OutputLocation GetOutputLocation()
     {
         return this.isForBehaviorPack ? OutputLocation.b_TEXTS : OutputLocation.r_TEXTS;
@@ -64,7 +58,7 @@ internal class LanguageManager : IAddonFile
             return actual;
 
         string fileName = locale + ".lang";
-        string path = this.executor.project.GetOutputFileLocationFull(OutputLocation.r_TEXTS, fileName);
+        string path = this.executor.emission.GetOutputFileLocationFull(OutputLocation.r_TEXTS, fileName);
 
         Lang lang;
 

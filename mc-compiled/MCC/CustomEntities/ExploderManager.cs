@@ -29,7 +29,7 @@ internal class ExploderManager : CustomEntityManager
     {
         this.definedPresets = [];
         this.files = new ExploderFiles();
-        this.exploderType = executor.project.Namespace("exploder");
+        this.exploderType = executor.emission.Namespace("exploder");
     }
     /// <summary>
     ///     Get the name of the component group of an explosion happening in <b>delay</b> ticks.

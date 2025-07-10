@@ -13,7 +13,7 @@ public sealed class PreprocessorVariable : PreprocessorVariableRaw<dynamic>
 {
     public PreprocessorVariable(params dynamic[] items) : base(items) { }
 
-    // ReSharper disable once UnusedMember.Local
+    [UsedImplicitly]
     private PreprocessorVariable() { }
 
     /// <summary>
@@ -65,10 +65,7 @@ public class PreprocessorVariableRaw<T> : IEnumerable<T>
         for (int i = 0; i < this.Length; i++)
             yield return this.items[i];
     }
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
     /// <summary>
     ///     Retrieves the element at the specified index.

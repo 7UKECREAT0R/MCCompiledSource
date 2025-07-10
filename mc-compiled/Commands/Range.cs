@@ -548,7 +548,7 @@ public struct Range : IEquatable<Range>
     ///     or if the <paramref name="number" /> is outside a bounded range and the range is inverted.
     ///     Otherwise, returns <see langword="false" />.
     /// </returns>
-    public bool IsInside(int number)
+    public bool Contains(int number)
     {
         if (this.min.HasValue && number < this.min.Value)
             return this.invert;

@@ -298,7 +298,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
             bool optional = currentParameter.optional;
             if (optional == false && variadic && variadicRange.HasValue)
                 // if the variadic accepts 0 parameters, this is technically optional as well.
-                if (variadicRange.Value.IsInside(0))
+                if (variadicRange.Value.Contains(0))
                     optional = true;
 
             if (currentParameter.blockConstraint)
@@ -417,7 +417,7 @@ public class SyntaxPatterns : List<SyntaxParameter[]>, ICloneable
             {
                 if (currentParameter.variadicRange.HasValue)
                 {
-                    if (currentParameter.variadicRange.Value.IsInside(0))
+                    if (currentParameter.variadicRange.Value.Contains(0))
                         continue;
                 }
                 else

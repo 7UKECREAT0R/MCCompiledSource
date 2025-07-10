@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net.Http;
+using System.Text.Json;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Manifest;
@@ -17,21 +19,23 @@ public class ManifestVersion
     public static readonly ManifestVersion r_PARTICLES = Parse("1.10.0");
     public static readonly ManifestVersion r_SOUND_DEFINITIONS = Parse("1.20.20");
     public static readonly ManifestVersion b_ANIMATION_CONTROLLER = Parse("1.10.0");
-    public static readonly ManifestVersion b_ENTITY = Parse("1.16.0");
-    public static readonly ManifestVersion b_ITEM = Parse("1.10");
-    public static readonly ManifestVersion b_RECIPE = Parse("1.16");
-    public static readonly ManifestVersion b_SPAWN_RULE = Parse("1.8.0");
+    public static readonly ManifestVersion b_ENTITY = Parse("1.21.50");
+    public static readonly ManifestVersion b_ITEM = Parse("1.21.30");
+    public static readonly ManifestVersion b_RECIPE = Parse("1.21.50");
+    public static readonly ManifestVersion b_SPAWN_RULE = Parse("1.17.0");
     public static readonly ManifestVersion
         b_DIALOGUE = Parse("1.17.0"); // no clue where I pulled this number from, but it works
 
     /// <summary>
     ///     The current `min_engine_version` required by MCCompiled's feature-set.
     /// </summary>
-    public static readonly ManifestVersion MIN_ENGINE_VERSION = Parse("1.20.80");
+    public static readonly ManifestVersion MIN_ENGINE_VERSION = Parse("1.21.0");
     /// <summary>
     ///     The default 1.0 manifest version. Used for new un-versioned manifests being generated.
     /// </summary>
     public static readonly ManifestVersion DEFAULT = Parse("1.0.0");
+
+    private static ManifestVersion _latestScriptVersion;
     private readonly int major;
     private readonly int? minor;
 
@@ -48,6 +52,44 @@ public class ManifestVersion
         this.release = release;
         this.major = major;
         this.minor = minor;
+    }
+
+    /// <summary>
+    ///     Retrieves the latest version of the @minecraft/server script package from the NPM registry.
+    /// </summary>
+    /// <remarks>
+    ///     This method attempts to fetch the latest available version of the @minecraft/server package from
+    ///     the NPM registry API. If successful, it caches the result for subsequent calls.
+    ///     If the fetch fails, a default version "1.0.0" is returned.
+    /// </remarks>
+    /// <returns>
+    ///     A <see cref="ManifestVersion" /> representing the latest script version, or a default version
+    ///     of "1.0.0" if the latest version could not be retrieved.
+    /// </returns>
+    public static ManifestVersion GetLatestScriptVersion()
+    {
+        if (_latestScriptVersion != null)
+            return _latestScriptVersion;
+
+        Console.WriteLine("Obtaining latest @minecraft/server version from NPM...");
+        const string url = "https://registry.npmjs.org/@minecraft/server/latest";
+
+        try
+        {
+            using var client = new HttpClient();
+            using HttpResponseMessage response = client.GetAsync(url).GetAwaiter().GetResult();
+            response.EnsureSuccessStatusCode();
+            string jsonResponse = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            using JsonDocument document = JsonDocument.Parse(jsonResponse);
+            string version = document.RootElement.GetProperty("version").GetString() ?? "1.0.0";
+            _latestScriptVersion = Parse(version);
+            return _latestScriptVersion;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to obtain latest @minecraft/server version: " + ex.Message);
+            return Parse("1.0.0");
+        }
     }
 
     /// <summary>
@@ -203,7 +245,7 @@ public class ManifestVersion
     /// </summary>
     /// <param name="input">The string representation of a manifest version.</param>
     /// <returns>A new ManifestVersion object if the parsing was successful.</returns>
-    private static ManifestVersion Parse(string input)
+    public static ManifestVersion Parse(string input)
     {
         string[] parts = input.Split('.');
 
@@ -244,7 +286,7 @@ public class ManifestVersion
     ///     "1.10.0"
     /// </summary>
     /// <returns></returns>
-    public string ToVersionString()
+    public override string ToString()
     {
         return this.minor.HasValue ? $"{this.release}.{this.major}.{this.minor.Value}" : $"{this.release}.{this.major}";
     }
@@ -303,12 +345,6 @@ public class ManifestVersion
 
         return a.minor > b.minor;
     }
-    public static bool operator <=(ManifestVersion a, ManifestVersion b)
-    {
-        return a < b || a.Equals(b);
-    }
-    public static bool operator >=(ManifestVersion a, ManifestVersion b)
-    {
-        return a > b || a.Equals(b);
-    }
+    public static bool operator <=(ManifestVersion a, ManifestVersion b) { return a < b || a.Equals(b); }
+    public static bool operator >=(ManifestVersion a, ManifestVersion b) { return a > b || a.Equals(b); }
 }

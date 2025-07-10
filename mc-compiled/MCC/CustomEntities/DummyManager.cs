@@ -30,7 +30,7 @@ internal class DummyManager : CustomEntityManager
     {
         this.createdEntityFiles = false;
         this.existingDummies = [];
-        this.dummyType = parent.project.Namespace("dummy");
+        this.dummyType = parent.emission.Namespace("dummy");
     }
 
     /// <summary>
@@ -89,18 +89,12 @@ internal class DummyManager : CustomEntityManager
     ///     Get a selector to select all dummy entities.
     /// </summary>
     /// <returns></returns>
-    public string GetAllStringSelector()
-    {
-        return $"@e[type={this.dummyType}]";
-    }
+    public string GetAllStringSelector() { return $"@e[type={this.dummyType}]"; }
     /// <summary>
     ///     Get a selector to select all dummy entities.
     /// </summary>
     /// <returns></returns>
-    public string GetAllStringSelector(string tag)
-    {
-        return $"@e[type={this.dummyType},tag={tag}]";
-    }
+    public string GetAllStringSelector(string tag) { return $"@e[type={this.dummyType},tag={tag}]"; }
 
     /// <summary>
     ///     Create a new dummy entity.
@@ -149,10 +143,7 @@ internal class DummyManager : CustomEntityManager
         this.dummyFiles = EntityBehavior.CreateDummy(this.dummyType);
         return this.dummyFiles.AddonFiles;
     }
-    public override bool HasEntity(string entity)
-    {
-        return this.existingDummies.Contains(entity);
-    }
+    public override bool HasEntity(string entity) { return this.existingDummies.Contains(entity); }
     public override bool Search(string name, out Selector selector)
     {
         if (this.existingDummies.Contains(name))

@@ -62,7 +62,7 @@ public class AttributeBind : IAttribute
             throw new StatementException(callingStatement,
                 $"Binding '{this.binding.molangQuery}' requires target entities to be specified.");
 
-        if (executor.linting) // will fail if the executor is linting, because project name is not present.
+        if (executor.emission.isLinting) // will fail if the executor is linting, because project name is not present.
             return;
 
         foreach (string entity in targets)
@@ -115,7 +115,7 @@ public class AttributeBind : IAttribute
 
             // since we don't have parsed entity data, just use a RawFile
             // to export the newly changed entity. it's hack, but it works
-            string outputFile = executor.project.GetOutputFileLocationFull
+            string outputFile = executor.emission.GetOutputFileLocationFull
                 (OutputLocation.b_ENTITIES, entity);
             var file = new RawFile(outputFile,
                 (entityRoot as JObject)?.ToString() ?? $@"{{ ""error"": ""Bad entity file: {entity}"" }}");
@@ -129,5 +129,7 @@ public class AttributeBind : IAttribute
     }
 
     public void OnCalledFunction(RuntimeFunction function,
-        List<string> commands, Executor executor, Statement statement) { }
+        List<string> commands,
+        Executor executor,
+        Statement statement) { }
 }
