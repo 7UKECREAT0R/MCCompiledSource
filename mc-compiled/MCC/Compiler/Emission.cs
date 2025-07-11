@@ -361,6 +361,24 @@ public class Emission
     {
         if (this.isCompleted)
             return;
+
+        // we only want to build these files if they're actually going to be written in the end
+        if (!this.isLinting)
+        {
+            // get manifests
+            if (!GlobalContext.Current.ignoreManifests)
+                ProcessManifests();
+
+            // uninstall feature
+            if (HasFeature(Feature.UNINSTALL))
+                CreateUninstallFile();
+            if (HasFeature(Feature.AUTOINIT))
+                CreateAutoInitFile();
+
+            // async
+            this.parentExecutor.async.TryBuildTickFile();
+        }
+
         this.definedFunctions = this.parentExecutor.functions.FetchAll().ToArray();
         this.definedMacros = this.parentExecutor.macros.ToArray();
         this.definedPPVs = this.parentExecutor.PPVNames.ToArray();
@@ -376,19 +394,6 @@ public class Emission
     {
         if (this.isLinting)
             return;
-
-        // get manifests
-        if (!GlobalContext.Current.ignoreManifests)
-            ProcessManifests();
-
-        // uninstall feature
-        if (HasFeature(Feature.UNINSTALL))
-            CreateUninstallFile();
-        if (HasFeature(Feature.AUTOINIT))
-            CreateAutoInitFile();
-
-        // async
-        this.parentExecutor.async.TryBuildTickFile();
 
         // actual writing
         foreach (IAddonFile file in this.filesToWrite)

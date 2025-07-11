@@ -799,7 +799,7 @@ public class MCCServer : IDisposable
 
         if (success)
         {
-            emission?.WriteAllFiles();
+            emission.WriteAllFiles();
             package.SendFrame(CreateNotificationFrame("Compilation Succeeded", "#3cc741"));
         }
         else
