@@ -40,6 +40,11 @@ public class Emission
     private string[] definedPPVs;
     private ScoreboardValue[] definedValues;
     private Feature enabledFeatures;
+    /// <summary>
+    ///     A reference to the root file that was created alongside the <see cref="parentExecutor" />.
+    ///     Will continue to live after <see cref="Complete" />tion.
+    /// </summary>
+    private CommandFile headFile;
 
     private bool isCompleted;
     /// <summary>
@@ -48,7 +53,12 @@ public class Emission
     public bool isLinting;
     private Executor parentExecutor;
     internal Manifest resourceManifest;
-
+    /// <summary>
+    ///     The tick scheduler that was created alongside the <see cref="parentExecutor" />.
+    ///     Will continue to live after <see cref="Complete" />tion.
+    /// </summary>
+    /// <returns></returns>
+    private TickScheduler scheduler;
     /// <summary>
     ///     Create a new <see cref="Emission" /> with the base configuration.
     /// </summary>
@@ -383,6 +393,8 @@ public class Emission
         this.definedMacros = this.parentExecutor.macros.ToArray();
         this.definedPPVs = this.parentExecutor.PPVNames.ToArray();
         this.definedValues = this.parentExecutor.scoreboard.values.ToArray();
+        this.headFile = this.parentExecutor.HeadFile;
+        this.scheduler = this.parentExecutor.scheduler;
         this.parentExecutor.Cleanup();
         this.parentExecutor = null;
         this.isCompleted = true;
@@ -394,39 +406,45 @@ public class Emission
     {
         if (this.isLinting)
             return;
+        if (!this.isCompleted)
+            throw new InvalidOperationException(
+                "Attempted to write files before Emission was completed. Please call `.Complete()` first!");
 
         // actual writing
-        foreach (IAddonFile file in this.filesToWrite)
+        foreach (IAddonFile rawFile in this.filesToWrite)
         {
-            if (file is CommandFile cmd)
+            if (rawFile is CommandFile commandFile)
             {
                 // file only contains comments
-                bool prerequisite = !cmd.IsInUse || ReferenceEquals(cmd, this.parentExecutor.HeadFile);
-                if (prerequisite && cmd.commands.TrueForAll(c => c.StartsWith("#")))
-                    continue;
+                bool fileNotInUse = !commandFile.IsInUse;
+                bool fileIsHead = ReferenceEquals(commandFile, this.headFile);
+                bool fileCanBeOmitted = fileNotInUse & fileIsHead;
+                bool fileContainsOnlyComments = commandFile.commands.TrueForAll(c => c.StartsWith('#'));
+                if (fileContainsOnlyComments && fileCanBeOmitted)
+                    continue; // skip the file; no reason to write it, and nothing's depending on it existing.
 
                 // traces
-                bool isDirectlyFromTickJson = this.parentExecutor.HasScheduler() &&
-                                              this.parentExecutor.GetScheduler().IsFileAuto(cmd);
+                bool isDirectlyFromTickJson = this.scheduler != null &&
+                                              this.scheduler.IsFileAuto(commandFile);
                 if (GlobalContext.Current.trace && !isDirectlyFromTickJson)
                 {
-                    cmd.AddTop("");
-                    cmd.AddTop(Command.Tellraw(Selector.ALL_PLAYERS.ToString(),
-                        new RawTextJsonBuilder().AddTerm(new JSONText($"[TRACE] > {cmd.CommandReference}"))
+                    commandFile.AddTop("");
+                    commandFile.AddTop(Command.Tellraw(Selector.ALL_PLAYERS.ToString(),
+                        new RawTextJsonBuilder().AddTerm(new JSONText($"[TRACE] > {commandFile.CommandReference}"))
                             .Build()));
                 }
             }
 
             // log the write to console
-            if (GlobalContext.Debug && file.GetOutputFile() != null)
+            if (GlobalContext.Debug && rawFile.GetOutputFile() != null)
             {
-                string partialPath = GetOutputFileLocationFull(file, true);
+                string partialPath = GetOutputFileLocationFull(rawFile, true);
                 string fullPath = Path.GetFullPath(partialPath);
                 Console.WriteLine($"\t- File: {fullPath}");
             }
 
             // write it
-            WriteSingleFile(file);
+            WriteSingleFile(rawFile);
         }
     }
 

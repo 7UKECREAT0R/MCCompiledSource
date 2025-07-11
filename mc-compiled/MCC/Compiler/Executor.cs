@@ -100,7 +100,7 @@ public partial class Executor
     private LanguageManager languageManager;
     private int readIndex;
 
-    private TickScheduler scheduler;
+    internal TickScheduler scheduler;
     private SoundDefinitions soundDefinitions;
 
     private Statement[] statements;
