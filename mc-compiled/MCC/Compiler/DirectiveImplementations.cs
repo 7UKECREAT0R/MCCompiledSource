@@ -785,38 +785,17 @@ public static class DirectiveImplementations
             else
                 throw new StatementException(tokens, "Cannot find file/library '" + file + "'.");
         }
-
-        Token[] includedTokens = Tokenizer.TokenizeFile(file);
-
-        if (GlobalContext.Debug)
+        else
         {
-            Console.WriteLine("\t[INCLUDE]\tA detailed overview of the tokenization results follows:");
-            Console.WriteLine(string.Join("", from t in includedTokens select t.DebugString()));
-            Console.WriteLine();
-            Console.WriteLine("\t[INCLUDE]\tReconstruction of the processed code through tokens:");
-            Console.WriteLine(string.Join(" ", from t in includedTokens select t.AsString()));
-            Console.WriteLine();
+            file = Path.GetFullPath(file);
         }
 
-        Statement[] statements = Assembler.AssembleTokens(includedTokens, file);
-
-        if (GlobalContext.Debug)
-        {
-            Console.WriteLine("\t[INCLUDE]\tThe overview of assembled statements is as follows:");
-            Console.WriteLine(string.Join("\n", from s in statements select s.ToString()));
-            Console.WriteLine();
-        }
+        Statement[] statements = executor.workspace.GetParsedStatements(file, true);
 
         string previousDirectory = Environment.CurrentDirectory;
-        bool previousIsLibrary = executor.isLibrary;
-
         Environment.CurrentDirectory = Path.GetDirectoryName(file) ?? previousDirectory;
-
-        executor.isLibrary = true;
-        executor.ExecuteSubsection(statements);
-
+        executor.ExecuteLibrary(statements);
         Environment.CurrentDirectory = previousDirectory;
-        executor.isLibrary = previousIsLibrary;
     }
     [UsedImplicitly]
     public static void _strfriendly(Executor executor, Statement tokens)

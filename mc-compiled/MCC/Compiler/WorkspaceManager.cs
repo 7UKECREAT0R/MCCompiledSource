@@ -16,7 +16,6 @@ namespace mc_compiled.MCC.Compiler;
 /// </summary>
 public class WorkspaceManager
 {
-    private static readonly char[] INVALID_PATH_CHARS = Path.GetInvalidPathChars();
     /// <summary>
     ///     A mapping of absolute file paths and the number of milliseconds the tokenization/assembly of the file took.
     /// </summary>
@@ -39,19 +38,79 @@ public class WorkspaceManager
     {
         return Path.IsPathFullyQualified(path) ? path : Path.GetFullPath(path);
     }
+    [PublicAPI]
     public bool IsFileOpen(string path)
     {
         path = EnsureAbsolute(path);
         return this.openFiles.Contains(path);
     }
 
+    /// <summary>
+    ///     Creates an <see cref="Executor" /> instance for the specified file using the tokenized and parsed content of the
+    ///     file.
+    /// </summary>
+    /// <param name="file">
+    ///     The path to the file for which the <see cref="Executor" /> should be created. This file must already be tokenized
+    ///     and
+    ///     parsed in the workspace, or it will be opened if <paramref name="openFileIfNotOpen" /> is set to <c>true</c>.
+    /// </param>
+    /// <param name="openFileIfNotOpen">
+    ///     A flag indicating whether the method should attempt to open and parse the specified file if it is not already open
+    ///     in
+    ///     the workspace. If <c>true</c>, the file will be automatically opened using
+    ///     <see cref="WorkspaceManager.OpenFile(string)" />.
+    ///     If <c>false</c>, an exception will be thrown if the file is not already open.
+    /// </param>
+    /// <returns>
+    ///     An <see cref="Executor" /> instance initialized with the parsed statements of the specified file
+    ///     and configured with input PPVs from the current global context.
+    /// </returns>
+    /// <exception cref="KeyNotFoundException">
+    ///     Thrown if the specified file is not found in the collection of open and parsed files, and
+    ///     <paramref name="openFileIfNotOpen" /> is <c>false</c>.
+    /// </exception>
+    [PublicAPI]
     public Executor CreateExecutorForFile(string file, bool openFileIfNotOpen)
     {
         if (openFileIfNotOpen)
             OpenFileIfNotOpen(file);
-        Statement[] code = this.openFilesParsed[file];
-        return new Executor(code)
+        if (!this.openFilesParsed.TryGetValue(file, out Statement[] code))
+            throw new KeyNotFoundException(
+                $"File \"{file}\" was not open but an executor was requested for it. Consider passing `true` to `openFileIfNotOpen`, or opening the file manually ahead of time.");
+        return new Executor(code, this)
             .SetPPVsFromInput(GlobalContext.Current.inputPPVs);
+    }
+    /// <summary>
+    ///     Retrieves the parsed <see cref="Statement" /> array for a specified file.
+    ///     If the file is not already open, it will be optionally opened and parsed based on the value of
+    ///     <paramref name="openFileIfNotOpen" />.
+    /// </summary>
+    /// <param name="file">
+    ///     The path to the file for which the parsed <see cref="Statement" /> array is requested.
+    ///     This file must be opened and parsed in the workspace. If it is not open, and
+    ///     <paramref name="openFileIfNotOpen" /> is <c>true</c>, the file will be automatically opened
+    ///     using <see cref="WorkspaceManager.OpenFile(string)" />.
+    /// </param>
+    /// <param name="openFileIfNotOpen">
+    ///     A flag indicating whether the method should attempt to open and parse the specified file if it is not
+    ///     already open in the workspace. If <c>true</c>, the file is opened and its statements are parsed.
+    ///     If <c>false</c>, an exception will be thrown if the file is not open.
+    /// </param>
+    /// <returns>
+    ///     An array of <see cref="Statement" /> instances representing the parsed content of the specified file.
+    /// </returns>
+    /// <exception cref="KeyNotFoundException">
+    ///     Thrown if the specified file is not open and <paramref name="openFileIfNotOpen" /> is <c>false</c>.
+    /// </exception>
+    [PublicAPI]
+    public Statement[] GetParsedStatements(string file, bool openFileIfNotOpen)
+    {
+        if (openFileIfNotOpen)
+            OpenFileIfNotOpen(file);
+        if (this.openFilesParsed.TryGetValue(file, out Statement[] statements))
+            return statements;
+        throw new KeyNotFoundException(
+            $"File \"{file}\" was not open but the parsed statements were requested. Consider passing `true` to `openFileIfNotOpen`, or opening the file manually ahead of time.");
     }
     /// <summary>
     ///     Opens a string of code as though it were a file, tokenizing, assembling, and storing it for further compilation or
@@ -69,6 +128,7 @@ public class WorkspaceManager
     ///     within
     ///     the workspace to simulate opening a file.
     /// </param>
+    [PublicAPI]
     public void OpenCodeAsFile(string fileName, string code)
     {
         // tokenize/assemble content
@@ -177,6 +237,7 @@ public class WorkspaceManager
     ///     this parameter during its execution in case of an error occurring. If the method returns a non-null value,
     ///     the <see cref="Emission" /> will be partially populated, but may be incomplete.
     /// </param>
+    [PublicAPI]
     public Exception CompileFileAndCaptureExceptions(string file,
         bool lint,
         bool catchUnmanagedExceptions,
@@ -322,6 +383,7 @@ public class WorkspaceManager
     ///     If a child file is being compiled with <c>$include [file]</c>, for example, then this shouldn’t be called to
     ///     prevent overlap.
     /// </summary>
+    [PublicAPI]
     public static void ResetStaticStates()
     {
         Executor.ResetGeneratedNames();
@@ -338,6 +400,7 @@ public class WorkspaceManager
     ///     absolute path
     ///     using <see cref="EnsureAbsolute(string)" />. If the file is already open, no further action is taken.
     /// </param>
+    [PublicAPI]
     public void OpenFileIfNotOpen(string file)
     {
         file = EnsureAbsolute(file);
@@ -355,6 +418,7 @@ public class WorkspaceManager
     ///     <see cref="System.IO.FileNotFoundException" /> is thrown. The file's content is tokenized, parsed into
     ///     statements, and stored within the workspace to simulate opening and preparing the file for compilation.
     /// </param>
+    [PublicAPI]
     public void OpenFile(string file)
     {
         file = EnsureAbsolute(file);
@@ -404,6 +468,7 @@ public class WorkspaceManager
     ///     The absolute or relative file path of the file to close. If a relative path is provided, it will be resolved into
     ///     an absolute path. If the file is not currently open, no action is taken.
     /// </param>
+    [PublicAPI]
     public void CloseFile(string file)
     {
         file = EnsureAbsolute(file);

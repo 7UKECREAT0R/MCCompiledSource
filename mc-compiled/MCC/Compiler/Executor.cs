@@ -87,11 +87,17 @@ public partial class Executor
     internal readonly Dictionary<string, PreprocessorVariable> ppv;
     private readonly StringBuilder prependBuffer;
     internal readonly ScoreboardManager scoreboard;
+
+    public readonly WorkspaceManager workspace;
     private Stack<CommandFile> currentFiles;
 
     internal int depth;
     private DialogueManager dialogueDefinitions;
-    internal bool isLibrary = false;
+    /// <summary>
+    ///     Set to <c>true</c> when the executor is actively executing a file that was imported through the <c>$include</c>
+    ///     command.
+    /// </summary>
+    internal bool isLibrary;
 
     /// <summary>
     ///     The number of iterations until the <see cref="deferredActions" /> are processed in order of newest-to-oldest.
@@ -107,8 +113,9 @@ public partial class Executor
     private int testCount;
     private int unreachableCode = -1;
 
-    internal Executor(Statement[] statements)
+    internal Executor(Statement[] statements, WorkspaceManager workspace)
     {
+        this.workspace = workspace;
         string projectName = GlobalContext.Current.projectName ?? "unknown";
         string bpPath = GlobalContext.Current.behaviorPackOutputPath.Replace(Context.PROJECT_REPLACER, projectName);
         string rpPath = GlobalContext.Current.resourcePackOutputPath.Replace(Context.PROJECT_REPLACER, projectName);
@@ -1203,7 +1210,7 @@ public partial class Executor
         this.emission.Complete();
     }
     /// <summary>
-    ///     Temporarily run another subsection of statements then resume this executor.
+    ///     Temporarily run another subsection of statements, then resume the executor where it left off.
     /// </summary>
     public void ExecuteSubsection(Statement[] section)
     {
@@ -1239,6 +1246,18 @@ public partial class Executor
         // now it's done, so restore state
         this.statements = restore0;
         this.readIndex = restore1;
+    }
+    /// <summary>
+    ///     Runs a subsection of statements, then resume the executor where it left off. During the execution,
+    ///     <see cref="isLibrary" /> will be set to true.
+    /// </summary>
+    /// <param name="section"></param>
+    internal void ExecuteLibrary(Statement[] section)
+    {
+        bool previouslyInLibrary = this.isLibrary;
+        this.isLibrary = true;
+        ExecuteSubsection(section);
+        this.isLibrary = previouslyInLibrary;
     }
 
     /// <summary>
