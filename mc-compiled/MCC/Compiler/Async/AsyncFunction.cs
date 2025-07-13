@@ -70,7 +70,7 @@ public class AsyncFunction : RuntimeFunction
     ///     This property returns the current group of stages in the async function.
     ///     A group of stages represents a logical unit of execution within the async function.
     /// </remarks>
-    private List<AsyncStage> CurrentGroup => this.groups[this.groups.Count - 1];
+    private List<AsyncStage> CurrentGroup => this.groups[^1];
 
     public override Action<Executor> BlockOpenAction => _ =>
     {

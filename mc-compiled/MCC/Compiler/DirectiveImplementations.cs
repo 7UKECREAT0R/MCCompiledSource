@@ -821,7 +821,7 @@ public static class DirectiveImplementations
                     string word = words[i];
 
                     // edge case: if a word starts with capital and ends with lowercase, it's already fine
-                    if (char.IsUpper(word[0]) && char.IsLower(word[word.Length - 1]))
+                    if (char.IsUpper(word[0]) && char.IsLower(word[^1]))
                         continue;
 
                     // edge case: short words should not be capitalized
