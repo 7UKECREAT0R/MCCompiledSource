@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using mc_compiled.MCC.Compiler;
 using Microsoft.Win32;
 
@@ -10,7 +12,7 @@ namespace mc_compiled.MCC.ServerWebSocket;
 internal class RegistryConfiguration
 {
     internal const string SUBKEY = "mccompiled";
-    internal const string PROGRAM_ARG = "--fromProtocol";
+    internal const string PROGRAM_ARG = "--fromprotocol";
     internal const string NAME = "MCCompiled Server Protocol";
     internal const string URL_PROTOCOL = "URL Protocol";
 
@@ -67,7 +69,11 @@ internal class RegistryConfiguration
             subkey = subkey.CreateSubKey("shell");
             subkey = subkey.CreateSubKey("open");
             subkey = subkey.CreateSubKey("command");
-            subkey.SetValue("", AppContext.BaseDirectory + ' ' + PROGRAM_ARG);
+
+            string applicationExecutable = Environment.ProcessPath;
+            if(applicationExecutable == null)
+                throw new Exception("Couldn't get the path to the running executable.");
+            subkey.SetValue("", applicationExecutable + ' ' + PROGRAM_ARG);
 
             ConsoleColor old = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;

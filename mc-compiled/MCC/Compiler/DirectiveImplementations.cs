@@ -790,7 +790,8 @@ public static class DirectiveImplementations
             file = Path.GetFullPath(file);
         }
 
-        Statement[] statements = executor.workspace.GetParsedStatements(file, true);
+        executor.workspace.OpenFile(file);
+        Statement[] statements = executor.workspace.GetParsedStatements(file, false);
 
         string previousDirectory = Environment.CurrentDirectory;
         Environment.CurrentDirectory = Path.GetDirectoryName(file) ?? previousDirectory;
