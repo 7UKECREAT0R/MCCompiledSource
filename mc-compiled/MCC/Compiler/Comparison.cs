@@ -429,7 +429,10 @@ public class ComparisonSet : List<Comparison>
         {
             // we only want to do this if there will actually be an async split inside
             Statement[] containingStatements = executor.Peek(1, openBlock.statementsInside);
-            if (containingStatements.Any(s => s.DoesAsyncSplit))
+            bool doesAsyncSplitAny = containingStatements.Any(s => s.DoesAsyncSplit);
+            openBlock.ignoreAsync |= !doesAsyncSplitAny;
+
+            if (doesAsyncSplitAny)
             {
                 // there will be an async stage allocated for us to use by the time the OpenAction gets hit.
                 string currentFunction = executor.async.CurrentFunction.escapedFunctionName;

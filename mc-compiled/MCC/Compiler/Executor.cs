@@ -1093,7 +1093,8 @@ public partial class Executor
         var ret = new Statement[amount];
 
         int write = 0;
-        for (int i = this.readIndex + skip; i < this.statements.Length && i < this.readIndex + amount; i++)
+        int lastIndex = this.readIndex + skip + amount;
+        for (int i = this.readIndex + skip; i < this.statements.Length && i < lastIndex; i++)
         {
             Statement statement = this.statements[i];
             ret[write++] = statement;
