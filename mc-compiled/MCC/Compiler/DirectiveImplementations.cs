@@ -3433,6 +3433,11 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void function(Executor executor, Statement tokens)
     {
+        // temporary fix for a bug
+        if (executor.async.IsInAsync)
+            throw new StatementException(tokens,
+                "Defining functions is unsupported inside an async context. This is a bug that's extremely difficult to fix.");
+
         // pull attributes
         var attributes = new List<IAttribute>();
         var asyncTarget = AsyncTarget.Local;
@@ -3547,6 +3552,8 @@ public static class DirectiveImplementations
             }
         }
 
+        bool functionDefinedAsPartial = function.HasAttribute<AttributePartial>();
+
         // check for duplicates and try to extend the partial function
         bool cancelRegistry = false;
         if (executor.functions.TryGetFunctions(functionName, out Function[] existingFunctions))
@@ -3585,18 +3592,17 @@ public static class DirectiveImplementations
                     continue;
 
                 // check if both are defined as partial
-                bool sourceIsPartial = function.HasAttribute<AttributePartial>();
                 bool otherIsPartial = currentFunction.HasAttribute<AttributePartial>();
-                if (sourceIsPartial && otherIsPartial)
+                if (functionDefinedAsPartial && otherIsPartial)
                 {
                     function = currentFunction;
                     cancelRegistry = true;
                     break;
                 }
 
-                if (sourceIsPartial || otherIsPartial)
+                if (functionDefinedAsPartial || otherIsPartial)
                     // one of them is partial, yet the other is not.
-                    throw sourceIsPartial
+                    throw functionDefinedAsPartial
                         ? new StatementException(tokens,
                             $"Function '{functionName}' already exists; it was not originally defined as partial, so it cannot be extended.")
                         : new StatementException(tokens,
