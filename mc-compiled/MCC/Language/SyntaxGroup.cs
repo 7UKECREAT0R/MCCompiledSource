@@ -126,23 +126,30 @@ public class SyntaxGroup : ICloneable
 
     public object Clone()
     {
+        SyntaxGroup clone;
         if (this.hasChildren)
         {
             SyntaxGroup[] clonedChildren = this.children.Select(child => (SyntaxGroup) child.Clone()).ToArray();
-            return new SyntaxGroup(this.behavior, this.identifier, this.blocking, this.description, this.optional,
+            clone = new SyntaxGroup(this.behavior, this.identifier, this.blocking, this.description, this.optional,
                 this.repeatable, clonedChildren);
         }
-
-        if (this.hasPatterns)
+        else if (this.hasPatterns)
         {
             var clonedPatterns = (SyntaxPatterns) this.patterns.Clone();
-            return new SyntaxGroup(this.behavior, this.identifier, this.blocking, this.description, this.optional,
+            clone = new SyntaxGroup(this.behavior, this.identifier, this.blocking, this.description, this.optional,
                 this.repeatable, clonedPatterns);
         }
+        else
+        {
+            throw new InvalidOperationException(
+                "Attempted to clone a syntax group that has no children or patterns. Identifier: " +
+                (this.identifier ?? "unknown"));
+        }
 
-        throw new InvalidOperationException(
-            "Attempted to clone a syntax group that has no children or patterns. Identifier: " +
-            (this.identifier ?? "unknown"));
+        if (this.Keyword.HasValue)
+            clone.Keyword = new LanguageKeyword(this.Keyword.Value.identifier, this.Keyword.Value.docs);
+
+        return clone;
     }
 
     /// <summary>
