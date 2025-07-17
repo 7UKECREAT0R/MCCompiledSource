@@ -724,20 +724,25 @@ public class MCCServer : IDisposable
         // lint the code
         WorkspaceManager.ResetStaticStates();
         string virtualFileName = this.project.hasFile ? this.project.fileLocation : "anonymous.mcc";
-        this.workspaceManager.OpenCodeAsFile(virtualFileName, code);
-        Exception exception = this.workspaceManager.CompileFileAndCaptureExceptions
-            (virtualFileName, true, !debuggerAttached, false, out Emission emission);
+        Exception exception1 = this.workspaceManager.OpenCodeAsFileAndCaptureExceptions(virtualFileName, code);
+        Exception mainException = exception1;
+        string json = null;
+        if (exception1 == null)
+        {
+            Exception exception2 = this.workspaceManager.CompileFileAndCaptureExceptions
+                (virtualFileName, true, !debuggerAttached, false, out Emission emission);
+            mainException ??= exception2;
 
-        // gather information.
-        LegacyLintStructure lint = LegacyLintStructure.Harvest(emission);
+            // gather information.
+            LegacyLintStructure lint = LegacyLintStructure.Harvest(emission);
 
-        if (this.debug)
-            Console.WriteLine("\tLint success. " + lint);
+            if (this.debug)
+                Console.WriteLine("\tLint success. " + lint);
 
-        string json = lint.ToJSON();
-        package.SendFrame(WebSocketFrame.String(json));
+            json = lint.ToJSON();
+        }
 
-        if (exception == null)
+        if (mainException == null)
             // tell the client that there are no more errors
         {
             package.SendFrame(WebSocketFrame.String(
@@ -746,21 +751,21 @@ public class MCCServer : IDisposable
         }
         else
         {
-            if (exception is TokenizerException tokenizerException)
+            if (mainException is TokenizerException tokenizerException)
             {
                 if (this.debug)
                     Console.Error.WriteLine("\tError. " + tokenizerException.Message);
                 json = LegacyErrorStructure.Wrap(tokenizerException).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
             }
-            else if (exception is StatementException statementException)
+            else if (mainException is StatementException statementException)
             {
                 if (this.debug)
                     Console.Error.WriteLine("\tError. " + statementException.Message);
                 json = LegacyErrorStructure.Wrap(statementException).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
             }
-            else if (exception is FeederException feederException)
+            else if (mainException is FeederException feederException)
             {
                 if (this.debug)
                     Console.Error.WriteLine("\tError. " + feederException.Message);
@@ -773,37 +778,49 @@ public class MCCServer : IDisposable
                 {
                     Console.Error.WriteLine("\tFatal Error:");
                     Console.Error.WriteLine();
-                    Console.Error.WriteLine(exception.ToString());
+                    Console.Error.WriteLine(mainException.ToString());
                 }
 
-                json = LegacyErrorStructure.Wrap(exception, [0]).ToJSON();
+                json = LegacyErrorStructure.Wrap(mainException, [0]).ToJSON();
                 package.SendFrame(WebSocketFrame.String(json));
             }
         }
+
+        if (json != null)
+            package.SendFrame(WebSocketFrame.String(json));
 
         // no longer busy
         package.SendFrame(CreateBusyFrame(false));
     }
     private void Compile(string code, string projectName, WebSocketPackage package)
     {
+        WorkspaceManager.ResetStaticStates();
         GlobalContext.Current.debug = this.debug;
         GlobalContext.Current.projectName = projectName;
         string virtualFileName = this.project.hasFile ? this.project.fileLocation : projectName + ".mcc";
 
-        this.workspaceManager.OpenCodeAsFile(virtualFileName, code);
-        bool success = this.workspaceManager.CompileFileWithSimpleErrorHandler
-            (virtualFileName, false, false, false, out Emission emission);
-
-        if (this.debug)
-            Console.WriteLine("Compilation Succeeded: {0}", success);
-
-        if (success)
+        bool success1 = this.workspaceManager.OpenCodeAsFileWithSimpleErrorHandler(virtualFileName, code, false);
+        if (success1)
         {
-            emission.WriteAllFiles();
-            package.SendFrame(CreateNotificationFrame("Compilation Succeeded", "#3cc741"));
+            bool success2 = this.workspaceManager.CompileFileWithSimpleErrorHandler
+                (virtualFileName, false, false, false, out Emission emission);
+
+            if (this.debug)
+                Console.WriteLine("Compilation Succeeded: {0}", success2);
+
+            if (success2)
+            {
+                emission.WriteAllFiles();
+                package.SendFrame(CreateNotificationFrame("Compilation Succeeded", "#3cc741"));
+            }
+            else
+            {
+                package.SendFrame(CreateNotificationFrame("Compilation Failed", "#db4b35"));
+            }
         }
         else
         {
+            Console.WriteLine("Compilation Succeeded: false");
             package.SendFrame(CreateNotificationFrame("Compilation Failed", "#db4b35"));
         }
 

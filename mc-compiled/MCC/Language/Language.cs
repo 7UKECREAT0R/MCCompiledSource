@@ -60,20 +60,26 @@ public static class Language
     ];
     public static readonly List<LanguageKeyword> KEYWORDS_TYPES =
     [
-        /*"int", "decimal", "bool", "time", "global", "local", "extern", "export", "bind", "auto", "partial", "async"*/
+        new("global", "Defines something that's global and not attached to any specific entity."),
+        new("local", "Defines something that's local to an entity."),
+        new("extern",
+            "Function attribute which makes it use an existing .mcfunction file as its source. Parameters will be passed verbatim."),
+        new("export", "Function attribute which forces it to be exported whether it's in use or not."),
+        new("bind",
+            "Value attribute which binds a MoLang query to the value. The value will be updated automatically whenever the query result changes."),
+        new("auto", "Function attribute which makes it automatically run every tick; or, if specified, every N ticks."),
+        new("partial",
+            "Function attribute which makes it able to be defined more than once, with each definition appending commands to it instead of overwriting it."),
+        new("async",
+            "Function attribute which makes it run asynchronously. Allows the use of the 'await' command for sequences which don't finish in a single tick.")
     ];
     public static readonly List<LanguageKeyword> KEYWORDS_COMPARISONS =
     [
-        /*"count", "any", "block", "blocks", "until", "align", "anchored", "as", "at", "facing", "if", "unless", "in",
-        "positioned", "rotated", "positioned as", "rotated as"*/
+        /* defined in language.json */
     ];
     public static readonly List<LanguageKeyword> KEYWORDS_COMMAND_OPTIONS =
     [
-        /*"dummies", "autoinit", "exploders", "uninstall", "tests", "audiofiles", "up", "down", "left", "right",
-        "forward", "backward", "ascending", "descending", "survival", "creative", "adventure", "spectator", "removeall",
-        "times", "subtitle", "destroy", "replace", "hollow", "outline", "keep", "new", "open", "change",
-        "lockinventory", "lockslot", "canplaceon:", "candestroy:", "enchant:", "name:", "lore:", "author:", "title:",
-        "page:", "dye:", "text:", "button:", "onOpen:", "onClose:"*/
+        /* defined in language.json */
     ];
 
     public static string[] builtinPreprocessorVariables;

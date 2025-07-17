@@ -483,7 +483,7 @@ public class ExporterMonarch() : SyntaxExporter("mcc-monarch.js", "monarch", "Mo
         AddKeywordList("mcc_selectors", Language.KEYWORDS_SELECTORS);
         AddKeywordList("mcc_literals", Language.KEYWORDS_LITERALS);
         AddKeywordList("mcc_types", Language.KEYWORDS_TYPES);
-        AddKeywordList("mcc_options", Language.KEYWORDS_COMMAND_OPTIONS);
+        AddKeywordList("mcc_options", Language.KEYWORDS_COMMAND_OPTIONS.Concat(Language.KEYWORDS_COMPARISONS));
         AddKeywordList("mcc_preprocessor", Language.AllPreprocessorDirectives.Select(d => d.AsKeyword));
         AddKeywordList("mcc_commands", Language.AllRuntimeDirectives.Select(d => d.AsKeyword));
         return this.buffer.ToString();

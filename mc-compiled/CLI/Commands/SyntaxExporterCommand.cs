@@ -22,7 +22,7 @@ public class SyntaxExporterCommand(string[] inputArgs) : CommandLineOption(input
         ref string[] files)
     {
         files = null; // prevent further execution
-        string _target = this.inputArgs.Length == 1 ? null : this.inputArgs[1];
+        string _target = this.inputArgs.Length > 0 ? this.inputArgs[0] : null;
         ConsoleColor originalColor = Console.ForegroundColor;
 
         if (_target == "*")

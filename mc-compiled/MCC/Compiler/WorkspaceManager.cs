@@ -214,6 +214,19 @@ public class WorkspaceManager
 
         resultEmission.Complete();
     }
+
+    public Exception OpenCodeAsFileAndCaptureExceptions(string fileName, string code)
+    {
+        try
+        {
+            OpenCodeAsFile(fileName, code);
+            return null; // no exceptions
+        }
+        catch (TokenizerException exc)
+        {
+            return exc;
+        }
+    }
     /// <summary>
     ///     Compiles a specified file by executing its tokenized contents, optionally linting during execution.
     ///     Collects performance diagnostics and completes the emission process after execution. If an exception occurs,
@@ -270,6 +283,34 @@ public class WorkspaceManager
         finally
         {
             resultEmission?.Complete();
+        }
+    }
+
+    public bool OpenCodeAsFileWithSimpleErrorHandler(string fileName, string code, bool suppressConsoleOutput)
+    {
+        try
+        {
+            OpenCodeAsFile(fileName, code);
+            return true;
+        }
+        catch (TokenizerException e)
+        {
+            if (GlobalContext.Debug && Debugger.IsAttached)
+                throw;
+            if (suppressConsoleOutput)
+                return false;
+
+            int[] _lines = e.lines;
+            string lines = string.Join(", ", _lines.Select(line => line < 0 ? "??" : line.ToString()));
+            string fileNameShort = Path.GetFileName(e.file);
+
+            string message = e.Message;
+            ConsoleColor oldColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Error.WriteLine("Problem encountered during tokenization of file:\n" +
+                                    $"\t{fileNameShort}:{lines} -- {message}\n\nTokenization cannot be continued.");
+            Console.ForegroundColor = oldColor;
+            return false;
         }
     }
     /// <summary>
