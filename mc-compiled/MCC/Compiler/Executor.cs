@@ -1543,13 +1543,20 @@ public partial class Executor
     /// <summary>
     ///     Try to get a preprocessor variable.
     /// </summary>
-    /// <param name="name"></param>
-    /// <param name="value"></param>
+    /// <param name="name">
+    ///     The name of the preprocessor variable to try to get.
+    ///     May contain a <c>$</c>, it will be stripped out internally.
+    /// </param>
+    /// <param name="value">If the method returns <c>true</c>, the value of the obtained preprocessor variable.</param>
     /// <returns></returns>
     public bool TryGetPPV(string name, out PreprocessorVariable value)
     {
         if (string.IsNullOrEmpty(name))
-            throw new Exception("Tried to get PPV with empty name.");
+        {
+            value = null;
+            return false;
+        }
+
         if (name[0] == '$')
             name = name[1..];
 
@@ -1560,11 +1567,12 @@ public partial class Executor
     ///     Set or create a preprocessor variable copied from an existing one.
     /// </summary>
     /// <param name="name">The name of the preprocessor variable to set or create.</param>
+    /// <param name="callingStatement">The calling statement in case this method decides the input name is not acceptable.</param>
     /// <param name="values">The values to set for the preprocessor variable.</param>
-    public void SetPPVCopy(string name, PreprocessorVariable values)
+    public void SetPPVCopy(string name, Statement callingStatement, PreprocessorVariable values)
     {
         if (string.IsNullOrEmpty(name))
-            throw new Exception("Tried to set PPV with empty name.");
+            throw new Exception("Tried to set a PPV with an empty name.");
         if (name[0] == '$')
             name = name[1..];
         this.ppv[name] = values.Clone();
@@ -1614,25 +1622,46 @@ public partial class Executor
             int offset = lastIndex < 0 ? 0 : lastIndex;
             int insertIndex = match.Index + offset;
 
-            // If there are an odd number of preceding backslashes, this is escaped.
+            // if there are an odd number of preceding backslashes, this is escaped.
             if (backslashes % 2 == 1)
             {
                 sb.Remove(match.Index + lastIndex, 1);
                 continue;
             }
 
-            string ppvName = text[(lastIndex + 1)..];
+            string ppvName = FindLongestExistingPPV(text[(lastIndex + 1)..]);
 
-            if (!TryGetPPV(ppvName, out PreprocessorVariable values))
+            if (string.IsNullOrEmpty(ppvName))
                 continue; // no ppv named that
+            if (!TryGetPPV(ppvName, out PreprocessorVariable values))
+                continue; // shouldn't happen since FindLongestValidPPV checks this
 
-            string insertText = values.Length > 1 ? string.Join(" ", values) : (string) values[0].ToString();
+            string insertText = values.Length > 1
+                ? string.Join(" ", values)
+                : values.Length == 1
+                    ? (string) values[0].ToString()
+                    : "";
 
-            sb.Remove(insertIndex, match.Length - offset);
+            sb.Remove(insertIndex, ppvName.Length - offset);
             sb.Insert(insertIndex, insertText);
         }
 
         return sb.ToString();
+
+        string FindLongestExistingPPV(string candidateName)
+        {
+            if (TryGetPPV(candidateName, out _))
+                return candidateName;
+
+            for (int i = candidateName.Length - 1; i > 1; i--)
+            {
+                string substring = candidateName[..i];
+                if (TryGetPPV(substring, out _))
+                    return substring;
+            }
+
+            return null;
+        }
     }
     /// <summary>
     ///     Resolve an unresolved PPV's literals. Returns an array of all the tokens contained inside.

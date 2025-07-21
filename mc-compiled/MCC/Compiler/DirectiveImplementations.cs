@@ -368,8 +368,8 @@ public static class DirectiveImplementations
         {
             if (executor.TryGetPPV(bName, out PreprocessorVariable b))
             {
-                executor.SetPPVCopy(aName, b);
-                executor.SetPPVCopy(bName, a);
+                executor.SetPPVCopy(aName, tokens, b);
+                executor.SetPPVCopy(bName, tokens, a);
             }
             else
             {
