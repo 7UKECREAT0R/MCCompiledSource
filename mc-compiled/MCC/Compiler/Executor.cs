@@ -197,7 +197,7 @@ public partial class Executor
     {
         if (inputPPVs != null)
             foreach (Context.InputPPV inputPPV in inputPPVs)
-                SetPPV(inputPPV.name, inputPPV.value);
+                SetPPV(inputPPV.name, null, inputPPV.value);
         return this;
     }
 
@@ -1573,11 +1573,15 @@ public partial class Executor
     ///     Set or create a preprocessor variable.
     /// </summary>
     /// <param name="name">The name of the preprocessor variable.</param>
+    /// <param name="callingStatement">The calling statement in case this method decides the input name is not acceptable.</param>
     /// <param name="values">The values to set for the preprocessor variable.</param>
-    public void SetPPV(string name, params dynamic[] values)
+    public void SetPPV(string name, [CanBeNull] Statement callingStatement, params dynamic[] values)
     {
-        if (string.IsNullOrEmpty(name))
-            throw new Exception("Tried to set PPV with empty name.");
+        // we can only do error handling if there's a source location to report the error from
+        if (callingStatement != null)
+            if (string.IsNullOrEmpty(name))
+                throw new StatementException(callingStatement, "Tried to set a PPV with an empty name.");
+
         if (name[0] == '$')
             name = name[1..];
         this.ppv[name] = new PreprocessorVariable(values);

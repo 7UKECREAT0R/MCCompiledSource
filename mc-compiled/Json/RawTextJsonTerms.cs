@@ -12,10 +12,7 @@ namespace mc_compiled.Json;
 /// </summary>
 public abstract class JSONRawTerm
 {
-    public static string EscapeString(string text)
-    {
-        return text.Replace(@"\", @"\\").Replace("\"", "\\\"");
-    }
+    public static string EscapeString(string text) { return text.Replace(@"\", @"\\").Replace("\"", "\\\""); }
 
     /// <summary>
     ///     Builds the JObject that represents this JSON term.
@@ -42,10 +39,7 @@ public abstract class JSONRawTerm
 public class JSONText : JSONRawTerm
 {
     private string text;
-    public JSONText(string text)
-    {
-        this.text = EscapeString(text);
-    }
+    public JSONText(string text) { this.text = EscapeString(text); }
 
     public override JObject Build()
     {
@@ -54,10 +48,7 @@ public class JSONText : JSONRawTerm
             ["text"] = this.text
         };
     }
-    public override string PreviewString()
-    {
-        return '[' + this.text + ']';
-    }
+    public override string PreviewString() { return '[' + this.text + ']'; }
 
     public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
@@ -66,7 +57,7 @@ public class JSONText : JSONRawTerm
         if (!executor.HasLocale)
         {
             if (hasNewlines)
-                this.text = this.text.Replace(@"\\n", "~LINEBREAK~");
+                this.text = this.text.Replace(@"\\n", "\n");
             return [new JSONText(this.text)];
         }
 
@@ -158,10 +149,7 @@ public class JSONScore : JSONRawTerm
             }
         };
     }
-    public override string PreviewString()
-    {
-        return "[SCORE " + this.objective + " OF " + this.selector + ']';
-    }
+    public override string PreviewString() { return "[SCORE " + this.objective + " OF " + this.selector + ']'; }
 
     public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
@@ -175,10 +163,7 @@ public class JSONScore : JSONRawTerm
 public class JSONSelector : JSONRawTerm
 {
     private readonly string selector;
-    public JSONSelector(string selector)
-    {
-        this.selector = EscapeString(selector);
-    }
+    public JSONSelector(string selector) { this.selector = EscapeString(selector); }
 
     public override JObject Build()
     {
@@ -187,10 +172,7 @@ public class JSONSelector : JSONRawTerm
             ["selector"] = this.selector
         };
     }
-    public override string PreviewString()
-    {
-        return '[' + this.selector + ']';
-    }
+    public override string PreviewString() { return '[' + this.selector + ']'; }
 
     public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
@@ -231,10 +213,7 @@ public class JSONTranslate : JSONRawTerm
     ///     Adds a "with" entry to this rawtext, which enables support for using newlines.
     /// </summary>
     /// <returns></returns>
-    public JSONTranslate WithNewlineSupport()
-    {
-        return With("\n");
-    }
+    public JSONTranslate WithNewlineSupport() { return With("\n"); }
 
     public override JObject Build()
     {
@@ -257,10 +236,7 @@ public class JSONTranslate : JSONRawTerm
             ["with"] = new JArray(from subtext in this.with select subtext.Build())
         };
     }
-    public override string PreviewString()
-    {
-        return '[' + this.translationKey + ']';
-    }
+    public override string PreviewString() { return '[' + this.translationKey + ']'; }
 
     public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
@@ -275,23 +251,14 @@ public class JSONVariant : JSONRawTerm
 {
     public readonly List<ConditionalTerm> terms;
 
-    public JSONVariant(params ConditionalTerm[] terms)
-    {
-        this.terms = [..terms];
-    }
-    public JSONVariant(IEnumerable<ConditionalTerm> terms)
-    {
-        this.terms = [..terms];
-    }
+    public JSONVariant(params ConditionalTerm[] terms) { this.terms = [..terms]; }
+    public JSONVariant(IEnumerable<ConditionalTerm> terms) { this.terms = [..terms]; }
     public override JObject Build()
     {
         // not supposed to get string'd
         return new JObject();
     }
-    public override string PreviewString()
-    {
-        return "{variant}";
-    }
+    public override string PreviewString() { return "{variant}"; }
 
     public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
     {

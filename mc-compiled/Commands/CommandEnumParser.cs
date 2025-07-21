@@ -11,7 +11,15 @@ namespace mc_compiled.Commands;
 // ReSharper disable once PartialTypeWithSinglePart
 public static partial class CommandEnumParser
 {
+    private static readonly bool isInitialized;
     private static readonly Dictionary<string, RecognizedEnumValue> parser = new(StringComparer.OrdinalIgnoreCase);
+
+    static CommandEnumParser()
+    {
+        if (!isInitialized)
+            Init();
+        isInitialized = true;
+    }
 
     public static bool TryParse(string input, out RecognizedEnumValue result)
     {
@@ -20,7 +28,6 @@ public static partial class CommandEnumParser
 
     public static void Put(RecognizedEnumValue value) { parser[value.value.ToString()!] = value; }
     public static void Put(string key, RecognizedEnumValue value) { parser[key] = value; }
-
     /// <summary>
     ///     Initialize the global CommandEnumParser.
     /// </summary>

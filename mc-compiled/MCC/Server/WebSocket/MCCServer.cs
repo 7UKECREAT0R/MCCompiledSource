@@ -313,7 +313,7 @@ public class MCCServer : IDisposable
         // send version info
         var json = new JObject();
         json["action"] = "version";
-        json["version"] = Executor.MCC_VERSION;
+        json["version"] = 1000 + Executor.MCC_VERSION * 10;
         package.SendFrame(WebSocketFrame.JSON(json));
 
         // send current property info

@@ -22,11 +22,14 @@ internal static class FeatureManager
             Feature.DUMMIES, executor =>
             {
                 executor.entities.dummies.AddEntityToProject();
-                executor.SetPPV("dummy", executor.entities.dummies.dummyType);
+                executor.SetPPV("dummy", null, executor.entities.dummies.dummyType);
             }
         },
         {
-            Feature.EXPLODERS, executor => { executor.entities.exploders.AddEntityToProject(); }
+            Feature.EXPLODERS, executor =>
+            {
+                executor.entities.exploders.AddEntityToProject();
+            }
         },
         {
             Feature.TESTS, executor => executor.CreateTestsFile()

@@ -121,12 +121,12 @@ public static class DirectiveImplementations
             var values = new List<dynamic>();
             while (tokens.NextIs<IPreprocessor>(true))
                 values.Add(tokens.Next<IPreprocessor>("variable value").GetValue());
-            executor.SetPPV(varName, values.ToArray());
+            executor.SetPPV(varName, tokens, values.ToArray());
         }
         else
         {
             // empty preprocessor variable definition
-            executor.SetPPV(varName);
+            executor.SetPPV(varName, tokens);
         }
     }
     [UsedImplicitly]
@@ -195,7 +195,7 @@ public static class DirectiveImplementations
             }
         }
 
-        executor.SetPPV(varName, result);
+        executor.SetPPV(varName, tokens, result);
     }
     [UsedImplicitly]
     public static void _sub(Executor executor, Statement tokens)
@@ -225,7 +225,7 @@ public static class DirectiveImplementations
             }
         }
 
-        executor.SetPPV(varName, result);
+        executor.SetPPV(varName, tokens, result);
     }
     [UsedImplicitly]
     public static void _mul(Executor executor, Statement tokens)
@@ -255,7 +255,7 @@ public static class DirectiveImplementations
             }
         }
 
-        executor.SetPPV(varName, result);
+        executor.SetPPV(varName, tokens, result);
     }
     [UsedImplicitly]
     public static void _div(Executor executor, Statement tokens)
@@ -285,7 +285,7 @@ public static class DirectiveImplementations
             }
         }
 
-        executor.SetPPV(varName, result);
+        executor.SetPPV(varName, tokens, result);
     }
     [UsedImplicitly]
     public static void _mod(Executor executor, Statement tokens)
@@ -315,7 +315,7 @@ public static class DirectiveImplementations
             }
         }
 
-        executor.SetPPV(varName, result);
+        executor.SetPPV(varName, tokens, result);
     }
     [UsedImplicitly]
     public static void _pow(Executor executor, Statement tokens)
@@ -350,7 +350,7 @@ public static class DirectiveImplementations
             }
         }
 
-        executor.SetPPV(varName, result);
+        executor.SetPPV(varName, tokens, result);
     }
     [UsedImplicitly]
     public static void _swap(Executor executor, Statement tokens)
@@ -625,7 +625,7 @@ public static class DirectiveImplementations
             for (int i = min; i <= max; i++)
             {
                 if (tracker != null)
-                    executor.SetPPV(tracker, i);
+                    executor.SetPPV(tracker, tokens, i);
                 executor.ExecuteSubsection(statements);
             }
         }
@@ -634,7 +634,7 @@ public static class DirectiveImplementations
             for (int i = 0; i < amount; i++)
             {
                 if (tracker != null)
-                    executor.SetPPV(tracker, i);
+                    executor.SetPPV(tracker, tokens, i);
                 executor.ExecuteSubsection(statements);
             }
         }
@@ -737,7 +737,7 @@ public static class DirectiveImplementations
 
         // set input variables
         for (int i = 0; i < argNames.Length; i++)
-            executor.SetPPV(argNames[i], args[i]);
+            executor.SetPPV(argNames[i], tokens, args[i]);
 
         // call macro
         try
@@ -854,7 +854,7 @@ public static class DirectiveImplementations
                 results[r] = string.Join(" ", words);
             }
 
-            executor.SetPPV(output, results);
+            executor.SetPPV(output, tokens, results);
         }
         else
         {
@@ -880,7 +880,7 @@ public static class DirectiveImplementations
                 results[r] = str.ToUpper();
             }
 
-            executor.SetPPV(output, results);
+            executor.SetPPV(output, tokens, results);
         }
         else
         {
@@ -906,7 +906,7 @@ public static class DirectiveImplementations
                 results[r] = str.ToLower();
             }
 
-            executor.SetPPV(output, results);
+            executor.SetPPV(output, tokens, results);
         }
         else
         {
@@ -928,7 +928,7 @@ public static class DirectiveImplementations
                 dynamic result = values[0];
                 for (int i = 1; i < values.Length; i++)
                     result += values[i];
-                executor.SetPPV(output, result);
+                executor.SetPPV(output, tokens, result);
             }
             catch (RuntimeBinderException)
             {
@@ -952,7 +952,7 @@ public static class DirectiveImplementations
                 int len = values.Length;
                 if (len == 1)
                 {
-                    executor.SetPPV(output, [values[0]]);
+                    executor.SetPPV(output, tokens, [values[0]]);
                 }
                 else if (len % 2 == 0)
                 {
@@ -960,12 +960,12 @@ public static class DirectiveImplementations
                     dynamic first = values[mid];
                     dynamic second = values[mid - 1];
                     dynamic result = (first + second) / 2;
-                    executor.SetPPV(output, [result]);
+                    executor.SetPPV(output, tokens, [result]);
                 }
                 else
                 {
                     dynamic result = values[len / 2]; // truncates to middle index
-                    executor.SetPPV(output, [result]);
+                    executor.SetPPV(output, tokens, [result]);
                 }
             }
             catch (RuntimeBinderException)
@@ -991,7 +991,7 @@ public static class DirectiveImplementations
 
                 if (length == 1)
                 {
-                    executor.SetPPV(output, [values[0]]);
+                    executor.SetPPV(output, tokens, [values[0]]);
                     return;
                 }
 
@@ -999,7 +999,7 @@ public static class DirectiveImplementations
                 for (int i = 1; i < length; i++)
                     result += values[i];
                 result /= length;
-                executor.SetPPV(output, [result]);
+                executor.SetPPV(output, tokens, [result]);
             }
             catch (RuntimeBinderException)
             {
@@ -1024,7 +1024,7 @@ public static class DirectiveImplementations
                 if (sortDirection.StartsWith("DE"))
                     listValues.Reverse();
 
-                executor.SetPPV(variable, listValues.ToArray());
+                executor.SetPPV(variable, tokens, listValues.ToArray());
             }
             catch (RuntimeBinderException)
             {
@@ -1081,7 +1081,7 @@ public static class DirectiveImplementations
             foreach (dynamic value in values)
                 items.Add(value);
 
-            executor.SetPPV(variable, items.ToArray());
+            executor.SetPPV(variable, tokens, items.ToArray());
         }
         else
         {
@@ -1129,7 +1129,7 @@ public static class DirectiveImplementations
 
             foreach (dynamic value in values)
             {
-                executor.SetPPV(current, value);
+                executor.SetPPV(current, tokens, value);
                 executor.ExecuteSubsection(statements);
             }
         }
@@ -1145,7 +1145,7 @@ public static class DirectiveImplementations
                         throw new StatementException(tokens,
                             $"Couldn't unwrap JSON token to be placed in a preprocessor variable: {arrayItem}");
 
-                    executor.SetPPV(current, obj);
+                    executor.SetPPV(current, tokens, obj);
                     executor.ExecuteSubsection(statements);
                 }
                 else
@@ -1159,7 +1159,7 @@ public static class DirectiveImplementations
         {
             foreach (string str in array)
             {
-                executor.SetPPV(current, str);
+                executor.SetPPV(current, tokens, str);
                 executor.ExecuteSubsection(statements);
             }
         }
@@ -1178,7 +1178,7 @@ public static class DirectiveImplementations
             if (inputJSON is not JArray array)
                 throw new StatementException(tokens, "Cannot get the length of a non-array JSON input.");
 
-            executor.SetPPV(output, array.Count);
+            executor.SetPPV(output, tokens, array.Count);
             return;
         }
 
@@ -1186,7 +1186,7 @@ public static class DirectiveImplementations
         if (tokens.NextIs<TokenStringLiteral>(false, false))
         {
             string inputString = tokens.Next<TokenStringLiteral>(null);
-            executor.SetPPV(output, inputString.Length);
+            executor.SetPPV(output, tokens, inputString.Length);
             return;
         }
 
@@ -1197,7 +1197,7 @@ public static class DirectiveImplementations
         if (executor.TryGetPPV(input, out PreprocessorVariable values))
         {
             int length = values.Length;
-            executor.SetPPV(output, length);
+            executor.SetPPV(output, tokens, length);
         }
         else
         {
@@ -1284,7 +1284,7 @@ public static class DirectiveImplementations
             throw new StatementException(tokens,
                 $"JSON Error: Cannot store token of type '{json.Type}' in a preprocessor variable.");
 
-        executor.SetPPV(output, unwrapped);
+        executor.SetPPV(output, tokens, unwrapped);
     }
     [UsedImplicitly]
     public static void _call(Executor executor, Statement tokens)

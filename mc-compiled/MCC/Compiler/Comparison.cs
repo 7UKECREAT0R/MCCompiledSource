@@ -335,7 +335,7 @@ public class ComparisonSet : List<Comparison>
         do
         {
             lastStatement = executor.PeekSkip(count++);
-        } while (lastStatement.Skip);
+        } while (lastStatement is {Skip: true});
 
         return count;
     }
