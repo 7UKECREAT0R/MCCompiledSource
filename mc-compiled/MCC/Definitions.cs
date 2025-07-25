@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using mc_compiled.MCC.Compiler;
@@ -134,54 +133,81 @@ public partial class Definitions
     private static string BuildKey(string category, string query) { return (category + ':' + query).ToUpper(); }
 
     /// <summary>
-    ///     Replace all definition queries with their resulting values.<br />
-    ///     [color: RED] -> §c<br />
-    ///     [wool: BLUE] -> 11<br />
-    ///     [misc: BELOW] -> ~ ~-1 ~<br />
-    ///     [slot: MAIN HAND] -> slot.weapon.mainhand
+    ///     Replace all definition queries with their resulting values.
+    ///     <ul>
+    ///         <li>[color: RED] -> <c>§c</c></li>
+    ///         <li>[wool: blue] -> <c>11</c></li>
+    ///         <li>[misc: below] -> <c>~ ~-1 ~</c></li>
+    ///         <li>[slot: Main Hand] -> <c>slot.weapon.mainhand</c></li>
+    ///         <li>[color: reset, bold, red] -> <c>§r§l§c</c></li>
+    ///     </ul>
     /// </summary>
-    /// <param name="input"></param>
+    /// <param name="input">The input string.</param>
     /// <returns></returns>
     public string ReplaceDefinitions(string input)
     {
         MatchCollection matches = DEF_REGEX.Matches(input);
+        if (matches.Count == 0)
+            return input;
+
+        var result = new StringBuilder(input.Length); // the result will likely be shorter/same as the input
+        int lastIndex = 0;
 
         foreach (Match match in matches)
         {
-            var sb = new StringBuilder();
-            int backslashes = match.Groups[1].Value.Length;
+            result.Append(input, lastIndex, match.Index - lastIndex); // append everything before the match
 
-            if (backslashes % 2 == 1)
+            int numberOfBackslashes = match.Groups[1].Value.Length;
+            bool escaped = numberOfBackslashes % 2 == 1;
+            result.Append('\\', numberOfBackslashes / 2);
+
+            if (escaped)
             {
-                sb.Append(match.Value[(backslashes / 2)..]);
-                goto no_changes_replace; // odd number of backslashes, it's escaped
+                result.Append(match.Value[(numberOfBackslashes / 2)..]);
             }
-
-            sb.Append('\\', backslashes / 2);
-            string category = match.Groups[2].Value;
-            string fullQuery = match.Groups[3].Value;
-            string[] multi = fullQuery.Split(',').Select(s => s.Trim()).ToArray();
-            string[] replacements = new string[multi.Length];
-            for (int i = 0; i < multi.Length; i++)
+            else
             {
-                string key = BuildKey(category, multi[i]);
-                if (this.defs.TryGetValue(key, out string replacement))
-                    replacements[i] = replacement;
+                // this is a definition string
+                string category = match.Groups[2].Value;
+                string fullQuery = match.Groups[3].Value;
+
+                if (TryResolveDefinitions(category, fullQuery, out string replacement))
+                    result.Append(replacement);
                 else
-                    goto no_changes; // fight me
+                    result.Append(match.Value);
             }
 
-            foreach (string t in replacements)
-                sb.Append(t);
-
-            no_changes_replace:
-            string replacementString = sb.ToString();
-            input = input.Replace(match.Value, replacementString);
-
-            no_changes: ;
+            lastIndex = match.Index + match.Length;
         }
 
-        return input;
+        // everything else
+        result.Append(input, lastIndex, input.Length - lastIndex);
+        return result.ToString();
+    }
+    private bool TryResolveDefinitions(string category, string _fullQuery, out string result)
+    {
+        result = null;
+        var sb = new StringBuilder();
+
+        ReadOnlySpan<char> fullQuery = _fullQuery.AsSpan();
+
+        while (!fullQuery.IsEmpty)
+        {
+            int comma = fullQuery.IndexOf(',');
+            ReadOnlySpan<char> currentQuery = comma != -1 ? fullQuery[..comma].Trim() : fullQuery.Trim();
+
+            string key = BuildKey(category, currentQuery.ToString());
+            if (!this.defs.TryGetValue(key, out string value))
+                return false; // any failure means this is should act as a no-op
+
+            sb.Append(value);
+            if (comma == -1)
+                break;
+            fullQuery = fullQuery[(comma + 1)..];
+        }
+
+        result = sb.ToString();
+        return true;
     }
 
     [GeneratedRegex(@"(\\*)\[([\w ]+):\s*([\w ,]+)\]")]

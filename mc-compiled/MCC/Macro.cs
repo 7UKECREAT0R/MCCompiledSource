@@ -1,4 +1,5 @@
-﻿using mc_compiled.MCC.Compiler;
+﻿using System;
+using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.MCC;
 
@@ -18,7 +19,10 @@ public readonly struct Macro
     /// </summary>
     public readonly bool isFromLibrary;
 
-    public Macro(string name, string documentation, string[] argNames, Statement[] statements,
+    public Macro(string name,
+        string documentation,
+        string[] argNames,
+        Statement[] statements,
         bool isFromLibrary = false)
     {
         this.name = name;
@@ -32,9 +36,5 @@ public readonly struct Macro
     /// </summary>
     /// <param name="otherName"></param>
     /// <returns></returns>
-    public bool Matches(string otherName)
-    {
-        return this.name.ToUpper().Trim().Equals
-            (otherName.ToUpper().Trim());
-    }
+    public bool Matches(string otherName) { return this.name.Equals(otherName, StringComparison.OrdinalIgnoreCase); }
 }

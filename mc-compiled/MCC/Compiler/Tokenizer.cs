@@ -54,7 +54,16 @@ public class Tokenizer
     }
 
     private bool HasNext => this.index < this.content.Length;
-    private static bool IsIgnored(char c) { return TOKENIZER_IGNORE_CHARS.Any(test => test == c); }
+    private static bool IsIgnored(char c)
+    {
+        // ReSharper disable once LoopCanBeConvertedToQuery
+        // LINQ and closures here can cause a bit of performance loss and loads of stuff allocated on the SOH
+        foreach (char tokenizerIgnoreChar in TOKENIZER_IGNORE_CHARS)
+            if (tokenizerIgnoreChar == c)
+                return true;
+
+        return false;
+    }
 
     /// <summary>
     ///     Tokenize a file after reading it by path.
