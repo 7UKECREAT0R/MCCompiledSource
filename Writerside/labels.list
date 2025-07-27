@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE labels SYSTEM "https://resources.jetbrains.com/writerside/1.0/labels-list.dtd">
+<labels xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/labels.xsd">
+    <primary-label color="red" id="runtime" short-name="R" name="Runtime">
+        Runtime; things that happen in-game while you're playing.
+    </primary-label>
+    <primary-label color="blue" id="compile_time" short-name="C" name="Compile-Time">
+        Compile-Time; things that happen when you compile the code, but stay the same while playing.
+    </primary-label>
+</labels>

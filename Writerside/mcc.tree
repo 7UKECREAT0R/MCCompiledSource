@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="mcc"
+                 name="MCCompiled Wiki"
+                 start-page="About.md">
+
+    <toc-element topic="About.md" />
+    <toc-element topic="Getting-Started.md">
+        <toc-element topic="Installation.md" >
+            <toc-element topic="Manual-Installation.md"/>
+            <toc-element topic="Regolith-Installation.md"/>
+        </toc-element>
+        <toc-element topic="Compiling-Manually.md">
+            <toc-element topic="Extra-Compile-Options.md"/>
+        </toc-element>
+        <toc-element topic="Hello-World.md"/>
+    </toc-element>
+    <toc-element topic="Cheat-Sheet.md"/>
+    <toc-element topic="Optional-Features.md"/>
+    <toc-element topic="Changelog.md"/>
+    <toc-element topic="Language.md">
+        <toc-element topic="Syntax.md"/>
+        <toc-element topic="Runtime.md">
+            <toc-element topic="Text-Commands.md"/>
+            <toc-element topic="Values.md">
+                <toc-element topic="Types.md"/>
+            </toc-element>
+            <toc-element topic="Functions.md">
+                <toc-element topic="Async.md"/>
+                <toc-element topic="Built-In-Functions.md"/>
+            </toc-element>
+            <toc-element topic="Comparison.md"/>
+            <toc-element topic="Loops.md"/>
+            <toc-element topic="Indexing.md"/>
+            <toc-element topic="Attributes.md"/>
+            <toc-element topic="Commands-Deep-Dives.md">
+                <toc-element topic="Scatter.md"/>
+                <toc-element topic="Giving-Items.md"/>
+            </toc-element>
+            <toc-element topic="Add-On-Features.md">
+                <toc-element topic="Dialogue.md"/>
+                <toc-element topic="Playsound.md"/>
+            </toc-element>
+        </toc-element>
+        <toc-element topic="Preprocessor.md">
+            <toc-element topic="Simple-Variable-Commands.md"/>
+            <toc-element topic="Advanced-Variable-Commands.md"/>
+            <toc-element topic="Compile-Time-Loops.md"/>
+            <toc-element topic="Comparison-compile-time.md"/>
+            <toc-element topic="JSON-Processing.md"/>
+            <toc-element topic="Macros.md"/>
+            <toc-element topic="Metaprogramming.md"/>
+            <toc-element topic="Including-Other-Files.md"/>
+        </toc-element>
+        <toc-element topic="Using-Colors.md"/>
+        <toc-element topic="Debugging.md"/>
+        <toc-element topic="Testing.md"/>
+        <toc-element topic="Localization.md"/>
+    </toc-element>
+</instance-profile>

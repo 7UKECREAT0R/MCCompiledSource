@@ -184,30 +184,6 @@ const mcc_operators = [
     {
         word: '^',
         docs: 'Coordinate relative to where the executor is facing.',
-    },
-    {
-        word: 'not',
-        docs: 'Invert the next comparison.',
-    },
-    {
-        word: 'count',
-        docs: 'Count the number of matching entities and compare the result.',
-    },
-    {
-        word: 'any',
-        docs: 'Check if any entities match the given selector.',
-    },
-    {
-        word: 'block',
-        docs: 'Check if a block matches a given filter.',
-    },
-    {
-        word: 'blocks',
-        docs: 'Check if two regions of blocks are identical.',
-    },
-    {
-        word: 'and',
-        docs: 'Add another comparison.',
     }
 ];
 const mcc_selectors = [
@@ -548,12 +524,36 @@ const mcc_options = [
     {
         word: 'rotated',
         docs: 'Change the execution rotation while keeping the current position.',
+    },
+    {
+        word: 'not',
+        docs: 'Invert the next comparison.',
+    },
+    {
+        word: 'count',
+        docs: 'Count the number of matching entities and compare the result.',
+    },
+    {
+        word: 'any',
+        docs: 'Check if any entities match the given selector.',
+    },
+    {
+        word: 'block',
+        docs: 'Check if a block matches a given filter.',
+    },
+    {
+        word: 'blocks',
+        docs: 'Check if two regions of blocks are identical.',
+    },
+    {
+        word: 'and',
+        docs: 'Add another comparison.',
     }
 ];
 const mcc_preprocessor = [
     {
         word: '$var',
-        docs: 'Sets a preprocessor variable to the value(s) provided.',
+        docs: 'Sets a preprocessor variable to the value(s) provided. Can be empty.',
     },
     {
         word: '$inc',
@@ -625,7 +625,7 @@ const mcc_preprocessor = [
     },
     {
         word: '$include',
-        docs: 'Places the contents of the given file in replacement for this statement. Not intended for production use yet.',
+        docs: 'Places the contents of the given file in replacement for this statement.',
     },
     {
         word: '$strfriendly',
@@ -695,15 +695,15 @@ const mcc_commands = [
     },
     {
         word: 'lang',
-        docs: 'Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including format-strings.',
+        docs: 'Sets the active lang file (examples: en_US, pt_BR). Once set, all text in the project will automatically be localized into that lang file.',
     },
     {
         word: 'define',
-        docs: 'Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.',
+        docs: 'Defines a value with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.',
     },
     {
         word: 'init',
-        docs: 'Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`',
+        docs: 'Ensures this value has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`',
     },
     {
         word: 'if',
@@ -811,7 +811,7 @@ const mcc_commands = [
     },
     {
         word: 'effect',
-        docs: 'Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using \'effect \<selector\> clear\'.',
+        docs: 'Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using `effect <selector> clear`.',
     },
     {
         word: 'playsound',

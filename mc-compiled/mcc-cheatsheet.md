@@ -65,86 +65,118 @@ All the commands in the language (version 1.20). The command ID is the first wor
 ### Category: preprocessor {id="commands-preprocessor"}
 
 Commands that allow the user to do things at compile time. Preprocessor commands generally start with a `$` and are highlighted differently than regular commands.
+
 [Add to Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
 : Adds two preprocessor variables/values together, changing only the first one. A += B
-
-- `<preprocessor variable: variable>` `<1 or more object: values>`
+- `$add`
+- in order:
+	- `<preprocessor variable: source>`
+	- one of:
+		- `<1 or more object: values>`
+		- `<preprocessor variable: other>`
 
 [Append to Preprocessor Variable](Advanced-Variable-Commands.md#array-specific-manipulation)
 : Adds the given item(s) to the end of the given preprocessor variable, or contents of another preprocessor variable if specified.
-
+- `$append`
 - in order:
-	- `<preprocessor variable: array>`
+	- `<preprocessor variable: source>`
 	- one of:
-		- `<any number of object: items>`
+		- `<1 or more object: values to append>`
 		- `<preprocessor variable: other>`
 
 [Preprocessor Call Function](Metaprogramming.md#calling)
 : Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.
-
+- `$call`
 - `<string: function name>` `<any number of *: parameters>`
+```%lang%
+function killAllCows { kill @e[type=cow] }
+function killAllRabbits { kill @e[type=rabbit] }
+function killAllPigs { kill @e[type=pig] }
+%empty%
+$var animals "Cows" "Rabbits" "Pigs"
+%empty%
+function killAllAnimals {
+    $iterate animals animal {
+        $call "killAll$animal"
+    }
+}
+```
 
 [Decrement Preprocessor Variable](Simple-Variable-Commands.md#inc-dec)
 : Decrements the given preprocessor variable by one. If multiple values are held, they are all decremented.
-
-- `<preprocessor variable: variable>`
+- `$dec`
+- `<preprocessor variable: source>`
 
 [Divide Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
 : Divides two preprocessor variables/values from each other, changing only the first one. A /= B
-
-- `<preprocessor variable: variable>` `<1 or more object: values>`
+- `$div`
+- in order:
+	- `<preprocessor variable: source>`
+	- one of:
+		- `<1 or more object: values>`
+		- `<preprocessor variable: other>`
 
 [Preprocessor Else](Comparison-compile-time.md#using-else)
 : Directly inverts the result of the last $if call at this level in scope.
-
+- `$else`
 - `[code block]`
 
 [Preprocessor If](Comparison-compile-time.md#using-if)
 : Compares a preprocessor variable and another value/variable. If the source variable contains multiple values, they all must match the condition.
-
+- `$if`
 - in order:
 	- one of:
 		- `<object: a>`
 		- `<preprocessor variable: a>`
 	- `<compare: comparison>`
 	- one of:
-		- `<object: a>`
-		- `<preprocessor variable: a>`
+		- `<object: b>`
+		- `<preprocessor variable: b>`
 	- `<code block>`
 
 [Increment Preprocessor Variable](Simple-Variable-Commands.md#inc-dec)
 : Increments the given preprocessor variable by one. If multiple values are held, they are all incremented.
-
-- `<preprocessor variable: variable>`
+- `$inc`
+- `<preprocessor variable: source>`
 
 [Include File](Including-Other-Files.md)
-: Places the contents of the given file in replacement for this statement. Not intended for production use yet.
-
+: Places the contents of the given file in replacement for this statement.
+- `$include`
 - `<string: file>`
+```%lang%
+$include "libraries/effects.mcc"
+```
 
 Iterate Preprocessor Array
 : Runs the following statement/code-block once for each value in the given preprocessor variable. The current iteration is held in the preprocessor variable given. If the target is a JSON array, the elements will be iterated upon.
-
+- `$iterate`
 - in order:
 	- one of:
-		- `<identifier: variable>`
+		- `<preprocessor variable: variable>`
 		- `<JSON: json array or object>`
 	- `<identifier: current>`
 	- `<code block>`
 
 [Preprocessor Load JSON Value](JSON-Processing.md)
 : Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.
-
+- `$json`
 - in order:
 	- one of:
 		- `<string: file name>`
 		- `<JSON: existing json>`
 	- `<identifier: result>`
 	- `<string: path>`
+```%lang%
+$json "mansions.json" mansions
+%empty%
+$iterate $mansions mansion {
+    // ...
+}
+```
 
 [Preprocessor Length](Advanced-Variable-Commands.md#data-manipulation)
 : If a preprocessor variable identifier or JSON array is specified, the number of elements it holds is gotten. If a string is given, its length is gotten.
-
+- `$len`
 - in order:
 	- `<identifier: result>`
 	- one of:
@@ -154,61 +186,82 @@ Iterate Preprocessor Array
 
 [Log to Console](Debugging.md#logging)
 : Sends a message to stdout with a line terminator at the end.
-
+- `$log`
 - `<any number of *: message>`
 
 [Define/Call Macro](Macros.md#defining-a-macro)
 : If a code-block follows this directive, it is treated as a definition. Arguments are passed in as preprocessor variables. If no code-block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.
 <format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
-
-- :
-	- one of:
-		- `<identifier: macro name>` `<any number of identifier: arg names>` `<code block>`
-		- `<identifier: macro name>` `<any number of *: arg values>`
+- `$macro`
+- one of:
+	- `<identifier: macro name>` `<any number of identifier: arg names>` `<code block>`
+	- `<identifier: macro name>` `<any number of *: arg values>`
+```%lang%
+$macro setQuestDisplay text {
+    $inc questTextIndex
+    $append questTexts $text
+    _currentQuestDisplay = $questTextIndex
+}
+$macro clearQuestDisplay {
+    _currentQuestDisplay = 0
+}
+%empty%
+$macro setQuestDisplay "Return to the village to find out what that sound was."
+```
 
 [Preprocessor Array Mean](Advanced-Variable-Commands.md#data-manipulation)
 : Averages all values in the given preprocessor variable together into one value and stores it in a result variable.
-
-- :
-	- one of:
-		- `<preprocessor variable: variable to modify>`
-		- `<identifier: result>` `<preprocessor variable: variable>`
+- `$mean`
+- one of:
+	- `<preprocessor variable: variable to modify>`
+	- `<identifier: result>` `<preprocessor variable: variable>`
 
 [Preprocessor Array Median](Advanced-Variable-Commands.md#data-manipulation)
 : Gets the middle value/average of the two middle values and stores it in a result variable.
-
-- :
-	- one of:
-		- `<preprocessor variable: variable to modify>`
-		- `<identifier: result>` `<preprocessor variable: variable>`
+- `$median`
+- one of:
+	- `<preprocessor variable: variable to modify>`
+	- `<identifier: result>` `<preprocessor variable: variable>`
 
 [Modulo Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
 : Divides two preprocessor variables/values from each other, setting only the first one to the remainder of the operation. A %= B
-
-- `<preprocessor variable: variable>` `<1 or more object: values>`
+- `$mod`
+- in order:
+	- `<preprocessor variable: source>`
+	- one of:
+		- `<1 or more object: values>`
+		- `<preprocessor variable: other>`
 
 [Multiply with Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
 : Multiplies two preprocessor variables/values together, changing only the first one. A *= B
-
-- `<preprocessor variable: variable>` `<1 or more object: values>`
+- `$mul`
+- in order:
+	- `<preprocessor variable: source>`
+	- one of:
+		- `<1 or more object: values>`
+		- `<preprocessor variable: other>`
 
 [Exponentiate Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
 : Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B
-
-- `<preprocessor variable: variable>` `<1 or more object: values>`
+- `$pow`
+- in order:
+	- `<preprocessor variable: source>`
+	- one of:
+		- `<1 or more object: values>`
+		- `<preprocessor variable: other>`
 
 [Prepend to Preprocessor Variable](Advanced-Variable-Commands.md#array-specific-manipulation)
 : Adds the given item(s) to the start of the given preprocessor variable.
-
+- `$prepend`
 - in order:
-	- `<preprocessor variable: array>`
+	- `<preprocessor variable: source>`
 	- one of:
-		- `<any number of object: items>`
+		- `<1 or more object: values to prepend>`
 		- `<preprocessor variable: other>`
 
 [Preprocessor Repeat](Compile-Time-Loops.md#repeat_number)
 : Repeats the following statement/code-block a number of times. If a variable identifier is given, that variable will be set to the index of the current iteration. 0, 1, 2, etc.
-
+- `$repeat`
 - in order:
 	- one of:
 		- `<integer: repetitions>`
@@ -217,110 +270,143 @@ Iterate Preprocessor Array
 
 [Preprocessor Reverse](Advanced-Variable-Commands.md#array-specific-manipulation)
 : Reverses the order of the values in the given preprocessor variable.
-
-- `<identifier: variable>`
+- `$reverse`
+- `<preprocessor variable: variable>`
 
 [Preprocessor Array Sort](Advanced-Variable-Commands.md#array-specific-manipulation)
 : Sorts the order of the values in the given preprocessor variable either 'ascending' or 'descending'. Values must be comparable.
-
-- :
-	- one of:
-		- `ascending` Sort variables starting with the lowest first.
-			- `<identifier: variable>`
-		- `descending` Sort variables starting with the highest first.
-			- `<identifier: variable>`
+- `$sort`
+- one of:
+	- `ascending` Sort variables starting with the lowest first.
+		- `<preprocessor variable: variable>`
+	- `descending` Sort variables starting with the highest first.
+		- `<preprocessor variable: variable>`
 
 [Preprocessor String Friendly Name](Advanced-Variable-Commands.md#string-manipulation)
 : Convert the given preprocessor variable value(s) to a string in 'Title Case'.
-
-- :
-	- one of:
-		- `<preprocessor variable: variable to modify>`
-		- `<identifier: result>` `<preprocessor variable: variable>`
+- `$strfriendly`
+- one of:
+	- `<preprocessor variable: variable to modify>`
+	- `<identifier: result>` `<preprocessor variable: variable>`
 
 [Preprocessor String Lowercase](Advanced-Variable-Commands.md#string-manipulation)
 : Convert the given preprocessor variable value(s) to a string in 'lowercase'.
-
-- :
-	- one of:
-		- `<preprocessor variable: variable to modify>`
-		- `<identifier: result>` `<preprocessor variable: variable>`
+- `$strlower`
+- one of:
+	- `<preprocessor variable: variable to modify>`
+	- `<identifier: result>` `<preprocessor variable: variable>`
 
 [Preprocessor String Uppercase](Advanced-Variable-Commands.md#string-manipulation)
 : Convert the given preprocessor variable value(s) to a string in 'UPPERCASE'.
-
-- :
-	- one of:
-		- `<preprocessor variable: variable to modify>`
-		- `<identifier: result>` `<preprocessor variable: variable>`
+- `$strupper`
+- one of:
+	- `<preprocessor variable: variable to modify>`
+	- `<identifier: result>` `<preprocessor variable: variable>`
 
 [Subtract from Preprocessor Variable](Simple-Variable-Commands.md#all-of-them)
 : Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B
-
-- `<preprocessor variable: variable>` `<1 or more object: values>`
+- `$sub`
+- in order:
+	- `<preprocessor variable: source>`
+	- one of:
+		- `<1 or more object: values>`
+		- `<preprocessor variable: other>`
 
 [Preprocessor Array Sum](Advanced-Variable-Commands.md#data-manipulation)
 : Adds all values in the given preprocessor variable together into one value and stores it in a result variable.
-
-- :
-	- one of:
-		- `<preprocessor variable: variable to modify>`
-		- `<identifier: result>` `<preprocessor variable: variable>`
+- `$sum`
+- one of:
+	- `<preprocessor variable: variable to modify>`
+	- `<identifier: result>` `<preprocessor variable: variable>`
 
 [Swap Preprocessor Variables](Simple-Variable-Commands.md#other-variable-operations)
 : Swaps the values of two preprocessor variables
-
+- `$swap`
 - `<preprocessor variable: a, b>`
 
 [Preprocessor Array Unique](Advanced-Variable-Commands.md#array-specific-manipulation)
 : Flattens the given preprocessor array to only unique values.
-
-- `<identifier: variable>`
+- `$unique`
+- `<preprocessor variable: variable>`
 
 [Set Preprocessor Variable](Preprocessor.md)
-: Sets a preprocessor variable to the value(s) provided.
-
+: Sets a preprocessor variable to the value(s) provided. Can be empty.
+- `$var`
 - `<identifier: variable>` `<any number of object: values>`
+```%lang%
+$var spawnPosition 427 60 -159
+tp @a $spawnPosition
+```
 
 
 ### Category: text {id="commands-text"}
 
 Commands which display text to players through format-strings or manipulate text otherwise.
+
 [Show Actionbar](Text-Commands.md#commands)
 : Displays an actionbar on the screen of the executing player, or to the given one if specified.
 <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
-
+- `actionbar`
 - `[selector: players]` `<string: text>`
 
 [Define/Open Dialogue](Dialogue.md)
 : If followed by a block, defines a new dialogue scene with the given name.
-
-- :
-	- one of:
-		- `new` Creates a new dialogue scene.
-			- `<string: scene tag>` `<code block>`
-		- `open` Opens a dialogue scene for the given players.
-			- `<selector: npc, players>` `[string: scene tag]`
-		- `change` Change the dialogue for the given NPC, optionally only for specific players.
-			- `<selector: npc>` `<string: scene tag>` `[selector: for players]`
+- `dialogue`
+- one of:
+	- `new` Creates a new dialogue scene.
+		- `<string: scene tag>` `<code block>`
+	- `open` Opens a dialogue scene for the given players.
+		- `<selector: npc, players>` `[string: scene tag]`
+	- `change` Change the dialogue for the given NPC, optionally only for specific players.
+		- `<selector: npc>` `<string: scene tag>` `[selector: for players]`
 
 [Show Actionbar to All Players](Text-Commands.md#commands)
 : Displays an actionbar on the screen of all players in the game. Can also be used to set the timings of the actionbar.
 <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
-
+- `globalactionbar`
 - `<string: text>`
 
 [Print to All Players](Text-Commands.md#commands)
 : Prints a chat message to all players in the game.
 <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
-
+- `globalprint`
 - `<string: text>`
 
 [Show Title to All Players](Text-Commands.md#commands)
 : Displays a title on the screen of all players in the game. Can also be used to set the timings of the title.
 <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
+- `globaltitle`
+- one of:
+	- `times` Set the timings for the next title/future titles.
+		- `<integer: fade in, stay, fade out>`
+	- `subtitle` Set the subtitle for the next title displayed.
+		- `<string: subtitle text>`
+	- `<string: title text>`
 
-- :
+[Set Active Language](Localization.md)
+: Sets the active lang file (examples: en_US, pt_BR). Once set, all text in the project will automatically be localized into that lang file.
+- `lang`
+- `<identifier: locale>`
+
+[Print to Player](Text-Commands.md#commands)
+: Prints a chat message to the executing player, or to the given one if specified.
+<format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
+- `print`
+- in order:
+	- `<selector: entity>`
+	- `<string: text>`
+
+Say
+: Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.
+- `say`
+- `<string: message>`
+
+[Show Title](Text-Commands.md#commands)
+: Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title.
+<format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
+- `title`
+- in order:
+	- `<selector: players>`
 	- one of:
 		- `times` Set the timings for the next title/future titles.
 			- `<integer: fade in, stay, fade out>`
@@ -328,42 +414,14 @@ Commands which display text to players through format-strings or manipulate text
 			- `<string: subtitle text>`
 		- `<string: title text>`
 
-[Set Active Language](Localization.md)
-: Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including format-strings.
-
-- `<identifier: locale>`
-
-[Print to Player](Text-Commands.md#commands)
-: Prints a chat message to the executing player, or to the given one if specified.
-<format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
-
-- in order:
-	- `<selector: entity>`
-	- `<string: text>`
-
-Say
-: Send a plain-text message as the executing entity. Plain selectors can be used, but not variables.
-
-- `<string: message>`
-
-[Show Title](Text-Commands.md#commands)
-: Displays a title on the screen of the executing player, or to the given one if specified. Can also be used to set the timings of the title.
-<format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
-
-- in order:
-	- `<selector: players>`
-	- one of:
-		- `<integer: fade in, stay, fade out>`
-		- `<string: subtitle text>`
-		- `<string: title text>`
-
 
 ### Category: entities {id="commands-entities"}
 
 Commands which manipulate, spawn, and transform entities in various ways.
+
 Damage Entity
 : Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, or name of another managed entity (e.g., dummy entities).
-
+- `damage`
 - in order:
 	- `<selector: targets>` `<integer: amount>`
 	- `<damage cause: damage cause>`
@@ -372,8 +430,8 @@ Damage Entity
 		- `<coordinate: from x, from y, from z>`
 
 Give Effect to Entity
-: Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect \<selector\> clear'.
-
+: Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using `effect <selector> clear`.
+- `effect`
 - in order:
 	- `<selector: entities>`
 	- one of:
@@ -382,16 +440,7 @@ Give Effect to Entity
 
 Face Towards...
 : Faces the given entities towards a specific position, selector, or name of another managed entity (e.g., dummy entities).
-
-- in order:
-	- `<selector: entities>`
-	- one of:
-		- `<selector: target entity>`
-		- `<coordinate: target x, target y, target z>`
-
-Face Towards...
-: Faces the given entities towards a specific position, selector, or name of another managed entity (e.g., dummy entities).
-
+- `face`
 - in order:
 	- `<selector: entities>`
 	- one of:
@@ -400,27 +449,27 @@ Face Towards...
 
 Set Gamemode
 : Sets the gamemode of the executing player or other players if specified.
-
+- `gamemode`
 - `<gamemode: gamemode>` `[selector: players]`
 
 Kill Entity
 : Kills the given entities, causing the death animation, sounds, and particles to appear.
-
+- `kill`
 - `[selector: target]`
 
 Move Entity
 : Moves the specified entity in a direction (LEFT, RIGHT, UP, DOWN, FORWARD, BACKWARD) for a certain amount. Simpler alternative for teleporting using caret offsets.
-
+- `move`
 - `<selector: entities>` `<move direction: direction>` `<number: amount>` `[true/false: check for blocks]`
 
 Rotate Entity
 : Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.
-
+- `rotate`
 - `<selector: entities>` `<integer: rotation y, rotation x>`
 
 Summon Entity
 : Summons an entity; matches Minecraft vanilla syntax.
-
+- `summon`
 - in order:
 	- `<minecraft entity: entity type>`
 	- optional, one of:
@@ -438,7 +487,7 @@ Summon Entity
 
 Tag Entity
 : Add and remove tags from the given entity.
-
+- `tag`
 - in order:
 	- `<selector: entities>`
 	- one of:
@@ -449,23 +498,7 @@ Tag Entity
 
 Teleport Entity
 : Teleports the executing/given entities to a specific position, selector, or name of another managed entity (e.g., dummy entities).
-
-- in order:
-	- `<selector: victim>`
-	- one of:
-		- `<selector: destination>`
-		- `<coordinate: x, y, z>`
-	- optional, one of:
-		- `<coordinate: y rotation, x rotation>`
-		- `facing` Set the position/entity the teleported entity will face towards.
-			- one of:
-				- `<selector: look at entity>`
-				- `<coordinate: look at x, look at y, look at z>`
-	- `<true/false: check for blocks>`
-
-Teleport Entity
-: Teleports the executing/given entities to a specific position, selector, or name of another managed entity (e.g., dummy entities).
-
+- `tp`
 - in order:
 	- `<selector: victim>`
 	- one of:
@@ -483,38 +516,40 @@ Teleport Entity
 ### Category: blocks {id="commands-blocks"}
 
 Commands which interact with the Minecraft world's blocks.
+
 Fill Region
 : Fills blocks in a specific region, optionally using a replace mode.
-
+- `fill`
 - `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: block>` `[old handling: fill mode]` `[integer: data]`
 
 Replace in Region
 : Replaces all source blocks with a result block in a specific region.
-
+- `replace`
 - `<minecraft block: source block>` `[integer: source data]` `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: result block>` `[integer: result data]`
 
 [Scatter Blocks in Region](Scatter.md)
 : Randomly scatters blocks throughout a region with a certain percentage.
-
+- `scatter`
 - `<minecraft block: block>` `<integer: percent>` `<coordinate: x1, y1, z1, x2, y2, z2>` `[string: seed]`
 
 Set Block
 : Sets the block at a specific position, optionally using a replace mode.
-
+- `setblock`
 - `<coordinate: x, y, z>` `<minecraft block: block>` `[integer: data]` `[old handling: replace mode]`
 
 
 ### Category: items {id="commands-items"}
 
 Commands relating to entity/player items and inventories.
+
 Clear Entity
 : Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.
-
+- `clear`
 - `[selector: target]` `[minecraft item: item]` `[integer: data, max count]`
 
 [Give Item](Giving-Items.md)
 : Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.
-
+- `give`
 - in order:
 	- `<selector: players>` `<minecraft item: item>` `[integer: count, data]`
 	- optional, repeatable, one of:
@@ -539,14 +574,22 @@ Clear Entity
 			- `<string: page content>`
 		- `dye: ` If the item is leather armor, sets the dye color of the armor.
 			- `<integer: red, green, blue>`
+```%lang%
+give @s netherite_sword 1 keep
+    enchant: sharpness 5
+    enchant: unbreaking 3
+    name: "Hyper Sword"
+    lore: "A legendary sword."
+```
 
 
 ### Category: cosmetic {id="commands-cosmetic"}
 
 Commands that add visual and auditory appeal to the user's code.
+
 Camera
 : Modify the camera of the given players, identical to the vanilla command with much more fault-tolerance.
-
+- `camera`
 - in order:
 	- `<selector: players>`
 	- one of:
@@ -579,22 +622,23 @@ Camera
 
 Spawn Particle
 : Spawns a particle effect in the world.
-
+- `particle`
 - `<string: effect>` `[coordinate: x, y, z]`
 
 [Play Sound](Playsound.md)
 : Plays a sound effect in the world, optionally with volume, pitch, and filtering specific players.
-
+- `playsound`
 - `<string: sound>` `[selector: who]` `[coordinate: x, y, z]` `[number: volume, pitch, minimum volume]`
 
 
 ### Category: values {id="commands-values"}
 
 Commands tied directly to values. Values can be used in if-statements, format-strings, and many other places.
-[Define Variable](Values.md#defining-values)
-: Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.
-<format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
 
+[Define Value](Values.md#defining-values)
+: Defines a value with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.
+<format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
+- `define`
 - in order:
 	- `<any number of attribute: attributes>`
 	- optional, one of:
@@ -606,128 +650,138 @@ Commands tied directly to values. Values can be used in if-statements, format-st
 	- `<any number of attribute: attributes>`
 	- `<identifier: name>`
 	- `<assignment operator: set>` `<object: default value>`
+```%lang%
+define int score = 0
+define global bool isGameRunning
+define global time timeLeft
+```
 
-[Initialize Variable](Values.md#initializing-values)
-: Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`
+[Initialize Value](Values.md#initializing-values)
+: Ensures this value has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`
 <format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
-
-- `<value: value>`
-
-[Initialize Variable](Values.md#initializing-values)
-: Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`
-<format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
-
+- `init`
 - `<value: value>`
 
 
 ### Category: logic {id="commands-logic"}
 
 Commands which handle logic and code flow. The butter for all the bread (code).
+
 [Await (async)](Async.md#awaiting)
 : Works in async functions. Awaits a certain amount of time, for a condition to be met, or another async function to complete executing.
-
-- :
-	- one of:
-		- `<integer: ticks>`
-		- `until` Wait until a certain condition is met. It will be checked once at the end of every tick.
-			- repeatable, in order:
+- `await`
+- one of:
+	- `<integer: ticks>`
+	- `until` Wait until a certain condition is met. It will be checked once at the end of every tick.
+		- repeatable, in order:
+			- `not` Invert the next comparison.
+			- one of:
+				- `<value: boolean value>`
 				- one of:
-					- `<value: boolean value>`
-					- one of:
-						- `<value: a>` `<compare: comparison>` `<value: b>`
-						- `<value: a>` `<compare: comparison>` `<object: b>`
-					- `<selector: self selector>`
+					- `<value: a>` `<compare: comparison>` `<value: b>`
+					- `<value: a>` `<compare: comparison>` `<object: b>`
+				- `<selector: self selector>`
+				- `count` Count the number of matching entities and compare the result.
 					- one of:
 						- `<selector: selector>` `<compare: comparison>` `<value: b>`
 						- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+				- `any` Check if any entities match the given selector.
 					- `<selector: selector>`
+				- `block` Check if a block matches a given filter.
 					- `<coordinate: x, y, z>` `<minecraft block: block>`
+				- `blocks` Check if two regions of blocks are identical.
 					- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
-		- `while` Wait as long as a certain condition is met. It will be checked once at the end of every tick.
-			- repeatable, in order:
+			- `and` Add another comparison.
+	- `while` Wait as long as a certain condition is met. It will be checked once at the end of every tick.
+		- repeatable, in order:
+			- `not` Invert the next comparison.
+			- one of:
+				- `<value: boolean value>`
 				- one of:
-					- `<value: boolean value>`
-					- one of:
-						- `<value: a>` `<compare: comparison>` `<value: b>`
-						- `<value: a>` `<compare: comparison>` `<object: b>`
-					- `<selector: self selector>`
+					- `<value: a>` `<compare: comparison>` `<value: b>`
+					- `<value: a>` `<compare: comparison>` `<object: b>`
+				- `<selector: self selector>`
+				- `count` Count the number of matching entities and compare the result.
 					- one of:
 						- `<selector: selector>` `<compare: comparison>` `<value: b>`
 						- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+				- `any` Check if any entities match the given selector.
 					- `<selector: selector>`
+				- `block` Check if a block matches a given filter.
 					- `<coordinate: x, y, z>` `<minecraft block: block>`
+				- `blocks` Check if two regions of blocks are identical.
 					- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
-		- `<async function call: awaitable>`
+			- `and` Add another comparison.
+	- `<async function call: awaitable>`
 
 [Else Statement](Comparison.md#else)
 : Inverts the comparison given by the previous if-statement at this scope level.
-
+- `else`
 - `[code block]`
 
 Execute
 : Begins a vanilla Minecraft execute chain. Can be followed by a statement or code-block, but does not explicitly support the 'run' subcommand.
-
+- `execute`
 - in order:
-	- repeatable:
-		- one of:
-			- `align` Aligns the current position of the command to the block grid.
-				- `<grid alignment: alignment>`
-			- `anchored` Execute at the location of a specific part of the executing entity; The eyes or the feet.
-				- `<anchor position: anchor point>`
-			- `as` Execute as the given entity/entities.
-				- `<selector: entities>`
-			- `at` Execute at the position of the given entity.
-				- `<selector: entity>`
-			- `facing` Execute facing another position/entity.
-				- one of:
-					- `<coordinate: facing x, facing y, facing z>`
-					- `entity` Execute facing another entity.
-						- `<selector: entity>`
-			- `if` Execute if a certain condition passes.
-				- one of:
-					- `score` Execute if a value/scoreboard objective matches a condition.
-						- in order:
-							- `<value: a>`
-							- one of:
-								- `<compare: comparison>` `<value: b>`
-								- `matches` Check if 'a' matches a certain number range.
-									- `<range: range>`
-					- `entity` Execute if a selector matches.
-						- `<selector: pattern>`
-					- `block` Execute if a block matches.
-						- `<coordinate: x, y, z>` `<minecraft block: block>`
-					- `blocks` Execute if two regions of blocks match.
-						- `<coordinate: start x, start y, start z, end x, end y, end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
-			- `unless` Execute unless a certain condition passes.
-				- one of:
-					- `score` Execute unless a value/scoreboard objective matches a condition.
-						- in order:
-							- `<value: a>`
-							- one of:
-								- `<compare: comparison>` `<value: b>`
-								- `matches` Check if 'a' doesn't match a certain number range.
-									- `<range: range>`
-					- `entity` Execute unless a selector matches.
-						- `<selector: pattern>`
-					- `block` Execute unless a block matches.
-						- `<coordinate: x, y, z>` `<minecraft block: block>`
-					- `blocks` Execute unless two regions of blocks match.
-						- `<coordinate: start x, start y, start z, end x, end y, end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
-			- `in` Execute in a specific dimension.
-				- `<dimension: dimension>`
-			- `positioned` Change the execution position while keeping the current rotation.
-				- one of:
-					- `<selector: match entity>`
-					- `<coordinate: x, y, z>`
-			- `rotated` Change the execution rotation while keeping the current position.
-				- one of:
-					- `<selector: match entity>`
-					- `<coordinate: yaw, pitch>`
+	- one of:
+		- `align` Aligns the current position of the command to the block grid.
+			- `<grid alignment: alignment>`
+		- `anchored` Execute at the location of a specific part of the executing entity; The eyes or the feet.
+			- `<anchor position: anchor point>`
+		- `as` Execute as the given entity/entities.
+			- `<selector: entities>`
+		- `at` Execute at the position of the given entity.
+			- `<selector: entity>`
+		- `facing` Execute facing another position/entity.
+			- one of:
+				- `<coordinate: facing x, facing y, facing z>`
+				- `entity` Execute facing another entity.
+					- `<selector: entity>`
+		- `if` Execute if a certain condition passes.
+			- one of:
+				- `score` Execute if a value/scoreboard objective matches a condition.
+					- in order:
+						- `<value: a>`
+						- one of:
+							- `<compare: comparison>` `<value: b>`
+							- `matches` Check if 'a' matches a certain number range.
+								- `<range: range>`
+				- `entity` Execute if a selector matches.
+					- `<selector: pattern>`
+				- `block` Execute if a block matches.
+					- `<coordinate: x, y, z>` `<minecraft block: block>`
+				- `blocks` Execute if two regions of blocks match.
+					- `<coordinate: start x, start y, start z, end x, end y, end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
+		- `unless` Execute unless a certain condition passes.
+			- one of:
+				- `score` Execute unless a value/scoreboard objective matches a condition.
+					- in order:
+						- `<value: a>`
+						- one of:
+							- `<compare: comparison>` `<value: b>`
+							- `matches` Check if 'a' doesn't match a certain number range.
+								- `<range: range>`
+				- `entity` Execute unless a selector matches.
+					- `<selector: pattern>`
+				- `block` Execute unless a block matches.
+					- `<coordinate: x, y, z>` `<minecraft block: block>`
+				- `blocks` Execute unless two regions of blocks match.
+					- `<coordinate: start x, start y, start z, end x, end y, end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
+		- `in` Execute in a specific dimension.
+			- `<dimension: dimension>`
+		- `positioned` Change the execution position while keeping the current rotation.
+			- one of:
+				- `<selector: match entity>`
+				- `<coordinate: x, y, z>`
+		- `rotated` Change the execution rotation while keeping the current position.
+			- one of:
+				- `<selector: match entity>`
+				- `<coordinate: yaw, pitch>`
 	- `<code block>`
 
 [For Each Entity](Loops.md#for)
 : Runs the following statement or code-block once over every entity that matches a selector at its current position. Functionally equivalent to `execute as <selector> at @s run <code>`
-
+- `for`
 - in order:
 	- `<selector: entities>`
 	- `at` Offset the execution position per entity.
@@ -737,50 +791,94 @@ Execute
 [Define Function](Functions.md#defining-functions)
 : Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`
 <format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
-
+- `function`
 - in order:
 	- `<any number of attribute: attributes>`
 	- `<identifier: function name>`
 	- `<any number of attribute: attributes>`
 	- `<open parenthesis: open parenthesis>`
-	- optional, repeatable:
-		- in order:
-			- `<any number of attribute: attributes>`
-			- optional, one of:
+	- in order:
+		- `<any number of attribute: attributes>`
+		- optional, one of:
+			- `int` An integer, representing any whole value between -2147483648 to 2147483647.
+			- `decimal` A decimal number with a pre-specified level of precision.
 				- `<integer: precision>`
-			- `<any number of attribute: attributes>`
-			- `<identifier: name>`
-			- `<assignment operator: set>` `<object: default value>`
+			- `bool` A true or false value.
+			- `time` A value representing a number of ticks. Displayed as MM:SS by default.
+		- `<any number of attribute: attributes>`
+		- `<identifier: name>`
+		- `<assignment operator: set>` `<object: default value>`
 	- `<close parenthesis: close parenthesis>`
 	- `<code block>`
-
-[Define Function](Functions.md#defining-functions)
-: Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`
-<format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
-
-- in order:
-	- `<any number of attribute: attributes>`
-	- `<identifier: function name>`
-	- `<any number of attribute: attributes>`
-	- `<open parenthesis: open parenthesis>`
-	- optional, repeatable:
-		- in order:
-			- `<any number of attribute: attributes>`
-			- optional, one of:
-				- `<integer: precision>`
-			- `<any number of attribute: attributes>`
-			- `<identifier: name>`
-			- `<assignment operator: set>` `<object: default value>`
-	- `<close parenthesis: close parenthesis>`
-	- `<code block>`
+```%lang%
+// Bursts XP orbs around every player.
+function export xpBurst {
+    for @a {
+        $repeat 20
+            summon xp_orb ~ ~ ~
+    }
+}
+```
 
 [Halt Execution](Debugging.md#halting-code)
 : Ends the execution of the code entirely by hitting the function command limit.
-
+- `halt`
 
 [If Statement](Comparison.md)
 : Performs a comparison, only running the proceeding statement/code-block if the comparisons(s) are true. Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'
+- `if`
+- in order:
+	- repeatable, in order:
+		- `not` Invert the next comparison.
+		- one of:
+			- `<value: boolean value>`
+			- one of:
+				- `<value: a>` `<compare: comparison>` `<value: b>`
+				- `<value: a>` `<compare: comparison>` `<object: b>`
+			- `<selector: self selector>`
+			- `count` Count the number of matching entities and compare the result.
+				- one of:
+					- `<selector: selector>` `<compare: comparison>` `<value: b>`
+					- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+			- `any` Check if any entities match the given selector.
+				- `<selector: selector>`
+			- `block` Check if a block matches a given filter.
+				- `<coordinate: x, y, z>` `<minecraft block: block>`
+			- `blocks` Check if two regions of blocks are identical.
+				- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
+		- `and` Add another comparison.
+	- `<code block>`
+```%lang%
+if cowsKilled > 10 and not any @e[type=cow,r=100] {
+    print "Cow eradication mission completed!"
+}
+```
 
+Repeat N Times
+: Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.
+- `repeat`
+- in order:
+	- one of:
+		- `<integer: repetitions>`
+		- `<value: repetitions>`
+	- `<identifier: current iteration value>`
+	- `<code block>`
+```%lang%
+repeat 20 i {
+    print "iteration {i}"
+}
+```
+
+[Set Return Value](Functions.md#return-values)
+: Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.
+- `return`
+- one of:
+	- `<value: return value>`
+	- `<object: return value>`
+
+While Statement
+: Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'
+- `while`
 - in order:
 	- repeatable, in order:
 		- `not` Invert the next comparison.
@@ -803,134 +901,124 @@ Execute
 		- `and` Add another comparison.
 	- `<code block>`
 
-Repeat N Times
-: Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.
-
-- in order:
-	- one of:
-		- `<integer: repetitions>`
-		- `<value: repetitions>`
-	- `<identifier: current iteration value>`
-	- `<code block>`
-
-[Set Return Value](Functions.md#return-values)
-: Set the value that will be returned from this function when it ends. The caller can use this value however it wishes.
-
-- :
-	- one of:
-		- `<value: return value>`
-		- `<object: return value>`
-
-While Statement
-: Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'
-
-- in order:
-	- repeatable, in order:
-		- one of:
-			- `<value: boolean value>`
-			- one of:
-				- `<value: a>` `<compare: comparison>` `<value: b>`
-				- `<value: a>` `<compare: comparison>` `<object: b>`
-			- `<selector: self selector>`
-			- one of:
-				- `<selector: selector>` `<compare: comparison>` `<value: b>`
-				- `<selector: selector>` `<compare: comparison>` `<integer: b>`
-			- `<selector: selector>`
-			- `<coordinate: x, y, z>` `<minecraft block: block>`
-			- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
-	- `<code block>`
-
 
 ### Category: debug {id="commands-debug"}
 
 Commands related to testing, debugging, and all-around solidifying code.
+
 [Preprocessor Assertion](Debugging.md#assertions)
 : Asserts that the input comparison is true, and throws a compiler error if not. Allows a custom error message.
-
+- `$assert`
 - in order:
 	- one of:
 		- `<object: a>`
 		- `<preprocessor variable: a>`
 	- `<compare: comparison>`
 	- one of:
-		- `<object: a>`
-		- `<preprocessor variable: a>`
+		- `<object: b>`
+		- `<preprocessor variable: b>`
 	- `<string: message>`
+```%lang%
+// Start a new cutscene with the given rotation.
+$macro cutscene.start.withRotation x, y, z, ry, rx {
+    $assert _inCutscene == false "Already in a cutscene."
+    $var _inCutscene true
+    // ...
+}
+```
 
 [Assert Statement](Testing.md#writing-a-test)
 : Asserts that the given condition evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).
-
+- `assert`
 - repeatable, in order:
+	- `not` Invert the next comparison.
 	- one of:
 		- `<value: boolean value>`
 		- one of:
 			- `<value: a>` `<compare: comparison>` `<value: b>`
 			- `<value: a>` `<compare: comparison>` `<object: b>`
 		- `<selector: self selector>`
-		- one of:
-			- `<selector: selector>` `<compare: comparison>` `<value: b>`
-			- `<selector: selector>` `<compare: comparison>` `<integer: b>`
-		- `<selector: selector>`
-		- `<coordinate: x, y, z>` `<minecraft block: block>`
-		- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
+		- `count` Count the number of matching entities and compare the result.
+			- one of:
+				- `<selector: selector>` `<compare: comparison>` `<value: b>`
+				- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+		- `any` Check if any entities match the given selector.
+			- `<selector: selector>`
+		- `block` Check if a block matches a given filter.
+			- `<coordinate: x, y, z>` `<minecraft block: block>`
+		- `blocks` Check if two regions of blocks are identical.
+			- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
+	- `and` Add another comparison.
+```%lang%
+function quest.showActionbar {
+    assert questStarted == true
+%empty%
+    // ...
+}
+```
 
 [Define Test](Testing.md#writing-a-test)
 : Defines a test; requires 'tests' feature. Must be followed by a code-block that contains the test contents.
 <format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
-
+- `test`
 - `<identifier: name>` `<code block>`
 
 [Throw Error](Debugging.md#throwing-errors)
 : Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw.
 <format color="CadetBlue">Supports [<format color="CadetBlue">format-strings.</format>](Text-Commands.md#format-strings)</format>
-
+- `throw`
 - `<string: error message>`
+```%lang%
+function quest.showActionbar {
+    if not questStarted
+        throw "quest.showActionbar was called before the main quest was started."
+%empty%
+    // ...
+}
+```
 
 
 ### Category: features {id="commands-features"}
 
 Commands related to the optionally enable-able features in the language.
+
 [Manage Dummy Entities](Optional-Features.md#dummies)
 : Create a dummy entity, remove the selected ones, or manage the classes on the selected ones. Requires feature 'DUMMIES' to be enabled.
-
-- :
-	- one of:
-		- `create` Create a new dummy entity.
-			- `<string: name>` `[string: tag]` `[coordinate: x, y, z]`
-		- `single` Create a new dummy entity, removing any others with a matching name/tag.
-			- `<string: name>` `[string: tag]` `[coordinate: x, y, z]`
-		- `removeall` Remove all dummies in the world, or only ones with a specific tag.
-			- `[string: tag]`
-		- `remove` Remove all dummies with the given name, and optionally tag.
-			- `<string: name>` `[string: tag]`
+- `dummy`
+- one of:
+	- `create` Create a new dummy entity.
+		- `<string: name>` `[string: tag]` `[coordinate: x, y, z]`
+	- `single` Create a new dummy entity, removing any others with a matching name/tag.
+		- `<string: name>` `[string: tag]` `[coordinate: x, y, z]`
+	- `removeall` Remove all dummies in the world, or only ones with a specific tag.
+		- `[string: tag]`
+	- `remove` Remove all dummies with the given name, and optionally tag.
+		- `<string: name>` `[string: tag]`
 
 [Create Explosion](Optional-Features.md#exploders)
 : Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.
-
+- `explode`
 - `[coordinate: x, y, z]` `[integer: power, delay]` `[true/false: causes fire, breaks blocks]`
+```%lang%
+feature exploders
+%empty%
+for @e[type=cow]
+    explode ~ ~ ~ 10 0 true true
+```
 
 [Enable Feature](Optional-Features.md)
 : Enables a feature to be used for this project, generating any of the necessary files.
-
+- `feature`
 - `<feature: feature>`
 
 
 ### Category: other {id="commands-other"}
 
 The other commands that don't have a good designation.
-Minecraft Command
-: Places a plain command in the output file, used for when the language lacks a certain feature.
-
-- `<string: command>`
 
 Minecraft Command
 : Places a plain command in the output file, used for when the language lacks a certain feature.
-
-- `<string: command>`
-
-Minecraft Command
-: Places a plain command in the output file, used for when the language lacks a certain feature.
-
+- `mc`
 - `<string: command>`
 
 

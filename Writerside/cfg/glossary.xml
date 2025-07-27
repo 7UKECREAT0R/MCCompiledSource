@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE terms SYSTEM "https://resources.jetbrains.com/writerside/1.0/glossary.dtd">
+<terms>
+    <term name="PATH">System Properties → Advanced → Environment Variables... → System variables → Path (Edit..)</term>
+    <term name="editor">The MCCompiled editor, fully contained in the web.</term>
+    <term name="regolith">Modern tooling manager/compiler for Bedrock Developers</term>
+    <term name="development_packs">com.mojang\development_x_packs\</term>
+    <term name="modulo_extra">"division" includes the modulo % operator</term>
+</terms>

@@ -1,0 +1,15 @@
+<buildprofiles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd">
+    <variables>
+        <primary-color>ruby</primary-color>
+        <custom-favicons>favicon.ico</custom-favicons>
+        <header-logo>icon_transparent.png</header-logo>
+        <product-web-url>https://github.com/7UKECREAT0R/MCCompiled</product-web-url>
+        <download-title>Download</download-title>
+        <download-page>https://github.com/7UKECREAT0R/MCCompiled</download-page>
+        <showDownloadButton>true</showDownloadButton>
+        <noindex-content>false</noindex-content>
+        <web-root>https://lukecreator.dev/mccompiled/docs</web-root>
+    </variables>
+    <build-profile instance="mcc"/>
+</buildprofiles>

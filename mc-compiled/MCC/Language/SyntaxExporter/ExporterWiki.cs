@@ -65,6 +65,7 @@ public class ExporterWiki() : SyntaxExporter("mcc-cheatsheet.md", "wiki", "Wiki 
         {
             AddHeader(3, $"Category: {categoryName}", $"commands-{categoryName}");
             AddLine(categoryDescription);
+            AddLine();
 
             Directive[] directives = Language.DirectivesByCategory(categoryName).ToArray();
             Array.Sort(directives, (a, b) => string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
@@ -85,10 +86,20 @@ public class ExporterWiki() : SyntaxExporter("mcc-cheatsheet.md", "wiki", "Wiki 
                     AddLine(
                         "<format color=\"CadetBlue\">Supports [<format color=\"CadetBlue\">format-strings.</format>](Text-Commands.md#format-strings)</format>");
 
-                AddLine();
-
                 foreach ((string usageString, int indentLevel) in usages)
                     AddBulletPoint(usageString, indentLevel);
+
+                if (!string.IsNullOrEmpty(directive.exampleCode))
+                {
+                    AddLine("```%lang%");
+                    string[] lines = directive.exampleCode.Split('\n');
+                    foreach (string line in lines)
+                        if (string.IsNullOrWhiteSpace(line))
+                            AddLine("%empty%");
+                        else
+                            AddLine(line);
+                    AddLine("```");
+                }
 
                 AddLine();
             }

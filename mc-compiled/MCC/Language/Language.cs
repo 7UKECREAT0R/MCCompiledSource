@@ -171,7 +171,7 @@ public static class Language
     /// </returns>
     public static IEnumerable<Directive> DirectivesByCategory(string category)
     {
-        return directives.Values.Where(d => d.category != null && d.category.Equals(category));
+        return directives.Values.Where(d => d.category != null && d.category.Equals(category)).DistinctBy(d => d.name);
     }
 
     /// <summary>

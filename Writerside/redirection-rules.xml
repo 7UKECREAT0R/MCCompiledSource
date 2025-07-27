@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rules SYSTEM "https://resources.jetbrains.com/writerside/1.0/redirection-rules.dtd">
+<rules>
+    <!-- format is as follows
+    <rule id="<unique id>">
+        <accepts>page.html</accepts>
+    </rule>
+    -->
+    <rule id="5bff5a9d">
+        <description>Created after removal of "Hello, World!" from MCCompiled</description>
+        <accepts>Hello-World.html</accepts>
+    </rule>
+    <rule id="6b5b630c">
+        <description>Created after removal of "Giving Items" from MCCompiled Wiki</description>
+        <accepts>Giving-Items.html</accepts>
+    </rule>
+</rules>

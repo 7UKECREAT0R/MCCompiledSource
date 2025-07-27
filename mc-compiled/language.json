@@ -165,9 +165,10 @@
     "$var": {
       "description": "Set Preprocessor Variable",
       "wiki_link": "Preprocessor.md",
-      "details": "Sets a preprocessor variable to the value(s) provided.",
+      "details": "Sets a preprocessor variable to the value(s) provided. Can be empty.",
       "category": "preprocessor",
       "function": "_var",
+      "example": "$var spawnPosition 427 60 -159\ntp @a $spawnPosition",
       "syntax": [
         "variable:id",
         "values:object[]"
@@ -180,7 +181,7 @@
       "category": "preprocessor",
       "function": "_inc",
       "syntax": [
-        "variable:ppv"
+        "source:ppv"
       ],
       "attributes": [
         "DONT_DECORATE"
@@ -193,7 +194,7 @@
       "category": "preprocessor",
       "function": "_dec",
       "syntax": [
-        "variable:ppv"
+        "source:ppv"
       ],
       "attributes": [
         "DONT_DECORATE"
@@ -205,10 +206,23 @@
       "details": "Adds two preprocessor variables/values together, changing only the first one. A += B",
       "category": "preprocessor",
       "function": "_add",
-      "syntax": [
-        "variable:ppv",
-        "values:object[1..]"
-      ],
+      "syntax": {
+        "source": {
+          "patterns": [
+            "source:ppv"
+          ]
+        },
+        "values": {
+          "patterns": [
+            [
+              "values:object[1..]"
+            ],
+            [
+              "other:ppv"
+            ]
+          ]
+        }
+      },
       "attributes": [
         "DONT_DECORATE"
       ]
@@ -219,10 +233,23 @@
       "details": "Subtracts two preprocessor variables/values from each other, changing only the first one. A -= B",
       "category": "preprocessor",
       "function": "_sub",
-      "syntax": [
-        "variable:ppv",
-        "values:object[1..]"
-      ],
+      "syntax": {
+        "source": {
+          "patterns": [
+            "source:ppv"
+          ]
+        },
+        "values": {
+          "patterns": [
+            [
+              "values:object[1..]"
+            ],
+            [
+              "other:ppv"
+            ]
+          ]
+        }
+      },
       "attributes": [
         "DONT_DECORATE"
       ]
@@ -233,10 +260,23 @@
       "details": "Multiplies two preprocessor variables/values together, changing only the first one. A *= B",
       "category": "preprocessor",
       "function": "_mul",
-      "syntax": [
-        "variable:ppv",
-        "values:object[1..]"
-      ],
+      "syntax": {
+        "source": {
+          "patterns": [
+            "source:ppv"
+          ]
+        },
+        "values": {
+          "patterns": [
+            [
+              "values:object[1..]"
+            ],
+            [
+              "other:ppv"
+            ]
+          ]
+        }
+      },
       "attributes": [
         "DONT_DECORATE"
       ]
@@ -247,10 +287,23 @@
       "details": "Divides two preprocessor variables/values from each other, changing only the first one. A /= B",
       "category": "preprocessor",
       "function": "_div",
-      "syntax": [
-        "variable:ppv",
-        "values:object[1..]"
-      ],
+      "syntax": {
+        "source": {
+          "patterns": [
+            "source:ppv"
+          ]
+        },
+        "values": {
+          "patterns": [
+            [
+              "values:object[1..]"
+            ],
+            [
+              "other:ppv"
+            ]
+          ]
+        }
+      },
       "attributes": [
         "DONT_DECORATE"
       ]
@@ -261,10 +314,23 @@
       "details": "Divides two preprocessor variables/values from each other, setting only the first one to the remainder of the operation. A %= B",
       "category": "preprocessor",
       "function": "_mod",
-      "syntax": [
-        "variable:ppv",
-        "values:object[1..]"
-      ],
+      "syntax": {
+        "source": {
+          "patterns": [
+            "source:ppv"
+          ]
+        },
+        "values": {
+          "patterns": [
+            [
+              "values:object[1..]"
+            ],
+            [
+              "other:ppv"
+            ]
+          ]
+        }
+      },
       "attributes": [
         "DONT_DECORATE"
       ]
@@ -275,10 +341,23 @@
       "details": "Exponentiates two preprocessor variables/values with each other, changing only the first one. A = A^B",
       "category": "preprocessor",
       "function": "_pow",
-      "syntax": [
-        "variable:ppv",
-        "values:object[1..]"
-      ],
+      "syntax": {
+        "source": {
+          "patterns": [
+            "source:ppv"
+          ]
+        },
+        "values": {
+          "patterns": [
+            [
+              "values:object[1..]"
+            ],
+            [
+              "other:ppv"
+            ]
+          ]
+        }
+      },
       "attributes": [
         "DONT_DECORATE"
       ]
@@ -306,13 +385,13 @@
       "syntax": {
         "to_modify": {
           "patterns": [
-            "array:ppv"
+            "source:ppv"
           ]
         },
         "values_to_append": {
           "patterns": [
             [
-              "items:object[]"
+              "values to append:object[1..]"
             ],
             [
               "other:ppv"
@@ -333,13 +412,13 @@
       "syntax": {
         "to_modify": {
           "patterns": [
-            "array:ppv"
+            "source:ppv"
           ]
         },
-        "values_to_append": {
+        "values_to_prepend": {
           "patterns": [
             [
-              "items:object[]"
+              "values to prepend:object[1..]"
             ],
             [
               "other:ppv"
@@ -376,10 +455,10 @@
         "b": {
           "patterns": [
             [
-              "a:object"
+              "b:object"
             ],
             [
-              "a:ppv"
+              "b:ppv"
             ]
           ]
         },
@@ -413,6 +492,7 @@
       "details": "Asserts that the input comparison is true, and throws a compiler error if not. Allows a custom error message.",
       "category": "debug",
       "function": "_assert",
+      "example": "// Start a new cutscene with the given rotation.\n$macro cutscene.start.withRotation x, y, z, ry, rx {\n    $assert _inCutscene == false \"Already in a cutscene.\"\n    $var _inCutscene true\n    // ...\n}",
       "syntax": {
         "a": {
           "patterns": [
@@ -432,10 +512,10 @@
         "b": {
           "patterns": [
             [
-              "a:object"
+              "b:object"
             ],
             [
-              "a:ppv"
+              "b:ppv"
             ]
           ]
         },
@@ -495,6 +575,7 @@
       "details": "If a code-block follows this directive, it is treated as a definition. Arguments are passed in as preprocessor variables. If no code-block follows this call, it will attempt to run the macro with any inputs parameters copied to their respective preprocessor variables.",
       "category": "preprocessor",
       "function": "_macro",
+      "example": "$macro setQuestDisplay text {\n    $inc questTextIndex\n    $append questTexts $text\n    _currentQuestDisplay = $questTextIndex\n}\n$macro clearQuestDisplay {\n    _currentQuestDisplay = 0\n}\n\n$macro setQuestDisplay \"Return to the village to find out what that sound was.\"",
       "syntax": {
         "call_or_define": {
           "description": "Two variants of this directive, chosen mainly by whether it ends with a code block or not.",
@@ -525,9 +606,10 @@
     "$include": {
       "description": "Include File",
       "wiki_link": "Including-Other-Files.md",
-      "details": "Places the contents of the given file in replacement for this statement. Not intended for production use yet.",
+      "details": "Places the contents of the given file in replacement for this statement.",
       "category": "preprocessor",
       "function": "_include",
+      "example": "$include \"libraries/effects.mcc\"",
       "syntax": [
         "file:string"
       ],
@@ -722,14 +804,14 @@
               "keyword": "ascending",
               "description": "Sort variables starting with the lowest first.",
               "patterns": [
-                "variable:id"
+                "variable:ppv"
               ]
             },
             "descending": {
               "keyword": "descending",
               "description": "Sort variables starting with the highest first.",
               "patterns": [
-                "variable:id"
+                "variable:ppv"
               ]
             }
           }
@@ -746,7 +828,7 @@
       "category": "preprocessor",
       "function": "_reverse",
       "syntax": [
-        "variable:id"
+        "variable:ppv"
       ],
       "attributes": [
         "DONT_DECORATE"
@@ -759,7 +841,7 @@
       "category": "preprocessor",
       "function": "_unique",
       "syntax": [
-        "variable:id"
+        "variable:ppv"
       ],
       "attributes": [
         "DONT_DECORATE"
@@ -774,7 +856,7 @@
         "object_to_iterate": {
           "patterns": [
             [
-              "variable:id"
+              "variable:ppv"
             ],
             [
               "json array or object:json"
@@ -836,6 +918,7 @@
       "details": "Load a JSON file (if not previously loaded) and retrieve a value from it, storing said value in a preprocessor variable.",
       "category": "preprocessor",
       "function": "_json",
+      "example": "$json \"mansions.json\" mansions\n\n$iterate $mansions mansion {\n    // ...\n}",
       "syntax": {
         "source": {
           "description": "The source of the JSON. Either a file name, or an existing JSON object or array.",
@@ -870,6 +953,7 @@
       "details": "Calls a function by name and passes in the given parameters. Because this is a preprocessor operation, it has the same error handling as a normal function call.",
       "category": "preprocessor",
       "function": "_call",
+      "example": "function killAllCows { kill @e[type=cow] }\nfunction killAllRabbits { kill @e[type=rabbit] }\nfunction killAllPigs { kill @e[type=pig] }\n\n$var animals \"Cows\" \"Rabbits\" \"Pigs\"\n\nfunction killAllAnimals {\n    $iterate animals animal {\n        $call \"killAll$animal\"\n    }\n}",
       "syntax": [
         "function name:string",
         "parameters:*[]"
@@ -930,7 +1014,7 @@
     "lang": {
       "description": "Set Active Language",
       "wiki_link": "Localization.md",
-      "details": "Sets the active lang file (examples: en_US, pt_BR). Once set, all text will automatically be localized into that lang file; including format-strings.",
+      "details": "Sets the active lang file (examples: en_US, pt_BR). Once set, all text in the project will automatically be localized into that lang file.",
       "category": "text",
       "syntax": [
         "locale:id"
@@ -940,10 +1024,11 @@
       ]
     },
     "define": {
-      "description": "Define Variable",
+      "description": "Define Value",
       "wiki_link": "Values.md#defining-values",
-      "details": "Defines a variable with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
+      "details": "Defines a value with a name and type, defaulting to int if unspecified. Can be assigned a value directly after defining.",
       "category": "values",
+      "example": "define int score = 0\ndefine global bool isGameRunning\ndefine global time timeLeft",
       "syntax": {
         "start_attributes": {
           "optional": true,
@@ -1003,12 +1088,12 @@
       ]
     },
     "init": {
-      "description": "Initialize Variable",
+      "description": "Initialize Value",
       "wiki_link": "Values.md#initializing-values",
       "aliases": [
         "initialize"
       ],
-      "details": "Ensures this variable has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`",
+      "details": "Ensures this value has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`",
       "category": "values",
       "syntax": [
         "value:value"
@@ -1023,6 +1108,7 @@
       "details": "Performs a comparison, only running the proceeding statement/code-block if the comparisons(s) are true. Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'",
       "category": "logic",
       "function": "ifStatement",
+      "example": "if cowsKilled > 10 and not any @e[type=cow,r=100] {\n    print \"Cow eradication mission completed!\"\n}",
       "syntax": {
         "comparison": {
           "children": {
@@ -1151,6 +1237,7 @@
       "description": "Repeat N Times",
       "details": "Repeats the proceeding statement/code-block the given number of times. This command always runs at runtime.",
       "category": "logic",
+      "example": "repeat 20 i {\n    print \"iteration {i}\"\n}",
       "syntax": {
         "repetitions_count": {
           "patterns": [
@@ -1181,6 +1268,7 @@
       "wiki_link": "Testing.md#writing-a-test",
       "details": "Asserts that the given condition evaluates to true, at runtime. If the condition evaluates to false, the code is halted and info is displayed to the executing player(s).",
       "category": "debug",
+      "example": "function quest.showActionbar {\n    assert questStarted == true\n    \n    // ...\n}",
       "syntax_ref": "if.comparison"
     },
     "throw": {
@@ -1189,6 +1277,7 @@
       "details": "Throws an error, displaying it to the executing player(s). The code is halted immediately, so handle cleanup before calling throw.",
       "category": "debug",
       "function": "throwError",
+      "example": "function quest.showActionbar {\n    if not questStarted\n        throw \"quest.showActionbar was called before the main quest was started.\"\n\n    // ...\n}",
       "syntax": [
         "error message:string"
       ],
@@ -1201,6 +1290,7 @@
       "wiki_link": "Giving-Items.md",
       "details": "Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.",
       "category": "items",
+      "example": "give @s netherite_sword 1 keep\n    enchant: sharpness 5\n    enchant: unbreaking 3\n    name: \"Hyper Sword\"\n    lore: \"A legendary sword.\"",
       "syntax": {
         "basic_info": {
           "patterns": [
@@ -1832,7 +1922,7 @@
     },
     "effect": {
       "description": "Give Effect to Entity",
-      "details": "Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using 'effect \\<selector\\> clear'.",
+      "details": "Gives the given entities a potion effect. Time and amplifier can be specified to further customize the potion effect. All potion effects can be cleared using `effect <selector> clear`.",
       "category": "entities",
       "syntax": {
         "target": {
@@ -1981,6 +2071,7 @@
       "details": "Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.",
       "category": "features",
       "features": 4,
+      "example": "feature exploders\n\nfor @e[type=cow]\n    explode ~ ~ ~ 10 0 true true",
       "syntax": [
         "x:coordinate?",
         "y:coordinate?",
@@ -2011,6 +2102,7 @@
       ],
       "details": "Defines a function. Must be followed by a code-block. Parameters must have types, optionally having default values. Function calls look like this: `functionName(parameters)`",
       "category": "logic",
+      "example": "// Bursts XP orbs around every player.\nfunction export xpBurst {\n    for @a {\n        $repeat 20\n            summon xp_orb ~ ~ ~\n    }\n}",
       "syntax": {
         "start_attributes": {
           "optional": true,

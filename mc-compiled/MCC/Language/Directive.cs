@@ -43,6 +43,11 @@ public class Directive
     ///     A detailed description of what the directive does.
     /// </summary>
     public readonly string details;
+    /// <summary>
+    ///     If present, a snippet of example code which shows how this directive might be used in practice.
+    /// </summary>
+    [CanBeNull]
+    public readonly string exampleCode;
 
     /// <summary>
     ///     The C# implementation of this directive.
@@ -82,6 +87,7 @@ public class Directive
         DirectiveImpl implementation,
         string name,
         [CanBeNull] string wikiLink,
+        [CanBeNull] string exampleCode,
         [NotNull] SyntaxGroup syntax)
     {
         this.aliases = aliases;
@@ -92,6 +98,7 @@ public class Directive
         this.implementation = implementation;
         this.name = name;
         this.wikiLink = wikiLink;
+        this.exampleCode = exampleCode;
         this._syntax = syntax;
 
         if (CommandEnumParser.TryParse(name, out RecognizedEnumValue result))
@@ -131,7 +138,11 @@ public class Directive
 
     internal (string line, int indentLevel)[] BuildUsageGuide()
     {
-        List<(string line, int indentLevel)> lines = [];
+        List<(string line, int indentLevel)> lines =
+        [
+            ($"`{this.name}`", 0)
+        ];
+
         this._syntax.BuildUsageGuide(0, lines);
 
         return lines.ToArray();
@@ -171,6 +182,7 @@ public class Directive
                          throw new ArgumentException($"Directive {name} must include `details`.");
         string functionNameOverride = json.Value<string>("function");
         string wikiLink = json.Value<string>("wiki_link");
+        string exampleCode = json.Value<string>("example");
 
         DirectiveImpl implementation = GetImplementation(functionNameOverride ?? name);
         if (implementation == null)
@@ -201,7 +213,7 @@ public class Directive
         }
 
         return new Directive(aliases, attributes, category, description,
-            details, implementation, name, wikiLink, syntax);
+            details, implementation, name, wikiLink, exampleCode, syntax);
     }
 
     /// <summary>

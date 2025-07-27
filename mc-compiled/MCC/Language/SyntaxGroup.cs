@@ -201,11 +201,11 @@ public class SyntaxGroup : ICloneable
                 modifiers.Add("one of");
             if (this.behavior == SyntaxGroupBehavior.Sequential)
                 modifiers.Add("in order");
-        }
 
-        string modifiersString = $"{string.Join(", ", modifiers)}:";
-        lines.Add((modifiersString, baseIndentLevel));
-        baseIndentLevel += 1;
+            string modifiersString = $"{string.Join(", ", modifiers)}:";
+            lines.Add((modifiersString, baseIndentLevel));
+            baseIndentLevel += 1;
+        }
 
         // now append all the children
         foreach (SyntaxGroup child in this.children)
