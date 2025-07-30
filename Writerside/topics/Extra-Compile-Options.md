@@ -13,7 +13,7 @@ are emitted and how?" The various extra compiler parameters are briefly shown he
     <def title="--decorate (-dc)">
         <a href="#compile_option_decorate">Emits files with "decoration"; extra useful information that helps make the compiled code much more human-readable.</a>
     </def>
-    <def title="--export_all (-ea)">
+    <def title="--exportall (-ea)">
         <a href="#compile_option_export_all">Exports all functions, regardless if they are used or not.</a>
     </def>
     <def title="--nopause (-np)">
@@ -22,7 +22,7 @@ are emitted and how?" The various extra compiler parameters are briefly shown he
     <def title="--variable (-ppv)">
         <a href="#compile_option_variable">Accepts a [name] and [value]. Sets a preprocessor variable.</a>
     </def>
-    <def title="--clear_cache (-cc)">
+    <def title="--clearcache (-cc)">
         <a href="#compile_option_clear_cache">Clears MCCompiled's temporary cache.</a>
     </def>
     <def title="--server">
@@ -31,7 +31,7 @@ are emitted and how?" The various extra compiler parameters are briefly shown he
     <def title="--search">
         <a href="#compile_option_search">Searches for and compiles all files individually in the current and children directories.</a>
     </def>
-    <def title="--ignore_manifests">
+    <def title="--ignoremanifests">
         <a href="#compile_option_ignore_manifests">Disables the writing of manifest files.</a>
     </def>
 </deflist>
@@ -90,7 +90,7 @@ comments about what they are checking for, and overall, the entire project is an
 
 ## Export All {id="compile_option_export_all"}
 <deflist type="medium" sorted="none">
-    <def title="--export_all (-ea)">
+    <def title="--exportall (-ea)">
         Exports all functions, regardless if they are used or not.
     </def>
 </deflist>
@@ -135,7 +135,7 @@ or suffixed integers. Here is a list of supported types as of MCCompiled 1.16, i
 
 ## Clear Cache {id="compile_option_clear_cache"}
 <deflist type="medium" sorted="none">
-    <def title="--clear_cache (-cc)">
+    <def title="--clearcache (-cc)">
         Clears MCCompiled's temporary cache.
     </def>
 </deflist>

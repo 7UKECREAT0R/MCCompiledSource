@@ -1,13 +1,15 @@
 # Built-In Functions
 
 <primary-label ref="runtime"/>
+<secondary-label ref="s_runtime"/>
+<secondary-label ref="s_compile_time"/>
 
 <link-summary>
 Pre-implemented functions for compile-time, runtime, or both, including utility, math, and rounding functions.
 </link-summary>
 
 MCCompiled ships with a list of built-in functions which are already implemented for your use. Functions can either
-support <format color='lightskyblue'>compile-time</format>, <format color='hotpink'>runtime</format>, or both.
+support <format color='lightskyblue'>compile-time</format>, <format color='salmon'>runtime</format>, or both.
 
 When a function supports runtime, it follows the [same rules as functions](Functions.md#exports), as in, it is only
 included in your project's output when it's used somewhere in your code.
@@ -46,22 +48,44 @@ Fetches the character at a coordinate in <code>glyph_E1.png</code> and returns i
 </def>
 
 <def title="Minimum">
-<code>min(a, b)</code> <format color='lightskyblue'>compile-time</format>, <format color='hotpink'>runtime</format><br />
+<code>min(a, b)</code> <format color='lightskyblue'>compile-time</format>, <format color='salmon'>runtime</format><br />
 Returns the smaller of the two inputs.
 </def>
 
 <def title="Maximum">
-<code>max(a, b)</code> <format color='lightskyblue'>compile-time</format>, <format color='hotpink'>runtime</format><br />
+<code>max(a, b)</code> <format color='lightskyblue'>compile-time</format>, <format color='salmon'>runtime</format><br />
 Returns the larger of the two inputs.
 </def>
 
 <def title="Count Entities">
-<code>countEntities(selector)</code> <format color='hotpink'>runtime</format><br />
+<code>countEntities(selector)</code> <format color='salmon'>runtime</format><br />
 Returns the number of entities which match the input selector as an integer.
 <code-block lang="%lang%">
 define int players
 %empty%
 players = countEntities(@a)
+</code-block>
+</def>
+
+<def title="Parse Integer">
+<code>parseInt(string)</code> <format color='lightskyblue'>compile-time</format><br />
+Parses an integer from the given string. This one only works with whole, integral numbers; anything else will throw an error.
+<code-block lang="%lang%">
+define int example = parseInt("42")
+</code-block>
+</def>
+
+<def title="Parse Number">
+<code>parseNumber(string)</code> <format color='lightskyblue'>compile-time</format><br />
+Parses a number from the given string. Works with any number input.
+</def>
+
+<def title="Parse Selector">
+<code>parseSelector(string)</code> <format color='lightskyblue'>compile-time</format><br />
+Parses a selector from the given string.
+<code-block lang="%lang%">
+// same as `kill @e[type=cow]`
+kill parseSelector("@e[type=cow]")
 </code-block>
 </def>
 
@@ -72,7 +96,7 @@ These functions work with numbers and computation beyond what the [operators](Va
 
 <deflist>
 <def title="Random">
-<code>random(range)</code> <format color='lightskyblue'>compile-time</format>, <format color='hotpink'>runtime</format><br />
+<code>random(range)</code> <format color='salmon'>runtime</format><br />
 Returns a random number. Supports input of either a single value or a range.
 When a range is specified, the minimum and maximum values will be used (inclusive).
 When a single value is specified, the range (0..n-1) is used.
@@ -116,17 +140,17 @@ These functions focus on decimal numbers; specifically, rounding them to integer
 
 <deflist>
 <def title="Round">
-<code>round(n)</code> <format color='lightskyblue'>compile-time</format>, <format color='hotpink'>runtime</format><br />
+<code>round(n)</code> <format color='lightskyblue'>compile-time</format>, <format color='salmon'>runtime</format><br />
 Rounds the given number to the nearest integer. If the number is a midpoint (e.g., 1.5), the number is rounded up.
 </def>
 
 <def title="Floor">
-<code>floor(n)</code> <format color='lightskyblue'>compile-time</format>, <format color='hotpink'>runtime</format><br />
+<code>floor(n)</code> <format color='lightskyblue'>compile-time</format>, <format color='salmon'>runtime</format><br />
 Rounds the given number to the nearest integer that is less or equal to it. Generally referred to as "rounding down."
 </def>
 
 <def title="Ceiling">
-<code>ceiling(n)</code> <format color='lightskyblue'>compile-time</format>, <format color='hotpink'>runtime</format><br />
+<code>ceiling(n)</code> <format color='lightskyblue'>compile-time</format>, <format color='salmon'>runtime</format><br />
 Rounds the given number to the nearest integer that is greater or equal to it. Generally referred to as "rounding up."
 </def>
 </deflist>

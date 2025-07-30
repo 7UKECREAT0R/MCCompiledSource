@@ -9,9 +9,9 @@ namespace mc_compiled.MCC.Compiler;
 
 public sealed class StatementDirective : Statement, IExecutionSetPart
 {
-    public readonly Language.Directive directive;
+    public readonly Directive directive;
 
-    public StatementDirective(Language.Directive directive, Token[] tokens) : base(tokens, true)
+    public StatementDirective(Directive directive, Token[] tokens) : base(tokens, true)
     {
         this.directive = directive;
         this.DecorateInSource = !directive.IsPreprocessor;
@@ -64,7 +64,7 @@ public sealed class StatementComment : Statement
                     return; // this is a documentation string.
         }
 
-        string str = runningExecutor.ResolveString(this.comment);
+        string str = runningExecutor.ResolveStringV2(this.comment);
 
         // find whether to add a newline or not
         CommandFile file = runningExecutor.CurrentFile;
@@ -74,7 +74,7 @@ public sealed class StatementComment : Statement
         {
             // get last line
             string lastLine = file.commands[length - 1];
-            if (!lastLine.StartsWith("#")) // create newline if the last line was not a comment
+            if (!lastLine.StartsWith('#')) // create newline if the last line was not a comment
                 file.Add("");
         }
 

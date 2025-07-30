@@ -554,7 +554,10 @@
             "indicator:id"
           ]
         }
-      }
+      },
+      "attributes": [
+        "MAY_EXPAND"
+      ]
     },
     "$log": {
       "description": "Log to Console",
@@ -600,7 +603,8 @@
       "attributes": [
         "DONT_DEREFERENCE",
         "DONT_DECORATE",
-        "DOCUMENTABLE"
+        "DOCUMENTABLE",
+        "MAY_EXPAND"
       ]
     },
     "$include": {
@@ -614,7 +618,8 @@
         "file:string"
       ],
       "attributes": [
-        "DONT_DECORATE"
+        "DONT_DECORATE",
+        "MAY_EXPAND"
       ]
     },
     "$strfriendly": {

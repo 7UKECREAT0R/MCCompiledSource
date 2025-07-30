@@ -8,4 +8,10 @@
     <primary-label color="blue" id="compile_time" short-name="C" name="Compile-Time">
         Compile-Time; things that happen when you compile the code, but stay the same while playing.
     </primary-label>
+    <secondary-label color="red" id="s_runtime" name="Runtime">
+        Runtime; things that happen in-game while you're playing.
+    </secondary-label>
+    <secondary-label color="blue" id="s_compile_time" name="Compile-Time">
+        Compile-Time; things that happen when you compile the code, but stay the same while playing.
+    </secondary-label>
 </labels>
