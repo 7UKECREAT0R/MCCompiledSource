@@ -56,7 +56,7 @@ public partial class Executor
     /// </summary>
     public const string FAKE_PLAYER_NAME = "_";
 
-    private static readonly Regex PPV_FMT = PPVFormatRegex();
+    private static readonly Regex PPV_FMT = new(@"\\*\$[\w\d]+");
 
     public static readonly Regex FSTRING_SELECTOR = FStringSelectorRegex();
     public static readonly Regex FSTRING_VARIABLE = FStringVariableRegex();
@@ -391,7 +391,7 @@ public partial class Executor
                     }
 
                     // default representation
-                    string stringRepresentation = ResolveString(token.ToString());
+                    string stringRepresentation = ResolveStringV2(token.ToString());
                     if (!string.IsNullOrEmpty(stringRepresentation))
                         terms.AddRange(
                             new JSONText(stringRepresentation).Localize(this, langIdentifier, forExceptions));
@@ -409,7 +409,7 @@ public partial class Executor
         // dumps the contents of the text buffer into a string and adds it to the terms as text.
         void DumpTextBuffer()
         {
-            string bufferContents = ResolveString(buffer.ToString());
+            string bufferContents = ResolveStringV2(buffer.ToString());
 
             if (string.IsNullOrEmpty(bufferContents))
                 return;
@@ -903,7 +903,7 @@ public partial class Executor
         if (last is StatementComment comment)
         {
             hadDocumentation = true;
-            return ResolveString(comment.comment);
+            return ResolveStringV2(comment.comment);
         }
 
         hadDocumentation = false;
@@ -1664,6 +1664,107 @@ public partial class Executor
         }
     }
     /// <summary>
+    ///     Resolve all unescaped preprocessor variables in a string.
+    /// </summary>
+    /// <param name="str">The string to resolve.</param>
+    /// <returns>The resolved string. Will likely be completely unchanged.</returns>
+    /// <remarks>
+    ///     This is a rewrite of the original, regex-based ResolveString method.
+    ///     This one is much faster, uses much less memory, and overall is more reliable.
+    /// </remarks>
+    public string ResolveStringV2(string str)
+    {
+        ReadOnlySpan<char> chars = str.AsSpan();
+        if (!chars.Contains('$'))
+            return str;
+        var ppvNameTemp = new StringBuilder();
+        var output = new StringBuilder();
+        int count = chars.Length;
+        int i = 0;
+        int escapeCharacters = 0;
+
+        while (i < count)
+        {
+            char c = chars[i++];
+
+            if (c == '$')
+            {
+                if (escapeCharacters % 2 == 1)
+                {
+                    output.Append('\\', escapeCharacters / 2);
+                    escapeCharacters = 0;
+                    output.Append('$');
+                    continue;
+                }
+
+                // fill ppvNameTemp with the most characters possible (greedy match for ppv name)
+                ppvNameTemp.Clear();
+                while (i < count)
+                {
+                    char c2 = chars[i];
+                    if (c2 == '_' || char.IsAsciiLetterOrDigit(c2))
+                    {
+                        i++;
+                        ppvNameTemp.Append(c2);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // greedy match name of the longest existing PPV
+                string ppvName = FindLongestExistingPPV(ppvNameTemp.ToString(), out int shrunkSize);
+
+                if (ppvName == null || !TryGetPPV(ppvName, out PreprocessorVariable values))
+                {
+                    // abort this dereference
+                    output.Append('\\', escapeCharacters);
+                    output.Append('$');
+                    output.Append(ppvNameTemp);
+                    escapeCharacters = 0;
+                    continue;
+                }
+
+                i -= shrunkSize;
+                string insertText = values.Length > 1 ? string.Join(" ", values) :
+                    values.Length == 1 ? (string) values[0].ToString() : "";
+
+                output.Append('\\', escapeCharacters / 2);
+                output.Append(insertText);
+            }
+            else if (c != '\\')
+            {
+                output.Append(c);
+                escapeCharacters = 0;
+            }
+            else
+            {
+                escapeCharacters++;
+            }
+        }
+
+        return output.ToString();
+
+        string FindLongestExistingPPV(string candidateName, out int shrunkSize)
+        {
+            shrunkSize = 0;
+            if (TryGetPPV(candidateName, out _))
+                return candidateName;
+
+            for (int j = candidateName.Length - 1; j > 1; j--)
+            {
+                shrunkSize++;
+                string substring = candidateName[..j];
+                if (TryGetPPV(substring, out _))
+                    return substring;
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
     ///     Resolve an unresolved PPV's literals. Returns an array of all the tokens contained inside.
     /// </summary>
     /// <param name="unresolved">The unresolved PPV.</param>
@@ -1687,23 +1788,21 @@ public partial class Executor
             }
 
             TokenLiteral wrapped = PreprocessorUtils.DynamicToLiteral(value, line);
-
-            if (wrapped == null)
-                throw new StatementException(thrower,
-                    $"Found unexpected value in PPV '{unresolved.word}': {value.ToString()}");
-
-            literals[i] = wrapped;
+            literals[i] = wrapped ?? throw new StatementException(thrower,
+                $"Found unexpected value in PPV '{unresolved.word}': {value.ToString()}");
         }
 
         return literals;
     }
 
     public void PushFile(CommandFile file) { this.currentFiles.Push(file); }
+
     public void PopFileDiscard()
     {
         this.unreachableCode = -1;
         _ = this.currentFiles.Pop();
     }
+
     public void PopFile()
     {
         this.unreachableCode = -1;
@@ -1748,6 +1847,7 @@ public partial class Executor
 
         this.emission.AddFile(file);
     }
+
     /// <summary>
     ///     Pops the first item off the stack that matches the given predicate, starting from the top.
     /// </summary>
@@ -1807,6 +1907,7 @@ public partial class Executor
 
         this.emission.AddFile(file);
     }
+
     private void FinalizeInitFile()
     {
         if (this.TestsFile != null)
@@ -1832,6 +1933,7 @@ public partial class Executor
 
         this.emission.AddFile(this.InitFile);
     }
+
     /// <summary>
     ///     Construct the next available name using a sequential number to distinguish it, like input0, input1, input2, etc...
     /// </summary>
@@ -1849,6 +1951,7 @@ public partial class Executor
 
         return friendlyName + (index + (oneIndexed ? 1 : 0));
     }
+
     /// <summary>
     ///     Construct the next available command file (in the generated folder) using a sequential number to distinguish it,
     ///     like input0, input1, input2, etc...
@@ -1861,6 +1964,7 @@ public partial class Executor
         string name = GetNextGeneratedName(friendlyName, true, oneIndexed);
         return new CommandFile(true, name, MCC_GENERATED_FOLDER);
     }
+
     public static void ResetGeneratedNames() { generatedNames.Clear(); }
 
     /// <summary>
@@ -1877,10 +1981,12 @@ public partial class Executor
         GC.Collect();
     }
 
-    [GeneratedRegex(@"\\*\$[\w\d]+")]
-    private static partial Regex PPVFormatRegex();
     [GeneratedRegex(_FSTRING_SELECTOR)]
     private static partial Regex FStringSelectorRegex();
     [GeneratedRegex(_FSTRING_VARIABLE)]
     private static partial Regex FStringVariableRegex();
+
+#pragma warning disable SYSLIB1045
+
+#pragma warning restore SYSLIB1045
 }

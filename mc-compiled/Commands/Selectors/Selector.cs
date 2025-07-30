@@ -354,7 +354,7 @@ public class UnresolvedSelector
     /// <returns></returns>
     public Selector Resolve(Executor executor)
     {
-        string resolvedString = executor.ResolveString(this.remainderString);
+        string resolvedString = executor.ResolveStringV2(this.remainderString);
         return Selector.Parse(this.core, resolvedString);
     }
 }

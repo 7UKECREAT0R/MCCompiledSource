@@ -100,7 +100,7 @@ public abstract class Statement : TokenFeeder, ICloneable
 
             // resolve the token.
             if (resolveStrings && unresolved is TokenStringLiteral literal)
-                allResolved.Add(new TokenStringLiteral(activeExecutor.ResolveString(literal), line));
+                allResolved.Add(new TokenStringLiteral(activeExecutor.ResolveStringV2(literal), line));
             else if (unresolved is TokenUnresolvedSelector unresolvedSelector)
                 allResolved.Add(unresolvedSelector.Resolve(activeExecutor).Validate(this));
             else if (unresolved is TokenSelectorLiteral resolvedSelector)
