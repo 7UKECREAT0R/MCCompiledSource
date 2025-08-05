@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using mc_compiled.Commands.Selectors;
 using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.MCC.Compiler;
@@ -44,8 +45,68 @@ public abstract class TokenIndexer : Token
     public abstract bool ActuallyIndexes();
 
     /// <summary>
+    ///     Creates an instance of <see cref="TokenIndexer" /> based on the input string,
+    ///     interpreting the string to determine the appropriate derived type.
+    /// </summary>
+    /// <param name="input">
+    ///     The string representing the content to be parsed into a <see cref="TokenIndexer" />.
+    ///     This value should not be null, empty, or whitespace.
+    ///     Valid patterns include:
+    ///     <ul>
+    ///         <li>"*" (creates a <see cref="TokenIndexerAsterisk" />)</li>
+    ///         <li>Integer values (creates a <see cref="TokenIndexerInteger" />)</li>
+    ///         <li>Ranges in a valid format (creates a <see cref="TokenIndexerRange" />)</li>
+    ///         <li>
+    ///             Quoted strings (e.g., enclosed in ' or " and matching both ends; creates a
+    ///             <see cref="TokenIndexerString" />)
+    ///         </li>
+    ///         <li>Selector strings starting with "@" (creates a <see cref="TokenIndexerSelector" />).</li>
+    ///         <li>Any other text results in <c>null</c>.</li>
+    ///     </ul>
+    /// </param>
+    /// <param name="lineNumber">
+    ///     The line number associated with the source of the provided input for debugging or tracking purposes.
+    ///     Defaults to -1 if not provided.
+    /// </param>
+    /// <returns>
+    ///     A derived instance of <see cref="TokenIndexer" /> based on the content of the <paramref name="input" /> string:
+    ///     <ul>
+    ///         <li><see cref="TokenIndexerAsterisk" />: If the input is "*".</li>
+    ///         <li><see cref="TokenIndexerInteger" />: If the input is an integer.</li>
+    ///         <li><see cref="TokenIndexerRange" />: If the input is a valid range.</li>
+    ///         <li><see cref="TokenIndexerString" />: If the input is a quoted string.</li>
+    ///         <li><see cref="TokenIndexerSelector" />: If the input represents a valid selector.</li>
+    ///         <li><see cref="TokenIndexerUnknown" />: For inputs that do not match any of the above.</li>
+    ///         <li>Returns <c>null</c> if the input doesn't match any of the above.</li>
+    ///     </ul>
+    /// </returns>
+    public static TokenIndexer CreateIndexerFromString(string input, int lineNumber = -1)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return null;
+        input = input.Trim();
+
+        if (input == "*")
+            return new TokenIndexerAsterisk(lineNumber);
+        if (int.TryParse(input, out int integer))
+            return new TokenIndexerInteger(new TokenIntegerLiteral(integer, IntMultiplier.none, lineNumber),
+                lineNumber);
+        if (Range.TryParse(input, out Range range))
+            return new TokenIndexerRange(new TokenRangeLiteral(range, lineNumber), lineNumber);
+        if ((input[0] == '"' || input[0] == '\'') && input[0] == input[^1])
+        {
+            string text = input.Substring(1, input.Length - 2);
+            return new TokenIndexerString(new TokenStringLiteral(text, lineNumber), lineNumber);
+        }
+
+        if (input[0] == '@' && Selector.TryParse(input, out Selector selector))
+            return new TokenIndexerSelector(new TokenSelectorLiteral(selector, lineNumber), lineNumber);
+
+        return null;
+    }
+    /// <summary>
     ///     Creates an indexer based on the type of token given.
-    ///     Throws a exception if there's no valid indexer for the given token.
+    ///     Throws an exception if there's no valid indexer for the given token.
     /// </summary>
     /// <param name="tokens">The tokens to create the indexer for.</param>
     /// <param name="forExceptions">
