@@ -1600,6 +1600,7 @@ public partial class Executor
     /// </summary>
     /// <param name="str"></param>
     /// <returns></returns>
+    [Obsolete($"{nameof(ResolveString)} is obsolete and not full-featured. Use {nameof(ResolveStringV2)} instead.")]
     public string ResolveString(string str)
     {
         if (this.ppv.Count < 1)
@@ -1670,95 +1671,310 @@ public partial class Executor
     /// <returns>The resolved string. Will likely be completely unchanged.</returns>
     /// <remarks>
     ///     This is a rewrite of the original, regex-based ResolveString method.
-    ///     This one is much faster, uses much less memory, and overall is more reliable.
+    ///     This one is much faster, uses much less memory, supports indexers, and is more reliable overall.
     /// </remarks>
     public string ResolveStringV2(string str)
     {
         ReadOnlySpan<char> chars = str.AsSpan();
-        if (!chars.Contains('$'))
+        if (!chars.Contains('$') && !chars.Contains('['))
             return str;
-        var ppvNameTemp = new StringBuilder();
+        var sb = new StringBuilder();
         var output = new StringBuilder();
-        int count = chars.Length;
-        int i = 0;
-        int escapeCharacters = 0;
 
-        while (i < count)
+        int i = 0;
+        bool previousCharacterWasDeref = false;
+        int previousNumberOfBackslashes = 0;
+
+        // welcome to the world's most ridiculous string-interpolation parser
+        // buckle up and enjoy the ride
+
+        // step over every character and chunk-by-chunk append it to the output StringBuilder
+        // based on whether it resolves to a ppv or not
+        while (i < chars.Length)
         {
             char c = chars[i++];
 
+            if (c == '\\')
+            {
+                previousNumberOfBackslashes++;
+                previousCharacterWasDeref = false;
+                continue;
+            }
+
             if (c == '$')
             {
-                if (escapeCharacters % 2 == 1)
+                if (previousCharacterWasDeref) // this would imply 2 deref characters in a row, which would make `numberOfBackslashes` invalid
                 {
-                    output.Append('\\', escapeCharacters / 2);
-                    escapeCharacters = 0;
                     output.Append('$');
-                    continue;
+                    previousNumberOfBackslashes = 0;
                 }
-
-                // fill ppvNameTemp with the most characters possible (greedy match for ppv name)
-                ppvNameTemp.Clear();
-                while (i < count)
+                else
                 {
-                    char c2 = chars[i];
-                    if (c2 == '_' || char.IsAsciiLetterOrDigit(c2))
-                    {
-                        i++;
-                        ppvNameTemp.Append(c2);
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    previousCharacterWasDeref = true;
                 }
 
-                // greedy match name of the longest existing PPV
-                string ppvName = FindLongestExistingPPV(ppvNameTemp.ToString(), out int shrunkSize);
-
-                if (ppvName == null || !TryGetPPV(ppvName, out PreprocessorVariable values))
-                {
-                    // abort this dereference
-                    output.Append('\\', escapeCharacters);
-                    output.Append('$');
-                    output.Append(ppvNameTemp);
-                    escapeCharacters = 0;
-                    continue;
-                }
-
-                i -= shrunkSize;
-                string insertText = values.Length > 1 ? string.Join(" ", values) :
-                    values.Length == 1 ? (string) values[0].ToString() : "";
-
-                output.Append('\\', escapeCharacters / 2);
-                output.Append(insertText);
+                continue;
             }
-            else if (c != '\\')
+
+            // default behavior for non-word characters
+            if (c != '_' && !char.IsAsciiLetterOrDigit(c))
             {
+                output.Append('\\', previousNumberOfBackslashes);
+                if (previousCharacterWasDeref)
+                    output.Append('$');
                 output.Append(c);
-                escapeCharacters = 0;
+                previousNumberOfBackslashes = 0;
+                previousCharacterWasDeref = false;
+                continue;
+            }
+
+            // word character, let's fetch the longest chunk possible to match as a preprocessor variable
+            sb.Clear();
+            sb.Append(c);
+            bool hasIndexerAtEnd = false;
+            while (i < chars.Length)
+            {
+                char c2 = chars[i];
+                if (c2 == '_' || char.IsAsciiLetterOrDigit(c2))
+                {
+                    sb.Append(c2);
+                    i++;
+                    continue;
+                }
+
+                if (c2 == '[')
+                    hasIndexerAtEnd = true;
+                break;
+            }
+
+            int amountTrimmedFromBeginning; // number of characters trimmed from the end of the area captured by `sb`
+            int amountTrimmedFromEnd; // number of characters trimmed from the end of the area captured by `sb`
+            string ppvName;
+
+            // if the last character was a deref, we're not relying
+            // on there being an indexer '[' to make this dereference valid
+            if (previousCharacterWasDeref)
+            {
+                ppvName = FindLongestExistingPPV(sb.ToString(), true, out amountTrimmedFromEnd);
+                amountTrimmedFromBeginning = 0;
+
+                if (ppvName == null && hasIndexerAtEnd)
+                {
+                    ppvName = FindLongestExistingPPV(sb.ToString(), false, out amountTrimmedFromBeginning);
+                    amountTrimmedFromEnd = 0;
+                }
+            }
+            else if (hasIndexerAtEnd)
+            {
+                ppvName = FindLongestExistingPPV(sb.ToString(), false, out amountTrimmedFromBeginning);
+                amountTrimmedFromEnd = 0;
             }
             else
             {
-                escapeCharacters++;
+                ppvName = null;
+                amountTrimmedFromBeginning = 0;
+                amountTrimmedFromEnd = 0;
             }
+
+            if (ppvName == null)
+            {
+                output.Append('\\', previousNumberOfBackslashes);
+                if (previousCharacterWasDeref)
+                    output.Append('$');
+                output.Append(sb);
+                previousNumberOfBackslashes = 0;
+                previousCharacterWasDeref = false;
+                continue;
+            }
+
+            if (amountTrimmedFromBeginning > 0)
+            {
+                // disregard the preceding dereference operator and backslashes
+                // since the resolved PPV name doesn't extend back to it.
+                output.Append('\\', previousNumberOfBackslashes);
+                if (previousCharacterWasDeref)
+                    output.Append('$');
+                output.Append(sb, 0, amountTrimmedFromBeginning);
+                previousNumberOfBackslashes = 0;
+                previousCharacterWasDeref = false;
+            }
+
+            if (amountTrimmedFromEnd > 0)
+            {
+                // disregard the proceeding indexer operator
+                // since the resolved PPV name doesn't extend up to it.
+                i -= amountTrimmedFromEnd;
+                hasIndexerAtEnd = false;
+            }
+
+            // handle the backslashes, if any.
+            if (previousNumberOfBackslashes > 0)
+            {
+                output.Append('\\', previousNumberOfBackslashes / 2);
+                if (previousNumberOfBackslashes % 2 == 1)
+                {
+                    if (previousCharacterWasDeref)
+                        output.Append('$');
+                    output.Append(sb, amountTrimmedFromBeginning,
+                        sb.Length - amountTrimmedFromBeginning - amountTrimmedFromEnd);
+                    previousNumberOfBackslashes = 0;
+                    previousCharacterWasDeref = false;
+                    continue;
+                }
+            }
+
+            // great, we have a valid PPV name now; fetch the values
+            if (!TryGetPPV(ppvName, out PreprocessorVariable values))
+                throw new Exception("Impossible case"); // shouldn't happen because of FindLongestExistingPPV
+            string[] valuesFinal;
+
+            // indexer time, let's fetch all the raw inner values
+            if (hasIndexerAtEnd && values.Length > 0)
+            {
+                List<string> indexerValuesRaw = [];
+                sb.Clear();
+                int i2 = i;
+                int bracketDepth = -1;
+                while (i2 < chars.Length)
+                {
+                    char c2 = chars[i2++];
+                    if (c2 == '[')
+                    {
+                        bracketDepth++;
+                        if (bracketDepth > 0)
+                            sb.Append('[');
+                    }
+                    else if (c2 == ']')
+                    {
+                        bracketDepth--;
+                        if (bracketDepth >= 0)
+                        {
+                            sb.Append(']');
+                        }
+                        else
+                        {
+                            if (sb.Length == 0)
+                                // an empty indexer is not valid, so we can discard here
+                                break;
+
+                            indexerValuesRaw.Add(sb.ToString());
+                            sb.Clear();
+                            if (i2 < chars.Length && chars[i2] == '[')
+                                continue; // another indexer immediately follows
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        sb.Append(c2);
+                    }
+                }
+
+                // now let's dereference as many times as we can
+
+                // wrap the dynamics in tokens which contain the indexing implementations
+                // only if a full dereference is actually going to occur, though.
+                Token[] tokenizedValues = previousCharacterWasDeref ? new Token[values.Length] : null;
+                if (previousCharacterWasDeref)
+                    for (int j = 0; j < values.Length; j++)
+                        tokenizedValues[j] = PreprocessorUtils.DynamicToLiteral(values[j], -1);
+
+                bool anyValidIndexer = false;
+                bool indexValuesDirectly = !previousCharacterWasDeref;
+                int jumpIndexForward = 0; // number of indices `i` will move forward due to indexers being accepted
+                foreach (string indexerValueRaw in indexerValuesRaw)
+                {
+                    string indexerValueResolved = ResolveStringV2(indexerValueRaw);
+                    var indexer = TokenIndexer.CreateIndexerFromString(indexerValueResolved);
+                    if (indexer == null)
+                        break;
+                    if (indexValuesDirectly)
+                    {
+                        indexValuesDirectly = false;
+                        if (indexer is not TokenIndexerInteger _integerIndexer)
+                            break;
+                        int indexerInteger = _integerIndexer.token.number;
+                        if (indexerInteger < 0 || indexerInteger >= values.Length)
+                            break;
+                        tokenizedValues = new Token[1];
+                        dynamic dynamicValue = values[indexerInteger]; // evil dynamic
+                        tokenizedValues[0] = PreprocessorUtils.DynamicToLiteral(dynamicValue, -1);
+                    }
+                    else
+                    {
+                        // indexers should affect the last token
+                        Token lastToken = tokenizedValues[^1];
+                        if (lastToken is not IIndexable indexable)
+                            break;
+                        Token resultToken = indexable.Index(indexer, null);
+                        if (resultToken == null)
+                            break; // indexing was unsuccessful
+                        tokenizedValues[^1] = resultToken;
+                    }
+
+                    jumpIndexForward += indexerValueRaw.Length + 2;
+                    anyValidIndexer = true;
+                }
+
+                // none of the indexers were valid, and there was no deref operator, so we have to abort
+                if (!previousCharacterWasDeref && !anyValidIndexer)
+                {
+                    output.Append('\\', previousNumberOfBackslashes / 2);
+                    output.Append(sb, amountTrimmedFromBeginning,
+                        sb.Length - amountTrimmedFromBeginning - amountTrimmedFromEnd);
+                    previousNumberOfBackslashes = 0;
+                    previousCharacterWasDeref = false;
+                    continue;
+                }
+
+                i += jumpIndexForward;
+                valuesFinal = tokenizedValues.Select(v => v.ToString()).ToArray();
+            }
+            else if (values.Length == 0)
+            {
+                valuesFinal = [];
+            }
+            else
+            {
+                valuesFinal = values.Select(v => (string) v.ToString()).ToArray();
+            }
+
+            string insertText = valuesFinal.Length > 1
+                ? string.Join(" ", valuesFinal)
+                : valuesFinal.Length == 1
+                    ? valuesFinal[0]
+                    : "";
+            output.Append(insertText);
+            previousNumberOfBackslashes = 0;
+            previousCharacterWasDeref = false;
         }
 
         return output.ToString();
 
-        string FindLongestExistingPPV(string candidateName, out int shrunkSize)
+        // local functions
+
+        string FindLongestExistingPPV(string candidateName, bool shrinkFromEnd, out int shrunkAmount)
         {
-            shrunkSize = 0;
+            shrunkAmount = 0;
             if (TryGetPPV(candidateName, out _))
                 return candidateName;
 
-            for (int j = candidateName.Length - 1; j > 1; j--)
-            {
-                shrunkSize++;
-                string substring = candidateName[..j];
-                if (TryGetPPV(substring, out _))
-                    return substring;
-            }
+            if (shrinkFromEnd)
+                for (int j = candidateName.Length - 1; j > 1; j--)
+                {
+                    shrunkAmount++;
+                    string substring = candidateName[..j];
+                    if (TryGetPPV(substring, out _))
+                        return substring;
+                }
+            else
+                for (int j = 1; j < candidateName.Length; j++)
+                {
+                    shrunkAmount++;
+                    string substring = candidateName[j..];
+                    if (TryGetPPV(substring, out _))
+                        return substring;
+                }
 
             return null;
         }

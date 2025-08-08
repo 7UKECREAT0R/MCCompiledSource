@@ -230,7 +230,11 @@ public sealed class TokenIdentifierValue : TokenIdentifier, IIndexable, IDocumen
     public Token Index(TokenIndexer indexer, Statement forExceptions)
     {
         if (this.value.HasAttribute<AttributeGlobal>() || this.value.clarifier.IsGlobal)
-            throw new StatementException(forExceptions, "Cannot clarify a value that is defined as global.");
+        {
+            if (forExceptions == null)
+                return null;
+            throw new StatementException(forExceptions, "Cannot clarify a global value.");
+        }
 
         switch (indexer)
         {
@@ -254,7 +258,11 @@ public sealed class TokenIdentifierValue : TokenIdentifier, IIndexable, IDocumen
                 return new TokenIdentifierValue(this.word, clone, this.lineNumber);
             }
             default:
+            {
+                if (forExceptions == null)
+                    return null;
                 throw indexer.GetException(this, forExceptions);
+            }
         }
     }
 }
@@ -282,19 +290,31 @@ public sealed class TokenIdentifierPreprocessor : TokenIdentifier, IIndexable, I
     public Token Index(TokenIndexer indexer, Statement forExceptions)
     {
         if (indexer is not TokenIndexerInteger integer)
+        {
+            if (forExceptions == null)
+                return null;
             throw indexer.GetException(this, forExceptions);
+        }
 
         int input = integer.token.number;
         int length = this.variable.Length;
 
         if (input < 0 || input >= length)
+        {
+            if (forExceptions == null)
+                return null;
             throw integer.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
+        }
 
         dynamic result = this.variable[input];
 
         if (result == null)
+        {
+            if (forExceptions == null)
+                return null;
             throw new StatementException(forExceptions,
-                "Preprocessor variable contained an unexpecteed null value. Report this as a github issue or in the Discord.");
+                "Preprocessor variable contained an unexpecteed null value. Report this as a GitHub issue or in the Discord.");
+        }
 
         switch (result)
         {
@@ -304,7 +324,7 @@ public sealed class TokenIdentifierPreprocessor : TokenIdentifier, IIndexable, I
                 return identifier;
             default:
                 TokenLiteral newLiteral = PreprocessorUtils.DynamicToLiteral(result, this.lineNumber);
-                if (newLiteral == null)
+                if (newLiteral == null && forExceptions != null)
                     throw new StatementException(forExceptions,
                         "Preprocessor variable contained an unexpected type that could not be converted to a TokenLiteral (sparse support?). Type: " +
                         result.GetType().FullName);
@@ -364,7 +384,10 @@ public interface IIndexable
     ///     Index this object using an indexer.
     /// </summary>
     /// <param name="indexer">The indexer to use when accessing this object.</param>
-    /// <param name="forExceptions">The statement to blame if something blows up.</param>
+    /// <param name="forExceptions">
+    ///     The statement to blame if something blows up. If null, errors will not be thrown and the
+    ///     method will return <c>null</c>
+    /// </param>
     /// <returns></returns>
-    Token Index(TokenIndexer indexer, Statement forExceptions);
+    Token Index(TokenIndexer indexer, [CanBeNull] Statement forExceptions);
 }

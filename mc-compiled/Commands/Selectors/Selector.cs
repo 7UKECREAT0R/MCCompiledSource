@@ -146,10 +146,37 @@ public class Selector
     /// </summary>
     public bool UsesOffset => this.offsetX.HasEffect || this.offsetY.HasEffect || this.offsetZ.HasEffect;
 
+    private static Core? TryParseCore(string core)
+    {
+        string originalCore = core;
+        if (core.StartsWith('@'))
+            core = core[1..];
+        return core.ToUpper() switch
+        {
+            "P" => Core.p,
+            "S" => Core.s,
+            "A" => Core.a,
+            "E" => Core.e,
+            "R" => Core.r,
+            _ => null
+        };
+    }
+    public static Core? TryParseCore(char core)
+    {
+        return char.ToUpper(core) switch
+        {
+            'P' => Core.p,
+            'S' => Core.s,
+            'A' => Core.a,
+            'E' => Core.e,
+            'R' => Core.r,
+            _ => null
+        };
+    }
     private static Core ParseCore(string core)
     {
         string originalCore = core;
-        if (core.StartsWith("@"))
+        if (core.StartsWith('@'))
             core = core[1..];
         return core.ToUpper() switch
         {
@@ -176,6 +203,37 @@ public class Selector
                 "Selector @i (@initiator) is unsupported. @s refers to the initating player inside dialogue."),
             _ => throw new FormatException($"Cannot parse selector \"{core}\"")
         };
+    }
+    public static bool TryParse(string str, out Selector selector)
+    {
+        int bracket = str.IndexOf('[');
+
+        Core? core;
+        if (bracket == -1)
+        {
+            core = TryParseCore(str);
+            if (!core.HasValue)
+            {
+                selector = null;
+                return false;
+            }
+
+            selector = new Selector(core.Value);
+            return true;
+        }
+
+        string coreSection = str[..bracket];
+        string bracketSection = str[bracket..];
+
+        core = TryParseCore(coreSection);
+        if (!core.HasValue)
+        {
+            selector = null;
+            return false;
+        }
+
+        selector = Parse(core.Value, bracketSection);
+        return true;
     }
     public static Selector Parse(string str)
     {

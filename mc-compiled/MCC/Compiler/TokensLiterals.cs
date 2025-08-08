@@ -266,7 +266,11 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
                 int value = integer.token.number;
                 int length = this.text.Length;
                 if (value >= length || value < 0)
+                {
+                    if (forExceptions == null)
+                        return null;
                     throw integer.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
+                }
 
                 string newString = this.text[value].ToString();
                 return new TokenStringLiteral(newString, this.lineNumber);
@@ -276,19 +280,25 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
                 Range value = range.token.range;
                 int length = this.text.Length;
 
-                if (value.min.HasValue && value.min < 0)
+                if (value.min is < 0 || (value.max.HasValue && value.max >= length))
+                {
+                    if (forExceptions == null)
+                        return null;
                     throw range.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
-                if (value.max.HasValue && value.max >= length)
-                    throw range.GetIndexOutOfBoundsException(0, length - 1, forExceptions);
+                }
 
-                int start = value.min ?? 0;
-                int end = value.max ?? length - 1;
+                int startInclusive = value.min ?? 0;
+                int endInclusive = (value.max ?? length - 1) + 1;
 
-                string newString = this.text.Substring(start, end + 1);
+                string newString = this.text.Substring(startInclusive, endInclusive - startInclusive);
                 return new TokenStringLiteral(newString, this.lineNumber);
             }
             default:
+            {
+                if (forExceptions == null)
+                    return null;
                 throw indexer.GetException(this, forExceptions);
+            }
         }
     }
     public object GetValue() { return this.text; }
@@ -804,37 +814,59 @@ public sealed class TokenRangeLiteral(Range range, int lineNumber)
             case TokenIndexerInteger integer:
             {
                 int value = integer.token.number;
-                if (value > 2 || value < 0)
+                if (value is > 2 or < 0)
+                {
+                    if (forExceptions == null)
+                        return null;
                     throw integer.GetIndexOutOfBoundsException(0, 2, forExceptions);
+                }
 
                 // if its a single number both should return the same value
                 if (this.range.single)
                     return new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber);
 
-                return value switch
+                switch (value)
                 {
                     // fetch min/max for 0/1
-                    0 => new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber),
-                    1 => new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none, this.lineNumber),
-                    2 => new TokenBooleanLiteral(this.range.invert, this.lineNumber),
-                    _ => throw new Exception($"Invalid indexer for range: '{value}'")
-                };
+                    case 0:
+                        return new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber);
+                    case 1:
+                        return new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none, this.lineNumber);
+                    case 2:
+                        return new TokenBooleanLiteral(this.range.invert, this.lineNumber);
+                    default:
+                    {
+                        if (forExceptions == null)
+                            return null;
+                        throw new StatementException(forExceptions, $"Invalid indexer for range: '{value}'");
+                    }
+                }
             }
             case TokenIndexerString indexerString:
             {
                 string input = indexerString.token.text.ToUpper();
-                return input switch
+                switch (input)
                 {
-                    "MIN" or "MINIMUM" => new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none,
-                        this.lineNumber),
-                    "MAX" or "MAXIMUM" => new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none,
-                        this.lineNumber),
-                    "INVERTED" or "INVERT" => new TokenBooleanLiteral(this.range.invert, this.lineNumber),
-                    _ => throw new Exception($"Invalid indexer for range: '{input}'")
-                };
+                    case "MIN" or "MINIMUM":
+                        return new TokenIntegerLiteral(this.range.min ?? 0, IntMultiplier.none, this.lineNumber);
+                    case "MAX" or "MAXIMUM":
+                        return new TokenIntegerLiteral(this.range.max ?? 0, IntMultiplier.none, this.lineNumber);
+                    case "INVERTED" or "INVERT":
+                        return new TokenBooleanLiteral(this.range.invert, this.lineNumber);
+                    default:
+                    {
+                        if (forExceptions == null)
+                            return null;
+                        throw new StatementException(forExceptions, $"Invalid indexer for range: '{input}'");
+                    }
+                }
             }
             default:
+            {
+                if (forExceptions == null)
+                    return null;
                 throw indexer.GetException(this, forExceptions);
+            }
         }
     }
 
@@ -1168,8 +1200,12 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
         switch (indexer)
         {
             case TokenIndexerInteger _ when this.token is not JArray:
+            {
+                if (forExceptions == null)
+                    return null;
                 throw new StatementException(forExceptions,
                     "JSON type cannot be indexed using a number: " + this.token.Type);
+            }
             case TokenIndexerInteger integer:
             {
                 var array = (JArray) this.token;
@@ -1177,16 +1213,27 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
                 int len = array.Count;
 
                 if (value >= len || value < 0)
+                {
+                    if (forExceptions == null)
+                        return null;
                     throw integer.GetIndexOutOfBoundsException(0, len - 1, forExceptions);
+                }
 
                 JToken indexedItem = array[value];
                 if (PreprocessorUtils.TryGetLiteral(indexedItem, this.lineNumber, out TokenLiteral output))
                     return output;
+
+                if (forExceptions == null)
+                    return null;
                 throw new StatementException(forExceptions, "Couldn't load JSON value: " + indexedItem);
             }
             case TokenIndexerString _ when this.token is not JObject:
+            {
+                if (forExceptions == null)
+                    return null;
                 throw new StatementException(forExceptions,
                     "JSON type cannot be indexed using a string: " + this.token.Type);
+            }
             case TokenIndexerString @string:
             {
                 var json = (JObject) this.token;
@@ -1195,14 +1242,25 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
                 JToken gottenToken = json[word];
 
                 if (gottenToken == null)
+                {
+                    if (forExceptions == null)
+                        return null;
                     throw new StatementException(forExceptions, $"No JSON property found with the name '{word}'");
+                }
 
                 if (PreprocessorUtils.TryGetLiteral(gottenToken, this.lineNumber, out TokenLiteral output))
                     return output;
+
+                if (forExceptions == null)
+                    return null;
                 throw new StatementException(forExceptions, "Couldn't load JSON value: " + gottenToken);
             }
             default:
+            {
+                if (forExceptions == null)
+                    return null;
                 throw indexer.GetException(this, forExceptions);
+            }
         }
     }
 

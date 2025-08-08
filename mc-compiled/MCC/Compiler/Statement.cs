@@ -800,12 +800,7 @@ public abstract class Statement : TokenFeeder, ICloneable
 
             continue;
 
-            Token Previous(int amount)
-            {
-                if (i - amount < 0)
-                    return null;
-                return squashTokens[i - amount];
-            }
+            Token Previous(int amount) { return i - amount < 0 ? null : squashTokens[i - amount]; }
         }
     }
 }

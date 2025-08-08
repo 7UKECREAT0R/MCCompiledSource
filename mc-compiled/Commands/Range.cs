@@ -137,19 +137,24 @@ public struct Range : IEquatable<Range>
         {
             int index = str.IndexOf("..", StringComparison.Ordinal);
             if (index == 0) // ..10
-                return new Range(null, int.Parse(str[2..]), not);
+                if (int.TryParse(str[2..], out int maxValue))
+                    return new Range(null, maxValue, not);
             if (index + 2 >= str.Length) // 10..
-                return new Range(int.Parse(str[..index]), null, not);
+                if (int.TryParse(str[..index], out int minValue))
+                    return new Range(minValue, null, not);
 
             string _a = str[..index];
             string _b = str[(index + 2)..];
-            int a = int.Parse(_a);
-            int b = int.Parse(_b);
-            return new Range(a, b, not);
+            if (int.TryParse(_a, out int a))
+                if (int.TryParse(_b, out int b))
+                    return new Range(a, b, not);
+
+            return null;
         }
 
-        int parse = int.Parse(str);
-        return new Range(parse, not);
+        if (int.TryParse(str, out int parsed))
+            return new Range(parsed, not);
+        return null;
     }
 
     /// <summary>
@@ -158,60 +163,16 @@ public struct Range : IEquatable<Range>
     /// <param name="str">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed Range if successful; otherwise, null.</param>
     /// <returns>true if the string was successfully parsed; otherwise, false.</returns>
-    public static bool TryParse(string str, out Range? result)
+    public static bool TryParse(string str, out Range result)
     {
-        if (string.IsNullOrEmpty(str))
+        Range? parsed = Parse(str);
+        if (parsed.HasValue)
         {
-            result = null;
-            return false;
+            result = parsed.Value;
+            return true;
         }
 
-        bool not = str.StartsWith("!");
-        if (not)
-            str = str[1..];
-
-        if (str.Contains(".."))
-        {
-            int index = str.IndexOf("..", StringComparison.Ordinal);
-            if (index == 0) // ..10
-            {
-                if (int.TryParse(str[2..], out int maxVal))
-                {
-                    result = new Range(null, maxVal, not);
-                    return true;
-                }
-            }
-            else if (index + 2 >= str.Length) // 10..
-            {
-                if (int.TryParse(str[..index], out int minVal))
-                {
-                    result = new Range(minVal, null, not);
-                    return true;
-                }
-            }
-            else
-            {
-                string _a = str[..index];
-                string _b = str[(index + 2)..];
-
-                if (int.TryParse(_a, out int a) &&
-                    int.TryParse(_b, out int b))
-                {
-                    result = new Range(a, b, not);
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            if (int.TryParse(str, out int parse))
-            {
-                result = new Range(parse, not);
-                return true;
-            }
-        }
-
-        result = null;
+        result = default;
         return false;
     }
 
