@@ -6,11 +6,9 @@ namespace mc_compiled.NBT.Structures;
 /// <summary>
 ///     Block-entity specific data given a positional index.
 /// </summary>
-public struct BlockPositionDataNBT
+public readonly struct BlockPositionDataNBT()
 {
-    public Dictionary<int, BasicBlockEntityDataNBT> data;
-
-    public BlockPositionDataNBT() { this.data = new Dictionary<int, BasicBlockEntityDataNBT>(); }
+    public readonly Dictionary<int, BasicBlockEntityDataNBT> data = new();
 
     private List<NBTNode> GetEntries()
     {

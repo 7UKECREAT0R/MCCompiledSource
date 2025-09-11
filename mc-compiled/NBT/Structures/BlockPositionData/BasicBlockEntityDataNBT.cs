@@ -76,6 +76,10 @@ public static class CommonBlockEntityIdentifiers
 {
     public const string Barrel = "Barrel";
     public const string Chest = "Chest";
+    /// <remarks>
+    ///     Any kind of command block, including chain/repeating!
+    /// </remarks>
+    public const string CommandBlock = "CommandBlock";
     public const string Dispenser = "Dispenser";
     public const string Dropper = "Dropper";
     public const string Furnace = "Furnace";

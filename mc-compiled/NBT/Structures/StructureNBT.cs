@@ -53,7 +53,7 @@ public struct StructureNBT
             indices = new BlockIndicesNBT(new int[1, 1, 1]),
             palette = new PaletteNBT
             {
-                block_palette = [new PaletteEntryNBT("minecraft:air")]
+                blockPalette = [new PaletteEntryNBT("minecraft:air")]
             },
 
             entities = new EntityListNBT(new EntityNBT(
