@@ -1,6 +1,8 @@
-﻿namespace mc_compiled.NBT;
+﻿using System;
 
-public struct VectorIntNBT
+namespace mc_compiled.NBT;
+
+public struct VectorIntNBT : IEquatable<VectorIntNBT>
 {
     public int x, y, z;
 
@@ -25,4 +27,8 @@ public struct VectorIntNBT
             ]
         };
     }
+
+    public bool Equals(VectorIntNBT other) { return this.x == other.x && this.y == other.y && this.z == other.z; }
+    public override bool Equals(object obj) { return obj is VectorIntNBT other && Equals(other); }
+    public override int GetHashCode() { return HashCode.Combine(this.x, this.y, this.z); }
 }

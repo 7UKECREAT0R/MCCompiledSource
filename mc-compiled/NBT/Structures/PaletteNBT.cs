@@ -2,18 +2,17 @@
 
 namespace mc_compiled.NBT.Structures;
 
-public struct PaletteNBT
+public struct PaletteNBT(params PaletteEntryNBT[] entries)
 {
     /// <summary>
     ///     The basic palette to use inside the structure.
     /// </summary>
-    public PaletteEntryNBT[] blockPalette;
+    public PaletteEntryNBT[] blockPalette = entries;
     /// <summary>
     ///     The extra positional data for block entities with more advanced features, like command blocks or chests.
     /// </summary>
-    public BlockPositionDataNBT blockPositionData;
+    public BlockPositionDataNBT blockPositionData = new();
 
-    public PaletteNBT(params PaletteEntryNBT[] entries) { this.blockPalette = entries; }
     public NBTCompound ToNBT()
     {
         return new NBTCompound
@@ -32,11 +31,7 @@ public struct PaletteNBT
                             listType = TAG.Compound,
                             values = (from bp in this.blockPalette select bp.ToNBT("")).ToArray<NBTNode>()
                         },
-                        new NBTCompound
-                        {
-                            name = "block_position_data",
-                            values = [new NBTEnd()]
-                        },
+                        this.blockPositionData.ToNBT(),
                         new NBTEnd()
                     ]
                 },

@@ -8,7 +8,9 @@ namespace mc_compiled.NBT.Structures;
 /// </summary>
 public readonly struct BlockPositionDataNBT()
 {
-    public readonly Dictionary<int, BasicBlockEntityDataNBT> data = new();
+    private readonly Dictionary<int, BasicBlockEntityDataNBT> data = new();
+
+    public void Add(int index, BasicBlockEntityDataNBT toAdd) { this.data.Add(index, toAdd); }
 
     private List<NBTNode> GetEntries()
     {
