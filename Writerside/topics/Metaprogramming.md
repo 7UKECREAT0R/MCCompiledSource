@@ -39,9 +39,14 @@ $iterate mobs mob {
 }
 ```
 
-> When you want to iterate over a JSON array, make sure to dereference the preprocessor variable, or you'll end up
-> iterating the preprocessor variable's elements *instead* of the array's elements.
-> {style="warning"}
+> When you want to iterate over a JSON array, make sure to dereference the preprocessor variable (`$`), or you'll end up
+> iterating the preprocessor variable's elements instead.
+> 
+> Think of it like this; all preprocessor variables *are* arrays and can contain as many items as you'd like. It's just that
+> the ones you usually use only contain one item.
+> So if you `$iterate` over a PPV's name alone, you iterate over its elements.
+> If you dereference it, you'll iterate over the element it contains. 
+{style="warning" title="If you've got a JSON array..."}
 
 Without doing anything else, you now have five functions available, each with the correct code inside:
 

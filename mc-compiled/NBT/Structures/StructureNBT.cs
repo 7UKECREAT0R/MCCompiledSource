@@ -1,6 +1,6 @@
 ﻿using mc_compiled.Commands.Native;
 
-namespace mc_compiled.NBT;
+namespace mc_compiled.NBT.Structures;
 
 /// <summary>
 ///     A Minecraft structure represented in NBT format.
@@ -26,7 +26,9 @@ public struct StructureNBT
                 name = "structure",
                 values =
                 [
-                    this.indices.ToNBT(), this.entities.ToNBT(), this.palette.ToNBT(),
+                    this.indices.ToNBT(),
+                    this.entities.ToNBT(),
+                    this.palette.ToNBT(),
                     new NBTEnd()
                 ]
             },

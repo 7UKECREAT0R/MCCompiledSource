@@ -1,15 +1,12 @@
 ﻿using System.Linq;
 
-namespace mc_compiled.NBT;
+namespace mc_compiled.NBT.Structures;
 
 public struct EntityListNBT
 {
     private readonly EntityNBT[] entities;
 
-    public EntityListNBT(params EntityNBT[] entities)
-    {
-        this.entities = entities;
-    }
+    public EntityListNBT(params EntityNBT[] entities) { this.entities = entities; }
 
     public NBTList ToNBT()
     {

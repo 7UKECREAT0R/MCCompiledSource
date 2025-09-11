@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace mc_compiled.NBT;
+namespace mc_compiled.NBT.Structures;
 
 public struct BlockIndicesNBT
 {

@@ -284,7 +284,7 @@ public sealed class TokenIdentifierPreprocessor : TokenIdentifier, IIndexable, I
     public override string FriendlyTypeName => "preprocessor variable";
     public string GetDocumentation()
     {
-        return "The name of a preprocessor variable that was defined using the `$var`, `$json`, or other command.";
+        return "The name of a preprocessor variable that was defined using the `$var`, `$json`, or other.";
     }
 
     public Token Index(TokenIndexer indexer, Statement forExceptions)
@@ -313,7 +313,7 @@ public sealed class TokenIdentifierPreprocessor : TokenIdentifier, IIndexable, I
             if (forExceptions == null)
                 return null;
             throw new StatementException(forExceptions,
-                "Preprocessor variable contained an unexpecteed null value. Report this as a GitHub issue or in the Discord.");
+                "Preprocessor variable contained an unexpected null value. Report this as a GitHub issue or in the Discord.");
         }
 
         switch (result)
@@ -327,7 +327,7 @@ public sealed class TokenIdentifierPreprocessor : TokenIdentifier, IIndexable, I
                 if (newLiteral == null && forExceptions != null)
                     throw new StatementException(forExceptions,
                         "Preprocessor variable contained an unexpected type that could not be converted to a TokenLiteral (sparse support?). Type: " +
-                        result.GetType().FullName);
+                        ((Type) result.GetType()).GetFriendlyTokenName());
                 return newLiteral;
         }
     }

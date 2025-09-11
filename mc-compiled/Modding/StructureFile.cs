@@ -1,4 +1,5 @@
 ﻿using mc_compiled.NBT;
+using mc_compiled.NBT.Structures;
 
 namespace mc_compiled.Modding;
 
@@ -26,20 +27,8 @@ public struct StructureFile : IAddonFile
         this.structure = structure;
     }
 
-    public string GetExtendedDirectory()
-    {
-        return this.directory;
-    }
-    public string GetOutputFile()
-    {
-        return $"{this.name}.mcstructure";
-    }
-    public byte[] GetOutputData()
-    {
-        return FileWriterNBT.GetBytes(this.structure.ToNBT());
-    }
-    public OutputLocation GetOutputLocation()
-    {
-        return OutputLocation.b_STRUCTURES;
-    }
+    public string GetExtendedDirectory() { return this.directory; }
+    public string GetOutputFile() { return $"{this.name}.mcstructure"; }
+    public byte[] GetOutputData() { return FileWriterNBT.GetBytes(this.structure.ToNBT()); }
+    public OutputLocation GetOutputLocation() { return OutputLocation.b_STRUCTURES; }
 }

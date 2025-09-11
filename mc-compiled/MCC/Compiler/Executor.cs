@@ -1362,7 +1362,7 @@ public partial class Executor
         if (this.emission.isLinting)
             return;
         string[] commandsAsArray = commands as string[] ?? commands.ToArray();
-        int count = commandsAsArray.Count();
+        int count = commandsAsArray.Length;
         if (count < 1)
             return;
 

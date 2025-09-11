@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace mc_compiled.NBT;
+namespace mc_compiled.NBT.Structures;
 
 public struct PaletteNBT
 {
@@ -8,10 +8,7 @@ public struct PaletteNBT
 
     // NBTCompound blockPositionData;    // Unimplemented. This will break more complex structures!
 
-    public PaletteNBT(params PaletteEntryNBT[] entries)
-    {
-        this.block_palette = entries;
-    }
+    public PaletteNBT(params PaletteEntryNBT[] entries) { this.block_palette = entries; }
     public NBTCompound ToNBT()
     {
         return new NBTCompound

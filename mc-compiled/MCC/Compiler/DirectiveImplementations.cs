@@ -20,6 +20,7 @@ using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
 using mc_compiled.Modding.Resources.Localization;
 using mc_compiled.NBT;
+using mc_compiled.NBT.Structures;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
 using Range = mc_compiled.Commands.Range;

@@ -81,6 +81,7 @@ like a regular preprocessor variable.
 Indexing is done using the regular index operator. Most importantly, an indexing operation must start with a `$` to
 indicate that you wish to dereference and *then* index the result. Without a dereference, [indexing a preprocessor
 variable](Preprocessor.md#dereferencing-using-indexer) will just return an element of it.
+You can read more about this [in this page dedicated to disambiguating the topic.](Indexing-PPVs.md)
 
 ```%lang%
 $json "resources/data.json" stuff "data"

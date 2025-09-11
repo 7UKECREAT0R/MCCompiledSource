@@ -11,15 +11,17 @@ public struct ItemNBT
     public string[] canDestroy; // The blocks this item can destroy.
     public string[] canPlaceOn; // The blocks this item can be placed on.
     public byte count; // The amount of items in this.
+    public byte? slot; // The slot of the container holding this item. Not used on item entities.
     public short damage; // The damage on this item if a tool.
     public ItemTagNBT tag; // Extra item data like enchants and display name.
 
-    public ItemNBT(ItemStack fromStack)
+    public ItemNBT(ItemStack fromStack, byte? slot = null)
     {
         this.item = fromStack.id;
         this.canDestroy = fromStack.canDestroy;
         this.canPlaceOn = fromStack.canPlaceOn;
         this.count = (byte) fromStack.count;
+        this.slot = slot;
         this.damage = (short) fromStack.damage;
 
         this.tag = new ItemTagNBT();
@@ -64,6 +66,8 @@ public struct ItemNBT
             });
 
         nodes.Add(new NBTByte {name = "Count", value = this.count});
+        if (this.slot.HasValue)
+            nodes.Add(new NBTByte {name = "Slot", value = this.slot.Value});
         nodes.Add(new NBTShort {name = "Damage", value = this.damage});
         nodes.Add(new NBTString {name = "Name", value = this.item});
         nodes.Add(new NBTByte {name = "WasPickedUp", value = 0});

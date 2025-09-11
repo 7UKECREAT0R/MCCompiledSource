@@ -1,6 +1,8 @@
 # Indexing
 
 <primary-label ref="runtime"/>
+<secondary-label ref="s_runtime"/>
+<secondary-label ref="s_compile_time"/>
 
 <link-summary>
 Indexing explains how to use square brackets to access elements in arrays or strings and change value pointers.
