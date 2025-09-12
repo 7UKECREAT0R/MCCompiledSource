@@ -435,6 +435,23 @@ public class StructureBuilder
                 ]
             }, new SignBlockEntityDataNBT(x, y, z, isEditable, frontText, backText));
         }
+        public static Block WallSign(int x,
+            int y,
+            int z,
+            string frontText,
+            string backText,
+            bool isEditable,
+            FacingDirection direction)
+        {
+            return new Block(x, y, z, new PaletteEntryNBT
+            {
+                name = "minecraft:wall_sign",
+                states =
+                [
+                    new NBTInt {name = "facing_direction", value = (int) direction}
+                ]
+            }, new SignBlockEntityDataNBT(x, y, z, isEditable, frontText, backText));
+        }
 
         /// <summary>
         ///     An integer representing a facing direction of a block.

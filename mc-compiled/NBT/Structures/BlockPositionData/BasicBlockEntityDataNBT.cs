@@ -40,15 +40,14 @@ public class BasicBlockEntityDataNBT(string id, int x, int y, int z, bool isMova
     /// <returns></returns>
     protected virtual List<NBTNode> GetNodes()
     {
-        var nodes = new List<NBTNode>();
-        nodes.Add(new NBTString {name = "id", value = this.id});
-        nodes.Add(new NBTByte
+        var nodes = new List<NBTNode>
         {
-            name = "isMovable", value = this.isMovable ? (byte) 1 : (byte) 0
-        }); // yes, this is the correct name. for some reason structures just love inconsistent capitalization.
-        nodes.Add(new NBTInt {name = "x", value = this.x});
-        nodes.Add(new NBTInt {name = "y", value = this.y});
-        nodes.Add(new NBTInt {name = "z", value = this.z});
+            new NBTString {name = "id", value = this.id},
+            new NBTByte {name = "isMovable", value = this.isMovable ? (byte) 1 : (byte) 0},
+            new NBTInt {name = "x", value = this.x},
+            new NBTInt {name = "y", value = this.y},
+            new NBTInt {name = "z", value = this.z}
+        };
         return nodes;
     }
     /// <summary>
