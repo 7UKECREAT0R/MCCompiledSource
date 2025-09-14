@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
+using mc_compiled.MCC;
 using mc_compiled.NBT;
 using Newtonsoft.Json.Linq;
 
@@ -23,6 +24,14 @@ public static class VanillaBlockStates
 
     private static bool IS_LOADED;
 
+    /// <summary>
+    ///     Gets the static, frozen dictionary containing block property definitions keyed by their property names.
+    /// </summary>
+    /// <remarks>
+    ///     Accessing this property ensures that the underlying data is loaded using <see cref="EnsureLoaded" />.
+    ///     The returned dictionary maps property names (as keys) to their corresponding <see cref="BlockPropertyDefinition" />
+    ///     instances.
+    /// </remarks>
     public static FrozenDictionary<string, BlockPropertyDefinition> Properties
     {
         get
@@ -83,6 +92,9 @@ public static class VanillaBlockStates
     {
         if (IS_LOADED)
             return;
+
+        if (GlobalContext.Debug)
+            Console.WriteLine("[VANILLA] Loading vanilla block state information...");
 
         var properties = new Dictionary<string, BlockPropertyDefinition>();
 

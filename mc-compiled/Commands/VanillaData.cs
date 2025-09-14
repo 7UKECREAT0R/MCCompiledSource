@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using mc_compiled.MCC;
 using mc_compiled.MCC.Language;
 using Newtonsoft.Json.Linq;
 
@@ -130,6 +131,9 @@ public static class VanillaData
             return;
         }
 
+        if (GlobalContext.Debug)
+            Console.WriteLine("[VANILLA] Loading vanilla block identifiers...");
+
         JObject root = JObject.Parse(File.ReadAllText(BLOCKS_PATH));
         JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
 
@@ -157,6 +161,9 @@ public static class VanillaData
             Console.Error.WriteLine($"Missing file './{FOLDER}/{CAMERA_PRESETS_FILE}'");
             return;
         }
+
+        if (GlobalContext.Debug)
+            Console.WriteLine("[VANILLA] Loading vanilla camera preset identifiers...");
 
         JObject root = JObject.Parse(File.ReadAllText(CAMERA_PRESETS_PATH));
         JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
@@ -186,6 +193,9 @@ public static class VanillaData
             return;
         }
 
+        if (GlobalContext.Debug)
+            Console.WriteLine("[VANILLA] Loading vanilla mob effect identifiers...");
+
         JObject root = JObject.Parse(File.ReadAllText(MOB_EFFECTS_PATH));
         JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
 
@@ -213,6 +223,9 @@ public static class VanillaData
             Console.Error.WriteLine($"Missing file './{FOLDER}/{ENCHANTMENTS_FILE}'");
             return;
         }
+
+        if (GlobalContext.Debug)
+            Console.WriteLine("[VANILLA] Loading vanilla enchantment identifiers...");
 
         JObject root = JObject.Parse(File.ReadAllText(ENCHANTMENTS_PATH));
         JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
@@ -244,6 +257,9 @@ public static class VanillaData
             return;
         }
 
+        if (GlobalContext.Debug)
+            Console.WriteLine("[VANILLA] Loading vanilla entity identifiers...");
+
         JObject root = JObject.Parse(File.ReadAllText(ENTITIES_PATH));
         JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
 
@@ -271,6 +287,9 @@ public static class VanillaData
             Console.Error.WriteLine($"Missing file './{FOLDER}/{ITEMS_FILE}'");
             return;
         }
+
+        if (GlobalContext.Debug)
+            Console.WriteLine("[VANILLA] Loading vanilla item identifiers...");
 
         JObject root = JObject.Parse(File.ReadAllText(ITEMS_PATH));
         JArray dataItems = root["data_items"]?.Value<JArray>() ?? [];
