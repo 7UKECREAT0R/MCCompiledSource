@@ -25,13 +25,8 @@ public static class VanillaBlockStates
     private static bool IS_LOADED;
 
     /// <summary>
-    ///     Gets the static, frozen dictionary containing block property definitions keyed by their property names.
+    ///     A collection of block properties associated with vanilla block-state information.
     /// </summary>
-    /// <remarks>
-    ///     Accessing this property ensures that the underlying data is loaded using <see cref="EnsureLoaded" />.
-    ///     The returned dictionary maps property names (as keys) to their corresponding <see cref="BlockPropertyDefinition" />
-    ///     instances.
-    /// </remarks>
     public static FrozenDictionary<string, BlockPropertyDefinition> Properties
     {
         get
@@ -40,48 +35,49 @@ public static class VanillaBlockStates
             return _PROPERTIES;
         }
     }
+
     /// <summary>
-    ///     Retrieves a <see cref="BlockPropertyDefinition" /> by its name from the internal collection of registered block
-    ///     properties.
+    ///     Retrieves the block property with the specified name, if it exists.
     /// </summary>
     /// <param name="name">
-    ///     The name of the block property to retrieve. This should be the unique string identifier for a block property
-    ///     within the collection.
+    ///     The name of the block property to retrieve.
     /// </param>
     /// <returns>
-    ///     A <see cref="BlockPropertyDefinition" /> matching the specified <paramref name="name" /> if it exists;
-    ///     otherwise, <see langword="null" />.
+    ///     The <see cref="BlockPropertyDefinition" /> for the specified <paramref name="name" />, or
+    ///     <see langword="null" /> if the property is not found.
     /// </returns>
-    /// <remarks>
-    ///     This method ensures the block property data is loaded into memory before performing the lookup.
-    ///     If the requested <paramref name="name" /> does not exist in the collection, the method returns
-    ///     <see langword="null" />.
-    /// </remarks>
     [CanBeNull]
     public static BlockPropertyDefinition GetProperty(string name)
     {
         EnsureLoaded();
         return _PROPERTIES.GetValueOrDefault(name);
     }
+
     /// <summary>
-    ///     Retrieves all <see cref="BlockPropertyDefinition" /> instances associated with the specified block identifier from
-    ///     the internal collection of block state data.
+    ///     Determines whether a block property with the specified name exists in the internal collection.
     /// </summary>
-    /// <param name="blockIdentifier">
-    ///     The unique identifier of the block whose associated properties are to be retrieved. This is a string that
-    ///     corresponds
-    ///     to the block's identifier in Minecraft.
+    /// <param name="name">
+    ///     The name of the block property to check for.
     /// </param>
     /// <returns>
-    ///     An array of <see cref="BlockPropertyDefinition" /> objects representing the block states associated with the
-    ///     specified <paramref name="blockIdentifier" />, or <see langword="null" /> if no block states are found for
-    ///     the identifier.
+    ///     <see langword="true" /> if the specified <paramref name="name" /> exists in the collection; otherwise,
+    ///     <see langword="false" />.
     /// </returns>
-    /// <remarks>
-    ///     This method ensures the block property data is loaded into memory before performing the lookup.
-    ///     If the requested <paramref name="blockIdentifier" /> does not exist in the collection, the method returns
-    ///     <see langword="null" />.
-    /// </remarks>
+    public static bool PropertyExists(string name)
+    {
+        EnsureLoaded();
+        return _PROPERTIES.ContainsKey(name);
+    }
+    /// <summary>
+    ///     Retrieves the available block properties for a given block.
+    /// </summary>
+    /// <param name="blockIdentifier">
+    ///     The identifier of the block for which to retrieve state definitions.
+    /// </param>
+    /// <returns>
+    ///     An array of <see cref="BlockPropertyDefinition" /> objects representing the block's state
+    ///     definitions, or <see langword="null" /> if the block identifier is not found.
+    /// </returns>
     public static BlockPropertyDefinition[] GetBlockStates(string blockIdentifier)
     {
         EnsureLoaded();
