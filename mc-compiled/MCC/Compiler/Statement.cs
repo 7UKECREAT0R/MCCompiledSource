@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Commands.Native;
 using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.MCC.Language;
@@ -280,7 +281,7 @@ public abstract class Statement : TokenFeeder, ICloneable
         // squash any range pieces into a complete range, now that the numbers have been evaluated
         SquashSpecial(squashTokens);
         // squash any indexing brackets into single semantically evaluated tokens.
-        SquashIndexers(squashTokens);
+        SquashIndexersAndBlockStates(squashTokens);
 
         // run $dereferences
         SquashDereferences(squashTokens);
@@ -719,7 +720,7 @@ public abstract class Statement : TokenFeeder, ICloneable
             i += insertCount;
         }
     }
-    private void SquashIndexers(List<Token> squashTokens)
+    private void SquashIndexersAndBlockStates(List<Token> squashTokens)
     {
         for (int i = squashTokens.Count - 1; i >= 0; i--)
         {
@@ -745,13 +746,25 @@ public abstract class Statement : TokenFeeder, ICloneable
             throw new StatementException(this, $"Couldn't find opening bracket for closer '{closer.AsString()}'.");
 
             foundOpener:
-            // create an indexer out of them
+
             Token[] insideTokens = openerTokens
-                .Reverse()
                 .ToArray();
-            var indexer = TokenIndexer.CreateIndexer(insideTokens, this);
+            Token finalToken = null;
+
+            // any block state needs at least three elements
+            if (insideTokens.Length > 2)
+            {
+                // see if the contents are just block states
+                BlockState[] blockStates = BlockState.FromTokens(insideTokens).ToArray();
+                if (blockStates.Length > 0)
+                    finalToken = new TokenBlockStatesLiteral(blockStates.ToArray(), this.Lines[0]);
+            }
+
+            // if it wasn't block states, use the default behavior and create an indexer
+            finalToken ??= TokenIndexer.CreateIndexer(insideTokens, this);
+
             squashTokens.RemoveRange(i, insideTokens.Length + 2); // account for open/close brackets
-            squashTokens.Insert(i, indexer);
+            squashTokens.Insert(i, finalToken);
         }
     }
     private void SquashIndexing(List<Token> squashTokens)

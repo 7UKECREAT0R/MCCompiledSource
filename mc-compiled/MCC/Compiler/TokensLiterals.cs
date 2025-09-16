@@ -401,24 +401,17 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
 }
 
 /// <summary>
-///     Represents a block state that has been explicitly specified.
+///     Represents one or more block states that have been specified.
 /// </summary>
 [TokenFriendlyName("block state")]
-public sealed class TokenBlockStateLiteral : TokenLiteral
+public sealed class TokenBlockStatesLiteral(BlockState[] states, int lineNumber) : TokenLiteral(lineNumber)
 {
-    private readonly BlockState blockState;
+    private readonly BlockState[] states =
+        states ?? throw new ArgumentException("Parameter cannot be null.", nameof(states));
 
-    public TokenBlockStateLiteral(string fieldName, TokenLiteral fieldValue, int lineNumber) : base(lineNumber)
-    {
-        this.blockState = BlockState.FromLiteral(fieldName, fieldValue);
-    }
-    private TokenBlockStateLiteral(BlockState blockState, int lineNumber) : base(lineNumber)
-    {
-        this.blockState = blockState;
-    }
-    public override string FriendlyTypeName => "block state";
-    public override string AsString() { return this.blockState.ToString(); }
-    public override string ToString() { return this.blockState.ToString(); }
+    public override string FriendlyTypeName => this.states.Length > 1 ? "block states" : "block state";
+    public override string AsString() { return '[' + string.Join(",", this.states) + ']'; }
+    public override string ToString() { return '[' + string.Join(",", this.states) + ']'; }
 
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {
@@ -450,7 +443,7 @@ public sealed class TokenBlockStateLiteral : TokenLiteral
     }
 
     public override Typedef GetTypedef() { return null; }
-    public override TokenLiteral Clone() { return new TokenBlockStateLiteral(this.blockState, this.lineNumber); }
+    public override TokenLiteral Clone() { return new TokenBlockStatesLiteral(this.states, this.lineNumber); }
 }
 
 [TokenFriendlyName("true/false")]

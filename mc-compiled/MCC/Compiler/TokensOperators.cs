@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using mc_compiled.Commands.Selectors;
 using Range = mc_compiled.Commands.Range;
@@ -136,11 +135,6 @@ public abstract class TokenIndexer : Token
             }
         }
 
-        // block states?
-        if (tokens.All(token => token is TokenBlockStateLiteral))
-            return new TokenIndexerBlockStates(tokens.Cast<TokenBlockStateLiteral>().ToArray(),
-                forExceptions?.Lines[0] ?? tokens[0].lineNumber);
-
         // no clue, return TokenIndexerUnknown containing the tokens
         return new TokenIndexerUnknown(tokens, forExceptions?.Lines[0] ?? tokens[0].lineNumber);
     }
@@ -169,8 +163,6 @@ public abstract class TokenIndexer : Token
                 return new TokenIndexerSelector(selectorLiteral, lineNumber);
             case TokenRangeLiteral rangeLiteral:
                 return new TokenIndexerRange(rangeLiteral, lineNumber);
-            case TokenBlockStateLiteral blockStateLiteral:
-                return new TokenIndexerBlockStates([blockStateLiteral], lineNumber);
         }
 
         if (forExceptions == null)
@@ -260,27 +252,6 @@ public sealed class TokenIndexerRange : TokenIndexer
         return new StatementException(thrower,
             $"Range {this.token.range.ToString()} was out of bounds. Min: {min}, Max: {max}");
     }
-}
-
-/// <summary>
-///     An indexer indicating a set of block states.
-/// </summary>
-[SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
-[TokenFriendlyName("indexer [block state]")]
-public sealed class TokenIndexerBlockStates : TokenIndexer
-{
-    public readonly List<TokenBlockStateLiteral> blockStates;
-    public TokenIndexerBlockStates(IEnumerable<TokenBlockStateLiteral> addStates, int lineNumber) : base(addStates,
-        lineNumber)
-    {
-        this.blockStates = [];
-        this.blockStates.AddRange(addStates);
-    }
-    public override string FriendlyTypeName =>
-        this.blockStates.Count == 1 ? "indexer [block state]" : "indexer [block states]";
-    public override string AsString() { return $"[{string.Join(", ", this.blockStates.Select(bs => bs.AsString()))}]"; }
-    public override Token GetPrimaryToken() { return null; }
-    public override bool ActuallyIndexes() { return false; }
 }
 
 /// <summary>

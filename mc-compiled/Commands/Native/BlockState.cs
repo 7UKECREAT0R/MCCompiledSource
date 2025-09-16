@@ -1,74 +1,169 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using mc_compiled.MCC.Compiler;
 
 namespace mc_compiled.Commands.Native;
 
-public readonly struct BlockState
+/// <summary>
+///     The state of a block. Basically just a value tied to a <see cref="BlockPropertyDefinition" />.
+/// </summary>
+public readonly struct BlockState(BlockPropertyDefinition definition, object value, BlockPropertyType valueType)
 {
-    internal BlockState(string fieldName, string valueAsEnum)
+    /// <summary>
+    ///     The definition of the property this entry refers to.
+    /// </summary>
+    public readonly BlockPropertyDefinition definition = definition;
+
+    /// <summary>
+    ///     The value of the property set by this entry.
+    /// </summary>
+    public readonly object value = value;
+    /// <summary>
+    ///     The type of the <see cref="value" /> field.
+    /// </summary>
+    private readonly BlockPropertyType valueType = valueType;
+
+    // constructors for convenience
+    public BlockState(BlockPropertyDefinition definition, bool value) : this(definition, value,
+        BlockPropertyType.@bool) { }
+    public BlockState(BlockPropertyDefinition definition, int value) : this(definition, value,
+        BlockPropertyType.@int) { }
+    public BlockState(BlockPropertyDefinition definition, string value) : this(definition, value,
+        BlockPropertyType.@string) { }
+
+    /// <summary>
+    ///     Creates an enumerable of <see cref="BlockState" /> objects from an array of <see cref="Token" />s.
+    /// </summary>
+    /// <param name="tokens">
+    ///     An array of <see cref="Token" /> objects representing the data to construct block states.
+    /// </param>
+    /// <param name="forExceptions">
+    ///     An optional <see cref="Statement" /> providing context for exceptions, if any are thrown during processing.
+    ///     This parameter can be <see langword="null" />, which will cause this method to return an empty enumerable
+    ///     instead of throwing an exception.
+    /// </param>
+    /// <returns>
+    ///     An enumerable of <see cref="BlockState" /> objects, or none if the input is invalid or empty and
+    ///     <paramref name="forExceptions" /> was not supplied.
+    /// </returns>
+    public static IEnumerable<BlockState> FromTokens(Token[] tokens, Statement forExceptions = null)
     {
-        this.FieldName = fieldName;
-        this.ValueAsEnum = valueAsEnum;
-        this.ValueType = BlockStateType.Enum;
-        this.ValueAsBoolean = default;
-        this.ValueAsInteger = default;
+        int length = tokens.Length;
+
+        if (length == 0)
+        {
+            if (forExceptions != null)
+                throw new StatementException(forExceptions, "No tokens to make a block state entry.");
+            yield break;
+        }
+
+        if (length % 3 != 0)
+        {
+            if (forExceptions != null)
+                throw new StatementException(forExceptions,
+                    length < 3
+                        ? "Not enough tokens to make a block state entry."
+                        : $"Not enough tokens to make {length / 3 + 1} block state entries.");
+            yield break;
+        }
+
+        // take groups of three
+        for (int i = 0; i < length; i += 3)
+        {
+            Token a = tokens[i];
+            Token b = tokens[i + 1];
+            Token c = tokens[i + 2];
+            BlockState? state = FromTokens(a, b, c, forExceptions);
+            if (state.HasValue)
+                yield return state.Value;
+        }
     }
-    internal BlockState(string fieldName, bool valueAsBoolean)
+    /// <summary>
+    ///     Attempts to create a <see cref="BlockState" /> from the given tokens.
+    /// </summary>
+    /// <param name="a">
+    ///     The first <see cref="Token" /> representing the block property name. Must be a string or identifier token.
+    /// </param>
+    /// <param name="b">
+    ///     The second <see cref="Token" /> expected to be an equality sign token.
+    /// </param>
+    /// <param name="c">
+    ///     The third <see cref="Token" /> representing the block property value. Must be a boolean, integer, or string
+    ///     literal.
+    /// </param>
+    /// <param name="forExceptions">
+    ///     Optional context for exceptions. If <see langword="null" />, the method will return <see langword="null" />
+    ///     instead of throwing exceptions for invalid input.
+    /// </param>
+    /// <returns>
+    ///     A <see cref="BlockState" /> representing the parsed block property, or <see langword="null" /> if the
+    ///     provided tokens are invalid and <paramref name="forExceptions" /> was not supplied.
+    /// </returns>
+    public static BlockState? FromTokens(Token a, Token b, Token c, Statement forExceptions = null)
     {
-        this.FieldName = fieldName;
-        this.ValueAsBoolean = valueAsBoolean;
-        this.ValueType = BlockStateType.Boolean;
-        this.ValueAsEnum = null;
-        this.ValueAsInteger = default;
-    }
-    internal BlockState(string fieldName, int valueAsInteger)
-    {
-        this.FieldName = fieldName;
-        this.ValueAsInteger = valueAsInteger;
-        this.ValueType = BlockStateType.Integer;
-        this.ValueAsBoolean = default;
-        this.ValueAsEnum = null;
+        string blockPropertyName;
+        if (a is TokenStringLiteral _stringLiteral)
+            blockPropertyName = _stringLiteral.text;
+        else if (a is TokenIdentifier _identifier)
+            blockPropertyName = _identifier.word;
+        else
+            return forExceptions != null
+                ? throw new StatementException(forExceptions, "Unexpected token for block property: " + a.DebugString())
+                : null;
+
+        BlockPropertyDefinition blockProperty = VanillaBlockProperties.GetProperty(blockPropertyName);
+
+        if (blockProperty == null)
+            return forExceptions != null
+                ? throw new StatementException(forExceptions,
+                    $"Block property '{blockPropertyName}' is not a valid block property.")
+                : null;
+
+        if (b is not TokenAssignment)
+            return forExceptions != null
+                ? throw new StatementException(forExceptions,
+                    "Expected an equals sign '=' after the block property name, got: " + a.DebugString())
+                : null;
+
+        switch (c)
+        {
+            case TokenBooleanLiteral booleanLiteral:
+                bool cBool = booleanLiteral.boolean;
+                return !blockProperty.IsValidValue(cBool)
+                    ? ThrowInvalidValue(cBool)
+                    : new BlockState(blockProperty, cBool);
+            case TokenIntegerLiteral integerLiteral:
+                int cInt = integerLiteral.number;
+                return !blockProperty.IsValidValue(cInt)
+                    ? ThrowInvalidValue(cInt)
+                    : new BlockState(blockProperty, cInt);
+            case TokenStringLiteral stringLiteral:
+                string cString = stringLiteral.text;
+                return !blockProperty.IsValidValue(cString)
+                    ? ThrowInvalidValue(cString)
+                    : new BlockState(blockProperty, cString);
+            default:
+                return ThrowInvalidValue(c);
+        }
+
+        BlockState? ThrowInvalidValue(object value)
+        {
+            return forExceptions != null
+                ? throw new StatementException(forExceptions,
+                    $"Value {value} is not a valid value for block property '{blockPropertyName}'. Available options include: {blockProperty.PossibleValuesFriendlyString}")
+                : null;
+        }
     }
 
     /// <summary>
-    ///     Converts a literal token to a BlockState object.
+    ///     Returns if this block state entry is valid based on if a <see cref="value" /> is present and its type matches the
+    ///     <see cref="definition" />.
     /// </summary>
-    /// <param name="fieldName">The name of the field in the BlockState object.</param>
-    /// <param name="literal">The literal token to convert.</param>
-    /// <returns>A BlockState object created from the literal token, or null if the conversion fails.</returns>
-    public static BlockState FromLiteral(string fieldName, TokenLiteral literal)
-    {
-        return literal switch
-        {
-            TokenStringLiteral str => new BlockState(fieldName, str.text),
-            TokenBooleanLiteral boolean => new BlockState(fieldName, boolean.boolean),
-            TokenNumberLiteral num => new BlockState(fieldName, num.GetNumberInt()),
-            _ => new BlockState(fieldName, literal.AsString())
-        };
-    }
-
-    private string FieldName { get; }
-    private BlockStateType ValueType { get; }
-
-    private string ValueAsEnum { get; }
-    private bool ValueAsBoolean { get; }
-    private int ValueAsInteger { get; }
+    public bool IsValid => this.value != null && this.valueType == this.definition.Type;
 
     public override string ToString()
     {
-        return this.ValueType switch
-        {
-            BlockStateType.Enum => $@"""{this.FieldName}""=""{this.ValueAsEnum}""",
-            BlockStateType.Boolean => $@"""{this.FieldName}""={this.ValueAsBoolean}",
-            BlockStateType.Integer => $@"""{this.FieldName}""={this.ValueAsInteger}",
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        return this.valueType == BlockPropertyType.@string
+            ? $"\"{this.definition.Name}\"=\"{this.value}\""
+            : $"\"{this.definition.Name}\"={this.value}";
     }
-}
-
-public enum BlockStateType
-{
-    Enum,
-    Boolean,
-    Integer
 }

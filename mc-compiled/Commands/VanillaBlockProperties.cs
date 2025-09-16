@@ -17,7 +17,7 @@ namespace mc_compiled.Commands;
 ///     The files can be updated from https://github.com/Mojang/bedrock-samples/tree/main/metadata/vanilladata_modules,
 ///     OR you can run `vanilla-dependencies\update.ps1` to update it automatically.
 /// </remarks>
-public static class VanillaBlockStates
+public static class VanillaBlockProperties
 {
     private static FrozenDictionary<string, BlockPropertyDefinition> _PROPERTIES;
     private static FrozenDictionary<string, BlockPropertyDefinition[]> _BLOCK_STATES;
@@ -193,6 +193,52 @@ public record BlockPropertyDefinition
     ///     The possible values for this property, in their string representation.
     /// </summary>
     public string[] PossibleValuesAsStrings => this.PossibleValues.Select(v => v.ToString()).ToArray();
+    /// <summary>
+    ///     Gets the inclusive range of consecutive integer values, if all possible values are consecutive integers.
+    ///     Returns <see langword="null" /> otherwise.
+    /// </summary>
+    private Range? PossibleValuesIntRange
+    {
+        get
+        {
+            if (this.Type != BlockPropertyType.@int)
+                return null;
+
+            // make sure all possible values are consecutive integers
+            int min = int.MaxValue;
+            int max = int.MinValue;
+            foreach (int value in this.IntValues)
+            {
+                if (value < min)
+                    min = value;
+                if (value > max)
+                    max = value;
+            }
+
+            for (int i = min; i <= max; i++)
+                if (!this.IntValues.Contains(i))
+                    return null;
+
+            return new Range(min, max);
+        }
+    }
+    /// <summary>
+    ///     Provides a human-readable representation of the possible values for this property.
+    /// </summary>
+    public string PossibleValuesFriendlyString
+    {
+        get
+        {
+            return this.Type switch
+            {
+                BlockPropertyType.@bool => "true, false",
+                BlockPropertyType.@int => this.PossibleValuesIntRange?.ToString() ?? string.Join(", ", this.IntValues),
+                BlockPropertyType.@string => string.Join(", ", this.StringValues),
+                _ => throw new Exception(
+                    $"Unimplemented block property type '{this.Type}' in {nameof(this.PossibleValuesFriendlyString)}.")
+            };
+        }
+    }
 
     /// <summary>
     ///     Returns this block property's possible values in their native string type.
@@ -407,6 +453,51 @@ public record BlockPropertyDefinition
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     public T[] GetPossibleValues<T>() { return this.PossibleValues.Cast<T>().ToArray(); }
+
+    /// <summary>
+    ///     Determines if the specified <paramref name="value" /> is a valid integer value for the block property.
+    /// </summary>
+    /// <param name="value">
+    ///     The integer value to validate.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if the <paramref name="value" /> is valid for this block property;
+    ///     otherwise, <see langword="false" />.
+    /// </returns>
+    public bool IsValidValue(int value)
+    {
+        return this.Type == BlockPropertyType.@int && this.IntValues.Contains(value);
+    }
+
+    /// <summary>
+    ///     Determines if the specified <paramref name="value" /> is a valid boolean value for the block property.
+    /// </summary>
+    /// <param name="value">
+    ///     The boolean value to validate.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if the <paramref name="value" /> is valid for this block property;
+    ///     otherwise, <see langword="false" />.
+    /// </returns>
+    public bool IsValidValue(bool value)
+    {
+        return this.Type == BlockPropertyType.@bool && this.BoolValues.Contains(value);
+    }
+
+    /// <summary>
+    ///     Determines if the specified <paramref name="value" /> is a valid string value for the block property.
+    /// </summary>
+    /// <param name="value">
+    ///     The string value to validate.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if the <paramref name="value" /> is valid for this block property;
+    ///     otherwise, <see langword="false" />.
+    /// </returns>
+    public bool IsValidValue(string value)
+    {
+        return this.Type == BlockPropertyType.@string && this.StringValues.Contains(value);
+    }
 }
 
 /// <summary>
