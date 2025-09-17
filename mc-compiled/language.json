@@ -140,6 +140,7 @@
     "selector": "TokenSelectorLiteral",
     "coordinate": "TokenCoordinateLiteral",
     "range": "TokenRangeLiteral",
+    "block_states": "TokenBlockStatesLiteral",
     "json": "TokenJSONLiteral",
     "equals": "TokenAssignment",
     "open_paren": "TokenOpenParenthesis",
@@ -1181,7 +1182,8 @@
                     "x:coordinate",
                     "y:coordinate",
                     "z:coordinate",
-                    "block:string<minecraft_block>"
+                    "block:string<minecraft_block>",
+                    "block states:block_states?"
                   ]
                 },
                 "blocks_comparison": {
@@ -1513,7 +1515,7 @@
         "y:coordinate",
         "z:coordinate",
         "block:string<minecraft_block>",
-        "data:int?",
+        "block states:block_states?",
         "replace mode:id<old_handling>?"
       ]
     },
@@ -1529,8 +1531,8 @@
         "y2:coordinate",
         "z2:coordinate",
         "block:string<minecraft_block>",
-        "fill mode:id<old_handling>?",
-        "data:int?"
+        "block states:block_states?",
+        "fill mode:id<old_handling>?"
       ]
     },
     "scatter": {
@@ -1540,6 +1542,7 @@
       "category": "blocks",
       "syntax": [
         "block:string<minecraft_block>",
+        "block states:block_states?",
         "percent:int",
         "x1:coordinate",
         "y1:coordinate",
@@ -1556,7 +1559,7 @@
       "category": "blocks",
       "syntax": [
         "source block:string<minecraft_block>",
-        "source data:int?",
+        "source block states:block_states?",
         "x1:coordinate",
         "y1:coordinate",
         "z1:coordinate",
@@ -1564,7 +1567,7 @@
         "y2:coordinate",
         "z2:coordinate",
         "result block:string<minecraft_block>",
-        "result data:int?"
+        "result block states:block_states?"
       ]
     },
     "kill": {
@@ -2368,7 +2371,8 @@
                         "x:coordinate",
                         "y:coordinate",
                         "z:coordinate",
-                        "block:id<minecraft_block>"
+                        "block:id<minecraft_block>",
+                        "block states:block_states?"
                       ]
                     },
                     "blocks": {
@@ -2436,7 +2440,8 @@
                         "x:coordinate",
                         "y:coordinate",
                         "z:coordinate",
-                        "block:id<minecraft_block>"
+                        "block:id<minecraft_block>",
+                        "block states:block_states?"
                       ]
                     },
                     "blocks": {
