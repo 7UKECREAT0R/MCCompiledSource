@@ -157,6 +157,7 @@ public class ComparisonSet : List<Comparison>
                                     BlockPropertyDefinition[] possibleProperties =
                                         VanillaBlockProperties.GetBlockStates(block);
                                     if (possibleProperties != null)
+                                    {
                                         foreach (BlockPropertyDefinition property in possibleProperties)
                                         {
                                             string name = property.Name;
@@ -171,6 +172,18 @@ public class ComparisonSet : List<Comparison>
                                                 throw new StatementException(tokens,
                                                     $"Invalid value for block property '{name}'. Valid options include: {property.PossibleValuesFriendlyString}");
                                         }
+
+                                        // also check if any block states were specified without a valid property
+                                        foreach (BlockState state in blockStates)
+                                        {
+                                            if (possibleProperties.Any(prop => prop.Name.Equals(state.definition.Name)))
+                                                continue;
+                                            throw new StatementException(tokens,
+                                                $"Invalid block property '{state.definition.Name}' for block '{block}'. Possible properties include: " +
+                                                string.Join(", ",
+                                                    possibleProperties.Select(p => '\'' + p.Name + '\'')));
+                                        }
+                                    }
                                 }
                             }
 

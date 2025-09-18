@@ -66,6 +66,7 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
                 // since the comparison will ALWAYS fail if any state is missing.
                 BlockPropertyDefinition[] possibleProperties = VanillaBlockProperties.GetBlockStates(this.block);
                 if (possibleProperties != null)
+                {
                     foreach (BlockPropertyDefinition property in possibleProperties)
                     {
                         string name = property.Name;
@@ -78,6 +79,17 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
                             throw new StatementException(tokens,
                                 $"Invalid value for block property '{name}'. Valid options include: {property.PossibleValuesFriendlyString}");
                     }
+
+                    // also check if any block states were specified without a valid property
+                    foreach (BlockState state in this.states)
+                    {
+                        if (possibleProperties.Any(prop => prop.Name.Equals(state.definition.Name)))
+                            continue;
+                        throw new StatementException(tokens,
+                            $"Invalid block property '{state.definition.Name}' for block '{this.block}'. Possible properties include: " +
+                            string.Join(", ", possibleProperties.Select(p => '\'' + p.Name + '\'')));
+                    }
+                }
             }
         }
     }

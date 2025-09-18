@@ -2348,6 +2348,14 @@ public static class DirectiveImplementations
         if (tokens.NextIs<TokenSelectorLiteral>(true))
             selector = tokens.Next<TokenSelectorLiteral>("entities");
 
+        // running `kill` on a dummy should call its remove entity event.
+        if (executor.emission.HasFeature(Feature.DUMMIES) &&
+            selector.entity.type == executor.entities.dummies.dummyType)
+        {
+            executor.AddCommand(Command.Event(selector.ToString(), DummyManager.DESTROY_EVENT_NAME));
+            return;
+        }
+
         executor.AddCommand(Command.Kill(selector.ToString()));
     }
     [UsedImplicitly]
