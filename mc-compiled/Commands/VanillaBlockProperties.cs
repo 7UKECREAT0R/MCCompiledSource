@@ -338,6 +338,18 @@ public record BlockPropertyDefinition
 
         return new BlockPropertyDefinition(name, type, possibleValues);
     }
+    /// <summary>
+    ///     Creates a placeholder block property definition. This is used in cases where the user is using a custom block
+    ///     property that isn't in vanilla.
+    /// </summary>
+    /// <param name="name">The name of the block property.</param>
+    /// <param name="type">The type of the block property.</param>
+    /// <param name="value">The default value of the block property.</param>
+    /// <returns></returns>
+    public static BlockPropertyDefinition Placeholder(string name, BlockPropertyType type, object value)
+    {
+        return new BlockPropertyDefinition(name, type, [value]);
+    }
 
     /// <summary>
     ///     Creates an NBT node representing the value of this block property, appropriate to the property's type.

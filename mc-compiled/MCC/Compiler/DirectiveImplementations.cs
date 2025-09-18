@@ -2197,6 +2197,11 @@ public static class DirectiveImplementations
             throw new StatementException(tokens,
                 "Because a structure is being generated at compile-time, all coordinates must be either relative or static. (the size needs to be known at compile time.)");
 
+        if (totalBlocks > 1_000_000)
+            Executor.Warn(
+                $"Warning: Fill zone is {totalBlocks:N0} blocks. This could cause runtime performance issues or the operation might only partially complete.",
+                tokens);
+
         if (executor.emission.isLinting)
             return; // don't bother with the rest of the code if we're just linting
 

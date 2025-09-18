@@ -116,17 +116,38 @@ public readonly struct BlockState(BlockPropertyDefinition definition, object val
 
         BlockPropertyDefinition blockProperty = VanillaBlockProperties.GetProperty(blockPropertyName);
 
-        if (blockProperty == null)
-            return forExceptions != null
-                ? throw new StatementException(forExceptions,
-                    $"Block property '{blockPropertyName}' is not a valid block property.")
-                : null;
-
         if (b is not TokenAssignment)
             return forExceptions != null
                 ? throw new StatementException(forExceptions,
                     "Expected an equals sign '=' after the block property name, got: " + a.DebugString())
                 : null;
+
+        // it's possible the user has defined a non-vanilla property.
+        if (blockProperty == null)
+            switch (c)
+            {
+                case TokenBooleanLiteral booleanLiteral:
+                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@bool,
+                        booleanLiteral.boolean);
+                    return new BlockState(blockProperty, booleanLiteral.boolean);
+                case TokenIntegerLiteral integerLiteral:
+                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@int,
+                        integerLiteral.number);
+                    return new BlockState(blockProperty, integerLiteral.number);
+                case TokenStringLiteral stringLiteral:
+                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@string,
+                        stringLiteral.text);
+                    return new BlockState(blockProperty, stringLiteral.text);
+                case TokenIdentifier stringButDifferent:
+                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@string,
+                        stringButDifferent.word);
+                    return new BlockState(blockProperty, stringButDifferent.word);
+                default:
+                    return forExceptions != null
+                        ? throw new StatementException(forExceptions,
+                            $"Value '{c.AsString()}' is not a valid value for a block property.")
+                        : null;
+            }
 
         switch (c)
         {
@@ -151,7 +172,10 @@ public readonly struct BlockState(BlockPropertyDefinition definition, object val
                     ? ThrowInvalidValue(cIdentifier)
                     : new BlockState(blockProperty, cIdentifier);
             default:
-                return ThrowInvalidValue(c);
+                return forExceptions != null
+                    ? throw new StatementException(forExceptions,
+                        $"Value '{c.AsString()}' is not a valid value for block property '{blockPropertyName}'. Available options include: {blockProperty.PossibleValuesFriendlyString}")
+                    : null;
         }
 
         BlockState? ThrowInvalidValue(object value)
