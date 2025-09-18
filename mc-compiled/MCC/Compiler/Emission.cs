@@ -333,7 +333,7 @@ public class Emission
     /// <summary>
     ///     Writes an addon file to disk right now, without waiting for the end of the compilation.
     /// </summary>
-    /// <param name="file"></param>
+    /// <param name="file">The file to write immediately.</param>
     internal void WriteSingleFile(IAddonFile file)
     {
         if (this.isLinting)

@@ -1361,7 +1361,7 @@ public static class DirectiveImplementations
         locale.ThrowIfWhitespace("locale", tokens);
 
         if (GlobalContext.Debug)
-            Console.WriteLine("Set locale to '{0}'", locale);
+            Console.WriteLine("Set the active locale to '{0}'", locale);
 
         const bool DEFAULT_MERGE = true;
 
@@ -2126,21 +2126,20 @@ public static class DirectiveImplementations
         Coordinate z = tokens.Next<TokenCoordinateLiteral>("z");
         string block = tokens.Next<TokenStringLiteral>("block");
         block.ThrowIfWhitespace("block", tokens);
+
+        BlockState[] blockStates = null;
+        if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+            blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+
         var handling = OldHandling.replace;
-
-        int data = 0;
-        if (tokens.NextIs<TokenIntegerLiteral>(false))
-            data = tokens.Next<TokenIntegerLiteral>("data");
-
         if (tokens.NextIs<TokenIdentifierEnum>(true))
         {
-            RecognizedEnumValue enumValue
-                = tokens.Next<TokenIdentifierEnum>("old block handling").value;
+            RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
             enumValue.RequireType<OldHandling>(tokens);
             handling = (OldHandling) enumValue.value;
         }
 
-        executor.AddCommand(Command.SetBlock(x, y, z, block, data, handling));
+        executor.AddCommand(Command.SetBlock(x, y, z, block, blockStates, handling));
     }
     [UsedImplicitly]
     public static void fill(Executor executor, Statement tokens)
@@ -2159,8 +2158,13 @@ public static class DirectiveImplementations
             (z2, z1) = (z1, z2);
 
         string block = tokens.Next<TokenStringLiteral>("block");
-        var handling = OldHandling.replace;
+        block.ThrowIfWhitespace("block", tokens);
 
+        BlockState[] blockStates = null;
+        if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+            blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+
+        var handling = OldHandling.replace;
         if (tokens.NextIs<TokenIdentifierEnum>(false))
         {
             RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
@@ -2168,28 +2172,95 @@ public static class DirectiveImplementations
             handling = (OldHandling) enumValue.value;
         }
 
-        int data = 0;
-        if (tokens.HasNext && tokens.NextIs<TokenIntegerLiteral>(true))
-            data = tokens.Next<TokenIntegerLiteral>("data");
+        long sizeX = Math.Abs(x2.valueInteger - x1.valueInteger) + 1;
+        long sizeY = Math.Abs(y2.valueInteger - y1.valueInteger) + 1;
+        long sizeZ = Math.Abs(z2.valueInteger - z1.valueInteger) + 1;
+        long totalBlocks = sizeX * sizeY * sizeZ;
 
-        executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, block, data, handling));
+        if (totalBlocks <= 32_768)
+        {
+            executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, block, blockStates, handling));
+            return;
+        }
+
+        // not supported by vanilla, so we have to work around it.
+
+        // structure loading will only do the "replace" functionality
+        if (handling != OldHandling.replace)
+            throw new StatementException(tokens,
+                $"Fill area cannot be larger than {32_768:N0} blocks. Setting the old block handling mode to 'replace' may allow you to get around this.");
+
+        executor.RequireFeature(tokens, Feature.STRUCTURES,
+            $"Filling an area larger than {32_768:N0} requires feature '{nameof(Feature.STRUCTURES)}'. Enable using 'feature {nameof(Feature.STRUCTURES).ToLower()}' at the top of the file.");
+
+        if (!Coordinate.SizeKnown(x1, y1, z1, x2, y2, z2))
+            throw new StatementException(tokens,
+                "Because a structure is being generated at compile-time, all coordinates must be either relative or static. (the size needs to be known at compile time.)");
+
+        if (executor.emission.isLinting)
+            return; // don't bother with the rest of the code if we're just linting
+
+        int[,,] blocks = new int[sizeX, sizeY, sizeZ];
+        for (int x = 0; x < sizeX; x++)
+        for (int y = 0; y < sizeY; y++)
+        for (int z = 0; z < sizeZ; z++)
+            blocks[x, y, z] = 0;
+
+        NBTNode[] blockStatesNBT = blockStates.ToNBT() ?? [];
+        var structure = new StructureNBT
+        {
+            formatVersion = 1,
+            size = new VectorIntNBT((int) sizeX, (int) sizeY, (int) sizeZ),
+            worldOrigin = new VectorIntNBT(0, 0, 0),
+            palette = new PaletteNBT(new PaletteEntryNBT(block, blockStatesNBT)),
+            entities = new EntityListNBT([]),
+            indices = new BlockIndicesNBT(blocks)
+        };
+
+        string fileName = Executor.GetNextGeneratedName("fill_" + Command.Util.StripNamespace(block), false, true);
+        var file = new StructureFile(fileName, Executor.MCC_GENERATED_FOLDER, structure);
+        executor.emission.WriteSingleFile(file);
+
+        Coordinate minX = Coordinate.Min(x1, x2);
+        Coordinate minY = Coordinate.Min(y1, y2);
+        Coordinate minZ = Coordinate.Min(z1, z2);
+
+        executor.AddCommand(Command.StructureLoad(file.CommandReference, minX, minY, minZ,
+            StructureRotation._0_degrees, StructureMirror.none, false));
     }
     [UsedImplicitly]
     public static void scatter(Executor executor, Statement tokens)
     {
-        string block = tokens.Next<TokenStringLiteral>("block");
-        block.ThrowIfWhitespace("block", tokens);
-        int percent = tokens.Next<TokenIntegerLiteral>("percentage");
+        // as of 1.20, requires this feature
+        executor.RequireFeature(tokens, Feature.STRUCTURES);
+
         Coordinate x1 = tokens.Next<TokenCoordinateLiteral>("x1");
         Coordinate y1 = tokens.Next<TokenCoordinateLiteral>("y1");
         Coordinate z1 = tokens.Next<TokenCoordinateLiteral>("z1");
         Coordinate x2 = tokens.Next<TokenCoordinateLiteral>("x2");
         Coordinate y2 = tokens.Next<TokenCoordinateLiteral>("y2");
         Coordinate z2 = tokens.Next<TokenCoordinateLiteral>("z2");
+        if (x1 > x2)
+            (x2, x1) = (x1, x2);
+        if (y1 > y2)
+            (y2, y1) = (y1, y2);
+        if (z1 > z2)
+            (z2, z1) = (z1, z2);
 
         if (!Coordinate.SizeKnown(x1, y1, z1, x2, y2, z2))
             throw new StatementException(tokens,
                 "Scatter command requires all coordinate arguments to be relative or static. (the size needs to be known at compile time.)");
+
+        string block = tokens.Next<TokenStringLiteral>("block");
+        block.ThrowIfWhitespace("block", tokens);
+
+        BlockState[] blockStates = null;
+        if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+            blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+
+        NBTNode[] blockStatesNBT = blockStates.ToNBT() ?? [];
+
+        int percent = tokens.Next<TokenIntegerLiteral>("percentage");
 
         string seed = null;
         if (tokens.NextIs<TokenStringLiteral>(true))
@@ -2203,12 +2274,11 @@ public static class DirectiveImplementations
 
         if (totalBlocks > 1_000_000)
             Executor.Warn(
-                "Warning: Scatter zone is " + totalBlocks +
-                " blocks. This could cause extreme performance problems or the command may not even work at all.",
+                $"Warning: Scatter zone is {totalBlocks:N0} blocks. This could cause runtime performance issues or the operation might only partially complete.",
                 tokens);
 
         if (executor.emission.isLinting)
-            return; // no need to run allat when it isn't even going to be used...
+            return; // don't bother with the rest of the code if we're just linting
 
         int[,,] blocks = new int[sizeX, sizeY, sizeZ];
         for (int x = 0; x < sizeX; x++)
@@ -2221,7 +2291,7 @@ public static class DirectiveImplementations
             formatVersion = 1,
             size = new VectorIntNBT((int) sizeX, (int) sizeY, (int) sizeZ),
             worldOrigin = new VectorIntNBT(0, 0, 0),
-            palette = new PaletteNBT(new PaletteEntryNBT(block)),
+            palette = new PaletteNBT(new PaletteEntryNBT(block, blockStatesNBT)),
             entities = new EntityListNBT([]),
             indices = new BlockIndicesNBT(blocks)
         };
@@ -2244,12 +2314,6 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void replace(Executor executor, Statement tokens)
     {
-        string src = tokens.Next<TokenStringLiteral>("source block");
-        src.ThrowIfWhitespace("source block", tokens);
-        int srcData = -1;
-        if (tokens.NextIs<TokenIntegerLiteral>(false))
-            srcData = tokens.Next<TokenIntegerLiteral>("source data");
-
         Coordinate x1 = tokens.Next<TokenCoordinateLiteral>("x1");
         Coordinate y1 = tokens.Next<TokenCoordinateLiteral>("y1");
         Coordinate z1 = tokens.Next<TokenCoordinateLiteral>("z1");
@@ -2257,13 +2321,19 @@ public static class DirectiveImplementations
         Coordinate y2 = tokens.Next<TokenCoordinateLiteral>("y2");
         Coordinate z2 = tokens.Next<TokenCoordinateLiteral>("z2");
 
+        string src = tokens.Next<TokenStringLiteral>("source block");
+        src.ThrowIfWhitespace("source block", tokens);
+        BlockState[] srcBlockStates = null;
+        if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+            srcBlockStates = tokens.Next<TokenBlockStatesLiteral>("source block states");
+
         string dst = tokens.Next<TokenStringLiteral>("destination block");
         dst.ThrowIfWhitespace("destination block", tokens);
-        int dstData = -1;
-        if (tokens.NextIs<TokenIntegerLiteral>(true))
-            dstData = tokens.Next<TokenIntegerLiteral>("destination data");
+        BlockState[] dstBlockStates = null;
+        if (tokens.NextIs<TokenBlockStatesLiteral>(true))
+            dstBlockStates = tokens.Next<TokenBlockStatesLiteral>("destination data");
 
-        executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, src, srcData, dst, dstData));
+        executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, dst, dstBlockStates, src, srcBlockStates));
     }
     [UsedImplicitly]
     public static void kill(Executor executor, Statement tokens)
@@ -3376,7 +3446,7 @@ public static class DirectiveImplementations
 
             if (openBlock.meaningfulStatementsInside == 1)
             {
-                // modify prepend buffer as if 1 statement was there
+                // modify the prepend buffer as if 1 statement was there
                 executor.AppendCommandPrepend(finalExecute);
                 openBlock.openAction = null;
                 openBlock.CloseAction = null;

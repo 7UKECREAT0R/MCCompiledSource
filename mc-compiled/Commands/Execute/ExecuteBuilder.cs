@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
@@ -16,19 +17,13 @@ public class ExecuteBuilder
     /// <summary>
     ///     Create a new ExecuteBuilder. Please prefer <see cref="Command.Execute" /> to create a new instance.
     /// </summary>
-    internal ExecuteBuilder()
-    {
-        this.subcommands = [];
-    }
+    internal ExecuteBuilder() { this.subcommands = []; }
 
     /// <summary>
     ///     Create a deep copy of this ExecuteBuilder.
     /// </summary>
     /// <returns></returns>
-    public ExecuteBuilder Clone()
-    {
-        return new ExecuteBuilder().WithSubcommands(this.subcommands);
-    }
+    public ExecuteBuilder Clone() { return new ExecuteBuilder().WithSubcommands(this.subcommands); }
 
     /// <summary>
     ///     Adds the given subcommand to this ExecuteBuilder and returns this instance.
@@ -300,11 +295,15 @@ public class ExecuteBuilder
     /// <param name="y"></param>
     /// <param name="z"></param>
     /// <param name="block"></param>
-    /// <param name="data"></param>
+    /// <param name="blockStates"></param>
     /// <returns></returns>
-    public ExecuteBuilder IfBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data = null)
+    public ExecuteBuilder IfBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
+        BlockState[] blockStates = null)
     {
-        this.subcommands.Add(new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, data)));
+        this.subcommands.Add(new SubcommandIf(ConditionalSubcommandBlock.New(x, y, z, block, blockStates)));
         return this;
     }
     /// <summary>
@@ -322,9 +321,15 @@ public class ExecuteBuilder
     /// <param name="scanMode"></param>
     /// <returns></returns>
     public ExecuteBuilder IfBlocks(
-        Coordinate beginX, Coordinate beginY, Coordinate beginZ,
-        Coordinate endX, Coordinate endY, Coordinate endZ,
-        Coordinate destX, Coordinate destY, Coordinate destZ,
+        Coordinate beginX,
+        Coordinate beginY,
+        Coordinate beginZ,
+        Coordinate endX,
+        Coordinate endY,
+        Coordinate endZ,
+        Coordinate destX,
+        Coordinate destY,
+        Coordinate destZ,
         BlocksScanMode scanMode = BlocksScanMode.all)
     {
         this.subcommands.Add(new SubcommandIf(ConditionalSubcommandBlocks.New
@@ -380,11 +385,15 @@ public class ExecuteBuilder
     /// <param name="y"></param>
     /// <param name="z"></param>
     /// <param name="block"></param>
-    /// <param name="data"></param>
+    /// <param name="blockStates"></param>
     /// <returns></returns>
-    public ExecuteBuilder UnlessBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data = null)
+    public ExecuteBuilder UnlessBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
+        BlockState[] blockStates = null)
     {
-        this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, data)));
+        this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlock.New(x, y, z, block, blockStates)));
         return this;
     }
     /// <summary>
@@ -402,9 +411,15 @@ public class ExecuteBuilder
     /// <param name="scanMode"></param>
     /// <returns></returns>
     public ExecuteBuilder UnlessBlocks(
-        Coordinate beginX, Coordinate beginY, Coordinate beginZ,
-        Coordinate endX, Coordinate endY, Coordinate endZ,
-        Coordinate destX, Coordinate destY, Coordinate destZ,
+        Coordinate beginX,
+        Coordinate beginY,
+        Coordinate beginZ,
+        Coordinate endX,
+        Coordinate endY,
+        Coordinate endZ,
+        Coordinate destX,
+        Coordinate destY,
+        Coordinate destZ,
         BlocksScanMode scanMode = BlocksScanMode.all)
     {
         this.subcommands.Add(new SubcommandUnless(ConditionalSubcommandBlocks.New

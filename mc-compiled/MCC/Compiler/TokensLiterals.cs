@@ -406,12 +406,14 @@ public sealed class TokenStringLiteral(string text, int lineNumber)
 [TokenFriendlyName("block state")]
 public sealed class TokenBlockStatesLiteral(BlockState[] states, int lineNumber) : TokenLiteral(lineNumber)
 {
-    private readonly BlockState[] states =
+    public readonly BlockState[] states =
         states ?? throw new ArgumentException("Parameter cannot be null.", nameof(states));
 
     public override string FriendlyTypeName => this.states.Length > 1 ? "block states" : "block state";
     public override string AsString() { return '[' + string.Join(",", this.states) + ']'; }
     public override string ToString() { return '[' + string.Join(",", this.states) + ']'; }
+
+    public static implicit operator BlockState[](TokenBlockStatesLiteral literal) { return literal.states; }
 
     public override ScoreboardValue CreateValue(string name, bool global, Statement tokens)
     {

@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
 using mc_compiled.MCC.Compiler;
+using mc_compiled.NBT;
 
 namespace mc_compiled.Commands.Native;
 
@@ -141,6 +145,11 @@ public readonly struct BlockState(BlockPropertyDefinition definition, object val
                 return !blockProperty.IsValidValue(cString)
                     ? ThrowInvalidValue(cString)
                     : new BlockState(blockProperty, cString);
+            case TokenIdentifier stringButDifferent:
+                string cIdentifier = stringButDifferent.word;
+                return !blockProperty.IsValidValue(cIdentifier)
+                    ? ThrowInvalidValue(cIdentifier)
+                    : new BlockState(blockProperty, cIdentifier);
             default:
                 return ThrowInvalidValue(c);
         }
@@ -160,10 +169,49 @@ public readonly struct BlockState(BlockPropertyDefinition definition, object val
     /// </summary>
     public bool IsValid => this.value != null && this.valueType == this.definition.Type;
 
+    /// <summary>
+    ///     Converts the current <see cref="BlockState" /> to an <see cref="NBTNode" />.
+    /// </summary>
+    /// <returns>
+    ///     An <see cref="NBTNode" /> representing the state of the block.
+    /// </returns>
+    public NBTNode ToNBT() { return this.definition.CreateNBTNode(this.value); }
     public override string ToString()
     {
-        return this.valueType == BlockPropertyType.@string
-            ? $"\"{this.definition.Name}\"=\"{this.value}\""
-            : $"\"{this.definition.Name}\"={this.value}";
+        return this.valueType switch
+        {
+            BlockPropertyType.@bool => $"\"{this.definition.Name}\"={this.value.ToString()!.ToLower()}",
+            BlockPropertyType.@int => $"\"{this.definition.Name}\"={this.value}",
+            BlockPropertyType.@string => $"\"{this.definition.Name}\"=\"{this.value}\"",
+            _ => throw new Exception(
+                $"Block property type \"{this.valueType}\" is not implemented for {nameof(BlockState)}#{nameof(ToString)}.")
+        };
+    }
+}
+
+public static class BlockStateExtensions
+{
+    /// <summary>
+    ///     Converts an array of <see cref="BlockState" /> objects to a vanilla Minecraft syntax string representation;
+    ///     e.g.:
+    ///     <code>
+    /// ["button_pressed_bit"=true,"facing"="north"]
+    /// </code>
+    /// </summary>
+    /// <returns>
+    ///     A string representing the block states in vanilla Minecraft syntax.
+    /// </returns>
+    public static string ToVanillaSyntax([CanBeNull] this BlockState[] states)
+    {
+        if (states == null || states.Length == 0)
+            return "[]";
+        return '[' + string.Join(",", states) + ']';
+    }
+    public static NBTNode[] ToNBT([CanBeNull] this BlockState[] states)
+    {
+        if (states == null || states.Length == 0)
+            return [];
+
+        return states.Select(s => s.ToNBT()).ToArray();
     }
 }

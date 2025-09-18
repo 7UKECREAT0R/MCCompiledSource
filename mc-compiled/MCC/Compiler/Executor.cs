@@ -685,16 +685,22 @@ public partial class Executor
     /// <summary>
     ///     Throw a StatementException if a feature is not enabled.
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="feature"></param>
-    internal void RequireFeature(Statement source, Feature feature)
+    /// <param name="source">The statement to source as the cause of the exception.</param>
+    /// <param name="feature">The feature to check for.</param>
+    /// <param name="customMessage">
+    ///     A custom message to display alongside the exception. If unspecified, the following is
+    ///     shown: <c>Requires feature '[name]'. Enable using 'feature [name]' at the top of the file.</c>
+    /// </param>
+    /// <exception cref="StatementException">If <paramref name="feature" /> is not currently enabled in this executor.</exception>
+    internal void RequireFeature(Statement source, Feature feature, string customMessage = null)
     {
         if (this.emission.HasFeature(feature))
             return;
 
         string name = feature.ToString();
         throw new StatementException(source,
-            $"Feature not enabled: {name}. Enable using the command 'feature {name.ToLower()}' at the top of the file.");
+            customMessage ??
+            $"Requires feature '{name}'. Enable using 'feature {name.ToLower()}' at the top of the file.");
     }
     /// <summary>
     ///     Checks if the execution context is currently in an unreachable area and throw an exception if true.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC.Compiler.Async;
 using mc_compiled.MCC.Language;
@@ -138,17 +139,42 @@ public class ComparisonSet : List<Comparison>
                         case "BLOCK":
                         {
                             // ComparisonBlock
-                            // if block <x, y, z> <block> [data]
+                            // if block <x, y, z> <block> [block_states]
                             Coordinate x = tokens.Next<TokenCoordinateLiteral>("x");
                             Coordinate y = tokens.Next<TokenCoordinateLiteral>("y");
                             Coordinate z = tokens.Next<TokenCoordinateLiteral>("z");
                             string block = tokens.Next<TokenStringLiteral>("block");
 
-                            int? data = null;
-                            if (tokens.NextIs<TokenIntegerLiteral>(false))
-                                data = tokens.Next<TokenIntegerLiteral>("data");
+                            BlockState[] blockStates = null;
+                            if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+                            {
+                                blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
 
-                            var blockCheck = new ComparisonBlock(x, y, z, block, data, invertNext);
+                                if (blockStates is {Length: > 0})
+                                {
+                                    // if the block is in the vanilla registry, we can validate that all states are covered
+                                    // since the comparison will ALWAYS fail if any state is missing.
+                                    BlockPropertyDefinition[] possibleProperties =
+                                        VanillaBlockProperties.GetBlockStates(block);
+                                    if (possibleProperties != null)
+                                        foreach (BlockPropertyDefinition property in possibleProperties)
+                                        {
+                                            string name = property.Name;
+
+                                            // check to see if a state was specified for this property
+                                            BlockState? matchingState =
+                                                blockStates.FirstOrDefault(s => s.definition.Name.Equals(name));
+                                            if (!matchingState.HasValue)
+                                                throw new StatementException(tokens,
+                                                    $"Missing block state check for '{name}'");
+                                            if (!property.IsValidValueGeneric(matchingState.Value.value))
+                                                throw new StatementException(tokens,
+                                                    $"Invalid value for block property '{name}'. Valid options include: {property.PossibleValuesFriendlyString}");
+                                        }
+                                }
+                            }
+
+                            var blockCheck = new ComparisonBlock(x, y, z, block, blockStates, invertNext);
 
                             invertNext = false;
                             set.Add(blockCheck);

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Native;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
 using mc_compiled.Modding.Behaviors;
@@ -253,9 +255,9 @@ public static class Command
         Coordinate y2,
         Coordinate z2,
         string block,
-        int data)
+        [CanBeNull] BlockState[] blockStates)
     {
-        return $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} []";
+        return $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} {blockStates.ToVanillaSyntax()}";
     }
     public static string Fill(Coordinate x1,
         Coordinate y1,
@@ -264,10 +266,10 @@ public static class Command
         Coordinate y2,
         Coordinate z2,
         string block,
-        int data,
+        [CanBeNull] BlockState[] blockStates,
         OldHandling fillMode)
     {
-        return $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} [] {fillMode}";
+        return $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} {blockStates} {fillMode}";
     }
     public static string Fill(Coordinate x1,
         Coordinate y1,
@@ -276,11 +278,11 @@ public static class Command
         Coordinate y2,
         Coordinate z2,
         string block,
-        int data,
+        [CanBeNull] BlockState[] blockStates,
         string replaceBlock)
     {
         return
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} [] replace {replaceBlock.AsCommandParameterString()} -1";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} {blockStates.ToVanillaSyntax()} replace {replaceBlock.AsCommandParameterString()} -1";
     }
     public static string Fill(Coordinate x1,
         Coordinate y1,
@@ -289,12 +291,12 @@ public static class Command
         Coordinate y2,
         Coordinate z2,
         string block,
-        int data,
+        [CanBeNull] BlockState[] blockStates,
         string replaceBlock,
-        int replaceData)
+        [CanBeNull] BlockState[] replaceBlockStates)
     {
         return
-            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} [] replace {replaceBlock.AsCommandParameterString()} {replaceData}";
+            $"fill {x1} {y1} {z1} {x2} {y2} {z2} {block.AsCommandParameterString()} {blockStates.ToVanillaSyntax()} replace {replaceBlock.AsCommandParameterString()} {replaceBlockStates.ToVanillaSyntax()}";
     }
 
     public static string FogPush(string target, string fogId, string userProvidedId)
@@ -795,18 +797,22 @@ public static class Command
     {
         return $"setblock {x} {y} {z} {block}";
     }
-    public static string SetBlock(Coordinate x, Coordinate y, Coordinate z, string block, int data)
+    public static string SetBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
+        [CanBeNull] BlockState[] blockStates)
     {
-        return $"setblock {x} {y} {z} {block} []";
+        return $"setblock {x} {y} {z} {block} {blockStates.ToVanillaSyntax()}";
     }
     public static string SetBlock(Coordinate x,
         Coordinate y,
         Coordinate z,
         string block,
-        int data,
+        [CanBeNull] BlockState[] blockStates,
         OldHandling handling)
     {
-        return $"setblock {x} {y} {z} {block} [] {handling}";
+        return $"setblock {x} {y} {z} {block} {blockStates.ToVanillaSyntax()} {handling}";
     }
 
     public static string SetMaxPlayers(int max) { return $"setmaxplayers {max}"; }
@@ -1147,9 +1153,13 @@ public static class Command
     {
         return $"testforblock {x} {y} {z} {block}";
     }
-    public static string TestForBlock(Coordinate x, Coordinate y, Coordinate z, string block, int data)
+    public static string TestForBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
+        [CanBeNull] BlockState[] blockStates)
     {
-        return $"testforblock {x} {y} {z} {block} []";
+        return $"testforblock {x} {y} {z} {block} {blockStates.ToVanillaSyntax()}";
     }
 
     public static string TestForBlocks(Coordinate x1,

@@ -81,7 +81,7 @@ public static class VanillaBlockProperties
     public static BlockPropertyDefinition[] GetBlockStates(string blockIdentifier)
     {
         EnsureLoaded();
-        return _BLOCK_STATES.GetValueOrDefault(blockIdentifier);
+        return _BLOCK_STATES.GetValueOrDefault(Command.Util.RequireNamespace(blockIdentifier));
     }
 
     private static void EnsureLoaded()
@@ -155,7 +155,7 @@ public static class VanillaBlockProperties
             if (!gotAllProperties)
                 continue; // something bad happened
 
-            blockStates[blockIdentifier] = linkedProperties;
+            blockStates[Command.Util.RequireNamespace(blockIdentifier)] = linkedProperties;
         }
 
         _PROPERTIES = properties.ToFrozenDictionary();
@@ -453,6 +453,16 @@ public record BlockPropertyDefinition
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     public T[] GetPossibleValues<T>() { return this.PossibleValues.Cast<T>().ToArray(); }
+
+    /// <summary>
+    ///     Determines if the specified <paramref name="value" /> is a valid value for the block property.
+    /// </summary>
+    /// <param name="value">The value to validate.</param>
+    /// <returns>
+    ///     <see langword="true" /> if the <paramref name="value" /> is valid for this block property;
+    ///     otherwise, <see langword="false" />.
+    /// </returns>
+    public bool IsValidValueGeneric(object value) { return this.PossibleValues.Contains(value); }
 
     /// <summary>
     ///     Determines if the specified <paramref name="value" /> is a valid integer value for the block property.

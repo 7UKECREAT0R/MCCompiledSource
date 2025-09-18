@@ -1541,15 +1541,15 @@
       "details": "Randomly scatters blocks throughout a region with a certain percentage.",
       "category": "blocks",
       "syntax": [
-        "block:string<minecraft_block>",
-        "block states:block_states?",
-        "percent:int",
         "x1:coordinate",
         "y1:coordinate",
         "z1:coordinate",
         "x2:coordinate",
         "y2:coordinate",
         "z2:coordinate",
+        "block:string<minecraft_block>",
+        "block states:block_states?",
+        "percent:int",
         "seed:string?"
       ]
     },
@@ -1558,16 +1558,16 @@
       "details": "Replaces all source blocks with a result block in a specific region.",
       "category": "blocks",
       "syntax": [
-        "source block:string<minecraft_block>",
-        "source block states:block_states?",
         "x1:coordinate",
         "y1:coordinate",
         "z1:coordinate",
         "x2:coordinate",
         "y2:coordinate",
         "z2:coordinate",
-        "result block:string<minecraft_block>",
-        "result block states:block_states?"
+        "source block:string<minecraft_block>",
+        "source block states:block_states?",
+        "destination block:string<minecraft_block>",
+        "destination block states:block_states?"
       ]
     },
     "kill": {

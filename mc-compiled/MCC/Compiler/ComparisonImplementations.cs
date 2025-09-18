@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
+using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using Range = mc_compiled.Commands.Range;
 
@@ -14,17 +16,18 @@ namespace mc_compiled.MCC.Compiler;
 public class ComparisonAlone : Comparison
 {
     private readonly ScoreboardValue score;
-    public ComparisonAlone(ScoreboardValue score, bool invert) : base(invert)
-    {
-        this.score = score;
-    }
-    public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public ComparisonAlone(ScoreboardValue score, bool invert) : base(invert) { this.score = score; }
+    public override IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         cancel = false;
         return null;
     }
-    public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         cancel = false;
@@ -34,14 +37,8 @@ public class ComparisonAlone : Comparison
             .ToArray();
     }
 
-    public override string GetDescription()
-    {
-        return this.inverted ? $"not {this.score.Name}" : $"{this.score.Name}";
-    }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets()
-    {
-        return [this.score];
-    }
+    public override string GetDescription() { return this.inverted ? $"not {this.score.Name}" : $"{this.score.Name}"; }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return [this.score]; }
 }
 
 /// <summary>
@@ -106,7 +103,9 @@ public class ComparisonValue : Comparison
         };
     }
 
-    public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         cancel = false;
@@ -213,7 +212,9 @@ public class ComparisonValue : Comparison
 
         return null;
     }
-    public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         TokenCompare.Type localComparison = this.comparison;
@@ -297,12 +298,11 @@ public class ComparisonSelector : Comparison
     private readonly Selector selector;
     private ScoreboardValue temp;
 
-    public ComparisonSelector(Selector selector, bool invert) : base(invert)
-    {
-        this.selector = selector;
-    }
+    public ComparisonSelector(Selector selector, bool invert) : base(invert) { this.selector = selector; }
 
-    public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         if (this.selector.core != Selector.Core.s)
@@ -325,7 +325,9 @@ public class ComparisonSelector : Comparison
         cancel = false;
         return commands;
     }
-    public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         if (this.selector.core != Selector.Core.s)
@@ -348,10 +350,7 @@ public class ComparisonSelector : Comparison
             ? $"{this.selector} does not match the executing entity"
             : $"{this.selector} matches the executing entity";
     }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets()
-    {
-        return Array.Empty<ScoreboardValue>();
-    }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return Array.Empty<ScoreboardValue>(); }
 }
 
 public class ComparisonCount : Comparison
@@ -383,7 +382,9 @@ public class ComparisonCount : Comparison
         else
             this.goalType = SideType.Unknown;
     }
-    public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         if (this.goalType == SideType.Unknown)
@@ -460,7 +461,9 @@ public class ComparisonCount : Comparison
         cancel = false;
         return commands;
     }
-    public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         cancel = false;
@@ -527,7 +530,9 @@ public class ComparisonAny : Comparison
             this.selector.count.count = 1;
         }
     }
-    public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         if (!willBeInverted)
@@ -547,7 +552,9 @@ public class ComparisonAny : Comparison
         cancel = false;
         return commands;
     }
-    public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         cancel = false;
@@ -567,32 +574,37 @@ public class ComparisonAny : Comparison
     {
         return this.inverted ? $"{this.selector} does not match any entity" : $"{this.selector} matches any entity";
     }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets()
-    {
-        return Array.Empty<ScoreboardValue>();
-    }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return Array.Empty<ScoreboardValue>(); }
 }
 
 public class ComparisonBlock : Comparison
 {
     private readonly string block;
-    private readonly int? data;
+    [CanBeNull]
+    private readonly BlockState[] blockStates;
     private readonly Coordinate x;
     private readonly Coordinate y;
     private readonly Coordinate z;
 
     private ScoreboardValue temp;
 
-    public ComparisonBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data, bool invert) :
+    public ComparisonBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
+        [CanBeNull] BlockState[] blockStates,
+        bool invert) :
         base(invert)
     {
         this.x = x;
         this.y = y;
         this.z = z;
         this.block = block;
-        this.data = data;
+        this.blockStates = blockStates;
     }
-    public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         if (!willBeInverted)
@@ -606,13 +618,15 @@ public class ComparisonBlock : Comparison
         this.temp = executor.scoreboard.temps.Request(true);
         commands.Add(Command.ScoreboardSet(this.temp, 0));
         commands.Add(Command.Execute()
-            .IfBlock(this.x, this.y, this.z, this.block, this.data)
+            .IfBlock(this.x, this.y, this.z, this.block, this.blockStates)
             .Run(Command.ScoreboardSet(this.temp, 1)));
 
         cancel = false;
         return commands;
     }
-    public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         cancel = false;
@@ -626,24 +640,22 @@ public class ComparisonBlock : Comparison
         if (this.inverted)
             return
             [
-                new SubcommandUnless(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data))
+                new SubcommandUnless(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block,
+                    this.blockStates))
             ];
         return
         [
-            new SubcommandIf(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.data))
+            new SubcommandIf(ConditionalSubcommandBlock.New(this.x, this.y, this.z, this.block, this.blockStates))
         ];
     }
 
     public override string GetDescription()
     {
         return this.inverted
-            ? $"block at ({this.x} {this.y} {this.z}) is not {this.block}:{this.data}"
-            : $"block at ({this.x} {this.y} {this.z}) is {this.block}:{this.data}";
+            ? $"block at ({this.x} {this.y} {this.z}) is not {this.block}{this.blockStates.ToVanillaSyntax()}"
+            : $"block at ({this.x} {this.y} {this.z}) is {this.block}{this.blockStates.ToVanillaSyntax()}";
     }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets()
-    {
-        return Array.Empty<ScoreboardValue>();
-    }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return []; }
 }
 
 public class ComparisonBlocks : Comparison
@@ -655,9 +667,17 @@ public class ComparisonBlocks : Comparison
 
     private ScoreboardValue temp;
 
-    public ComparisonBlocks(Coordinate beginX, Coordinate beginY, Coordinate beginZ, Coordinate endX, Coordinate endY,
+    public ComparisonBlocks(Coordinate beginX,
+        Coordinate beginY,
+        Coordinate beginZ,
+        Coordinate endX,
+        Coordinate endY,
         Coordinate endZ,
-        Coordinate destX, Coordinate destY, Coordinate destZ, BlocksScanMode scanMode, bool invert) : base(invert)
+        Coordinate destX,
+        Coordinate destY,
+        Coordinate destZ,
+        BlocksScanMode scanMode,
+        bool invert) : base(invert)
     {
         this.beginX = beginX;
         this.beginY = beginY;
@@ -670,7 +690,9 @@ public class ComparisonBlocks : Comparison
         this.destZ = destZ;
         this.scanMode = scanMode;
     }
-    public override IEnumerable<string> GetCommands(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override IEnumerable<string> GetCommands(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         if (!willBeInverted)
@@ -691,7 +713,9 @@ public class ComparisonBlocks : Comparison
         cancel = false;
         return commands;
     }
-    public override Subcommand[] GetExecuteChunks(Executor executor, Statement callingStatement, bool willBeInverted,
+    public override Subcommand[] GetExecuteChunks(Executor executor,
+        Statement callingStatement,
+        bool willBeInverted,
         out bool cancel)
     {
         cancel = false;
@@ -721,10 +745,7 @@ public class ComparisonBlocks : Comparison
             ? $"{this.scanMode} blocks between ({this.beginX} {this.beginY} {this.beginZ}) and ({this.endX} {this.endY} {this.endZ}) do not match the blocks at ({this.destX} {this.destY} {this.destZ})"
             : $"{this.scanMode} blocks between ({this.beginX} {this.beginY} {this.beginZ}) and ({this.endX} {this.endY} {this.endZ}) match the blocks at ({this.destX} {this.destY} {this.destZ})";
     }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets()
-    {
-        return Array.Empty<ScoreboardValue>();
-    }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return Array.Empty<ScoreboardValue>(); }
 }
 
 /// <summary>
@@ -732,7 +753,5 @@ public class ComparisonBlocks : Comparison
 /// </summary>
 public enum SideType
 {
-    Unknown,
-    Constant,
-    Variable
+    Unknown, Constant, Variable
 }

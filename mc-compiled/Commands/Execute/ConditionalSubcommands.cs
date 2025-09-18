@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using JetBrains.Annotations;
+using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
@@ -7,18 +10,23 @@ namespace mc_compiled.Commands.Execute;
 
 internal class ConditionalSubcommandBlock : ConditionalSubcommand
 {
-    internal string block;
-    internal int? data;
-    internal Coordinate x, y, z;
+    private string block;
+    [CanBeNull]
+    private BlockState[] states;
+    private Coordinate x, y, z;
 
     public ConditionalSubcommandBlock() { }
-    private ConditionalSubcommandBlock(Coordinate x, Coordinate y, Coordinate z, string block, int? data)
+    private ConditionalSubcommandBlock(Coordinate x,
+        Coordinate y,
+        Coordinate z,
+        string block,
+        [CanBeNull] BlockState[] states)
     {
         this.x = x;
         this.y = y;
         this.z = z;
         this.block = block;
-        this.data = data;
+        this.states = states;
     }
 
     public override string Keyword => "block";
@@ -30,15 +38,15 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
     /// <param name="y"></param>
     /// <param name="z"></param>
     /// <param name="block"></param>
-    /// <param name="data"></param>
+    /// <param name="states"></param>
     /// <returns></returns>
     internal static ConditionalSubcommandBlock New(Coordinate x,
         Coordinate y,
         Coordinate z,
         string block,
-        int? data = null)
+        BlockState[] states = null)
     {
-        return new ConditionalSubcommandBlock(x, y, z, block, data);
+        return new ConditionalSubcommandBlock(x, y, z, block, states);
     }
 
     public override void FromTokens(Statement tokens)
@@ -48,24 +56,45 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
         this.z = tokens.Next<TokenCoordinateLiteral>("z");
         this.block = tokens.Next<TokenStringLiteral>("block");
 
-        if (tokens.NextIs<TokenIntegerLiteral>(false))
-            this.data = tokens.Next<TokenIntegerLiteral>(null);
+        if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+        {
+            this.states = tokens.Next<TokenBlockStatesLiteral>("block states").states;
+
+            if (this.states is {Length: > 0})
+            {
+                // if the block is in the vanilla registry, we can validate that all states are covered
+                // since the comparison will ALWAYS fail if any state is missing.
+                BlockPropertyDefinition[] possibleProperties = VanillaBlockProperties.GetBlockStates(this.block);
+                if (possibleProperties != null)
+                    foreach (BlockPropertyDefinition property in possibleProperties)
+                    {
+                        string name = property.Name;
+
+                        // check to see if a state was specified for this property
+                        BlockState? matchingState = this.states.FirstOrDefault(s => s.definition.Name.Equals(name));
+                        if (!matchingState.HasValue)
+                            throw new StatementException(tokens, $"Missing block state check for '{name}'");
+                        if (!property.IsValidValueGeneric(matchingState.Value.value))
+                            throw new StatementException(tokens,
+                                $"Invalid value for block property '{name}'. Valid options include: {property.PossibleValuesFriendlyString}");
+                    }
+            }
+        }
     }
     public override string ToMinecraft()
     {
-        if (this.data.HasValue)
-            return $"block {this.x} {this.y} {this.z} {this.block} {this.data.Value}";
-
-        return $"block {this.x} {this.y} {this.z} {this.block}";
+        return this.states is {Length: > 0}
+            ? $"block {this.x} {this.y} {this.z} {this.block} {this.states.ToVanillaSyntax()}"
+            : $"block {this.x} {this.y} {this.z} {this.block}";
     }
 }
 
 internal class ConditionalSubcommandBlocks : ConditionalSubcommand
 {
-    internal Coordinate beginX, beginY, beginZ;
-    internal Coordinate destX, destY, destZ;
-    internal Coordinate endX, endY, endZ;
-    internal BlocksScanMode scanMode;
+    private Coordinate beginX, beginY, beginZ;
+    private Coordinate destX, destY, destZ;
+    private Coordinate endX, endY, endZ;
+    private BlocksScanMode scanMode;
 
     public ConditionalSubcommandBlocks() { }
     private ConditionalSubcommandBlocks(

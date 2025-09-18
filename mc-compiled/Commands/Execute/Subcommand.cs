@@ -31,6 +31,7 @@ public abstract class Subcommand
     /// <param name="keyword">The case-insensitive keyword to use.</param>
     /// <param name="forExceptions">The calling statement, only used for exceptions.</param>
     /// <returns>The newly created subcommand instance.</returns>
+    /// <exception cref="StatementException">Thrown if provided an unknown execute subcommand.</exception>
     public static Subcommand GetSubcommandForKeyword(string keyword, Statement forExceptions)
     {
         return keyword.ToUpper() switch
