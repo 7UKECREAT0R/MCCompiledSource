@@ -145,49 +145,42 @@ public class ComparisonSet : List<Comparison>
                             Coordinate z = tokens.Next<TokenCoordinateLiteral>("z");
                             string block = tokens.Next<TokenStringLiteral>("block");
 
-                            BlockState[] blockStates = null;
+                            BlockState[] states = null;
                             if (tokens.NextIs<TokenBlockStatesLiteral>(false))
                             {
-                                blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+                                states = tokens.Next<TokenBlockStatesLiteral>("block states");
 
-                                if (blockStates is {Length: > 0})
+                                // if the block is in the vanilla registry, we can validate the comparison
+                                if (states is {Length: > 0})
                                 {
-                                    // if the block is in the vanilla registry, we can validate that all states are covered
-                                    // since the comparison will ALWAYS fail if any state is missing.
-                                    BlockPropertyDefinition[] possibleProperties =
+                                    // - if a state is invalid
+                                    foreach (BlockState state in states)
+                                        if (!state.IsValid)
+                                            throw new StatementException(tokens, state.definition != null
+                                                ? $"The block property '{state.propertyName}' cannot accept the value '{state.value}'. Possible options include: {state.definition.PossibleValuesFriendlyString}"
+                                                : $"The block property '{state.propertyName}' cannot accept the value '{state.value}'."); // never occurs
+
+                                    // - if a state is missing; the comparison will always fail
+                                    BlockPropertyDefinition[] vanillaProperties =
                                         VanillaBlockProperties.GetBlockStates(block);
-                                    if (possibleProperties != null)
+                                    if (vanillaProperties is {Length: > 0})
                                     {
-                                        foreach (BlockPropertyDefinition property in possibleProperties)
-                                        {
-                                            string name = property.Name;
-
-                                            // check to see if a state was specified for this property
-                                            BlockState? matchingState =
-                                                blockStates.FirstOrDefault(s => s.definition.Name.Equals(name));
-                                            if (!matchingState.HasValue)
+                                        foreach (BlockPropertyDefinition vanillaProperty in vanillaProperties)
+                                            if (!states.Any(s => s.propertyName.Equals(vanillaProperty.Name)))
                                                 throw new StatementException(tokens,
-                                                    $"Missing block state check for '{name}'");
-                                            if (!property.IsValidValueGeneric(matchingState.Value.value))
-                                                throw new StatementException(tokens,
-                                                    $"Invalid value for block property '{name}'. Valid options include: {property.PossibleValuesFriendlyString}");
-                                        }
+                                                    $"Missing check for the block property '{vanillaProperty.Name}'. Possible options include: {vanillaProperty.PossibleValuesFriendlyString}");
 
-                                        // also check if any block states were specified without a valid property
-                                        foreach (BlockState state in blockStates)
-                                        {
-                                            if (possibleProperties.Any(prop => prop.Name.Equals(state.definition.Name)))
-                                                continue;
-                                            throw new StatementException(tokens,
-                                                $"Invalid block property '{state.definition.Name}' for block '{block}'. Possible properties include: " +
-                                                string.Join(", ",
-                                                    possibleProperties.Select(p => '\'' + p.Name + '\'')));
-                                        }
+                                        // - if a state is present that will never be on the block; the comparison will always fail
+                                        foreach (BlockState state in states)
+                                            if (!vanillaProperties.Any(property =>
+                                                    property.Name.Equals(state.propertyName)))
+                                                throw new StatementException(tokens,
+                                                    $"Block property '{state.propertyName}' will never be found on the block '{block}'.");
                                     }
                                 }
                             }
 
-                            var blockCheck = new ComparisonBlock(x, y, z, block, blockStates, invertNext);
+                            var blockCheck = new ComparisonBlock(x, y, z, block, states, invertNext);
 
                             invertNext = false;
                             set.Add(blockCheck);

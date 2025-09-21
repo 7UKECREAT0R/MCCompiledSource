@@ -13,7 +13,7 @@ namespace mc_compiled.MCC.Compiler;
 /// <summary>
 ///     A fully qualified statement which can be run.
 /// </summary>
-public abstract class Statement : TokenFeeder, ICloneable
+public abstract class Statement : TokenFeeder
 {
     private SyntaxGroup validationGroup;
 

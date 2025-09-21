@@ -60,35 +60,30 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
         {
             this.states = tokens.Next<TokenBlockStatesLiteral>("block states").states;
 
+            // if the block is in the vanilla registry, we can validate the comparison
             if (this.states is {Length: > 0})
             {
-                // if the block is in the vanilla registry, we can validate that all states are covered
-                // since the comparison will ALWAYS fail if any state is missing.
-                BlockPropertyDefinition[] possibleProperties = VanillaBlockProperties.GetBlockStates(this.block);
-                if (possibleProperties != null)
+                // - if a state is invalid
+                foreach (BlockState state in this.states)
+                    if (!state.IsValid)
+                        throw new StatementException(tokens, state.definition != null
+                            ? $"The block property '{state.propertyName}' cannot accept the value '{state.value}'. Possible options include: {state.definition.PossibleValuesFriendlyString}"
+                            : $"The block property '{state.propertyName}' cannot accept the value '{state.value}'."); // never occurs
+
+                // - if a state is missing; the comparison will always fail
+                BlockPropertyDefinition[] vanillaProperties = VanillaBlockProperties.GetBlockStates(this.block);
+                if (vanillaProperties is {Length: > 0})
                 {
-                    foreach (BlockPropertyDefinition property in possibleProperties)
-                    {
-                        string name = property.Name;
-
-                        // check to see if a state was specified for this property
-                        BlockState? matchingState = this.states.FirstOrDefault(s => s.definition.Name.Equals(name));
-                        if (!matchingState.HasValue)
-                            throw new StatementException(tokens, $"Missing block state check for '{name}'");
-                        if (!property.IsValidValueGeneric(matchingState.Value.value))
+                    foreach (BlockPropertyDefinition vanillaProperty in vanillaProperties)
+                        if (!this.states.Any(s => s.propertyName.Equals(vanillaProperty.Name)))
                             throw new StatementException(tokens,
-                                $"Invalid value for block property '{name}'. Valid options include: {property.PossibleValuesFriendlyString}");
-                    }
+                                $"Missing check for the block property '{vanillaProperty.Name}'. Possible options include: {vanillaProperty.PossibleValuesFriendlyString}");
 
-                    // also check if any block states were specified without a valid property
+                    // - if a state is present that will never be on the block; the comparison will always fail
                     foreach (BlockState state in this.states)
-                    {
-                        if (possibleProperties.Any(prop => prop.Name.Equals(state.definition.Name)))
-                            continue;
-                        throw new StatementException(tokens,
-                            $"Invalid block property '{state.definition.Name}' for block '{this.block}'. Possible properties include: " +
-                            string.Join(", ", possibleProperties.Select(p => '\'' + p.Name + '\'')));
-                    }
+                        if (!vanillaProperties.Any(property => property.Name.Equals(state.propertyName)))
+                            throw new StatementException(tokens,
+                                $"Block property '{state.propertyName}' will never be found on the block '{this.block}'.");
                 }
             }
         }

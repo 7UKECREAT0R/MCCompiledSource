@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
+using mc_compiled.Commands.Native;
 using mc_compiled.MCC;
 using mc_compiled.NBT;
 using Newtonsoft.Json.Linq;
@@ -278,7 +279,7 @@ public record BlockPropertyDefinition
                 $"Block property {this.Name} was not 'bool' type. (got {this.Type})");
     /// <summary>
     ///     Returns the NBT tag type that corresponds to this block property's type.<br />
-    ///     Use <see cref="CreateNBTNode" /> for an easier way to create an NBT node.
+    ///     Use <see cref="BlockState.CreateNBTNode" /> for an easier way to create an NBT node.
     /// </summary>
     /// <exception cref="Exception">Thrown if the property's <see cref="Type" /> is not implemented here.</exception>
     public TAG NBTTagType
@@ -349,114 +350,6 @@ public record BlockPropertyDefinition
     public static BlockPropertyDefinition Placeholder(string name, BlockPropertyType type, object value)
     {
         return new BlockPropertyDefinition(name, type, [value]);
-    }
-
-    /// <summary>
-    ///     Creates an NBT node representing the value of this block property, appropriate to the property's type.
-    /// </summary>
-    /// <param name="value">
-    ///     The value to be serialized into an NBT node. The specific type of <paramref name="value" /> must match
-    ///     the <see cref="BlockPropertyDefinition.Type" /> of this block property. For example:
-    ///     <list type="bullet">
-    ///         <item>
-    ///             If the type is <see cref="BlockPropertyType.@bool" />, <paramref name="value" /> must be of type
-    ///             <see cref="bool" />.
-    ///         </item>
-    ///         <item>
-    ///             If the type is <see cref="BlockPropertyType.@int" />, <paramref name="value" /> must be of type
-    ///             <see cref="int" />.
-    ///         </item>
-    ///         <item>
-    ///             If the type is <see cref="BlockPropertyType.@string" />, <paramref name="value" /> must be of type
-    ///             <see cref="string" />.
-    ///         </item>
-    ///     </list>
-    /// </param>
-    /// <returns>
-    ///     An <see cref="NBTNode" /> that encapsulates the provided <paramref name="value" /> in the appropriate type.
-    ///     The specific returned instance will be a derived type of <see cref="NBTNode" />, such as
-    ///     <see cref="NBTByte" />, <see cref="NBTInt" />, or <see cref="NBTString" />, depending on
-    ///     the <see cref="BlockPropertyDefinition.Type" />.
-    /// </returns>
-    /// <exception cref="InvalidCastException">
-    ///     Thrown if <paramref name="value" /> does not match the type expected by the
-    ///     <see cref="BlockPropertyDefinition.Type" />.
-    /// </exception>
-    /// <exception cref="Exception">
-    ///     Thrown if the property's <see cref="Type" /> is not implemented.
-    /// </exception>
-    public NBTNode CreateNBTNode(object value)
-    {
-        return this.Type switch
-        {
-            BlockPropertyType.@bool => CreateNBTBool((bool) value),
-            BlockPropertyType.@int => CreateNBTInt((int) value),
-            BlockPropertyType.@string => CreateNBTString((string) value),
-            _ => throw new Exception($"Block property '{this.Name}' has an unimplemented type '{this.Type}'.")
-        };
-    }
-    /// <summary>
-    ///     Creates an NBT string based on this block property.
-    /// </summary>
-    /// <param name="value">The value to place inside the node.</param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException">
-    ///     If this property's <see cref="Type" /> is not
-    ///     <see cref="BlockPropertyType.@string" />
-    /// </exception>
-    public NBTString CreateNBTString(string value)
-    {
-        if (this.Type != BlockPropertyType.@string)
-            throw new InvalidOperationException(
-                $"Passed a string to {nameof(CreateNBTString)} when its type is '{this.Type}'");
-
-        return new NBTString
-        {
-            name = this.Name,
-            value = value
-        };
-    }
-    /// <summary>
-    ///     Creates an NBT integer based on this block property.
-    /// </summary>
-    /// <param name="value">The value to place inside the node.</param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException">
-    ///     If this property's <see cref="Type" /> is not
-    ///     <see cref="BlockPropertyType.@int" />
-    /// </exception>
-    public NBTInt CreateNBTInt(int value)
-    {
-        if (this.Type != BlockPropertyType.@int)
-            throw new InvalidOperationException(
-                $"Passed an integer to {nameof(CreateNBTInt)} when its type is '{this.Type}'");
-
-        return new NBTInt
-        {
-            name = this.Name,
-            value = value
-        };
-    }
-    /// <summary>
-    ///     Creates an NBT boolean based on this block property.
-    /// </summary>
-    /// <param name="value">The value to place inside the node.</param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException">
-    ///     If this property's <see cref="Type" /> is not
-    ///     <see cref="BlockPropertyType.@bool" />
-    /// </exception>
-    public NBTByte CreateNBTBool(bool value)
-    {
-        if (this.Type != BlockPropertyType.@bool)
-            throw new InvalidOperationException(
-                $"Passed a boolean to {nameof(CreateNBTBool)} when its type is '{this.Type}'");
-
-        return new NBTByte
-        {
-            name = this.Name,
-            value = value ? (byte) 1 : (byte) 0
-        };
     }
 
     /// <summary>

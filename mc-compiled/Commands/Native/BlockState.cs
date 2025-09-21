@@ -10,12 +10,24 @@ namespace mc_compiled.Commands.Native;
 /// <summary>
 ///     The state of a block. Basically just a value tied to a <see cref="BlockPropertyDefinition" />.
 /// </summary>
-public readonly struct BlockState(BlockPropertyDefinition definition, object value, BlockPropertyType valueType)
+public readonly struct BlockState(
+    [CanBeNull] BlockPropertyDefinition definition,
+    string propertyName,
+    object value,
+    BlockPropertyType valueType)
 {
     /// <summary>
     ///     The definition of the property this entry refers to.
+    ///     If null, there's no valid vanilla property this state refers to; however, it may be a custom property.
+    ///     Validation should be done on an as-needed basis, like if this <see cref="BlockState" /> is paired with a
+    ///     known vanilla block.
     /// </summary>
+    [CanBeNull]
     public readonly BlockPropertyDefinition definition = definition;
+    /// <summary>
+    ///     A never-null name of the property set by this entry. The <see cref="definition" /> can be null, but this cannot.
+    /// </summary>
+    public readonly string propertyName = propertyName;
 
     /// <summary>
     ///     The value of the property set by this entry.
@@ -27,11 +39,17 @@ public readonly struct BlockState(BlockPropertyDefinition definition, object val
     private readonly BlockPropertyType valueType = valueType;
 
     // constructors for convenience
-    public BlockState(BlockPropertyDefinition definition, bool value) : this(definition, value,
+    public BlockState(BlockPropertyDefinition definition, bool value) : this(definition, definition.Name, value,
         BlockPropertyType.@bool) { }
-    public BlockState(BlockPropertyDefinition definition, int value) : this(definition, value,
+    public BlockState(BlockPropertyDefinition definition, int value) : this(definition, definition.Name, value,
         BlockPropertyType.@int) { }
-    public BlockState(BlockPropertyDefinition definition, string value) : this(definition, value,
+    public BlockState(BlockPropertyDefinition definition, string value) : this(definition, definition.Name, value,
+        BlockPropertyType.@string) { }
+    public BlockState(string unknownPropertyName, bool value) : this(null, unknownPropertyName, value,
+        BlockPropertyType.@bool) { }
+    public BlockState(string unknownPropertyName, int value) : this(null, unknownPropertyName, value,
+        BlockPropertyType.@int) { }
+    public BlockState(string unknownPropertyName, string value) : this(null, unknownPropertyName, value,
         BlockPropertyType.@string) { }
 
     /// <summary>
@@ -153,37 +171,21 @@ public readonly struct BlockState(BlockPropertyDefinition definition, object val
         {
             case TokenBooleanLiteral booleanLiteral:
                 bool cBool = booleanLiteral.boolean;
-                return !blockProperty.IsValidValue(cBool)
-                    ? ThrowInvalidValue(cBool)
-                    : new BlockState(blockProperty, cBool);
+                return new BlockState(blockProperty, cBool);
             case TokenIntegerLiteral integerLiteral:
                 int cInt = integerLiteral.number;
-                return !blockProperty.IsValidValue(cInt)
-                    ? ThrowInvalidValue(cInt)
-                    : new BlockState(blockProperty, cInt);
+                return new BlockState(blockProperty, cInt);
             case TokenStringLiteral stringLiteral:
                 string cString = stringLiteral.text;
-                return !blockProperty.IsValidValue(cString)
-                    ? ThrowInvalidValue(cString)
-                    : new BlockState(blockProperty, cString);
+                return new BlockState(blockProperty, cString);
             case TokenIdentifier stringButDifferent:
                 string cIdentifier = stringButDifferent.word;
-                return !blockProperty.IsValidValue(cIdentifier)
-                    ? ThrowInvalidValue(cIdentifier)
-                    : new BlockState(blockProperty, cIdentifier);
+                return new BlockState(blockProperty, cIdentifier);
             default:
                 return forExceptions != null
                     ? throw new StatementException(forExceptions,
                         $"Value '{c.AsString()}' is not a valid value for block property '{blockPropertyName}'. Available options include: {blockProperty.PossibleValuesFriendlyString}")
                     : null;
-        }
-
-        BlockState? ThrowInvalidValue(object value)
-        {
-            return forExceptions != null
-                ? throw new StatementException(forExceptions,
-                    $"Value {value} is not a valid value for block property '{blockPropertyName}'. Available options include: {blockProperty.PossibleValuesFriendlyString}")
-                : null;
         }
     }
 
@@ -191,24 +193,115 @@ public readonly struct BlockState(BlockPropertyDefinition definition, object val
     ///     Returns if this block state entry is valid based on if a <see cref="value" /> is present and its type matches the
     ///     <see cref="definition" />.
     /// </summary>
-    public bool IsValid => this.value != null && this.valueType == this.definition.Type;
+    public bool IsValid
+    {
+        get
+        {
+            if (this.value == null)
+                return false;
+            if (this.definition == null)
+                return true; // technically always valid if there are no restrictions?
+            if (this.valueType != this.definition.Type)
+                return false;
 
-    /// <summary>
-    ///     Converts the current <see cref="BlockState" /> to an <see cref="NBTNode" />.
-    /// </summary>
-    /// <returns>
-    ///     An <see cref="NBTNode" /> representing the state of the block.
-    /// </returns>
-    public NBTNode ToNBT() { return this.definition.CreateNBTNode(this.value); }
+            return this.valueType switch
+            {
+                BlockPropertyType.@bool => this.value is bool boolValue && this.definition.IsValidValue(boolValue),
+                BlockPropertyType.@int => this.value is int intValue && this.definition.IsValidValue(intValue),
+                BlockPropertyType.@string => this.value is string strValue && this.definition.IsValidValue(strValue),
+                _ => throw new Exception(
+                    $"Block property type \"{this.valueType}\" is not implemented for {nameof(BlockState)}#{nameof(this.IsValid)}.")
+            };
+        }
+    }
+
     public override string ToString()
     {
         return this.valueType switch
         {
-            BlockPropertyType.@bool => $"\"{this.definition.Name}\"={this.value.ToString()!.ToLower()}",
-            BlockPropertyType.@int => $"\"{this.definition.Name}\"={this.value}",
-            BlockPropertyType.@string => $"\"{this.definition.Name}\"=\"{this.value}\"",
+            BlockPropertyType.@bool => $"\"{this.propertyName}\"={this.value.ToString()!.ToLower()}",
+            BlockPropertyType.@int => $"\"{this.propertyName}\"={this.value}",
+            BlockPropertyType.@string => $"\"{this.propertyName}\"=\"{this.value}\"",
             _ => throw new Exception(
                 $"Block property type \"{this.valueType}\" is not implemented for {nameof(BlockState)}#{nameof(ToString)}.")
+        };
+    }
+
+    /// <summary>
+    ///     Creates an NBT node representing the value of this block state, appropriate to the property's type.
+    /// </summary>
+    /// <returns>
+    ///     An <see cref="NBTNode" /> that encapsulates the provided <see cref="value" /> in the appropriate type.
+    ///     The specific returned instance will be a derived type of <see cref="NBTNode" />, such as
+    ///     <see cref="NBTByte" />, <see cref="NBTInt" />, or <see cref="NBTString" />, depending on
+    ///     the <see cref="BlockPropertyDefinition.Type" />.
+    /// </returns>
+    /// <exception cref="InvalidCastException">
+    ///     Thrown if <see cref="value" /> does not match the type expected by the
+    ///     <see cref="BlockPropertyDefinition.Type" />.
+    /// </exception>
+    /// <exception cref="Exception">
+    ///     Thrown if the property's <see cref="valueType" /> is not implemented.
+    /// </exception>
+    public NBTNode CreateNBTNode()
+    {
+        return this.valueType switch
+        {
+            BlockPropertyType.@bool => CreateNBTBool((bool) this.value),
+            BlockPropertyType.@int => CreateNBTInt((int) this.value),
+            BlockPropertyType.@string => CreateNBTString((string) this.value),
+            _ => throw new Exception($"Method '{nameof(CreateNBTNode)}' has an unimplemented type '{this.valueType}'.")
+        };
+    }
+    /// <summary>
+    ///     Creates an NBT string based on this block state.
+    /// </summary>
+    /// <param name="nbtValue">The value to place inside the node.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">
+    ///     If this property's <see cref="Type" /> is not
+    ///     <see cref="BlockPropertyType.@string" />
+    /// </exception>
+    private NBTString CreateNBTString(string nbtValue)
+    {
+        return new NBTString
+        {
+            name = this.propertyName,
+            value = nbtValue
+        };
+    }
+    /// <summary>
+    ///     Creates an NBT integer based on this block state.
+    /// </summary>
+    /// <param name="nbtValue">The value to place inside the node.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">
+    ///     If this property's <see cref="Type" /> is not
+    ///     <see cref="BlockPropertyType.@int" />
+    /// </exception>
+    private NBTInt CreateNBTInt(int nbtValue)
+    {
+        return new NBTInt
+        {
+            name = this.propertyName,
+            value = nbtValue
+        };
+    }
+    /// <summary>
+    ///     Creates an NBT boolean based on this block state.
+    /// </summary>
+    /// <param name="nbtValue">The value to place inside the node.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">
+    ///     If this property's <see cref="Type" /> is not
+    ///     <see cref="BlockPropertyType.@bool" />
+    /// </exception>
+    private NBTByte CreateNBTBool(bool nbtValue)
+    {
+        return new NBTByte
+        {
+            name = this.propertyName,
+            value = nbtValue ? (byte) 1 : (byte) 0
         };
     }
 }
@@ -236,6 +329,6 @@ public static class BlockStateExtensions
         if (states == null || states.Length == 0)
             return [];
 
-        return states.Select(s => s.ToNBT()).ToArray();
+        return states.Select(s => s.CreateNBTNode()).ToArray();
     }
 }
