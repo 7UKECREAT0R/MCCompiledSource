@@ -2129,7 +2129,10 @@ public static class DirectiveImplementations
 
         BlockState[] blockStates = null;
         if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+        {
             blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+            blockStates.ValidateIfKnownVanillaBlock(block, false, tokens);
+        }
 
         var handling = OldHandling.replace;
         if (tokens.NextIs<TokenIdentifierEnum>(true))
@@ -2162,7 +2165,10 @@ public static class DirectiveImplementations
 
         BlockState[] blockStates = null;
         if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+        {
             blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+            blockStates.ValidateIfKnownVanillaBlock(block, false, tokens);
+        }
 
         var handling = OldHandling.replace;
         if (tokens.NextIs<TokenIdentifierEnum>(false))
@@ -2261,7 +2267,10 @@ public static class DirectiveImplementations
 
         BlockState[] blockStates = null;
         if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+        {
             blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+            blockStates.ValidateIfKnownVanillaBlock(block, false, tokens);
+        }
 
         NBTNode[] blockStatesNBT = blockStates.ToNBT() ?? [];
 
@@ -2330,13 +2339,19 @@ public static class DirectiveImplementations
         src.ThrowIfWhitespace("source block", tokens);
         BlockState[] srcBlockStates = null;
         if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+        {
             srcBlockStates = tokens.Next<TokenBlockStatesLiteral>("source block states");
+            srcBlockStates.ValidateIfKnownVanillaBlock(src, true, tokens);
+        }
 
         string dst = tokens.Next<TokenStringLiteral>("destination block");
         dst.ThrowIfWhitespace("destination block", tokens);
         BlockState[] dstBlockStates = null;
         if (tokens.NextIs<TokenBlockStatesLiteral>(true))
+        {
             dstBlockStates = tokens.Next<TokenBlockStatesLiteral>("destination data");
+            dstBlockStates.ValidateIfKnownVanillaBlock(dst, false, tokens);
+        }
 
         executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, dst, dstBlockStates, src, srcBlockStates));
     }
