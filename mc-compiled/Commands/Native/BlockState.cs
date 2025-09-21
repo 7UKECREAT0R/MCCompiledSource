@@ -145,25 +145,21 @@ public readonly struct BlockState(
             switch (c)
             {
                 case TokenBooleanLiteral booleanLiteral:
-                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@bool,
-                        booleanLiteral.boolean);
-                    return new BlockState(blockProperty, booleanLiteral.boolean);
+                    bool cBool = booleanLiteral.boolean;
+                    return new BlockState(blockPropertyName, cBool);
                 case TokenIntegerLiteral integerLiteral:
-                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@int,
-                        integerLiteral.number);
-                    return new BlockState(blockProperty, integerLiteral.number);
+                    int cInt = integerLiteral.number;
+                    return new BlockState(blockPropertyName, cInt);
                 case TokenStringLiteral stringLiteral:
-                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@string,
-                        stringLiteral.text);
-                    return new BlockState(blockProperty, stringLiteral.text);
+                    string cString = stringLiteral.text;
+                    return new BlockState(blockPropertyName, cString);
                 case TokenIdentifier stringButDifferent:
-                    blockProperty = BlockPropertyDefinition.Placeholder(blockPropertyName, BlockPropertyType.@string,
-                        stringButDifferent.word);
-                    return new BlockState(blockProperty, stringButDifferent.word);
+                    string cIdentifier = stringButDifferent.word;
+                    return new BlockState(blockPropertyName, cIdentifier);
                 default:
                     return forExceptions != null
                         ? throw new StatementException(forExceptions,
-                            $"Value '{c.AsString()}' is not a valid value for a block property.")
+                            $"Value '{c.AsString()}' is not a valid value for the non-vanilla block property '{blockPropertyName}'.")
                         : null;
             }
 

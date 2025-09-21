@@ -2194,7 +2194,7 @@ public static class DirectiveImplementations
         // structure loading will only do the "replace" functionality
         if (handling != OldHandling.replace)
             throw new StatementException(tokens,
-                $"Fill area cannot be larger than {32_768:N0} blocks. Setting the old block handling mode to 'replace' may allow you to get around this.");
+                $"Fill area cannot be larger than {32_768:N0} blocks. Setting the old block handling mode to 'replace' and enabling the '{nameof(Feature.STRUCTURES).ToLower()}' feature may allow you to get around this.");
 
         executor.RequireFeature(tokens, Feature.STRUCTURES,
             $"Filling an area larger than {32_768:N0} requires feature '{nameof(Feature.STRUCTURES)}'. Enable using 'feature {nameof(Feature.STRUCTURES).ToLower()}' at the top of the file.");
@@ -2202,11 +2202,6 @@ public static class DirectiveImplementations
         if (!Coordinate.SizeKnown(x1, y1, z1, x2, y2, z2))
             throw new StatementException(tokens,
                 "Because a structure is being generated at compile-time, all coordinates must be either relative or static. (the size needs to be known at compile time.)");
-
-        if (totalBlocks > 1_000_000)
-            Executor.Warn(
-                $"Warning: Fill zone is {totalBlocks:N0} blocks. This could cause runtime performance issues or the operation might only partially complete.",
-                tokens);
 
         if (executor.emission.isLinting)
             return; // don't bother with the rest of the code if we're just linting
@@ -2285,11 +2280,6 @@ public static class DirectiveImplementations
         long sizeY = Math.Abs(y2.valueInteger - y1.valueInteger) + 1;
         long sizeZ = Math.Abs(z2.valueInteger - z1.valueInteger) + 1;
         long totalBlocks = sizeX * sizeY * sizeZ;
-
-        if (totalBlocks > 1_000_000)
-            Executor.Warn(
-                $"Warning: Scatter zone is {totalBlocks:N0} blocks. This could cause runtime performance issues or the operation might only partially complete.",
-                tokens);
 
         if (executor.emission.isLinting)
             return; // don't bother with the rest of the code if we're just linting

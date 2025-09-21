@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
-using mc_compiled.Commands.Native;
 using mc_compiled.MCC;
-using mc_compiled.NBT;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Commands;
@@ -34,6 +32,17 @@ public static class VanillaBlockProperties
         {
             EnsureLoaded();
             return _PROPERTIES;
+        }
+    }
+    /// <summary>
+    ///     A collection of block states associated with a given vanilla block identifier.
+    /// </summary>
+    public static FrozenDictionary<string, BlockPropertyDefinition[]> BlockStates
+    {
+        get
+        {
+            EnsureLoaded();
+            return _BLOCK_STATES;
         }
     }
 
@@ -277,24 +286,6 @@ public record BlockPropertyDefinition
             ? GetPossibleValues<bool>()
             : throw new InvalidOperationException(
                 $"Block property {this.Name} was not 'bool' type. (got {this.Type})");
-    /// <summary>
-    ///     Returns the NBT tag type that corresponds to this block property's type.<br />
-    ///     Use <see cref="BlockState.CreateNBTNode" /> for an easier way to create an NBT node.
-    /// </summary>
-    /// <exception cref="Exception">Thrown if the property's <see cref="Type" /> is not implemented here.</exception>
-    public TAG NBTTagType
-    {
-        get
-        {
-            return this.Type switch
-            {
-                BlockPropertyType.@bool => TAG.Byte,
-                BlockPropertyType.@int => TAG.Int,
-                BlockPropertyType.@string => TAG.String,
-                _ => throw new Exception($"Block property '{this.Name}' has an unimplemented type '{this.Type}'.")
-            };
-        }
-    }
 
     /// <summary>
     ///     Parse a <see cref="BlockPropertyDefinition" /> from its JSON representation inside <c>mojang-blocks.json</c>.
@@ -338,18 +329,6 @@ public record BlockPropertyDefinition
         }
 
         return new BlockPropertyDefinition(name, type, possibleValues);
-    }
-    /// <summary>
-    ///     Creates a placeholder block property definition. This is used in cases where the user is using a custom block
-    ///     property that isn't in vanilla.
-    /// </summary>
-    /// <param name="name">The name of the block property.</param>
-    /// <param name="type">The type of the block property.</param>
-    /// <param name="value">The default value of the block property.</param>
-    /// <returns></returns>
-    public static BlockPropertyDefinition Placeholder(string name, BlockPropertyType type, object value)
-    {
-        return new BlockPropertyDefinition(name, type, [value]);
     }
 
     /// <summary>
@@ -413,6 +392,8 @@ public record BlockPropertyDefinition
     {
         return this.Type == BlockPropertyType.@string && this.StringValues.Contains(value);
     }
+
+    public override string ToString() { return $"{this.Name}: [{this.PossibleValuesFriendlyString}]"; }
 }
 
 /// <summary>
