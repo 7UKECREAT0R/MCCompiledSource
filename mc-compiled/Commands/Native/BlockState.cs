@@ -331,4 +331,54 @@ public static class BlockStateExtensions
 
         return states.Select(s => s.CreateNBTNode()).ToArray();
     }
+
+    /// <summary>
+    ///     Validate this array of block states if the provided <paramref name="block" /> is a known vanilla block.
+    /// </summary>
+    /// <param name="states">The block states to validate.</param>
+    /// <param name="block">The block identifier to look up. Doesn't require a namespace.</param>
+    /// <param name="isForComparison">
+    ///     If this validation is for comparison. If <see langword="true" />, an additional check is
+    ///     performed to ensure all possible states for the block are accounted for.
+    /// </param>
+    /// <param name="callingStatement">The calling statement to attach to any thrown <see cref="StatementException" />.</param>
+    /// <exception cref="StatementException">
+    ///     If <paramref name="block" /> resolves to a known vanilla block and something is
+    ///     wrong with the provided block states.
+    /// </exception>
+    public static void ValidateIfKnownVanillaBlock(this BlockState[] states,
+        string block,
+        bool isForComparison,
+        Statement callingStatement)
+    {
+        if (states == null || states.Length == 0)
+            return;
+
+        // if the block is in the vanilla registry, we can validate the comparison
+        BlockPropertyDefinition[] vanillaProperties = VanillaBlockProperties.GetBlockStates(block);
+
+        if (vanillaProperties is {Length: > 0})
+        {
+            // - if a state is invalid
+            foreach (BlockState state in states)
+                if (!state.IsValid)
+                    throw new StatementException(callingStatement, state.definition != null
+                        ? $"The block property '{state.propertyName}' cannot accept the value '{state.value}'. Possible options include: {state.definition.PossibleValuesFriendlyString}"
+                        : $"The block property '{state.propertyName}' cannot accept the value '{state.value}'."); // never occurs
+
+            // - if a state is missing; a comparison will always fail
+            if (isForComparison)
+                foreach (BlockPropertyDefinition vanillaProperty in vanillaProperties)
+                    if (!states.Any(s => s.propertyName.Equals(vanillaProperty.Name)))
+                        throw new StatementException(callingStatement,
+                            $"Missing check for the block property '{vanillaProperty.Name}'. Possible options include: {vanillaProperty.PossibleValuesFriendlyString}");
+
+            // - if a state is present that will never be on the block; the comparison will always fail
+            foreach (BlockState state in states)
+                if (!vanillaProperties.Any(property => property.Name.Equals(state.propertyName)))
+                    throw new StatementException(callingStatement, isForComparison
+                        ? $"Block property '{state.propertyName}' will never be found on the block '{block}'."
+                        : $"Block property '{state.propertyName}' can't be set for the block '{block}'.");
+        }
+    }
 }

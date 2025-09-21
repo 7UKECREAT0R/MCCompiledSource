@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using JetBrains.Annotations;
 using mc_compiled.Commands.Native;
 using mc_compiled.Commands.Selectors;
@@ -58,34 +57,8 @@ internal class ConditionalSubcommandBlock : ConditionalSubcommand
 
         if (tokens.NextIs<TokenBlockStatesLiteral>(false))
         {
-            this.states = tokens.Next<TokenBlockStatesLiteral>("block states").states;
-
-            // if the block is in the vanilla registry, we can validate the comparison
-            if (this.states is {Length: > 0})
-            {
-                // - if a state is invalid
-                foreach (BlockState state in this.states)
-                    if (!state.IsValid)
-                        throw new StatementException(tokens, state.definition != null
-                            ? $"The block property '{state.propertyName}' cannot accept the value '{state.value}'. Possible options include: {state.definition.PossibleValuesFriendlyString}"
-                            : $"The block property '{state.propertyName}' cannot accept the value '{state.value}'."); // never occurs
-
-                // - if a state is missing; the comparison will always fail
-                BlockPropertyDefinition[] vanillaProperties = VanillaBlockProperties.GetBlockStates(this.block);
-                if (vanillaProperties is {Length: > 0})
-                {
-                    foreach (BlockPropertyDefinition vanillaProperty in vanillaProperties)
-                        if (!this.states.Any(s => s.propertyName.Equals(vanillaProperty.Name)))
-                            throw new StatementException(tokens,
-                                $"Missing check for the block property '{vanillaProperty.Name}'. Possible options include: {vanillaProperty.PossibleValuesFriendlyString}");
-
-                    // - if a state is present that will never be on the block; the comparison will always fail
-                    foreach (BlockState state in this.states)
-                        if (!vanillaProperties.Any(property => property.Name.Equals(state.propertyName)))
-                            throw new StatementException(tokens,
-                                $"Block property '{state.propertyName}' will never be found on the block '{this.block}'.");
-                }
-            }
+            this.states = tokens.Next<TokenBlockStatesLiteral>("block states");
+            this.states.ValidateIfKnownVanillaBlock(this.block, true, tokens);
         }
     }
     public override string ToMinecraft()

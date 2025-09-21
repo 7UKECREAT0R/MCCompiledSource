@@ -149,35 +149,7 @@ public class ComparisonSet : List<Comparison>
                             if (tokens.NextIs<TokenBlockStatesLiteral>(false))
                             {
                                 states = tokens.Next<TokenBlockStatesLiteral>("block states");
-
-                                // if the block is in the vanilla registry, we can validate the comparison
-                                if (states is {Length: > 0})
-                                {
-                                    // - if a state is invalid
-                                    foreach (BlockState state in states)
-                                        if (!state.IsValid)
-                                            throw new StatementException(tokens, state.definition != null
-                                                ? $"The block property '{state.propertyName}' cannot accept the value '{state.value}'. Possible options include: {state.definition.PossibleValuesFriendlyString}"
-                                                : $"The block property '{state.propertyName}' cannot accept the value '{state.value}'."); // never occurs
-
-                                    // - if a state is missing; the comparison will always fail
-                                    BlockPropertyDefinition[] vanillaProperties =
-                                        VanillaBlockProperties.GetBlockStates(block);
-                                    if (vanillaProperties is {Length: > 0})
-                                    {
-                                        foreach (BlockPropertyDefinition vanillaProperty in vanillaProperties)
-                                            if (!states.Any(s => s.propertyName.Equals(vanillaProperty.Name)))
-                                                throw new StatementException(tokens,
-                                                    $"Missing check for the block property '{vanillaProperty.Name}'. Possible options include: {vanillaProperty.PossibleValuesFriendlyString}");
-
-                                        // - if a state is present that will never be on the block; the comparison will always fail
-                                        foreach (BlockState state in states)
-                                            if (!vanillaProperties.Any(property =>
-                                                    property.Name.Equals(state.propertyName)))
-                                                throw new StatementException(tokens,
-                                                    $"Block property '{state.propertyName}' will never be found on the block '{block}'.");
-                                    }
-                                }
+                                states.ValidateIfKnownVanillaBlock(block, true, tokens);
                             }
 
                             var blockCheck = new ComparisonBlock(x, y, z, block, states, invertNext);
