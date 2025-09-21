@@ -63,7 +63,7 @@ public class Button
         {
             ["name"] = this._name.Build(),
             ["commands"] = new JArray(this.commands?.Select(cmd => cmd.StartsWith("/") ? cmd : '/' + cmd) ??
-                                      Array.Empty<string>())
+                                      [])
         };
     }
 }

@@ -281,7 +281,7 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
         Statement callingStatement)
     {
         if (literal is TokenNullLiteral)
-            return Array.Empty<string>();
+            return [];
 
         byte precision = ((FixedDecimalData) self.data).precision;
 
@@ -312,7 +312,7 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
         Statement callingStatement)
     {
         if (literal is TokenNullLiteral)
-            return Array.Empty<string>();
+            return [];
 
         byte precision = ((FixedDecimalData) self.data).precision;
 

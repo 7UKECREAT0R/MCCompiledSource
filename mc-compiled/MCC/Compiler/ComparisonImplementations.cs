@@ -287,7 +287,7 @@ public class ComparisonValue : Comparison
         if (this.aType == SideType.Variable && this.bType == SideType.Variable)
             return [((TokenIdentifierValue) this.a).value, ((TokenIdentifierValue) this.b).value];
 
-        return Array.Empty<ScoreboardValue>();
+        return [];
     }
 }
 
@@ -350,7 +350,7 @@ public class ComparisonSelector : Comparison
             ? $"{this.selector} does not match the executing entity"
             : $"{this.selector} matches the executing entity";
     }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return Array.Empty<ScoreboardValue>(); }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return []; }
 }
 
 public class ComparisonCount : Comparison
@@ -508,7 +508,7 @@ public class ComparisonCount : Comparison
     {
         if (this.goalType == SideType.Variable)
             return [(this.goalCount as TokenIdentifierValue).value];
-        return Array.Empty<ScoreboardValue>();
+        return [];
     }
 }
 
@@ -574,7 +574,7 @@ public class ComparisonAny : Comparison
     {
         return this.inverted ? $"{this.selector} does not match any entity" : $"{this.selector} matches any entity";
     }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return Array.Empty<ScoreboardValue>(); }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return []; }
 }
 
 public class ComparisonBlock : Comparison
@@ -745,7 +745,7 @@ public class ComparisonBlocks : Comparison
             ? $"{this.scanMode} blocks between ({this.beginX} {this.beginY} {this.beginZ}) and ({this.endX} {this.endY} {this.endZ}) do not match the blocks at ({this.destX} {this.destY} {this.destZ})"
             : $"{this.scanMode} blocks between ({this.beginX} {this.beginY} {this.beginZ}) and ({this.endX} {this.endY} {this.endZ}) match the blocks at ({this.destX} {this.destY} {this.destZ})";
     }
-    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return Array.Empty<ScoreboardValue>(); }
+    public override IEnumerable<ScoreboardValue> GetAssertionTargets() { return []; }
 }
 
 /// <summary>

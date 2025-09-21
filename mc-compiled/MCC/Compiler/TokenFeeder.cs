@@ -333,9 +333,9 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     public IEnumerable<Token> GetRemainingTokens()
     {
         if (this.tokens == null)
-            return Array.Empty<Token>();
+            return [];
         if (this.tokens.Length <= this.currentToken)
-            return Array.Empty<Token>();
+            return [];
 
         return this.tokens.Skip(this.currentToken)
             .Where(t => t is not IUselessInformation);

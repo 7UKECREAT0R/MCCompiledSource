@@ -63,7 +63,7 @@ internal class TypedefInteger : Typedef
             }
         }
 
-        return Array.Empty<string>();
+        return [];
     }
 
     // Other

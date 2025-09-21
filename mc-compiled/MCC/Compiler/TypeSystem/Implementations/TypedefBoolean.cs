@@ -39,7 +39,7 @@ internal sealed class TypedefBoolean : Typedef
     }
     internal override IEnumerable<string> ConvertTo(ScoreboardValue src, ScoreboardValue dst)
     {
-        return Array.Empty<string>();
+        return [];
     }
 
     // Other
