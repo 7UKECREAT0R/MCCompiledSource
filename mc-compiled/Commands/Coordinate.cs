@@ -18,18 +18,12 @@ public struct Coordinate : IComparable<Coordinate>
     private readonly bool isRelative;
     private readonly bool isFacingOffset;
 
-    public static implicit operator Coordinate(int convert)
-    {
-        return new Coordinate(convert, false, false, false);
-    }
-    public static implicit operator Coordinate(decimal convert)
-    {
-        return new Coordinate(convert, true, false, false);
-    }
+    public static implicit operator Coordinate(int convert) { return new Coordinate(convert, false, false, false); }
+    public static implicit operator Coordinate(decimal convert) { return new Coordinate(convert, true, false, false); }
     public Coordinate(decimal value, bool isDecimal, bool isRelative, bool isFacingOffset)
     {
         this.valueDecimal = value;
-        this.valueInteger = (int) Math.Round(value);
+        this.valueInteger = value > int.MaxValue ? int.MaxValue : (int) Math.Round(value);
         this.isDecimal = isDecimal;
         this.isRelative = isRelative;
         this.isFacingOffset = isFacingOffset;
@@ -113,16 +107,17 @@ public struct Coordinate : IComparable<Coordinate>
     /// <param name="y2">The y-coordinate of the second point.</param>
     /// <param name="z2">The z-coordinate of the second point.</param>
     /// <returns>The volume of the shape.</returns>
-    public static long GetVolume(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2,
+    public static long GetVolume(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
         Coordinate z2)
     {
         (int, int, int) tuple = GetSize(x1, y1, z1, x2, y2, z2);
         return tuple.Item1 * (long) tuple.Item2 * tuple.Item3;
     }
-    public static long GetVolume((int, int, int) tuple)
-    {
-        return tuple.Item1 * (long) tuple.Item2 * tuple.Item3;
-    }
+    public static long GetVolume((int, int, int) tuple) { return tuple.Item1 * (long) tuple.Item2 * tuple.Item3; }
     /// <summary>
     ///     Gets the size of a coordinate in each dimension.
     /// </summary>
@@ -135,7 +130,11 @@ public struct Coordinate : IComparable<Coordinate>
     /// <returns>
     ///     The size of the coordinate in each dimension as a tuple (sizeX, sizeY, sizeZ).
     /// </returns>
-    public static (int, int, int) GetSize(Coordinate x1, Coordinate y1, Coordinate z1, Coordinate x2, Coordinate y2,
+    public static (int, int, int) GetSize(Coordinate x1,
+        Coordinate y1,
+        Coordinate z1,
+        Coordinate x2,
+        Coordinate y2,
         Coordinate z2)
     {
         int sizeX = Math.Abs(x2.valueInteger - x1.valueInteger);
@@ -228,22 +227,10 @@ public struct Coordinate : IComparable<Coordinate>
         return this.valueDecimal.CompareTo(other.valueDecimal);
     }
 
-    public static bool operator ==(Coordinate a, Coordinate b)
-    {
-        return a.Equals(b);
-    }
-    public static bool operator !=(Coordinate a, Coordinate b)
-    {
-        return !a.Equals(b);
-    }
-    public static bool operator <=(Coordinate a, Coordinate b)
-    {
-        return a < b || a == b;
-    }
-    public static bool operator >=(Coordinate a, Coordinate b)
-    {
-        return a > b || a == b;
-    }
+    public static bool operator ==(Coordinate a, Coordinate b) { return a.Equals(b); }
+    public static bool operator !=(Coordinate a, Coordinate b) { return !a.Equals(b); }
+    public static bool operator <=(Coordinate a, Coordinate b) { return a < b || a == b; }
+    public static bool operator >=(Coordinate a, Coordinate b) { return a > b || a == b; }
     public static bool operator <(Coordinate a, Coordinate b)
     {
         if (!a.isDecimal && !b.isDecimal)
@@ -256,54 +243,18 @@ public struct Coordinate : IComparable<Coordinate>
             return a.valueInteger > b.valueInteger;
         return a.valueDecimal > b.valueDecimal;
     }
-    public static bool operator ==(Coordinate a, int b)
-    {
-        return a.valueInteger == b;
-    }
-    public static bool operator !=(Coordinate a, int b)
-    {
-        return a.valueInteger != b;
-    }
-    public static bool operator <=(Coordinate a, int b)
-    {
-        return a < b || a == b;
-    }
-    public static bool operator >=(Coordinate a, int b)
-    {
-        return a > b || a == b;
-    }
-    public static bool operator <(Coordinate a, int b)
-    {
-        return a.valueInteger < b;
-    }
-    public static bool operator >(Coordinate a, int b)
-    {
-        return a.valueInteger < b;
-    }
-    public static bool operator ==(Coordinate a, decimal b)
-    {
-        return a.valueDecimal == b;
-    }
-    public static bool operator !=(Coordinate a, decimal b)
-    {
-        return a.valueDecimal != b;
-    }
-    public static bool operator <=(Coordinate a, decimal b)
-    {
-        return a < b || a == b;
-    }
-    public static bool operator >=(Coordinate a, decimal b)
-    {
-        return a > b || a == b;
-    }
-    public static bool operator <(Coordinate a, decimal b)
-    {
-        return a.valueDecimal < b;
-    }
-    public static bool operator >(Coordinate a, decimal b)
-    {
-        return a.valueDecimal < b;
-    }
+    public static bool operator ==(Coordinate a, int b) { return a.valueInteger == b; }
+    public static bool operator !=(Coordinate a, int b) { return a.valueInteger != b; }
+    public static bool operator <=(Coordinate a, int b) { return a < b || a == b; }
+    public static bool operator >=(Coordinate a, int b) { return a > b || a == b; }
+    public static bool operator <(Coordinate a, int b) { return a.valueInteger < b; }
+    public static bool operator >(Coordinate a, int b) { return a.valueInteger < b; }
+    public static bool operator ==(Coordinate a, decimal b) { return a.valueDecimal == b; }
+    public static bool operator !=(Coordinate a, decimal b) { return a.valueDecimal != b; }
+    public static bool operator <=(Coordinate a, decimal b) { return a < b || a == b; }
+    public static bool operator >=(Coordinate a, decimal b) { return a > b || a == b; }
+    public static bool operator <(Coordinate a, decimal b) { return a.valueDecimal < b; }
+    public static bool operator >(Coordinate a, decimal b) { return a.valueDecimal < b; }
 
     public static Coordinate operator -(Coordinate a)
     {
