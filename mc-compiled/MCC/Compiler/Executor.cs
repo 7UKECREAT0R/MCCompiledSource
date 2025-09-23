@@ -19,6 +19,7 @@ using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors.Dialogue;
 using mc_compiled.Modding.Resources;
 using mc_compiled.Modding.Resources.Localization;
+using mc_compiled.NBT.Structures;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.MCC.Compiler;
@@ -87,6 +88,7 @@ public partial class Executor
     internal readonly Dictionary<string, PreprocessorVariable> ppv;
     private readonly StringBuilder prependBuffer;
     internal readonly ScoreboardManager scoreboard;
+    internal readonly Stack<StructureBuilder> structures;
 
     public readonly WorkspaceManager workspace;
     private Stack<CommandFile> currentFiles;
@@ -130,6 +132,7 @@ public partial class Executor
         this.macros = [];
         this.definedTags = [];
         this.definedReturnedTypes = [];
+        this.structures = [];
 
         // support up to MAXIMUM_DEPTH levels of scope before blowing up
         this.lastPreprocessorCompare = new bool[MAXIMUM_DEPTH];
@@ -171,7 +174,14 @@ public partial class Executor
     ///     Returns if this executor has another statement available to run.
     /// </summary>
     public bool HasNext => this.readIndex < this.statements.Length;
-
+    /// <summary>
+    ///     Indicates whether a structure is currently being defined.
+    /// </summary>
+    public bool IsDefiningStructure => this.structures.Count != 0;
+    /// <summary>
+    ///     The structure being currently defined.
+    /// </summary>
+    public StructureBuilder CurrentStructure => this.structures.Peek();
     /// <summary>
     ///     Get the current file that should be written to.
     /// </summary>

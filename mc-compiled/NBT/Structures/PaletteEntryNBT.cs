@@ -23,12 +23,12 @@ public struct PaletteEntryNBT : IEquatable<PaletteEntryNBT>
     public NBTCompound ToNBT(string compoundTagName)
     {
         if (this.states == null)
-            this.states = [new NBTEnd()];
+            this.states = [];
 
         var state = new NBTCompound
         {
             name = "states",
-            values = this.states
+            values = [..this.states, new NBTEnd()]
         };
 
         return new NBTCompound

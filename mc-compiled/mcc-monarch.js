@@ -2,11 +2,11 @@ const mccompiled = {
     operators: [`<`, `>`, `<=`, `>=`, `{`, `}`, `=`, `==`, `!=`, `(`, `)`, `+`, `-`, `*`, `/`, `%`, `+=`, `-=`, `*=`, `/=`, `%=`, `~`, `^`],
     selectors: [`@e`, `@a`, `@s`, `@p`, `@r`],
     preprocessor: [`$var`, `$inc`, `$dec`, `$add`, `$sub`, `$mul`, `$div`, `$mod`, `$pow`, `$swap`, `$append`, `$prepend`, `$if`, `$else`, `$assert`, `$repeat`, `$log`, `$macro`, `$include`, `$strfriendly`, `$strupper`, `$strlower`, `$sum`, `$median`, `$mean`, `$sort`, `$reverse`, `$unique`, `$iterate`, `$len`, `$json`, `$call`],
-    commands: [`mc`, `globalprint`, `print`, `lang`, `define`, `init`, `if`, `else`, `while`, `repeat`, `assert`, `throw`, `give`, `tp`, `move`, `face`, `rotate`, `setblock`, `fill`, `scatter`, `replace`, `kill`, `clear`, `globaltitle`, `title`, `globalactionbar`, `actionbar`, `say`, `camera`, `halt`, `summon`, `damage`, `effect`, `playsound`, `particle`, `gamemode`, `dummy`, `tag`, `explode`, `feature`, `function`, `test`, `return`, `dialogue`, `for`, `execute`, `await`],
+    commands: [`mc`, `globalprint`, `print`, `lang`, `define`, `init`, `if`, `else`, `while`, `repeat`, `assert`, `throw`, `give`, `tp`, `move`, `face`, `rotate`, `setblock`, `fill`, `scatter`, `replace`, `structure`, `container`, `item`, `sign`, `commandblock`, `kill`, `clear`, `globaltitle`, `title`, `globalactionbar`, `actionbar`, `say`, `camera`, `halt`, `summon`, `damage`, `effect`, `playsound`, `particle`, `gamemode`, `dummy`, `tag`, `explode`, `feature`, `function`, `test`, `return`, `dialogue`, `for`, `execute`, `await`],
     literals: [`true`, `false`, `null`],
     types: [`global`, `local`, `extern`, `export`, `bind`, `auto`, `partial`, `async`, `int`, `decimal`, `bool`, `time`],
     comparisons: [`not`, `count`, `any`, `block`, `blocks`, `and`],
-    options: [`ascending`, `descending`, `keep`, `lockinventory`, `lockslot`, `canplaceon: `, `candestroy: `, `enchant: `, `name: `, `lore: `, `title: `, `author: `, `page: `, `dye: `, `facing`, `facing`, `times`, `subtitle`, `clear`, `fade`, `time`, `color`, `set`, `default`, `entity_offset`, `view_offset`, `ease`, `facing`, `pos`, `rot`, `facing`, `clear`, `create`, `single`, `removeall`, `remove`, `add`, `remove`, `new`, `open`, `change`, `at`, `align`, `anchored`, `as`, `at`, `facing`, `entity`, `if`, `score`, `matches`, `entity`, `block`, `blocks`, `unless`, `score`, `matches`, `entity`, `block`, `blocks`, `in`, `positioned`, `rotated`],
+    options: [`ascending`, `descending`, `at: `, `keep`, `lockinventory`, `lockslot`, `canplaceon: `, `candestroy: `, `enchant: `, `name: `, `lore: `, `title: `, `author: `, `page: `, `dye: `, `facing`, `facing`, `delete`, `load`, `none`, `x`, `x`, `xz`, `save`, `disk`, `memory`, `new`, `impulse`, `chain`, `repeating`, `times`, `subtitle`, `clear`, `fade`, `time`, `color`, `set`, `default`, `entity_offset`, `view_offset`, `ease`, `facing`, `pos`, `rot`, `facing`, `clear`, `create`, `single`, `removeall`, `remove`, `add`, `remove`, `new`, `open`, `change`, `at`, `align`, `anchored`, `as`, `at`, `facing`, `entity`, `if`, `score`, `matches`, `entity`, `block`, `blocks`, `unless`, `score`, `matches`, `entity`, `block`, `blocks`, `in`, `positioned`, `rotated`],
     tokenizer: {
         root: [
             [
@@ -282,6 +282,10 @@ const mcc_options = [
         docs: 'Sort variables starting with the highest first.',
     },
     {
+        word: 'at: ',
+        docs: 'Usable only in containers with the \'item\' command. Specifies which slot the item should go in.',
+    },
+    {
         word: 'keep',
         docs: 'Item will stay in the player\'s inventory even after death.',
     },
@@ -336,6 +340,58 @@ const mcc_options = [
     {
         word: 'facing',
         docs: 'Set the position/entity the teleported entity will face towards.',
+    },
+    {
+        word: 'delete',
+        docs: 'Delete a structure by name.',
+    },
+    {
+        word: 'load',
+        docs: 'Load a structure by name into the world.',
+    },
+    {
+        word: 'none',
+        docs: 'Do not mirror the structure.',
+    },
+    {
+        word: 'x',
+        docs: 'Mirror the structure around the x-axis.',
+    },
+    {
+        word: 'x',
+        docs: 'Mirror the structure around the z-axis.',
+    },
+    {
+        word: 'xz',
+        docs: 'Mirror the structure around the x and z axes.',
+    },
+    {
+        word: 'save',
+        docs: 'Save a structure to either memory or disk.',
+    },
+    {
+        word: 'disk',
+        docs: 'Save the structure to disk. Slower, but permanent.',
+    },
+    {
+        word: 'memory',
+        docs: 'Save the structure in memory only. Faster, but temporary.',
+    },
+    {
+        word: 'new',
+        docs: 'Define a new structure to be exported. Must be followed by a code block.',
+    },
+    {
+        word: 'impulse',
+        docs: 'The command block will run once when powered by redstone.',
+    },
+    {
+        word: 'chain',
+        docs: 'The command block will run when activated by another command block pointing at it.',
+    },
+    {
+        word: 'repeating',
+        docs: 'The command block will run either continuously or when powered by redstone. Supports a tick delay.',
     },
     {
         word: 'times',
@@ -764,6 +820,26 @@ const mcc_commands = [
     {
         word: 'replace',
         docs: 'Replaces all source blocks with a result block in a specific region.',
+    },
+    {
+        word: 'structure',
+        docs: 'Perform an operation involving structures.',
+    },
+    {
+        word: 'container',
+        docs: 'Usable only when defining a structure via \'structure new\'. Begins defining a container.',
+    },
+    {
+        word: 'item',
+        docs: 'Usable only when defining a container via the \'container\' command. Adds an item to the container.',
+    },
+    {
+        word: 'sign',
+        docs: 'Usable only when defining a structure via \'structure new\'. Places a sign inside the structure with pre-defined text.',
+    },
+    {
+        word: 'commandblock',
+        docs: 'Usable only when defining a structure via \'structure new\'. Places a command block inside the structure.',
     },
     {
         word: 'kill',

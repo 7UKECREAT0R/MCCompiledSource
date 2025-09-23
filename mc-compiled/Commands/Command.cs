@@ -894,15 +894,14 @@ public static class Command
         bool includeEntities = true,
         bool includeBlocks = true,
         bool waterLogged = false,
-        float integrity = 100,
+        decimal integrity = 100,
         string seed = null)
     {
-        if (seed == null)
-            return
-                $"structure load {name.AsCommandParameterString()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}";
-
-        return
-            $"structure load {name.AsCommandParameterString()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
+        return integrity.Equals(100)
+            ? $"structure load {name.AsCommandParameterString()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()}"
+            : seed == null
+                ? $"structure load {name.AsCommandParameterString()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity}"
+                : $"structure load {name.AsCommandParameterString()} {x} {y} {z} {rotation.String()} {flip} {includeEntities.ToString().ToLower()} {includeBlocks.ToString().ToLower()} {waterLogged.ToString().ToLower()} {integrity} {seed}";
     }
     public static string StructureLoad(string name,
         Coordinate x,
@@ -915,7 +914,7 @@ public static class Command
         bool includeEntities = true,
         bool includeBlocks = true,
         bool waterLogged = false,
-        float integrity = 100,
+        decimal integrity = 100,
         string seed = null)
     {
         if (seed == null)
@@ -1401,7 +1400,7 @@ public enum CameraPreset
     /// </summary>
     first_person,
     /// <summary>
-    ///     The camera is free to move wherever, and is not attached to any particular player.
+    ///     The camera is free to move wherever and is not attached to any particular player.
     /// </summary>
     free,
     /// <summary>
@@ -1415,6 +1414,26 @@ public enum CameraPreset
     control_scheme_camera,
     fixed_boom,
     follow_orbit
+}
+
+/// <summary>
+///     A type of command block.
+/// </summary>
+[UsableInMCC]
+public enum CommandBlockType
+{
+    /// <summary>
+    ///     The command block will run once when powered by redstone.
+    /// </summary>
+    impulse,
+    /// <summary>
+    ///     The command block will run when activated by another command block pointing at it.
+    /// </summary>
+    chain,
+    /// <summary>
+    ///     The command block will run either continuously or when powered by redstone. Supports a tick delay.
+    /// </summary>
+    repeating
 }
 
 /// <summary>
@@ -2256,6 +2275,7 @@ public enum ScoreboardOp
     MAX
 }
 
+[UsableInMCC]
 public enum StructureRotation
 {
     /// <summary>

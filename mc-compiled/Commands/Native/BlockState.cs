@@ -367,7 +367,7 @@ public static class BlockStateExtensions
                 foreach (BlockPropertyDefinition vanillaProperty in vanillaProperties)
                     if (!states.Any(s => s.propertyName.Equals(vanillaProperty.Name)))
                         throw new StatementException(callingStatement,
-                            $"Missing check for the block property '{vanillaProperty.Name}'. Possible options include: {vanillaProperty.PossibleValuesFriendlyString}");
+                            $"Missing block property '{vanillaProperty.Name}'. Possible options include: {vanillaProperty.PossibleValuesFriendlyString}");
 
             // - if a state is present that will never be on the block; the comparison will always fail
             foreach (BlockState state in states)

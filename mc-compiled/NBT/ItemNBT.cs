@@ -6,22 +6,29 @@ namespace mc_compiled.NBT;
 
 public struct ItemNBT
 {
-    public string item; // The actual id of the item.
-    //
-    public string[] canDestroy; // The blocks this item can destroy.
-    public string[] canPlaceOn; // The blocks this item can be placed on.
-    public byte count; // The amount of items in this.
-    public byte? slot; // The slot of the container holding this item. Not used on item entities.
-    public short damage; // The damage on this item if a tool.
-    public ItemTagNBT tag; // Extra item data like enchants and display name.
+    /// <summary>The actual id of the item.</summary>
+    public string item;
+    /// <summary>The slot of the container holding this item. Not used on item entities.</summary>
+    public byte? slot;
+
+    /// <summary>The blocks this item can destroy.</summary>
+    public string[] canDestroy;
+    /// <summary>The blocks this item can be placed on.</summary>
+    public string[] canPlaceOn;
+    /// <summary>The amount of items in this stack.</summary>
+    public byte count;
+    /// <summary>The damage on this item if a tool.</summary>
+    public short damage;
+    /// <summary>Extra item data like enchants and display name.</summary>
+    public ItemTagNBT tag;
 
     public ItemNBT(ItemStack fromStack, byte? slot = null)
     {
         this.item = fromStack.id;
+        this.slot = slot;
         this.canDestroy = fromStack.canDestroy;
         this.canPlaceOn = fromStack.canPlaceOn;
         this.count = (byte) fromStack.count;
-        this.slot = slot;
         this.damage = (short) fromStack.damage;
 
         this.tag = new ItemTagNBT();

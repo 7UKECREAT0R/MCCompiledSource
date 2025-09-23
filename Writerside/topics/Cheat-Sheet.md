@@ -520,22 +520,47 @@ Commands which interact with the Minecraft world's blocks.
 Fill Region
 : Fills blocks in a specific region, optionally using a replace mode.
 - `fill`
-- `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: block>` `[old handling: fill mode]` `[integer: data]`
+- `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: block>` `[block state: block states]` `[old handling: fill mode]`
 
 Replace in Region
 : Replaces all source blocks with a result block in a specific region.
 - `replace`
-- `<minecraft block: source block>` `[integer: source data]` `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: result block>` `[integer: result data]`
+- `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: source block>` `[block state: source block states]` `<minecraft block: destination block>` `[block state: destination block states]`
 
 [Scatter Blocks in Region](Scatter.md)
 : Randomly scatters blocks throughout a region with a certain percentage.
 - `scatter`
-- `<minecraft block: block>` `<integer: percent>` `<coordinate: x1, y1, z1, x2, y2, z2>` `[string: seed]`
+- `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: block>` `[block state: block states]` `<integer: percent>` `[string: seed]`
 
 Set Block
 : Sets the block at a specific position, optionally using a replace mode.
 - `setblock`
-- `<coordinate: x, y, z>` `<minecraft block: block>` `[integer: data]` `[old handling: replace mode]`
+- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]` `[old handling: replace mode]`
+
+Structure Operation
+: Perform an operation involving structures.
+- `structure`
+- one of:
+	- `delete` Delete a structure by name.
+		- `<string: name>`
+	- `load` Load a structure by name into the world.
+		- in order:
+			- `<string: name>` `<coordinate: x, y, z>` `[structure rotation: rotation]`
+			- optional, one of:
+				- `none` Do not mirror the structure.
+				- `x` Mirror the structure around the x-axis.
+				- `x` Mirror the structure around the z-axis.
+				- `xz` Mirror the structure around the x and z axes.
+			- `[true/false: include entities, include blocks, waterlogged]` `[number: integrity]` `[string: integrity seed]`
+	- `save` Save a structure to either memory or disk.
+		- in order:
+			- `<string: name>` `<coordinate: from x, from y, from z, to x, to y, to z>` `[true/false: include entities]`
+			- optional, one of:
+				- `disk` Save the structure to disk. Slower, but permanent.
+				- `memory` Save the structure in memory only. Faster, but temporary.
+			- `[true/false: include blocks]`
+	- `new` Define a new structure to be exported. Must be followed by a code block.
+		- `<string: name>` `<code block>`
 
 
 ### Category: items {id="commands-items"}
@@ -553,6 +578,8 @@ Clear Entity
 - in order:
 	- `<selector: players>` `<minecraft item: item>` `[integer: count, data]`
 	- optional, repeatable, one of:
+		- `at: ` Usable only in containers with the 'item' command. Specifies which slot the item should go in.
+			- `<integer: slot>`
 		- `keep` Item will stay in the player's inventory even after death.
 		- `lockinventory` Lock the item in the player's inventory.
 		- `lockslot` Lock the item in the slot it's located in inside the player's inventory.
@@ -688,7 +715,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 				- `any` Check if any entities match the given selector.
 					- `<selector: selector>`
 				- `block` Check if a block matches a given filter.
-					- `<coordinate: x, y, z>` `<minecraft block: block>`
+					- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]`
 				- `blocks` Check if two regions of blocks are identical.
 					- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
 			- `and` Add another comparison.
@@ -708,7 +735,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 				- `any` Check if any entities match the given selector.
 					- `<selector: selector>`
 				- `block` Check if a block matches a given filter.
-					- `<coordinate: x, y, z>` `<minecraft block: block>`
+					- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]`
 				- `blocks` Check if two regions of blocks are identical.
 					- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
 			- `and` Add another comparison.
@@ -749,7 +776,7 @@ Execute
 				- `entity` Execute if a selector matches.
 					- `<selector: pattern>`
 				- `block` Execute if a block matches.
-					- `<coordinate: x, y, z>` `<minecraft block: block>`
+					- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]`
 				- `blocks` Execute if two regions of blocks match.
 					- `<coordinate: start x, start y, start z, end x, end y, end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
 		- `unless` Execute unless a certain condition passes.
@@ -764,7 +791,7 @@ Execute
 				- `entity` Execute unless a selector matches.
 					- `<selector: pattern>`
 				- `block` Execute unless a block matches.
-					- `<coordinate: x, y, z>` `<minecraft block: block>`
+					- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]`
 				- `blocks` Execute unless two regions of blocks match.
 					- `<coordinate: start x, start y, start z, end x, end y, end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
 		- `in` Execute in a specific dimension.
@@ -843,7 +870,7 @@ function export xpBurst {
 			- `any` Check if any entities match the given selector.
 				- `<selector: selector>`
 			- `block` Check if a block matches a given filter.
-				- `<coordinate: x, y, z>` `<minecraft block: block>`
+				- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]`
 			- `blocks` Check if two regions of blocks are identical.
 				- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
 		- `and` Add another comparison.
@@ -895,7 +922,7 @@ While Statement
 			- `any` Check if any entities match the given selector.
 				- `<selector: selector>`
 			- `block` Check if a block matches a given filter.
-				- `<coordinate: x, y, z>` `<minecraft block: block>`
+				- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]`
 			- `blocks` Check if two regions of blocks are identical.
 				- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
 		- `and` Add another comparison.
@@ -945,7 +972,7 @@ $macro cutscene.start.withRotation x, y, z, ry, rx {
 		- `any` Check if any entities match the given selector.
 			- `<selector: selector>`
 		- `block` Check if a block matches a given filter.
-			- `<coordinate: x, y, z>` `<minecraft block: block>`
+			- `<coordinate: x, y, z>` `<minecraft block: block>` `[block state: block states]`
 		- `blocks` Check if two regions of blocks are identical.
 			- `<coordinate: region start x, region start y, region start z, region end x, region end y, region end z, destination x, destination y, destination z>` `<blocks scan mode: scan mode>`
 	- `and` Add another comparison.
@@ -1016,9 +1043,61 @@ for @e[type=cow]
 
 The other commands that don't have a good designation.
 
+Define Command Block
+: Usable only when defining a structure via 'structure new'. Places a command block inside the structure.
+- `commandblock`
+- in order:
+	- `<coordinate: x, y, z>`
+	- one of:
+		- `impulse` The command block will run once when powered by redstone.
+		- `chain` The command block will run when activated by another command block pointing at it.
+		- `repeating` The command block will run either continuously or when powered by redstone. Supports a tick delay.
+			- `<true/false: always active>`
+	- `[integer: delay]` `<facing direction: direction>` `[true/false: conditional]` `<string: command>`
+
+Define Container in Current Structure
+: Usable only when defining a structure via 'structure new'. Begins defining a container.
+- `container`
+- `<coordinate: x, y, z>` `<minecraft block: block>` `<facing direction: direction>` `<code block>`
+
+Define Item in Current Container
+: Usable only when defining a container via the 'container' command. Adds an item to the container.
+- `item`
+- in order:
+	- `<minecraft item: item>` `[integer: count, data]`
+	- optional, repeatable, one of:
+		- `at: ` Usable only in containers with the 'item' command. Specifies which slot the item should go in.
+			- `<integer: slot>`
+		- `keep` Item will stay in the player's inventory even after death.
+		- `lockinventory` Lock the item in the player's inventory.
+		- `lockslot` Lock the item in the slot it's located in inside the player's inventory.
+		- `canplaceon: ` Adds a block that this block can be placed on in adventure mode.
+			- `<minecraft block: block>`
+		- `candestroy: ` Adds a block that this tool/item can break in adventure mode.
+			- `<minecraft block: block>`
+		- `enchant: ` Adds an enchantment to the item.
+			- `<minecraft enchantment: enchantment>` `<integer: level>`
+		- `name: ` Sets the display name of the item.
+			- `<string: display name>`
+		- `lore: ` Adds a line of lore to the item.
+			- `<string: lore line>`
+		- `title: ` If the item is a written book, sets the title of the book.
+			- `<string: book title>`
+		- `author: ` If the item is a written book, sets the author of the book.
+			- `<string: book author>`
+		- `page: ` If the item is a written book, adds a page of text to the book.
+			- `<string: page content>`
+		- `dye: ` If the item is leather armor, sets the dye color of the armor.
+			- `<integer: red, green, blue>`
+
 Minecraft Command
 : Places a plain command in the output file, used for when the language lacks a certain feature.
 - `mc`
 - `<string: command>`
+
+Define Sign
+: Usable only when defining a structure via 'structure new'. Places a sign inside the structure with pre-defined text.
+- `sign`
+- `<coordinate: x, y, z>` `<minecraft block: block>` `<block state: block states>` `[true/false: is editable]` `<string: text>`
 
 

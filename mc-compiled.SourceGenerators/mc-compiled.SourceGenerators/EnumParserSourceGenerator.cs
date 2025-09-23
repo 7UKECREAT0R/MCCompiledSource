@@ -77,6 +77,8 @@ public class EnumParserSourceGenerator : ISourceGenerator
                     : $"new RecognizedEnumValue(typeof({enumFullyQualifiedName}), {enumFullyQualifiedName}.{EscapeLanguageKeyword(memberName)}, \"{memberDocumentation}\")";
 
                 // base entry
+                if (memberName.StartsWith("_"))
+                    memberName = memberName.Substring(1);
                 sourceBuilder.Append($"\t\t\tCommandEnumParser.Put(\"{memberName}\", ").Append(objectCreation)
                     .AppendLine(");");
 

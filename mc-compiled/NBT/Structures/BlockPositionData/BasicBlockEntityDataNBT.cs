@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using mc_compiled.Commands;
 
 namespace mc_compiled.NBT.Structures.BlockPositionData;
 
@@ -84,4 +85,28 @@ public static class CommonBlockEntityIdentifiers
     public const string Furnace = "Furnace";
     public const string Hopper = "Hopper";
     public const string Sign = "Sign";
+
+    /// <summary>
+    ///     Converts a block identifier into its corresponding block entity identifier, if applicable.
+    /// </summary>
+    /// <param name="blockIdentifier">The block identifier, optionally with or without namespace.</param>
+    /// <returns>The block entity identifier if a match is found, otherwise the original <paramref name="blockIdentifier" />.</returns>
+    public static string ConvertBlockToBlockEntity(string blockIdentifier)
+    {
+        blockIdentifier = Command.Util.RequireNamespace(blockIdentifier).ToLower();
+        return blockIdentifier switch
+        {
+            "minecraft:chest" => Chest,
+            "minecraft:barrel" => Barrel,
+            "minecraft:command_block" => CommandBlock,
+            "minecraft:chain_command_block" => CommandBlock,
+            "minecraft:repeating_command_block" => CommandBlock,
+            "minecraft:dispenser" => Dispenser,
+            "minecraft:dropper" => Dropper,
+            "minecraft:furnace" => Furnace,
+            "minecraft:hopper" => Hopper,
+            "minecraft:sign" => Sign,
+            _ => blockIdentifier
+        };
+    }
 }

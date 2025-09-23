@@ -46,5 +46,13 @@ public enum DirectiveAttribute
     /// <summary>
     ///     This directive may expand to the functional equivalent of multiple lines.
     /// </summary>
-    MAY_EXPAND = 1 << 8
+    MAY_EXPAND = 1 << 8,
+    /// <summary>
+    ///     This directive can only be used inside a structure.
+    /// </summary>
+    STRUCTURE_ONLY = 1 << 9,
+    /// <summary>
+    ///     This directive can only be used when a container is being defined inside a structure.
+    /// </summary>
+    STRUCTURE_CONTAINER_ONLY = 1 << 10
 }

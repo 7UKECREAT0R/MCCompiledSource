@@ -2121,6 +2121,12 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void setblock(Executor executor, Statement tokens)
     {
+        if (executor.IsDefiningStructure)
+        {
+            executor.CurrentStructure.DirectiveSetblock(executor, tokens);
+            return;
+        }
+
         Coordinate x = tokens.Next<TokenCoordinateLiteral>("x");
         Coordinate y = tokens.Next<TokenCoordinateLiteral>("y");
         Coordinate z = tokens.Next<TokenCoordinateLiteral>("z");
@@ -2147,6 +2153,12 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void fill(Executor executor, Statement tokens)
     {
+        if (executor.IsDefiningStructure)
+        {
+            executor.CurrentStructure.DirectiveFill(executor, tokens);
+            return;
+        }
+
         Coordinate x1 = tokens.Next<TokenCoordinateLiteral>("x1");
         Coordinate y1 = tokens.Next<TokenCoordinateLiteral>("y1");
         Coordinate z1 = tokens.Next<TokenCoordinateLiteral>("z1");
@@ -2237,6 +2249,12 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void scatter(Executor executor, Statement tokens)
     {
+        if (executor.IsDefiningStructure)
+        {
+            executor.CurrentStructure.DirectiveScatter(executor, tokens);
+            return;
+        }
+
         // as of 1.20, requires this feature
         executor.RequireFeature(tokens, Feature.STRUCTURES);
 
@@ -2270,6 +2288,10 @@ public static class DirectiveImplementations
         NBTNode[] blockStatesNBT = blockStates.ToNBT() ?? [];
 
         int percent = tokens.Next<TokenIntegerLiteral>("percentage");
+        if (percent < 0)
+            percent = 0;
+        if (percent > 100)
+            percent = 100;
 
         string seed = null;
         if (tokens.NextIs<TokenStringLiteral>(true))
@@ -2279,7 +2301,6 @@ public static class DirectiveImplementations
         long sizeX = Math.Abs(x2.valueInteger - x1.valueInteger) + 1;
         long sizeY = Math.Abs(y2.valueInteger - y1.valueInteger) + 1;
         long sizeZ = Math.Abs(z2.valueInteger - z1.valueInteger) + 1;
-        long totalBlocks = sizeX * sizeY * sizeZ;
 
         if (executor.emission.isLinting)
             return; // don't bother with the rest of the code if we're just linting
@@ -2344,6 +2365,183 @@ public static class DirectiveImplementations
         }
 
         executor.AddCommand(Command.Fill(x1, y1, z1, x2, y2, z2, dst, dstBlockStates, src, srcBlockStates));
+    }
+    [UsedImplicitly]
+    public static void structure(Executor executor, Statement tokens)
+    {
+        string subcommand = tokens.Next<TokenIdentifier>("subcommand").word.ToUpper();
+        string structureName = tokens.Next<TokenStringLiteral>("structure name");
+
+        switch (subcommand)
+        {
+            case "DELETE":
+            {
+                executor.AddCommand(Command.StructureDelete(structureName));
+                break;
+            }
+            case "LOAD":
+            {
+                Coordinate x = tokens.Next<TokenCoordinateLiteral>("x");
+                Coordinate y = tokens.Next<TokenCoordinateLiteral>("y");
+                Coordinate z = tokens.Next<TokenCoordinateLiteral>("z");
+                var rotation = StructureRotation._0_degrees;
+                var mirror = StructureMirror.none;
+                bool includeEntities = true;
+                bool includeBlocks = true;
+                bool waterlogged = false;
+
+                if (tokens.NextIs<TokenIdentifierEnum>(false))
+                {
+                    RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("rotation").value;
+                    enumValue.RequireType<StructureRotation>(tokens);
+                    rotation = (StructureRotation) enumValue.value;
+                }
+
+                if (tokens.NextIs<TokenIdentifier>(false, false))
+                {
+                    string mirrorString = tokens.Next<TokenIdentifier>("mirror").word.ToUpper();
+                    mirror = mirrorString switch
+                    {
+                        "NONE" => StructureMirror.none,
+                        "X" => StructureMirror.x,
+                        "Z" => StructureMirror.z,
+                        "XZ" or "ZX" => StructureMirror.xz,
+                        _ => mirror
+                    };
+                }
+
+                if (tokens.NextIs<TokenBooleanLiteral>(false))
+                {
+                    includeEntities = tokens.Next<TokenBooleanLiteral>("include entities");
+                    if (tokens.NextIs<TokenBooleanLiteral>(false))
+                    {
+                        includeBlocks = tokens.Next<TokenBooleanLiteral>("include blocks");
+                        if (tokens.NextIs<TokenBooleanLiteral>(false))
+                            waterlogged = tokens.Next<TokenBooleanLiteral>("waterlogged");
+                    }
+                }
+
+                if (tokens.NextIs<TokenNumberLiteral>(true))
+                {
+                    // integrity
+                    decimal integrity = tokens.Next<TokenNumberLiteral>("integrity").GetNumber();
+                    if (tokens.NextIs<TokenStringLiteral>(true))
+                    {
+                        string integritySeed = tokens.Next<TokenStringLiteral>("integrity seed");
+                        executor.AddCommand(Command.StructureLoad(structureName, x, y, z, rotation, mirror,
+                            includeEntities, includeBlocks, waterlogged, integrity, integritySeed));
+                    }
+                    else
+                    {
+                        executor.AddCommand(Command.StructureLoad(structureName, x, y, z, rotation, mirror,
+                            includeEntities, includeBlocks, waterlogged, integrity));
+                    }
+                }
+                else
+                {
+                    executor.AddCommand(Command.StructureLoad(structureName, x, y, z, rotation, mirror, includeEntities,
+                        includeBlocks, waterlogged));
+                }
+
+                break;
+            }
+            case "SAVE":
+            {
+                Coordinate fromX = tokens.Next<TokenCoordinateLiteral>("from x");
+                Coordinate fromY = tokens.Next<TokenCoordinateLiteral>("from y");
+                Coordinate fromZ = tokens.Next<TokenCoordinateLiteral>("from z");
+                Coordinate toX = tokens.Next<TokenCoordinateLiteral>("to x");
+                Coordinate toY = tokens.Next<TokenCoordinateLiteral>("to y");
+                Coordinate toZ = tokens.Next<TokenCoordinateLiteral>("to z");
+                if (fromX > toX)
+                    (fromX, toX) = (toX, fromX);
+                if (fromY > toY)
+                    (fromY, toY) = (toY, fromY);
+                if (fromZ > toZ)
+                    (fromZ, toZ) = (toZ, fromZ);
+                bool includeEntities = true;
+                bool saveToDisk = true;
+                bool includeBlocks = true;
+
+                if (tokens.NextIs<TokenBooleanLiteral>(false))
+                    includeEntities = tokens.Next<TokenBooleanLiteral>("include entities");
+
+                if (tokens.NextIs<TokenIdentifier>(false))
+                {
+                    string saveToDiskString = tokens.Next<TokenIdentifier>("save type").word;
+                    if (saveToDiskString.Equals("MEMORY", StringComparison.OrdinalIgnoreCase))
+                        saveToDisk = false;
+                }
+
+                if (tokens.NextIs<TokenBooleanLiteral>(false))
+                    includeBlocks = tokens.Next<TokenBooleanLiteral>("include blocks");
+
+                if (saveToDisk)
+                    executor.AddCommand(Command.StructureSaveDisk(structureName, fromX, fromY, fromZ, toX, toY, toZ,
+                        includeEntities, includeBlocks));
+                else
+                    executor.AddCommand(Command.StructureSaveMemory(structureName, fromX, fromY, fromZ, toX, toY, toZ,
+                        includeEntities, includeBlocks));
+                break;
+            }
+            case "NEW":
+            {
+                if (!executor.NextIs<StatementOpenBlock>())
+                    throw new StatementException(tokens,
+                        "Expected a block to follow this statement, defining the contents of the structure.");
+
+                // have the block push/pop the container on and off of the stack
+                var codeBlock = executor.Peek<StatementOpenBlock>();
+                codeBlock.openAction = e =>
+                {
+                    e.structures.Push(new StructureBuilder());
+                };
+                codeBlock.CloseAction = e =>
+                {
+                    StructureBuilder populatedStructureBuilder = e.structures.Pop();
+                    if (!e.emission.isLinting)
+                    {
+                        StructureNBT structure = populatedStructureBuilder.Build();
+                        e.AddExtraFile(new StructureFile(structureName, null, structure));
+                    }
+                };
+                break;
+            }
+            default:
+                throw new StatementException(tokens, $"Unknown structure subcommand: '{subcommand}'");
+        }
+    }
+    [UsedImplicitly]
+    public static void container(Executor executor, Statement tokens)
+    {
+        if (!executor.IsDefiningStructure)
+            throw new StatementException(tokens,
+                "The 'container' command can only be used while defining a structure with 'structure new'.");
+        executor.CurrentStructure.DirectiveContainer(executor, tokens);
+    }
+    [UsedImplicitly]
+    public static void item(Executor executor, Statement tokens)
+    {
+        if (!executor.IsDefiningStructure)
+            throw new StatementException(tokens,
+                "The 'item' command can only be used while defining a structure with 'structure new'.");
+        executor.CurrentStructure.DirectiveItem(executor, tokens);
+    }
+    [UsedImplicitly]
+    public static void sign(Executor executor, Statement tokens)
+    {
+        if (!executor.IsDefiningStructure)
+            throw new StatementException(tokens,
+                "The 'sign' command can only be used while defining a structure with 'structure new'.");
+        executor.CurrentStructure.DirectiveSign(executor, tokens);
+    }
+    [UsedImplicitly]
+    public static void commandblock(Executor executor, Statement tokens)
+    {
+        if (!executor.IsDefiningStructure)
+            throw new StatementException(tokens,
+                "The 'commandblock' command can only be used while defining a structure with 'structure new'.");
+        executor.CurrentStructure.DirectiveCommandBlock(executor, tokens);
     }
     [UsedImplicitly]
     public static void kill(Executor executor, Statement tokens)

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
 
 namespace mc_compiled.NBT.Structures.BlockPositionData;
 
@@ -60,7 +62,25 @@ public class CommandBlockEntityDataNBT(string command, bool isPowered, int x, in
     ///     So make sure in the palette you've defined whether this is a <c>command_block</c>, <c>chain_command_block</c>, or
     ///     <c>repeating_command_block</c>.
     /// </summary>
-    public CommandBlockType type = CommandBlockType.Impulse;
+    public CommandBlockType type = CommandBlockType.impulse;
+    /// <summary>
+    ///     Returns the identifier string for the specified <paramref name="type" /> of command block.
+    /// </summary>
+    /// <param name="type">The type of the command block to get the identifier for.</param>
+    /// <returns>The identifier string of the specified <paramref name="type" />.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     Thrown if the provided <paramref name="type" /> is not a valid <see cref="CommandBlockType" />.
+    /// </exception>
+    public static string GetCommandBlockIdentifier(CommandBlockType type)
+    {
+        return type switch
+        {
+            CommandBlockType.impulse => "minecraft:command_block",
+            CommandBlockType.chain => "minecraft:chain_command_block",
+            CommandBlockType.repeating => "minecraft:repeating_command_block",
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
+    }
 
     protected override List<NBTNode> GetNodes()
     {
@@ -70,7 +90,7 @@ public class CommandBlockEntityDataNBT(string command, bool isPowered, int x, in
         root.Add(new NBTByte {name = "ExecuteOnFirstTick", value = this.executeOnFirstTick ? (byte) 1 : (byte) 0});
         root.Add(new NBTInt
         {
-            name = "LPCommandMode", value = this.type == CommandBlockType.Repeating ? 1 : 0
+            name = "LPCommandMode", value = this.type == CommandBlockType.repeating ? 1 : 0
         }); // for some reason 1 when it's a repeating command block.
         root.Add(new NBTInt {name = "LPConditionalMode", value = 0});
         root.Add(new NBTInt {name = "LPRedstoneMode", value = 0});
@@ -79,7 +99,7 @@ public class CommandBlockEntityDataNBT(string command, bool isPowered, int x, in
         root.Add(new NBTList
         {
             name = "LastOutputParams", values = [],
-            listType = TAG.Compound /* unknown actually. this may cause loading issues. */
+            listType = TAG.String /* unknown actually. this may cause loading issues. */
         });
         root.Add(new NBTInt {name = "SuccessCount", value = 0});
         root.Add(new NBTInt {name = "TickDelay", value = this.tickDelay});
@@ -90,9 +110,4 @@ public class CommandBlockEntityDataNBT(string command, bool isPowered, int x, in
         root.Add(new NBTByte {name = "conditionalMode", value = this.isConditional ? (byte) 1 : (byte) 0});
         return root;
     }
-}
-
-public enum CommandBlockType
-{
-    Impulse, Chain, Repeating
 }

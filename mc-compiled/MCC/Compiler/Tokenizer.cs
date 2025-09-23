@@ -378,7 +378,7 @@ public class Tokenizer
         }
 
         // check for probable builder field
-        if (word.EndsWith(":"))
+        if (word.EndsWith(':'))
             return new TokenBuilderIdentifier(word, CURRENT_LINE);
 
         // check for directive

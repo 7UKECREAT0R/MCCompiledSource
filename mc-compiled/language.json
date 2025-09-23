@@ -72,6 +72,8 @@
       "clone_mode": "mc_compiled.Commands.CloneMode",
       "easing": "mc_compiled.Commands.Easing",
       "camera_preset": "mc_compiled.Commands.CameraPreset",
+      "facing_direction": "mc_compiled.NBT.Structures.StructureBuilder+Block+FacingDirection",
+      "structure_rotation": "mc_compiled.Commands.StructureRotation",
       "move_direction": [
         "left",
         "right",
@@ -1312,6 +1314,13 @@
           "children": {
             "repeatable": true,
             "sequential": false,
+            "at": {
+              "keyword": "at: ",
+              "description": "Usable only in containers with the 'item' command. Specifies which slot the item should go in.",
+              "patterns": [
+                "slot:int"
+              ]
+            },
             "keep_inventory": {
               "keyword": "keep",
               "description": "Item will stay in the player's inventory even after death.",
@@ -1568,6 +1577,227 @@
         "source block states:block_states?",
         "destination block:string<minecraft_block>",
         "destination block states:block_states?"
+      ]
+    },
+    "structure": {
+      "description": "Structure Operation",
+      "details": "Perform an operation involving structures.",
+      "category": "blocks",
+      "syntax": {
+        "subcommand": {
+          "children": {
+            "sequential": false,
+            "delete": {
+              "keyword": "delete",
+              "description": "Delete a structure by name.",
+              "patterns": [
+                "name:string"
+              ]
+            },
+            "load": {
+              "keyword": "load",
+              "description": "Load a structure by name into the world.",
+              "children": {
+                "sequential": true,
+                "basic_info": {
+                  "patterns": [
+                    "name:string",
+                    "x:coordinate",
+                    "y:coordinate",
+                    "z:coordinate",
+                    "rotation:id<structure_rotation>?"
+                  ]
+                },
+                "mirror": {
+                  "optional": true,
+                  "children": {
+                    "sequential": false,
+                    "none": {
+                      "keyword": "none",
+                      "description": "Do not mirror the structure.",
+                      "patterns": []
+                    },
+                    "x": {
+                      "keyword": "x",
+                      "description": "Mirror the structure around the x-axis.",
+                      "patterns": []
+                    },
+                    "z": {
+                      "keyword": "x",
+                      "description": "Mirror the structure around the z-axis.",
+                      "patterns": []
+                    },
+                    "xz": {
+                      "keyword": "xz",
+                      "description": "Mirror the structure around the x and z axes.",
+                      "patterns": []
+                    }
+                  }
+                },
+                "everything_else": {
+                  "optional": true,
+                  "patterns": [
+                    "include entities:bool?",
+                    "include blocks:bool?",
+                    "waterlogged:bool?",
+                    "integrity:number?",
+                    "integrity seed:string?"
+                  ]
+                }
+              }
+            },
+            "save": {
+              "keyword": "save",
+              "description": "Save a structure to either memory or disk.",
+              "children": {
+                "sequential": true,
+                "basic_info": {
+                  "patterns": [
+                    "name:string",
+                    "from x:coordinate",
+                    "from y:coordinate",
+                    "from z:coordinate",
+                    "to x:coordinate",
+                    "to y:coordinate",
+                    "to z:coordinate",
+                    "include entities:bool?"
+                  ]
+                },
+                "save_mode": {
+                  "optional": true,
+                  "sequential": false,
+                  "children": {
+                    "disk": {
+                      "keyword": "disk",
+                      "description": "Save the structure to disk. Slower, but permanent.",
+                      "patterns": []
+                    },
+                    "memory": {
+                      "keyword": "memory",
+                      "description": "Save the structure in memory only. Faster, but temporary.",
+                      "patterns": []
+                    }
+                  }
+                },
+                "include_blocks": {
+                  "patterns": [
+                    "include blocks:bool?"
+                  ]
+                }
+              }
+            },
+            "new": {
+              "keyword": "new",
+              "description": "Define a new structure to be exported. Must be followed by a code block.",
+              "patterns": [
+                "name:string",
+                "contents:block"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "container": {
+      "description": "Define Container in Current Structure",
+      "details": "Usable only when defining a structure via 'structure new'. Begins defining a container.",
+      "category": "other",
+      "syntax": [
+        "x:coordinate",
+        "y:coordinate",
+        "z:coordinate",
+        "block:string<minecraft_block>",
+        "direction:id<facing_direction>",
+        "contents:block"
+      ],
+      "attributes": [
+        "STRUCTURE_ONLY"
+      ]
+    },
+    "item": {
+      "description": "Define Item in Current Container",
+      "details": "Usable only when defining a container via the 'container' command. Adds an item to the container.",
+      "category": "other",
+      "syntax": {
+        "basic_info": {
+          "patterns": [
+            "item:string<minecraft_item>",
+            "count:int?",
+            "data:int?"
+          ]
+        },
+        "attributes": {
+          "optional": true,
+          "ref": "give.attributes"
+        }
+      },
+      "attributes": [
+        "STRUCTURE_ONLY",
+        "STRUCTURE_CONTAINER_ONLY"
+      ]
+    },
+    "sign": {
+      "description": "Define Sign",
+      "details": "Usable only when defining a structure via 'structure new'. Places a sign inside the structure with pre-defined text.",
+      "category": "other",
+      "syntax": [
+        "x:coordinate",
+        "y:coordinate",
+        "z:coordinate",
+        "block:string<minecraft_block>",
+        "block states:block_states",
+        "is editable:bool?",
+        "text:string"
+      ],
+      "attributes": [
+        "STRUCTURE_ONLY"
+      ]
+    },
+    "commandblock": {
+      "description": "Define Command Block",
+      "details": "Usable only when defining a structure via 'structure new'. Places a command block inside the structure.",
+      "category": "other",
+      "syntax": {
+        "position": {
+          "patterns": [
+            "x:coordinate",
+            "y:coordinate",
+            "z:coordinate"
+          ]
+        },
+        "type": {
+          "children": {
+            "sequential": false,
+            "impulse": {
+              "keyword": "impulse",
+              "description": "The command block will run once when powered by redstone.",
+              "patterns": []
+            },
+            "chain": {
+              "keyword": "chain",
+              "description": "The command block will run when activated by another command block pointing at it.",
+              "patterns": []
+            },
+            "repeating": {
+              "keyword": "repeating",
+              "description": "The command block will run either continuously or when powered by redstone. Supports a tick delay.",
+              "patterns": [
+                "always active:bool"
+              ]
+            }
+          }
+        },
+        "properties": {
+          "patterns": [
+            "delay:int?",
+            "direction:id<facing_direction>",
+            "conditional:bool?",
+            "command:string"
+          ]
+        }
+      },
+      "attributes": [
+        "STRUCTURE_ONLY"
       ]
     },
     "kill": {

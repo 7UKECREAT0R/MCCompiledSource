@@ -10,6 +10,13 @@ public struct EntityListNBT
 
     public NBTList ToNBT()
     {
+        if (this.entities == null)
+            return new NBTList
+            {
+                name = "entities",
+                listType = TAG.Compound,
+                values = []
+            };
         return new NBTList
         {
             name = "entities",

@@ -20,7 +20,7 @@ public readonly struct BlockPositionDataNBT()
             var entry = new NBTCompound
             {
                 name = key.ToString(), // the index is the name for dictionary-like lookup
-                values = [value.ToNBT()]
+                values = [value.ToNBT(), new NBTEnd()]
             };
             entries.Add(entry);
         }
