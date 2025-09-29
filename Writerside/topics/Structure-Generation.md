@@ -1,5 +1,11 @@
 ﻿# Structure Generation
 
+<primary-label ref="compile_time"/>
+
+<link-summary>
+Generating structure files at compile-time with loads of features that extend beyond vanilla commands.
+</link-summary>
+
 MCCompiled has reasonable support for generating `.mcstructure` files at compile time. There's a whole host of reasons
 you would want to do this. Some examples include:
 - Setting many blocks at once with fast runtime performance (since the structure is pre-baked)

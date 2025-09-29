@@ -34,7 +34,7 @@ dialogue new "exampleDialogue" {
     text: "Why, hello there traveller."
     button: "Hello!" {
         print "The man gives you six emeralds to begin trading with."
-        give @i gold_nugget 6
+        give @s gold_nugget 6
     }
     button: "Goodbye!" {}
 }
