@@ -626,10 +626,10 @@ public enum IntMultiplier
     h = 72000
 }
 
-[TokenFriendlyName("integer")]
+[TokenFriendlyName("int")]
 public class TokenIntegerLiteral : TokenCoordinateLiteral, IDocumented
 {
-    public static readonly IntMultiplier[] ALL_MULTIPLIERS = (IntMultiplier[]) Enum.GetValues(typeof(IntMultiplier));
+    public static readonly IntMultiplier[] ALL_MULTIPLIERS = Enum.GetValues<IntMultiplier>();
     /// <summary>
     ///     The multiplier that was applied to this integer.
     /// </summary>

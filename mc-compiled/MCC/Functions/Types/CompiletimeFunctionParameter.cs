@@ -56,7 +56,9 @@ public class CompiletimeFunctionParameter<T>(string name, T defaultValue = null)
         return ParameterFit.No;
     }
 
-    public override void SetParameter(Token token, List<string> commandBuffer, Executor executor,
+    public override void SetParameter(Token token,
+        List<string> commandBuffer,
+        Executor executor,
         Statement callingStatement)
     {
         if (token is not T)
@@ -86,10 +88,7 @@ public class CompiletimeFunctionParameter<T>(string name, T defaultValue = null)
         this.CurrentValue = casted;
     }
 
-    public override string GetRequiredTypeName()
-    {
-        return nameof(T);
-    }
+    public override string GetRequiredTypeName() { return typeof(T).GetFriendlyTokenName(); }
     public override string ToString()
     {
         const string type = nameof(T);

@@ -52,7 +52,7 @@ internal class FunctionRandomCompiletime : CompiletimeFunction
         "Returns a random number in the given range. If a single number is given, it returns (0..n-1).")
     {
         AddParameter(
-            new CompiletimeFunctionParameter<TokenNumberLiteral>("range")
+            new CompiletimeFunctionParameter<TokenIntegerLiteral>("range")
         );
     }
     public override Token CallFunction(List<string> commandBuffer,
@@ -60,7 +60,7 @@ internal class FunctionRandomCompiletime : CompiletimeFunction
         Executor executor,
         Statement statement)
     {
-        int maxExclusive = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue)
+        int maxExclusive = ((TokenIntegerLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue)
             .GetNumberInt();
 
         if (maxExclusive == 1)
@@ -121,8 +121,8 @@ internal class FunctionBakedRandom : CompiletimeFunction
     public FunctionBakedRandom() : base("ctRandom", "bakedRandom", "int",
         "Returns a random number in the given range, once at compile-time. The result of this function will always be the same at runtime.")
     {
-        AddParameter(new CompiletimeFunctionParameter<TokenNumberLiteral>("minInclusive"));
-        AddParameter(new CompiletimeFunctionParameter<TokenNumberLiteral>("maxExclusive"));
+        AddParameter(new CompiletimeFunctionParameter<TokenIntegerLiteral>("minInclusive"));
+        AddParameter(new CompiletimeFunctionParameter<TokenIntegerLiteral>("maxExclusive"));
     }
 
     public override Token CallFunction(List<string> commandBuffer,
@@ -130,10 +130,8 @@ internal class FunctionBakedRandom : CompiletimeFunction
         Executor executor,
         Statement statement)
     {
-        int minInclusive = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue)
-            .GetNumberInt();
-        int maxExclusive = ((TokenNumberLiteral) ((CompiletimeFunctionParameter) this.Parameters[1]).CurrentValue)
-            .GetNumberInt();
+        int minInclusive = (TokenIntegerLiteral) ((CompiletimeFunctionParameter) this.Parameters[0]).CurrentValue;
+        int maxExclusive = (TokenIntegerLiteral) ((CompiletimeFunctionParameter) this.Parameters[1]).CurrentValue;
 
         int result = random.Next(minInclusive, maxExclusive);
         return new TokenIntegerLiteral(result, IntMultiplier.none, statement.Lines[0]);
