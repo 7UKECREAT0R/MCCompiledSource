@@ -53,6 +53,7 @@
             <toc-element topic="Macros.md"/>
             <toc-element topic="Metaprogramming.md"/>
             <toc-element topic="Including-Other-Files.md"/>
+            <toc-element topic="Structure-Generation.md"/>
         </toc-element>
         <toc-element topic="Indexing.md"/>
         <toc-element topic="Using-Colors.md"/>

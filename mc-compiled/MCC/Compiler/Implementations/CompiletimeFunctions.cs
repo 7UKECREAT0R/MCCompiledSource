@@ -37,6 +37,9 @@ public static class CompiletimeFunctions
                 new FunctionRoundCompiletime(),
                 new FunctionFloorCompiletime(),
                 new FunctionCeilingCompiletime(),
+                new FunctionBakedRandom(),
+                new FunctionBakedRandomRange(),
+                new FunctionBakedRandomBool(),
 
                 // generative functions (generates runtime code as needed)
                 new FunctionMinRuntime(),
@@ -44,7 +47,8 @@ public static class CompiletimeFunctions
                 new FunctionRoundRuntime(),
                 new FunctionFloorRuntime(),
                 new FunctionCeilingRuntime(),
-                new FunctionRandomRuntime()
+                new FunctionRandomRuntime(),
+                new FunctionRandomBool()
             ];
         }
     }

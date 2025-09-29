@@ -20,6 +20,7 @@ namespace mc_compiled.NBT.Structures;
 /// </remarks>
 public class StructureBuilder
 {
+    private const string VOID_IDENTIFIER = "minecraft:structure_void";
     /// <summary>
     ///     All blocks in the structure.
     /// </summary>
@@ -29,7 +30,7 @@ public class StructureBuilder
     ///     The filler block for any area that hasn't been specified in <see cref="blocks" />.
     ///     If null, structure voids are used.
     /// </summary>
-    public PaletteEntryNBT? background = PaletteEntryNBT.Air;
+    public PaletteEntryNBT? background = null;
     /// <summary>
     ///     All entities in the structure.
     /// </summary>
@@ -196,8 +197,18 @@ public class StructureBuilder
             blockStates.ValidateIfKnownVanillaBlock(block, false, tokens);
         }
 
-        if (!executor.emission.isLinting)
+        if (executor.emission.isLinting)
+            return;
+
+        if (block.Equals(VOID_IDENTIFIER))
+        {
+            this.blocks.RemoveAll(b => b.position.x == x && b.position.y == y && b.position.z == z);
+            this.blocks.Add(Block.Void(x, y, z));
+        }
+        else
+        {
             this.blocks.Add(new Block(x, y, z, new PaletteEntryNBT(block, blockStates.ToNBT())));
+        }
     }
     public void DirectiveFill(Executor executor, Statement tokens)
     {
@@ -228,11 +239,157 @@ public class StructureBuilder
         if (executor.emission.isLinting)
             return;
 
+        bool isVoid = block.Equals(VOID_IDENTIFIER);
+        PaletteEntryNBT paletteEntry = isVoid ? default : new PaletteEntryNBT(block, blockStates.ToNBT());
+
+        if (isVoid)
+            this.blocks.RemoveAll(b =>
+                b.position.x >= x1 && b.position.y >= y1 && b.position.z >= z1 && b.position.x <= x2 &&
+                b.position.y <= y2 && b.position.z <= z2);
+
         // fill the blocks in the range.
         for (int x = x1; x <= x2; x++)
         for (int y = y1; y <= y2; y++)
         for (int z = z1; z <= z2; z++)
-            this.blocks.Add(new Block(x, y, z, new PaletteEntryNBT(block, blockStates.ToNBT())));
+            if (isVoid)
+                this.blocks.Add(Block.Void(x, y, z));
+            else
+                this.blocks.Add(new Block(x, y, z, paletteEntry));
+    }
+    public void DirectiveReplace(Executor executor, Statement tokens)
+    {
+        int x1 = tokens.Next<TokenCoordinateLiteral>("x1").GetNumberInt();
+        int y1 = tokens.Next<TokenCoordinateLiteral>("y1").GetNumberInt();
+        int z1 = tokens.Next<TokenCoordinateLiteral>("z1").GetNumberInt();
+        int x2 = tokens.Next<TokenCoordinateLiteral>("x2").GetNumberInt();
+        int y2 = tokens.Next<TokenCoordinateLiteral>("y2").GetNumberInt();
+        int z2 = tokens.Next<TokenCoordinateLiteral>("z2").GetNumberInt();
+        if (x1 > x2)
+            (x2, x1) = (x1, x2);
+        if (y1 > y2)
+            (y2, y1) = (y1, y2);
+        if (z1 > z2)
+            (z2, z1) = (z1, z2);
+
+        string sourceBlock = tokens.Next<TokenStringLiteral>("source block");
+        sourceBlock = Command.Util.RequireNamespace(sourceBlock);
+        sourceBlock.ThrowIfWhitespace("source block", tokens);
+
+        BlockState[] sourceBlockStates = null;
+        if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+        {
+            sourceBlockStates = tokens.Next<TokenBlockStatesLiteral>("source block states");
+            sourceBlockStates.ValidateIfKnownVanillaBlock(sourceBlock, false, tokens);
+        }
+
+        string destinationBlock = tokens.Next<TokenStringLiteral>("destination block");
+        destinationBlock = Command.Util.RequireNamespace(destinationBlock);
+        destinationBlock.ThrowIfWhitespace("destination block", tokens);
+
+        BlockState[] destinationBlockStates = null;
+        if (tokens.NextIs<TokenBlockStatesLiteral>(false))
+        {
+            destinationBlockStates = tokens.Next<TokenBlockStatesLiteral>("destination block states");
+            destinationBlockStates.ValidateIfKnownVanillaBlock(destinationBlock, false, tokens);
+        }
+
+        if (executor.emission.isLinting)
+            return;
+
+        bool sourceIsVoid = sourceBlock.Equals(VOID_IDENTIFIER);
+        bool destinationIsVoid = destinationBlock.Equals(VOID_IDENTIFIER);
+
+        if (sourceIsVoid && destinationIsVoid)
+            throw new StatementException(tokens, "This operation does nothing. (replacing void with void)");
+
+        // check and replace the blocks in the range, if any.
+        if (sourceIsVoid)
+        {
+            // take a different approach, since lack of block is also void.
+            bool[,,] isSomething = new bool[x2 - x1 + 1, y2 - y1 + 1, z2 - z1 + 1];
+
+            // loop over every block and slowly modify the mask
+            foreach (Block currentBlock in this.blocks)
+            {
+                int x = currentBlock.position.x;
+                int y = currentBlock.position.y;
+                int z = currentBlock.position.z;
+                if (x < x1 || x > x2 || y < y1 || y > y2 || z < z1 || z > z2)
+                    continue;
+                if (!currentBlock.isVoid)
+                    isSomething[x, y, z] = true;
+            }
+
+            // now, we can check for `false` values in `isSomething` to know if the destination block should be placed.
+            for (int x = x1; x <= x2; x++)
+            for (int y = y1; y <= y2; y++)
+            for (int z = z1; z <= z2; z++)
+            {
+                if (isSomething[x, y, z])
+                    continue;
+
+                // `destinationIsVoid` will never be true here
+                this.blocks.Add(new Block(x, y, z,
+                    new PaletteEntryNBT(destinationBlock, destinationBlockStates.ToNBT())));
+            }
+        }
+        else
+        {
+            for (int i = this.blocks.Count - 1; i >= 0; i--)
+            {
+                Block currentBlock = this.blocks[i];
+                int x = currentBlock.position.x;
+                int y = currentBlock.position.y;
+                int z = currentBlock.position.z;
+
+                if (x < x1 || x > x2 || y < y1 || y > y2 || z < z1 || z > z2)
+                    continue;
+
+                // check for equality with the source block
+
+                // self-explanatory
+                if (currentBlock.isVoid)
+                    continue;
+                // block identifier
+                string currentBlockName = Command.Util.RequireNamespace(currentBlock.paletteEntry.name);
+                if (!currentBlockName.Equals(sourceBlock))
+                    continue;
+                // block states
+                if (sourceBlockStates is {Length: > 0})
+                {
+                    bool blockStatesMatch = true;
+                    NBTNode[] currentBlockStates = currentBlock.paletteEntry.states;
+                    foreach (BlockState requiredBlockState in sourceBlockStates)
+                    {
+                        NBTNode matchingNode = currentBlockStates.FirstOrDefault
+                            (node => node.name.Equals(requiredBlockState.propertyName));
+
+                        if (matchingNode == null)
+                            // no matching block state was specified, but check if the requested value is the default
+                            if (!requiredBlockState.IsDefault)
+                            {
+                                blockStatesMatch = false;
+                                break;
+                            }
+
+                        if (!requiredBlockState.IsEqualToNode(matchingNode))
+                        {
+                            blockStatesMatch = false;
+                            break;
+                        }
+                    }
+
+                    if (!blockStatesMatch)
+                        continue;
+                }
+
+                if (destinationIsVoid)
+                    this.blocks.RemoveAt(i); // remove it, which does the same thing as setting it to void
+                else
+                    this.blocks[i] = new Block(x, y, z,
+                        new PaletteEntryNBT(destinationBlock, destinationBlockStates.ToNBT()));
+            }
+        }
     }
     public void DirectiveScatter(Executor executor, Statement tokens)
     {
@@ -277,12 +434,24 @@ public class StructureBuilder
         if (executor.emission.isLinting)
             return;
 
+        bool isVoid = block.Equals(VOID_IDENTIFIER);
+
         // fill the blocks in the range.
         for (int x = x1; x <= x2; x++)
         for (int y = y1; y <= y2; y++)
         for (int z = z1; z <= z2; z++)
             if (random.NextDouble() < placeChance) // compile-time place chance
-                this.blocks.Add(new Block(x, y, z, new PaletteEntryNBT(block, blockStates.ToNBT())));
+            {
+                if (isVoid)
+                {
+                    this.blocks.RemoveAll(b => b.position.x == x && b.position.y == y && b.position.z == z);
+                    this.blocks.Add(Block.Void(x, y, z));
+                }
+                else
+                {
+                    this.blocks.Add(new Block(x, y, z, new PaletteEntryNBT(block, blockStates.ToNBT())));
+                }
+            }
     }
     public void DirectiveContainer(Executor executor, Statement tokens)
     {
@@ -492,10 +661,33 @@ public class StructureBuilder
         signBlock = Command.Util.RequireNamespace(signBlock);
         signBlock.ThrowIfWhitespace("block", tokens);
 
-        if (!signBlock.Contains("sign"))
+        if (!signBlock.Contains("sign", StringComparison.OrdinalIgnoreCase))
             throw new StatementException(tokens, $"The given block ('{signBlock}') must be a valid type of sign.");
 
         BlockState[] blockStates = tokens.Next<TokenBlockStatesLiteral>("block states");
+
+        // compatibility for the jacked-up metadata of hanging signs.
+        // they require `attached_bit` and `ground_sign_direction` to be present, even though they don't do anything.
+        if (signBlock.Contains("_hanging_sign", StringComparison.OrdinalIgnoreCase))
+        {
+            const string GROUND_SIGN_DIRECTION = "ground_sign_direction";
+            const string ATTACHED_BIT = "attached_bit";
+
+            if (!blockStates.Any(s =>
+                    s.propertyName.Equals(GROUND_SIGN_DIRECTION, StringComparison.OrdinalIgnoreCase)))
+            {
+                BlockPropertyDefinition property = VanillaBlockProperties.GetProperty(GROUND_SIGN_DIRECTION);
+                blockStates = [..blockStates, new BlockState(property, 0)];
+            }
+
+            if (!blockStates.Any(s =>
+                    s.propertyName.Equals(ATTACHED_BIT, StringComparison.OrdinalIgnoreCase)))
+            {
+                BlockPropertyDefinition property = VanillaBlockProperties.GetProperty(ATTACHED_BIT);
+                blockStates = [..blockStates, new BlockState(property, false)];
+            }
+        }
+
         blockStates.ValidateIfKnownVanillaBlock(signBlock, true, tokens);
 
         bool isEditable = true;
@@ -504,7 +696,7 @@ public class StructureBuilder
         string signText = tokens.Next<TokenStringLiteral>("sign text");
 
         // I really can't be asked to write escape code for this. Here's some simple code that makes linebreaks work.
-        signText = signText.Replace("\\n", "\n");
+        signText = signText.Replace("\\n", "\n").Replace("~LINEBREAK~", "\n");
 
         var sign = new Block(x, y, z, new PaletteEntryNBT(signBlock, blockStates.ToNBT()),
             new SignBlockEntityDataNBT(x, y, z, isEditable, signText, string.Empty)
@@ -657,6 +849,10 @@ public class StructureBuilder
 
         #region Presets
 
+        public static Block Void(int x, int y, int z)
+        {
+            return new Block(x, y, z, new PaletteEntryNBT()) {isVoid = true};
+        }
         public static Block Air(int x, int y, int z) { return new Block(x, y, z, PaletteEntryNBT.Air); }
         public static Block CommandBlockImpulse(int x,
             int y,

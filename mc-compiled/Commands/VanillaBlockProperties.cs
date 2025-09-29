@@ -179,22 +179,27 @@ public static class VanillaBlockProperties
 /// </summary>
 public record BlockPropertyDefinition
 {
-    private BlockPropertyDefinition(string name, BlockPropertyType type, object[] possibleValues)
+    private BlockPropertyDefinition(string name, BlockPropertyType type, object[] possibleValues, object defaultValue)
     {
         this.Name = name;
         this.Type = type;
         this.PossibleValues = possibleValues;
+        this.DefaultValue = defaultValue;
     }
 
     /// <summary>
     ///     The name of this block property.
     /// </summary>
-    public string Name { get; init; }
+    public string Name { get; }
     /// <summary>
     ///     The type of this block property.
     /// </summary>
-    public BlockPropertyType Type { get; init; }
+    public BlockPropertyType Type { get; }
 
+    /// <summary>
+    ///     The default value of this property.
+    /// </summary>
+    public object DefaultValue { get; }
     /// <summary>
     ///     The possible values for this property, in their native type.
     /// </summary>
@@ -300,6 +305,7 @@ public record BlockPropertyDefinition
         if (json["values"] is not JArray possibleValuesArray)
             throw new Exception($"Values array was not present inside block property definition '{name}'.");
         int count = possibleValuesArray.Count;
+        object defaultValue = null;
         object[] possibleValues = new object[count];
 
         for (int i = 0; i < count; i++)
@@ -311,24 +317,20 @@ public record BlockPropertyDefinition
             if (possibleValue == null)
                 continue;
 
-            switch (type)
+            possibleValues[i] = type switch
             {
-                case BlockPropertyType.@bool:
-                    possibleValues[i] = possibleValue.Value<bool>();
-                    break;
-                case BlockPropertyType.@int:
-                    possibleValues[i] = possibleValue.Value<int>();
-                    break;
-                case BlockPropertyType.@string:
-                    possibleValues[i] = possibleValue.Value<string>();
-                    break;
-                default:
-                    throw new Exception(
-                        $"The type of the block property definition '{name}' is not valid. (got '{json["type"]}')");
-            }
+                BlockPropertyType.@bool => possibleValue.Value<bool>(),
+                BlockPropertyType.@int => possibleValue.Value<int>(),
+                BlockPropertyType.@string => possibleValue.Value<string>(),
+                _ => throw new Exception(
+                    $"The type of the block property definition '{name}' is not valid. (got '{json["type"]}')")
+            };
+
+            if (i == 0)
+                defaultValue = possibleValues[i];
         }
 
-        return new BlockPropertyDefinition(name, type, possibleValues);
+        return new BlockPropertyDefinition(name, type, possibleValues, defaultValue);
     }
 
     /// <summary>

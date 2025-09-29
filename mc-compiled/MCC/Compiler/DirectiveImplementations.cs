@@ -2339,6 +2339,12 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void replace(Executor executor, Statement tokens)
     {
+        if (executor.IsDefiningStructure)
+        {
+            executor.CurrentStructure.DirectiveReplace(executor, tokens);
+            return;
+        }
+
         Coordinate x1 = tokens.Next<TokenCoordinateLiteral>("x1");
         Coordinate y1 = tokens.Next<TokenCoordinateLiteral>("y1");
         Coordinate z1 = tokens.Next<TokenCoordinateLiteral>("z1");
@@ -2486,6 +2492,9 @@ public static class DirectiveImplementations
             }
             case "NEW":
             {
+                // this subcommand will generate a structure file.
+                executor.RequireFeature(tokens, Feature.STRUCTURES);
+
                 if (!executor.NextIs<StatementOpenBlock>())
                     throw new StatementException(tokens,
                         "Expected a block to follow this statement, defining the contents of the structure.");

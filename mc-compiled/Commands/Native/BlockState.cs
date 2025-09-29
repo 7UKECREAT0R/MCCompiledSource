@@ -211,6 +211,11 @@ public readonly struct BlockState(
         }
     }
 
+    /// <summary>
+    ///     Indicates whether this block state uses the default value as defined by its <see cref="BlockPropertyDefinition" />.
+    /// </summary>
+    public bool IsDefault => this.definition != null && this.definition.DefaultValue.Equals(this.value);
+
     public override string ToString()
     {
         return this.valueType switch
@@ -298,6 +303,52 @@ public readonly struct BlockState(
         {
             name = this.propertyName,
             value = nbtValue ? (byte) 1 : (byte) 0
+        };
+    }
+    /// <summary>
+    ///     Determines if the current block state matches the specified <see cref="NBTNode" /> based on its value and type.
+    /// </summary>
+    /// <param name="matchingNode">
+    ///     The <see cref="NBTNode" /> to compare against the block state.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if the block state and <paramref name="matchingNode" /> have matching values and types;
+    ///     otherwise, <see langword="false" />.
+    /// </returns>
+    public bool IsEqualToNode(NBTNode matchingNode)
+    {
+        // no definition available? just compare the raw values then using `is`
+        if (this.definition == null)
+            switch (matchingNode.tagType)
+            {
+                case TAG.Byte:
+                    bool thisBoolValue = ((NBTByte) matchingNode).value == 1;
+                    if (this.value is bool boolValue)
+                        return thisBoolValue == boolValue;
+                    return false;
+                case TAG.Int:
+                    int thisIntValue = ((NBTInt) matchingNode).value;
+                    if (this.value is int intValue)
+                        return thisIntValue == intValue;
+                    return false;
+                case TAG.String:
+                    string thisStringValue = ((NBTString) matchingNode).value;
+                    if (this.value is string stringValue)
+                        return thisStringValue.Equals(stringValue);
+                    return false;
+                default:
+                    return false;
+            }
+
+        return matchingNode.tagType switch
+        {
+            TAG.Byte when this.definition.Type == BlockPropertyType.@bool =>
+                (bool) this.value == (((NBTByte) matchingNode).value == 1),
+            TAG.Int when this.definition.Type == BlockPropertyType.@int =>
+                (int) this.value == ((NBTInt) matchingNode).value,
+            TAG.String when this.definition.Type == BlockPropertyType.@string =>
+                ((string) this.value).Equals(((NBTString) matchingNode).value),
+            _ => false
         };
     }
 }

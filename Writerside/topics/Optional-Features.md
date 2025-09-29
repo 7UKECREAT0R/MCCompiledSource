@@ -131,3 +131,11 @@ Enables the `playsound` command to accept audio files directly and generate the 
 automatically. Will copy the audio files into the resource pack every compilation.
 
 [See the full page on how to use audio files in MCCompiled.](Playsound.md)
+
+## Structures {collapsible="true" default-state="collapsed"}
+```%lang%
+feature structures
+```
+Enables any features of the language that will cause `.mcstructure` files to be emitted during compilation.
+This includes the `scatter` command, the `fill` command with a large area (> 32,768), or the [`structure new` command for
+algorithmic creation of structures.](Structure-Generation.md)
