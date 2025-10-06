@@ -511,6 +511,7 @@ public class StructureBuilder
 
         string itemName = tokens.Next<TokenStringLiteral>("item");
         itemName.ThrowIfWhitespace("item", tokens);
+        itemName = Command.Util.RequireNamespace(itemName);
 
         byte? slot = null;
         int count = 1;
@@ -582,7 +583,7 @@ public class StructureBuilder
                     loreLines.Add(tokens.Next<TokenStringLiteral>("lore line"));
                     break;
                 case "TITLE":
-                    if (!itemName.Equals("WRITTEN_BOOK", StringComparison.OrdinalIgnoreCase))
+                    if (!itemName.Equals("minecraft:written_book", StringComparison.OrdinalIgnoreCase))
                         throw new StatementException(tokens,
                             "Property 'title' can only be used on the item 'written_book'.");
                     book ??= new ItemTagBookData();
@@ -591,7 +592,7 @@ public class StructureBuilder
                     book = bookData0;
                     break;
                 case "AUTHOR":
-                    if (!itemName.Equals("WRITTEN_BOOK", StringComparison.OrdinalIgnoreCase))
+                    if (!itemName.Equals("minecraft:written_book", StringComparison.OrdinalIgnoreCase))
                         throw new StatementException(tokens,
                             "Property 'author' can only be used on the item 'written_book'.");
                     book ??= new ItemTagBookData();
@@ -600,15 +601,15 @@ public class StructureBuilder
                     book = bookData1;
                     break;
                 case "PAGE":
-                    if (!itemName.Equals("WRITTEN_BOOK", StringComparison.OrdinalIgnoreCase))
+                    if (!itemName.Equals("minecraft:written_book", StringComparison.OrdinalIgnoreCase))
                         throw new StatementException(tokens,
                             "Property 'page' can only be used on the item 'written_book'.");
                     book ??= new ItemTagBookData();
                     bookPages ??= [];
                     bookPages.Add(tokens.Next<TokenStringLiteral>("page contents").text.Replace("\\n", "\n"));
                     break;
-                case "DYE" when itemName.StartsWith("LEATHER_", StringComparison.OrdinalIgnoreCase):
-                    if (!itemName.StartsWith("LEATHER_", StringComparison.OrdinalIgnoreCase))
+                case "DYE" when itemName.StartsWith("minecraft:leather_", StringComparison.OrdinalIgnoreCase):
+                    if (!itemName.StartsWith("minecraft:leather_", StringComparison.OrdinalIgnoreCase))
                         throw new StatementException(tokens, "Property 'dye' can only be used on leather items.");
                     color = new ItemTagCustomColor
                     {

@@ -78,7 +78,8 @@ public struct ItemNBT
         nodes.Add(new NBTShort {name = "Damage", value = this.damage});
         nodes.Add(new NBTString {name = "Name", value = this.item});
         nodes.Add(new NBTByte {name = "WasPickedUp", value = 0});
-        nodes.Add(this.tag.ToNBT());
+        if (!this.tag.IsNone)
+            nodes.Add(this.tag.ToNBT());
         nodes.Add(new NBTEnd());
 
         return new NBTCompound

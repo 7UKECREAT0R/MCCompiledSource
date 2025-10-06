@@ -26,17 +26,19 @@ public struct ItemStack : IEquatable<ItemStack>
     public ItemTagCustomColor? customColor;
 
     [PublicAPI]
-    public ItemStack(string id, int count = 1, int damage = 0, string displayName = null, string[] lore = null,
+    public ItemStack(string id,
+        int count = 1,
+        int damage = 0,
+        string displayName = null,
+        string[] lore = null,
         EnchantmentEntry[] enchantments = null,
-        bool keep = false, string[] canPlaceOn = null, string[] canDestroy = null,
+        bool keep = false,
+        string[] canPlaceOn = null,
+        string[] canDestroy = null,
         ItemLockMode lockMode = ItemLockMode.NONE)
     {
         // namespace required
-        if (id.Contains(':'))
-            this.id = id;
-        else
-            this.id = "minecraft:" + id;
-
+        this.id = Command.Util.RequireNamespace(id);
         this.count = count;
         this.damage = damage;
         this.displayName = displayName;
@@ -136,10 +138,7 @@ public struct ItemStack : IEquatable<ItemStack>
                this.lockMode == other.lockMode && Nullable.Equals(this.bookData, other.bookData) &&
                Nullable.Equals(this.customColor, other.customColor);
     }
-    public override bool Equals(object obj)
-    {
-        return obj is ItemStack other && Equals(other);
-    }
+    public override bool Equals(object obj) { return obj is ItemStack other && Equals(other); }
     public override int GetHashCode()
     {
         unchecked

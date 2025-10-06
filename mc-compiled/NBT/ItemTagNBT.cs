@@ -16,7 +16,11 @@ public struct ItemTagNBT
     public ItemTagBookData? bookData;
     public ItemTagCustomColor? customColor;
 
-    public ItemTagNBT(int damage, EnchantNBT[] enchantment, ItemLockMode lockMode, bool keepOnDeath, string displayName,
+    public ItemTagNBT(int damage,
+        EnchantNBT[] enchantment,
+        ItemLockMode lockMode,
+        bool keepOnDeath,
+        string displayName,
         string[] lore)
     {
         this.damage = damage;
@@ -29,6 +33,14 @@ public struct ItemTagNBT
         this.bookData = null;
         this.customColor = null;
     }
+    /// <summary>
+    ///     Returns if this ItemTagNBT is completely empty, as in, it doesn't modify the item at all from its default state.
+    /// </summary>
+    public bool IsNone =>
+        this.damage == 0 && (this.enchantment == null || this.enchantment.Length == 0) &&
+        this.lockMode == ItemLockMode.NONE &&
+        !this.keepOnDeath && this.displayName == null && (this.lore == null || this.lore.Length == 0) &&
+        this.bookData == null && this.customColor == null;
     public NBTCompound ToNBT()
     {
         var nodes = new List<NBTNode>
@@ -47,8 +59,8 @@ public struct ItemTagNBT
             });
         }
 
-        // All display related stuff.
-        if (this.displayName != null || this.lore != null)
+        // All display-related stuff.
+        if (this.displayName != null || this.lore is {Length: > 0})
         {
             var displayValues = new List<NBTNode>();
 
@@ -57,7 +69,7 @@ public struct ItemTagNBT
                 displayValues.Add(new NBTString {name = "Name", value = "§r§f" + this.displayName});
 
             // Lore
-            if (this.lore != null)
+            if (this.lore is {Length: > 0})
                 displayValues.Add(new NBTList
                 {
                     listType = TAG.String,
@@ -118,23 +130,15 @@ public struct ItemTagNBT
 
 public enum ItemLockMode : byte
 {
-    NONE = 0,
-    LOCK_IN_SLOT = 1,
-    LOCK_IN_INVENTORY = 2
+    NONE = 0, LOCK_IN_SLOT = 1, LOCK_IN_INVENTORY = 2
 }
 
 public struct ItemTagCustomColor : IEquatable<ItemTagCustomColor>
 {
     public byte r, g, b;
 
-    public bool Equals(ItemTagCustomColor other)
-    {
-        return this.r == other.r && this.g == other.g && this.b == other.b;
-    }
-    public override bool Equals(object obj)
-    {
-        return obj is ItemTagCustomColor other && Equals(other);
-    }
+    public bool Equals(ItemTagCustomColor other) { return this.r == other.r && this.g == other.g && this.b == other.b; }
+    public override bool Equals(object obj) { return obj is ItemTagCustomColor other && Equals(other); }
     public override int GetHashCode()
     {
         unchecked
@@ -180,10 +184,7 @@ public struct ItemTagBookData : IEquatable<ItemTagBookData>
     {
         return this.author == other.author && this.title == other.title && Equals(this.pages, other.pages);
     }
-    public override bool Equals(object obj)
-    {
-        return obj is ItemTagBookData other && Equals(other);
-    }
+    public override bool Equals(object obj) { return obj is ItemTagBookData other && Equals(other); }
     public override int GetHashCode()
     {
         unchecked
