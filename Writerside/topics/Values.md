@@ -17,9 +17,9 @@ representation in MCCompiled is much different. There are a couple of key differ
 4. Values are formatted when displayed to a player.
 
 ## Defining Values
-Defining a value is done using the syntax <snippet id="define_with_type">`define [type] [name]`</snippet>.
+Defining a value is done using the syntax <snippet id="define_with_type">`define <type> <name>`</snippet>.
 The most common type is `int`, short for integer. An integer can be any whole number between -2,147,483,648 and 2,147,483,647.
-It's versatile, and is the closest to a Minecraft scoreboard objective.
+It's versatile and is the closest to a Minecraft scoreboard objective.
 ```%lang%
 define int score
 ```
@@ -235,20 +235,19 @@ losses[@a[tag=touched]] += 1
 ```
 
 ### Other ways of doing the above example {collapsible="true" default-state="collapsed"}
-<tip>
-   There are some other ways to do this example, too, which look cleaner but may not be as efficient.
-   <code-block lang="%lang%">
+
+There are some other ways to do this example, too, which look cleaner but may not be as efficient.
+<code-block lang="%lang%">
 for @a {
-   if @s[tag=touched]
-      losses += 1
+    if @s[tag=touched]
+        losses += 1
 }
-   </code-block>
-   <code-block lang="%lang%">
+</code-block>
+<code-block lang="%lang%">
 execute as @a if @s[tag=touched] {
-   losses += 1
+    losses += 1
 }
-   </code-block>
-</tip>
+</code-block>
 
 ## Miscellaneous Operations
 Some operations don't follow the rules of the five main math operations, those of which are listed here. None of the

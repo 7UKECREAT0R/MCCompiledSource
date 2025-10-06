@@ -803,7 +803,7 @@ public abstract class Statement : TokenFeeder
                         throw new StatementException(this,
                             $"Cannot index token '{current.AsString()}'. (indexer: {indexer.AsString()})");
 
-                    current = indexable.Index(indexer, this);
+                    current = indexable.Index(indexer, this) ?? new TokenNullLiteral(this.Lines[0]);
                 } while (indexerBuffer.Count > 0);
 
                 // replace tokens

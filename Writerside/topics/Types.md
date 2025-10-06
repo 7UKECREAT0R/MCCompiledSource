@@ -46,10 +46,10 @@ The most common type is the [`int`](#int)
 <tab title="Decimal" id="decimal">
     The <code>decimal</code> can be a decimal number. They're represented as a single
     scoreboard objective as a <a href="https://en.wikipedia.org/wiki/Fixed-point_arithmetic">fixed point number</a>.
-    As such, decimal numbers need to have their precision specified at the time of definition: <code>decimal [precision]</code>
+    As such, decimal numbers need to have their precision specified at the time of definition: <code>decimal &lt;precision&gt;</code>
     <h3 id="decimal_limits">Limits</h3>
     <p>
-        Decimals are limited based on their precision. <code>-2^31 * (0.1^precision)</code> to <code>2^31 - 1  * (0.1^precision)</code>
+        Decimals are limited based on their precision. Where P=Precision, <code>-2^31 * (0.1^P)</code> to <code>(2^31 - 1)  * (0.1^P)</code>
         if you overflow an integer by making it exceed these limits, it will wrap back around into the negatives/positives
         depending on which way you overflowed.
     </p>

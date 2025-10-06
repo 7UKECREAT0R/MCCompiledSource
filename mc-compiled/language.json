@@ -1105,9 +1105,6 @@
       "category": "values",
       "syntax": [
         "value:value"
-      ],
-      "attributes": [
-        "DOCUMENTABLE"
       ]
     },
     "if": {

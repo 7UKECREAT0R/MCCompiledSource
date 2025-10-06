@@ -422,7 +422,7 @@ public static class DirectiveImplementations
         dynamic[] tokensB = FetchPPVOrDynamics(executor, tokens, true);
 
         // if the next block/statement should be run
-        bool result = true;
+        bool result = compare != TokenCompare.Type.NOT_EQUAL;
 
         if (tokensA.Length != tokensB.Length)
         {
@@ -437,22 +437,56 @@ public static class DirectiveImplementations
                 dynamic a = tokensA[i];
                 dynamic b = tokensB[i];
 
-                try
+                bool isANull = a == null || a is TokenNullLiteral;
+                bool isBNull = b == null || b is TokenNullLiteral;
+
+                // different implementations depending on if nulls are present
+                if (isANull && isBNull)
                 {
-                    result &= compare switch
-                    {
-                        TokenCompare.Type.EQUAL => a == b,
-                        TokenCompare.Type.NOT_EQUAL => a != b,
-                        TokenCompare.Type.LESS => a < b,
-                        TokenCompare.Type.LESS_OR_EQUAL => a <= b,
-                        TokenCompare.Type.GREATER => a > b,
-                        TokenCompare.Type.GREATER_OR_EQUAL => a >= b,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
+                    if (compare is not (TokenCompare.Type.NOT_EQUAL or TokenCompare.Type.EQUAL))
+                        throw new StatementException(tokens,
+                            "When testing for null, only == and != are valid. (got " + compare + ")");
+                    bool comp = compare == TokenCompare.Type.EQUAL;
+                    if (compare == TokenCompare.Type.NOT_EQUAL)
+                        result |= comp;
+                    else
+                        result &= comp;
                 }
-                catch (Exception)
+                else if (isANull || isBNull)
                 {
-                    throw new StatementException(tokens, "Could not compare those two types.");
+                    if (compare is not (TokenCompare.Type.NOT_EQUAL or TokenCompare.Type.EQUAL))
+                        throw new StatementException(tokens,
+                            "When testing for null, only == and != are valid. (got " + compare + ")");
+                    bool comp = compare == TokenCompare.Type.NOT_EQUAL;
+                    if (compare == TokenCompare.Type.NOT_EQUAL)
+                        result |= comp;
+                    else
+                        result &= comp;
+                }
+                else
+                {
+                    try
+                    {
+                        bool comp = compare switch
+                        {
+                            TokenCompare.Type.EQUAL => a == b,
+                            TokenCompare.Type.NOT_EQUAL => a != b,
+                            TokenCompare.Type.LESS => a < b,
+                            TokenCompare.Type.LESS_OR_EQUAL => a <= b,
+                            TokenCompare.Type.GREATER => a > b,
+                            TokenCompare.Type.GREATER_OR_EQUAL => a >= b,
+                            _ => throw new StatementException(tokens,
+                                $"Unimplemented comparison operator inside $if: {compare}")
+                        };
+                        if (compare == TokenCompare.Type.NOT_EQUAL)
+                            result |= comp;
+                        else
+                            result &= comp;
+                    }
+                    catch (Exception)
+                    {
+                        throw new StatementException(tokens, "Could not compare those two types.");
+                    }
                 }
             }
         }
@@ -481,7 +515,11 @@ public static class DirectiveImplementations
         }
 
         if (!result)
+        {
+            if (!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end-of-file after $if statement.");
             executor.Next(); // skip the next statement
+        }
     }
     [UsedImplicitly]
     public static void _else(Executor executor, Statement tokens)
@@ -509,6 +547,8 @@ public static class DirectiveImplementations
         }
         else if (!run)
         {
+            if (!executor.HasNext)
+                throw new StatementException(tokens, "Unexpected end-of-file after $else statement.");
             executor.Next(); // skip the next statement
         }
     }
@@ -717,8 +757,8 @@ public static class DirectiveImplementations
             if (tokens.NextIs<TokenIdentifierPreprocessor>(false))
             {
                 // ReSharper disable once RedundantEnumerableCastCall
-                args[i] = executor
-                    .ResolvePPV(tokens.Next<TokenIdentifierPreprocessor>("preprocessor"), tokens)
+                args[i] = tokens.Next<TokenIdentifierPreprocessor>("preprocessor")
+                    .variable
                     .Cast<dynamic>()
                     .ToArray();
                 continue;

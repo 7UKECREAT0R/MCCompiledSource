@@ -15,15 +15,16 @@ public readonly struct BlockPositionDataNBT()
     private List<NBTNode> GetEntries()
     {
         List<NBTNode> entries = [];
-        foreach ((int key, BasicBlockEntityDataNBT value) in this.data)
-        {
-            var entry = new NBTCompound
+        if (this.data != null)
+            foreach ((int key, BasicBlockEntityDataNBT value) in this.data)
             {
-                name = key.ToString(), // the index is the name for dictionary-like lookup
-                values = [value.ToNBT(), new NBTEnd()]
-            };
-            entries.Add(entry);
-        }
+                var entry = new NBTCompound
+                {
+                    name = key.ToString(), // the index is the name for dictionary-like lookup
+                    values = [value.ToNBT(), new NBTEnd()]
+                };
+                entries.Add(entry);
+            }
 
         entries.Add(new NBTEnd());
         return entries;

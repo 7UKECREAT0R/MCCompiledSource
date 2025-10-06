@@ -29,7 +29,9 @@ public struct PaletteNBT(params PaletteEntryNBT[] entries)
                         {
                             name = "block_palette",
                             listType = TAG.Compound,
-                            values = (from bp in this.blockPalette select bp.ToNBT("")).ToArray<NBTNode>()
+                            values = this.blockPalette == null
+                                ? []
+                                : (from bp in this.blockPalette select bp.ToNBT("")).ToArray<NBTNode>()
                         },
                         this.blockPositionData.ToNBT(),
                         new NBTEnd()

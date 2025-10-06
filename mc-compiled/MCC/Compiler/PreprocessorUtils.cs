@@ -143,6 +143,8 @@ public static class PreprocessorUtils
             case JTokenType.Property:
             case JTokenType.Comment:
             case JTokenType.Null:
+                obj = null;
+                return true;
             case JTokenType.Undefined:
             case JTokenType.Raw:
             case JTokenType.Bytes:
@@ -162,6 +164,7 @@ public static class PreprocessorUtils
     {
         return value switch
         {
+            null => new TokenNullLiteral(line),
             int integer => new TokenIntegerLiteral(integer, IntMultiplier.none, line),
             decimal number => new TokenDecimalLiteral(number, line),
             bool boolean => new TokenBooleanLiteral(boolean, line),

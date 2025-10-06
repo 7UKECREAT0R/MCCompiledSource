@@ -279,11 +279,6 @@ public partial class Executor
             action.Invoke(this);
         }
     }
-    /// <summary>
-    ///     Returns this executor after setting it to lint mode, lowering memory usage
-    /// </summary>
-    /// <returns></returns>
-    internal void Linter() { this.emission.isLinting = true; }
 
     /// <summary>
     ///     Pushes to the prepend buffer the proper execute command needed to align to the given selector.
@@ -1175,6 +1170,8 @@ public partial class Executor
         this.ppv["_timeformat"] = new PreprocessorVariable(TimeFormat.Default.ToString());
         this.ppv["_true"] = new PreprocessorVariable("true");
         this.ppv["_false"] = new PreprocessorVariable("false");
+        this.ppv["_isLinting"] = new PreprocessorVariable(this.emission.isLinting);
+        this.ppv["_isCompiling"] = new PreprocessorVariable(!this.emission.isLinting);
     }
     /// <summary>
     ///     Run this executor start to finish.
@@ -1191,6 +1188,8 @@ public partial class Executor
     {
         resultEmission = this.emission;
         this.emission.isLinting = lint;
+        this.ppv["_isLinting"] = new PreprocessorVariable(lint);
+        this.ppv["_isCompiling"] = new PreprocessorVariable(!lint);
 
         this.readIndex = 0;
 
@@ -1952,7 +1951,7 @@ public partial class Executor
             }
             else
             {
-                valuesFinal = values.Select(v => (string) v.ToString()).ToArray();
+                valuesFinal = values.Select(v => v == null ? "null" : (string) v.ToString()).ToArray();
             }
 
             string insertText = valuesFinal.Length > 1

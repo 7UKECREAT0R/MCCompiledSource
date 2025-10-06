@@ -88,7 +88,7 @@ public abstract class TokenLiteral(int lineNumber) : Token(lineNumber)
 public class TokenNullLiteral(int lineNumber) : TokenLiteral(lineNumber), IPreprocessor
 {
     public override string FriendlyTypeName => "null";
-    public object GetValue() { return 0; }
+    public object GetValue() { return null; }
     public override string AsString() { return "null"; }
     public override string ToString() { return "null"; }
     public override TokenLiteral Clone() { return new TokenNullLiteral(this.lineNumber); }
@@ -1236,13 +1236,8 @@ public class TokenJSONLiteral(JToken token, int lineNumber)
 
                 JToken gottenToken = json[word];
 
-                if (gottenToken == null)
-                {
-                    if (forExceptions == null)
-                        return null;
-                    throw new StatementException(forExceptions, $"No JSON property found with the name '{word}'");
-                }
-
+                if (gottenToken == null || gottenToken.Type == JTokenType.Null)
+                    return null;
                 if (PreprocessorUtils.TryGetLiteral(gottenToken, this.lineNumber, out TokenLiteral output))
                     return output;
 

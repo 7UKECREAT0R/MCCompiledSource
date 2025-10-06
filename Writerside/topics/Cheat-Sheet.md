@@ -264,7 +264,7 @@ $macro setQuestDisplay "Return to the village to find out what that sound was."
 - `$repeat`
 - in order:
 	- one of:
-		- `<integer: repetitions>`
+		- `<int: repetitions>`
 		- `<range: repetitions>`
 	- `<identifier: indicator>`
 
@@ -378,7 +378,7 @@ Commands which display text to players through format-strings or manipulate text
 - `globaltitle`
 - one of:
 	- `times` Set the timings for the next title/future titles.
-		- `<integer: fade in, stay, fade out>`
+		- `<int: fade in, stay, fade out>`
 	- `subtitle` Set the subtitle for the next title displayed.
 		- `<string: subtitle text>`
 	- `<string: title text>`
@@ -409,7 +409,7 @@ Say
 	- `<selector: players>`
 	- one of:
 		- `times` Set the timings for the next title/future titles.
-			- `<integer: fade in, stay, fade out>`
+			- `<int: fade in, stay, fade out>`
 		- `subtitle` Set the subtitle for the next title displayed.
 			- `<string: subtitle text>`
 		- `<string: title text>`
@@ -423,7 +423,7 @@ Damage Entity
 : Damages the given entities with a certain cause, optionally coming from a position or blaming an entity by a selector, or name of another managed entity (e.g., dummy entities).
 - `damage`
 - in order:
-	- `<selector: targets>` `<integer: amount>`
+	- `<selector: targets>` `<int: amount>`
 	- `<damage cause: damage cause>`
 	- optional, one of:
 		- `<selector: blame>`
@@ -436,7 +436,7 @@ Give Effect to Entity
 	- `<selector: entities>`
 	- one of:
 		- `clear` Clears all effects from the given entities.
-		- `<minecraft effect: effect>` `[integer: seconds, amplifier]` `[true/false: hide particles]`
+		- `<minecraft effect: effect>` `[int: seconds, amplifier]` `[true/false: hide particles]`
 
 Face Towards...
 : Faces the given entities towards a specific position, selector, or name of another managed entity (e.g., dummy entities).
@@ -465,7 +465,7 @@ Move Entity
 Rotate Entity
 : Rotates the given entities a certain number of degrees horizontally and vertically from their current rotation.
 - `rotate`
-- `<selector: entities>` `<integer: rotation y, rotation x>`
+- `<selector: entities>` `<int: rotation y, rotation x>`
 
 Summon Entity
 : Summons an entity; matches Minecraft vanilla syntax.
@@ -530,7 +530,7 @@ Replace in Region
 [Scatter Blocks in Region](Scatter.md)
 : Randomly scatters blocks throughout a region with a certain percentage.
 - `scatter`
-- `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: block>` `[block state: block states]` `<integer: percent>` `[string: seed]`
+- `<coordinate: x1, y1, z1, x2, y2, z2>` `<minecraft block: block>` `[block state: block states]` `<int: percent>` `[string: seed]`
 
 Set Block
 : Sets the block at a specific position, optionally using a replace mode.
@@ -570,16 +570,16 @@ Commands relating to entity/player items and inventories.
 Clear Entity
 : Clears the inventories of all given entities, optionally searching for a specific item and limiting the number of items to remove.
 - `clear`
-- `[selector: target]` `[minecraft item: item]` `[integer: data, max count]`
+- `[selector: target]` `[minecraft item: item]` `[int: data, max count]`
 
 [Give Item](Giving-Items.md)
 : Gives item(s) to the given entity. Runs either a 'give' or 'structure load' depending on requirements. Utilizes builder fields.
 - `give`
 - in order:
-	- `<selector: players>` `<minecraft item: item>` `[integer: count, data]`
+	- `<selector: players>` `<minecraft item: item>` `[int: count, data]`
 	- optional, repeatable, one of:
 		- `at: ` Usable only in containers with the 'item' command. Specifies which slot the item should go in.
-			- `<integer: slot>`
+			- `<int: slot>`
 		- `keep` Item will stay in the player's inventory even after death.
 		- `lockinventory` Lock the item in the player's inventory.
 		- `lockslot` Lock the item in the slot it's located in inside the player's inventory.
@@ -588,7 +588,7 @@ Clear Entity
 		- `candestroy: ` Adds a block that this tool/item can break in adventure mode.
 			- `<minecraft block: block>`
 		- `enchant: ` Adds an enchantment to the item.
-			- `<minecraft enchantment: enchantment>` `<integer: level>`
+			- `<minecraft enchantment: enchantment>` `<int: level>`
 		- `name: ` Sets the display name of the item.
 			- `<string: display name>`
 		- `lore: ` Adds a line of lore to the item.
@@ -600,7 +600,7 @@ Clear Entity
 		- `page: ` If the item is a written book, adds a page of text to the book.
 			- `<string: page content>`
 		- `dye: ` If the item is leather armor, sets the dye color of the armor.
-			- `<integer: red, green, blue>`
+			- `<int: red, green, blue>`
 ```%lang%
 give @s netherite_sword 1 keep
     enchant: sharpness 5
@@ -626,7 +626,7 @@ Camera
 				- `time` Specify the in/hold/out times of the fade, in seconds.
 					- `<number: fade in seconds, hold seconds, fade out seconds>`
 				- `color` Specify the color of the fade.
-					- `<integer: red, green, blue>`
+					- `<int: red, green, blue>`
 		- `set` Set the camera for the given players.
 			- in order:
 				- `<camera preset: preset>`
@@ -671,7 +671,7 @@ Commands tied directly to values. Values can be used in if-statements, format-st
 	- optional, one of:
 		- `int` An integer, representing any whole value between -2147483648 to 2147483647.
 		- `decimal` A decimal number with a pre-specified level of precision.
-			- `<integer: precision>`
+			- `<int: precision>`
 		- `bool` A true or false value.
 		- `time` A value representing a number of ticks. Displayed as MM:SS by default.
 	- `<any number of attribute: attributes>`
@@ -685,7 +685,6 @@ define global time timeLeft
 
 [Initialize Value](Values.md#initializing-values)
 : Ensures this value has a value, defaulting to 0 if not. This ensures the executing entity(s) function as intended all the time. Use a clarifier to pick who the variable is initialized for: e.g., `variableName[@a]`
-<format color="MediumSeaGreen">Can be documented by writing a comment right before running this command.</format>
 - `init`
 - `<value: value>`
 
@@ -698,7 +697,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 : Works in async functions. Awaits a certain amount of time, for a condition to be met, or another async function to complete executing.
 - `await`
 - one of:
-	- `<integer: ticks>`
+	- `<int: ticks>`
 	- `until` Wait until a certain condition is met. It will be checked once at the end of every tick.
 		- repeatable, in order:
 			- `not` Invert the next comparison.
@@ -711,7 +710,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 				- `count` Count the number of matching entities and compare the result.
 					- one of:
 						- `<selector: selector>` `<compare: comparison>` `<value: b>`
-						- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+						- `<selector: selector>` `<compare: comparison>` `<int: b>`
 				- `any` Check if any entities match the given selector.
 					- `<selector: selector>`
 				- `block` Check if a block matches a given filter.
@@ -731,7 +730,7 @@ Commands which handle logic and code flow. The butter for all the bread (code).
 				- `count` Count the number of matching entities and compare the result.
 					- one of:
 						- `<selector: selector>` `<compare: comparison>` `<value: b>`
-						- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+						- `<selector: selector>` `<compare: comparison>` `<int: b>`
 				- `any` Check if any entities match the given selector.
 					- `<selector: selector>`
 				- `block` Check if a block matches a given filter.
@@ -829,7 +828,7 @@ Execute
 		- optional, one of:
 			- `int` An integer, representing any whole value between -2147483648 to 2147483647.
 			- `decimal` A decimal number with a pre-specified level of precision.
-				- `<integer: precision>`
+				- `<int: precision>`
 			- `bool` A true or false value.
 			- `time` A value representing a number of ticks. Displayed as MM:SS by default.
 		- `<any number of attribute: attributes>`
@@ -866,7 +865,7 @@ function export xpBurst {
 			- `count` Count the number of matching entities and compare the result.
 				- one of:
 					- `<selector: selector>` `<compare: comparison>` `<value: b>`
-					- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+					- `<selector: selector>` `<compare: comparison>` `<int: b>`
 			- `any` Check if any entities match the given selector.
 				- `<selector: selector>`
 			- `block` Check if a block matches a given filter.
@@ -886,7 +885,7 @@ Repeat N Times
 - `repeat`
 - in order:
 	- one of:
-		- `<integer: repetitions>`
+		- `<int: repetitions>`
 		- `<value: repetitions>`
 	- `<identifier: current iteration value>`
 	- `<code block>`
@@ -918,7 +917,7 @@ While Statement
 			- `count` Count the number of matching entities and compare the result.
 				- one of:
 					- `<selector: selector>` `<compare: comparison>` `<value: b>`
-					- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+					- `<selector: selector>` `<compare: comparison>` `<int: b>`
 			- `any` Check if any entities match the given selector.
 				- `<selector: selector>`
 			- `block` Check if a block matches a given filter.
@@ -968,7 +967,7 @@ $macro cutscene.start.withRotation x, y, z, ry, rx {
 		- `count` Count the number of matching entities and compare the result.
 			- one of:
 				- `<selector: selector>` `<compare: comparison>` `<value: b>`
-				- `<selector: selector>` `<compare: comparison>` `<integer: b>`
+				- `<selector: selector>` `<compare: comparison>` `<int: b>`
 		- `any` Check if any entities match the given selector.
 			- `<selector: selector>`
 		- `block` Check if a block matches a given filter.
@@ -1025,7 +1024,7 @@ Commands related to the optionally enable-able features in the language.
 [Create Explosion](Optional-Features.md#exploders)
 : Create an explosion at a specific position with optional positioning, power, delay, fire, and block breaking settings. Requires feature 'EXPLODERS' to be enabled.
 - `explode`
-- `[coordinate: x, y, z]` `[integer: power, delay]` `[true/false: causes fire, breaks blocks]`
+- `[coordinate: x, y, z]` `[int: power, delay]` `[true/false: causes fire, breaks blocks]`
 ```%lang%
 feature exploders
 %empty%
@@ -1053,7 +1052,7 @@ Define Command Block
 		- `chain` The command block will run when activated by another command block pointing at it.
 		- `repeating` The command block will run either continuously or when powered by redstone. Supports a tick delay.
 			- `<true/false: always active>`
-	- `[integer: delay]` `<facing direction: direction>` `[true/false: conditional]` `<string: command>`
+	- `[int: delay]` `<facing direction: direction>` `[true/false: conditional]` `<string: command>`
 
 Define Container in Current Structure
 : Usable only when defining a structure via 'structure new'. Begins defining a container.
@@ -1064,10 +1063,10 @@ Define Item in Current Container
 : Usable only when defining a container via the 'container' command. Adds an item to the container.
 - `item`
 - in order:
-	- `<minecraft item: item>` `[integer: count, data]`
+	- `<minecraft item: item>` `[int: count, data]`
 	- optional, repeatable, one of:
 		- `at: ` Usable only in containers with the 'item' command. Specifies which slot the item should go in.
-			- `<integer: slot>`
+			- `<int: slot>`
 		- `keep` Item will stay in the player's inventory even after death.
 		- `lockinventory` Lock the item in the player's inventory.
 		- `lockslot` Lock the item in the slot it's located in inside the player's inventory.
@@ -1076,7 +1075,7 @@ Define Item in Current Container
 		- `candestroy: ` Adds a block that this tool/item can break in adventure mode.
 			- `<minecraft block: block>`
 		- `enchant: ` Adds an enchantment to the item.
-			- `<minecraft enchantment: enchantment>` `<integer: level>`
+			- `<minecraft enchantment: enchantment>` `<int: level>`
 		- `name: ` Sets the display name of the item.
 			- `<string: display name>`
 		- `lore: ` Adds a line of lore to the item.
@@ -1088,7 +1087,7 @@ Define Item in Current Container
 		- `page: ` If the item is a written book, adds a page of text to the book.
 			- `<string: page content>`
 		- `dye: ` If the item is leather armor, sets the dye color of the armor.
-			- `<integer: red, green, blue>`
+			- `<int: red, green, blue>`
 
 Minecraft Command
 : Places a plain command in the output file, used for when the language lacks a certain feature.
