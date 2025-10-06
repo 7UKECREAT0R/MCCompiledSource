@@ -21,9 +21,27 @@ public static partial class CommandEnumParser
         isInitialized = true;
     }
 
+    /// <summary>
+    ///     Attempts to parse a given input string into a <see cref="RecognizedEnumValue" />.
+    /// </summary>
+    /// <param name="input">The string to parse.</param>
+    /// <param name="result">
+    ///     When this method returns, contains the parsed <see cref="RecognizedEnumValue" /> if parsing was successful;
+    ///     otherwise, contains the default value of <see cref="RecognizedEnumValue" />.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if the input string was successfully parsed; otherwise, <see langword="false" />.
+    /// </returns>
     public static bool TryParse(string input, out RecognizedEnumValue result)
     {
-        return parser.TryGetValue(input, out result);
+        bool resultInitial = parser.TryGetValue(input, out result);
+        if (!resultInitial && input.Contains(':'))
+        {
+            string stripped = Command.Util.StripNamespace(input);
+            return parser.TryGetValue(stripped, out result);
+        }
+
+        return resultInitial;
     }
 
     public static void Put(RecognizedEnumValue value) { parser[value.value.ToString()!] = value; }
@@ -59,9 +77,9 @@ public static partial class CommandEnumParser
 /// </summary>
 public readonly struct RecognizedEnumValue
 {
-    public static RecognizedEnumValue None(string word) { return new RecognizedEnumValue(null, word, null, true); }
+    public static RecognizedEnumValue None(string word) { return new RecognizedEnumValue(null, word, null); }
 
-    private readonly bool isNone = false;
+    internal readonly bool isNone = false;
     public readonly Type enumType;
     public readonly object value;
 
@@ -75,10 +93,9 @@ public readonly struct RecognizedEnumValue
 
     public RecognizedEnumValue(Type enumType,
         object value,
-        [CanBeNull] string documentation,
-        bool isNone = false)
+        [CanBeNull] string documentation)
     {
-        this.isNone = isNone;
+        this.isNone = value == null;
         this.enumType = enumType;
         this.documentation = documentation;
         this.value = value;

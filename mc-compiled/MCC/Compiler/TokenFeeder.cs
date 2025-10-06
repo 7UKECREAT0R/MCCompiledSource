@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using mc_compiled.Commands;
 using mc_compiled.MCC.Language;
 
 namespace mc_compiled.MCC.Compiler;
@@ -145,7 +146,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     {
         if (this.currentToken >= this.tokens.Length)
             throw new FeederException(this,
-                $"expected parameter '{parameterHint}' at end of line, type ");
+                $"expected parameter '{parameterHint}' at end of line, type {typeof(T).GetFriendlyTokenNameOrDefault()}");
 
         Token token = this.tokens[this.currentToken++];
 
@@ -153,7 +154,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
             return castedToken;
         if (token is not IImplicitToken implicitToken)
             throw new FeederException(this,
-                $"invalid token type for parameter '{parameterHint}'. expected {typeof(T).GetFriendlyTokenName()} but got {token.FriendlyTypeName}");
+                $"invalid token type for parameter '{parameterHint}'. expected {typeof(T).GetFriendlyTokenName()}, but got {token.FriendlyTypeName}");
 
         Type[] otherTypes = implicitToken.GetImplicitTypes();
 
@@ -162,7 +163,49 @@ public class TokenFeeder(Token[] tokens) : ICloneable
                 return implicitToken.Convert(this.executor, i) as T;
 
         throw new FeederException(this,
-            $"invalid token type for parameter '{parameterHint}'. expected {typeof(T).GetFriendlyTokenName()} but got {implicitToken.GetType().GetFriendlyTokenName()}");
+            $"invalid token type for parameter '{parameterHint}'. expected {typeof(T).GetFriendlyTokenName()}, but got {implicitToken.GetType().GetFriendlyTokenName()}");
+    }
+    /// <summary>
+    ///     Retrieves and parses the next token as an enum of type <typeparamref name="T" />.
+    /// </summary>
+    /// <typeparam name="T">The enumeration type to parse the token into.</typeparam>
+    /// <param name="parameterHint">A hint for the expected parameter, used in error reporting.</param>
+    /// <returns>The parsed enum value of type <typeparamref name="T" />.</returns>
+    /// <exception cref="FeederException">
+    ///     Thrown if the current token is not a valid member of the specified enumeration.
+    /// </exception>
+    public T NextEnum<T>(string parameterHint) where T : struct, Enum
+    {
+        if (this.currentToken >= this.tokens.Length)
+            throw new FeederException(this,
+                $"expected parameter '{parameterHint}' at end of line, type ");
+
+        Token token = this.tokens[this.currentToken++];
+
+        if (token is TokenIdentifierEnum {value.value: T t})
+            return t;
+        if (token is TokenIdentifier identifier)
+        {
+            string word = identifier.word;
+
+            if (Enum.TryParse(word, out T t2))
+                return t2;
+        }
+
+        if (token is TokenStringLiteral stringLiteral)
+        {
+            // see if it can be parsed
+            string word = stringLiteral.text;
+
+            if (CommandEnumParser.TryParse(word, out RecognizedEnumValue parsedValueMaybe))
+                if (parsedValueMaybe.IsType<T>())
+                    return (T) parsedValueMaybe.value;
+            if (Enum.TryParse(word, out T t2))
+                return t2;
+        }
+
+        throw new FeederException(this,
+            $"invalid token type for parameter '{parameterHint}'. expected a member of enumeration {typeof(T).GetFriendlyTokenName()}, but got {token.GetType().GetFriendlyTokenName()}");
     }
     /// <summary>
     ///     Peeks at the next token in the feeder, casting it to the given type. Implements MCCompiled implicit conversions.
@@ -243,6 +286,51 @@ public class TokenFeeder(Token[] tokens) : ICloneable
                 throw new FeederException(this,
                     $"parameter here must be '{typeof(T).GetFriendlyTokenName()}', but got '{token.FriendlyTypeName}'.");
         }
+    }
+    /// <summary>
+    ///     Determines whether the next token is compatible with the specified enumeration type.
+    /// </summary>
+    /// <typeparam name="T">The enumeration type to check against.</typeparam>
+    /// <param name="enforceType">
+    ///     If <see langword="true" />, throws a <see cref="FeederException" /> if the next token is not a valid member
+    ///     of the enumeration <typeparamref name="T" />.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if the next token is a valid member of the enumeration type <typeparamref name="T" />;
+    ///     otherwise, <see langword="false" />.
+    /// </returns>
+    public bool NextIsEnum<T>(bool enforceType) where T : struct, Enum
+    {
+        if (!this.HasNext)
+            return false;
+
+        Token token = this.tokens[this.currentToken];
+
+        if (token is TokenIdentifierEnum {value.value: T})
+            return true;
+
+        if (token is TokenIdentifier identifier)
+        {
+            string word = identifier.word;
+            if (Enum.TryParse(word, out T _))
+                return true;
+        }
+        else if (token is TokenStringLiteral stringLiteral)
+        {
+            // see if it can be parsed
+            string word = stringLiteral.text;
+
+            if (CommandEnumParser.TryParse(word, out RecognizedEnumValue parsedValueMaybe))
+                if (parsedValueMaybe.IsType<T>())
+                    return true;
+            if (Enum.TryParse(word, out T _))
+                return true;
+        }
+
+        if (enforceType)
+            throw new FeederException(this,
+                $"parameter here must be a member of the '{typeof(T).GetFriendlyTokenNameOrDefault()}' enumeration, but got '{token.FriendlyTypeName}'.");
+        return false;
     }
     /// <summary>
     ///     Checks whether the next token is considered "useless" information, such as a comment.

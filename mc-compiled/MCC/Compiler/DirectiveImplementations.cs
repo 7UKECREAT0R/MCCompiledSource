@@ -1868,9 +1868,7 @@ public static class DirectiveImplementations
                     canDestroy.Add(tokens.Next<TokenStringLiteral>("can destroy block"));
                     break;
                 case "ENCHANT":
-                    RecognizedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>("enchantment").value;
-                    parsedEnchantment.RequireType<Enchantment>(tokens);
-                    var enchantment = (Enchantment) parsedEnchantment.value;
+                    var enchantment = tokens.NextEnum<Enchantment>("enchantment");
                     int level = tokens.Next<TokenIntegerLiteral>("level");
                     if (level < 1)
                         throw new StatementException(tokens, "Enchantment level cannot be less than 1.");
@@ -2181,12 +2179,8 @@ public static class DirectiveImplementations
         }
 
         var handling = OldHandling.replace;
-        if (tokens.NextIs<TokenIdentifierEnum>(true))
-        {
-            RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
-            enumValue.RequireType<OldHandling>(tokens);
-            handling = (OldHandling) enumValue.value;
-        }
+        if (tokens.NextIsEnum<OldHandling>(true))
+            handling = tokens.NextEnum<OldHandling>("old block handling");
 
         executor.AddCommand(Command.SetBlock(x, y, z, block, blockStates, handling));
     }
@@ -2223,12 +2217,8 @@ public static class DirectiveImplementations
         }
 
         var handling = OldHandling.replace;
-        if (tokens.NextIs<TokenIdentifierEnum>(false))
-        {
-            RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("old block handling").value;
-            enumValue.RequireType<OldHandling>(tokens);
-            handling = (OldHandling) enumValue.value;
-        }
+        if (tokens.NextIsEnum<OldHandling>(false))
+            handling = tokens.NextEnum<OldHandling>("old block handling");
 
         long sizeX = Math.Abs(x2.valueInteger - x1.valueInteger) + 1;
         long sizeY = Math.Abs(y2.valueInteger - y1.valueInteger) + 1;
@@ -2436,12 +2426,8 @@ public static class DirectiveImplementations
                 bool includeBlocks = true;
                 bool waterlogged = false;
 
-                if (tokens.NextIs<TokenIdentifierEnum>(false))
-                {
-                    RecognizedEnumValue enumValue = tokens.Next<TokenIdentifierEnum>("rotation").value;
-                    enumValue.RequireType<StructureRotation>(tokens);
-                    rotation = (StructureRotation) enumValue.value;
-                }
+                if (tokens.NextIsEnum<StructureRotation>(false))
+                    rotation = tokens.NextEnum<StructureRotation>("rotation");
 
                 if (tokens.NextIs<TokenIdentifier>(false, false))
                 {
@@ -2888,11 +2874,7 @@ public static class DirectiveImplementations
                         case "EASE":
                         {
                             decimal duration = tokens.Next<TokenNumberLiteral>("ease duration").GetNumber();
-                            RecognizedEnumValue _easeType = tokens.Next<TokenIdentifierEnum>("ease type").value;
-
-                            _easeType.RequireType<Easing>(tokens);
-
-                            var easeType = (Easing) _easeType.value;
+                            var easeType = tokens.NextEnum<Easing>("ease type");
                             builder = builder.WithEasing(easeType, duration, tokens);
                             break;
                         }
@@ -3143,12 +3125,8 @@ public static class DirectiveImplementations
         var cause = DamageCause.all;
         Selector blame = null;
 
-        if (tokens.NextIs<TokenIdentifierEnum>(false))
-        {
-            var idEnum = tokens.Next<TokenIdentifierEnum>("cause");
-            idEnum.value.RequireType<DamageCause>(tokens);
-            cause = (DamageCause) idEnum.value.value;
-        }
+        if (tokens.NextIsEnum<DamageCause>(false))
+            cause = tokens.NextEnum<DamageCause>("cause");
 
         if (tokens.NextIs<TokenSelectorLiteral>(false))
         {
@@ -3474,10 +3452,7 @@ public static class DirectiveImplementations
         }
 
         string command;
-        var effectToken = tokens.Next<TokenIdentifierEnum>("effect");
-        RecognizedEnumValue parsedEffect = effectToken.value;
-        parsedEffect.RequireType<PotionEffect>(tokens);
-        var effect = (PotionEffect) parsedEffect.value;
+        var effect = tokens.NextEnum<PotionEffect>("effect");
 
         if (tokens.NextIs<TokenIntegerLiteral>(true))
         {
@@ -3635,9 +3610,7 @@ public static class DirectiveImplementations
     [UsedImplicitly]
     public static void gamemode(Executor executor, Statement tokens)
     {
-        RecognizedEnumValue gamemode = tokens.Next<TokenIdentifierEnum>("gamemode").value;
-        gamemode.RequireType<GameMode>(tokens);
-        var mode = (GameMode) gamemode.value;
+        var mode = tokens.NextEnum<GameMode>("gamemode");
         string target;
 
         if (tokens.NextIs<TokenSelectorLiteral>(true))

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using mc_compiled.Commands;
 using mc_compiled.Commands.Native;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
@@ -27,7 +28,7 @@ public class TestLootCommand() : CommandLineOption([])
         Definitions.TryInitialize(context.debug);
         var table = new LootTable("test");
         table.pools.Add(new LootPool(6, new LootEntry(LootEntry.EntryType.item, "minecraft:iron_sword")
-                .WithFunction(new LootFunctionEnchant(new EnchantmentEntry("sharpness", 20)))
+                .WithFunction(new LootFunctionEnchant(new EnchantmentEntry(Enchantment.sharpness, 20)))
                 .WithFunction(new LootFunctionDurability(0.5f))
                 .WithFunction(new LootFunctionName("§lSuper Sword"))
                 .WithFunction(new LootFunctionLore(

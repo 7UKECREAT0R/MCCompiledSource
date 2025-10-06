@@ -189,7 +189,7 @@ public sealed class TokenIdentifierEnum : TokenIdentifier, IDocumented
     {
         return "Usually a specific keyword in a subset of possible keywords. This type is entirely context-dependent.";
     }
-    public override string AsString() { return this.value.value.ToString(); }
+    public override string AsString() { return this.value.isNone ? "none?" : this.value.value.ToString(); }
 }
 
 /// <summary>

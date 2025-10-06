@@ -465,10 +465,7 @@ public class StructureBuilder
         block.ThrowIfWhitespace("block", tokens);
         block = Command.Util.RequireNamespace(block);
 
-        RecognizedEnumValue directionEnum = tokens.Next<TokenIdentifierEnum>("facing direction").value;
-        directionEnum.RequireType<Block.FacingDirection>(tokens);
-
-        var direction = (Block.FacingDirection) directionEnum.value;
+        var direction = tokens.NextEnum<Block.FacingDirection>("facing direction");
         bool useCardinalDirection = block.Equals("minecraft:chest") || block.Equals("minecraft:furnace");
         Block baseBlock;
 
@@ -568,9 +565,7 @@ public class StructureBuilder
                     canDestroy.Add(tokens.Next<TokenStringLiteral>("can destroy block"));
                     break;
                 case "ENCHANT":
-                    RecognizedEnumValue parsedEnchantment = tokens.Next<TokenIdentifierEnum>("enchantment").value;
-                    parsedEnchantment.RequireType<Enchantment>(tokens);
-                    var enchantment = (Enchantment) parsedEnchantment.value;
+                    var enchantment = tokens.NextEnum<Enchantment>("enchantment");
                     int level = tokens.Next<TokenIntegerLiteral>("level");
                     if (level < 1)
                         throw new StatementException(tokens, "Enchantment level cannot be less than 1.");
@@ -712,9 +707,7 @@ public class StructureBuilder
         int y = tokens.Next<TokenCoordinateLiteral>("y").GetNumberInt();
         int z = tokens.Next<TokenCoordinateLiteral>("z").GetNumberInt();
 
-        RecognizedEnumValue _commandBlockType = tokens.Next<TokenIdentifierEnum>("command block type").value;
-        _commandBlockType.RequireType<CommandBlockType>(tokens);
-        var commandBlockType = (CommandBlockType) _commandBlockType.value;
+        var commandBlockType = tokens.NextEnum<CommandBlockType>("command block type");
 
         bool alwaysActive = commandBlockType == CommandBlockType.chain;
         if (commandBlockType == CommandBlockType.repeating)
@@ -728,9 +721,7 @@ public class StructureBuilder
                 throw new StatementException(tokens, "Tick delay cannot be less than 0.");
         }
 
-        RecognizedEnumValue _facingDirection = tokens.Next<TokenIdentifierEnum>("facing direction").value;
-        _facingDirection.RequireType<Block.FacingDirection>(tokens);
-        var facingDirection = (Block.FacingDirection) _facingDirection.value;
+        var facingDirection = tokens.NextEnum<Block.FacingDirection>("facing direction");
 
         bool conditional = false;
         if (tokens.NextIs<TokenBooleanLiteral>(false))

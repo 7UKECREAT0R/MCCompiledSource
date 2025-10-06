@@ -92,12 +92,7 @@ internal class SubcommandAnchored : Subcommand
 
     public override void FromTokens(Statement tokens)
     {
-        var @enum = tokens.Next<TokenIdentifierEnum>("anchor position");
-        RecognizedEnumValue recognizedEnum = @enum.value;
-
-        recognizedEnum.RequireType<AnchorPosition>(tokens);
-
-        this.anchor = (AnchorPosition) recognizedEnum.value;
+        this.anchor = tokens.NextEnum<AnchorPosition>("anchor position");
     }
     public override string ToMinecraft() { return $"anchored {this.anchor}"; }
 }
@@ -175,10 +170,7 @@ internal class SubcommandFacing : Subcommand
             this.isEntity = true;
 
             this.entity = tokens.Next<TokenSelectorLiteral>("entity");
-
-            RecognizedEnumValue recognizedEnum = tokens.Next<TokenIdentifierEnum>("anchor").value;
-            recognizedEnum.RequireType<AnchorPosition>(tokens);
-            this.anchor = (AnchorPosition) recognizedEnum.value;
+            this.anchor = tokens.NextEnum<AnchorPosition>("anchor");
             return;
         }
 
@@ -208,15 +200,7 @@ internal class SubcommandIn : Subcommand
     public override string Keyword => "in";
     public override bool TerminatesChain => false;
 
-    public override void FromTokens(Statement tokens)
-    {
-        var @enum = tokens.Next<TokenIdentifierEnum>("dimension");
-        RecognizedEnumValue recognizedEnum = @enum.value;
-
-        recognizedEnum.RequireType<Dimension>(tokens);
-
-        this.dimension = (Dimension) recognizedEnum.value;
-    }
+    public override void FromTokens(Statement tokens) { this.dimension = tokens.NextEnum<Dimension>("dimension"); }
     public override string ToMinecraft() { return $"in {this.dimension}"; }
 }
 

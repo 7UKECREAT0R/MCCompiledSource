@@ -173,12 +173,8 @@ public class ComparisonSet : List<Comparison>
                             Coordinate destZ = tokens.Next<TokenCoordinateLiteral>("destination z");
 
                             var scanMode = BlocksScanMode.all;
-                            if (tokens.NextIs<TokenIdentifierEnum>(false))
-                            {
-                                RecognizedEnumValue recognized = tokens.Next<TokenIdentifierEnum>("scan mode").value;
-                                recognized.RequireType<BlocksScanMode>(tokens);
-                                scanMode = (BlocksScanMode) recognized.value;
-                            }
+                            if (tokens.NextIsEnum<BlocksScanMode>(false))
+                                scanMode = tokens.NextEnum<BlocksScanMode>("scan mode");
 
                             var blockCheck = new ComparisonBlocks(startX, startY, startZ,
                                 endX, endY, endZ, destX, destY, destZ, scanMode, invertNext);

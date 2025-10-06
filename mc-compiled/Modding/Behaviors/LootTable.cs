@@ -45,18 +45,9 @@ public sealed class LootTable(string name, string subdirectory = null) : IAddonF
         };
         return Encoding.UTF8.GetBytes(root.ToString());
     }
-    public string GetExtendedDirectory()
-    {
-        return this.subdirectory;
-    }
-    public string GetOutputFile()
-    {
-        return this.name + ".json";
-    }
-    public OutputLocation GetOutputLocation()
-    {
-        return OutputLocation.b_LOOT_TABLES;
-    }
+    public string GetExtendedDirectory() { return this.subdirectory; }
+    public string GetOutputFile() { return this.name + ".json"; }
+    public OutputLocation GetOutputLocation() { return OutputLocation.b_LOOT_TABLES; }
 }
 
 /// <summary>
@@ -88,10 +79,7 @@ public class LootPool
         else
             this.entries = [..entries];
     }
-    public void AddLoot(LootEntry entry)
-    {
-        this.entries.Add(entry);
-    }
+    public void AddLoot(LootEntry entry) { this.entries.Add(entry); }
 
     public JObject ToJSON()
     {
@@ -226,10 +214,7 @@ public sealed class LootFunctionCount : LootFunction
             }
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "set_count";
-    }
+    public override string GetFunctionName() { return "set_count"; }
 }
 
 /// <summary>
@@ -249,10 +234,7 @@ public sealed class LootFunctionName(string name) : LootFunction
             }
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "set_name";
-    }
+    public override string GetFunctionName() { return "set_name"; }
 }
 
 /// <summary>
@@ -272,10 +254,7 @@ public sealed class LootFunctionLore(params object[] lore) : LootFunction
             }
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "set_lore";
-    }
+    public override string GetFunctionName() { return "set_lore"; }
 }
 
 /// <summary>
@@ -323,10 +302,7 @@ public sealed class LootFunctionData : LootFunction
             }
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "set_data";
-    }
+    public override string GetFunctionName() { return "set_data"; }
 }
 
 /// <summary>
@@ -380,10 +356,7 @@ public sealed class LootFunctionDurability : LootFunction
             }
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "set_damage";
-    }
+    public override string GetFunctionName() { return "set_damage"; }
 }
 
 /// <summary>
@@ -421,10 +394,7 @@ public sealed class LootFunctionBook : LootFunction
             new JObject {["pages"] = new JArray(this.pages)}
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "set_book_contents";
-    }
+    public override string GetFunctionName() { return "set_book_contents"; }
 }
 
 /// <summary>
@@ -432,14 +402,8 @@ public sealed class LootFunctionBook : LootFunction
 /// </summary>
 public sealed class LootFunctionRandomDye : LootFunction
 {
-    public override JObject[] GetFunctionFields()
-    {
-        return [];
-    }
-    public override string GetFunctionName()
-    {
-        return "random_dye";
-    }
+    public override JObject[] GetFunctionFields() { return []; }
+    public override string GetFunctionName() { return "random_dye"; }
 }
 
 /// <summary>
@@ -454,7 +418,7 @@ public sealed class LootFunctionEnchant(params EnchantmentEntry[] enchantments) 
         JArray json = [];
         this.enchantments.ForEach(e => json.Add(new JObject
         {
-            ["id"] = e.id,
+            ["id"] = (short) e.id,
             ["level"] = e.level
         }));
         return
@@ -465,10 +429,7 @@ public sealed class LootFunctionEnchant(params EnchantmentEntry[] enchantments) 
             }
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "specific_enchants";
-    }
+    public override string GetFunctionName() { return "specific_enchants"; }
 }
 
 /// <summary>
@@ -495,10 +456,7 @@ public sealed class LootFunctionSimulateEnchant(int minLevel, int maxLevel, bool
             }
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "enchant_with_levels";
-    }
+    public override string GetFunctionName() { return "enchant_with_levels"; }
 }
 
 /// <summary>
@@ -518,10 +476,7 @@ public sealed class LootFunctionRandomEnchant(bool treasure = false) : LootFunct
             new JObject {["treasure"] = this.treasure}
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "enchant_randomly";
-    }
+    public override string GetFunctionName() { return "enchant_randomly"; }
 }
 
 /// <summary>
@@ -539,8 +494,5 @@ public sealed class LootFunctionRandomEnchantGear(float chance) : LootFunction
             new JObject {["chance"] = this.chance}
         ];
     }
-    public override string GetFunctionName()
-    {
-        return "enchant_random_gear";
-    }
+    public override string GetFunctionName() { return "enchant_random_gear"; }
 }

@@ -10,7 +10,7 @@ public readonly struct BlockPositionDataNBT()
 {
     private readonly Dictionary<int, BasicBlockEntityDataNBT> data = new();
 
-    public void Add(int index, BasicBlockEntityDataNBT toAdd) { this.data.Add(index, toAdd); }
+    public void Add(int index, BasicBlockEntityDataNBT toAdd) { this.data[index] = toAdd; }
 
     private List<NBTNode> GetEntries()
     {

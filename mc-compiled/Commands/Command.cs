@@ -1689,173 +1689,174 @@ public enum PotionEffect
     wither
 }
 
-public enum Enchantment
+[UsableInMCC]
+public enum Enchantment : short
 {
     /// <summary>
     ///     Intended for tools; Removes the mining speed penalty underwater.
     /// </summary>
-    aqua_affinity,
+    aqua_affinity = 8,
     /// <summary>
     ///     Intended for weapons; Deals more damage to arthropod mobs and applies slowness to them.
     /// </summary>
-    bane_of_arthropods,
+    bane_of_arthropods = 11,
     /// <summary>
     ///     Curse; Intended for any armor; Prevents the item from being removed from its armor slot once equipped.
     /// </summary>
-    binding,
+    binding = 27,
     /// <summary>
     ///     Intended for any armor; Reduces the damage and knockback received from explosions.
     /// </summary>
-    blast_protection,
+    blast_protection = 3,
     /// <summary>
     ///     Intended for bows; Makes a bow not consume standard arrows.
     /// </summary>
-    infinity,
+    infinity = 22,
     /// <summary>
     ///     Intended for weapons; Makes a weapon more effective against armor.
     /// </summary>
-    breach,
+    breach = 40,
     /// <summary>
     ///     Intended for tridents; makes it summon lighting if thrown during a thunderstorm.
     /// </summary>
-    channeling,
+    channeling = 32,
     /// <summary>
     ///     Intended for maces; Increases the amount of damage the smash attack does.
     /// </summary>
-    density,
+    density = 39,
     /// <summary>
     ///     Intended for boots; Allows the wearer to move faster underwater.
     /// </summary>
-    depth_strider,
+    depth_strider = 7,
     /// <summary>
     ///     Intended for tools; Makes the tool dig/mine faster.
     /// </summary>
-    efficiency,
+    efficiency = 15,
     /// <summary>
     ///     Intended for boots; Lowers the amount of fall damage taken.
     /// </summary>
-    feather_falling,
+    feather_falling = 2,
     /// <summary>
     ///     Intended for weapons; Sets the target on fire, additionally cooking any drops.
     /// </summary>
-    fire_aspect,
+    fire_aspect = 13,
     /// <summary>
     ///     Intended for armor; Reduces the damage received from fire and lava.
     /// </summary>
-    fire_protection,
+    fire_protection = 1,
     /// <summary>
     ///     Intended for bows; Makes fired arrows set their targets on fire.
     /// </summary>
-    flame,
+    flame = 21,
     /// <summary>
     ///     Intended for pickaxes; Increases the resource yield from mining.
     /// </summary>
-    fortune,
+    fortune = 18,
     /// <summary>
     ///     Intended for boots; Makes water freeze under the wearer's feet as they walk.
     /// </summary>
-    frost_walker,
+    frost_walker = 25,
     /// <summary>
     ///     Intended for tridents; Increases damage while in water/rain.
     /// </summary>
-    impaling,
+    impaling = 29,
     /// <summary>
     ///     Intended for weapons; Increases the knockback of the weapon.
     /// </summary>
-    knockback,
+    knockback = 12,
     /// <summary>
     ///     Intended for weapons; Increases the drop yield when killing a mob.
     /// </summary>
-    looting,
+    looting = 14,
     /// <summary>
     ///     Intended for tridents; Will return to the thrower automatically after landing.
     /// </summary>
-    loyalty,
+    loyalty = 31,
     /// <summary>
     ///     Intended for fishing rods; Increases the amount of treasure fished up.
     /// </summary>
-    luck_of_the_sea,
+    luck_of_the_sea = 23,
     /// <summary>
     ///     Intended for fishing rods; Decreases the amount of time it takes to get a bite when fishing.
     /// </summary>
-    lure,
+    lure = 24,
     /// <summary>
     ///     Repairs the item when the wearer/equipper receives experience.
     /// </summary>
-    mending,
+    mending = 26,
     /// <summary>
     ///     Intended for crossbows; Fires three shots instead of one.
     /// </summary>
-    multishot,
+    multishot = 33,
     /// <summary>
     ///     Intended for crossbows; Allows arrows to hit multiple mobs and be picked up after landing.
     /// </summary>
-    piercing,
+    piercing = 34,
     /// <summary>
     ///     Intended for bows; Increases damage of fired arrows.
     /// </summary>
-    power,
+    power = 19,
     /// <summary>
     ///     Intended for armor; Reduces the damage received from projectiles.
     /// </summary>
-    projectile_protection,
+    projectile_protection = 4,
     /// <summary>
     ///     Intended for armor; Reduces damage received overall.
     /// </summary>
-    protection,
+    protection = 0,
     /// <summary>
     ///     Intended for bows; Increases the amount of knockback dealt by fired arrows.
     /// </summary>
-    punch,
+    punch = 20,
     /// <summary>
     ///     Intended for crossbows; Decreases the amount of time required to charge the crossbow.
     /// </summary>
-    quick_charge,
+    quick_charge = 35,
     /// <summary>
     ///     Intended for helmets; Increases the amount of time the wearer can breathe underwater.
     /// </summary>
-    respiration,
+    respiration = 6,
     /// <summary>
     ///     Intended for tridents; When in the water/rain, changes the throw mechanic to launch the thrower forward instead.
     /// </summary>
-    riptide,
+    riptide = 30,
     /// <summary>
     ///     Intended for weapons; Increases damage overall.
     /// </summary>
-    sharpness,
+    sharpness = 9,
     /// <summary>
     ///     Intended for tools; Certain blocks drop themselves rather than their typical drops (e.g., coal ore will literally
     ///     drop coal ore).
     /// </summary>
-    silk_touch,
+    silk_touch = 16,
     /// <summary>
     ///     Intended for weapons; Increases damage against undead mobs.
     /// </summary>
-    smite,
+    smite = 10,
     /// <summary>
     ///     Intended for boots; Increases movement speed while walking on soul sand/soil.
     /// </summary>
-    soul_speed,
+    soul_speed = 36,
     /// <summary>
     ///     Intended for leggings; Increases movement speed while sneaking.
     /// </summary>
-    swift_sneak,
+    swift_sneak = 37,
     /// <summary>
     ///     Intended for armor; Attacks entities back that attack the wearer.
     /// </summary>
-    thorns,
+    thorns = 5,
     /// <summary>
     ///     Increases the item's durability.
     /// </summary>
-    unbreaking,
+    unbreaking = 17,
     /// <summary>
     ///     Curse; Makes the item completely disappear if a player dies with it in their inventory.
     /// </summary>
-    vanishing,
+    vanishing = 28,
     /// <summary>
     ///     Intended for maces; Launches the player upwards after using the smash attack.
     /// </summary>
-    wind_burst
+    wind_burst = 38
 }
 
 [UsableInMCC]

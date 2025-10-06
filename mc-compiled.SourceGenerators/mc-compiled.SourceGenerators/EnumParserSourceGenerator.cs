@@ -79,6 +79,7 @@ public class EnumParserSourceGenerator : ISourceGenerator
                 // base entry
                 if (memberName.StartsWith("_"))
                     memberName = memberName.Substring(1);
+
                 sourceBuilder.Append($"\t\t\tCommandEnumParser.Put(\"{memberName}\", ").Append(objectCreation)
                     .AppendLine(");");
 
