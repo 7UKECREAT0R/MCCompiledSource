@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using mc_compiled.Commands;
 
 namespace mc_compiled.NBT.Structures.BlockPositionData;
@@ -84,6 +85,7 @@ public static class CommonBlockEntityIdentifiers
     public const string Dropper = "Dropper";
     public const string Furnace = "Furnace";
     public const string Hopper = "Hopper";
+    public const string ShulkerBox = "ShulkerBox";
     public const string Sign = "Sign";
 
     /// <summary>
@@ -94,6 +96,8 @@ public static class CommonBlockEntityIdentifiers
     public static string ConvertBlockToBlockEntity(string blockIdentifier)
     {
         blockIdentifier = Command.Util.RequireNamespace(blockIdentifier).ToLower();
+        if (blockIdentifier.EndsWith("_shulker_box", StringComparison.OrdinalIgnoreCase))
+            return ShulkerBox;
         return blockIdentifier switch
         {
             "minecraft:chest" => Chest,
