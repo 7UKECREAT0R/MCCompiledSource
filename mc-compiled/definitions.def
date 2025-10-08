@@ -6,7 +6,7 @@ Constants are case insensitive snippets which aim to simplify and standardize Mi
 -------------------------------------------------------------------------------
 
 This version reference is used in the $_minecraft preprocessor variable.
-VERSION 1.21.80
+VERSION 1.21.111
 
 -------------------------------------------------------------------------------
 
@@ -44,8 +44,31 @@ CATEGORY COLOR AND CHATCOLOR AND CHAT COLOR
 	MINECOIN IS §g
 	MINECOINGOLD IS §g
 	MINECOIN GOLD IS §g
-	MINECOINYELLOW IS §g
-	MINECOIN YELLOW IS §g
+	QUARTZ IS §h
+	MATERIAL QUARTZ IS §h
+	IRON IS §i
+	MATERIAL IRON IS §i
+	NETHERITE IS §j
+	MATERIAL NETHERITE IS §j
+	REDSTONE IS §m
+	MATERIAL REDSTONE IS §m
+	COPPER §n
+	MATERIAL COPPER §n
+	DARK ORANGE §n
+	MATERIAL GOLD IS §p
+	EMERALD IS §q
+	MATERIAL EMERALD IS §q
+	DIAMOND IS §s
+	MATERIAL DIAMOND IS §s
+	LAPIS IS §t
+	MATERIAL LAPIS IS §t
+	PALE BLUE IS §t
+	AMETHYST IS §u
+	MATERIAL AMETHYST IS §u
+	PURPLE IS §u
+	RESIN IS §v
+	MATERIAL RESIN IS §v
+	ORANGE IS §v
 	OBF IS §k
 	OBFUSCATED IS §k
 	BOLD IS §l
