@@ -17,6 +17,7 @@ using mc_compiled.MCC.Functions;
 using mc_compiled.MCC.Functions.Types;
 using mc_compiled.Modding;
 using mc_compiled.Modding.Behaviors.Dialogue;
+using mc_compiled.Modding.Behaviors.Loot;
 using mc_compiled.Modding.Resources;
 using mc_compiled.Modding.Resources.Localization;
 using mc_compiled.NBT;
@@ -24,6 +25,7 @@ using mc_compiled.NBT.Structures;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
 using Range = mc_compiled.Commands.Range;
+using Selector = mc_compiled.Commands.Selectors.Selector;
 
 namespace mc_compiled.MCC.Compiler;
 
@@ -1366,7 +1368,7 @@ public static class DirectiveImplementations
     public static void globalprint(Executor executor, Statement tokens)
     {
         string str = tokens.Next<TokenStringLiteral>("format string");
-        List<JSONRawTerm> terms = executor.FString(str, "print_a", tokens, out bool advanced);
+        List<RawTextEntry> terms = executor.FString(str, "print_a", tokens, out bool advanced);
 
         string[] commands = advanced
             ? Command.Execute().As(Selector.ALL_PLAYERS).AtSelf().RunOver(Executor.ResolveRawText(terms, "tellraw @s "))
@@ -1387,7 +1389,7 @@ public static class DirectiveImplementations
             throw new StatementException(tokens, $"The selector {player} may target non-players.");
 
         string str = tokens.Next<TokenStringLiteral>("format string");
-        List<JSONRawTerm> terms = executor.FString(str, "print_" + player.core, tokens, out bool _);
+        List<RawTextEntry> terms = executor.FString(str, "print_" + player.core, tokens, out bool _);
         string[] commands = Executor.ResolveRawText(terms, $"tellraw {player} ");
 
         CommandFile file = executor.CurrentFile;
@@ -1775,13 +1777,13 @@ public static class DirectiveImplementations
 
         // construct assertion failed message based on all values in this comparison set
         const string red = "§c";
-        file.Add(Command.Tellraw(new RawTextJsonBuilder().AddTerm(new JSONText(
+        file.Add(Command.Tellraw(new RawText().AddTerm(new Text(
             $"{red}Assertion failed! {set.GetDescription()} ({tokens.Source.Trim()})")).BuildString()));
         foreach (ScoreboardValue value in values)
             file.Add(Command.Tellraw("@s",
-                new RawTextJsonBuilder().AddTerms(
-                        new JSONText($"{red}    - {value.Name} was "),
-                        new JSONScore(value)
+                new RawText().AddTerms(
+                        new Text($"{red}    - {value.Name} was "),
+                        new Score(value)
                     )
                     .BuildString()));
         file.Add(GenerateHaltCommand(executor));
@@ -1793,16 +1795,16 @@ public static class DirectiveImplementations
     public static void throwError(Executor executor, Statement tokens)
     {
         string text = tokens.Next<TokenStringLiteral>("throw message");
-        List<JSONRawTerm> json = executor.FString(text, "throw", tokens, out bool _);
-        json.Insert(0, new JSONText("§c"));
+        List<RawTextEntry> json = executor.FString(text, "throw", tokens, out bool _);
+        json.Insert(0, new Text("§c"));
 
         string[] fs = Executor.ResolveRawText(json, "tellraw @s ");
         string[] commands = new string[fs.Length + 2];
 
         commands[0] = Command.Tellraw("@s",
-            new RawTextJsonBuilder().AddTerm(new JSONText($"Error thrown at line {tokens.Lines[0]}:")).BuildString());
+            new RawText().AddTerm(new Text($"Error thrown at line {tokens.Lines[0]}:")).BuildString());
         commands[1] = Command.Tellraw("@s",
-            new RawTextJsonBuilder().AddTerm(new JSONText($"\t- {tokens.Source.Trim()}")).BuildString());
+            new RawText().AddTerm(new Text($"\t- {tokens.Source.Trim()}")).BuildString());
         for (int i = 0; i < fs.Length; i++)
             commands[i + 2] = fs[i];
 
@@ -1818,23 +1820,25 @@ public static class DirectiveImplementations
 
         string itemName = tokens.Next<TokenStringLiteral>("item");
         itemName.ThrowIfWhitespace("item", tokens);
-        string itemNameComp = itemName.ToUpper();
-        bool needsStructure = false;
+        string itemNameComp = Command.Util.RequireNamespace(itemName);
+
+        string lastLootTablePropertyName = "";
+        string lastJSONComponentPropertyName = "";
+        bool needsLootTable = false;
+        bool needsJSONComponents = false;
 
         int count = 1;
         int data = 0;
-        bool keep = false;
-        bool lockInventory = false;
-        bool lockSlot = false;
+        bool keepOnDeath = false;
+        bool lockInInventory = false;
+        bool lockInSlot = false;
         var loreLines = new List<string>();
         var canPlaceOn = new List<string>();
         var canDestroy = new List<string>();
-        var enchants = new List<Tuple<Enchantment, int>>();
+        var enchants = new List<EnchantmentEntry>();
         string displayName = null;
-
         ItemTagBookData? book = null;
         List<string> bookPages = null;
-        ItemTagCustomColor? color = null;
 
         if (tokens.NextIs<TokenIntegerLiteral>(false))
         {
@@ -1853,133 +1857,110 @@ public static class DirectiveImplementations
             switch (builderField)
             {
                 case "KEEP":
-                    keep = true;
+                    keepOnDeath = true;
+                    NeedsJSONComponent("keep");
                     break;
                 case "LOCKINVENTORY":
-                    lockInventory = true;
+                    lockInInventory = true;
+                    NeedsJSONComponent("lockinventory");
                     break;
                 case "LOCKSLOT":
-                    lockSlot = true;
+                    lockInSlot = true;
+                    NeedsJSONComponent("lockslot");
                     break;
                 case "CANPLACEON":
                     canPlaceOn.Add(tokens.Next<TokenStringLiteral>("can place on block"));
+                    NeedsJSONComponent("canplaceon");
                     break;
                 case "CANDESTROY":
                     canDestroy.Add(tokens.Next<TokenStringLiteral>("can destroy block"));
+                    NeedsJSONComponent("candestroy");
                     break;
                 case "ENCHANT":
                     var enchantment = tokens.NextEnum<Enchantment>("enchantment");
                     int level = tokens.Next<TokenIntegerLiteral>("level");
                     if (level < 1)
                         throw new StatementException(tokens, "Enchantment level cannot be less than 1.");
-                    enchants.Add(new Tuple<Enchantment, int>(enchantment, level));
-                    needsStructure = true;
+                    enchants.Add(new EnchantmentEntry(enchantment, level));
+                    NeedsLootTable("enchant");
                     break;
                 case "NAME":
                     displayName = tokens.Next<TokenStringLiteral>("display name");
-                    needsStructure = true;
+                    NeedsLootTable("name");
                     break;
                 case "LORE":
                     loreLines.Add(tokens.Next<TokenStringLiteral>("lore line"));
-                    needsStructure = true;
+                    NeedsLootTable("lore");
                     break;
                 case "TITLE":
-                    if (!itemNameComp.Equals("WRITTEN_BOOK"))
+                    if (!itemNameComp.Equals("minecraft:written_book", StringComparison.OrdinalIgnoreCase))
                         throw new StatementException(tokens,
-                            "Property 'title' can only be used on item 'written_book'.");
-                    if (book == null)
-                        book = new ItemTagBookData();
+                            "Property 'title' can only be used on the item 'minecraft:written_book'.");
+                    book ??= new ItemTagBookData();
                     ItemTagBookData bookData0 = book.Value;
                     bookData0.title = tokens.Next<TokenStringLiteral>("title");
                     book = bookData0;
-                    needsStructure = true;
+                    NeedsLootTable("title");
                     break;
                 case "AUTHOR":
-                    if (!itemNameComp.Equals("WRITTEN_BOOK"))
+                    if (!itemNameComp.Equals("minecraft:written_book", StringComparison.OrdinalIgnoreCase))
                         throw new StatementException(tokens,
-                            "Property 'author' can only be used on item 'written_book'.");
-                    if (book == null)
-                        book = new ItemTagBookData();
+                            "Property 'author' can only be used on the item 'minecraft:written_book'.");
+                    book ??= new ItemTagBookData();
                     ItemTagBookData bookData1 = book.Value;
                     bookData1.author = tokens.Next<TokenStringLiteral>("author");
                     book = bookData1;
-                    needsStructure = true;
+                    NeedsLootTable("author");
                     break;
                 case "PAGE":
-                    if (!itemNameComp.Equals("WRITTEN_BOOK"))
+                    if (!itemNameComp.Equals("minecraft:written_book", StringComparison.OrdinalIgnoreCase))
                         throw new StatementException(tokens,
-                            "Property 'page' can only be used on item 'written_book'.");
-                    if (book == null)
-                        book = new ItemTagBookData();
-                    if (bookPages == null)
-                        bookPages = [];
+                            "Property 'page' can only be used on the item 'minecraft:written_book'.");
+                    book ??= new ItemTagBookData();
+                    bookPages ??= [];
                     bookPages.Add(tokens.Next<TokenStringLiteral>("page contents").text.Replace("\\n", "\n"));
-                    needsStructure = true;
-                    break;
-                case "DYE" when itemNameComp.StartsWith("LEATHER_"):
-                    if (!itemNameComp.StartsWith("LEATHER_"))
-                        throw new StatementException(tokens, "Property 'dye' can only be used on leather items.");
-                    color = new ItemTagCustomColor
-                    {
-                        r = (byte) tokens.Next<TokenIntegerLiteral>("red"),
-                        g = (byte) tokens.Next<TokenIntegerLiteral>("green"),
-                        b = (byte) tokens.Next<TokenIntegerLiteral>("blue")
-                    };
-                    needsStructure = true;
+                    NeedsLootTable("page");
                     break;
                 default:
-                    throw new StatementException(tokens, $"Invalid property for item: '{builderIdentifier.word}'");
+                    throw new StatementException(tokens, $"Unknown property for item: '{builderIdentifier.word}'");
             }
         }
 
-        // create a structure file since this item is too complex
-        if (needsStructure)
+        // create a loot table because this item uses properties which are incompatible with the command
+        if (needsLootTable)
         {
+            string lootTableName =
+                Executor.GetNextGeneratedName($"give_{Command.Util.StripNamespace(itemName).ToLower()}", false, false);
+            var table = new LootTable(lootTableName, Executor.MCC_GENERATED_FOLDER);
+            (LootPool _, LootEntry item) = LootPool.CreateWithSingleEntry(itemName);
+
             if (bookPages != null)
             {
                 ItemTagBookData bookData = book.Value;
                 bookData.pages = bookPages.ToArray();
-                book = bookData;
+                item.WithFunction(LootFunctionBook.FromNBT(bookData));
             }
 
-            var item = new ItemStack
-            {
-                id = itemName,
-                count = count,
-                damage = data,
-                keep = keep,
-                lockMode = lockInventory ? ItemLockMode.LOCK_IN_INVENTORY :
-                    lockSlot ? ItemLockMode.LOCK_IN_SLOT : ItemLockMode.NONE,
-                displayName = displayName,
-                lore = loreLines.ToArray(),
-                enchantments = enchants.Select(e => new EnchantmentEntry(e.Item1, e.Item2)).ToArray(),
-                canPlaceOn = canPlaceOn.ToArray(),
-                canDestroy = canDestroy.ToArray(),
-                bookData = book,
-                customColor = color
-            };
+            if (enchants.Count > 0)
+                item.WithFunction(new LootFunctionEnchant(enchants));
+            if (!string.IsNullOrEmpty(displayName))
+                item.WithFunction(new LootFunctionName(displayName));
+            if (loreLines.Count > 0)
+                item.WithFunction(new LootFunctionLore(loreLines));
 
-            string fileName = Executor.GetNextGeneratedName(item.DescriptiveFileName, false, true);
-            var file = new StructureFile(fileName, Executor.MCC_GENERATED_FOLDER, StructureNBT.SingleItem(item));
-            executor.AddExtraFile(file);
-
-            string cmd = Command.StructureLoad(file.CommandReference, Coordinate.here, Coordinate.here, Coordinate.here,
-                StructureRotation._0_degrees, StructureMirror.none, true, false);
-
-            cmd = player.NonSelf ? Command.Execute().As(player).AtSelf().Run(cmd) : Command.Execute().AtSelf().Run(cmd);
-
-            executor.AddCommand(cmd);
+            executor.AddExtraFile(table);
+            executor.AddCommand(Command.LootTableGive(player.ToString(), table));
             return;
         }
 
         var json = new List<string>();
 
-        if (keep)
+        if (keepOnDeath)
             json.Add("\"keep_on_death\":{}");
 
-        if (lockSlot)
+        if (lockInSlot)
             json.Add("\"item_lock\":{\"mode\":\"lock_in_slot\"}");
-        else if (lockInventory)
+        else if (lockInInventory)
             json.Add("\"item_lock\":{\"mode\":\"lock_in_inventory\"}");
 
         if (canPlaceOn.Count > 0)
@@ -1999,6 +1980,28 @@ public static class DirectiveImplementations
             command += $" {{{string.Join(",", json)}}}";
 
         executor.AddCommand(command);
+
+        return;
+
+        void NeedsJSONComponent(string propertyName)
+        {
+            if (needsLootTable)
+                throw new StatementException(tokens,
+                    $"Can't use property '{propertyName}' as it conflicts with previously defined '{lastLootTablePropertyName}'.");
+
+            needsJSONComponents = true;
+            lastJSONComponentPropertyName = propertyName;
+        }
+
+        void NeedsLootTable(string propertyName)
+        {
+            if (needsJSONComponents)
+                throw new StatementException(tokens,
+                    $"Can't use property '{propertyName}' as it conflicts with previously defined '{lastJSONComponentPropertyName}'.");
+
+            needsLootTable = true;
+            lastLootTablePropertyName = propertyName;
+        }
     }
     [UsedImplicitly]
     public static void tp(Executor executor, Statement tokens)
@@ -2635,7 +2638,7 @@ public static class DirectiveImplementations
                 case "SUBTITLE":
                 {
                     string str = tokens.Next<TokenStringLiteral>("subtitle");
-                    List<JSONRawTerm> terms = executor.FString(str, "subtitle_a", tokens, out bool advanced);
+                    List<RawTextEntry> terms = executor.FString(str, "subtitle_a", tokens, out bool advanced);
 
                     string[] commands = advanced
                         ? Command.Execute().As(Selector.ALL_PLAYERS).AtSelf()
@@ -2657,7 +2660,7 @@ public static class DirectiveImplementations
         if (tokens.NextIs<TokenStringLiteral>(true))
         {
             string str = tokens.Next<TokenStringLiteral>("title");
-            List<JSONRawTerm> terms = executor.FString(str, "title_a", tokens, out bool advanced);
+            List<RawTextEntry> terms = executor.FString(str, "title_a", tokens, out bool advanced);
 
             string[] commands = advanced
                 ? Command.Execute().As(Selector.ALL_PLAYERS).AtSelf()
@@ -2695,7 +2698,7 @@ public static class DirectiveImplementations
                 case "SUBTITLE":
                 {
                     string str = tokens.Next<TokenStringLiteral>("subtitle");
-                    List<JSONRawTerm> terms = executor.FString(str, "subtitle_" + player.core, tokens, out bool _);
+                    List<RawTextEntry> terms = executor.FString(str, "subtitle_" + player.core, tokens, out bool _);
 
                     string[] commands = Executor.ResolveRawText(terms, $"titleraw {player} subtitle ");
 
@@ -2714,7 +2717,7 @@ public static class DirectiveImplementations
         if (tokens.NextIs<TokenStringLiteral>(true))
         {
             string str = tokens.Next<TokenStringLiteral>("title");
-            List<JSONRawTerm> terms = executor.FString(str, "title_" + player.core, tokens, out bool _);
+            List<RawTextEntry> terms = executor.FString(str, "title_" + player.core, tokens, out bool _);
             string[] commands = Executor.ResolveRawText(terms, $"titleraw {player} title ");
             CommandFile file = executor.CurrentFile;
             executor.AddCommands(commands, "title",
@@ -2725,7 +2728,7 @@ public static class DirectiveImplementations
     public static void globalactionbar(Executor executor, Statement tokens)
     {
         string str = tokens.Next<TokenStringLiteral>("actionbar");
-        List<JSONRawTerm> terms = executor.FString(str, "actionbar_a", tokens, out bool advanced);
+        List<RawTextEntry> terms = executor.FString(str, "actionbar_a", tokens, out bool advanced);
 
         string[] commands = advanced
             ? Command.Execute().As(Selector.ALL_PLAYERS).AtSelf()
@@ -2747,7 +2750,7 @@ public static class DirectiveImplementations
             throw new StatementException(tokens, $"The selector {player} may target non-players.");
 
         string str = tokens.Next<TokenStringLiteral>("actionbar");
-        List<JSONRawTerm> terms = executor.FString(str, "actionbar_" + player.core, tokens, out bool _);
+        List<RawTextEntry> terms = executor.FString(str, "actionbar_" + player.core, tokens, out bool _);
 
         string[] commands = Executor.ResolveRawText(terms, $"titleraw {player} actionbar ");
 

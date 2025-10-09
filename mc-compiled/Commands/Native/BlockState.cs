@@ -185,6 +185,22 @@ public readonly struct BlockState(
         }
     }
 
+    public static BlockState WithUnknownValueType(BlockPropertyDefinition definition, object value)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (value is bool boolValue)
+            return new BlockState(definition, boolValue);
+        if (value is int intValue)
+            return new BlockState(definition, intValue);
+        if (value is string stringValue)
+            return new BlockState(definition, stringValue);
+        throw new ArgumentException(
+            $"Value {value} is not a valid object that can be held in a block-state. Its type is {value.GetType().GetFriendlyTokenName()}",
+            nameof(value));
+    }
+
     /// <summary>
     ///     Returns if this block state entry is valid based on if a <see cref="value" /> is present and its type matches the
     ///     <see cref="definition" />.

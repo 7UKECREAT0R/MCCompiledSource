@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
 using mc_compiled.Commands;
-using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Compiler.TypeSystem;
 using mc_compiled.MCC.Functions;
@@ -16,6 +15,7 @@ using mc_compiled.Modding.Manifest.Modules;
 using mc_compiled.Modding.Resources.Localization;
 using Newtonsoft.Json.Linq;
 using Range = mc_compiled.Commands.Range;
+using Selector = mc_compiled.Commands.Selectors.Selector;
 
 namespace mc_compiled.MCC.Compiler;
 
@@ -430,7 +430,7 @@ public class Emission
                 {
                     commandFile.AddTop("");
                     commandFile.AddTop(Command.Tellraw(Selector.ALL_PLAYERS.ToString(),
-                        new RawTextJsonBuilder().AddTerm(new JSONText($"[TRACE] > {commandFile.CommandReference}"))
+                        new RawText().AddTerm(new Text($"[TRACE] > {commandFile.CommandReference}"))
                             .Build()));
                 }
             }

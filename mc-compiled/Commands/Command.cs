@@ -347,17 +347,21 @@ public static class Command
     public static string Locate(StructureType type) { return $"locate {type}"; }
     public static string Locate(string structureType) { return $"locate {structureType}"; }
 
-    public static string LootTable(Coordinate x, Coordinate y, Coordinate z, LootTable table)
+    public static string LootTableSpawn(Coordinate x, Coordinate y, Coordinate z, LootTable table)
     {
         return $"loot spawn {x} {y} {z} loot {table.CommandPath}";
     }
-    public static string LootTable(Coordinate x, Coordinate y, Coordinate z, string table)
+    public static string LootTableSpawn(Coordinate x, Coordinate y, Coordinate z, string table)
     {
         return $"loot spawn {x} {y} {z} loot {table}";
     }
-    public static string LootEntity(Coordinate x, Coordinate y, Coordinate z, string entity)
+    public static string LootSpawnKillEntity(Coordinate x, Coordinate y, Coordinate z, string entity)
     {
         return $"loot spawn {x} {y} {z} kill {entity}";
+    }
+    public static string LootTableGive(string target, LootTable table)
+    {
+        return $"loot give {target} loot {table.CommandPath}";
     }
 
     public static string Me(string text) { return $"me {text}"; }

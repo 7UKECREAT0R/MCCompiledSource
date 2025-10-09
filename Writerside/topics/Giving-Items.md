@@ -97,10 +97,3 @@ Add Page
 : Adds a page with the given text to the book. This attribute can be repeated to add more pages to the book. Doesn’t
 support [format-strings](Text-Commands.md#format-strings) or [localization](Localization.md).
 - `page: <text>`
-
-### Leather-Specific Attributes
-If the item is a leather item (armor, horse armor, etc.), you can use the `dye` attribute:
-
-Dye Leather
-: Sets the color of the leather item to the given red, green, and blue color. These numbers range from 0 to 255.
-- `dye: 255 0 120`

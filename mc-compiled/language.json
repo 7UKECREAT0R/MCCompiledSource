@@ -1385,18 +1385,9 @@
             },
             "book_add_page": {
               "keyword": "page: ",
-              "description": "If the item is a written book, adds a page of text to the book.",
+              "description": "If the item is a written book, adds a page of text to the book. If localization is enabled, the contents of the page will be localized.",
               "patterns": [
                 "page content:string"
-              ]
-            },
-            "leather_dye": {
-              "keyword": "dye: ",
-              "description": "If the item is leather armor, sets the dye color of the armor.",
-              "patterns": [
-                "red:int",
-                "green:int",
-                "blue:int"
               ]
             }
           }

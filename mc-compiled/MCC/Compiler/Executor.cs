@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using mc_compiled.Commands;
 using mc_compiled.Commands.Execute;
-using mc_compiled.Commands.Selectors;
 using mc_compiled.Json;
 using mc_compiled.MCC.Compiler.Async;
 using mc_compiled.MCC.Compiler.TypeSystem;
@@ -21,6 +20,7 @@ using mc_compiled.Modding.Resources;
 using mc_compiled.Modding.Resources.Localization;
 using mc_compiled.NBT.Structures;
 using Newtonsoft.Json.Linq;
+using Selector = mc_compiled.Json.Selector;
 
 namespace mc_compiled.MCC.Compiler;
 
@@ -285,18 +285,18 @@ public partial class Executor
     ///     Sets the selector given by the reference parameter to @s.
     /// </summary>
     /// <param name="selector"></param>
-    public void PushAlignSelector(ref Selector selector)
+    public void PushAlignSelector(ref Commands.Selectors.Selector selector)
     {
         if (!selector.NonSelf)
             return;
 
         ExecuteBuilder builder = new ExecuteBuilder()
             .WithSubcommand(new SubcommandAs(selector))
-            .WithSubcommand(new SubcommandAt(Selector.SELF))
+            .WithSubcommand(new SubcommandAt(Commands.Selectors.Selector.SELF))
             .WithSubcommand(new SubcommandRun());
 
         AppendCommandPrepend(builder.Build(out _));
-        selector = Selector.SELF;
+        selector = Commands.Selectors.Selector.SELF;
     }
 
     /// <summary>
@@ -307,10 +307,10 @@ public partial class Executor
     /// <param name="forExceptions">The statement to use for exceptions.</param>
     /// <param name="advanced">If this FString is 'advanced' as in, requires per-user execution.</param>
     /// <returns></returns>
-    public List<JSONRawTerm> FString(string fstring, string langIdentifier, Statement forExceptions, out bool advanced)
+    public List<RawTextEntry> FString(string fstring, string langIdentifier, Statement forExceptions, out bool advanced)
     {
         advanced = false;
-        var terms = new List<JSONRawTerm>();
+        var terms = new List<RawTextEntry>();
         var buffer = new StringBuilder();
 
         int scoreIndex = 0;
@@ -366,8 +366,8 @@ public partial class Executor
                         case TokenSelectorLiteral selectorLiteral:
                         {
                             advanced = true;
-                            Selector selector = selectorLiteral.selector;
-                            terms.Add(new JSONSelector(selector.ToString()));
+                            Commands.Selectors.Selector selector = selectorLiteral.selector;
+                            terms.Add(new Selector(selector.ToString()));
                             continue;
                         }
                         case TokenIdentifierValue identifierValue:
@@ -381,7 +381,7 @@ public partial class Executor
                             int indexCopy = scoreIndex;
 
                             // type implementation called here
-                            (string[] rtCommands, JSONRawTerm[] rtTerms) = value.ToRawText(ref indexCopy);
+                            (string[] rtCommands, RawTextEntry[] rtTerms) = value.ToRawText(ref indexCopy);
 
                             AddCommandsClean(rtCommands, "string" + value.InternalName,
                                 $"Prepares the variable '{value.Name}' to be displayed in a rawtext. Invoked at {file.CommandReference} line {this.NextLineNumber}");
@@ -399,7 +399,7 @@ public partial class Executor
                     string stringRepresentation = ResolveStringV2(token.ToString());
                     if (!string.IsNullOrEmpty(stringRepresentation))
                         terms.AddRange(
-                            new JSONText(stringRepresentation).Localize(this, langIdentifier, forExceptions));
+                            new Text(stringRepresentation).Localize(this, langIdentifier, forExceptions));
                 }
 
                 continue;
@@ -419,7 +419,7 @@ public partial class Executor
             if (string.IsNullOrEmpty(bufferContents))
                 return;
 
-            terms.AddRange(new JSONText(bufferContents).Localize(this, langIdentifier, forExceptions));
+            terms.AddRange(new Text(bufferContents).Localize(this, langIdentifier, forExceptions));
             buffer.Clear();
         }
 
@@ -457,7 +457,7 @@ public partial class Executor
         }
     }
     /// <summary>
-    ///     Append these terms to the end of this command. Will resolve <see cref="JSONVariant" />s and construct the command
+    ///     Append these terms to the end of this command. Will resolve <see cref="Variant" />s and construct the command
     ///     combinations.
     /// </summary>
     /// <param name="terms">The terms constructed by FString.</param>
@@ -467,22 +467,22 @@ public partial class Executor
     /// <param name="commands">Used for recursion, set to null.</param>
     /// <param name="copy">The existing terms to copy from.</param>
     /// <returns></returns>
-    public static string[] ResolveRawText(List<JSONRawTerm> terms,
+    public static string[] ResolveRawText(List<RawTextEntry> terms,
         string command,
         bool root = true,
         ExecuteBuilder builder = null,
         List<string> commands = null,
-        RawTextJsonBuilder copy = null)
+        RawText copy = null)
     {
-        var jb = new RawTextJsonBuilder(copy);
+        var jb = new RawText(copy);
 
         builder ??= Command.Execute();
         commands ??= [];
 
         for (int i = 0; i < terms.Count; i++)
         {
-            JSONRawTerm term = terms[i];
-            if (term is JSONVariant variant)
+            RawTextEntry textEntry = terms[i];
+            if (textEntry is Variant variant)
             {
                 // calculate all variants
                 foreach (ConditionalTerm possibleVariant in variant.terms)
@@ -494,7 +494,7 @@ public partial class Executor
                         subcommand = new SubcommandIf(possibleVariant.condition);
 
                     ExecuteBuilder branch = builder.Clone().WithSubcommand(subcommand);
-                    List<JSONRawTerm> rest = terms.Skip(i + 1).ToList();
+                    List<RawTextEntry> rest = terms.Skip(i + 1).ToList();
                     rest.InsertRange(0, possibleVariant.terms);
                     ResolveRawText(rest, command, false, branch, commands, jb);
                 }
@@ -502,10 +502,10 @@ public partial class Executor
                 break;
             }
 
-            jb.AddTerm(term);
+            jb.AddTerm(textEntry);
         }
 
-        bool hasVariant = terms.Any(t => t is JSONVariant);
+        bool hasVariant = terms.Any(t => t is Variant);
 
         switch (root)
         {
@@ -2060,7 +2060,7 @@ public partial class Executor
             tests.Add($"# Test {testId}: {func.internalName}, located at line {creationStatement.Lines[0]}");
             tests.Add(Command.Function(file));
             tests.Add(Command.Tellraw("@s",
-                new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} ({func.internalName}) passed."))
+                new RawText().AddTerms(new Text($"§aTest {testId} ({func.internalName}) passed."))
                     .BuildString()));
             tests.Add("");
         }
@@ -2120,7 +2120,7 @@ public partial class Executor
             tests.Add($"# Test {testId}: {func.internalName}, located at line {creationStatement.Lines[0]}");
             tests.Add(Command.Function(file));
             tests.Add(Command.Tellraw("@s",
-                new RawTextJsonBuilder().AddTerms(new JSONText($"§aTest {testId} ({func.internalName}) passed."))
+                new RawText().AddTerms(new Text($"§aTest {testId} ({func.internalName}) passed."))
                     .BuildString()));
             tests.Add("");
         }

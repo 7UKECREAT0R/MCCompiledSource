@@ -146,7 +146,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
     {
         if (this.currentToken >= this.tokens.Length)
             throw new FeederException(this,
-                $"expected parameter '{parameterHint}' at end of line, type {typeof(T).GetFriendlyTokenNameOrDefault()}");
+                $"expected parameter '{parameterHint}' at end of line, type {typeof(T).GetFriendlyTokenName()}");
 
         Token token = this.tokens[this.currentToken++];
 
@@ -329,7 +329,7 @@ public class TokenFeeder(Token[] tokens) : ICloneable
 
         if (enforceType)
             throw new FeederException(this,
-                $"parameter here must be a member of the '{typeof(T).GetFriendlyTokenNameOrDefault()}' enumeration, but got '{token.FriendlyTypeName}'.");
+                $"parameter here must be a member of the '{typeof(T).GetFriendlyTokenName()}' enumeration, but got '{token.FriendlyTypeName}'.");
         return false;
     }
     /// <summary>
