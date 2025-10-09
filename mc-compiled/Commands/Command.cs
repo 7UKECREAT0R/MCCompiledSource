@@ -5,8 +5,8 @@ using mc_compiled.Commands.Execute;
 using mc_compiled.Commands.Native;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
-using mc_compiled.Modding.Behaviors;
 using mc_compiled.Modding.Behaviors.Dialogue;
+using mc_compiled.Modding.Behaviors.Loot;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

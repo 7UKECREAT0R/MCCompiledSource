@@ -2,6 +2,7 @@
 using System.Linq;
 using mc_compiled.Commands;
 using mc_compiled.MCC.CustomEntities;
+using mc_compiled.Modding.Behaviors.Loot;
 using Newtonsoft.Json.Linq;
 
 namespace mc_compiled.Modding.Behaviors.Lists;
@@ -12,10 +13,7 @@ public class ComponentAddRider : EntityComponent
     public string entityType;
     public string spawnEvent;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:addrider";
-    }
+    public override string GetIdentifier() { return "minecraft:addrider"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -35,10 +33,7 @@ public class ComponentAdmireItem : EntityComponent
     public int cooldownAfterBeingAttacked; // seconds
     public int duration;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:admire_item";
-    }
+    public override string GetIdentifier() { return "minecraft:admire_item"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -56,10 +51,7 @@ public class ComponentAgeable : EntityComponent
     public string[] feedItems;
     public EntityEventHandler growUpEvent;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:ageable";
-    }
+    public override string GetIdentifier() { return "minecraft:ageable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -90,10 +82,7 @@ public class ComponentAngry : EntityComponent
     public int broadcastRange;
     public FilterCollection ignoreEntities;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:angry";
-    }
+    public override string GetIdentifier() { return "minecraft:angry"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -123,10 +112,7 @@ public class ComponentAnnotationBreakDoor : EntityComponent
     public float breakTime;
     public DifficultyMode difficulty;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:annotation.break_door";
-    }
+    public override string GetIdentifier() { return "minecraft:annotation.break_door"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -139,14 +125,8 @@ public class ComponentAnnotationBreakDoor : EntityComponent
 
 public class ComponentAnnotationOpenDoor : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:annotation.open_door";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:annotation.open_door"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentAreaAttack : EntityComponent
@@ -156,10 +136,7 @@ public class ComponentAreaAttack : EntityComponent
     public float damageRange;
     public FilterCollection entityFilter;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:area_attack";
-    }
+    public override string GetIdentifier() { return "minecraft:area_attack"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -182,10 +159,7 @@ public class ComponentAttackCooldown : EntityComponent
     public EntityEventHandler onCooldownComplete;
     public float primaryCooldownTime;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:attack_cooldown";
-    }
+    public override string GetIdentifier() { return "minecraft:attack_cooldown"; }
     public override JObject _GetValue()
     {
         var json = new JObject();
@@ -209,10 +183,7 @@ public class ComponentBarter : EntityComponent
 {
     public LootTable barterTable;
     public int cooldownAfterBeingAttacked;
-    public override string GetIdentifier()
-    {
-        return "minecraft:barter";
-    }
+    public override string GetIdentifier() { return "minecraft:barter"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -225,14 +196,8 @@ public class ComponentBarter : EntityComponent
 
 public class ComponentBlockClimber : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:block_climber";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:block_climber"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentBlockSensor : EntityComponent
@@ -240,10 +205,7 @@ public class ComponentBlockSensor : EntityComponent
     public SensorPool[] pools;
     public float sensorRadius;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:block_sensor";
-    }
+    public override string GetIdentifier() { return "minecraft:block_sensor"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -281,10 +243,7 @@ public class ComponentBoostable : EntityComponent
     public BoostItem[] boostItems;
     public float speedMultiplier;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:boostable";
-    }
+    public override string GetIdentifier() { return "minecraft:boostable"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -325,10 +284,7 @@ public class ComponentBoss : EntityComponent
     public int hudRange;
     public bool shouldDarkenSky;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:boss";
-    }
+    public override string GetIdentifier() { return "minecraft:boss"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -343,10 +299,7 @@ public class ComponentBoss : EntityComponent
 public class ComponentBreakBlocks : EntityComponent
 {
     public string[] breakableBlocks;
-    public override string GetIdentifier()
-    {
-        return "minecraft:break_blocks";
-    }
+    public override string GetIdentifier() { return "minecraft:break_blocks"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -370,10 +323,7 @@ public class ComponentBreathable : EntityComponent
     public int suffocateTime;
     public int totalSupply;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:breathable";
-    }
+    public override string GetIdentifier() { return "minecraft:breathable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -415,10 +365,7 @@ public class ComponentBreedable : EntityComponent
     public bool requireFullHealth;
     public bool requireTamed;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:breedable";
-    }
+    public override string GetIdentifier() { return "minecraft:breedable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -552,10 +499,7 @@ public class ComponentBribeable : EntityComponent
     public float bribeCooldown;
     public string[] bribeItems;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:bribeable";
-    }
+    public override string GetIdentifier() { return "minecraft:bribeable"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -576,10 +520,7 @@ public class ComponentBuoyant : EntityComponent
     public string[] liquidBlocks;
     public bool simulateWaves;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:buoyant";
-    }
+    public override string GetIdentifier() { return "minecraft:buoyant"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -597,14 +538,8 @@ public class ComponentBuoyant : EntityComponent
 
 public class ComponentBurnsInDaylight : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:burns_in_daylight";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:burns_in_daylight"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentCelebrateHunt : EntityComponent
@@ -620,10 +555,7 @@ public class ComponentCelebrateHunt : EntityComponent
     public float minSoundInterval;
     public float radius;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:celebrate_hunt";
-    }
+    public override string GetIdentifier() { return "minecraft:celebrate_hunt"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -653,10 +585,7 @@ public class ComponentCombatRegeneration : EntityComponent
     public bool applyToSelf;
     public int regenDuration;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:combat_regeneration";
-    }
+    public override string GetIdentifier() { return "minecraft:combat_regeneration"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -670,24 +599,15 @@ public class ComponentCombatRegeneration : EntityComponent
 
 public class ComponentConditionalBandwidthOptimization : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:conditional_bandwidth_optimization";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:conditional_bandwidth_optimization"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentCustomHitTest : EntityComponent
 {
     public Hitbox[] hitboxes;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:custom_hit_test";
-    }
+    public override string GetIdentifier() { return "minecraft:custom_hit_test"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -725,10 +645,7 @@ public class ComponentDamageOverTime : EntityComponent
     public int damagePerHurt;
     public float timeBetweenHurt;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:damage_over_time";
-    }
+    public override string GetIdentifier() { return "minecraft:damage_over_time"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -742,10 +659,7 @@ public class ComponentDamageOverTime : EntityComponent
 public class ComponentDamageSensor : EntityComponent
 {
     public Trigger[] triggerPool;
-    public override string GetIdentifier()
-    {
-        return "minecraft:damage_sensor";
-    }
+    public override string GetIdentifier() { return "minecraft:damage_sensor"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -811,10 +725,7 @@ public class ComponentDespawn : EntityComponent
     public int randomChance;
     public bool removeChildEntities;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:despawn";
-    }
+    public override string GetIdentifier() { return "minecraft:despawn"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -846,10 +757,7 @@ public class ComponentDryingOutTimer : EntityComponent
     public float totalTime;
     public float waterBottleRefillTime;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:drying_out_timer";
-    }
+    public override string GetIdentifier() { return "minecraft:drying_out_timer"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -889,10 +797,7 @@ public class ComponentEconomyTradeTable : EntityComponent
     public bool showTradeScreen;
     public LootTable tradeTable;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:economy_trade_table";
-    }
+    public override string GetIdentifier() { return "minecraft:economy_trade_table"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -928,10 +833,7 @@ public class ComponentEntitySensor : EntityComponent
 
     public float sensorRange;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:entity_sensor";
-    }
+    public override string GetIdentifier() { return "minecraft:entity_sensor"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -954,10 +856,7 @@ public class ComponentEntitySensor : EntityComponent
 public class ComponentEnvironmentSensor : EntityComponent
 {
     public Trigger[] triggers;
-    public override string GetIdentifier()
-    {
-        return "minecraft:environment_sensor";
-    }
+    public override string GetIdentifier() { return "minecraft:environment_sensor"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -995,23 +894,14 @@ public class ComponentEnvironmentSensor : EntityComponent
 
 public class ComponentEquipItem : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:equip_item";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:equip_item"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentEquippable : EntityComponent
 {
     public EquippableSlot[] slots;
-    public override string GetIdentifier()
-    {
-        return "minecraft:equippable";
-    }
+    public override string GetIdentifier() { return "minecraft:equippable"; }
     public override JObject _GetValue()
     {
         var json = new JObject();
@@ -1057,10 +947,7 @@ public class ComponentExperienceReward : EntityComponent
     public MolangValue experienceOnBred;
     public MolangValue experienceOnDeath;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:experience_reward";
-    }
+    public override string GetIdentifier() { return "minecraft:experience_reward"; }
     public override JObject _GetValue()
     {
         var json = new JObject();
@@ -1106,10 +993,7 @@ public class ComponentExplode : EntityComponent
         }
     }
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:explode";
-    }
+    public override string GetIdentifier() { return "minecraft:explode"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -1160,10 +1044,7 @@ public class ComponentFlocking : EntityComponent
     public float separationWeight;
     public bool useCenterOfMass;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:flocking";
-    }
+    public override string GetIdentifier() { return "minecraft:flocking"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1193,10 +1074,7 @@ public class ComponentGenetics : EntityComponent
 {
     public Gene[] genes;
     public float mutationRate; // 0.0 - 1.0; default is 0.03125f
-    public override string GetIdentifier()
-    {
-        return "minecraft:genetics";
-    }
+    public override string GetIdentifier() { return "minecraft:genetics"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1281,10 +1159,7 @@ public class ComponentGiveable : EntityComponent
     public float? cooldown;
     public EntityEventHandler onGiveEvent;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:giveable";
-    }
+    public override string GetIdentifier() { return "minecraft:giveable"; }
     public override JObject _GetValue()
     {
         var json = new JObject();
@@ -1305,10 +1180,7 @@ public class ComponentGroupSize : EntityComponent
     public FilterCollection groupTest;
     public float radius;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:group_size";
-    }
+    public override string GetIdentifier() { return "minecraft:group_size"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1324,10 +1196,7 @@ public class ComponentGrowsCrop : EntityComponent
     public float chancePerTick; // 0.0 - 1.0
     public int charges;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:grows_crop";
-    }
+    public override string GetIdentifier() { return "minecraft:grows_crop"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1344,10 +1213,7 @@ public class ComponentHealable : EntityComponent
     public bool forceUse;
     public HealItem[] items;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:healable";
-    }
+    public override string GetIdentifier() { return "minecraft:healable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -1391,10 +1257,7 @@ public class ComponentHome : EntityComponent
     public string[] homeBlocks;
     public int restrictionRadius;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:home";
-    }
+    public override string GetIdentifier() { return "minecraft:home"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -1412,10 +1275,7 @@ public class ComponentHome : EntityComponent
 public class ComponentHurtOnCondition : EntityComponent
 {
     public DamageCondition[] conditions;
-    public override string GetIdentifier()
-    {
-        return "minecraft:hurt_on_condition";
-    }
+    public override string GetIdentifier() { return "minecraft:hurt_on_condition"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1458,10 +1318,7 @@ public class ComponentHurtOnCondition : EntityComponent
 public class ComponentInsideBlockNotifier : EntityComponent
 {
     public InsideBlock[] blocks;
-    public override string GetIdentifier()
-    {
-        return "minecraft:inside_block_notifier";
-    }
+    public override string GetIdentifier() { return "minecraft:inside_block_notifier"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1511,10 +1368,7 @@ public class ComponentInsomnia : EntityComponent
 {
     public float daysUntilExperiencesInsomnia;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:insomnia";
-    }
+    public override string GetIdentifier() { return "minecraft:insomnia"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1528,10 +1382,7 @@ public class ComponentInstantDespawn : EntityComponent
 {
     public bool removeChildEntities;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:instant_despawn";
-    }
+    public override string GetIdentifier() { return "minecraft:instant_despawn"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1559,10 +1410,7 @@ public class ComponentInteract : EntityComponent
     public bool swingAnimation;
     public string transformToItem;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:interact";
-    }
+    public override string GetIdentifier() { return "minecraft:interact"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -1638,10 +1486,7 @@ public class ComponentInventory : EntityComponent
     public int inventorySize;
     public bool restrictToOwner;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:inventory";
-    }
+    public override string GetIdentifier() { return "minecraft:inventory"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1658,36 +1503,21 @@ public class ComponentInventory : EntityComponent
 
 public class ComponentItemHopper : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:item_hopper";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:item_hopper"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentJumpDynamic : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:jump.dynamic";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:jump.dynamic"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentJumpStatic : EntityComponent
 {
     public float jumpPower;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:jump.static";
-    }
+    public override string GetIdentifier() { return "minecraft:jump.static"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1708,10 +1538,7 @@ public class ComponentLeashable : EntityComponent
         onUnleashEnvent;
     public float softDistance; // springs back
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:leashable";
-    }
+    public override string GetIdentifier() { return "minecraft:leashable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -1742,10 +1569,7 @@ public class ComponentLookAt : EntityComponent
     public EntityEventHandler lookedAtEvent;
     public float searchRadius;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:lookat";
-    }
+    public override string GetIdentifier() { return "minecraft:lookat"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -1767,14 +1591,8 @@ public class ComponentLookAt : EntityComponent
 
 public class ComponentManagedWanderingTrader : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:managed_wandering_trader";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:managed_wandering_trader"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentMobEffect : EntityComponent
@@ -1784,10 +1602,7 @@ public class ComponentMobEffect : EntityComponent
     public int effectTime;
     public FilterCollection entityFilter;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:mob_effect";
-    }
+    public override string GetIdentifier() { return "minecraft:mob_effect"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -1808,10 +1623,7 @@ public class ComponentMovementAmphibious : EntityComponent
 {
     public float maxTurn = 30; // degrees
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.amphibious";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.amphibious"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1825,10 +1637,7 @@ public class ComponentMovementBasic : EntityComponent
 {
     public float maxTurn = 30; // degrees
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.basic";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.basic"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1842,10 +1651,7 @@ public class ComponentMovementFly : EntityComponent
 {
     public float maxTurn = 30; // degrees
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.fly";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.fly"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1859,10 +1665,7 @@ public class ComponentMovementGeneric : EntityComponent
 {
     public float maxTurn = 30; // degrees
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.generic";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.generic"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1876,10 +1679,7 @@ public class ComponentMovementHover : EntityComponent
 {
     public float maxTurn = 30; // degrees
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.hover";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.hover"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1895,10 +1695,7 @@ public class ComponentMovementJump : EntityComponent
     public float jumpDelayMin;
     public float maxTurn = 30; // degrees
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.jump";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.jump"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1913,10 +1710,7 @@ public class ComponentMovementSkip : EntityComponent
 {
     public float maxTurn = 30; // degrees
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.skip";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.skip"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1932,10 +1726,7 @@ public class ComponentMovementSway : EntityComponent
     public float swayAmplitude = 0.05f;
     public float swayFrequency = 0.5f;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:movement.sway";
-    }
+    public override string GetIdentifier() { return "minecraft:movement.sway"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -1954,10 +1745,7 @@ public class ComponentNameable : EntityComponent
     public EntityEventHandler onNamed;
     public SpecialNameAction[] specialNames;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:nameable";
-    }
+    public override string GetIdentifier() { return "minecraft:nameable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2028,10 +1816,7 @@ public class ComponentNavigationClimb : EntityComponent
         isAmphibious;
     public string[] blocksToAvoid;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:navigation.climb";
-    }
+    public override string GetIdentifier() { return "minecraft:navigation.climb"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2086,10 +1871,7 @@ public class ComponentNavigationFloat : EntityComponent
         isAmphibious;
     public string[] blocksToAvoid;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:navigation.float";
-    }
+    public override string GetIdentifier() { return "minecraft:navigation.float"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2144,10 +1926,7 @@ public class ComponentNavigationFly : EntityComponent
         isAmphibious;
     public string[] blocksToAvoid;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:navigation.fly";
-    }
+    public override string GetIdentifier() { return "minecraft:navigation.fly"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2202,10 +1981,7 @@ public class ComponentNavigationGeneric : EntityComponent
         isAmphibious;
     public string[] blocksToAvoid;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:navigation.generic";
-    }
+    public override string GetIdentifier() { return "minecraft:navigation.generic"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2260,10 +2036,7 @@ public class ComponentNavigationHover : EntityComponent
         isAmphibious;
     public string[] blocksToAvoid;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:navigation.hover";
-    }
+    public override string GetIdentifier() { return "minecraft:navigation.hover"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2318,10 +2091,7 @@ public class ComponentNavigationSwim : EntityComponent
         isAmphibious;
     public string[] blocksToAvoid;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:navigation.swim";
-    }
+    public override string GetIdentifier() { return "minecraft:navigation.swim"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2376,10 +2146,7 @@ public class ComponentNavigationWalk : EntityComponent
         isAmphibious;
     public string[] blocksToAvoid;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:navigation.walk";
-    }
+    public override string GetIdentifier() { return "minecraft:navigation.walk"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2413,14 +2180,8 @@ public class ComponentNavigationWalk : EntityComponent
 
 public class ComponentOutOfControl : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:out_of_control";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:out_of_control"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentPeek : EntityComponent
@@ -2431,10 +2192,7 @@ public class ComponentPeek : EntityComponent
 
     public EntityEventHandler stopPeekingEvent;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:peek";
-    }
+    public override string GetIdentifier() { return "minecraft:peek"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -2448,14 +2206,8 @@ public class ComponentPeek : EntityComponent
 
 public class ComponentPersistent : EntityComponent
 {
-    public override string GetIdentifier()
-    {
-        return "minecraft:persistent";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:persistent"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentPhysics : EntityComponent
@@ -2463,10 +2215,7 @@ public class ComponentPhysics : EntityComponent
     public bool collision;
     public bool gravity;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:physics";
-    }
+    public override string GetIdentifier() { return "minecraft:physics"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -2486,10 +2235,7 @@ public class ComponentPreferredPath : EntityComponent
     public int jumpCost;
     public int maxSafeFall;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:prefered_path";
-    }
+    public override string GetIdentifier() { return "minecraft:prefered_path"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2561,10 +2307,7 @@ public class ComponentProjectile : EntityComponent
     public float uncertaintyBase;
     public float uncertaintyMultiplier;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:projectile";
-    }
+    public override string GetIdentifier() { return "minecraft:projectile"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2613,10 +2356,7 @@ public class ComponentPushable : EntityComponent
     public bool isPushableByEntity;
     public bool isPushableByPiston;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:pushable";
-    }
+    public override string GetIdentifier() { return "minecraft:pushable"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -2632,10 +2372,7 @@ public class ComponentRaidTrigger : EntityComponent
     // used only by the player to trigger a raid.
 
     public EntityEventHandler raidEvent;
-    public override string GetIdentifier()
-    {
-        return "minecraft:raid_trigger";
-    }
+    public override string GetIdentifier() { return "minecraft:raid_trigger"; }
     public override JObject _GetValue()
     {
         var json = new JObject();
@@ -2649,10 +2386,7 @@ public class ComponentRailMovement : EntityComponent
 {
     public float maxSpeed;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:rail_movement";
-    }
+    public override string GetIdentifier() { return "minecraft:rail_movement"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -2674,10 +2408,7 @@ public class ComponentRailSensor : EntityComponent
     public bool tickCommandBlockOnActivate;
     public bool tickCommandBlockOnDeactivate;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:rail_sensor";
-    }
+    public override string GetIdentifier() { return "minecraft:rail_sensor"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2703,10 +2434,7 @@ public class ComponentRavagerBlocked : EntityComponent
     public ReactionChoice[] choices;
 
     public float knockbackStrength;
-    public override string GetIdentifier()
-    {
-        return "minecraft:ravager_blocked";
-    }
+    public override string GetIdentifier() { return "minecraft:ravager_blocked"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2758,10 +2486,7 @@ public class ComponentRideable : EntityComponent
     public int seatCount;
     public Seat[] seats;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:rideable";
-    }
+    public override string GetIdentifier() { return "minecraft:rideable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2817,24 +2542,15 @@ public class ComponentRideable : EntityComponent
 public class ComponentScaffoldingClimber : EntityComponent
 {
     // deprecated
-    public override string GetIdentifier()
-    {
-        return "minecraft:scaffolding_climber";
-    }
-    public override JObject _GetValue()
-    {
-        return new JObject();
-    }
+    public override string GetIdentifier() { return "minecraft:scaffolding_climber"; }
+    public override JObject _GetValue() { return new JObject(); }
 }
 
 public class ComponentScaleByAge : EntityComponent
 {
     public float endScale;
     public float startScale;
-    public override string GetIdentifier()
-    {
-        return "minecraft:scale_by_age";
-    }
+    public override string GetIdentifier() { return "minecraft:scale_by_age"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -2853,10 +2569,7 @@ public class ComponentScheduler : EntityComponent
     // undocumented??
     public int? minDelaySeconds;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:scheduler";
-    }
+    public override string GetIdentifier() { return "minecraft:scheduler"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2902,10 +2615,7 @@ public class ComponentShareables : EntityComponent
 
     public Shareable[] items;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:shareables";
-    }
+    public override string GetIdentifier() { return "minecraft:shareables"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -2967,10 +2677,7 @@ public class ComponentShooter : EntityComponent
     public PotionEffect? passEffectToProjectile;
     public string projectileEntity;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:shooter";
-    }
+    public override string GetIdentifier() { return "minecraft:shooter"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -2988,10 +2695,7 @@ public class ComponentSittable : EntityComponent
     public EntityEventHandler sitEvent;
     public EntityEventHandler standEvent;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:sittable";
-    }
+    public override string GetIdentifier() { return "minecraft:sittable"; }
     public override JObject _GetValue()
     {
         var json = new JObject();
@@ -3008,10 +2712,7 @@ public class ComponentSittable : EntityComponent
 public class ComponentSpawnEntity : EntityComponent
 {
     public SpawnEntity[] entities;
-    public override string GetIdentifier()
-    {
-        return "minecraft:spawn_entity";
-    }
+    public override string GetIdentifier() { return "minecraft:spawn_entity"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -3073,10 +2774,7 @@ public class ComponentTameable : EntityComponent
     public EntityEventHandler tameEvent;
     public string[] tameItems;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:tameable";
-    }
+    public override string GetIdentifier() { return "minecraft:tameable"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3104,10 +2802,7 @@ public class ComponentTameMount : EntityComponent
     public string rideText;
     public EntityEventHandler tameEvent;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:tamemount";
-    }
+    public override string GetIdentifier() { return "minecraft:tamemount"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3135,10 +2830,7 @@ public class ComponentTameMount : EntityComponent
     {
         public string item;
 
-        public AutoRejectItem(string item)
-        {
-            this.item = item;
-        }
+        public AutoRejectItem(string item) { this.item = item; }
         public JObject ToJSON()
         {
             return new JObject
@@ -3179,10 +2871,7 @@ public class ComponentTargetNearbySensor : EntityComponent
     public EntityEventHandler onVisionLostInsideRangeEvent;
     public float outsideRange;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:target_nearby_sensor";
-    }
+    public override string GetIdentifier() { return "minecraft:target_nearby_sensor"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3215,10 +2904,7 @@ public class ComponentTeleport : EntityComponent
     public float targetDistance;
     public float targetTeleportChance;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:teleport";
-    }
+    public override string GetIdentifier() { return "minecraft:teleport"; }
     public override JObject _GetValue()
     {
         return new JObject
@@ -3241,10 +2927,7 @@ public class ComponentTickWorld : EntityComponent
     public bool neverDespawn;
     public int tickRadius;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:tick_world";
-    }
+    public override string GetIdentifier() { return "minecraft:tick_world"; }
     public override JObject _GetValue()
     {
         if (this.neverDespawn)
@@ -3282,10 +2965,7 @@ public class ComponentTimer : EntityComponent
         }
     }
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:timer";
-    }
+    public override string GetIdentifier() { return "minecraft:timer"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3312,10 +2992,7 @@ public class ComponentTradeTable : EntityComponent
     public bool persistTrades;
     public LootTable table;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:trade_table";
-    }
+    public override string GetIdentifier() { return "minecraft:trade_table"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3339,10 +3016,7 @@ public class ComponentTrail : EntityComponent
     public FilterCollection filters;
     public int offsetX, offsetY, offsetZ;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:trail";
-    }
+    public override string GetIdentifier() { return "minecraft:trail"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3373,10 +3047,7 @@ public class ComponentTransformation : EntityComponent
     public bool preserveEquipment;
     public string transformInto;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:transformation";
-    }
+    public override string GetIdentifier() { return "minecraft:transformation"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3405,10 +3076,7 @@ public class ComponentTransformation : EntityComponent
     public struct Add
     {
         public EntityComponentGroup[] groups;
-        public Add(params EntityComponentGroup[] groups)
-        {
-            this.groups = groups;
-        }
+        public Add(params EntityComponentGroup[] groups) { this.groups = groups; }
         public JObject ToJSON()
         {
             return new JObject
@@ -3452,10 +3120,7 @@ public class ComponentTrusting : EntityComponent
     public EntityEventHandler trustEvent;
     public string[] trustItems;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:trusting";
-    }
+    public override string GetIdentifier() { return "minecraft:trusting"; }
     public override JObject _GetValue()
     {
         var json = new JObject
@@ -3475,10 +3140,7 @@ public class ComponentWaterMovement : EntityComponent
 {
     public float dragFactor;
 
-    public override string GetIdentifier()
-    {
-        return "minecraft:water_movement";
-    }
+    public override string GetIdentifier() { return "minecraft:water_movement"; }
     public override JObject _GetValue()
     {
         return new JObject

@@ -4,7 +4,7 @@ using mc_compiled.Commands;
 using mc_compiled.Commands.Native;
 using mc_compiled.MCC;
 using mc_compiled.MCC.Compiler;
-using mc_compiled.Modding.Behaviors;
+using mc_compiled.Modding.Behaviors.Loot;
 using Range = mc_compiled.Commands.Range;
 
 namespace mc_compiled.CLI.Commands;
