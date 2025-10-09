@@ -154,7 +154,7 @@ public abstract partial class Typedef
     ///     don't collide with other rawtexts.
     /// </param>
     /// <returns></returns>
-    internal abstract Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index);
+    internal abstract Tuple<string[], RawTextEntry[]> ToRawText(ScoreboardValue value, ref int index);
 
     /// <summary>
     ///     Returns the commands needed to assign a literal to this type.

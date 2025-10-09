@@ -20,7 +20,7 @@ internal sealed class TypedefTime : TypedefInteger
     public override string TypeShortcode => "TME";
     public override string TypeKeyword => "TIME";
 
-    internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
+    internal override Tuple<string[], RawTextEntry[]> ToRawText(ScoreboardValue value, ref int index)
     {
         ScoreboardManager manager = value.manager;
 
@@ -105,7 +105,7 @@ internal sealed class TypedefTime : TypedefInteger
         string minutes = SB_MINUTES + index;
         string seconds = SB_SECONDS + index;
 
-        var terms = new List<JSONRawTerm>();
+        var terms = new List<RawTextEntry>();
 
         bool hasHours = format.HasOption(TimeOption.h),
             hasMinutes = format.HasOption(TimeOption.m),
@@ -123,7 +123,7 @@ internal sealed class TypedefTime : TypedefInteger
 
                 for (int digits = 0; digits < format.minimumHours; digits++)
                 {
-                    buffer.Add(new ConditionalTerm([new JSONText(textBuffer.ToString())],
+                    buffer.Add(new ConditionalTerm([new Text(textBuffer.ToString())],
                         ConditionalSubcommandScore.New(value.clarifier.CurrentString, hours,
                             new Range(bound, previousBound)), false));
 
@@ -135,10 +135,10 @@ internal sealed class TypedefTime : TypedefInteger
                         bound = 0;
                 }
 
-                terms.Add(new JSONVariant(buffer));
+                terms.Add(new Variant(buffer));
             }
 
-            terms.Add(new JSONScore(value.clarifier.CurrentString, hours));
+            terms.Add(new Score(value.clarifier.CurrentString, hours));
         }
 
         if (hasMinutes)
@@ -155,7 +155,7 @@ internal sealed class TypedefTime : TypedefInteger
 
                 for (int digits = 0; digits < format.minimumMinutes; digits++)
                 {
-                    buffer.Add(new ConditionalTerm([new JSONText(textBuffer.ToString())],
+                    buffer.Add(new ConditionalTerm([new Text(textBuffer.ToString())],
                         ConditionalSubcommandScore.New(value.clarifier.CurrentString, minutes,
                             new Range(bound, previousBound)), false));
 
@@ -167,14 +167,14 @@ internal sealed class TypedefTime : TypedefInteger
                         bound = 0;
                 }
 
-                terms.Add(new JSONVariant(buffer));
+                terms.Add(new Variant(buffer));
             }
             else if (hasHours)
             {
-                terms.Add(new JSONText(":"));
+                terms.Add(new Text(":"));
             }
 
-            terms.Add(new JSONScore(value.clarifier.CurrentString, minutes));
+            terms.Add(new Score(value.clarifier.CurrentString, minutes));
         }
 
         // ReSharper disable once InvertIf
@@ -192,7 +192,7 @@ internal sealed class TypedefTime : TypedefInteger
 
                 for (int digits = 0; digits < format.minimumSeconds; digits++)
                 {
-                    buffer.Add(new ConditionalTerm([new JSONText(textBuffer.ToString())],
+                    buffer.Add(new ConditionalTerm([new Text(textBuffer.ToString())],
                         ConditionalSubcommandScore.New(value.clarifier.CurrentString, seconds,
                             new Range(bound, previousBound)), false));
 
@@ -204,17 +204,17 @@ internal sealed class TypedefTime : TypedefInteger
                         bound = 0;
                 }
 
-                terms.Add(new JSONVariant(buffer));
+                terms.Add(new Variant(buffer));
             }
             else if (hasMinutes)
             {
-                terms.Add(new JSONText(":"));
+                terms.Add(new Text(":"));
             }
 
-            terms.Add(new JSONScore(value.clarifier.CurrentString, seconds));
+            terms.Add(new Score(value.clarifier.CurrentString, seconds));
         }
 
-        return new Tuple<string[], JSONRawTerm[]>(
+        return new Tuple<string[], RawTextEntry[]>(
             commands.ToArray(),
             terms.ToArray()
         );

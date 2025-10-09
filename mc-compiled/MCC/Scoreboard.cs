@@ -59,7 +59,11 @@ public sealed class ScoreboardValue : ICloneable
         this.data = data;
         this.type = type;
     }
-    public ScoreboardValue(Typedef type, Clarifier clarifier, ITypeStructure data, string internalName, string name,
+    public ScoreboardValue(Typedef type,
+        Clarifier clarifier,
+        ITypeStructure data,
+        string internalName,
+        string name,
         string documentation,
         ScoreboardManager manager)
     {
@@ -109,10 +113,7 @@ public sealed class ScoreboardValue : ICloneable
     ///     to change readonly fields where needed.
     /// </summary>
     /// <returns></returns>
-    public object Clone()
-    {
-        return Clone(null);
-    }
+    public object Clone() { return Clone(null); }
 
     /// <summary>
     ///     Convert a string to a standardized hash.
@@ -177,10 +178,7 @@ public sealed class ScoreboardValue : ICloneable
     ///     True if the instance has an attribute of type <typeparamref name="T" />,
     ///     otherwise False.
     /// </returns>
-    public bool HasAttribute<T>() where T : IAttribute
-    {
-        return this.attributes.Any(attribute => attribute is T);
-    }
+    public bool HasAttribute<T>() where T : IAttribute { return this.attributes.Any(attribute => attribute is T); }
 
     /// <summary>
     ///     Perform a fully implemented deep clone of this scoreboard value, with specified fields changed. Fully supports
@@ -193,8 +191,12 @@ public sealed class ScoreboardValue : ICloneable
     /// <param name="newInternalName">If specified, the internal name to change the cloned ScoreboardValue to.</param>
     /// <param name="newName">If specified, the name to change the cloned ScoreboardValue to.</param>
     /// <returns></returns>
-    public ScoreboardValue Clone(Statement callingStatement, Typedef newType = null, Clarifier newClarifier = null,
-        ITypeStructure newData = null, string newInternalName = null, string newName = null)
+    public ScoreboardValue Clone(Statement callingStatement,
+        Typedef newType = null,
+        Clarifier newClarifier = null,
+        ITypeStructure newData = null,
+        string newInternalName = null,
+        string newName = null)
     {
         Typedef _type = newType ?? this.type;
         Clarifier _clarifier = newClarifier ?? this.clarifier.Clone();
@@ -265,10 +267,7 @@ public sealed class ScoreboardValue : ICloneable
     ///     Returns all of the scoreboard objectives associated with this value.
     /// </summary>
     /// <returns></returns>
-    public string[] GetObjectives()
-    {
-        return this.type.GetObjectives(this);
-    }
+    public string[] GetObjectives() { return this.type.GetObjectives(this); }
 
     private bool Equals(ScoreboardValue other)
     {
@@ -308,10 +307,7 @@ public sealed class ScoreboardValue : ICloneable
     /// </summary>
     /// <param name="other">The other scoreboard value in the operation</param>
     /// <returns></returns>
-    public bool NeedsToBeConvertedFor(ScoreboardValue other)
-    {
-        return this.type.NeedsToBeConvertedTo(this, other);
-    }
+    public bool NeedsToBeConvertedFor(ScoreboardValue other) { return this.type.NeedsToBeConvertedTo(this, other); }
     /// <summary>
     ///     Returns the commands needed to convert this value and store it in 'other'.
     ///     Please check <see cref="NeedsToBeConvertedFor" /> first before using this.
@@ -360,20 +356,14 @@ public sealed class ScoreboardValue : ICloneable
     ///     The index of the rawtext value, used to uniquely identify the temp variables and whatnot so they
     ///     don't collide with other rawtexts.
     /// </param>
-    public Tuple<string[], JSONRawTerm[]> ToRawText(ref int index)
-    {
-        return this.type.ToRawText(this, ref index);
-    }
+    public Tuple<string[], RawTextEntry[]> ToRawText(ref int index) { return this.type.ToRawText(this, ref index); }
 
     /// <summary>
     ///     Check <see cref="Typedef.CanCompareAlone" /> before attempting this.
     ///     Returns the comparisons needed to compare this value alone. (booleans)
     /// </summary>
     /// <returns>null if <see cref="Typedef.CanCompareAlone" /> is false.</returns>
-    internal ConditionalSubcommandScore[] CompareAlone(bool invert)
-    {
-        return this.type.CompareAlone(invert, this);
-    }
+    internal ConditionalSubcommandScore[] CompareAlone(bool invert) { return this.type.CompareAlone(invert, this); }
 
     /// <summary>
     ///     Compare a value with this type to a literal value. Returns both the setup commands needed, and the score
@@ -385,7 +375,8 @@ public sealed class ScoreboardValue : ICloneable
     /// <param name="literal">The literal to compare to.</param>
     /// <param name="callingStatement"></param>
     internal Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(TokenCompare.Type comparisonType,
-        TokenLiteral literal, Statement callingStatement)
+        TokenLiteral literal,
+        Statement callingStatement)
     {
         return this.type.CompareToLiteral(comparisonType, this, literal, callingStatement);
     }
@@ -427,7 +418,8 @@ public sealed class ScoreboardValue : ICloneable
     /// <param name="arithmeticType"></param>
     /// <param name="callingStatement"></param>
     /// <returns></returns>
-    public IEnumerable<string> Operation(ScoreboardValue other, TokenArithmetic.Type arithmeticType,
+    public IEnumerable<string> Operation(ScoreboardValue other,
+        TokenArithmetic.Type arithmeticType,
         Statement callingStatement)
     {
         return arithmeticType switch

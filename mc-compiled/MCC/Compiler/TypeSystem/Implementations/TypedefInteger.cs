@@ -18,14 +18,8 @@ internal class TypedefInteger : Typedef
         return null;
         // no data to clone
     }
-    internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value)
-    {
-        return default;
-    }
-    internal override string[] GetObjectives(ScoreboardValue input)
-    {
-        return [input.InternalName];
-    }
+    internal override ConditionalSubcommandScore[] CompareAlone(bool invert, ScoreboardValue value) { return default; }
+    internal override string[] GetObjectives(ScoreboardValue input) { return [input.InternalName]; }
 
     // Conversion
     internal override bool CanConvertTo(Typedef type)
@@ -67,13 +61,16 @@ internal class TypedefInteger : Typedef
     }
 
     // Other
-    internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
+    internal override Tuple<string[], RawTextEntry[]> ToRawText(ScoreboardValue value, ref int index)
     {
-        var terms = new JSONRawTerm[] {new JSONScore(value)};
-        return new Tuple<string[], JSONRawTerm[]>(null, terms);
+        var terms = new RawTextEntry[] {new Score(value)};
+        return new Tuple<string[], RawTextEntry[]>(null, terms);
     }
     internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
-        TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement)
+        TokenCompare.Type comparisonType,
+        ScoreboardValue self,
+        TokenLiteral literal,
+        Statement callingStatement)
     {
         int value = literal switch
         {
@@ -89,7 +86,8 @@ internal class TypedefInteger : Typedef
             ]
         );
     }
-    internal override IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> AssignLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         int value = literal switch
@@ -101,7 +99,8 @@ internal class TypedefInteger : Typedef
 
         return [Command.ScoreboardSet(self, value)];
     }
-    internal override IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> AddLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         int value = literal switch
@@ -113,7 +112,8 @@ internal class TypedefInteger : Typedef
 
         return [Command.ScoreboardAdd(self, value)];
     }
-    internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         int value = literal switch
@@ -127,32 +127,38 @@ internal class TypedefInteger : Typedef
     }
 
     // Methods
-    internal override IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Assign(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpSet(self, other)];
     }
-    internal override IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Add(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpAdd(self, other)];
     }
-    internal override IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Subtract(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpSub(self, other)];
     }
-    internal override IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Multiply(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpMul(self, other)];
     }
-    internal override IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Divide(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpDiv(self, other)];
     }
-    internal override IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Modulo(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpMod(self, other)];

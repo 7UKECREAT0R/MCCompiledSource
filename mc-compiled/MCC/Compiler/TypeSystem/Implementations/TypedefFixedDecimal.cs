@@ -141,7 +141,7 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
     }
 
     // Other
-    internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
+    internal override Tuple<string[], RawTextEntry[]> ToRawText(ScoreboardValue value, ref int index)
     {
         ScoreboardManager manager = value.manager;
         Clarifier clarifier = value.clarifier;
@@ -193,9 +193,9 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
 
                 // include no zeros
                 term = new ConditionalTerm([
-                    new JSONScore(clarifier.CurrentString, whole.InternalName),
-                    new JSONText("."),
-                    new JSONScore(clarifier.CurrentString, part.InternalName)
+                    new Score(clarifier.CurrentString, whole.InternalName),
+                    new Text("."),
+                    new Score(clarifier.CurrentString, part.InternalName)
                 ], ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
             }
             else
@@ -205,9 +205,9 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
                 // include i number of zeros
                 zeroBuilder.Append('0', i);
                 term = new ConditionalTerm([
-                    new JSONScore(clarifier.CurrentString, whole.InternalName),
-                    new JSONText("." + zeroBuilder),
-                    new JSONScore(clarifier.CurrentString, part.InternalName)
+                    new Score(clarifier.CurrentString, whole.InternalName),
+                    new Text("." + zeroBuilder),
+                    new Score(clarifier.CurrentString, part.InternalName)
                 ], ConditionalSubcommandScore.New(clarifier.CurrentString, part.InternalName, range), false);
                 zeroBuilder.Clear();
             }
@@ -221,8 +221,8 @@ internal class TypedefFixedDecimal : Typedef<FixedDecimalData>
             upperBound *= 10;
         }
 
-        return new Tuple<string[], JSONRawTerm[]>(commands, [
-            new JSONVariant(conditionalTerms)
+        return new Tuple<string[], RawTextEntry[]>(commands, [
+            new Variant(conditionalTerms)
         ]);
     }
     internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(

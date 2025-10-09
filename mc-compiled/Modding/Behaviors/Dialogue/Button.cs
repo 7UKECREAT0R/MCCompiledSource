@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using mc_compiled.Json;
 using Newtonsoft.Json.Linq;
 
@@ -10,45 +9,42 @@ namespace mc_compiled.Modding.Behaviors.Dialogue;
 /// </summary>
 public class Button
 {
-    private RawTextJsonBuilder _name;
+    private RawText _name;
     public string[] commands;
 
-    public Button(string[] commands)
-    {
-        this.commands = commands;
-    }
+    public Button(string[] commands) { this.commands = commands; }
 
     public string NameString
     {
         set
         {
-            this._name = new RawTextJsonBuilder();
-            this._name.AddTerm(new JSONText(value));
+            this._name = new RawText();
+            this._name.AddTerm(new Text(value));
         }
     }
     public string NameTranslate
     {
         set
         {
-            this._name = new RawTextJsonBuilder();
-            this._name.AddTerm(new JSONTranslate(value));
+            this._name = new RawText();
+            this._name.AddTerm(new Translate(value));
         }
     }
-    public JSONRawTerm[] Name
+    public RawTextEntry[] Name
     {
         set
         {
-            this._name = new RawTextJsonBuilder();
+            this._name = new RawText();
             this._name.AddTerms(value);
         }
     }
-    public RawTextJsonBuilder NameRaw
+    public RawText NameRaw
     {
         get
         {
             if (this._name == null)
             {
-                this._name = new RawTextJsonBuilder();
+                this._name = new RawText();
                 return this._name;
             }
 

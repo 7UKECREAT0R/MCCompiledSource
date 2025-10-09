@@ -12,8 +12,8 @@ public class Scene
 {
     private readonly List<Button> buttons;
     public readonly string sceneTag;
-    private RawTextJsonBuilder _npcName;
-    private RawTextJsonBuilder _text;
+    private RawText _npcName;
+    private RawText _text;
     public string[] closeCommands;
 
     public string[] openCommands;
@@ -32,8 +32,8 @@ public class Scene
     {
         set
         {
-            this._npcName = new RawTextJsonBuilder();
-            this._npcName.AddTerm(new JSONText(value));
+            this._npcName = new RawText();
+            this._npcName.AddTerm(new Text(value));
         }
     }
     /// <summary>
@@ -43,31 +43,31 @@ public class Scene
     {
         set
         {
-            this._npcName = new RawTextJsonBuilder();
-            this._npcName.AddTerm(new JSONTranslate(value).WithNewlineSupport());
+            this._npcName = new RawText();
+            this._npcName.AddTerm(new Translate(value).WithNewlineSupport());
         }
     }
     /// <summary>
     ///     Sets the NPC name for this scene using a set of raw-text terms.
     /// </summary>
-    public JSONRawTerm[] NPCName
+    public RawTextEntry[] NPCName
     {
         set
         {
-            this._npcName = new RawTextJsonBuilder();
+            this._npcName = new RawText();
             this._npcName.AddTerms(value);
         }
     }
     /// <summary>
     ///     Get the underlying RawTextJsonBuilder for the NPC name, with the terms empty.
     /// </summary>
-    public RawTextJsonBuilder NPCNameRaw
+    public RawText NPCNameRaw
     {
         get
         {
             if (this._npcName == null)
             {
-                this._npcName = new RawTextJsonBuilder();
+                this._npcName = new RawText();
                 return this._npcName;
             }
 
@@ -83,8 +83,8 @@ public class Scene
     {
         set
         {
-            this._text = new RawTextJsonBuilder();
-            this._text.AddTerm(new JSONText(value));
+            this._text = new RawText();
+            this._text.AddTerm(new Text(value));
         }
     }
     /// <summary>
@@ -94,31 +94,31 @@ public class Scene
     {
         set
         {
-            this._text = new RawTextJsonBuilder();
-            this._text.AddTerm(new JSONTranslate(value).WithNewlineSupport());
+            this._text = new RawText();
+            this._text.AddTerm(new Translate(value).WithNewlineSupport());
         }
     }
     /// <summary>
     ///     Sets the text of this scene using a set of raw-text terms.
     /// </summary>
-    public JSONRawTerm[] Text
+    public RawTextEntry[] Text
     {
         set
         {
-            this._text = new RawTextJsonBuilder();
+            this._text = new RawText();
             this._text.AddTerms(value);
         }
     }
     /// <summary>
     ///     Get the underlying RawTextJsonBuilder for the text, with the terms cleared.
     /// </summary>
-    public RawTextJsonBuilder TextRaw
+    public RawText TextRaw
     {
         get
         {
             if (this._text == null)
             {
-                this._text = new RawTextJsonBuilder();
+                this._text = new RawText();
                 return this._text;
             }
 
@@ -132,10 +132,7 @@ public class Scene
         this.buttons.Add(button);
         return this;
     }
-    public Scene AddButtons(params Button[] newButtons)
-    {
-        return AddButtons((IEnumerable<Button>) newButtons);
-    }
+    public Scene AddButtons(params Button[] newButtons) { return AddButtons((IEnumerable<Button>) newButtons); }
     public Scene AddButtons(IEnumerable<Button> newButtons)
     {
         this.buttons.AddRange(newButtons);

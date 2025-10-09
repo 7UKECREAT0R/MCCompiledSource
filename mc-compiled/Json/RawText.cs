@@ -9,15 +9,32 @@ using TextCopy;
 namespace mc_compiled.Json;
 
 /// <summary>
-///     Utility for building rawtext json for minecraft.
+///     A JSON rawtext sequence. Use the following types as entries to this object:
+///     <ul>
+///         <li>
+///             <see cref="Text" />
+///         </li>
+///         <li>
+///             <see cref="Score" />
+///         </li>
+///         <li>
+///             <see cref="Selector" />
+///         </li>
+///         <li>
+///             <see cref="Translate" />
+///         </li>
+///         <li>
+///             <see cref="Variant" />
+///         </li>
+///     </ul>
 /// </summary>
-public class RawTextJsonBuilder
+public class RawText
 {
-    private readonly List<JSONRawTerm> terms;
+    private readonly List<RawTextEntry> terms;
     private string copiedString;
 
-    public RawTextJsonBuilder() { this.terms = []; }
-    public RawTextJsonBuilder(RawTextJsonBuilder copy)
+    public RawText() { this.terms = []; }
+    public RawText(RawText copy)
     {
         this.terms = [];
 
@@ -25,17 +42,17 @@ public class RawTextJsonBuilder
             this.terms.AddRange(copy.terms);
     }
     public void ClearTerms() { this.terms.Clear(); }
-    public RawTextJsonBuilder AddTerm(JSONRawTerm term)
+    public RawText AddTerm(RawTextEntry textEntry)
     {
-        this.terms.Add(term);
+        this.terms.Add(textEntry);
         return this;
     }
-    public RawTextJsonBuilder AddTerms(IEnumerable<JSONRawTerm> newTerms)
+    public RawText AddTerms(IEnumerable<RawTextEntry> newTerms)
     {
         this.terms.AddRange(newTerms);
         return this;
     }
-    public RawTextJsonBuilder AddTerms(params JSONRawTerm[] newTerms)
+    public RawText AddTerms(params RawTextEntry[] newTerms)
     {
         this.terms.AddRange(newTerms);
         return this;
@@ -65,7 +82,7 @@ public class RawTextJsonBuilder
     public string BuildString() { return Build().ToString(Formatting.None); }
 
     /// <summary>
-    ///     A pretty old module which lets users build this <see cref="RawTextJsonBuilder" /> interactively through the
+    ///     A pretty old module which lets users build this <see cref="RawText" /> interactively through the
     ///     console.
     /// </summary>
     public void ConsoleInterface()
@@ -122,7 +139,7 @@ public class RawTextJsonBuilder
                 {
                     string str = text[5..];
                     str = Definitions.GLOBAL_DEFS.ReplaceDefinitions(str);
-                    this.terms.Add(new JSONText(str));
+                    this.terms.Add(new Text(str));
                     continue;
                 }
 
@@ -134,19 +151,19 @@ public class RawTextJsonBuilder
                     int index = epic.IndexOf(' ');
                     string objective = epic[..index];
                     string selector = epic[(index + 1)..];
-                    this.terms.Add(new JSONScore(selector, objective));
+                    this.terms.Add(new Score(selector, objective));
                     continue;
                 }
 
                 if (comp.StartsWith("SELECTOR"))
                 {
-                    this.terms.Add(new JSONSelector(text[9..]));
+                    this.terms.Add(new Selector(text[9..]));
                     continue;
                 }
 
                 if (comp.StartsWith("TRANSLATE"))
                 {
-                    this.terms.Add(new JSONTranslate(text[10..]));
+                    this.terms.Add(new Translate(text[10..]));
                     continue;
                 }
             }

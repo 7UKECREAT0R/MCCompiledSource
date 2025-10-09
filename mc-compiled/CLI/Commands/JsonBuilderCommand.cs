@@ -21,7 +21,7 @@ public class JsonBuilderCommand() : CommandLineOption([])
         ref string[] files)
     {
         Definitions.TryInitialize(context.debug);
-        var builder = new RawTextJsonBuilder();
+        var builder = new RawText();
         builder.ConsoleInterface();
         files = null; // prevent further execution
     }

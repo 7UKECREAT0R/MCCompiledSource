@@ -10,7 +10,7 @@ namespace mc_compiled.Json;
 /// <summary>
 ///     Term in a JSON rawtext sequence.
 /// </summary>
-public abstract class JSONRawTerm
+public abstract class RawTextEntry
 {
     public static string EscapeString(string text) { return text.Replace(@"\", @"\\").Replace("\"", "\\\""); }
 
@@ -30,16 +30,16 @@ public abstract class JSONRawTerm
     ///     Returns an array of terms representing this term, but localized (if enabled).
     /// </summary>
     /// <returns></returns>
-    public abstract JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions);
+    public abstract RawTextEntry[] Localize(Executor executor, string identifier, Statement forExceptions);
 }
 
 /// <summary>
 ///     Represents a token of plain text.
 /// </summary>
-public class JSONText : JSONRawTerm
+public class Text : RawTextEntry
 {
     private string text;
-    public JSONText(string text) { this.text = EscapeString(text); }
+    public Text(string text) { this.text = EscapeString(text); }
 
     public override JObject Build()
     {
@@ -50,7 +50,7 @@ public class JSONText : JSONRawTerm
     }
     public override string PreviewString() { return '[' + this.text + ']'; }
 
-    public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
+    public override RawTextEntry[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
         bool hasNewlines = this.text.Contains(@"\\n");
 
@@ -58,7 +58,7 @@ public class JSONText : JSONRawTerm
         {
             if (hasNewlines)
                 this.text = this.text.Replace(@"\\n", "\n");
-            return [new JSONText(this.text)];
+            return [new Text(this.text)];
         }
 
         // find leading/trailing whitespace
@@ -81,22 +81,22 @@ public class JSONText : JSONRawTerm
             key = executor.SetLocaleEntry(key, this.text, forExceptions, true)?.key;
             return
             [
-                key == null ? new JSONText(this.text) :
-                hasNewlines ? new JSONTranslate(key).WithNewlineSupport() : new JSONTranslate(key)
+                key == null ? new Text(this.text) :
+                hasNewlines ? new Translate(key).WithNewlineSupport() : new Translate(key)
             ];
         }
 
         int indices = 1 + (hasLeadingWhitespace ? 1 : 0) + (hasTrailingWhitespace ? 1 : 0);
         int index = 0;
         string textCopy = this.text;
-        var output = new JSONRawTerm[indices];
+        var output = new RawTextEntry[indices];
 
         // extract the leading whitespace, if any
         if (hasLeadingWhitespace)
         {
             string whitespace = textCopy[..leadingWhitespace];
             textCopy = textCopy[leadingWhitespace..];
-            output[index++] = new JSONText(whitespace);
+            output[index++] = new Text(whitespace);
         }
 
         // extract the trailing whitespace, if any
@@ -105,16 +105,16 @@ public class JSONText : JSONRawTerm
             int len = textCopy.Length;
             string whitespace = textCopy[(len - trailingWhitespace)..];
             textCopy = textCopy[..(len - trailingWhitespace)];
-            output[index + 1] = new JSONText(whitespace);
+            output[index + 1] = new Text(whitespace);
         }
 
         // finally, the translated part.
         key = executor.SetLocaleEntry(key, textCopy, forExceptions, true)?.key;
 
         if (key == null)
-            output[index] = new JSONText(textCopy);
+            output[index] = new Text(textCopy);
         else
-            output[index] = hasNewlines ? new JSONTranslate(key).WithNewlineSupport() : new JSONTranslate(key);
+            output[index] = hasNewlines ? new Translate(key).WithNewlineSupport() : new Translate(key);
 
         // done
         return output;
@@ -124,16 +124,16 @@ public class JSONText : JSONRawTerm
 /// <summary>
 ///     Represents the value of a scoreboard objective under a certain entity.
 /// </summary>
-public class JSONScore : JSONRawTerm
+public class Score : RawTextEntry
 {
     private readonly string objective;
     private readonly string selector;
-    public JSONScore(string selector, string objective)
+    public Score(string selector, string objective)
     {
         this.selector = EscapeString(selector);
         this.objective = EscapeString(objective);
     }
-    public JSONScore(ScoreboardValue objective)
+    public Score(ScoreboardValue objective)
     {
         this.selector = EscapeString(objective.clarifier.CurrentString);
         this.objective = EscapeString(objective.InternalName);
@@ -151,7 +151,7 @@ public class JSONScore : JSONRawTerm
     }
     public override string PreviewString() { return "[SCORE " + this.objective + " OF " + this.selector + ']'; }
 
-    public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
+    public override RawTextEntry[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
         return [this];
     }
@@ -160,10 +160,10 @@ public class JSONScore : JSONRawTerm
 /// <summary>
 ///     Represents an entity's name based off of a selector.
 /// </summary>
-public class JSONSelector : JSONRawTerm
+public class Selector : RawTextEntry
 {
     private readonly string selector;
-    public JSONSelector(string selector) { this.selector = EscapeString(selector); }
+    public Selector(string selector) { this.selector = EscapeString(selector); }
 
     public override JObject Build()
     {
@@ -174,7 +174,7 @@ public class JSONSelector : JSONRawTerm
     }
     public override string PreviewString() { return '[' + this.selector + ']'; }
 
-    public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
+    public override RawTextEntry[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
         return [this];
     }
@@ -183,27 +183,27 @@ public class JSONSelector : JSONRawTerm
 /// <summary>
 ///     Represents a translation key with optional objects inserted.
 /// </summary>
-public class JSONTranslate : JSONRawTerm
+public class Translate : RawTextEntry
 {
     private readonly string translationKey;
-    private readonly List<RawTextJsonBuilder> with;
+    private readonly List<RawText> with;
     private readonly List<string> withStr;
 
     private bool withUsesStr;
 
-    public JSONTranslate(string translationKey)
+    public Translate(string translationKey)
     {
         this.translationKey = EscapeString(translationKey);
         this.withStr = [];
         this.with = [];
     }
-    public JSONTranslate With(params RawTextJsonBuilder[] jsonTerms)
+    public Translate With(params RawText[] jsonTerms)
     {
         this.withUsesStr = false;
         this.with.AddRange(jsonTerms);
         return this;
     }
-    public JSONTranslate With(params string[] strings)
+    public Translate With(params string[] strings)
     {
         this.withUsesStr = true;
         this.withStr.AddRange(strings);
@@ -213,7 +213,7 @@ public class JSONTranslate : JSONRawTerm
     ///     Adds a "with" entry to this rawtext, which enables support for using newlines.
     /// </summary>
     /// <returns></returns>
-    public JSONTranslate WithNewlineSupport() { return With("\n"); }
+    public Translate WithNewlineSupport() { return With("\n"); }
 
     public override JObject Build()
     {
@@ -238,7 +238,7 @@ public class JSONTranslate : JSONRawTerm
     }
     public override string PreviewString() { return '[' + this.translationKey + ']'; }
 
-    public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
+    public override RawTextEntry[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
         return [this];
     }
@@ -247,12 +247,12 @@ public class JSONTranslate : JSONRawTerm
 /// <summary>
 ///     A term which can convert to multiple possible outcomes depending on the evaluation
 /// </summary>
-public class JSONVariant : JSONRawTerm
+public class Variant : RawTextEntry
 {
     public readonly List<ConditionalTerm> terms;
 
-    public JSONVariant(params ConditionalTerm[] terms) { this.terms = [..terms]; }
-    public JSONVariant(IEnumerable<ConditionalTerm> terms) { this.terms = [..terms]; }
+    public Variant(params ConditionalTerm[] terms) { this.terms = [..terms]; }
+    public Variant(IEnumerable<ConditionalTerm> terms) { this.terms = [..terms]; }
     public override JObject Build()
     {
         // not supposed to get string'd
@@ -260,11 +260,11 @@ public class JSONVariant : JSONRawTerm
     }
     public override string PreviewString() { return "{variant}"; }
 
-    public override JSONRawTerm[] Localize(Executor executor, string identifier, Statement forExceptions)
+    public override RawTextEntry[] Localize(Executor executor, string identifier, Statement forExceptions)
     {
         IEnumerable<ConditionalTerm> newConditionals =
             this.terms.Select(term => term.Localize(executor, identifier, forExceptions));
-        return [new JSONVariant(newConditionals.ToArray())];
+        return [new Variant(newConditionals.ToArray())];
     }
 }
 
@@ -272,9 +272,9 @@ public class ConditionalTerm
 {
     internal readonly ConditionalSubcommand condition;
     internal readonly bool invert;
-    internal readonly JSONRawTerm[] terms;
+    internal readonly RawTextEntry[] terms;
 
-    internal ConditionalTerm(JSONRawTerm[] terms, ConditionalSubcommand condition, bool invert)
+    internal ConditionalTerm(RawTextEntry[] terms, ConditionalSubcommand condition, bool invert)
     {
         this.terms = terms;
         this.condition = condition;
@@ -287,7 +287,7 @@ public class ConditionalTerm
     /// <returns></returns>
     internal ConditionalTerm Localize(Executor executor, string identifier, Statement forExceptions)
     {
-        IEnumerable<JSONRawTerm> localizedTerms =
+        IEnumerable<RawTextEntry> localizedTerms =
             this.terms.SelectMany(term => term.Localize(executor, identifier, forExceptions));
         return new ConditionalTerm(localizedTerms.ToArray(), this.condition, this.invert);
     }

@@ -27,43 +27,37 @@ internal sealed class TypedefBoolean : Typedef
             ConditionalSubcommandScore.New(value, new Range(1, invert))
         ];
     }
-    internal override string[] GetObjectives(ScoreboardValue input)
-    {
-        return [input.InternalName];
-    }
+    internal override string[] GetObjectives(ScoreboardValue input) { return [input.InternalName]; }
 
     // Conversion
-    internal override bool CanConvertTo(Typedef type)
-    {
-        return false;
-    }
-    internal override IEnumerable<string> ConvertTo(ScoreboardValue src, ScoreboardValue dst)
-    {
-        return [];
-    }
+    internal override bool CanConvertTo(Typedef type) { return false; }
+    internal override IEnumerable<string> ConvertTo(ScoreboardValue src, ScoreboardValue dst) { return []; }
 
     // Other
-    internal override Tuple<string[], JSONRawTerm[]> ToRawText(ScoreboardValue value, ref int index)
+    internal override Tuple<string[], RawTextEntry[]> ToRawText(ScoreboardValue value, ref int index)
     {
         value.manager.executor.TryGetPPV("_true", out PreprocessorVariable trueValues);
         value.manager.executor.TryGetPPV("_false", out PreprocessorVariable falseValues);
 
         Range check = Range.Of(1);
 
-        var terms = new JSONRawTerm[]
+        var terms = new RawTextEntry[]
         {
-            new JSONVariant(
-                new ConditionalTerm([new JSONText(trueValues[0].ToString())],
+            new Variant(
+                new ConditionalTerm([new Text(trueValues[0].ToString())],
                     ConditionalSubcommandScore.New(value, check), false),
-                new ConditionalTerm([new JSONText(falseValues[0].ToString())],
+                new ConditionalTerm([new Text(falseValues[0].ToString())],
                     ConditionalSubcommandScore.New(value, check), true)
             )
         };
 
-        return new Tuple<string[], JSONRawTerm[]>(null, terms);
+        return new Tuple<string[], RawTextEntry[]>(null, terms);
     }
     internal override Tuple<string[], ConditionalSubcommandScore[]> CompareToLiteral(
-        TokenCompare.Type comparisonType, ScoreboardValue self, TokenLiteral literal, Statement callingStatement)
+        TokenCompare.Type comparisonType,
+        ScoreboardValue self,
+        TokenLiteral literal,
+        Statement callingStatement)
     {
         if (literal is not TokenBooleanLiteral booleanLiteral)
             throw LiteralConversionError(self, literal, callingStatement);
@@ -94,7 +88,8 @@ internal sealed class TypedefBoolean : Typedef
             ]
         );
     }
-    internal override IEnumerable<string> AssignLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> AssignLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         if (literal is not TokenBooleanLiteral booleanLiteral)
@@ -102,44 +97,52 @@ internal sealed class TypedefBoolean : Typedef
 
         return [Command.ScoreboardSet(self, (bool) booleanLiteral ? 1 : 0)];
     }
-    internal override IEnumerable<string> AddLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> AddLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         throw UnsupportedOperationError(self, UnsupportedOperationType.AddLiteral, callingStatement);
     }
-    internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self, TokenLiteral literal,
+    internal override IEnumerable<string> SubtractLiteral(ScoreboardValue self,
+        TokenLiteral literal,
         Statement callingStatement)
     {
         throw UnsupportedOperationError(self, UnsupportedOperationType.SubtractLiteral, callingStatement);
     }
 
     // Methods
-    internal override IEnumerable<string> _Assign(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Assign(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         return [Command.ScoreboardOpSet(self, other)];
     }
-    internal override IEnumerable<string> _Add(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Add(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         throw UnsupportedOperationError(self, UnsupportedOperationType.Add, callingStatement);
     }
-    internal override IEnumerable<string> _Subtract(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Subtract(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         throw UnsupportedOperationError(self, UnsupportedOperationType.Subtract, callingStatement);
     }
-    internal override IEnumerable<string> _Multiply(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Multiply(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         throw UnsupportedOperationError(self, UnsupportedOperationType.Multiply, callingStatement);
     }
-    internal override IEnumerable<string> _Divide(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Divide(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         throw UnsupportedOperationError(self, UnsupportedOperationType.Divide, callingStatement);
     }
-    internal override IEnumerable<string> _Modulo(ScoreboardValue self, ScoreboardValue other,
+    internal override IEnumerable<string> _Modulo(ScoreboardValue self,
+        ScoreboardValue other,
         Statement callingStatement)
     {
         throw UnsupportedOperationError(self, UnsupportedOperationType.Modulo, callingStatement);
