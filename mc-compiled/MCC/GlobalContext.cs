@@ -76,7 +76,7 @@ public class Context : ICloneable
     public const string PROJECT_BP = "?project_BP";
     public const string PROJECT_RP = "?project_RP";
     public const string PROJECT_REPLACER = "?project";
-    private const string APP_ID = "Microsoft.MinecraftUWP_8wekyb3d8bbwe";
+    internal const string APP_ID = "Minecraft Bedrock";
 
     /// <summary>
     ///     The path to output the behavior pack at.
@@ -151,20 +151,20 @@ public class Context : ICloneable
 
     /// <summary>
     ///     Configures the output paths for the behavior pack and resource pack to be within the development folders
-    ///     used by Minecraft's local storage, specifically under "development_behavior_packs" and
+    ///     used by Minecraft's roaming storage, specifically under "development_behavior_packs" and
     ///     "development_resource_packs".
     /// </summary>
     /// <remarks>
     ///     This method modifies the <see cref="Context.behaviorPackOutputPath" /> and
     ///     <see cref="Context.resourcePackOutputPath" />
-    ///     properties to point to development folders. The paths are formulated using the current user's
-    ///     Local AppData directory and are based on the <see cref="APP_ID" /> for the Minecraft UWP application.
+    ///     properties to point to development folders. The paths are formulated starting at the machine's Roaming AppData
+    ///     directory and moving up to the shared "com.mojang" folder.
     /// </remarks>
     public void SetOutputToDevelopmentFolders()
     {
-        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string comMojang = Path.Combine(localAppData, "Packages", APP_ID, "LocalState", "games",
-            "com.mojang");
+        string roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string comMojang = Path.Combine(roamingAppData, APP_ID, "Users", "Shared", "games", "com.mojang");
+
         this.behaviorPackOutputPath = Path.Combine(comMojang, "development_behavior_packs") + '\\' + PROJECT_BP;
         this.resourcePackOutputPath = Path.Combine(comMojang, "development_resource_packs") + '\\' + PROJECT_RP;
     }

@@ -19,7 +19,7 @@ you compiled. MCCompiled would instead only create the Behavior Pack the first t
 
 ## Changing Output Location
 You have control over where both the behavior pack and resource pack end up, as well as an option for targeting the
-Minecraft UWP development folders if needed.
+Minecraft Bedrock development folders if needed.
 
 ### Manual Location
 Specifying manual location can be done using input parameters; one for behavior pack location, and one for resource pack location.

@@ -351,7 +351,7 @@ public class MCCServer : IDisposable
             return false;
 
         // handle multipart/continuation
-        if (frame.fin == false)
+        if (!frame.fin)
         {
             if (frame.opcode == WebSocketOpCode.CONTINUATION)
             {
@@ -399,7 +399,7 @@ public class MCCServer : IDisposable
             string text = ENCODING.GetString(frame.data);
 
             // this is probably JSON
-            if (text.StartsWith("{") && text.EndsWith("}"))
+            if (text.StartsWith('{') && text.EndsWith('}'))
             {
                 JObject json = JObject.Parse(text);
                 return HandleJSON(package, json);

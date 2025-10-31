@@ -9,26 +9,14 @@ namespace mc_compiled_language_server.MCC;
 /// </summary>
 public class Project
 {
-    private const string MinecraftUWP = "Microsoft.MinecraftUWP_8wekyb3d8bbwe";
-
     /// <summary>
     ///     The current code this project's working with. Represented as individual lines.
     /// </summary>
     private readonly List<StringBuilder> code;
     /// <summary>
-    ///     The location where the behavior pack will be emitted.
-    /// </summary>
-    private readonly string outputBehaviorPack;
-
-    /// <summary>
-    ///     The location where the resource pack will be emitted.
-    /// </summary>
-    private readonly string outputResourcePack;
-    /// <summary>
     ///     The directory the loaded file resides in.
     /// </summary>
     internal string fileDirectory;
-
     /// <summary>
     ///     The location of the loaded file.
     /// </summary>
@@ -45,24 +33,9 @@ public class Project
     public Project(string file, string code, string? projectName)
     {
         this.fileLocation = file;
-        this.fileDirectory = Path.GetDirectoryName(file) ?? "./";
+        this.fileDirectory = Path.GetDirectoryName(file) ?? ".\\";
         this.code = [..code.Split('\n').Select(x => new StringBuilder(x.Trim('\r')))];
         this.projectName = projectName ?? Path.GetFileNameWithoutExtension(file);
-
-        if (OperatingSystem.IsWindows())
-        {
-            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string comMojang = Path.Combine(localAppData, "Packages",
-                MinecraftUWP, "LocalState", "games", "com.mojang");
-            this.outputResourcePack = Path.Combine(comMojang, "development_resource_packs", $"{this.projectName}_RP");
-            this.outputBehaviorPack = Path.Combine(comMojang, "development_behavior_packs", $"{this.projectName}_BP");
-        }
-        else
-        {
-            // I don't know where the game is stored on other platforms
-            this.outputResourcePack = Path.Combine(AppContext.BaseDirectory, "mccompiled", $"{this.projectName}_RP");
-            this.outputBehaviorPack = Path.Combine(AppContext.BaseDirectory, "mccompiled", $"{this.projectName}_BP");
-        }
     }
 
     /// <summary>
