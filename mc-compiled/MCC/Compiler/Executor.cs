@@ -245,40 +245,6 @@ public partial class Executor
         Console.WriteLine("<L{0}> {1}", source.Lines[0], warning);
         Console.ForegroundColor = old;
     }
-    /// <summary>
-    ///     Defer an action to happen after the next valid statement has run.
-    /// </summary>
-    /// <param name="action"></param>
-    public void DeferAction(Action<Executor> action)
-    {
-        this.iterationsUntilDeferProcess = 2;
-        this.deferredActions.Push(action);
-    }
-    /// <summary>
-    ///     Tick the deferred actions and run all of them if the timer is in the right state.
-    /// </summary>
-    private void TickDeferredActions()
-    {
-        if (this.iterationsUntilDeferProcess <= 0)
-            return;
-
-        this.iterationsUntilDeferProcess--;
-        if (this.iterationsUntilDeferProcess != 0)
-            return;
-
-        AcceptDeferredActions();
-    }
-    /// <summary>
-    ///     Process all deferred actions in the queue.
-    /// </summary>
-    private void AcceptDeferredActions()
-    {
-        while (this.deferredActions.Count != 0)
-        {
-            Action<Executor> action = this.deferredActions.Pop();
-            action.Invoke(this);
-        }
-    }
 
     /// <summary>
     ///     Pushes to the prepend buffer the proper execute command needed to align to the given selector.
@@ -1117,9 +1083,12 @@ public partial class Executor
     ///     Reads the next statement, or set of statements if it is a block. Similar to Next() in that it updates the
     ///     readIndex.
     /// </summary>
-    /// <param name="shouldBlockAsyncBeDisabled">Should a block be fetched, should its effect on async statements be disabled?</param>
+    /// <param name="blockIgnoreAsync">
+    ///     If a <see cref="StatementOpenBlock" /> is fetched, should its effect on async statements
+    ///     be disabled?
+    /// </param>
     /// <returns></returns>
-    public Statement[] NextExecutionSet(bool shouldBlockAsyncBeDisabled)
+    public Statement[] NextExecutionSet(bool blockIgnoreAsync)
     {
         Statement current = this.statements[this.readIndex - 1];
 
@@ -1129,7 +1098,7 @@ public partial class Executor
         if (NextIs<StatementOpenBlock>())
         {
             var block = Next<StatementOpenBlock>();
-            if (shouldBlockAsyncBeDisabled)
+            if (blockIgnoreAsync)
                 block.ignoreAsync = true;
             int statementCount = block.statementsInside;
             Statement[] code = Peek(statementCount);
@@ -1211,9 +1180,6 @@ public partial class Executor
             // check for unreachable code due to a halt directive
             CheckUnreachable(statement);
 
-            // tick deferred processes
-            TickDeferredActions();
-
             if (GlobalContext.Debug)
                 Console.WriteLine("EXECUTE LN{0}: {1}", statement.Lines[0], statement);
         }
@@ -1251,9 +1217,6 @@ public partial class Executor
 
             // check for unreachable code due to halt directive
             CheckUnreachable(statement);
-
-            // tick deferred processes
-            TickDeferredActions();
 
             if (GlobalContext.Debug)
                 Console.WriteLine("EXECUTE SUBSECTION LN{0}: {1}", statement.Lines[0], statement);

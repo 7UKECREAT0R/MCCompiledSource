@@ -498,60 +498,43 @@ public static class DirectiveImplementations
 
         executor.SetLastIfResult(result);
 
-        if (executor.NextIs<StatementOpenBlock>())
-        {
-            var block = executor.Peek<StatementOpenBlock>();
-            block.ignoreAsync = true;
+        var block = executor.Peek<StatementOpenBlock>();
+        block.ignoreAsync = true;
 
-            if (result)
-                block.openAction = null;
-            else
-                block.openAction = e =>
-                {
-                    for (int i = 0; i < block.statementsInside; i++)
-                        e.Next();
-                };
+        if (result)
+            block.openAction = null;
+        else
+            block.openAction = e =>
+            {
+                for (int i = 0; i < block.statementsInside; i++)
+                    e.Next();
+            };
 
-            block.CloseAction = null;
-            return;
-        }
-
-        if (!result)
-        {
-            if (!executor.HasNext)
-                throw new StatementException(tokens, "Unexpected end-of-file after $if statement.");
-            executor.Next(); // skip the next statement
-        }
+        block.CloseAction = null;
     }
     [UsedImplicitly]
     public static void _else(Executor executor, Statement tokens)
     {
+        if (!executor.HasNext)
+            throw new StatementException(tokens, "End of file after $else statement.");
+
         bool run = !executor.GetLastIfResult();
 
-        if (executor.NextIs<StatementOpenBlock>())
+        var block = executor.Peek<StatementOpenBlock>();
+        block.ignoreAsync = true;
+        if (run)
         {
-            var block = executor.Peek<StatementOpenBlock>();
-            block.ignoreAsync = true;
-            if (run)
-            {
-                block.openAction = null;
-                block.CloseAction = null;
-            }
-            else
-            {
-                block.openAction = e =>
-                {
-                    block.CloseAction = null;
-                    for (int i = 0; i < block.statementsInside; i++)
-                        e.Next();
-                };
-            }
+            block.openAction = null;
+            block.CloseAction = null;
         }
-        else if (!run)
+        else
         {
-            if (!executor.HasNext)
-                throw new StatementException(tokens, "Unexpected end-of-file after $else statement.");
-            executor.Next(); // skip the next statement
+            block.openAction = e =>
+            {
+                block.CloseAction = null;
+                for (int i = 0; i < block.statementsInside; i++)
+                    e.Next();
+            };
         }
     }
     [UsedImplicitly]
@@ -1509,89 +1492,63 @@ public static class DirectiveImplementations
                 .WithSubcommand(new SubcommandUnless(set.conditionalUsed))
                 .Run();
 
-        Statement nextStatement = executor.Seek();
+        if (executor.Seek() is not StatementOpenBlock openBlock)
+            throw new StatementException(tokens,
+                $"else-statement was expecting a block, but got {executor.Seek()}. The compiler should have done this during a prepass; please report to devs.");
 
-        if (nextStatement is StatementOpenBlock openBlock)
+        if (openBlock.statementsInside > 0)
         {
-            // only do the block stuff if necessary.
-            if (openBlock.statementsInside > 0)
+            if (cancel)
             {
-                if (cancel)
+                openBlock.openAction = e =>
                 {
-                    openBlock.openAction = e =>
-                    {
-                        openBlock.CloseAction = null;
-                        for (int i = 0; i < openBlock.statementsInside; i++)
-                            e.Next();
-                    };
+                    openBlock.CloseAction = null;
+                    for (int i = 0; i < openBlock.statementsInside; i++)
+                        e.Next();
+                };
 
-                    set.Dispose();
-                }
-                else
-                {
-                    if (openBlock.meaningfulStatementsInside == 1)
-                    {
-                        // modify prepend buffer as if 1 statement was there
-                        executor.AppendCommandPrepend(prefix);
-                        openBlock.openAction = null;
-                        openBlock.CloseAction = _ =>
-                        {
-                            set.Dispose();
-                        };
-                    }
-                    else
-                    {
-                        CommandFile blockFile = Executor.GetNextGeneratedFile("branch", false);
-
-                        if (GlobalContext.Decorate)
-                        {
-                            blockFile.Add($"# Run if the previous condition {set.sourceStatement} did not run.");
-                            blockFile.AddTrace(executor.CurrentFile);
-                        }
-
-                        string command = prefix + Command.Function(blockFile);
-                        executor.AddCommand(command);
-
-                        openBlock.openAction = e =>
-                        {
-                            e.PushFile(blockFile);
-                        };
-                        openBlock.CloseAction = e =>
-                        {
-                            set.Dispose();
-                            e.PopFile();
-                        };
-                    }
-                }
+                set.Dispose();
             }
             else
             {
-                openBlock.openAction = null;
-                openBlock.CloseAction = null;
-
-                executor.DeferAction(_ =>
+                if (openBlock.meaningfulStatementsInside == 1)
                 {
-                    set.Dispose();
-                });
+                    // modify the prepend buffer as if 1 statement was there
+                    executor.AppendCommandPrepend(prefix);
+                    openBlock.openAction = null;
+                    openBlock.CloseAction = _ =>
+                    {
+                        set.Dispose();
+                    };
+                }
+                else
+                {
+                    CommandFile blockFile = Executor.GetNextGeneratedFile("branch", false);
+
+                    if (GlobalContext.Decorate)
+                    {
+                        blockFile.Add($"# Run if the previous condition {set.sourceStatement} did not run.");
+                        blockFile.AddTrace(executor.CurrentFile);
+                    }
+
+                    string command = prefix + Command.Function(blockFile);
+                    executor.AddCommand(command);
+
+                    openBlock.openAction = e =>
+                    {
+                        e.PushFile(blockFile);
+                    };
+                    openBlock.CloseAction = e =>
+                    {
+                        set.Dispose();
+                        e.PopFile();
+                    };
+                }
             }
         }
         else
         {
-            if (cancel)
-            {
-                while (executor.HasNext && executor.Peek().Skip)
-                    executor.Next();
-                executor.Next();
-            }
-            else
-            {
-                executor.AppendCommandPrepend(prefix);
-            }
-
-            executor.DeferAction(_ =>
-            {
-                set.Dispose();
-            });
+            set.Dispose();
         }
     }
     [UsedImplicitly]
@@ -1600,10 +1557,11 @@ public static class DirectiveImplementations
         Statement nextStatement = executor.Seek();
         if (nextStatement == null)
             throw new StatementException(tokens, "Unexpected end of file after repeat-statement.");
+        if (nextStatement is not StatementOpenBlock openBlock)
+            throw new StatementException(tokens,
+                $"while-loop call was expecting a block, but got {nextStatement}. The compiler should have done this during a prepass; please report to devs.");
 
-        Statement[] repeatStatements = nextStatement is StatementOpenBlock _openBlock
-            ? executor.Peek(1, _openBlock.statementsInside)
-            : [nextStatement];
+        Statement[] repeatStatements = executor.Peek(1, openBlock.statementsInside);
         bool isAsync = executor.async.IsInAsync && repeatStatements.Any(s => s.DoesAsyncSplit);
 
         if (isAsync) // temporary throw while this is unsupported.
@@ -1617,29 +1575,18 @@ public static class DirectiveImplementations
         ComparisonSet set = ComparisonSet.GetComparisons(executor, tokens);
         set.RunCommand(Command.Function(loopCode), executor, tokens);
         executor.PopFile();
+        executor.AddCommand(Command.Function(sustainLoop));
 
-        Action<Executor> whenCodeIsOver = exec =>
+        openBlock.SetLangContext("while");
+        openBlock.openAction = exec =>
+        {
+            exec.PushFile(loopCode);
+        };
+        openBlock.CloseAction = exec =>
         {
             loopCode.Add(Command.Function(sustainLoop));
             exec.PopFile();
         };
-
-        executor.AddCommand(Command.Function(sustainLoop));
-
-        if (nextStatement is StatementOpenBlock openBlock)
-        {
-            openBlock.SetLangContext("while");
-            openBlock.openAction = exec =>
-            {
-                exec.PushFile(loopCode);
-            };
-            openBlock.CloseAction = whenCodeIsOver;
-        }
-        else
-        {
-            executor.PushFile(loopCode);
-            executor.DeferAction(whenCodeIsOver);
-        }
     }
     [UsedImplicitly]
     public static void repeat(Executor executor, Statement tokens)
@@ -1650,10 +1597,11 @@ public static class DirectiveImplementations
         Statement nextStatement = executor.Seek();
         if (nextStatement == null)
             throw new StatementException(tokens, "Unexpected end of file after repeat-statement.");
+        if (nextStatement is not StatementOpenBlock openBlock)
+            throw new StatementException(tokens,
+                $"repeat call was expecting a block, but got {nextStatement}. The compiler should have done this during a prepass; please report to devs.");
 
-        Statement[] repeatStatements = nextStatement is StatementOpenBlock _openBlock
-            ? executor.Peek(1, _openBlock.statementsInside)
-            : [nextStatement];
+        Statement[] repeatStatements = executor.Peek(1, openBlock.statementsInside);
         bool isAsync = executor.async.IsInAsync && repeatStatements.Any(s => s.DoesAsyncSplit);
 
         if (isAsync) // temporary throw while this is unsupported.
@@ -1735,34 +1683,24 @@ public static class DirectiveImplementations
             .Run(Command.Function(loopCode)));
         startLoopCommands.Add(Command.Function(sustainLoop));
 
-        Action<Executor> whenCodeIsOver = exec =>
-        {
-            loopCode.Add(storeIn.SubtractLiteral(new TokenIntegerLiteral(1, IntMultiplier.none, tokens.Lines[0]),
-                tokens));
-            loopCode.Add(Command.Function(sustainLoop));
-            exec.PopFile();
-        };
-
         CommandFile file = executor.CurrentFile;
 
         executor.AddExtraFile(sustainLoop);
         executor.AddCommands(startLoopCommands, "beginRepeat",
             $"Begins a loop that repeats {repetitionsString} times. Located in {file.CommandReference} line {executor.NextLineNumber}.");
 
-        if (nextStatement is StatementOpenBlock openBlock)
+        openBlock.SetLangContext("repeat");
+        openBlock.openAction = exec =>
         {
-            openBlock.SetLangContext("repeat");
-            openBlock.openAction = exec =>
-            {
-                exec.PushFile(loopCode);
-            };
-            openBlock.CloseAction = whenCodeIsOver;
-        }
-        else
+            exec.PushFile(loopCode);
+        };
+        openBlock.CloseAction = exec =>
         {
-            executor.PushFile(loopCode);
-            executor.DeferAction(whenCodeIsOver);
-        }
+            loopCode.Add(storeIn.SubtractLiteral(new TokenIntegerLiteral(1, IntMultiplier.none, tokens.Lines[0]),
+                tokens));
+            loopCode.Add(Command.Function(sustainLoop));
+            exec.PopFile();
+        };
     }
     [UsedImplicitly]
     public static void assert(Executor executor, Statement tokens)
@@ -3659,70 +3597,64 @@ public static class DirectiveImplementations
 
         Statement next = executor.Seek();
 
-        if (next is StatementOpenBlock openBlock)
+        if (next is not StatementOpenBlock openBlock)
+            throw new StatementException(tokens,
+                $"execute call was expecting a block, but got {next}. The compiler should have done this during a prepass; please report to devs.");
+
+        openBlock.ignoreAsync = true;
+
+        // only do the block stuff if necessary.
+        if (openBlock.meaningfulStatementsInside == 0)
         {
-            openBlock.ignoreAsync = true;
+            openBlock.openAction = null;
+            openBlock.CloseAction = null;
+            return; // do nothing
+        }
 
-            // only do the block stuff if necessary.
-            if (openBlock.meaningfulStatementsInside == 0)
-            {
-                openBlock.openAction = null;
-                openBlock.CloseAction = null;
-                return; // do nothing
-            }
+        // tiny contextual information without being too long
+        var langContext = new StringBuilder("execute");
+        if (builder.TryGetFirst(out SubcommandAs _as))
+            langContext.Append("_as_" + _as.entity.core);
+        if (builder.TryGetFirst(out SubcommandIf _))
+            langContext.Append("_if");
+        if (builder.TryGetFirst(out SubcommandUnless _))
+            langContext.Append("_unless");
+        openBlock.SetLangContext(langContext.ToString());
 
-            // tiny contextual information without being too long
-            var langContext = new StringBuilder("execute");
-            if (builder.TryGetFirst(out SubcommandAs _as))
-                langContext.Append("_as_" + _as.entity.core);
-            if (builder.TryGetFirst(out SubcommandIf _))
-                langContext.Append("_if");
-            if (builder.TryGetFirst(out SubcommandUnless _))
-                langContext.Append("_unless");
-            openBlock.SetLangContext(langContext.ToString());
+        string finalExecute = builder
+            .WithSubcommand(new SubcommandRun())
+            .Build(out _);
 
-            string finalExecute = builder
-                .WithSubcommand(new SubcommandRun())
-                .Build(out _);
-
-            if (openBlock.meaningfulStatementsInside == 1)
-            {
-                // modify the prepend buffer as if 1 statement was there
-                executor.AppendCommandPrepend(finalExecute);
-                openBlock.openAction = null;
-                openBlock.CloseAction = null;
-            }
-            else
-            {
-                CommandFile blockFile = Executor.GetNextGeneratedFile("execute", false);
-
-                if (GlobalContext.Decorate)
-                {
-                    CommandFile file = executor.CurrentFile;
-                    string subcommandsString = builder.BuildClean(out _);
-                    blockFile.Add($"# Run under the following execute subcommands: [{subcommandsString}]");
-                    blockFile.AddTrace(file);
-                }
-
-                string command = finalExecute + Command.Function(blockFile);
-                executor.AddCommand(command);
-
-                openBlock.openAction = e =>
-                {
-                    e.PushFile(blockFile);
-                };
-                openBlock.CloseAction = e =>
-                {
-                    e.PopFile();
-                };
-            }
+        if (openBlock.meaningfulStatementsInside == 1)
+        {
+            // modify the prepend buffer as if 1 statement was there
+            executor.AppendCommandPrepend(finalExecute);
+            openBlock.openAction = null;
+            openBlock.CloseAction = null;
         }
         else
         {
-            string finalExecute = builder
-                .WithSubcommand(new SubcommandRun())
-                .Build(out _);
-            executor.AppendCommandPrepend(finalExecute);
+            CommandFile blockFile = Executor.GetNextGeneratedFile("execute", false);
+
+            if (GlobalContext.Decorate)
+            {
+                CommandFile file = executor.CurrentFile;
+                string subcommandsString = builder.BuildClean(out _);
+                blockFile.Add($"# Run under the following execute subcommands: [{subcommandsString}]");
+                blockFile.AddTrace(file);
+            }
+
+            string command = finalExecute + Command.Function(blockFile);
+            executor.AddCommand(command);
+
+            openBlock.openAction = e =>
+            {
+                e.PushFile(blockFile);
+            };
+            openBlock.CloseAction = e =>
+            {
+                e.PopFile();
+            };
         }
     }
     [UsedImplicitly]

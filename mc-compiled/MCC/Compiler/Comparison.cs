@@ -271,7 +271,7 @@ public class ComparisonSet : List<Comparison>
         if (usesElse || executor.async.IsInAsync) // if we're in async, we need implicit else for skipping stages
             ApplyComparisonToWithElse(chunks, prepFile, callingStatement, executor, cancel);
         else
-            ApplyComparisonToSolo(chunks, executor, cancel);
+            ApplyComparisonToSolo(chunks, executor, callingStatement, cancel);
     }
 
     /// <summary>
@@ -295,7 +295,7 @@ public class ComparisonSet : List<Comparison>
 
             if (partCommands != null)
                 commands.AddRange(partCommands);
-            if (localChunks != null && localChunks.Length > 0)
+            if (localChunks is {Length: > 0})
                 chunks.AddRange(localChunks);
         }
 
@@ -344,15 +344,19 @@ public class ComparisonSet : List<Comparison>
     /// </summary>
     /// <param name="chunks">The chunks to add.</param>
     /// <param name="executor">The executor to modify.</param>
+    /// <param name="forExceptions"></param>
     /// <param name="cancel">Whether to cancel the execution by skipping the statement.</param>
-    private void ApplyComparisonToSolo(IEnumerable<Subcommand> chunks, Executor executor, bool cancel)
+    private void ApplyComparisonToSolo(IEnumerable<Subcommand> chunks,
+        Executor executor,
+        Statement forExceptions,
+        bool cancel)
     {
         string prepend = new ExecuteBuilder()
             .WithSubcommands(chunks)
             .WithSubcommand(new SubcommandRun())
             .Build(out _);
 
-        InjectBranch(executor, prepend, cancel);
+        InjectBranch(executor, prepend, cancel, forExceptions);
     }
 
     /// <summary>
@@ -384,12 +388,13 @@ public class ComparisonSet : List<Comparison>
             .WithSubcommand(new SubcommandIf(used))
             .Run();
 
-        InjectBranch(executor, executePrefix, cancel, record);
+        InjectBranch(executor, executePrefix, cancel, forExceptions, record);
     }
 
     private void InjectBranch(Executor executor,
         string prepend,
         bool cancel,
+        Statement forExceptions,
         PreviousComparisonStructure elseInfo = null)
     {
         // get the next statement to determine how to inject the comparison
@@ -398,7 +403,8 @@ public class ComparisonSet : List<Comparison>
         if (next is StatementOpenBlock openBlock)
             InjectBranchBlock(executor, prepend, cancel, openBlock, elseInfo);
         else
-            InjectBranchSingle(executor, prepend, cancel, elseInfo);
+            throw new StatementException(forExceptions,
+                $"Comparison {nameof(InjectBranch)} call was expecting a block, but got {next}. The compiler should have done this during a prepass; please report to devs."); // InjectBranchSingle(executor, prepend, cancel, elseInfo);
     }
     private void InjectBranchBlock(Executor executor,
         string prepend,
@@ -488,55 +494,6 @@ public class ComparisonSet : List<Comparison>
         {
             e.PopFile();
         };
-    }
-    private static void InjectBranchSingle(Executor executor,
-        string prepend,
-        bool cancel,
-        PreviousComparisonStructure elseInfo = null)
-    {
-        if (cancel)
-        {
-            while (executor.HasNext && executor.Peek().Skip)
-                executor.Next();
-            executor.Next();
-            return;
-        }
-
-        // special case if we're in an async context.
-        if (executor.async.IsInAsync)
-        {
-            // we only want to do this if there will actually be an async split inside
-            Statement nextStatement = executor.Seek();
-            if (nextStatement.DoesAsyncSplit)
-            {
-                // we need to start a new async stage to hold the single affected stage.
-                CommandFile originalFile = executor.CurrentFile;
-                string currentFunction = executor.async.CurrentFunction.escapedFunctionName;
-                int nextStage = executor.async.CurrentFunction.NextStageIndex;
-                string nextStageName = AsyncStage.NameStageFunction(currentFunction, nextStage, true);
-                executor.AddCommand(prepend + Command.Function(nextStageName));
-
-                // start the new one
-                executor.async.CurrentFunction.FinishStageImmediate();
-                executor.async.CurrentFunction.StartNewStage();
-
-                // defer ending the stage until next statement
-                executor.DeferAction(e =>
-                {
-                    if (elseInfo == null)
-                        throw new Exception("Did not get PreviousComparisonStructure for async branch evaluation.");
-
-                    AsyncStage closingStage = e.async.CurrentFunction.ActiveStage;
-                    string elseCommand = new ExecuteBuilder()
-                        .WithSubcommand(new SubcommandUnless(elseInfo.conditionalUsed))
-                        .Run(Command.Function(closingStage.file));
-                    originalFile.Add(elseCommand);
-                });
-                return;
-            }
-        }
-
-        executor.AppendCommandPrepend(prepend);
     }
 
     /// <summary>

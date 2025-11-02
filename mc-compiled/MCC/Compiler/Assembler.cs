@@ -73,7 +73,10 @@ public static class Assembler
                         if (blocks.Count == 0)
                             throw new TokenizerException("Unused closing bracket.", [current.lineNumber]);
 
-                        StatementOpenBlock opener = blocks.Pop();
+                        if (!blocks.TryPop(out StatementOpenBlock opener))
+                            throw new TokenizerException("Closing bracket without an associated open bracket.",
+                                [current.lineNumber]);
+
                         int statementCountRaw = statements.Count - opener.statementsInside;
                         int statementCount = statements
                             .Skip(opener.statementsInside)
@@ -104,11 +107,79 @@ public static class Assembler
             ]);
 
         if (buffer.Count <= 0)
-            return statements.ToArray();
+            return StatementsPrepass(statements);
 
         assembledStatement = TryAssembleLine(buffer.ToArray(), fileName);
         statements.Add(assembledStatement);
         buffer.Clear();
+
+        return StatementsPrepass(statements);
+    }
+    /// <summary>
+    ///     Runs a prepass over the given statements list before returning it as an array of statements.
+    ///     As of now, this process:
+    ///     <ul>
+    ///         <li>
+    ///             Places virtual blocks around any statements following directive calls which have the
+    ///             <see cref="DirectiveAttribute.FORCE_CODE_BLOCK" /> attribute.
+    ///         </li>
+    ///     </ul>
+    /// </summary>
+    /// <param name="statements">The list of statements to run the prepass over. The list will be modified.</param>
+    /// <returns>An array of <see cref="Statement" />s representing the input <paramref name="statements" /> after the prepass.</returns>
+    private static Statement[] StatementsPrepass(List<Statement> statements)
+    {
+        // creating virtual code blocks surrounding single statements following directive calls with the FORCE_CODE_BLOCK attribute
+        // iterates backwards to propagate changes to higher-scope statements to lower-scope ones
+        bool firstIteration = true;
+        for (int i = statements.Count - 1; i >= 1; i--)
+        {
+            Statement nextStatement = statements[i - 1];
+
+            if (!nextStatement.HasAttribute(DirectiveAttribute.FORCE_CODE_BLOCK))
+            {
+                firstIteration = false;
+                continue; // not a directive with FORCE_CODE_BLOCK, leave as-is
+            }
+
+            Statement currentStatement = statements[i];
+            if (currentStatement is StatementOpenBlock)
+                continue; // already a block
+
+            Statement previousStatement = firstIteration ? null : statements[i + 1];
+            firstIteration = false;
+
+            int statementCount = 1;
+
+            // we also want to take into account if the PREVIOUS statement is a block
+            // (for example, the block following a function definition)
+            if (previousStatement is StatementOpenBlock previousOpenBlock)
+                statementCount += previousOpenBlock.statementsInside + 2;
+
+            var virtualOpener = new StatementOpenBlock(statementCount);
+            var virtualCloser = new StatementCloseBlock();
+            virtualOpener.closer = virtualCloser;
+            virtualCloser.opener = virtualOpener;
+            virtualOpener.SetSource(currentStatement.Lines, "/* virtual */ {", currentStatement.SourceFile);
+            virtualCloser.SetSource(currentStatement.Lines, "} /* virtual */", currentStatement.SourceFile);
+
+            if (statementCount == 0)
+                virtualOpener.meaningfulStatementsInside = 0;
+            if (statementCount == 1)
+            {
+                bool isCurrentMeaningful = currentStatement is not StatementComment;
+                virtualOpener.meaningfulStatementsInside = isCurrentMeaningful ? 1 : 0;
+            }
+            else
+            {
+                int meaningfulStatements = statements.Skip(i).Take(statementCount)
+                    .Count(s => s is not StatementComment);
+                virtualOpener.meaningfulStatementsInside = meaningfulStatements;
+            }
+
+            statements.Insert(i + statementCount, virtualCloser);
+            statements.Insert(i, virtualOpener);
+        }
 
         return statements.ToArray();
     }

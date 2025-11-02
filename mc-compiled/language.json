@@ -473,7 +473,8 @@
         }
       },
       "attributes": [
-        "DONT_DECORATE"
+        "DONT_DECORATE",
+        "FORCE_CODE_BLOCK"
       ]
     },
     "$else": {
@@ -486,7 +487,8 @@
         "code:block?"
       ],
       "attributes": [
-        "DONT_DECORATE"
+        "DONT_DECORATE",
+        "FORCE_CODE_BLOCK"
       ]
     },
     "$assert": {
@@ -556,10 +558,17 @@
           "patterns": [
             "indicator:id"
           ]
+        },
+        "code": {
+          "optional": true,
+          "patterns": [
+            "code:block"
+          ]
         }
       },
       "attributes": [
-        "MAY_EXPAND"
+        "MAY_EXPAND",
+        "FORCE_CODE_BLOCK"
       ]
     },
     "$log": {
@@ -886,7 +895,8 @@
       },
       "attributes": [
         "DONT_FLATTEN_ARRAYS",
-        "DONT_DECORATE"
+        "DONT_DECORATE",
+        "FORCE_CODE_BLOCK"
       ]
     },
     "$len": {
@@ -1217,7 +1227,10 @@
             "code:block"
           ]
         }
-      }
+      },
+      "attributes": [
+        "FORCE_CODE_BLOCK"
+      ]
     },
     "else": {
       "description": "Else Statement",
@@ -1229,6 +1242,7 @@
         "code:block?"
       ],
       "attributes": [
+        "FORCE_CODE_BLOCK",
         "INVERTS_COMPARISON"
       ]
     },
@@ -1237,7 +1251,10 @@
       "details": "Repeats the proceeding statement/code-block as long as a condition remains true.  Multiple comparisons can be chained using the keyword 'and', and comparisons can be inverted using the keyword 'not'",
       "category": "logic",
       "function": "whileLoop",
-      "syntax_ref": "if"
+      "syntax_ref": "if",
+      "attributes": [
+        "FORCE_CODE_BLOCK"
+      ]
     },
     "repeat": {
       "description": "Repeat N Times",
@@ -1267,7 +1284,10 @@
             "block to repeat:block"
           ]
         }
-      }
+      },
+      "attributes": [
+        "FORCE_CODE_BLOCK"
+      ]
     },
     "assert": {
       "description": "Assert Statement",
@@ -2370,7 +2390,7 @@
           ]
         },
         "block": {
-          "description": "Not required since extern functions don't require bodies.",
+          "description": "The block of code to associate with the function. Not required since extern functions don't require bodies.",
           "blocking": true,
           "patterns": [
             "function code:block"
@@ -2724,7 +2744,10 @@
             "code:block"
           ]
         }
-      }
+      },
+      "attributes": [
+        "FORCE_CODE_BLOCK"
+      ]
     },
     "await": {
       "description": "Await (async)",

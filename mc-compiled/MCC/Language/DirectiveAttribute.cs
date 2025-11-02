@@ -54,5 +54,11 @@ public enum DirectiveAttribute
     /// <summary>
     ///     This directive can only be used when a container is being defined inside a structure.
     /// </summary>
-    STRUCTURE_CONTAINER_ONLY = 1 << 10
+    STRUCTURE_CONTAINER_ONLY = 1 << 10,
+    /// <summary>
+    ///     If a statement is found after this directive, it will be virtually wrapped in a code block during statement
+    ///     assembly. This attribute guarantees the directive implementation that a code block will be present.
+    ///     A <see cref="StatementException" /> will be thrown if the directive is followed by the end of the file.
+    /// </summary>
+    FORCE_CODE_BLOCK = 1 << 11
 }
